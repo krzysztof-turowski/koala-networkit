@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 project(koala-networkit CXX)
-find_program(MAKE_EXE NAMES make gmake nmake)
+set(PROJECT_NAME "koala-networkit")
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
@@ -29,21 +29,33 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(networkit)
 #</networKit>
 
-option(KOALA_BUILD_CORE "Build Koala library" ON)
+option(KOALA_BUILD_SHARED "Build shared library" ON)
 option(KOALA_BUILD_TESTS "Build Koala tests" ON)
 
-if (KOALA_BUILD_CORE)
-    add_library(koala-networkit STATIC cpp/koala.cpp)
-    target_include_directories(koala-networkit PUBLIC cpp/io)
-    target_include_directories(koala-networkit PUBLIC include)
-    target_link_libraries(koala-networkit networkit)
+function(koala_add_module modname)
+    foreach(file ${ARGN})
+        target_sources(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_LIST_DIR}/${file})
+    endforeach()
+endfunction()
+
+if(KOALA_BUILD_SHARED)
+    add_library(${PROJECT_NAME} STATIC cpp/koala.cpp)
+else()
+    add_library(${PROJECT_NAME} SHARED cpp/koala.cpp)
 endif()
+target_include_directories(${PROJECT_NAME} PUBLIC cpp/io)
+target_include_directories(${PROJECT_NAME} PUBLIC include)
+target_link_libraries(${PROJECT_NAME} networkit)
+add_subdirectory(cpp)
 
-if (KOALA_BUILD_TESTS)
+function(koala_make_test testname testfile)
+    add_executable(${testname} ${CMAKE_CURRENT_LIST_DIR}/${testfile})
+    target_include_directories(${testname} PUBLIC include)
+    target_link_libraries(${testname} gtest_main networkit ${PROJECT_NAME})
+    add_test(${testname} ${testname})
+endfunction()
+
+if(KOALA_BUILD_TESTS)
     enable_testing()
-
-    add_executable(test_graph_io test/testGraphIO.cpp)
-    target_include_directories(test_graph_io PUBLIC include)
-    target_link_libraries(test_graph_io gtest_main networkit)
-    add_test(test_graph_io test_graph_io)
+    add_subdirectory(test)
 endif()
