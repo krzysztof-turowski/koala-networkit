@@ -31,7 +31,7 @@ public:
      * @param[in]  path  input file path
      * @param[out]  the graph read from file
      */
-    Graph read(const std::string &path) override;
+    NetworKit::Graph read(const std::string &path) override;
 
     /**
      * Given an input string, read the graph from it.
@@ -39,7 +39,7 @@ public:
      * @param[in]  path  input string
      * @param[out]  the graph read from string
      */
-    Graph readline(const std::string &line);
+    NetworKit::Graph readline(const std::string &line);
 };
 
 } /* namespace Koala */

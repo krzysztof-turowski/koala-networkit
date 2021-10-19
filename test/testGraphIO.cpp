@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 
-#include <include/io/G6GraphReader.hpp>
-#include <include/io/S6GraphReader.hpp>
-
 #include <list>
+
+#include <io/G6GraphReader.hpp>
+#include <io/S6GraphReader.hpp>
 
 struct GraphIOParameters {
     std::string G;
@@ -19,7 +19,7 @@ class GraphReaderFromSparse6Test
 
 TEST_P(GraphReaderFromGraph6Test, test) {
   GraphIOParameters const& parameters = GetParam();
-  Graph G = Koala::G6GraphReader(parameters.G);
+  NetworKit::Graph G = Koala::G6GraphReader().readline(parameters.G);
   EXPECT_EQ(G.numberOfNodes(), parameters.N);
   EXPECT_EQ(G.numberOfEdges(), parameters.E.size());
   for (const auto &e : parameters.E) {
@@ -41,7 +41,7 @@ INSTANTIATE_TEST_CASE_P(
 
 TEST_P(GraphReaderFromSparse6Test, test) {
   GraphIOParameters const& parameters = GetParam();
-  Graph G = Koala::S6GraphReader(parameters.G);
+  NetworKit::Graph G = Koala::S6GraphReader().readline(parameters.G);
   EXPECT_EQ(G.numberOfNodes(), parameters.N);
   EXPECT_EQ(G.numberOfEdges(), parameters.E.size());
   for (const auto &e : parameters.E) {

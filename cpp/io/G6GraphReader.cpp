@@ -8,19 +8,20 @@
 #include <fstream>
 
 #include <networkit/auxiliary/Enforce.hpp>
-#include <networkit/io/G6GraphReader.hpp>
+
+#include <io/G6GraphReader.hpp>
 
 namespace Koala {
 
-Graph G6GraphReader::read(const std::string &path) {
+NetworKit::Graph G6GraphReader::read(const std::string &path) {
     std::ifstream graphFile(path);
-    Aux::enforceOpened(graphFile);
+    NetworKit::Aux::enforceOpened(graphFile);
     std::string line;
     std::getline(graphFile, line);
     return readline(line);
 }
 
-Graph G6GraphReader::readline(const std::string &line) {
+NetworKit::Graph G6GraphReader::readline(const std::string &line) {
     auto it = line.cbegin();
 
     auto scanGraphOrder = [&it]() -> index {
@@ -62,7 +63,7 @@ Graph G6GraphReader::readline(const std::string &line) {
     };
 
     index nodes = scanGraphOrder();
-    Graph graph(nodes, false, false);
+    NetworKit::Graph graph(nodes, false, false);
     char mask = 0;
     for (int v = 1; v < nodes; v++) {
         mask = scanNode(v, mask);

@@ -8,7 +8,8 @@
 #include <fstream>
 
 #include <networkit/auxiliary/Enforce.hpp>
-#include <networkit/io/S6GraphReader.hpp>
+
+#include <io/S6GraphReader.hpp>
 
 namespace Koala {
 
@@ -16,7 +17,7 @@ constexpr index log2(index n) {
   return n > 1 ? 1 + log2(n >> 1) : 0;
 }
 
-Graph S6GraphReader::read(const std::string &path) {
+NetworKit::Graph S6GraphReader::read(const std::string &path) {
     std::ifstream graphFile(path);
     Aux::enforceOpened(graphFile);
     std::string line;
@@ -24,7 +25,7 @@ Graph S6GraphReader::read(const std::string &path) {
     return readline(line);
 }
 
-Graph S6GraphReader::readline(const std::string &line) {
+NetworKit::Graph S6GraphReader::readline(const std::string &line) {
     auto it = line.cbegin();
     assert(*it == ':');
     ++it;
