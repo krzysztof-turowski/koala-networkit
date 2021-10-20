@@ -3,6 +3,7 @@
 #include <list>
 
 #include <io/G6GraphReader.hpp>
+#include <io/G6GraphWriter.hpp>
 #include <io/S6GraphReader.hpp>
 
 struct GraphIOParameters {
@@ -15,6 +16,9 @@ class GraphReaderFromGraph6Test
     : public testing::TestWithParam<GraphIOParameters> { };
 
 class GraphReaderFromSparse6Test
+    : public testing::TestWithParam<GraphIOParameters> { };
+
+class GraphWriterToGraph6Test
     : public testing::TestWithParam<GraphIOParameters> { };
 
 TEST_P(GraphReaderFromGraph6Test, test) {
@@ -55,4 +59,25 @@ INSTANTIATE_TEST_CASE_P(
             ":Fa@x^", 7, {{1, 0}, {2, 0}, {2, 1}, {6, 5}}},
         GraphIOParameters{
             ":Go@_YMb", 8, {{4, 0}, {4, 1}, {5, 0}, {5, 1}, {6, 2}, {6, 3}, {7, 2}, {7, 3}}}
+));
+
+TEST_P(GraphWriterToGraph6Test, test) {
+  GraphIOParameters const& parameters = GetParam();
+  NetworKit::Graph G(parameters.N, false, false);
+  for (auto &[u, v] : parameters.E) {
+    G.addEdge(u, v);
+  }
+  EXPECT_EQ(Koala::G6GraphWriter().writeline(G), parameters.G);
+}
+
+INSTANTIATE_TEST_CASE_P(
+    test_small, GraphWriterToGraph6Test, testing::Values(
+        GraphIOParameters{
+            "G?r@`_", 8, {{4, 0}, {4, 1}, {5, 0}, {5, 1}, {6, 2}, {6, 3}, {7, 2}, {7, 3}}},
+        GraphIOParameters{
+            "G?qa`_", 8, {{4, 0}, {4, 1}, {5, 0}, {5, 2}, {6, 1}, {6, 3}, {7, 2}, {7, 3}}},
+        GraphIOParameters{
+            "GCQR@O", 8, {{3, 0}, {4, 1}, {5, 0}, {5, 3}, {6, 1}, {6, 2}, {7, 2}, {7, 4}}},
+        GraphIOParameters{
+            "Fw??G", 7, {{1, 0}, {2, 0}, {2, 1}, {6, 5}}}
 ));
