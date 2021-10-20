@@ -25,18 +25,18 @@ NetworKit::Graph G6GraphReader::readline(const std::string &line) {
     auto it = line.cbegin();
 
     const char LOW = 0x3f, HIGH = 0x7e, MASK = 0x20;
-    const int SHORT_N = 1, MEDIUM_N = 2, LONG_N = 6, LENGTH = 6;
-    int nodes_length = SHORT_N;
+    const NetworKit::count SHORT_N = 1, MEDIUM_N = 2, LONG_N = 6, LENGTH = 6;
+    NetworKit::count nodes_length = SHORT_N;
     if (*it >= HIGH) {
         nodes_length = MEDIUM_N, ++it;
         if (*it >= HIGH) {
-          nodes_length = LONG_N, ++it;
+            nodes_length = LONG_N, ++it;
         }
     }
 
-    NetworKit::index nodes = 0;
+    NetworKit::count nodes = 0;
     for (int i = 0; i < nodes_length; i++, ++it) {
-      nodes = (nodes << LENGTH) | (*it - LOW);
+        nodes = (nodes << LENGTH) | (*it - LOW);
     }
 
     NetworKit::Graph graph(nodes, false, false);
