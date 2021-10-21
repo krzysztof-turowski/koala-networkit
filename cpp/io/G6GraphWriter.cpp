@@ -54,7 +54,7 @@ std::string G6GraphWriter::writeline(const NetworKit::Graph &G) {
         }
         shift += index, index++;
     }
-    for (int i = start; i < output.size(); i++) {
+    for (unsigned i = start; i < output.size(); i++) {
         output[i] += LOW;
     }
     return output;

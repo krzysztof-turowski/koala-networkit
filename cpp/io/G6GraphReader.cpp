@@ -35,7 +35,7 @@ NetworKit::Graph G6GraphReader::readline(const std::string &line) {
     }
 
     NetworKit::count nodes = 0;
-    for (int i = 0; i < nodes_length; i++, ++it) {
+    for (NetworKit::count i = 0; i < nodes_length; i++, ++it) {
         nodes = (nodes << LENGTH) | (*it - LOW);
     }
 
