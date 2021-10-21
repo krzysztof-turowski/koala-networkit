@@ -41,8 +41,8 @@ NetworKit::Graph G6GraphReader::readline(const std::string &line) {
 
     NetworKit::Graph graph(nodes, false, false);
     char mask = 0, bits = 0;
-    for (NetworKit::index v = 1; v < nodes; v++) {
-        for (NetworKit::index u = 0; u < v; u++, mask >>= 1) {
+    for (NetworKit::node v = 1; v < nodes; v++) {
+        for (NetworKit::node u = 0; u < v; u++, mask >>= 1) {
             if (!mask) {
                 assert(*it >= LOW && *it <= HIGH);
                 bits = *it - LOW, mask = MASK, ++it;

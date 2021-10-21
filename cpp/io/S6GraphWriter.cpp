@@ -50,8 +50,8 @@ std::string S6GraphWriter::writeline(const NetworKit::Graph &G) {
     NetworKit::index v_previous = 0;
     const int MASKS[] = {
         0x0, 0x1, 0x3, 0x7, 0xf, 0x1f, 0x3f, 0x7f, 0xff, 0x1ff, 0x3ff, 0x7ff, 0xfff };
-    for (const NetworKit::index v : G.nodeRange()) {
-        for (const NetworKit::index u : G.neighborRange(v)) {
+    for (const NetworKit::node v : G.nodeRange()) {
+        for (const NetworKit::node u : G.neighborRange(v)) {
             if (u > v) {
                 continue;
             }
@@ -75,7 +75,8 @@ std::string S6GraphWriter::writeline(const NetworKit::Graph &G) {
         }
     }
     if (length > 0) {
-      bool special_case = G.upperNodeIdBound() == flag && v_previous == G.upperNodeIdBound() - 2;
+      int special_case = static_cast<int>(
+          G.upperNodeIdBound() == flag && v_previous == G.upperNodeIdBound() - 2);
       char padding = (bits << (LENGTH - length)) + MASKS[LENGTH - length - special_case];
       output.push_back(padding + LOW);
     }

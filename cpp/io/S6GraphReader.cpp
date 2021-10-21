@@ -48,7 +48,7 @@ NetworKit::Graph S6GraphReader::readline(const std::string &line) {
     NetworKit::Graph graph(nodes, false, false);
     const char MASKS[] = { 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40 };
     NetworKit::count lognodes = log2(nodes - 1), length = 0, bits = 0;
-    NetworKit::index u = 0, v = 0;
+    NetworKit::node u = 0, v = 0;
     while (true) {
         if (length == 0) {
             if (it == line.cend()) {

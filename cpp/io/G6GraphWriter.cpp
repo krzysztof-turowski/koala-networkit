@@ -45,8 +45,8 @@ std::string G6GraphWriter::writeline(const NetworKit::Graph &G) {
     int length = (G.numberOfNodes() * (G.numberOfNodes() - 1) / 2) / LENGTH + 1;
     output.append(length, 0x0);
     const char MASKS[] = { 0x20, 0x10, 0x08, 0x04, 0x02, 0x01 };
-    for (const NetworKit::index v : G.nodeRange()) {
-        for (const NetworKit::index u : G.neighborRange(v)) {
+    for (const NetworKit::node v : G.nodeRange()) {
+        for (const NetworKit::node u : G.neighborRange(v)) {
             if (u < v) {
                 int position = shift + u;
                 output[start + position / LENGTH] |= MASKS[position % LENGTH];

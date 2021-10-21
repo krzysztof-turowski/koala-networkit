@@ -23,8 +23,8 @@ NetworKit::Graph DimacsGraphReader::read(const std::string &path) {
     const int MAX = 2048;
     char command = 0;
     std::string format;
-    NetworKit::index nodes = 0, edges = 0;
-    NetworKit::index u = 0, v = 0;
+    NetworKit::count nodes = 0, edges = 0;
+    NetworKit::node u = 0, v = 0;
     while (true) {
         graphFile >> command;
         if (graphFile.eof()) {
