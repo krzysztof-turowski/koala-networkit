@@ -86,12 +86,27 @@ public:
     using GreedyVertexColoring::GreedyVertexColoring;
 
     /**
-     * Execute the largest first greedy vertex coloring heuristic.
+     * Execute the smallest last greedy vertex coloring heuristic.
      */
     void run();
 
 private:
     std::vector<NetworKit::node> smallest_last_ordering();
+};
+
+/**
+ * @ingroup coloring
+ * The class for the saturated largest first greedy vertex coloring heuristic.
+ */
+class SaturatedLargestFirstVertexColoring final : public GreedyVertexColoring {
+
+public:
+    using GreedyVertexColoring::GreedyVertexColoring;
+
+    /**
+     * Execute the saturated largest first greedy vertex coloring heuristic.
+     */
+    void run();
 };
 
 } /* namespace Koala */

@@ -43,24 +43,16 @@ std::map<NetworKit::node, int>::iterator GreedyVertexColoring::greedy_color(Netw
 }
 
 void RandomSequentialVertexColoring::run() {
-    int max_color = 0;
     graph->forNodesInRandomOrder([&](NetworKit::node v) {
-        int color = greedy_color(v)->second;
-        if (color > max_color) {
-            max_color = color;
-        }
+        greedy_color(v)->second;
     });
     hasRun = true;
 }
 
 void LargestFirstVertexColoring::run() {
     std::vector<NetworKit::node> vertices(largest_first_ordering());
-    int max_color = 0;
     for (const auto v : vertices) {
-        int color = greedy_color(v)->second;
-        if (color > max_color) {
-            max_color = color;
-        }
+        greedy_color(v)->second;
     }
     hasRun = true;
 }
@@ -81,12 +73,8 @@ std::vector<NetworKit::node> LargestFirstVertexColoring::largest_first_ordering(
 
 void SmallestLastVertexColoring::run() {
     std::vector<NetworKit::node> vertices(smallest_last_ordering());
-    int max_color = 0;
     for (const auto v : vertices) {
-        int color = greedy_color(v)->second;
-        if (color > max_color) {
-            max_color = color;
-        }
+        greedy_color(v)->second;
     }
     hasRun = true;
 }
@@ -111,6 +99,38 @@ std::vector<NetworKit::node> SmallestLastVertexColoring::smallest_last_ordering(
         });
     }
     return vertices;
+}
+
+void SaturatedLargestFirstVertexColoring::run() {
+    NetworKit::count max_degree = NetworKit::GraphTools::maxDegree(*graph);
+    std::map<NetworKit::node, std::set<int>> saturations;
+    graph->forEdges([&](NetworKit::node u, NetworKit::node v) {
+        if (colors.find(u) == colors.end() && colors.find(v) != colors.end()) {
+            saturations[u].insert(colors[v]);
+        } else if (colors.find(u) != colors.end() && colors.find(v) == colors.end()) {
+            saturations[v].insert(colors[u]);
+        }
+    });
+
+    NetworKit::count limit = (max_degree + 1) * max_degree;
+    Aux::BucketPQ queue(graph->numberOfNodes(), -limit, 0);
+    graph->forNodes([&](NetworKit::node v) {
+        if (colors.find(v) == colors.end()) {
+            queue.insert(-saturations[v].size() * max_degree - graph->degree(v), v);
+        }
+    });
+
+    while (!queue.empty()) {
+        auto v = queue.extractMin().second;
+        int color = greedy_color(v)->second;
+        graph->forInNeighborsOf(v, [&](NetworKit::node u) {
+            if (queue.contains(u) && !saturations[u].count(color)) {
+                saturations[u].insert(color);
+                queue.changeKey(queue.getKey(u) - max_degree, u);
+            }
+        });
+    }
+    hasRun = true;
 }
 
 } /* namespace Koala */
