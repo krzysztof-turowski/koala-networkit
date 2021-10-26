@@ -2,7 +2,7 @@
  * DimacsGraphReader.cpp
  *
  *  Created on: 21.10.2021
- *      Author: Krzysztof Turowski
+ *      Author: Krzysztof Turowski (krzysztof.szymon.turowski@gmail.com)
  */
 
 #include <fstream>

@@ -2,7 +2,7 @@
  * G6GraphReader.cpp
  *
  *  Created on: 06.10.2021
- *      Author: Krzysztof Turowski
+ *      Author: Krzysztof Turowski (krzysztof.szymon.turowski@gmail.com)
  */
 
 #include <fstream>

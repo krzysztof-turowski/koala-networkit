@@ -2,7 +2,7 @@
  * G6GraphWriter.cpp
  *
  *  Created on: 20.10.2021
- *      Author: Krzysztof Turowski
+ *      Author: Krzysztof Turowski (krzysztof.szymon.turowski@gmail.com)
  */
 
 #include <fstream>
