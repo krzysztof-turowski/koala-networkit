@@ -16,7 +16,7 @@ namespace Koala {
 /**
  * @ingroup io
  * A reader for DIMACS graph format.
- * Full definition: http://archive.dimacs.rutgers.edu/pub/challenge/graph/doc/ccformat.tex
+ * Full definition: http://prolland.free.fr/works/research/dsat/dimacs.html
  *
  */
 class DimacsGraphReader final : public NetworKit::GraphReader {
