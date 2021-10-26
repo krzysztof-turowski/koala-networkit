@@ -2,6 +2,7 @@
 
 #include <list>
 
+#include <io/D6GraphReader.hpp>
 #include <io/DimacsGraphReader.hpp>
 #include <io/G6GraphReader.hpp>
 #include <io/G6GraphWriter.hpp>
@@ -13,6 +14,9 @@ struct GraphIOParameters {
     int N;
     std::list<std::pair<int, int>> E;
 };
+
+class GraphReaderFromDigraph6Test
+    : public testing::TestWithParam<GraphIOParameters> { };
 
 class GraphReaderFromGraph6Test
     : public testing::TestWithParam<GraphIOParameters> { };
@@ -28,6 +32,22 @@ class GraphWriterToGraph6Test
 
 class GraphWriterToSparse6Test
     : public testing::TestWithParam<GraphIOParameters> { };
+
+TEST_P(GraphReaderFromDigraph6Test, test) {
+  GraphIOParameters const& parameters = GetParam();
+  NetworKit::Graph G = Koala::D6GraphReader().readline(parameters.G);
+  EXPECT_EQ(G.numberOfNodes(), parameters.N);
+  EXPECT_EQ(G.numberOfEdges(), parameters.E.size());
+  for (const auto &e : parameters.E) {
+    EXPECT_TRUE(G.hasEdge(e.first, e.second));
+  }
+}
+
+INSTANTIATE_TEST_CASE_P(
+    test_small, GraphReaderFromDigraph6Test, testing::Values(
+        GraphIOParameters{
+            "&DI?AO?", 5, {{0, 2}, {0, 4}, {3, 1}, {3, 4}}}
+));
 
 TEST_P(GraphReaderFromGraph6Test, test) {
   GraphIOParameters const& parameters = GetParam();
