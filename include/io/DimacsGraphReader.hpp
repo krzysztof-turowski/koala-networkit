@@ -2,11 +2,10 @@
  * DimacsGraphReader.hpp
  *
  *  Created on: 21.10.2021
- *      Author: Krzysztof Turowski
+ *      Author: Krzysztof Turowski (krzysztof.szymon.turowski@gmail.com)
  */
 
-#ifndef KOALA_IO_DIMACS_GRAPH_READER_HPP_
-#define KOALA_IO_DIMACS_GRAPH_READER_HPP_
+#pragma once
 
 #include <string>
 
@@ -35,4 +34,3 @@ public:
 };
 
 } /* namespace Koala */
-#endif // KOALA_IO_DIMACS_GRAPH_READER_HPP_

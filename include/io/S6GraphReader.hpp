@@ -2,11 +2,10 @@
  * S6GraphReader.hpp
  *
  *  Created on: 06.10.2021
- *      Author: Krzysztof Turowski
+ *      Author: Krzysztof Turowski (krzysztof.szymon.turowski@gmail.com)
  */
 
-#ifndef KOALA_IO_S6_GRAPH_READER_HPP_
-#define KOALA_IO_S6_GRAPH_READER_HPP_
+#pragma once
 
 #include <string>
 
@@ -43,4 +42,3 @@ public:
 };
 
 } /* namespace Koala */
-#endif // KOALA_IO_S6_GRAPH_READER_HPP_

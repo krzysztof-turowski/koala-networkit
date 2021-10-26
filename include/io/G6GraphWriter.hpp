@@ -2,11 +2,8 @@
  * G6GraphWriter.hpp
  *
  *  Created on: 20.10.2021
- *      Author: Krzysztof Turowski
+ *      Author: Krzysztof Turowski (krzysztof.szymon.turowski@gmail.com)
  */
-
-#ifndef KOALA_IO_G6_GRAPH_WRITER_HPP_
-#define KOALA_IO_G6_GRAPH_WRITER_HPP_
 
 #include <string>
 
@@ -43,4 +40,3 @@ public:
 };
 
 } /* namespace Koala */
-#endif // KOALA_IO_G6_GRAPH_WRITER_HPP_
