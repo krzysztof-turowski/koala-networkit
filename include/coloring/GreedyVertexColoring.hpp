@@ -2,7 +2,7 @@
  * GreedyVertexColoring.hpp
  *
  *  Created on: 22.10.2021
- *      Author: Krzysztof Turowski
+ *      Author: Krzysztof Turowski (krzysztof.szymon.turowski@gmail.com)
  */
 
 #pragma once
@@ -74,6 +74,24 @@ public:
 
 private:
     std::vector<NetworKit::node> largest_first_ordering();
+};
+
+/**
+ * @ingroup coloring
+ * The class for the smallest last greedy vertex coloring heuristic.
+ */
+class SmallestLastVertexColoring final : public GreedyVertexColoring {
+
+public:
+    using GreedyVertexColoring::GreedyVertexColoring;
+
+    /**
+     * Execute the largest first greedy vertex coloring heuristic.
+     */
+    void run();
+
+private:
+    std::vector<NetworKit::node> smallest_last_ordering();
 };
 
 } /* namespace Koala */
