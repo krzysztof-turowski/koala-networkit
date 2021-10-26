@@ -5,49 +5,75 @@
  *      Author: Krzysztof Turowski
  */
 
-#ifndef KOALA_COLORING_GREEDY_VERTEX_COLORING_HPP_
-#define KOALA_COLORING_GREEDY_VERTEX_COLORING_HPP_
+#pragma once
 
 #include <map>
 
+#include <networkit/base/Algorithm.hpp>
 #include <networkit/graph/Graph.hpp>
 
 namespace Koala {
 
 /**
  * @ingroup coloring
- * A set of greedy vertex coloring algorithms.
+ * The base class for the greedy vertex coloring heuristics.
  *
  */
-class GreedyVertexColoring final {
+class GreedyVertexColoring : public NetworKit::Algorithm {
 
 public:
-    GreedyVertexColoring() = default;
+    /**
+     * Given an input graph, set up the greedy vertex coloring procedure.
+     *
+     * @param graph The input graph.
+     */
+    GreedyVertexColoring(const NetworKit::Graph &graph);
 
     /**
-     * Given an input graph, find the greedy coloring using Random Sequential algorithm.
+     * Return the coloring found by the algorithm.
      *
-     * @param[in]  graph   input graph
-     * @param[in]  colors  mapping of colors
-     * @param[out]  the number of colors used by the coloring
+     * @return a map from nodes to colors.
      */
-    int randomSequential(const NetworKit::Graph &graph, std::map<NetworKit::node, int> &colors);
+    const std::map<NetworKit::node, int>& getColoring() const;
+
+protected:
+    const std::optional<NetworKit::Graph> graph;
+    std::map<NetworKit::node, int> colors;
+
+    std::map<NetworKit::node, int>::iterator greedy_color(NetworKit::node v);
+};
+
+/**
+ * @ingroup coloring
+ * The class for the random sequential greedy vertex coloring heuristic.
+ */
+class RandomSequentialVertexColoring final : public GreedyVertexColoring {
+
+public:
+    using GreedyVertexColoring::GreedyVertexColoring;
 
     /**
-     * Given an input graph, find the greedy coloring using Largest First algorithm.
-     *
-     * @param[in]  graph   input graph
-     * @param[in]  colors  mapping of colors
-     * @param[out]  the number of colors used by the coloring
+     * Execute the random sequential greedy vertex coloring heuristic.
      */
-    int largestFirst(const NetworKit::Graph &graph, std::map<NetworKit::node, int> &colors);
+    void run();
+};
+
+/**
+ * @ingroup coloring
+ * The class for the largest first greedy vertex coloring heuristic.
+ */
+class LargestFirstVertexColoring final : public GreedyVertexColoring {
+
+public:
+    using GreedyVertexColoring::GreedyVertexColoring;
+
+    /**
+     * Execute the largest first greedy vertex coloring heuristic.
+     */
+    void run();
 
 private:
-    std::map<NetworKit::node, int>::iterator greedy_color(
-        const NetworKit::Graph &graph, NetworKit::node v, std::map<NetworKit::node, int> &colors);
-    std::vector<NetworKit::node> largest_first_ordering(
-        const NetworKit::Graph &G, std::map<NetworKit::node, int> &colors);
+    std::vector<NetworKit::node> largest_first_ordering();
 };
 
 } /* namespace Koala */
-#endif // KOALA_COLORING_GREEDY_VERTEX_COLORING_HPP_

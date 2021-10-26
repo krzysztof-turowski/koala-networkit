@@ -10,10 +10,10 @@ struct VertexColoringParameters {
     int colors;
 };
 
-class GreedyVertexColoringRandomSequentialTest
+class RandomSequentialVertexColoringTest
     : public testing::TestWithParam<VertexColoringParameters> { };
 
-class GreedyVertexColoringLargestFirstTest
+class LargestFirstVertexColoringTest
     : public testing::TestWithParam<VertexColoringParameters> { };
 
 NetworKit::Graph build_graph(const int &N, const std::list<std::pair<int, int>> &E) {
@@ -24,27 +24,49 @@ NetworKit::Graph build_graph(const int &N, const std::list<std::pair<int, int>> 
   return G;
 }
 
-TEST_P(GreedyVertexColoringRandomSequentialTest, test) {
+TEST_P(RandomSequentialVertexColoringTest, test) {
   VertexColoringParameters const& parameters = GetParam();
   NetworKit::Graph G = build_graph(parameters.N, parameters.E);
-  std::map<NetworKit::node, int> S;
-  EXPECT_EQ(Koala::GreedyVertexColoring().randomSequential(G, S), parameters.colors);
+  auto algorithm = Koala::RandomSequentialVertexColoring(G);
+  algorithm.run();
+
+  auto colors = algorithm.getColoring();
+  for (const auto &[u, v] : parameters.E) {
+    EXPECT_NE(colors[u], colors[v]);
+  }
+
+  int max_color = 0;
+  for (const auto &[v, c] : colors) {
+    max_color = std::max(max_color, c);
+  }
+  EXPECT_EQ(max_color, parameters.colors);
 }
 
 INSTANTIATE_TEST_SUITE_P(
-    test_example, GreedyVertexColoringRandomSequentialTest, testing::Values(
+    test_example, RandomSequentialVertexColoringTest, testing::Values(
         VertexColoringParameters{4, {{0, 1}, {0, 2}, {1, 3}, {2, 3}}, 2}
 ));
 
-TEST_P(GreedyVertexColoringLargestFirstTest, test) {
+TEST_P(LargestFirstVertexColoringTest, test) {
   VertexColoringParameters const& parameters = GetParam();
   NetworKit::Graph G = build_graph(parameters.N, parameters.E);
-  std::map<NetworKit::node, int> S;
-  EXPECT_EQ(Koala::GreedyVertexColoring().largestFirst(G, S), parameters.colors);
+  auto algorithm = Koala::LargestFirstVertexColoring(G);
+  algorithm.run();
+
+  auto colors = algorithm.getColoring();
+  for (const auto &[u, v] : parameters.E) {
+    EXPECT_NE(colors[u], colors[v]);
+  }
+
+  int max_color = 0;
+  for (const auto &[v, c] : colors) {
+    max_color = std::max(max_color, c);
+  }
+  EXPECT_EQ(max_color, parameters.colors);
 }
 
 INSTANTIATE_TEST_SUITE_P(
-    test_example, GreedyVertexColoringLargestFirstTest, testing::Values(
+    test_example, LargestFirstVertexColoringTest, testing::Values(
         VertexColoringParameters{
             7, {{0, 2}, {0, 3}, {0, 5}, {0, 6}, {1, 2}, {1, 4}, {1, 5}, {1, 6}, {2, 3}, {2, 4},
                 {3, 4}}, 4},
