@@ -78,6 +78,9 @@ Moreover, they set up an online graph editor <a href="http://web.archive.org/web
 
 ### <a name="algorithms"></a>List of algorithms
 
+1. Vertex coloring
+    1. [Greedy heuristics](https://github.com/krzysztof-turowski/koala-networkit/blob/master/include/coloring/GreedyVertexColoring.hpp): RandomSequential, LargestFirst, SmallestLast, SaturatedLargestFirst, GreedyIndependentSet
+
 For further planned changes, see the [Issues](https://github.com/krzysztof-turowski/koala-networkit/issues/) section.
 
 ### <a name="datasets"></a>List of datasets
