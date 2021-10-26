@@ -15,7 +15,7 @@ namespace Koala {
 
 /**
  * @ingroup io
- * A reader for DIMACS graph format. Each line contains a single graph.
+ * A reader for DIMACS graph format.
  * Full definition: http://archive.dimacs.rutgers.edu/pub/challenge/graph/doc/ccformat.tex
  *
  */
