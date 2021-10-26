@@ -6,7 +6,6 @@
  */
 
 #include <fstream>
-#include <iostream>
 
 #include <networkit/auxiliary/Enforce.hpp>
 #include <networkit/graph/GraphTools.hpp>
@@ -28,7 +27,7 @@ NetworKit::Graph DimacsGraphReader::read(const std::string &path) {
     while (true) {
         graphFile >> command;
         if (graphFile.eof()) {
-          break;
+            break;
         }
         switch (command) {
             case 'p':
@@ -43,7 +42,7 @@ NetworKit::Graph DimacsGraphReader::read(const std::string &path) {
                 break;
             case 'e':
                 if (graph.isDirected()) {
-                  graph = NetworKit::GraphTools::toUndirected(graph);
+                    graph = NetworKit::GraphTools::toUndirected(graph);
                 }
                 graphFile >> u >> v;
                 graph.addEdge(u - 1, v - 1);
