@@ -109,4 +109,19 @@ public:
     void run();
 };
 
+/**
+ * @ingroup coloring
+ * The class for the greedy independent set vertex coloring heuristic.
+ */
+class GreedyIndependentSetVertexColoring final : public GreedyVertexColoring {
+
+public:
+    using GreedyVertexColoring::GreedyVertexColoring;
+
+    /**
+     * Execute the greedy independent set vertex coloring heuristic.
+     */
+    void run();
+};
+
 } /* namespace Koala */
