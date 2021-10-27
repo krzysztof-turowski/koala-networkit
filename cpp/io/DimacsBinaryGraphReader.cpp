@@ -9,7 +9,6 @@
 #include <sstream>
 
 #include <networkit/auxiliary/Enforce.hpp>
-#include <networkit/graph/GraphTools.hpp>
 
 #include <io/DimacsBinaryGraphReader.hpp>
 
