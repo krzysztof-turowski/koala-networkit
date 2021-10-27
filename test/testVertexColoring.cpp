@@ -26,29 +26,29 @@ class GreedyIndependentSetVertexColoringTest
     : public testing::TestWithParam<VertexColoringParameters> { };
 
 NetworKit::Graph build_graph(const int &N, const std::list<std::pair<int, int>> &E) {
-  NetworKit::Graph G(N, false, false);
-  for (const auto &[u, v] : E) {
-    G.addEdge(u, v);
-  }
-  return G;
+    NetworKit::Graph G(N, false, false);
+    for (const auto &[u, v] : E) {
+        G.addEdge(u, v);
+    }
+    return G;
 }
 
 TEST_P(RandomSequentialVertexColoringTest, test) {
-  VertexColoringParameters const& parameters = GetParam();
-  NetworKit::Graph G = build_graph(parameters.N, parameters.E);
-  auto algorithm = Koala::RandomSequentialVertexColoring(G);
-  algorithm.run();
+    VertexColoringParameters const& parameters = GetParam();
+    NetworKit::Graph G = build_graph(parameters.N, parameters.E);
+    auto algorithm = Koala::RandomSequentialVertexColoring(G);
+    algorithm.run();
 
-  auto colors = algorithm.getColoring();
-  for (const auto &[u, v] : parameters.E) {
-    EXPECT_NE(colors[u], colors[v]);
-  }
+    auto colors = algorithm.getColoring();
+    for (const auto &[u, v] : parameters.E) {
+        EXPECT_NE(colors[u], colors[v]);
+    }
 
-  int max_color = 0;
-  for (const auto &[v, c] : colors) {
-    max_color = std::max(max_color, c);
-  }
-  EXPECT_EQ(max_color, parameters.colors);
+    int max_color = 0;
+    for (const auto &[v, c] : colors) {
+        max_color = std::max(max_color, c);
+    }
+    EXPECT_EQ(max_color, parameters.colors);
 }
 
 INSTANTIATE_TEST_SUITE_P(
@@ -57,21 +57,21 @@ INSTANTIATE_TEST_SUITE_P(
 ));
 
 TEST_P(LargestFirstVertexColoringTest, test) {
-  VertexColoringParameters const& parameters = GetParam();
-  NetworKit::Graph G = build_graph(parameters.N, parameters.E);
-  auto algorithm = Koala::LargestFirstVertexColoring(G);
-  algorithm.run();
+    VertexColoringParameters const& parameters = GetParam();
+    NetworKit::Graph G = build_graph(parameters.N, parameters.E);
+    auto algorithm = Koala::LargestFirstVertexColoring(G);
+    algorithm.run();
 
-  auto colors = algorithm.getColoring();
-  for (const auto &[u, v] : parameters.E) {
-    EXPECT_NE(colors[u], colors[v]);
-  }
+    auto colors = algorithm.getColoring();
+    for (const auto &[u, v] : parameters.E) {
+        EXPECT_NE(colors[u], colors[v]);
+    }
 
-  int max_color = 0;
-  for (const auto &[v, c] : colors) {
-    max_color = std::max(max_color, c);
-  }
-  EXPECT_EQ(max_color, parameters.colors);
+    int max_color = 0;
+    for (const auto &[v, c] : colors) {
+        max_color = std::max(max_color, c);
+    }
+    EXPECT_EQ(max_color, parameters.colors);
 }
 
 INSTANTIATE_TEST_SUITE_P(
@@ -97,21 +97,21 @@ INSTANTIATE_TEST_SUITE_P(
 ));
 
 TEST_P(SmallestLastVertexColoringTest, test) {
-  VertexColoringParameters const& parameters = GetParam();
-  NetworKit::Graph G = build_graph(parameters.N, parameters.E);
-  auto algorithm = Koala::SmallestLastVertexColoring(G);
-  algorithm.run();
+    VertexColoringParameters const& parameters = GetParam();
+    NetworKit::Graph G = build_graph(parameters.N, parameters.E);
+    auto algorithm = Koala::SmallestLastVertexColoring(G);
+    algorithm.run();
 
-  auto colors = algorithm.getColoring();
-  for (const auto &[u, v] : parameters.E) {
-    EXPECT_NE(colors[u], colors[v]);
-  }
+    auto colors = algorithm.getColoring();
+    for (const auto &[u, v] : parameters.E) {
+        EXPECT_NE(colors[u], colors[v]);
+    }
 
-  int max_color = 0;
-  for (const auto &[v, c] : colors) {
-    max_color = std::max(max_color, c);
-  }
-  EXPECT_EQ(max_color, parameters.colors);
+    int max_color = 0;
+    for (const auto &[v, c] : colors) {
+        max_color = std::max(max_color, c);
+    }
+    EXPECT_EQ(max_color, parameters.colors);
 }
 
 INSTANTIATE_TEST_SUITE_P(
@@ -142,21 +142,21 @@ INSTANTIATE_TEST_SUITE_P(
 ));
 
 TEST_P(SaturatedLargestFirstVertexColoringTest, test) {
-  VertexColoringParameters const& parameters = GetParam();
-  NetworKit::Graph G = build_graph(parameters.N, parameters.E);
-  auto algorithm = Koala::SaturatedLargestFirstVertexColoring(G);
-  algorithm.run();
+    VertexColoringParameters const& parameters = GetParam();
+    NetworKit::Graph G = build_graph(parameters.N, parameters.E);
+    auto algorithm = Koala::SaturatedLargestFirstVertexColoring(G);
+    algorithm.run();
 
-  auto colors = algorithm.getColoring();
-  for (const auto &[u, v] : parameters.E) {
-    EXPECT_NE(colors[u], colors[v]);
-  }
+    auto colors = algorithm.getColoring();
+    for (const auto &[u, v] : parameters.E) {
+        EXPECT_NE(colors[u], colors[v]);
+    }
 
-  int max_color = 0;
-  for (const auto &[v, c] : colors) {
-    max_color = std::max(max_color, c);
-  }
-  EXPECT_EQ(max_color, parameters.colors);
+    int max_color = 0;
+    for (const auto &[v, c] : colors) {
+        max_color = std::max(max_color, c);
+    }
+    EXPECT_EQ(max_color, parameters.colors);
 }
 
 INSTANTIATE_TEST_SUITE_P(
@@ -179,21 +179,21 @@ INSTANTIATE_TEST_SUITE_P(
 ));
 
 TEST_P(GreedyIndependentSetVertexColoringTest, test) {
-  VertexColoringParameters const& parameters = GetParam();
-  NetworKit::Graph G = build_graph(parameters.N, parameters.E);
-  auto algorithm = Koala::GreedyIndependentSetVertexColoring(G);
-  algorithm.run();
+    VertexColoringParameters const& parameters = GetParam();
+    NetworKit::Graph G = build_graph(parameters.N, parameters.E);
+    auto algorithm = Koala::GreedyIndependentSetVertexColoring(G);
+    algorithm.run();
 
-  auto colors = algorithm.getColoring();
-  for (const auto &[u, v] : parameters.E) {
-    EXPECT_NE(colors[u], colors[v]);
-  }
+    auto colors = algorithm.getColoring();
+    for (const auto &[u, v] : parameters.E) {
+        EXPECT_NE(colors[u], colors[v]);
+    }
 
-  int max_color = 0;
-  for (const auto &[v, c] : colors) {
-    max_color = std::max(max_color, c);
-  }
-  EXPECT_EQ(max_color, parameters.colors);
+    int max_color = 0;
+    for (const auto &[v, c] : colors) {
+        max_color = std::max(max_color, c);
+    }
+    EXPECT_EQ(max_color, parameters.colors);
 }
 
 INSTANTIATE_TEST_SUITE_P(
