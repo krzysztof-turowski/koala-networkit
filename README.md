@@ -78,9 +78,11 @@ Moreover, they set up an online graph editor <a href="http://web.archive.org/web
 
 ### <a name="algorithms"></a>List of algorithms
 
+1. [Reading and writing graphs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/io): [graph6](https://users.cecs.anu.edu.au/~bdm/data/formats.html), [sparse6](https://users.cecs.anu.edu.au/~bdm/data/formats.html), [digraph6](https://users.cecs.anu.edu.au/~bdm/data/formats.html),[DIMACS](http://prolland.free.fr/works/research/dsat/dimacs.html), [DIMACS binary](https://mat.tepper.cmu.edu/COLOR/format/README.binformat) formats
+
 For further planned changes, see the [Issues](https://github.com/krzysztof-turowski/koala-networkit/issues/) section.
 
-### <a name="datasets></a>List of datasets
+### <a name="datasets"></a>List of datasets
 
 <p align="justify">
 To assess the speed of the algorithms we use primarily the publicly available Stanford Large Network Dataset, a set of real-world networks (social, information, biological, etc.) and datasets <a href="#third">[3]</a>.
@@ -88,12 +90,18 @@ To assess the speed of the algorithms we use primarily the publicly available St
 
 ## <a name="installation"></a>Installation
 
+```bash
+cmake -B build
+cmake --build build --parallel 4
+```
+> Note: it may take a while to download and compile dependencies (googletest and networkit).
+
 ## <a name="usage"></a>Usage
 
 ## <a name="references"></a>References
 
-[[1]](https://www.cambridge.org/core/journals/network-science/article/networkit-a-tool-suite-for-largescale-complex-network-analysis/03DB673D73EDC84C0A143864FFA17831)<a name="first"></a> Christian Staudt, Aleksejs Sazonovs, Henning Meyerhenke, NetworKit: A tool suite for large-scale complex network analysis, Network Science 4(4):508-530, 2016.
+[[1]](https://www.cambridge.org/core/journals/network-science/article/networkit-a-tool-suite-for-largescale-complex-network-analysis/03DB673D73EDC84C0A143864FFA17831)<a name="first"></a> Christian Staudt, Aleksejs Sazonovs, Henning Meyerhenke, <i>NetworKit: A tool suite for large-scale complex network analysis</i>, Network Science 4(4):508-530, 2016.
 
-[[2]](https://task.gda.pl/files/quart/TQ2015/04/tq419r-c.pdf)<a name="second"></a> Krzysztof Giaro, Krzysztof Ocetkiewicz, Tomasz Goluch, KOALA Graph Theory Internet Service, TASK Quarterly 19(4):455-470, 2015.
+[[2]](https://task.gda.pl/files/quart/TQ2015/04/tq419r-c.pdf)<a name="second"></a> Krzysztof Giaro, Krzysztof Ocetkiewicz, Tomasz Goluch, <i>KOALA Graph Theory Internet Service</i>, TASK Quarterly 19(4):455-470, 2015.
 
-[[3]](http://snap.stanford.edu/data)<a name="third"></a> Jure Leskovec, Rok Sosic, SNAP Datasets: Stanford Large Network Dataset Collection, 2014.
+[[3]](http://snap.stanford.edu/data)<a name="third"></a> Jure Leskovec, Rok Sosic, <i>SNAP Datasets: Stanford Large Network Dataset Collection</i>, 2014.
