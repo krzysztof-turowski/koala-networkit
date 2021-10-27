@@ -3,6 +3,7 @@
 #include <list>
 
 #include <io/D6GraphReader.hpp>
+#include <io/D6GraphWriter.hpp>
 #include <io/DimacsGraphReader.hpp>
 #include <io/DimacsGraphWriter.hpp>
 #include <io/DimacsBinaryGraphReader.hpp>
@@ -33,6 +34,9 @@ class GraphReaderFromDimacsTest
     : public testing::TestWithParam<GraphIOParameters> { };
 
 class GraphReaderFromDimacsBinaryTest
+    : public testing::TestWithParam<GraphIOParameters> { };
+
+class GraphWriterToDigraph6Test
     : public testing::TestWithParam<GraphIOParameters> { };
 
 class GraphWriterToGraph6Test
@@ -144,6 +148,21 @@ INSTANTIATE_TEST_CASE_P(
              {6, 0}, {6, 1}, {6, 2}, {7, 1}, {7, 2}, {7, 3}, {7, 5}, {7, 6}, {8, 2}, {8, 3},
              {8, 5}, {8, 6}, {9, 0}, {9, 2}, {9, 3}, {9, 5}, {9, 6}, {9, 8}, {10, 1},
              {10, 2}, {10, 3}, {10, 5}, {10, 6}}}
+));
+
+TEST_P(GraphWriterToDigraph6Test, test) {
+  GraphIOParameters const& parameters = GetParam();
+  NetworKit::Graph G(parameters.N, false, true);
+  for (const auto &[u, v] : parameters.E) {
+    G.addEdge(u, v);
+  }
+  EXPECT_EQ(Koala::D6GraphWriter().writeline(G), parameters.G);
+}
+
+INSTANTIATE_TEST_CASE_P(
+    test_small, GraphWriterToDigraph6Test, testing::Values(
+        GraphIOParameters{
+            "&DI?AO?", 5, {{0, 2}, {0, 4}, {3, 1}, {3, 4}}}
 ));
 
 TEST_P(GraphWriterToGraph6Test, test) {
