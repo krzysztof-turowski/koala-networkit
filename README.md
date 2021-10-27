@@ -78,7 +78,7 @@ Moreover, they set up an online graph editor <a href="http://web.archive.org/web
 
 ### <a name="algorithms"></a>List of algorithms
 
-1. [Reading and writing graphs](https://github.com/krzysztof-turowski/koala-snap/blob/main/io/graph_io.hpp): [graph6](https://users.cecs.anu.edu.au/~bdm/data/formats.html), [sparse6](https://users.cecs.anu.edu.au/~bdm/data/formats.html), [digraph6](https://users.cecs.anu.edu.au/~bdm/data/formats.html),[DIMACS](http://prolland.free.fr/works/research/dsat/dimacs.html), [DIMACS binary](https://mat.tepper.cmu.edu/COLOR/format/README.binformat) formats
+1. [Reading and writing graphs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/io): [graph6](https://users.cecs.anu.edu.au/~bdm/data/formats.html), [sparse6](https://users.cecs.anu.edu.au/~bdm/data/formats.html), [digraph6](https://users.cecs.anu.edu.au/~bdm/data/formats.html),[DIMACS](http://prolland.free.fr/works/research/dsat/dimacs.html), [DIMACS binary](https://mat.tepper.cmu.edu/COLOR/format/README.binformat) formats
 
 For further planned changes, see the [Issues](https://github.com/krzysztof-turowski/koala-networkit/issues/) section.
 

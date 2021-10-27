@@ -58,6 +58,7 @@ endif()
 set_target_properties(${PROJECT_NAME} PROPERTIES
     COMPILE_FLAGS ${KOALA_CXX_FLAGS}
     LINK_FLAGS ${KOALA_LINKER_FLAGS})
+target_include_directories(${PROJECT_NAME} PUBLIC cpp/io)
 target_include_directories(${PROJECT_NAME} PUBLIC include)
 target_link_libraries(${PROJECT_NAME} networkit)
 add_subdirectory(cpp)
