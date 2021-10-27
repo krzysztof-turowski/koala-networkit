@@ -18,7 +18,7 @@ namespace Koala {
 void DimacsBinaryGraphWriter::write(const NetworKit::Graph &G, const std::string &path) {
     std::ofstream graphFile(path);
     Aux::enforceOpened(graphFile);
-    
+
     std::stringstream preambleFile;
     preambleFile << "p edge " << G.numberOfNodes() << ' ' << G.numberOfEdges() << '\n';
     std::string preamble(preambleFile.str());
