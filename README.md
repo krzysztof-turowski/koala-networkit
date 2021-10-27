@@ -1,7 +1,4 @@
 # koala-networkit
-KOALA library fork built on NetworKit graph library
-
-# koala-networkit
 
 This project is a KOALA library fork built on top of the structures provided by the NetworKit library.
 
@@ -79,6 +76,8 @@ Moreover, they set up an online graph editor <a href="http://web.archive.org/web
 ### <a name="algorithms"></a>List of algorithms
 
 1. [Reading and writing graphs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/io): [graph6](https://users.cecs.anu.edu.au/~bdm/data/formats.html), [sparse6](https://users.cecs.anu.edu.au/~bdm/data/formats.html), [digraph6](https://users.cecs.anu.edu.au/~bdm/data/formats.html),[DIMACS](http://prolland.free.fr/works/research/dsat/dimacs.html), [DIMACS binary](https://mat.tepper.cmu.edu/COLOR/format/README.binformat) formats
+2. [Vertex coloring](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/coloring/)
+    1. [Greedy heuristics](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/coloring/GreedyVertexColoring.hpp): RandomSequential, LargestFirst, SmallestLast, SaturatedLargestFirst, GreedyIndependentSet
 
 For further planned changes, see the [Issues](https://github.com/krzysztof-turowski/koala-networkit/issues/) section.
 

@@ -42,7 +42,7 @@ NetworKit::Graph S6GraphReader::readline(const std::string &line) {
 
     NetworKit::count nodes = 0;
     for (NetworKit::count i = 0; i < nodes_length; i++, ++it) {
-      nodes = (nodes << LENGTH) | (*it - LOW);
+        nodes = (nodes << LENGTH) | (*it - LOW);
     }
 
     NetworKit::Graph graph(nodes, false, false);

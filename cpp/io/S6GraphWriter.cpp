@@ -75,10 +75,10 @@ std::string S6GraphWriter::writeline(const NetworKit::Graph &G) {
         }
     }
     if (length > 0) {
-      int special_case = static_cast<int>(
-          G.upperNodeIdBound() == flag && v_previous == G.upperNodeIdBound() - 2);
-      char padding = (bits << (LENGTH - length)) + MASKS[LENGTH - length - special_case];
-      output.push_back(padding + LOW);
+        int special_case = static_cast<int>(
+            G.upperNodeIdBound() == flag && v_previous == G.upperNodeIdBound() - 2);
+        char padding = (bits << (LENGTH - length)) + MASKS[LENGTH - length - special_case];
+        output.push_back(padding + LOW);
     }
     return output;
 }

@@ -4,10 +4,10 @@
 
 #include <io/D6GraphReader.hpp>
 #include <io/D6GraphWriter.hpp>
-#include <io/DimacsGraphReader.hpp>
-#include <io/DimacsGraphWriter.hpp>
 #include <io/DimacsBinaryGraphReader.hpp>
 #include <io/DimacsBinaryGraphWriter.hpp>
+#include <io/DimacsGraphReader.hpp>
+#include <io/DimacsGraphWriter.hpp>
 #include <io/G6GraphReader.hpp>
 #include <io/G6GraphWriter.hpp>
 #include <io/S6GraphReader.hpp>
@@ -45,10 +45,10 @@ class GraphWriterToGraph6Test
 class GraphWriterToSparse6Test
     : public testing::TestWithParam<GraphIOParameters> { };
 
-class GraphWriterFromDimacsTest
+class GraphWriterToDimacsTest
     : public testing::TestWithParam<GraphIOParameters> { };
 
-class GraphWriterFromDimacsBinaryTest
+class GraphWriterToDimacsBinaryTest
     : public testing::TestWithParam<GraphIOParameters> { };
 
 TEST_P(GraphReaderFromDigraph6Test, test) {
@@ -166,12 +166,12 @@ INSTANTIATE_TEST_CASE_P(
 ));
 
 TEST_P(GraphWriterToGraph6Test, test) {
-  GraphIOParameters const& parameters = GetParam();
-  NetworKit::Graph G(parameters.N, false, false);
-  for (const auto &[u, v] : parameters.E) {
-    G.addEdge(u, v);
-  }
-  EXPECT_EQ(Koala::G6GraphWriter().writeline(G), parameters.G);
+    GraphIOParameters const& parameters = GetParam();
+    NetworKit::Graph G(parameters.N, false, false);
+    for (const auto &[u, v] : parameters.E) {
+        G.addEdge(u, v);
+    }
+    EXPECT_EQ(Koala::G6GraphWriter().writeline(G), parameters.G);
 }
 
 INSTANTIATE_TEST_CASE_P(
@@ -203,7 +203,7 @@ INSTANTIATE_TEST_CASE_P(
             ":Go@_YMb", 8, {{4, 0}, {4, 1}, {5, 0}, {5, 1}, {6, 2}, {6, 3}, {7, 2}, {7, 3}}}
 ));
 
-TEST_P(GraphWriterFromDimacsTest, test) {
+TEST_P(GraphWriterToDimacsTest, test) {
     GraphIOParameters const& parameters = GetParam();
     NetworKit::Graph G(parameters.N, false, false);
     for (const auto &[u, v] : parameters.E) {
@@ -216,7 +216,7 @@ TEST_P(GraphWriterFromDimacsTest, test) {
 }
 
 INSTANTIATE_TEST_CASE_P(
-    test_small, GraphWriterFromDimacsTest, testing::Values(
+    test_small, GraphWriterToDimacsTest, testing::Values(
         GraphIOParameters{
             "input/example_1.col", 8,
             {{4, 0}, {4, 1}, {5, 0}, {5, 1}, {6, 2}, {6, 3}, {7, 2}, {7, 3}}},
@@ -228,7 +228,7 @@ INSTANTIATE_TEST_CASE_P(
              {10, 2}, {10, 3}, {10, 5}, {10, 6}}}
 ));
 
-TEST_P(GraphWriterFromDimacsBinaryTest, test) {
+TEST_P(GraphWriterToDimacsBinaryTest, test) {
     GraphIOParameters const& parameters = GetParam();
     NetworKit::Graph G(parameters.N, false, false);
     for (const auto &[u, v] : parameters.E) {
@@ -241,7 +241,7 @@ TEST_P(GraphWriterFromDimacsBinaryTest, test) {
 }
 
 INSTANTIATE_TEST_CASE_P(
-    test_small, GraphWriterFromDimacsBinaryTest, testing::Values(
+    test_small, GraphWriterToDimacsBinaryTest, testing::Values(
         GraphIOParameters{
             "input/example_1.col.b", 11,
             {{2, 0}, {2, 1}, {3, 0}, {3, 1}, {4, 2}, {4, 3}, {5, 0}, {5, 1}, {5, 3}, {5, 4},

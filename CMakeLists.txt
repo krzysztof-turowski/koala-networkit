@@ -6,7 +6,7 @@ find_program(CMAKE_CXX_COMPILER NAMES g++ clang++)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-set(KOALA_CXX_FLAGS "-Wall -Wextra -Wstrict-aliasing -Wpedantic -Werror -Wunreachable-code -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wmissing-include-dirs -Woverloaded-virtual -Wredundant-decls -Wsign-promo -Wstrict-overflow=2 -Wswitch-default -Wno-error -fpermissive -fdiagnostics-show-option -O3 -pthread")
+set(KOALA_CXX_FLAGS "-Wall -Wextra -Wstrict-aliasing -Wpedantic -Werror -Wunreachable-code -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wmissing-include-dirs -Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wsign-promo -Wstrict-overflow=2 -Wswitch-default -Wundef -Wno-error -fpermissive -fdiagnostics-show-option -O3 -pthread")
 set(KOALA_LINKER_FLAGS "")
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     set(KOALA_CXX_FLAGS "${KOALA_CXX_FLAGS} -ferror-limit=5")
@@ -17,7 +17,6 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 endif()
 
 set(CMAKE_CXX_CPPLINT cpplint --linelength=100 --extensions=cpp,hpp --filter=-legal/copyright,-build/c++20,-build/include,-build/namespaces,-build/header_guard,-runtime/references,-runtime/string --recursive)
-set(CMAKE_CXX_CLANG_TIDY clang-tidy -checks=-*,readability-*)
 
 include(FetchContent)
 
@@ -58,7 +57,6 @@ endif()
 set_target_properties(${PROJECT_NAME} PROPERTIES
     COMPILE_FLAGS ${KOALA_CXX_FLAGS}
     LINK_FLAGS ${KOALA_LINKER_FLAGS})
-target_include_directories(${PROJECT_NAME} PUBLIC cpp/io)
 target_include_directories(${PROJECT_NAME} PUBLIC include)
 target_link_libraries(${PROJECT_NAME} networkit)
 add_subdirectory(cpp)

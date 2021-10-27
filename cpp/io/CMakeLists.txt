@@ -1,10 +1,10 @@
 koala_add_module(io
     D6GraphReader.cpp
     D6GraphWriter.cpp
-    DimacsGraphReader.cpp
-    DimacsGraphWriter.cpp
     DimacsBinaryGraphReader.cpp
     DimacsBinaryGraphWriter.cpp
+    DimacsGraphReader.cpp
+    DimacsGraphWriter.cpp
     G6GraphReader.cpp
     G6GraphWriter.cpp
     S6GraphReader.cpp
