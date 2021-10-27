@@ -1,7 +1,7 @@
 /*
- * G6GraphWriter.hpp
+ * D6GraphWriter.hpp
  *
- *  Created on: 20.10.2021
+ *  Created on: 27.10.2021
  *      Author: Krzysztof Turowski (krzysztof.szymon.turowski@gmail.com)
  */
 
@@ -13,14 +13,14 @@ namespace Koala {
 
 /**
  * @ingroup io
- * A writer for graph6 graph format. Each line contains a single graph.
+ * A writer for digraph6 graph format. Each line contains a single graph.
  * Full definition: https://users.cecs.anu.edu.au/~bdm/data/formats.txt
  *
  */
-class G6GraphWriter final : public NetworKit::GraphWriter {
+class D6GraphWriter final : public NetworKit::GraphWriter {
 
 public:
-    G6GraphWriter() = default;
+    D6GraphWriter() = default;
 
     /**
      * Given a graph and a file path, write the graph to the file.
@@ -31,7 +31,7 @@ public:
     void write(const NetworKit::Graph &G, const std::string &path) override;
 
     /**
-     * Given a graph, find its graph6 representation.
+     * Given a graph, find its digraph6 representation.
      *
      * @param[in]  G     input graph
      * @param[out]  output string

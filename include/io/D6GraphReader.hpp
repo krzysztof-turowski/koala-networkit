@@ -1,7 +1,7 @@
 /*
- * S6GraphReader.hpp
+ * D6GraphReader.hpp
  *
- *  Created on: 06.10.2021
+ *  Created on: 27.10.2021
  *      Author: Krzysztof Turowski (krzysztof.szymon.turowski@gmail.com)
  */
 
@@ -15,14 +15,14 @@ namespace Koala {
 
 /**
  * @ingroup io
- * A reader for sparse6 graph format. Each line contains a single graph.
+ * A reader for digraph6 graph format. Each line contains a single graph.
  * Full definition: https://users.cecs.anu.edu.au/~bdm/data/formats.txt
  *
  */
-class S6GraphReader final : public NetworKit::GraphReader {
+class D6GraphReader final : public NetworKit::GraphReader {
 
 public:
-    S6GraphReader() = default;
+    D6GraphReader() = default;
 
     /**
      * Given the path of an input file, read the graph from its first line.

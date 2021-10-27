@@ -2,11 +2,10 @@
  * DimacsGraphReader.cpp
  *
  *  Created on: 21.10.2021
- *      Author: Krzysztof Turowski
+ *      Author: Krzysztof Turowski (krzysztof.szymon.turowski@gmail.com)
  */
 
 #include <fstream>
-#include <iostream>
 
 #include <networkit/auxiliary/Enforce.hpp>
 #include <networkit/graph/GraphTools.hpp>
@@ -23,12 +22,12 @@ NetworKit::Graph DimacsGraphReader::read(const std::string &path) {
     const int MAX = 2048;
     char command = 0;
     std::string format;
-    NetworKit::index nodes = 0, edges = 0;
-    NetworKit::index u = 0, v = 0;
+    NetworKit::count nodes = 0, edges = 0;
+    NetworKit::node u = 0, v = 0;
     while (true) {
         graphFile >> command;
         if (graphFile.eof()) {
-          break;
+            break;
         }
         switch (command) {
             case 'p':
@@ -43,7 +42,7 @@ NetworKit::Graph DimacsGraphReader::read(const std::string &path) {
                 break;
             case 'e':
                 if (graph.isDirected()) {
-                  graph = NetworKit::GraphTools::toUndirected(graph);
+                    graph = NetworKit::GraphTools::toUndirected(graph);
                 }
                 graphFile >> u >> v;
                 graph.addEdge(u - 1, v - 1);

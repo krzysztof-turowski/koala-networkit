@@ -1,7 +1,7 @@
 /*
- * G6GraphWriter.cpp
+ * D6GraphWriter.cpp
  *
- *  Created on: 20.10.2021
+ *  Created on: 27.10.2021
  *      Author: Krzysztof Turowski (krzysztof.szymon.turowski@gmail.com)
  */
 
@@ -9,19 +9,19 @@
 
 #include <networkit/auxiliary/Enforce.hpp>
 
-#include <io/G6GraphWriter.hpp>
+#include <io/D6GraphWriter.hpp>
 
 namespace Koala {
 
-void G6GraphWriter::write(const NetworKit::Graph &G, const std::string &path) {
+void D6GraphWriter::write(const NetworKit::Graph &G, const std::string &path) {
     std::ofstream graphFile(path);
     Aux::enforceOpened(graphFile);
-    std::string g6String = writeline(G);
-    graphFile << g6String << std::endl;
+    std::string d6String = writeline(G);
+    graphFile << d6String << std::endl;
 }
 
-std::string G6GraphWriter::writeline(const NetworKit::Graph &G) {
-    std::string output;
+std::string D6GraphWriter::writeline(const NetworKit::Graph &G) {
+    std::string output = "&";
 
     const char LOW = 0x3f, HIGH = 0x7e;
     const NetworKit::count SHORT_N = 1, MEDIUM_N = 2, LONG_N = 6, LENGTH = 6;
@@ -41,18 +41,16 @@ std::string G6GraphWriter::writeline(const NetworKit::Graph &G) {
     }
     output += nodes_string;
 
-    NetworKit::count start = output.size(), index = 0, shift = 0;
-    int length = (G.numberOfNodes() * (G.numberOfNodes() - 1) / 2) / LENGTH + 1;
+    NetworKit::count start = output.size(), shift = 0;
+    int length = (G.numberOfNodes() * G.numberOfNodes()) / LENGTH + 1;
     output.append(length, 0x0);
     const char MASKS[] = { 0x20, 0x10, 0x08, 0x04, 0x02, 0x01 };
-    for (const NetworKit::node v : G.nodeRange()) {
-        for (const NetworKit::node u : G.neighborRange(v)) {
-            if (u < v) {
-                int position = shift + u;
-                output[start + position / LENGTH] |= MASKS[position % LENGTH];
-            }
+    for (const NetworKit::node u : G.nodeRange()) {
+        for (const NetworKit::node v : G.neighborRange(u)) {
+            int position = shift + v;
+            output[start + position / LENGTH] |= MASKS[position % LENGTH];
         }
-        shift += index, index++;
+        shift += G.numberOfNodes();
     }
     for (unsigned i = start; i < output.size(); i++) {
         output[i] += LOW;

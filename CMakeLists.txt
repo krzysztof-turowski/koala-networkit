@@ -12,7 +12,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     set(KOALA_CXX_FLAGS "${KOALA_CXX_FLAGS} -ferror-limit=5")
     set(KOALA_LINKER_FLAGS "${KOALA_LINKER_FLAGS} -Xclang -fopenmp -lomp")
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    set(KOALA_CXX_FLAGS "${KOALA_CXX_FLAGS} -fmax-errors=5 -Wlogical-op -Wno-unknown-pragmas -Wnoexcept -Wstrict-null-sentinel -lstdc++")
+    set(KOALA_CXX_FLAGS "${KOALA_CXX_FLAGS} -fmax-errors=5 -Wlogical-op -Wnoexcept -Wno-unknown-pragmas -Wstrict-null-sentinel -lstdc++")
     set(KOALA_LINKER_FLAGS "${KOALA_LINKER_FLAGS} -fopenmp")
 endif()
 

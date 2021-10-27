@@ -1,7 +1,7 @@
 /*
- * DimacsGraphReader.hpp
+ * DimacsBinaryGraphReader.hpp
  *
- *  Created on: 21.10.2021
+ *  Created on: 27.10.2021
  *      Author: Krzysztof Turowski (krzysztof.szymon.turowski@gmail.com)
  */
 
@@ -15,14 +15,14 @@ namespace Koala {
 
 /**
  * @ingroup io
- * A reader for DIMACS graph format.
- * Full definition: http://prolland.free.fr/works/research/dsat/dimacs.html
+ * A reader for DIMACS binary graph format.
+ * Full definition: https://mat.tepper.cmu.edu/COLOR/format/README.binformat
  *
  */
-class DimacsGraphReader final : public NetworKit::GraphReader {
+class DimacsBinaryGraphReader final : public NetworKit::GraphReader {
 
 public:
-    DimacsGraphReader() = default;
+    DimacsBinaryGraphReader() = default;
 
     /**
      * Given the path of an input file, read the graph.
