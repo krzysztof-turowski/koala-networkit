@@ -24,7 +24,7 @@ include(FetchContent)
 FetchContent_Declare(
     gtest
     GIT_REPOSITORY "https://github.com/google/googletest.git"
-    GIT_TAG master
+    GIT_TAG main
     SOURCE_DIR "${CMAKE_SOURCE_DIR}/lib/gtest"
 )
 FetchContent_MakeAvailable(gtest)
@@ -40,8 +40,19 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(networkit)
 #</networKit>
 
+#<boost>
+FetchContent_Declare(
+    boost
+    GIT_REPOSITORY "https://github.com/boostorg/boost.git"
+    GIT_TAG master
+    SOURCE_DIR "${CMAKE_SOURCE_DIR}/lib/boost"
+)
+FetchContent_MakeAvailable(boost)
+#</boost>
+
 option(KOALA_BUILD_SHARED "Build shared library" OFF)
 option(KOALA_BUILD_TESTS "Build tests" ON)
+option(KOALA_BUILD_BENCHMARKS "Build benchmarks" ON)
 
 function(koala_add_module modname)
     foreach(file ${ARGN})
@@ -58,17 +69,29 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
     COMPILE_FLAGS ${KOALA_CXX_FLAGS}
     LINK_FLAGS ${KOALA_LINKER_FLAGS})
 target_include_directories(${PROJECT_NAME} PUBLIC include)
-target_link_libraries(${PROJECT_NAME} networkit)
+target_link_libraries(${PROJECT_NAME} networkit boost_dynamic_bitset)
 add_subdirectory(cpp)
 
 function(koala_make_test testname testfile)
     add_executable(${testname} ${CMAKE_CURRENT_LIST_DIR}/${testfile})
     target_include_directories(${testname} PUBLIC include)
-    target_link_libraries(${testname} gtest_main networkit ${PROJECT_NAME})
+    target_link_libraries(${testname} gtest_main networkit boost_dynamic_bitset ${PROJECT_NAME})
     add_test(${testname} ${testname})
+endfunction()
+
+function(koala_make_benchmark testname testfile scriptfile inputfile)
+    add_executable(${testname} ${CMAKE_CURRENT_LIST_DIR}/${testfile})
+    target_include_directories(${testname} PUBLIC include)
+    target_link_libraries(${testname} networkit boost_dynamic_bitset ${PROJECT_NAME})
+    add_custom_command(TARGET ${testname}
+        POST_BUILD COMMAND /bin/sh ${CMAKE_CURRENT_LIST_DIR}/${scriptfile} ${inputfile})
 endfunction()
 
 if(KOALA_BUILD_TESTS)
     enable_testing()
     add_subdirectory(test)
+endif()
+
+if(KOALA_BUILD_BENCHMARKS)
+    add_subdirectory(benchmark)
 endif()
