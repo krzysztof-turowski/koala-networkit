@@ -7,37 +7,42 @@
 #include "testCommons.h"
 #include <networkit/graph/Graph.hpp>
 
-bool containsSimpleProhibited(const Graph &G, bool gatherStats) {
-  if (gatherStats) StatsFactory::startTestCasePart("Jewel");
-  if (containsJewelNaive(G)) return true;
-
+Koala::PerfectGraphRecognition::State containsSimpleProhibited(const Graph &G, bool gatherStats) {
   if (gatherStats) StatsFactory::startTestCasePart("Pyramid");
-  if (containsPyramid(G)) return true;
+  if (containsPyramid(G)) return Koala::PerfectGraphRecognition::State::HAS_PYRAMID;
 
   if (gatherStats) StatsFactory::startTestCasePart("T1");
-  if (containsT1(G)) return true;
+  if (containsT1(G)) return Koala::PerfectGraphRecognition::State::HAS_T1;
 
   if (gatherStats) StatsFactory::startTestCasePart("T2");
-  if (containsT2(G)) return true;
+  if (containsT2(G)) return Koala::PerfectGraphRecognition::State::HAS_T2;
 
   if (gatherStats) StatsFactory::startTestCasePart("T3");
-  if (containsT3(G)) return true;
+  if (containsT3(G)) return Koala::PerfectGraphRecognition::State::HAS_T3;
 
-  return false;
+  return Koala::PerfectGraphRecognition::State::UNKNOWN;
 }
 
-bool isPerfectGraph(const NetworKit::Graph &graph, bool gatherStats) {
+Koala::PerfectGraphRecognition::State checkPerfectGraph(const NetworKit::Graph &graph, bool gatherStats) {
   Graph G(graph);
-  return isPerfectGraph(G, gatherStats);
+  return checkPerfectGraph(G, gatherStats);
 }
 
-bool isPerfectGraph(const Graph &G, bool gatherStats) {
+Koala::PerfectGraphRecognition::State checkPerfectGraph(const Graph &G, bool gatherStats) {
   const bool printInterestingGraphs = false;
 
   if (gatherStats) StatsFactory::startTestCasePart("Simple Structures");
 
+  auto simple_test = containsSimpleProhibited(G, gatherStats);
+  if (simple_test != Koala::PerfectGraphRecognition::State::UNKNOWN) {
+    return simple_test;
+  }
+
   Graph GC = G.getComplement();
-  if (containsSimpleProhibited(G, gatherStats) || containsSimpleProhibited(GC, gatherStats)) return false;
+  auto simple_test_complement = containsSimpleProhibited(GC, gatherStats);
+  if (simple_test_complement != Koala::PerfectGraphRecognition::State::UNKNOWN) {
+    return simple_test_complement;
+  }
 
   if (gatherStats) StatsFactory::startTestCasePart("Get Near Cleaners");
   auto Xs = getPossibleNearCleaners(G, GC, false);
@@ -48,7 +53,7 @@ bool isPerfectGraph(const Graph &G, bool gatherStats) {
   for (auto X : Xs) {
     if (containsOddHoleWithNearCleanerX(G, bitsetToSet(X), triplePaths, gatherStats)) {
       if (printInterestingGraphs) cout << "Interesting graph: " << G << endl;
-      return false;
+      return Koala::PerfectGraphRecognition::State::HAS_NEAR_CLEANER_ODD_HOLE;
     }
   }
 
@@ -61,11 +66,19 @@ bool isPerfectGraph(const Graph &G, bool gatherStats) {
   for (auto X : XsC) {
     if (containsOddHoleWithNearCleanerX(GC, bitsetToSet(X), CTriplePaths, gatherStats)) {
       if (printInterestingGraphs) cout << "Interesting graph: " << G << endl;
-      return false;
+      return Koala::PerfectGraphRecognition::State::HAS_NEAR_CLEANER_ODD_HOLE;
     }
   }
 
-  return true;
+  return Koala::PerfectGraphRecognition::State::PERFECT;
+}
+
+bool isPerfectGraph(const NetworKit::Graph &graph, bool gatherStats) {
+  return checkPerfectGraph(graph, gatherStats) == Koala::PerfectGraphRecognition::State::PERFECT;
+}
+
+bool isPerfectGraph(const Graph &G, bool gatherStats) {
+  return checkPerfectGraph(G, gatherStats) == Koala::PerfectGraphRecognition::State::PERFECT;
 }
 
 bool isPerfectGraphNaive(const NetworKit::Graph &graph, bool gatherStats) {

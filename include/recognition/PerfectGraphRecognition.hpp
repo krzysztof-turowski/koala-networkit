@@ -25,6 +25,17 @@ namespace Koala {
 class PerfectGraphRecognition : public NetworKit::Algorithm {
 
 public:
+    enum class State {
+        UNKNOWN,
+        PERFECT,
+        HAS_JEWEL,
+        HAS_PYRAMID,
+        HAS_T1,
+        HAS_T2,
+        HAS_T3,
+        HAS_NEAR_CLEANER_ODD_HOLE
+     };
+
     /**
      * Given an input graph, set up the perfect graph recognition.
      *
@@ -44,9 +55,21 @@ public:
      */
     bool isPerfect() const;
 
+    /**
+     * Return the graph type found by the algorithm.
+     *
+     * @return State of the graph.
+     */
+    State getState() const;
+
 private:
     const std::optional<NetworKit::Graph> graph;
-    bool is_perfect;
+    State is_perfect;
+
+    static State containsSimpleProhibited(const NetworKit::Graph &graph);
+    static bool containsJewel(const NetworKit::Graph &graph);
 };
+
+bool PerfectGraphRecognitionNaive(const NetworKit::Graph &graph);
 
 } /* namespace Koala */

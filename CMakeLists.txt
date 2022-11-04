@@ -79,12 +79,12 @@ function(koala_make_test testname testfile)
     add_test(${testname} ${testname})
 endfunction()
 
-function(koala_make_benchmark testname testfile scriptfile inputfile)
+function(koala_make_benchmark testname testfile scriptfile)
     add_executable(${testname} ${CMAKE_CURRENT_LIST_DIR}/${testfile})
     target_include_directories(${testname} PUBLIC include)
     target_link_libraries(${testname} networkit boost_dynamic_bitset ${PROJECT_NAME})
     add_custom_command(TARGET ${testname}
-        POST_BUILD COMMAND /bin/sh ${CMAKE_CURRENT_LIST_DIR}/${scriptfile} ${inputfile})
+        POST_BUILD COMMAND /bin/sh ${CMAKE_CURRENT_LIST_DIR}/${scriptfile} ${ARGN})
 endfunction()
 
 if(KOALA_BUILD_TESTS)
