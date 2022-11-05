@@ -2,7 +2,7 @@
  * PerfectGraphRecognition.cpp
  *
  *  Created on: 11.11.2021
- *      Author: Adrian Siwiec ()
+ *      Author: Adrian Siwiec
  *      Ported by: Krzysztof Turowski (krzysztof.szymon.turowski@gmail.com)
  */
 
@@ -23,7 +23,7 @@ PerfectGraphRecognition::PerfectGraphRecognition(const NetworKit::Graph &graph)
 
 bool PerfectGraphRecognition::isPerfect() const {
     assureFinished();
-    return is_perfect == State::UNKNOWN;
+    return is_perfect == State::PERFECT;
 }
 
 PerfectGraphRecognition::State PerfectGraphRecognition::getState() const {
@@ -37,7 +37,6 @@ void PerfectGraphRecognition::run() {
         hasRun = true;
         return;
     }
-
     auto graph_complement = Koala::GraphTools::toComplement(*graph);
     is_perfect = containsSimpleProhibited(graph_complement);
     if (is_perfect != State::UNKNOWN) {
@@ -49,16 +48,23 @@ void PerfectGraphRecognition::run() {
     hasRun = true;
 }
 
-static PerfectGraphRecognition::State PerfectGraphRecognition::containsSimpleProhibited(
-        const NetworKit::Graph &graph) {
-    if (PerfectGraphRecognition::containsJewel(graph)) {
-      return State::HAS_JEWEL;
-    }
-    return State::UNKNOWN;
+void PerfectGraphRecognition::check() const {
+    assureFinished();
+    auto graph_complement = Koala::GraphTools::toComplement(*graph);
+    assert((!containsOddHole(*graph) && !containsOddHole(graph_complement)) == isPerfect());
+    //TODO(kturowski): temporary check
+    assert(isPerfectGraphNaive(*graph, false) == isPerfect());
 }
 
-bool PerfectGraphRecognitionNaive(const NetworKit::Graph &graph) {
-  return isPerfectGraphNaive(graph, false);
+static PerfectGraphRecognition::State PerfectGraphRecognition::containsSimpleProhibited(
+        const NetworKit::Graph &graph) {
+    if (containsJewel(graph)) {
+      return State::HAS_JEWEL;
+    }
+    if (containsT1(graph)) {
+      return State::HAS_T1;
+    }
+    return State::UNKNOWN;
 }
 
 }  // namespace Koala

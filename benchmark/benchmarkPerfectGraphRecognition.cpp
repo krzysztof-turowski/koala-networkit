@@ -39,12 +39,9 @@ int main() {
               std::cout << "T3: " << line << std::endl;
               break;
         }
-
-        auto is_perfect_graph = (recognize.getState() == Koala::PerfectGraphRecognition::State::PERFECT);
-        auto is_perfect_graph_naive = Koala::PerfectGraphRecognitionNaive(G);
-        assert(is_perfect_graph == is_perfect_graph_naive && line.c_str());
+        recognize.check();
     }
-    for (const auto & [k, v] : classification) {
+    for (const auto &[k, v] : classification) {
         std::cout << types[static_cast<int>(k)] << ": " << v << std::endl;
     }
     return 0;

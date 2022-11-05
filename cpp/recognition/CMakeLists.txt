@@ -1,6 +1,7 @@
 koala_add_module(recognition
     PerfectGraphRecognition.cpp
     perfect/Jewels.cpp
+    perfect/OddHoles.cpp
     other/commons.h
     other/commons.cpp
     other/testCommons.h

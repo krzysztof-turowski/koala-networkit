@@ -39,6 +39,14 @@ bool BFSwithPredicate(
     return false;
 }
 
+enum class PathInplaceMode {
+    INDUCED_PATH, INDUCED_CYCLE, INDUCED_ODD_HOLE
+};
+
+bool NextPathInplace(
+        const NetworKit::Graph &graph, NetworKit::count length, std::vector<NetworKit::node> &path,
+        PathInplaceMode mode);
+
 } // namespace Traversal
 
 } // namespace Koala

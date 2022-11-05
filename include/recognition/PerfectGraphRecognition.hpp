@@ -2,7 +2,8 @@
  * PerfectGraphRecognition.hpp
  *
  *  Created on: 11.11.2021
- *      Author: Krzysztof Turowski (krzysztof.szymon.turowski@gmail.com)
+ *      Author: Adrian Siwiec
+ *      Ported by: Krzysztof Turowski (krzysztof.szymon.turowski@gmail.com)
  */
 
 #pragma once
@@ -62,14 +63,21 @@ public:
      */
     State getState() const;
 
+    /**
+     * Verify the result found by the algorithm.
+     */
+    void check() const;
+
 private:
     const std::optional<NetworKit::Graph> graph;
     State is_perfect;
 
     static State containsSimpleProhibited(const NetworKit::Graph &graph);
     static bool containsJewel(const NetworKit::Graph &graph);
-};
+    static bool containsT1(const NetworKit::Graph &graph);
 
-bool PerfectGraphRecognitionNaive(const NetworKit::Graph &graph);
+    static bool containsOddHole(const NetworKit::Graph &graph);
+    static bool containsHole(const NetworKit::Graph &graph, NetworKit::count length);
+};
 
 } /* namespace Koala */
