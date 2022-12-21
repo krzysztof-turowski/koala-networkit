@@ -74,6 +74,7 @@ private:
 
     static State containsSimpleProhibited(const NetworKit::Graph &graph);
     static bool containsJewel(const NetworKit::Graph &graph);
+    static bool containsPyramid(const NetworKit::Graph &graph);
     static bool containsT1(const NetworKit::Graph &graph);
 
     static bool containsOddHole(const NetworKit::Graph &graph);

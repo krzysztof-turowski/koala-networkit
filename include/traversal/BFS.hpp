@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <map>
 #include <queue>
 #include <vector>
 
@@ -17,7 +18,7 @@ namespace Koala {
 namespace Traversal {
 
 template <typename Predicate>
-bool BFSwithPredicate(
+bool BFS(
         const NetworKit::Graph &G, NetworKit::node source, NetworKit::node target,
         Predicate predicate) {
     std::queue<NetworKit::node> Q({source});
@@ -37,6 +38,40 @@ bool BFSwithPredicate(
         });
     }
     return false;
+}
+
+template <typename Predicate>
+std::vector<NetworKit::node> BFSPath(
+        const NetworKit::Graph &G, NetworKit::node source, NetworKit::node target,
+        Predicate predicate) {
+    std::queue<NetworKit::node> Q({source});
+    std::map<NetworKit::node, NetworKit::node> parent;
+    parent[source] = source;
+    while (!Q.empty()) {
+        const auto u = Q.front();
+        Q.pop();
+        if (u == target) {
+            break;
+        }
+        G.forNeighborsOf(u, [&](NetworKit::node v) {
+            if (!parent.count(v) && (predicate(v) || v == target)) {
+                Q.push(v);
+                parent[v] = u;
+            }
+        });
+    }
+    if (!parent.count(target)) {
+        return std::vector<NetworKit::node>();
+    }
+
+    auto v = target;
+    std::vector<NetworKit::node> out({target});
+    while (parent[v] != v) {
+        v = parent[v];
+        out.push_back(v);
+    }
+    std::reverse(out.begin(), out.end());
+    return out;
 }
 
 enum class PathInplaceMode {

@@ -61,6 +61,9 @@ static PerfectGraphRecognition::State PerfectGraphRecognition::containsSimplePro
     if (containsJewel(graph)) {
       return State::HAS_JEWEL;
     }
+    if (containsPyramid(graph)) {
+      return State::HAS_PYRAMID;
+    }
     if (containsT1(graph)) {
       return State::HAS_T1;
     }

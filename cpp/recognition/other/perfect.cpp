@@ -7,9 +7,6 @@
 #include <networkit/graph/Graph.hpp>
 
 Koala::PerfectGraphRecognition::State containsSimpleProhibited(const Graph &G, bool gatherStats) {
-  if (gatherStats) StatsFactory::startTestCasePart("Pyramid");
-  if (containsPyramid(G)) return Koala::PerfectGraphRecognition::State::HAS_PYRAMID;
-
   if (gatherStats) StatsFactory::startTestCasePart("T2");
   if (containsT2(G)) return Koala::PerfectGraphRecognition::State::HAS_T2;
 

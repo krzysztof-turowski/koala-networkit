@@ -19,7 +19,8 @@ namespace Koala {
 bool PerfectGraphRecognition::containsOddHole(const NetworKit::Graph &graph) {
     std::vector<NetworKit::node> path;
     return Koala::Traversal::NextPathInplace(
-        graph, std::numeric_limits<NetworKit::count>::max(), path, Koala::Traversal::PathInplaceMode::INDUCED_ODD_HOLE);
+        graph, std::numeric_limits<NetworKit::count>::max(), path,
+        Koala::Traversal::PathInplaceMode::INDUCED_ODD_HOLE);
 }
 
 bool PerfectGraphRecognition::containsHole(const NetworKit::Graph &graph, NetworKit::count length) {
@@ -27,7 +28,8 @@ bool PerfectGraphRecognition::containsHole(const NetworKit::Graph &graph, Networ
         return false;
     }
     std::vector<NetworKit::node> path;
-    return Koala::Traversal::NextPathInplace(graph, length, path, Koala::Traversal::PathInplaceMode::INDUCED_CYCLE);
+    return Koala::Traversal::NextPathInplace(
+        graph, length, path, Koala::Traversal::PathInplaceMode::INDUCED_CYCLE);
 }
 
 bool PerfectGraphRecognition::containsT1(const NetworKit::Graph &graph) {

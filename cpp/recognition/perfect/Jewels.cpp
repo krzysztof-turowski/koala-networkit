@@ -54,23 +54,22 @@ bool is_jewel(const NetworKit::Graph &graph, const std::vector<NetworKit::node> 
         }
         return true;
     };
-    return Koala::Traversal::BFSwithPredicate(graph, vertices[0], vertices[3], non_neighbours);
+    return Koala::Traversal::BFS(graph, vertices[0], vertices[3], non_neighbours);
 }
 
 //TODO(kturowski): temporary check
 void check_jewel(const NetworKit::Graph &graph, Graph &G, std::vector<NetworKit::node> &path) {
-    vec<int> v;
-    for (auto& u : path) {
-      v.push_back(u);
-    }
+    vec<int> v(path.begin(), path.end());
     assert(is_jewel(graph, path) == isJewel(G, v));
 }
 
 bool PerfectGraphRecognition::containsJewel(const NetworKit::Graph &graph) {
     std::vector<NetworKit::node> path;
     Graph G(graph);
-    while (Koala::Traversal::NextPathInplace(graph, 4, path, Koala::Traversal::PathInplaceMode::INDUCED_PATH)) {
-        for (auto v5 : NetworKit::NeighborhoodUtility::getCommonNeighbors(graph, path[0], path.back())) {
+    while (Koala::Traversal::NextPathInplace(
+            graph, 4, path, Koala::Traversal::PathInplaceMode::INDUCED_PATH)) {
+        for (auto v5 : NetworKit::NeighborhoodUtility::getCommonNeighbors(
+                graph, path[0], path.back())) {
             path.push_back(v5);
             check_jewel(graph, G, path);
             if (is_jewel(graph, path)) {
@@ -79,6 +78,7 @@ bool PerfectGraphRecognition::containsJewel(const NetworKit::Graph &graph) {
             path.pop_back();
         }
     }
+    assert(!::containsJewelNaive(G));
     return false;
 }
 
