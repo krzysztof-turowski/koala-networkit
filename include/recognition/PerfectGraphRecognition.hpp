@@ -13,8 +13,6 @@
 #include <networkit/base/Algorithm.hpp>
 #include <networkit/graph/Graph.hpp>
 
-#include <traversal/BFS.hpp>
-
 namespace Koala {
 
 /**
@@ -76,6 +74,7 @@ private:
     static bool containsJewel(const NetworKit::Graph &graph);
     static bool containsPyramid(const NetworKit::Graph &graph);
     static bool containsT1(const NetworKit::Graph &graph);
+    static bool containsT2(const NetworKit::Graph &graph);
 
     static bool containsOddHole(const NetworKit::Graph &graph);
     static bool containsHole(const NetworKit::Graph &graph, NetworKit::count length);
