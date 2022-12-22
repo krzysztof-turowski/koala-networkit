@@ -3,6 +3,7 @@ koala_add_module(recognition
     perfect/OddHoles.cpp
     perfect/Jewels.cpp
     perfect/Pyramids.cpp
+    perfect/NearCleaners.cpp
     other/commons.h
     other/commons.cpp
     other/testCommons.h

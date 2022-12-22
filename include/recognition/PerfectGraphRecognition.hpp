@@ -11,7 +11,11 @@
 #include <vector>
 
 #include <networkit/base/Algorithm.hpp>
+#include <networkit/components/ConnectedComponents.hpp>
 #include <networkit/graph/Graph.hpp>
+#include <networkit/graph/GraphTools.hpp>
+
+#include <recognition/PerfectGraphRecognition.hpp>
 
 namespace Koala {
 
@@ -66,6 +70,12 @@ public:
      */
     void check() const;
 
+    static bool isComplete(
+        const NetworKit::Graph &graph, const std::vector<NetworKit::node> &X, NetworKit::node v);
+    static std::vector<NetworKit::node> getAllCompleteVertices(
+        const NetworKit::Graph &graph, const std::vector<NetworKit::node> &X);
+    static std::vector<std::vector<NetworKit::node>> getAuxiliaryComponents(
+        const NetworKit::Graph &graph, const std::vector<NetworKit::node> &V);
 private:
     const std::optional<NetworKit::Graph> graph;
     State is_perfect;
@@ -76,6 +86,7 @@ private:
     static bool containsT1(const NetworKit::Graph &graph);
     static bool containsT2(const NetworKit::Graph &graph);
     static bool containsT3(const NetworKit::Graph &graph);
+    static bool containsNearCleanerOddHole(const NetworKit::Graph &graph);
 
     static bool containsOddHole(const NetworKit::Graph &graph);
     static bool containsHole(const NetworKit::Graph &graph, NetworKit::count length);
