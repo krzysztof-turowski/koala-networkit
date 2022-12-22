@@ -13,6 +13,7 @@
 #include <networkit/linkprediction/NeighborhoodUtility.hpp>
 
 #include <traversal/BFS.hpp>
+#include <traversal/PathInplace.hpp>
 #include <recognition/PerfectGraphRecognition.hpp>
 
 #include "../other/jewels.h"
@@ -57,7 +58,7 @@ bool is_jewel(const NetworKit::Graph &graph, const std::vector<NetworKit::node> 
     return Koala::Traversal::BFS(graph, vertices[0], vertices[3], non_neighbours);
 }
 
-//TODO(kturowski): temporary check
+// TODO(kturowski): temporary check
 void check_jewel(const NetworKit::Graph &graph, Graph &G, std::vector<NetworKit::node> &path) {
     vec<int> v(path.begin(), path.end());
     assert(is_jewel(graph, path) == isJewel(G, v));

@@ -70,6 +70,9 @@ static PerfectGraphRecognition::State PerfectGraphRecognition::containsSimplePro
     if (containsT2(graph)) {
       return State::HAS_T2;
     }
+    if (containsT3(graph)) {
+      return State::HAS_T3;
+    }
     return State::UNKNOWN;
 }
 

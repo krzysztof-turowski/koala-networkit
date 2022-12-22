@@ -28,17 +28,6 @@ int main() {
         auto recognize = Koala::PerfectGraphRecognition(G);
         recognize.run();
         classification[recognize.getState()]++;
-        switch (recognize.getState()) {
-            case Koala::PerfectGraphRecognition::State::HAS_T1:
-              std::cout << "T1: " << line << std::endl;
-              break;
-            case Koala::PerfectGraphRecognition::State::HAS_T2:
-              std::cout << "T2: " << line << std::endl;
-              break;
-            case Koala::PerfectGraphRecognition::State::HAS_T3:
-              std::cout << "T3: " << line << std::endl;
-              break;
-        }
         recognize.check();
     }
     for (const auto &[k, v] : classification) {

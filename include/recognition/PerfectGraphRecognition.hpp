@@ -75,6 +75,7 @@ private:
     static bool containsPyramid(const NetworKit::Graph &graph);
     static bool containsT1(const NetworKit::Graph &graph);
     static bool containsT2(const NetworKit::Graph &graph);
+    static bool containsT3(const NetworKit::Graph &graph);
 
     static bool containsOddHole(const NetworKit::Graph &graph);
     static bool containsHole(const NetworKit::Graph &graph, NetworKit::count length);

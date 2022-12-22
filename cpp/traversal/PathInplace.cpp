@@ -1,13 +1,13 @@
 /*
- * BFS.cpp
+ * PathInplace.cpp
  *
- *  Created on: 05.11.2022
+ *  Created on: 22.12.2022
  *      Author: Krzysztof Turowski (krzysztof.szymon.turowski@gmail.com)
  */
 
 #include <set>
 
-#include <traversal/BFS.hpp>
+#include <traversal/PathInplace.hpp>
 
 namespace Koala {
 

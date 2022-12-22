@@ -7,9 +7,6 @@
 #include <networkit/graph/Graph.hpp>
 
 Koala::PerfectGraphRecognition::State containsSimpleProhibited(const Graph &G, bool gatherStats) {
-  if (gatherStats) StatsFactory::startTestCasePart("T3");
-  if (containsT3(G)) return Koala::PerfectGraphRecognition::State::HAS_T3;
-
   return Koala::PerfectGraphRecognition::State::UNKNOWN;
 }
 
@@ -20,20 +17,7 @@ Koala::PerfectGraphRecognition::State checkPerfectGraph(const NetworKit::Graph &
 
 Koala::PerfectGraphRecognition::State checkPerfectGraph(const Graph &G, bool gatherStats) {
   const bool printInterestingGraphs = false;
-
-  if (gatherStats) StatsFactory::startTestCasePart("Simple Structures");
-
-  auto simple_test = containsSimpleProhibited(G, gatherStats);
-  if (simple_test != Koala::PerfectGraphRecognition::State::UNKNOWN) {
-    return simple_test;
-  }
-
   Graph GC = G.getComplement();
-  auto simple_test_complement = containsSimpleProhibited(GC, gatherStats);
-  if (simple_test_complement != Koala::PerfectGraphRecognition::State::UNKNOWN) {
-    return simple_test_complement;
-  }
-
   if (gatherStats) StatsFactory::startTestCasePart("Get Near Cleaners");
   auto Xs = getPossibleNearCleaners(G, GC, false);
 
