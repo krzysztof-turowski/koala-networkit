@@ -4,3 +4,6 @@
 [submodule "lib/networkit"]
 	path = lib/networkit
 	url = https://github.com/networkit/networkit.git
+[submodule "lib/boost"]
+	path = lib/boost
+	url = https://github.com/boostorg/boost.git

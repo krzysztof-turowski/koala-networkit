@@ -1,0 +1,37 @@
+#include <gtest/gtest.h>
+
+#include <list>
+
+#include <recognition/PerfectGraphRecognition.hpp>
+
+struct GraphRecognitionParameters {
+    int N;
+    std::list<std::pair<int, int>> E;
+    bool is_recognized;
+};
+
+class PerfectGraphRecognitionTest
+    : public testing::TestWithParam<GraphRecognitionParameters> { };
+
+NetworKit::Graph build_graph(const int &N, const std::list<std::pair<int, int>> &E) {
+    NetworKit::Graph G(N, false, false);
+    for (const auto &[u, v] : E) {
+        G.addEdge(u, v);
+    }
+    return G;
+}
+
+TEST_P(PerfectGraphRecognitionTest, test) {
+    GraphRecognitionParameters const& parameters = GetParam();
+    NetworKit::Graph G = build_graph(parameters.N, parameters.E);
+    auto algorithm = Koala::PerfectGraphRecognition(G);
+    algorithm.run();
+
+    auto is_perfect = algorithm.isPerfect();
+    EXPECT_EQ(is_perfect, parameters.is_recognized);
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    test_example, PerfectGraphRecognitionTest, testing::Values(
+        GraphRecognitionParameters{4, {{0, 1}, {0, 2}, {1, 3}, {2, 3}}, true}
+));
