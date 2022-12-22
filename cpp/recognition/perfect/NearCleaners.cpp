@@ -17,7 +17,7 @@
 namespace Koala {
 
 static const NetworKit::count MAX_LENGTH = 512;
-using Bitset = boost::dynamic_bitset<unsigned long long>;
+using Bitset = boost::dynamic_bitset<uint64_t>;
 
 auto get_all_paths(const NetworKit::Graph &graph, NetworKit::count length) {
   std::vector<std::vector<NetworKit::node>> out;
@@ -72,7 +72,7 @@ auto all_shortest_paths_with_penultimate(const NetworKit::Graph &graph, auto tes
 bool check_odd_hole_with_near_cleaner(
           const NetworKit::Graph &graph, const Bitset &S,
           const std::vector<std::vector<NetworKit::node>> &triplePaths) {
-    unsigned n = graph.upperNodeIdBound(), infinity = std::numeric_limits<unsigned>::max();
+    auto infinity = std::numeric_limits<NetworKit::count>::max();
     auto [D, penultimate] = all_shortest_paths_with_penultimate(
         graph, [&](auto v) { return !S.test(v); });
     for (const auto &y1 : graph.nodeRange()) {
@@ -80,14 +80,16 @@ bool check_odd_hole_with_near_cleaner(
             continue;
         }
         for (const auto &triple : triplePaths) {
-            if (std::ranges::any_of(std::views::iota(0, 3), [&](auto i) { return triple[i] == y1; })) {
+            if (std::ranges::any_of(
+                    std::views::iota(0, 3), [&](auto i) { return triple[i] == y1; })) {
                 continue;
             }
             auto x1 = triple[0], x3 = triple[1], x2 = triple[2];
             if (D[x1][y1] == infinity || D[x2][y1] == infinity) {
                 continue;
             }
-            int y2 = penultimate[x2][y1], n = D[x2][y1];
+            auto y2 = penultimate[x2][y1];
+            auto n = D[x2][y1];
             if (D[x1][y1] + 1 != n || D[x1][y2] != n || D[x3][y1] < n || D[x3][y2] < n) {
                 continue;
             }

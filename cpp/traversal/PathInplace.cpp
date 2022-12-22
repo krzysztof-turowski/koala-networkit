@@ -42,7 +42,8 @@ bool check_last_vertex(
                 return false;
             }
         } else if (v == path[0]) {
-            if (mode == PathInplaceMode::INDUCED_CYCLE || mode == PathInplaceMode::INDUCED_ODD_HOLE) {
+            if (mode == PathInplaceMode::INDUCED_CYCLE
+                    || mode == PathInplaceMode::INDUCED_ODD_HOLE) {
                 if (!graph.hasEdge(v, last)) {
                     return false;
                 }
@@ -101,18 +102,22 @@ bool NextPathInplace(
             if (path.size() > 1) {
                 while (path.back() != NetworKit::none) {
                     if (mode == PathInplaceMode::INDUCED_PATH) {
-                        if (check_last_vertex(graph, path, PathInplaceMode::INDUCED_PATH)) {
+                        if (check_last_vertex(
+                                graph, path, PathInplaceMode::INDUCED_PATH)) {
                             break;
                         }
                     } else if (mode == PathInplaceMode::INDUCED_CYCLE) {
-                        if (path[0] < path.back() && check_last_vertex(graph, path, PathInplaceMode::INDUCED_PATH)) {
+                        if (path[0] < path.back() && check_last_vertex(
+                                graph, path, PathInplaceMode::INDUCED_PATH)) {
                             break;
                         }
                     } else if (mode == PathInplaceMode::INDUCED_ODD_HOLE) {
-                        if (path[0] < path.back() && check_last_vertex(graph, path, PathInplaceMode::INDUCED_ODD_HOLE)) {
+                        if (path[0] < path.back() && check_last_vertex(
+                                graph, path, PathInplaceMode::INDUCED_ODD_HOLE)) {
                             return true;
                         }
-                        if (path[0] < path.back() && check_last_vertex(graph, path, PathInplaceMode::INDUCED_PATH)) {
+                        if (path[0] < path.back() && check_last_vertex(
+                                graph, path, PathInplaceMode::INDUCED_PATH)) {
                             break;
                         }
                     }
@@ -123,7 +128,8 @@ bool NextPathInplace(
                 }
             }
             path.push_back(graph.getIthNeighbor(path.back(), 0));
-            if ((mode == PathInplaceMode::INDUCED_ODD_HOLE || path.size() == length) && check_last_vertex(graph, path, mode)) {
+            if ((mode == PathInplaceMode::INDUCED_ODD_HOLE || path.size() == length)
+                    && check_last_vertex(graph, path, mode)) {
                 return true;
             } else {
                 continue;
@@ -139,6 +145,6 @@ bool NextPathInplace(
     return true;
 }
 
-} // namespace Traversal
+}  // namespace Traversal
 
-} // namespace Koala
+}  // namespace Koala

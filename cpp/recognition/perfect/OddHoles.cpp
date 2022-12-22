@@ -131,7 +131,10 @@ bool is_t3(const NetworKit::Graph &graph, const std::vector<NetworKit::node> &V,
         return false;
     }
 
-    if (PerfectGraphRecognition::isComplete(graph, X, V[2]) || PerfectGraphRecognition::isComplete(graph, X, V[3])) {
+    if (PerfectGraphRecognition::isComplete(graph, X, V[2])) {
+        return false;
+    }
+    if (PerfectGraphRecognition::isComplete(graph, X, V[3])) {
         return false;
     }
     if ((P[0] != V[4] || P.back() != V[5]) && (P[0] != V[5] || P.back() != V[4])) {
@@ -164,7 +167,8 @@ bool PerfectGraphRecognition::containsT3(const NetworKit::Graph &graph) {
                 if (v5 == v1 || v5 == v2 || graph.hasEdge(v5, v1) || graph.hasEdge(v5, v2)) {
                     continue;
                 }
-                for (const auto &X : PerfectGraphRecognition::getAuxiliaryComponents(graph, {v1, v2, v5})) {
+                for (const auto &X : PerfectGraphRecognition::getAuxiliaryComponents(
+                        graph, {v1, v2, v5})) {
                     if (X.empty()) {
                         continue;
                     }
@@ -184,7 +188,8 @@ bool PerfectGraphRecognition::containsT3(const NetworKit::Graph &graph) {
                     for (const auto &fp : Fprim) {
                         for (const auto &v : graph.neighborRange(fp)) {
                             if (!F.count(v) && isComplete(graph, X, v)) {
-                                if (!graph.hasEdge(v, v1) && !graph.hasEdge(v, v2) && !graph.hasEdge(v, v5)) {
+                                if (!graph.hasEdge(v, v1) && !graph.hasEdge(v, v2)
+                                        && !graph.hasEdge(v, v5)) {
                                     F.insert(v);
                                 }
                             }
@@ -202,8 +207,9 @@ bool PerfectGraphRecognition::containsT3(const NetworKit::Graph &graph) {
                         }
                         auto v6 = *it6;
 
-                        bool v4_has_nonneighbour_in_x = std::any_of(X.begin(), X.end(), [&](auto x) {
-                            return !graph.hasEdge(v4, x);
+                        bool v4_has_nonneighbour_in_x = std::any_of(
+                            X.begin(), X.end(), [&](auto x) {
+                                return !graph.hasEdge(v4, x);
                         });
                         if (!v4_has_nonneighbour_in_x) {
                             continue;
@@ -214,8 +220,9 @@ bool PerfectGraphRecognition::containsT3(const NetworKit::Graph &graph) {
                                     || graph.hasEdge(v3, v1)) {
                                 continue;
                             }
-                            bool v3_has_nonneighbour_in_x = std::any_of(X.begin(), X.end(), [&](auto x) {
-                                return !graph.hasEdge(v3, x);
+                            bool v3_has_nonneighbour_in_x = std::any_of(
+                                X.begin(), X.end(), [&](auto x) {
+                                    return !graph.hasEdge(v3, x);
                             });
                             if (!v3_has_nonneighbour_in_x) {
                                 continue;
