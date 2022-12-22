@@ -14,8 +14,6 @@
 #include <traversal/PathInplace.hpp>
 #include <recognition/PerfectGraphRecognition.hpp>
 
-#include "../other/nearCleaners.h"
-
 namespace Koala {
 
 auto get_all_paths(const NetworKit::Graph &graph, NetworKit::count length) {

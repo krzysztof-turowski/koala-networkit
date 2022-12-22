@@ -4,18 +4,4 @@ koala_add_module(recognition
     perfect/Jewels.cpp
     perfect/Pyramids.cpp
     perfect/NearCleaners.cpp
-    other/commons.h
-    other/commons.cpp
-    other/testCommons.h
-    other/testCommons.cpp
-    other/jewels.h
-    other/jewels.cpp
-    other/nearCleaners.h
-    other/nearCleaners.cpp
-    other/oddHoles.h
-    other/oddHoles.cpp
-    other/perfect.h
-    other/perfect.cpp
-    other/pyramids.h
-    other/pyramids.cpp
 )

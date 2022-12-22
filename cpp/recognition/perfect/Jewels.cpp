@@ -16,8 +16,6 @@
 #include <traversal/PathInplace.hpp>
 #include <recognition/PerfectGraphRecognition.hpp>
 
-#include "../other/jewels.h"
-
 namespace Koala {
 
 bool is_jewel(const NetworKit::Graph &graph, const std::vector<NetworKit::node> &V) {
@@ -58,28 +56,19 @@ bool is_jewel(const NetworKit::Graph &graph, const std::vector<NetworKit::node> 
     return Koala::Traversal::BFS(graph, V[0], V[3], non_neighbours);
 }
 
-// TODO(kturowski): temporary check
-void check_jewel(const NetworKit::Graph &graph, Graph &G, std::vector<NetworKit::node> &P) {
-    vec<int> v(P.begin(), P.end());
-    assert(is_jewel(graph, P) == isJewel(G, v));
-}
-
 bool PerfectGraphRecognition::containsJewel(const NetworKit::Graph &graph) {
     std::vector<NetworKit::node> P;
-    Graph G(graph);
     while (Koala::Traversal::NextPathInplace(
             graph, 4, P, Koala::Traversal::PathInplaceMode::INDUCED_PATH)) {
         for (const auto &v5 : NetworKit::NeighborhoodUtility::getCommonNeighbors(
                 graph, P[0], P.back())) {
             P.push_back(v5);
-            check_jewel(graph, G, P);
             if (is_jewel(graph, P)) {
                 return true;
             }
             P.pop_back();
         }
     }
-    assert(!::containsJewelNaive(G));
     return false;
 }
 

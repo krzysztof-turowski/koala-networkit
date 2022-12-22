@@ -14,8 +14,6 @@
 #include <traversal/BFS.hpp>
 #include <recognition/PerfectGraphRecognition.hpp>
 
-#include "../other/pyramids.h"
-
 namespace Koala {
 
 void nextTupleInPlace(std::vector<NetworKit::node> &vertices, NetworKit::count max) {
@@ -206,7 +204,7 @@ bool is_pyramid(
         return false;
     }
     for (const auto &p : P) {
-        if (p.size() == 0) {
+        if (p.empty()) {
             return false;
         }
     }
@@ -247,25 +245,12 @@ bool is_pyramid(
             }
         }
     }
-    return std::count_if(b.begin(), b.end(), [&](auto v) { return graph.hasEdge(a, v); }) <= 1;
-}
-
-// TODO(kturowski): temporary check
-void check_pyramid(const NetworKit::Graph &graph, Graph &G, NetworKit::node a,
-        const std::vector<NetworKit::node> &b, const std::vector<std::vector<NetworKit::node>> &P) {
-    vec<int> b2(b.begin(), b.end());
-    vec<vec<int>> P2(P.size());
-    for (unsigned i = 0; i < P.size(); i++) {
-        P2[i].insert(P2[i].end(), P[i].begin(), P[i].end());
-    }
-    assert(is_pyramid(graph, a, b, P));
-    assert(isPyramid(G, b2, a, P2));
+    return std::count_if(b.cbegin(), b.cend(), [&](auto v) { return graph.hasEdge(a, v); }) <= 1;
 }
 
 bool PerfectGraphRecognition::containsPyramid(const NetworKit::Graph &graph) {
     auto triangles = get_all_triangles(graph);
     auto emptyStarTriangles = get_all_empty_star_triangles(graph);
-    Graph G(graph);
     for (const auto &b : triangles) {
         for (const auto &[a, s] : emptyStarTriangles) {
             if (!check_prerequisites(graph, a, b, s)) {
@@ -318,13 +303,11 @@ bool PerfectGraphRecognition::containsPyramid(const NetworKit::Graph &graph) {
                   std::vector<std::vector<NetworKit::node>> paths = {
                       P[0][triple[0]], P[1][triple[1]], P[2][triple[2]]
                   };
-                  check_pyramid(graph, G, a, b, paths);
                   return true;
                 }
             }
         }
     }
-    assert(!::containsPyramid(G));
     return false;
 }
 

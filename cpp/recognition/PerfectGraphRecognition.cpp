@@ -14,8 +14,6 @@
 #include <graph/GraphTools.hpp>
 #include <recognition/PerfectGraphRecognition.hpp>
 
-#include "other/perfect.h"
-
 namespace Koala {
 
 PerfectGraphRecognition::PerfectGraphRecognition(const NetworKit::Graph &graph)
@@ -57,8 +55,6 @@ void PerfectGraphRecognition::check() const {
     assureFinished();
     auto graph_complement = Koala::GraphTools::toComplement(*graph);
     assert((!containsOddHole(*graph) && !containsOddHole(graph_complement)) == isPerfect());
-    // TODO(kturowski): temporary check
-    assert(isPerfectGraphNaive(*graph, false) == isPerfect());
 }
 
 static PerfectGraphRecognition::State PerfectGraphRecognition::containsSimpleProhibited(
