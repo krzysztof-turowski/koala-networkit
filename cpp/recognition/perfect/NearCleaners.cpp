@@ -16,6 +16,9 @@
 
 namespace Koala {
 
+static const NetworKit::count MAX_LENGTH = 512;
+using Bitset = boost::dynamic_bitset<unsigned long long>;
+
 auto get_all_paths(const NetworKit::Graph &graph, NetworKit::count length) {
   std::vector<std::vector<NetworKit::node>> out;
   std::vector<NetworKit::node> P;
@@ -27,9 +30,11 @@ auto get_all_paths(const NetworKit::Graph &graph, NetworKit::count length) {
 }
 
 template <typename Container>
-boost::dynamic_bitset<unsigned long long> get_bitset(
-        NetworKit::count length, Container positions) {
-    boost::dynamic_bitset<unsigned long long> out(length);
+Bitset get_bitset(NetworKit::count length, Container positions) {
+    if (length >= MAX_LENGTH) {
+        throw std::length_error("Algorithm cannot be run for graphs on more than 512 vertices");
+    }
+    Bitset out(length);
     for (auto i : positions) {
         out.set(i);
     }
@@ -65,7 +70,7 @@ auto all_shortest_paths_with_penultimate(const NetworKit::Graph &graph, auto tes
 }
 
 bool check_odd_hole_with_near_cleaner(
-          const NetworKit::Graph &graph, const boost::dynamic_bitset<unsigned long long> &S,
+          const NetworKit::Graph &graph, const Bitset &S,
           const std::vector<std::vector<NetworKit::node>> &triplePaths) {
     unsigned n = graph.upperNodeIdBound(), infinity = std::numeric_limits<unsigned>::max();
     auto [D, penultimate] = all_shortest_paths_with_penultimate(
@@ -97,7 +102,7 @@ inline bool is_relevant_triple(
     return !(a == b || graph.hasEdge(a, b) || (graph.hasEdge(a, c) && graph.hasEdge(b, c)));
 }
 
-boost::dynamic_bitset<unsigned long long> get_x_for_relevant_triple(
+Bitset get_x_for_relevant_triple(
         const NetworKit::Graph &graph, NetworKit::node a, NetworKit::node b, NetworKit::node c) {
     auto anticomponents_Nab = PerfectGraphRecognition::getAuxiliaryComponents(graph, {a, b});
     auto non_edge_c = [&](auto v) { return !graph.hasEdge(c, v); };
@@ -131,9 +136,8 @@ boost::dynamic_bitset<unsigned long long> get_x_for_relevant_triple(
     return get_bitset(graph.upperNodeIdBound(), Y) | get_bitset(graph.upperNodeIdBound(), Z);
 }
 
-std::set<boost::dynamic_bitset<unsigned long long>> get_possible_near_cleaners(
-        const NetworKit::Graph &graph) {
-    std::vector<boost::dynamic_bitset<unsigned long long>> Ns, Xs;
+auto get_possible_near_cleaners(const NetworKit::Graph &graph) {
+    std::vector<Bitset> Ns, Xs;
     graph.forEdges([&](NetworKit::node u, NetworKit::node v) {
         auto C = PerfectGraphRecognition::getAllCompleteVertices(graph, {u, v});
         Ns.push_back(get_bitset(graph.upperNodeIdBound(), C));
@@ -147,7 +151,7 @@ std::set<boost::dynamic_bitset<unsigned long long>> get_possible_near_cleaners(
             }
         }
     });
-    std::set<boost::dynamic_bitset<unsigned long long>> out;
+    std::set<Bitset> out;
     for (const auto &N : Ns) {
         for (const auto &X : Xs) {
             out.insert(X | N);
