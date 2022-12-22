@@ -61,7 +61,8 @@ bool is_jewel(const NetworKit::Graph &graph, const std::vector<NetworKit::node> 
 // TODO(kturowski): temporary check
 void check_jewel(const NetworKit::Graph &graph, Graph &G, std::vector<NetworKit::node> &path) {
     vec<int> v(path.begin(), path.end());
-    assert(is_jewel(graph, path) == isJewel(G, v));
+    assert(is_jewel(graph, path));
+    assert(isJewel(G, v));
 }
 
 bool PerfectGraphRecognition::containsJewel(const NetworKit::Graph &graph) {

@@ -258,7 +258,8 @@ void check_pyramid(const NetworKit::Graph &graph, Graph &G, NetworKit::node a,
     for (unsigned i = 0; i < P.size(); i++) {
         P2[i].insert(P2[i].end(), P[i].begin(), P[i].end());
     }
-    assert(is_pyramid(graph, a, b, P) == isPyramid(G, b2, a, P2));
+    assert(is_pyramid(graph, a, b, P));
+    assert(isPyramid(G, b2, a, P2));
 }
 
 bool PerfectGraphRecognition::containsPyramid(const NetworKit::Graph &graph) {

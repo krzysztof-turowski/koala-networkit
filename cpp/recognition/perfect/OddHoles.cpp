@@ -131,6 +131,84 @@ bool PerfectGraphRecognition::containsT2(const NetworKit::Graph &graph) {
     return false;
 }
 
+auto get_auxiliary_components(
+        const NetworKit::Graph &graph, const std::vector<NetworKit::node> &V) {
+    auto Y = get_all_complete_vertices(graph, V);
+    auto auxiliary_graph = NetworKit::GraphTools::subgraphFromNodes(
+        Koala::GraphTools::toComplement(graph), Y.begin(), Y.end());
+    NetworKit::ConnectedComponents auxiliary_components(auxiliary_graph);
+    auxiliary_components.run();
+    return auxiliary_components.getComponents();
+}
+
+bool is_t3(const NetworKit::Graph &graph, const std::vector<NetworKit::node> &V,
+        const std::vector<NetworKit::node> &P, const std::vector<NetworKit::node> &X) {
+    if (V.size() != 6 || P.empty() || X.empty()) {
+        return false;
+    }
+    if (std::set<NetworKit::node>(V.begin(), V.end()).size() != 6) {
+        return false;
+    }
+    std::vector<std::pair<NetworKit::node, NetworKit::node>> edges{
+        {0, 1}, {0, 3}, {1, 2}, {2, 3}, {2, 4}, {3, 5}};
+    std::vector<std::pair<NetworKit::node, NetworKit::node>> nonEdges{
+        {0, 2}, {0, 4}, {0, 5}, {1, 3}, {1, 4}, {1, 5}, {3, 4}};
+    for (const auto &[u, v] : edges) {
+        if (!graph.hasEdge(V[u], V[v])) {
+            return false;
+        }
+    }
+    for (const auto &[u, v] : nonEdges) {
+        if (graph.hasEdge(V[u], V[v])) {
+            return false;
+        }
+    }
+
+    std::vector<NetworKit::node> X_sorted(X.begin(), X.end());
+    std::sort(X_sorted.begin(), X_sorted.end());
+    auto auxiliary_components = get_auxiliary_components(graph, {V[0], V[1], V[4]});
+    bool isXAnticomponent = std::any_of(
+        auxiliary_components.begin(), auxiliary_components.end(), [&](auto ac) {
+            std::sort(ac.begin(), ac.end());
+            return ac == X_sorted;
+    });
+    if (!isXAnticomponent) {
+        return false;
+    }
+
+    if (is_complete(graph, X, V[2]) || is_complete(graph, X, V[3])) {
+        return false;
+    }
+    if ((P[0] != V[4] || P.back() != V[5]) && (P[0] != V[5] || P.back() != V[4])) {
+        return false;
+    }
+    if (!is_path(graph, P)) {
+        return false;
+    }
+    for (unsigned i = 1; i < P.size() - 1; i++) {
+      if (std::ranges::any_of(std::views::iota(0, 4), [&](auto j) { return V[j] == P[i]; })) {
+          return false;
+      }
+      if (std::any_of(X.begin(), X.end(), [&](auto x) { return x == P[i]; })) {
+          return false;
+      }
+      if (is_complete(graph, X, P[i]) || graph.hasEdge(V[0], P[i]) || graph.hasEdge(V[1], P[i])) {
+          return false;
+      }
+    }
+    return !graph.hasEdge(V[4], V[5]) || !is_complete(graph, X, V[5]);
+}
+
+// TODO(kturowski): temporary check
+void check_t3(const NetworKit::Graph &graph, Graph &G, const std::vector<NetworKit::node> &V,
+        const std::vector<NetworKit::node> &P, const std::vector<NetworKit::node> &X) {
+    vec<int> V2(V.begin(), V.end());
+    vec<int> P2(P.begin(), P.end());
+    vec<int> X2(X.begin(), X.end());
+    assert(is_t3(graph, V, P, X));
+    assert(isT3(G, V2, P2, X2));
+}
+
 bool PerfectGraphRecognition::containsT3(const NetworKit::Graph &graph) {
     // TODO(kturowski): temporary check
     Graph G(graph);
@@ -140,12 +218,7 @@ bool PerfectGraphRecognition::containsT3(const NetworKit::Graph &graph) {
                 if (v5 == v1 || v5 == v2 || graph.hasEdge(v5, v1) || graph.hasEdge(v5, v2)) {
                     continue;
                 }
-                auto Y = get_all_complete_vertices(graph, {v1, v2, v5});
-                auto auxiliary_graph = NetworKit::GraphTools::subgraphFromNodes(
-                    Koala::GraphTools::toComplement(graph), Y.begin(), Y.end());
-                NetworKit::ConnectedComponents auxiliary_components(auxiliary_graph);
-                auxiliary_components.run();
-                for (auto X : auxiliary_components.getComponents()) {
+                for (const auto &X : get_auxiliary_components(graph, {v1, v2, v5})) {
                     if (X.empty()) {
                         continue;
                     }
@@ -164,7 +237,7 @@ bool PerfectGraphRecognition::containsT3(const NetworKit::Graph &graph) {
                     std::set<NetworKit::node> F(Fprim.begin(), Fprim.end());
                     for (const auto &fp : Fprim) {
                         for (const auto &v : graph.neighborRange(fp)) {
-                            if (!F.count(v) && is_complete(graph, X, v))
+                            if (!F.count(v) && is_complete(graph, X, v)) {
                                 if (!graph.hasEdge(v, v1) && !graph.hasEdge(v, v2) && !graph.hasEdge(v, v5)) {
                                     F.insert(v);
                                 }
@@ -191,7 +264,8 @@ bool PerfectGraphRecognition::containsT3(const NetworKit::Graph &graph) {
                         }
 
                         for (const auto &v3 : graph.neighborRange(v2)) {
-                            if (!graph.hasEdge(v3, v4) || !graph.hasEdge(v3, v5) || graph.hasEdge(v3, v1)) {
+                            if (!graph.hasEdge(v3, v4) || !graph.hasEdge(v3, v5)
+                                    || graph.hasEdge(v3, v1)) {
                                 continue;
                             }
                             bool v3HasNonNeighbourInX = std::any_of(X.begin(), X.end(), [&](auto x) {
@@ -202,10 +276,7 @@ bool PerfectGraphRecognition::containsT3(const NetworKit::Graph &graph) {
                             }
                             auto P = Koala::Traversal::BFSPath(
                                 graph, v6, v5, [&](int v) { return Fprim.count(v); });
-                            if (P.empty()) {  // Should not happen
-                                throw std::logic_error("Algorithm Error: Could not find path P in T3.");
-                            }
-                            // check_t3(graph, std::vector<NetworKit::node>{v1, v2, v3, v4, v5, v6}, P, X);
+                            check_t3(graph, G, std::vector<NetworKit::node>{v1, v2, v3, v4, v5, v6}, P, X);
                             assert(::containsT3(G));
                             return true;
                         }
@@ -218,4 +289,4 @@ bool PerfectGraphRecognition::containsT3(const NetworKit::Graph &graph) {
     return false;
 }
 
-}
+} /* namespace Koala */
