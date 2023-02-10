@@ -40,7 +40,7 @@ protected:
     std::map<NetworKit::node, int> current_solution;
     std::map<NetworKit::node, int> best_solution;
     std::map<NetworKit::node, std::set<int>> feasible_colors;
-    std::priority_queue<NetworKit::node> current_predecessors;
+    std::set<int, std::greater<int>> current_predecessors;
     int lower_bound;
     int upper_bound;
     int ub;
@@ -49,7 +49,8 @@ protected:
 
     void forwards();
     void backwards();
-    virtual void determine_feasible_colors(int i) = 0;
+    void determine_feasible_colors(int i);
+    virtual void determine_current_predecessors(int r) = 0;
 
 };
 
@@ -63,7 +64,41 @@ public:
 protected:
 
     std::vector<NetworKit::node> greedy_largest_first_ordering();
-    void determine_feasible_colors(int i);
+    void determine_current_predecessors(int r) override;
+};
+
+class ChristofidesEnumerationVertexColoring: public EnumerationVertexColoring {
+
+public:
+    using EnumerationVertexColoring::EnumerationVertexColoring;
+
+    void run();
+    const std::vector<std::vector<bool>>& getTransitiveClosure() const;
+
+protected:
+    std::vector<std::vector<bool>> transitive_closure;
+
+    void calculate_transitive_closure();
+    void determine_current_predecessors(int r) override;
+
+};
+
+class BrelazEnumerationVertexColoring: public EnumerationVertexColoring {
+
+public:
+    using EnumerationVertexColoring::EnumerationVertexColoring;
+
+    void run();
+
+protected:
+
+    std::vector<NetworKit::node> saturation_largest_first_with_interchange();
+    bool is_interchangeable(std::vector<int>& K, NetworKit::node new_node);
+    std::vector<NetworKit::node> interchange_component(
+       std::vector<NetworKit::node>& subgraph, NetworKit::node new_node);
+    std::vector<int> get_representatives_of_adjacent_predecessors(int i);
+    void determine_current_predecessors(int r) override;
+    void backwards();
 };
 
 } /* namespace Koala */
