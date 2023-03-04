@@ -10,6 +10,7 @@
 #include <map>
 #include <vector>
 #include <set>
+#include <unordered_map>
 #include <optional>
 
 #include <networkit/base/Algorithm.hpp>
@@ -37,6 +38,7 @@ public:
 protected:
     const std::optional<NetworKit::Graph> graph;
     std::vector<NetworKit::node> ordering;
+    std::unordered_map<NetworKit::node, int> position;
     std::map<NetworKit::node, int> current_solution;
     std::map<NetworKit::node, int> best_solution;
     std::map<NetworKit::node, std::set<int>> feasible_colors;
@@ -101,4 +103,19 @@ protected:
     void backwards();
 };
 
+class KormanEnumerationVertexColoring: public BrownsOrdinaryEnumerationVertexColoring {
+
+public:
+    using BrownsOrdinaryEnumerationVertexColoring::BrownsOrdinaryEnumerationVertexColoring;
+
+    void run();
+
+protected:
+    std::vector<int> new_ordering;
+
+    void dynamic_rearrangement(int i);
+    void forwards();
+    void backwards();
+    void determine_feasible_colors(int i);
+};
 } /* namespace Koala */
