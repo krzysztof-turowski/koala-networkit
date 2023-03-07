@@ -14,6 +14,24 @@
 
 namespace Koala {
 
+class LightWeightGraph
+{
+public:
+    LightWeightGraph(const NetworKit::Graph &graph);
+    void hide(int v);
+    void unhide(int v);
+    void hide (std::vector<int>& v);
+    void unhide (std::vector<int>& v);
+    std::vector<int> n(int v);
+    int lowestDegVerticle(); // assume at least 1 size
+    bool isEmpty();
+    void print();
+    
+private:
+    std::vector<std::vector<int>> adj;
+    std::vector<bool> hidden;
+};
+
 /**
  * @ingroup independentSet
  * The base class for the independent set problem algorithms.
@@ -39,6 +57,7 @@ public:
 protected:
     const std::optional<NetworKit::Graph> graph;
     std::map<NetworKit::node, bool> independentSet;
+    LightWeightGraph lightGraph;
 };
 
 /**
@@ -52,6 +71,84 @@ public:
 
     /**
      * Execute the brute force algorithm.
+     */
+    void run();
+};
+
+/**
+ * @ingroup independentSet
+ * The class for the mis1 algorithm.
+ */
+class Mis1IndependentSet final : public SimpleIndependentSet {
+
+public:
+    using SimpleIndependentSet::SimpleIndependentSet;
+    
+    /**
+     * Execute the mis1 algorithm.
+     */
+    void run();
+
+private:
+    std::vector<int> recursive();
+};
+
+/**
+ * @ingroup independentSet
+ * The class for the mis2 algorithm.
+ */
+class Mis2IndependentSet final : public SimpleIndependentSet {
+
+public:
+    using SimpleIndependentSet::SimpleIndependentSet;
+
+    /**
+     * Execute the mis2 algorithm.
+     */
+    void run();
+};
+
+/**
+ * @ingroup independentSet
+ * The class for the mis3 algorithm.
+ */
+class Mis3IndependentSet final : public SimpleIndependentSet {
+
+public:
+    using SimpleIndependentSet::SimpleIndependentSet;
+
+    /**
+     * Execute the mis3 algorithm.
+     */
+    void run();
+};
+
+/**
+ * @ingroup independentSet
+ * The class for the mis4 algorithm.
+ */
+class Mis4IndependentSet final : public SimpleIndependentSet {
+
+public:
+    using SimpleIndependentSet::SimpleIndependentSet;
+
+    /**
+     * Execute the mis4 algorithm.
+     */
+    void run();
+};
+
+/**
+ * @ingroup independentSet
+ * The class for the mis5 algorithm.
+ */
+class Mis5IndependentSet final : public SimpleIndependentSet {
+
+public:
+    using SimpleIndependentSet::SimpleIndependentSet;
+
+    /**
+     * Execute the mis5 algorithm.
      */
     void run();
 };
