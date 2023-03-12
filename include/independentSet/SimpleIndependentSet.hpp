@@ -7,30 +7,14 @@
 
 #pragma once
 
+#include <functional>
 #include <map>
+#include <set>
 
 #include <networkit/base/Algorithm.hpp>
 #include <networkit/graph/Graph.hpp>
 
 namespace Koala {
-
-class LightWeightGraph
-{
-public:
-    LightWeightGraph(const NetworKit::Graph &graph);
-    void hide(int v);
-    void unhide(int v);
-    void hide (std::vector<int>& v);
-    void unhide (std::vector<int>& v);
-    std::vector<int> n(int v);
-    int lowestDegVerticle(); // assume at least 1 size
-    bool isEmpty();
-    void print();
-    
-private:
-    std::vector<std::vector<int>> adj;
-    std::vector<bool> hidden;
-};
 
 /**
  * @ingroup independentSet
@@ -55,9 +39,26 @@ public:
     const std::map<NetworKit::node, bool>& getIndependentSet() const;
 
 protected:
+    std::function<bool(NetworKit::Edge a, NetworKit::Edge b)> edgeComparator;
+    using EdgeSet = std::set<NetworKit::Edge, decltype(edgeComparator)>;
+
+    void getdependentNodes(NetworKit::node v, std::vector<NetworKit::node>& dependentNodes) const;
+    void getdependentElements(
+        NetworKit::node v, 
+        std::vector<NetworKit::node>& dependentNodes,
+        EdgeSet& dependentEdges) const; // returns without duplicates
+    
+    NetworKit::count getGraphMaximumDegree() const;
+    NetworKit::node getMinimumDegreeNode() const;
+    NetworKit::node getMaximumDegreeNode() const;
+    void removeElements(std::vector<NetworKit::node> nodes);
+    void restoreElements(
+        std::vector<NetworKit::node>& nodes, 
+        EdgeSet& edges);
+    // TODO : polynomial time function for <=2 degree graph
+
     const std::optional<NetworKit::Graph> graph;
     std::map<NetworKit::node, bool> independentSet;
-    LightWeightGraph lightGraph;
 };
 
 /**
@@ -90,7 +91,7 @@ public:
     void run();
 
 private:
-    std::vector<int> recursive();
+    std::vector<NetworKit::node> recursive();
 };
 
 /**
