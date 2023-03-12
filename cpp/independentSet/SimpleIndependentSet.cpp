@@ -11,97 +11,87 @@
 #include <networkit/auxiliary/BucketPQ.hpp>
 #include <networkit/graph/GraphTools.hpp>
 
+#include <limits>
+#include <set>
+
 namespace Koala {
 
-LightWeightGraph::LightWeightGraph(const NetworKit::Graph &graph)
-        : adj(std::vector<std::vector<int>>(graph.numberOfNodes()))
-        , hidden(std::vector<bool>(graph.numberOfNodes(), false)) {
-    graph.forEdges([&](NetworKit::node u, NetworKit::node v) {
-        adj[u].push_back(v);
-        adj[v].push_back(u);
+
+void SimpleIndependentSet::getdependentNodes(
+        NetworKit::node v, 
+        std::vector<NetworKit::node>& dependentNodes) const {
+    dependentNodes.push_back(v);
+    graph->forNeighborsOf(v, [&](NetworKit::node u) {
+        dependentNodes.push_back(u);
     });
-}
+} 
 
-void LightWeightGraph::hide(int v) {
-    hidden[v] = true;
-}
-
-void LightWeightGraph::unhide(int v) {
-    hidden[v] = false;
-}
-
-void LightWeightGraph::hide(std::vector<int>& v) {
-    for (int i = 0; i < v.size(); ++i) {
-        hidden[v[i]] = true;
+void SimpleIndependentSet::getdependentElements(
+        NetworKit::node v, 
+        std::vector<NetworKit::node>& dependentNodes, 
+        EdgeSet& dependentEdges) const {
+    getdependentNodes(v, dependentNodes);
+    for (auto x : dependentNodes) {
+        graph->forEdgesOf(x, [&](NetworKit::node u, NetworKit::node v) {
+            dependentEdges.insert(NetworKit::Edge(u, v, true));
+        });
     }
 }
 
-void LightWeightGraph::unhide(std::vector<int>& v) {
-    for (int i = 0; i < v.size(); ++i) {
-        hidden[v[i]] = false;
-    }
+NetworKit::count SimpleIndependentSet::getGraphMaximumDegree() const {
+    NetworKit::count maximumDegree = -1;
+    graph->forNodes([&](NetworKit::node v) {
+        maximumDegree = std::max(maximumDegree, graph->degree(v));
+    });
+    return maximumDegree;
 }
 
-std::vector<int> LightWeightGraph::n(int v) {
-    std::vector<int> neighbors;
-    neighbors.push_back(v);
-    for (int i = 0; i < adj[v].size(); ++i) {
-        if (!hidden[adj[v][i]]) {
-            neighbors.push_back(adj[v][i]);
+NetworKit::node SimpleIndependentSet::getMinimumDegreeNode() const {
+    NetworKit::count minDegree = std::numeric_limits<NetworKit::count>::max();
+    NetworKit::node index;
+    graph->forNodes([&](NetworKit::node v) {
+        if (minDegree > graph->degree(v)) {
+            minDegree = graph->degree(v);
+            index = v;
         }
-    }
-    return neighbors;
+    });
+    return index;
 }
 
-int LightWeightGraph::lowestDegVerticle() {
-    int lowestDeg = adj.size();
-    int lowestDegIndex;
-
-    for (int i = 0; i < adj.size(); ++i) {
-        if (!hidden[i]) {
-            int deg = 0;
-            for (int j = 0; j < adj[i].size(); ++j) {
-                if (!hidden[adj[i][j]]) {
-                    ++deg;
-                }
-            }
-            if (deg < lowestDeg) {
-                lowestDeg = deg;
-                lowestDegIndex = i;
-            }
+NetworKit::node SimpleIndependentSet::getMaximumDegreeNode() const {
+    NetworKit::count maxDegree = 0;
+    NetworKit::node index = -1;
+    graph->forNodes([&](NetworKit::node v) {
+        if (maxDegree < graph->degree(v)) {
+            maxDegree = graph->degree(v);
+            index = v;
         }
-    }
-
-    return lowestDegIndex;
+    });
+    return index;
 }
 
-bool LightWeightGraph::isEmpty() {
-    for (int i = 0; i < hidden.size(); ++i) {
-        if (!hidden[i]) {
-            return false;
-        }
-    }
-    return true;
-}
-
-void LightWeightGraph::print() {
-    for (int i = 0; i < adj.size(); ++i) {
-        if (!hidden[i]) {
-            std::cout << i << ": ";
-            for (int j = 0; j < adj[i].size(); ++j) {
-                if (!hidden[adj[i][j]]) {
-                    std::cout << adj[i][j] << " ";
-                }
-            }
-            std::cout << std::endl;
-        }
+void SimpleIndependentSet::removeElements(std::vector<NetworKit::node> nodes)  {
+    for (auto v : nodes) {
+        graph->removeNode(v);
     }
 }
 
+void SimpleIndependentSet::restoreElements(
+        std::vector<NetworKit::node>& nodes, 
+        EdgeSet& edges) {
+    for (auto v : nodes) {
+        graph->restoreNode(v);
+    }
+    for (auto e : edges) {
+        graph->addEdge(e.u, e.v);
+    }
+}
 
 SimpleIndependentSet::SimpleIndependentSet(const NetworKit::Graph &graph) 
     : graph(std::make_optional(graph))
-    , lightGraph(graph) { }
+    , edgeComparator([](NetworKit::Edge a, NetworKit::Edge b) {
+        return a.u < b.u || (a.u == b.u && a.v < b.v);
+    }) { }
 
 const std::map<NetworKit::node, bool>& SimpleIndependentSet::getIndependentSet() const {
     assureFinished();
@@ -154,48 +144,44 @@ void BruteForceIndependentSet::run() {
     hasRun = true;
 }
 
-static void print_vector(std::vector<int>& v) {
-    for (int i = 0; i < v.size(); ++i) {
-        std::cout << v[i] << " ";
-    }
-}
-
 void Mis1IndependentSet::run() {
-    std::vector<int> result = recursive();
+    std::vector<NetworKit::node> result = recursive();
     graph->forNodes([&](NetworKit::node v) {
         independentSet[v] = false;
     });
-    for (int i = 0; i < result.size(); ++i) {
-        independentSet[result[i]] = true;
-    }
+    for (auto node : result) {
+        independentSet[node] = true;
+    }   
     hasRun = true;
 }
-
-std::vector<int> Mis1IndependentSet::recursive() {
-    if (lightGraph.isEmpty()) {
+    
+std::vector<NetworKit::node> Mis1IndependentSet::recursive() {
+    if (graph->isEmpty()) {
         return {};
     }
-    int v = lightGraph.lowestDegVerticle();
-    std::vector<int> oneMustBeInSet = lightGraph.n(v);
+    NetworKit::node v = getMinimumDegreeNode();
+    std::vector<NetworKit::node> selectOneOf;
+    getdependentNodes(v, selectOneOf);
 
-    int chosenToSet;
-    std::vector<int> best;
-    for (int i = 0; i < oneMustBeInSet.size(); ++i) {
-        std::vector<int> neighbors = lightGraph.n(oneMustBeInSet[i]);
-        lightGraph.hide(neighbors);
+    int selectedToSet;
+    std::vector<NetworKit::node> largestSet;
+    for (auto u : selectOneOf) {
+        std::vector<NetworKit::node> dependentNodes; 
+        EdgeSet dependentEdges(edgeComparator);
+        getdependentElements(u, dependentNodes, dependentEdges);
         
-        std::vector<int> result = recursive();
-        if (result.size() >= best.size()) {
-            best = result;
-            chosenToSet = oneMustBeInSet[i];
+        removeElements(dependentNodes);        
+        std::vector<NetworKit::node> bestWithU = recursive();
+        if (bestWithU.size() >= largestSet.size()) {
+            largestSet = bestWithU;
+            selectedToSet = u;
         }
-
-        lightGraph.unhide(neighbors);
+        restoreElements(dependentNodes, dependentEdges);
     }
-    best.push_back(chosenToSet);
-    return best;
-}
 
+    largestSet.push_back(selectedToSet);
+    return largestSet;
+}
 
 void Mis2IndependentSet::run() {
 
