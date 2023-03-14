@@ -24,7 +24,7 @@ void SimpleIndependentSet::getdependentNodes(
     graph->forNeighborsOf(v, [&](NetworKit::node u) {
         dependentNodes.push_back(u);
     });
-} 
+}
 
 void SimpleIndependentSet::getdependentElements(
         NetworKit::node v, 
@@ -38,8 +38,8 @@ void SimpleIndependentSet::getdependentElements(
     }
 }
 
-NetworKit::count SimpleIndependentSet::getGraphMaximumDegree() const {
-    NetworKit::count maximumDegree = -1;
+NetworKit::count SimpleIndependentSet::getGraphsMaximumDegree() const {
+    NetworKit::count maximumDegree = 0;
     graph->forNodes([&](NetworKit::node v) {
         maximumDegree = std::max(maximumDegree, graph->degree(v));
     });
@@ -62,7 +62,7 @@ NetworKit::node SimpleIndependentSet::getMaximumDegreeNode() const {
     NetworKit::count maxDegree = 0;
     NetworKit::node index = -1;
     graph->forNodes([&](NetworKit::node v) {
-        if (maxDegree < graph->degree(v)) {
+        if (maxDegree <= graph->degree(v)) {
             maxDegree = graph->degree(v);
             index = v;
         }
@@ -85,6 +85,55 @@ void SimpleIndependentSet::restoreElements(
     for (auto e : edges) {
         graph->addEdge(e.u, e.v);
     }
+}
+
+std::vector<NetworKit::node> SimpleIndependentSet::runIndependentSetDegree2() const {
+    NetworKit::Graph graphDeg2(graph.value());
+    std::vector<NetworKit::node> independentSet;
+    
+    auto solvePath = [&] (NetworKit::node u) { // u -> v -> w
+        while (graphDeg2.hasNode(u) && graphDeg2.degree(u) <= 1) {
+            if (graphDeg2.degree(u) == 0) {
+                independentSet.push_back(u);
+                graphDeg2.removeNode(u);
+                break;
+            }
+
+            independentSet.push_back(u);
+            NetworKit::node v = graphDeg2.getIthNeighbor(u, 0);
+            graphDeg2.removeNode(u);
+
+            if (graphDeg2.degree(v) == 1) {
+                NetworKit::node w = graphDeg2.getIthNeighbor(v, 0);
+                u = w;
+            }
+            graphDeg2.removeNode(v);
+        }
+    };
+
+    graphDeg2.forNodes([&](NetworKit::node u) {
+        solvePath(u);
+    });
+
+    graphDeg2.forNodes([&](NetworKit::node u) { // t <- u -> v -> w
+        if (graphDeg2.hasNode(u) && graphDeg2.degree(u) == 2) {
+            independentSet.push_back(u);
+            NetworKit::node t = graphDeg2.getIthNeighbor(u, 0);
+            graphDeg2.removeNode(t);
+            NetworKit::node v = graphDeg2.getIthNeighbor(u, 0);
+            graphDeg2.removeNode(u);
+            
+            if (graphDeg2.degree(v) > 0) {
+                NetworKit::node w = graphDeg2.getIthNeighbor(v, 0);
+                graphDeg2.removeNode(v);
+                solvePath(w);
+            }
+            else {
+                graphDeg2.removeNode(v);
+            }            
+        }
+    });
+    return independentSet;
 }
 
 SimpleIndependentSet::SimpleIndependentSet(const NetworKit::Graph &graph) 
@@ -170,7 +219,7 @@ std::vector<NetworKit::node> Mis1IndependentSet::recursive() {
         EdgeSet dependentEdges(edgeComparator);
         getdependentElements(u, dependentNodes, dependentEdges);
         
-        removeElements(dependentNodes);        
+        removeElements(dependentNodes);
         std::vector<NetworKit::node> bestWithU = recursive();
         if (bestWithU.size() >= largestSet.size()) {
             largestSet = bestWithU;
@@ -184,19 +233,89 @@ std::vector<NetworKit::node> Mis1IndependentSet::recursive() {
 }
 
 void Mis2IndependentSet::run() {
+    std::vector<NetworKit::node> result = recursive();
+    graph->forNodes([&](NetworKit::node v) {
+        independentSet[v] = false;
+    });
+    for (auto node : result) { 
+        independentSet[node] = true;
+    }   
+    hasRun = true;
+}
 
+std::vector<NetworKit::node> Mis2IndependentSet::recursive() {
+    return {};
 }
 
 void Mis3IndependentSet::run() {
+    std::vector<NetworKit::node> result = recursive();
+    graph->forNodes([&](NetworKit::node v) {
+        independentSet[v] = false;
+    });
+    for (auto node : result) {
+        independentSet[node] = true;
+    }   
+    hasRun = true;
+}
 
+std::vector<NetworKit::node> Mis3IndependentSet::recursive() {
+    return {};
 }
 
 void Mis4IndependentSet::run() {
+    std::vector<NetworKit::node> result = recursive();
+    graph->forNodes([&](NetworKit::node v) {
+        independentSet[v] = false;
+    });
+    for (auto node : result) {
+        independentSet[node] = true;
+    }   
+    hasRun = true;
+}
 
+std::vector<NetworKit::node> Mis4IndependentSet::recursive() {
+    return {};
 }
 
 void Mis5IndependentSet::run() {
+    std::vector<NetworKit::node> result = recursive();
+    graph->forNodes([&](NetworKit::node v) {
+        independentSet[v] = false;
+    });
+    for (auto node : result) {
+        independentSet[node] = true;
+    }
+    hasRun = true;
+}
 
+std::vector<NetworKit::node> Mis5IndependentSet::recursive() {
+    if (getGraphsMaximumDegree() >= 3) {
+        NetworKit::node v = getMaximumDegreeNode();
+
+        std::vector<NetworKit::node> dependentNodes; 
+        EdgeSet dependentEdges(edgeComparator);
+        getdependentElements(v, dependentNodes, dependentEdges);
+        removeElements(dependentNodes);
+        std::vector<NetworKit::node> setWithV = recursive();
+        setWithV.push_back(v);
+        restoreElements(dependentNodes, dependentEdges);
+        
+        std::vector<NetworKit::node> vNeighbors;
+        graph->forEdgesOf(v, [&](NetworKit::node v, NetworKit::node u) {
+            vNeighbors.push_back(u);
+        });
+        graph->removeNode(v);
+        std::vector<NetworKit::node> setWithoutV = recursive();
+        graph->restoreNode(v);
+        for (auto u : vNeighbors) {
+            graph->addEdge(v, u);
+        }
+        
+        return setWithV.size() > setWithoutV.size() ? setWithV : setWithoutV;
+    }
+    else {
+        return runIndependentSetDegree2();
+    }
 }
 
 } /* namespace Koala */
