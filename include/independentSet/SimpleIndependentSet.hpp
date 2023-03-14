@@ -48,14 +48,14 @@ protected:
         std::vector<NetworKit::node>& dependentNodes,
         EdgeSet& dependentEdges) const; // returns without duplicates
     
-    NetworKit::count getGraphMaximumDegree() const;
+    NetworKit::count getGraphsMaximumDegree() const;
     NetworKit::node getMinimumDegreeNode() const;
     NetworKit::node getMaximumDegreeNode() const;
     void removeElements(std::vector<NetworKit::node> nodes);
     void restoreElements(
         std::vector<NetworKit::node>& nodes, 
         EdgeSet& edges);
-    // TODO : polynomial time function for <=2 degree graph
+    std::vector<NetworKit::node> runIndependentSetDegree2() const;
 
     const std::optional<NetworKit::Graph> graph;
     std::map<NetworKit::node, bool> independentSet;
@@ -107,6 +107,8 @@ public:
      * Execute the mis2 algorithm.
      */
     void run();
+private:
+    std::vector<NetworKit::node> recursive();
 };
 
 /**
@@ -122,6 +124,8 @@ public:
      * Execute the mis3 algorithm.
      */
     void run();
+private:
+    std::vector<NetworKit::node> recursive();
 };
 
 /**
@@ -137,6 +141,8 @@ public:
      * Execute the mis4 algorithm.
      */
     void run();
+private:
+    std::vector<NetworKit::node> recursive();
 };
 
 /**
@@ -152,6 +158,8 @@ public:
      * Execute the mis5 algorithm.
      */
     void run();
+private:
+    std::vector<NetworKit::node> recursive();
 };
 
 } /* namespace Koala */
