@@ -140,6 +140,75 @@ INSTANTIATE_TEST_SUITE_P(
     test_example, Mis1IndependentSetTest, testing::ValuesIn(simpleGraphs)
 );
 
+TEST_P(Mis2IndependentSetTest, test) {
+    IndependentSetParameters const& parameters = GetParam();
+    NetworKit::Graph G = build_graph(parameters.N, parameters.E);
+
+    auto algorithm = Koala::Mis2IndependentSet(G);
+    algorithm.run();
+
+    auto independentSet = algorithm.getIndependentSet();
+    for (const auto &[u, v] : parameters.E) {
+        EXPECT_FALSE(independentSet[u] && independentSet[v]);
+    }
+
+    int setSize = 0;
+    for (const auto &[v, belongs] : independentSet) {
+        setSize += (belongs);
+    }
+    EXPECT_EQ(setSize, parameters.expectedSetSize);
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    test_example, Mis2IndependentSetTest, testing::ValuesIn(simpleGraphs)
+);
+
+TEST_P(Mis3IndependentSetTest, test) {
+    IndependentSetParameters const& parameters = GetParam();
+    NetworKit::Graph G = build_graph(parameters.N, parameters.E);
+
+    auto algorithm = Koala::Mis3IndependentSet(G);
+    algorithm.run();
+
+    auto independentSet = algorithm.getIndependentSet();
+    for (const auto &[u, v] : parameters.E) {
+        EXPECT_FALSE(independentSet[u] && independentSet[v]);
+    }
+
+    int setSize = 0;
+    for (const auto &[v, belongs] : independentSet) {
+        setSize += (belongs);
+    }
+    EXPECT_EQ(setSize, parameters.expectedSetSize);
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    test_example, Mis3IndependentSetTest, testing::ValuesIn(simpleGraphs)
+);
+
+TEST_P(Mis4IndependentSetTest, test) {
+    IndependentSetParameters const& parameters = GetParam();
+    NetworKit::Graph G = build_graph(parameters.N, parameters.E);
+
+    auto algorithm = Koala::Mis4IndependentSet(G);
+    algorithm.run();
+
+    auto independentSet = algorithm.getIndependentSet();
+    for (const auto &[u, v] : parameters.E) {
+        EXPECT_FALSE(independentSet[u] && independentSet[v]);
+    }
+
+    int setSize = 0;
+    for (const auto &[v, belongs] : independentSet) {
+        setSize += (belongs);
+    }
+    EXPECT_EQ(setSize, parameters.expectedSetSize);
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    test_example, Mis4IndependentSetTest, testing::ValuesIn(simpleGraphs)
+);
+
 TEST_P(Mis5IndependentSetTest, test) {
     IndependentSetParameters const& parameters = GetParam();
     NetworKit::Graph G = build_graph(parameters.N, parameters.E);
