@@ -42,11 +42,8 @@ protected:
     std::function<bool(NetworKit::Edge a, NetworKit::Edge b)> edgeComparator;
     using EdgeSet = std::set<NetworKit::Edge, decltype(edgeComparator)>;
 
-    void getdependentNodes(NetworKit::node v, std::vector<NetworKit::node>& dependentNodes) const;
-    void getdependentElements(
-        NetworKit::node v, 
-        std::vector<NetworKit::node>& dependentNodes,
-        EdgeSet& dependentEdges) const; // returns without duplicates
+    std::vector<NetworKit::node> getNeighborsPlus(NetworKit::node v) const;
+    EdgeSet getConnectedEdges(std::vector<NetworKit::node>& nodes);
     
     NetworKit::count getGraphsMaximumDegree() const;
     NetworKit::node getMinimumDegreeNode() const;
