@@ -593,7 +593,7 @@ std::vector<NetworKit::node> Mis5IndependentSet::recursive() {
 
 /*
 TODO:
-remove duplicated code in the tests
+https://stackoverflow.com/questions/16491675/how-to-send-custom-message-in-google-c-testing-framework
 maybe move run() function to the SimpleIndependentSet cuz its always the same and call overloaded recursive() functions
 maybe make function for remove, recursion, restore 
 maybe optimize neighbors2 functions, also mis2 is slow
