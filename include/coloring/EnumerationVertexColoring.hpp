@@ -41,8 +41,6 @@ protected:
     std::unordered_map<NetworKit::node, int> position;
     std::vector<int> current_solution;
     std::vector<int> best_solution;
-    // std::map<NetworKit::node, int> current_solution;
-    // std::map<NetworKit::node, int> best_solution;
     std::vector<std::set<int>> feasible_colors;
     std::set<int, std::greater<int>> current_predecessors;
     int lower_bound;
