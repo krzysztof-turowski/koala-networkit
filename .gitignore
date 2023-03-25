@@ -3,3 +3,5 @@ build/*
 input/*
 lib/*
 .vscode/*
+.cache/*
+.clang-format
