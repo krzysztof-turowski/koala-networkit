@@ -303,7 +303,7 @@ void Mis2IndependentSet::run() {
     hasRun = true;
 }
 
-std::vector<NetworKit::node> Mis2IndependentSet::recursive() { // TODO: make function for a switch with degree and other things
+std::vector<NetworKit::node> Mis2IndependentSet::recursive() {
     // if |graph| = 0 then
     if (graph->isEmpty()) {
         return {};
@@ -338,7 +338,7 @@ std::vector<NetworKit::node> Mis2IndependentSet::recursive() { // TODO: make fun
         }
         else {
             std::set<NetworKit::node> neighbors2 = getNeighbors2(v);
-            if (neighbors2.size() == 1) { // TODO: book adds second branch but in my opinion it is obsolete
+            if (neighbors2.size() == 1) { // TODO: book adds second branch but in my opinion it is obsolete ?
                 NetworKit::node w = *neighbors2.begin();
                 std::vector<NetworKit::node> nodesToBeRemoved{v, u1, u2, w};
                 EdgeSet connectedEdges = getConnectedEdges(nodesToBeRemoved);
@@ -349,7 +349,7 @@ std::vector<NetworKit::node> Mis2IndependentSet::recursive() { // TODO: make fun
                 restoreElements(nodesToBeRemoved, connectedEdges);
                 return independentSet;
             }
-            else { // TODO: book doesn't say about +1 in the first case
+            else { // TODO: book doesn't say about +1 in the first case ?
                 std::vector<NetworKit::node> neighborsPlus = getNeighborsPlus(v);
                 EdgeSet connectedEdges = getConnectedEdges(neighborsPlus);
                 removeElements(neighborsPlus);
@@ -389,7 +389,7 @@ std::vector<NetworKit::node> Mis2IndependentSet::recursive() { // TODO: make fun
 
     //if every v has d(v) \in {4, 5}
 
-
+    // this is just a filler for all the not implemented cases
     if (getGraphsMaximumDegree() >= 3) {
         NetworKit::node v = getMaximumDegreeNode();
         std::vector<NetworKit::node> neighborsPlus = getNeighborsPlus(v);
@@ -416,7 +416,6 @@ std::vector<NetworKit::node> Mis2IndependentSet::recursive() { // TODO: make fun
     else {
         return runIndependentSetDegree2();
     }
-    std::cout << "WE SHOULD NOT BE HERE" << std::endl;
 }
 
 void Mis3IndependentSet::run() {
