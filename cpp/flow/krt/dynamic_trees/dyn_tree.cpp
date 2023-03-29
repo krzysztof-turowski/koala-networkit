@@ -15,10 +15,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*==================================================================*/
 void dyn_make_tree(dyn_item *item, int value)
 /* Put item to a new 1-node
@@ -43,23 +39,23 @@ void dyn_link(dyn_item *oldroot, dyn_item *newfather, DOUBLE new_value)
    to newfather. Must be in
    different trees! */
 {
-    dyn_node *or = oldroot->back;
+    dyn_node *old_r = oldroot->back;
     dyn_node *nf = newfather->back;
 
-    if (or->father)
+    if (old_r->father)
         return;
 
     dyn_splay(nf);
 
-    if (nf->father == or) {
+    if (nf->father == old_r) {
         printf("Error in dyn_link: Both in the same tree!\n");
         return;
 
         exit(1);
     }
-    or->father = nf;
-    or->dval = new_value;
-    or->dmin = 0;
+    old_r->father = nf;
+    old_r->dval = new_value;
+    old_r->dmin = 0;
 }
 
 /*==================================================================*/
@@ -192,7 +188,3 @@ dyn_item *dyn_find_father(dyn_item *item) {
     } else
         return (n->father->item);
 }
-
-#ifdef __cplusplus
-}
-#endif

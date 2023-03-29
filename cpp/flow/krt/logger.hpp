@@ -3,7 +3,7 @@
 #ifndef BETTER_MAX_FLOW_LOGGER_HPP
 #define BETTER_MAX_FLOW_LOGGER_HPP
 
-#define DBG if(0)
+#define DBG if(1)
 
 class Logger {
     std::string tag;

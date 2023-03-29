@@ -7,6 +7,7 @@
  */
 
 #include <cassert>
+#include <ranges>
 #include <set>
 
 #include <boost/dynamic_bitset.hpp>

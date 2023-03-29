@@ -39,6 +39,8 @@ public:
     const std::vector<std::vector<KRTEdge>> &getEdges() const;
 
     static KRTGraph read_from_file(const char *);
+    
+    static KRTGraph read_from_graph(const NetworKit::Graph&, int, int);
 
     static KRTGraph read_from_stdin();
 };
@@ -88,6 +90,16 @@ KRTGraph KRTGraph::read_from_stdin() {
         edgesList[std::make_pair(a, b)] += c;
     }
 //    std::cerr << edgesList.size() << std::endl;
+    return KRTGraph(n, m, s, t, edgesList);
+}
+
+KRTGraph KRTGraph::read_from_graph(const NetworKit::Graph &graph, int s, int t) {
+    std::map<PII, int> edgesList;
+    int n = graph.numberOfNodes(), m = graph.numberOfEdges();
+    graph.forEdges([&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight w) {
+        std::cout << "EDGE " << u << " " << v << " with weight " << w << std::endl;
+        edgesList[std::make_pair(u, v)] = w;
+    });
     return KRTGraph(n, m, s, t, edgesList);
 }
 

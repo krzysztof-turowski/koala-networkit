@@ -3,6 +3,8 @@
 
 #include <bits/stdc++.h>
 
+#include "krtgraph.hpp"
+
 #include "edge_designator.hpp"
 
 #ifndef PII

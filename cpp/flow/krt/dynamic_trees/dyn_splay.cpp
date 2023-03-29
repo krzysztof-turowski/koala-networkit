@@ -15,10 +15,6 @@
 #include "macros.h"
 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*==========================================================================*/
 static void __dyn_step_r( dyn_node * f, dyn_node * ch)
 {
@@ -331,7 +327,3 @@ dyn_node * dyn_splay(dyn_node * ch )	 /* Brings up the ch in its virtual
 	}
 	return (ch);
 }
-
-#ifdef __cplusplus
-}
-#endif

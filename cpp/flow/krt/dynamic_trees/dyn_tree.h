@@ -73,10 +73,6 @@
 
 *******************************************************************/
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #ifndef DOUBLE
 #define DOUBLE int
 #endif
@@ -118,6 +114,3 @@ dyn_item * dyn_find_father(dyn_item * item);
 
 #endif
 
-#ifdef __cplusplus
-}
-#endif

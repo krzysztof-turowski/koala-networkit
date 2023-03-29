@@ -2,12 +2,14 @@
 
 #include <boost/functional/hash.hpp>
 
+#include <networkit/graph/GraphTools.hpp>
+
 #include "krt_edge_designator.hpp"
 
-#include "../util/krtgraph.hpp"
-#include "../util/logger.hpp"
+#include "krtgraph.hpp"
+#include "logger.hpp"
 
-#include "../util/dynamic_trees/dyn_tree.h"
+#include "dynamic_trees/dyn_tree.h"
 
 #ifndef PII
 #define PII std::pair<int, int>
