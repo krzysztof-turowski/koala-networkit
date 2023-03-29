@@ -38,3 +38,11 @@ bool compare_files(const std::string &leftPath, const std::string &rightPath) {
     }
     return true;
 }
+
+NetworKit::Graph build_graph(const int &N, const std::list<std::pair<int, int>> &E) {
+    NetworKit::Graph G(N, false, false);
+    for (const auto &[u, v] : E) {
+        G.addEdge(u, v);
+    }
+    return G;
+}

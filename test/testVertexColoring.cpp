@@ -4,6 +4,8 @@
 
 #include <coloring/GreedyVertexColoring.hpp>
 
+#include "helpers.hpp"
+
 struct VertexColoringParameters {
     int N;
     std::list<std::pair<int, int>> E;
@@ -24,14 +26,6 @@ class SaturatedLargestFirstVertexColoringTest
 
 class GreedyIndependentSetVertexColoringTest
     : public testing::TestWithParam<VertexColoringParameters> { };
-
-NetworKit::Graph build_graph(const int &N, const std::list<std::pair<int, int>> &E) {
-    NetworKit::Graph G(N, false, false);
-    for (const auto &[u, v] : E) {
-        G.addEdge(u, v);
-    }
-    return G;
-}
 
 TEST_P(RandomSequentialVertexColoringTest, test) {
     VertexColoringParameters const& parameters = GetParam();

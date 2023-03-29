@@ -1,6 +1,6 @@
 add_subdirectory(coloring)
-add_subdirectory(independentSet)
+add_subdirectory(independent_set)
 add_subdirectory(io)
 add_subdirectory(graph)
-#add_subdirectory(recognition)
+add_subdirectory(recognition)
 add_subdirectory(traversal)

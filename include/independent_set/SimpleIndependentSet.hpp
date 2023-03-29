@@ -9,6 +9,7 @@
 
 #include <functional>
 #include <map>
+#include <optional>
 #include <set>
 
 #include <networkit/base/Algorithm.hpp>
@@ -17,7 +18,7 @@
 namespace Koala {
 
 /**
- * @ingroup independentSet
+ * @ingroup independent_set
  * The base class for the independent set problem algorithms.
  *
  */
