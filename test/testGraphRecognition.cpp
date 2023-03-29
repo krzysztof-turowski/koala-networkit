@@ -4,6 +4,8 @@
 
 #include <recognition/PerfectGraphRecognition.hpp>
 
+#include "helpers.hpp"
+
 struct GraphRecognitionParameters {
     int N;
     std::list<std::pair<int, int>> E;
@@ -12,14 +14,6 @@ struct GraphRecognitionParameters {
 
 class PerfectGraphRecognitionTest
     : public testing::TestWithParam<GraphRecognitionParameters> { };
-
-NetworKit::Graph build_graph(const int &N, const std::list<std::pair<int, int>> &E) {
-    NetworKit::Graph G(N, false, false);
-    for (const auto &[u, v] : E) {
-        G.addEdge(u, v);
-    }
-    return G;
-}
 
 TEST_P(PerfectGraphRecognitionTest, test) {
     GraphRecognitionParameters const& parameters = GetParam();

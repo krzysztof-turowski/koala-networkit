@@ -8,6 +8,8 @@
 
 #include "helpers.hpp"
 
+#include "helpers.hpp"
+
 struct VertexColoringParameters {
     int N;
     std::list<std::pair<int, int>> E;

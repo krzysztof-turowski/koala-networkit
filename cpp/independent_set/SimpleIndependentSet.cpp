@@ -6,7 +6,7 @@
  *      Author: Artur Salawa
  */
 
-#include <independentSet/SimpleIndependentSet.hpp>
+#include <independent_set/SimpleIndependentSet.hpp>
 
 #include <networkit/auxiliary/BucketPQ.hpp>
 #include <networkit/graph/GraphTools.hpp>
