@@ -7,6 +7,7 @@
  */
 
 #include <cassert>
+#include <ranges>
 
 #include <networkit/linkprediction/NeighborhoodUtility.hpp>
 
