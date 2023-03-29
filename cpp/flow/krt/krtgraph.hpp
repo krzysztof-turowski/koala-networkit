@@ -97,10 +97,10 @@ KRTGraph KRTGraph::read_from_graph(const NetworKit::Graph &graph, int s, int t) 
     std::map<PII, int> edgesList;
     int n = graph.numberOfNodes(), m = graph.numberOfEdges();
     graph.forEdges([&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight w) {
-        std::cout << "EDGE " << u << " " << v << " with weight " << w << std::endl;
-        edgesList[std::make_pair(u, v)] = w;
+        std::cout << "EDGE " << u + 1 << " " << v + 1 << " with weight " << w << std::endl;
+        edgesList[std::make_pair(u + 1, v + 1)] = w;
     });
-    return KRTGraph(n, m, s, t, edgesList);
+    return KRTGraph(n, m, s + 1, t + 1, edgesList);
 }
 
 int KRTGraph::getN() const {
@@ -131,6 +131,7 @@ KRTGraph::KRTGraph(int n, int m, int s, int t, std::map<std::pair<int, int>, int
 
         PII info = x.first;
         int val = x.second;
+        std::cout << "EDGE " << info.first << " " << info.second << " " << val << std::endl;
 
         edges[info.first].push_back(KRTEdge(info.second, val, 0, edges[info.second].size()));
 
