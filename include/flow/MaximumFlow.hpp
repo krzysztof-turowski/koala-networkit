@@ -108,17 +108,19 @@ private:
     KRTEdgeDesignator edge_designator;
 
     int get_visible_excess(NetworKit::node);
-    void update_positive_excess_map(NetworKit::node);
     NetworKit::node get_positive_excess_node();
+    void update_positive_excess(NetworKit::node);
+
     int get_flow(const std::pair<NetworKit::node, NetworKit::node>&);
     void set_flow(const std::pair<NetworKit::node, NetworKit::node>&, int);
     void saturate(const std::pair<NetworKit::node, NetworKit::node>&);
+    void add_edge(const std::pair<NetworKit::node, NetworKit::node>&);
+    void cut(const std::pair<NetworKit::node, NetworKit::node>&);
+
     void initialize();
     std::vector<std::pair<NetworKit::node, NetworKit::node>> get_edges_list();
-    void cut(const std::pair<NetworKit::node, NetworKit::node>&);
     void tree_push(NetworKit::node, NetworKit::node);
     void relabel(NetworKit::node);
-    void add_edge(const std::pair<NetworKit::node, NetworKit::node>&);
 };
 
 } /* namespace Koala */

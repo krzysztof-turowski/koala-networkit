@@ -9,7 +9,11 @@
 #pragma once
 
 #include <map>
+#include <optional>
+#include <unordered_set>
 #include <vector>
+
+#include <networkit/graph/Graph.hpp>
 
 namespace Koala {
 
@@ -33,13 +37,11 @@ class KRTEdgeDesignator {
     void initialize_ratios();
     void initialize_neighbors();
 
-    int deg(int u) const;
-
     std::unordered_set<int> get_indexed_U(int);
     std::unordered_set<int> get_indexed_V(int);
 
-    int encodeId(int, int) const;
-    int decodeId(int) const;
+    int encodeId(NetworKit::node, int) const;
+    NetworKit::node decodeId(int) const;
 
     void update_rl(int);
     void update_erl(int);
@@ -51,8 +53,9 @@ class KRTEdgeDesignator {
 
 public:
     void initialize(const std::optional<NetworKit::Graph>&);
-    int current_edge(int, int);
-    void response_adversary(int, int, int, int, bool);
+    int current_edge(NetworKit::node, int);
+    void response_adversary(NetworKit::node, int);
+    void response_adversary(NetworKit::node, int, NetworKit::node, int);
 };
 
 } /* namespace Koala */

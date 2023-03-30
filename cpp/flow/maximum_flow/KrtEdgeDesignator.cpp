@@ -6,10 +6,7 @@
  *      Ported by: Krzysztof Turowski (krzysztof.szymon.turowski@gmail.com)
  */
 
-#pragma once
-
-#include <map>
-#include <vector>
+#include <flow/maximum_flow/KrtEdgeDesignator.hpp>
 
 namespace Koala {
 
@@ -42,15 +39,6 @@ void KRTEdgeDesignator::initialize_neighbors() {
         U_neighbors[i][0] = std::unordered_set<int>(U[i].begin(), U[i].end());
         degU[i] = static_cast<int>(U[i].size());
     }
-} 
-
-int KRTEdgeDesignator::deg(int u) const{
-    return degU[u];
-    int deg = 0;
-    for (int ratio = 0; ratio <= T; ++ratio) {
-        deg += static_cast<int>(U_neighbors[u][ratio].size());
-    }
-    return deg;
 }
 
 std::unordered_set<int> KRTEdgeDesignator::get_indexed_U(int k) {
@@ -74,22 +62,20 @@ std::unordered_set<int> KRTEdgeDesignator::get_indexed_V(int k) {
     return VK;
 }
 
-int KRTEdgeDesignator::encodeId(int i, int k) const {
+int KRTEdgeDesignator::encodeId(NetworKit::node i, int k) const {
     return i * MAX_K + k;
 }
 
-int KRTEdgeDesignator::decodeId(int i) const {
-    return i >= 0 ? i / MAX_K - 1 : NetworKit::none;
+NetworKit::node KRTEdgeDesignator::decodeId(int i) const {
+    return i >= 0 ? i / MAX_K : NetworKit::none;
 }
 
 void KRTEdgeDesignator::update_rl(int v) {
-    // Calculate r(v) - number of designated edges in U_prim x {v}
     int num_of_designated = 0;
-//        for (auto u: U_prim) { // todo: it probably could be done faster
-//            if (designated[u] == v) num_of_designated++;
-//        }
     for (auto u: V[v]) {
-        if (designated[u] == v && U_prim.count(u)) num_of_designated++;
+        if (designated[u] == v && U_prim.count(u)) {
+            num_of_designated++;
+        }
     }
     long double r_v = static_cast<long double>(num_of_designated) / V[v].size();
 
@@ -123,7 +109,6 @@ void KRTEdgeDesignator::update_erl(int v) {
 }
 
 void KRTEdgeDesignator::remove_edge(int u, int v) {
-    // Remove v from u's neighbor lists
     for (int ratio = 0; ratio <= T; ++ratio) {
         if (U_neighbors[u][ratio].count(v)) {
             U_neighbors[u][ratio].erase(v);
@@ -131,21 +116,9 @@ void KRTEdgeDesignator::remove_edge(int u, int v) {
             break;
         }
     }
-
-//        org version
-//        if (U_prim.count(u) && deg(u) < L) {
-//            U_prim.erase(u);
-//            if (designated[u] == v) {
-//                update_rl(v);
-//                if (rl[v] < erl[v] - 1) {
-//                    update_erl(v);
-//                }
-//            }
-//        }
-
     if (designated[u] == v) {
         designated[u] = -1;
-        if (U_prim.count(u) && deg(u) < L) {
+        if (U_prim.count(u) && degU[u] < L) {
             U_prim.erase(u);
         }
         if (U_prim.count(u)) {
@@ -161,9 +134,9 @@ void KRTEdgeDesignator::remove_edge(int u, int v) {
 int KRTEdgeDesignator::designate_edge(int u) {
     int v = -1;
     if (!U_prim.count(u)) {
-        // u in U \ U' => designate any incident edge
-        // Czy tu nie powinien byc lookup do pierwszej niepustej listy? nie musi bo dla takich u jak w zalozzeniu U_nei sie nigdy nie zmienia
-        if (!U_neighbors[u].front().empty()) v = *(U_neighbors[u].front().begin());
+        if (!U_neighbors[u].front().empty()) {
+            v = *(U_neighbors[u].front().begin());
+        }
         designated[u] = v;
     } else {
         for (int ratio = 0; ratio <= T; ++ratio) {
@@ -172,11 +145,8 @@ int KRTEdgeDesignator::designate_edge(int u) {
                 break;
             }
         }
-
         designated[u] = v;
-
         update_rl(v);
-
         if (rl[v] > erl[v]) {
             update_erl(v);
         }
@@ -186,19 +156,15 @@ int KRTEdgeDesignator::designate_edge(int u) {
 
 long double KRTEdgeDesignator::reset() {
     auto k = T;
-
     while (get_indexed_U(k - 3).size() >= (ratios[k - 3] * L) * get_indexed_U(k).size() / (88.0 * X)) {
         k -= 3;
     }
-
-    auto WK1 = get_indexed_U(k - 1);
-    auto VK1 = get_indexed_V(k - 1);
-    for (auto v: VK1) {
+    for (auto v : get_indexed_V(k - 1)) {
         while (rl[v] >= k - 1) {
             for (auto u: U_prim) {
                 if (designated[u] == v) {
                     designated[u] = -1;
-                    break; // ?
+                    break;
                 }
             }
             update_rl(v);
@@ -207,12 +173,11 @@ long double KRTEdgeDesignator::reset() {
             update_erl(v);
         }
     }
-    for (auto u: WK1) {
+    for (auto u : get_indexed_U(k - 1)) {
         if (designated[u] == -1) {
             designate_edge(u);
         }
     }
-
     return k;
 }
 
@@ -226,8 +191,8 @@ void KRTEdgeDesignator::initialize(const std::optional<NetworKit::Graph> &graph)
 
     graph->forEdges([&](NetworKit::node u, NetworKit::node v) {
         for (int k = 1; k < MAX_K; ++k) {
-            int left = encodeId(u + 1, k);
-            int right = encodeId(v + 1, k - 1);
+            int left = encodeId(u, k);
+            int right = encodeId(v, k - 1);
             U[left].push_back(right);
             V[right].push_back(left);
             M++;
@@ -241,34 +206,31 @@ void KRTEdgeDesignator::initialize(const std::optional<NetworKit::Graph> &graph)
     }
 }
 
-int KRTEdgeDesignator::current_edge(int i, int k) {
-    return decodeId(designated[encodeId(i + 1, k)]);
+int KRTEdgeDesignator::current_edge(NetworKit::node i, int k) {
+    return decodeId(designated[encodeId(i, k)]);
 }
 
-void KRTEdgeDesignator::response_adversary(int a, int da, int b, int db, bool remove_v) {
-    a += 1, b += 1;
-    if (!remove_v) {
-        int u = encodeId(a, da), v = encodeId(b, db);
+void KRTEdgeDesignator::response_adversary(NetworKit::node a, int da) {
+    int v = encodeId(a, da);
+    for (auto u : V[v]) {
         remove_edge(u, v);
-        if (designated[u] == v) {
-            if (rl[designate_edge(u)] == T) {
-                bool all_less = true;
-                while (all_less) {
-                    reset();
-                    all_less = true;
-                    for (int i = 0; i < N; ++i) {
-                        if (rl[i] >= T) {
-                            all_less = false;
-                            break;
-                        }
-                    }
+    }
+}
+
+void KRTEdgeDesignator::response_adversary(NetworKit::node a, int da, NetworKit::node b, int db) {
+    int u = encodeId(a, da), v = encodeId(b, db);
+    remove_edge(u, v);
+    if (designated[u] == v && rl[designate_edge(u)] == T) {
+        bool all_less = true;
+        while (all_less) {
+            reset();
+            all_less = true;
+            for (int i = 0; i < N; ++i) {
+                if (rl[i] >= T) {
+                    all_less = false;
+                    break;
                 }
             }
-        }
-    } else {
-        int v = encodeId(b, db);
-        for (auto u : V[v]) {
-            remove_edge(u, v);
         }
     }
 }
