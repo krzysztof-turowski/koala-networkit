@@ -15,6 +15,36 @@
 #include <networkit/base/Algorithm.hpp>
 #include <networkit/graph/Graph.hpp>
 
+#include <flow/maximum_flow/DynamicTree.hpp>
+#include <flow/maximum_flow/KrtEdgeDesignator.hpp>
+
+#define DBG if(1)
+
+class Logger {
+    std::string tag = "KRT";
+public:
+
+    void log(std::string msg, std::pair<int, int> e, int val) {
+        return log(msg, e.first, e.second, val);
+    }
+
+    void log(std::string msg, int u, int v, int val) {
+        DBG std::cerr << "[" + tag + "]" + " " + msg + " " + "(" << u << ", " << v << ") = " << val << std::endl;
+    }
+
+    void log(std::string msg, int u, int val) {
+        DBG std::cerr << "[" + tag + "]" + " " + msg + " " + "(" << u << ") = " << val << std::endl;
+    }
+
+    void log(std::string msg, int val) {
+        DBG std::cerr << "[" + tag + "]" + " " + msg + " = " << val << std::endl;
+    }
+
+    void log(std::string msg) {
+        DBG std::cerr << "[" + tag + "]" + " " + msg << std::endl;
+    }
+};
+
 namespace Koala {
 
 /**
@@ -23,7 +53,6 @@ namespace Koala {
  *
  */
 class MaximumFlow : public NetworKit::Algorithm {
-
 public:
     /**
      * Given an input graph, set up the greedy vertex coloring procedure.
@@ -51,6 +80,8 @@ protected:
         const std::pair<NetworKit::node, NetworKit::node>&);
     
     virtual void initialize() = 0;
+
+    Logger logger;
 };
 
 /**
@@ -69,15 +100,24 @@ public:
 
 private:
     std::map<std::pair<NetworKit::node, NetworKit::node>, int> capacity;
-    std::map<NetworKit::node, int> d, excess, excess_hidden;
+    std::map<NetworKit::node, int> d, excess, hidden_excess;
     std::set<std::pair<NetworKit::node, NetworKit::node>> E_star;
     std::set<int> positive_excess;
 
+    DynamicTree dynamic_tree;
+    KRTEdgeDesignator edge_designator;
+
     int get_visible_excess(NetworKit::node);
     void update_positive_excess_map(NetworKit::node);
+    NetworKit::node get_positive_excess_node();
+    int get_flow(const std::pair<NetworKit::node, NetworKit::node>&);
     void set_flow(const std::pair<NetworKit::node, NetworKit::node>&, int);
     void saturate(const std::pair<NetworKit::node, NetworKit::node>&);
     void initialize();
+    std::vector<std::pair<NetworKit::node, NetworKit::node>> get_edges_list();
+    void cut(const std::pair<NetworKit::node, NetworKit::node>&);
+    void tree_push(NetworKit::node, NetworKit::node);
+    void relabel(NetworKit::node);
     void add_edge(const std::pair<NetworKit::node, NetworKit::node>&);
 };
 

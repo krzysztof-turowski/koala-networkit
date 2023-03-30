@@ -36,10 +36,6 @@
 #define dvd	 (d->dval)
 #define dvl	 (l->dval)
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct DYN_NODE{
 	dyn_item		* item;
 	struct DYN_NODE	* left, * right, * father;
@@ -63,8 +59,4 @@ void splice(dyn_node * m);   /* m is a solid root, middle-child
 								Change m to be the left-child. 
 								(the old left-child will be a middle)*/
 
-#endif
-
-#ifdef __cplusplus
-}
 #endif

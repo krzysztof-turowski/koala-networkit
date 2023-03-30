@@ -10,7 +10,9 @@
 
 #include <flow/MaximumFlow.hpp>
 
-#include "krt/king_rao_tarjan.hpp"
+#include <flow/maximum_flow/KrtEdgeDesignator.cpp>
+#include <flow/maximum_flow/dynamic_trees/dyn_tree.cpp>
+#include <flow/maximum_flow/dynamic_trees/dyn_splay.cpp>
 
 namespace Koala {
 
@@ -29,7 +31,7 @@ edge MaximumFlow::reverse(const edge &p) {
 }
 
 int KingRaoTarjanMaximumFlow::get_visible_excess(NetworKit::node v) {
-    return std::max(0, excess[v] - excess_hidden[v]);
+    return std::max(0, excess[v] - hidden_excess[v]);
 }
 
 void KingRaoTarjanMaximumFlow::update_positive_excess_map(NetworKit::node v) {
@@ -40,37 +42,54 @@ void KingRaoTarjanMaximumFlow::update_positive_excess_map(NetworKit::node v) {
     }
 }
 
-// int get_flow(const edge &e) {
-    // auto first_parent = dynamic_tree.find_father(e.first);
-    // auto second_parent = dynamic_tree.find_father(e.second);
+NetworKit::node KingRaoTarjanMaximumFlow::get_positive_excess_node() {
+    positive_excess.erase(source + 1);
+    positive_excess.erase(target + 1);
+    if (!positive_excess.empty()) {
+        return *positive_excess.begin();
+    }
+    return NetworKit::none;
+}
 
-    // if (first_parent == e.second) {
-        // return cap[e] - dynamic_tree.find_value(e.first);
-    // }
-    // if (secondParent == e.first) {
-        // return -(cap[rev(e)] - dynamic_tree.find_value(e.second);
-    // }
-    // return flow[e];
-// }
+int KingRaoTarjanMaximumFlow::get_flow(const edge &e) {
+    auto first_parent = dynamic_tree.find_parent(e.first);
+    auto second_parent = dynamic_tree.find_parent(e.second);
+
+    int res;
+    if (first_parent == e.second) {
+        // e in Ef
+        res = capacity[e] - dynamic_tree.get_value(e.first);
+    } else if (second_parent == e.first) {
+        // reverse(e) in Ef
+        res = -(capacity[reverse(e)] - dynamic_tree.get_value(e.second));
+    } else {
+        // e in E*
+        res = flow[e];
+    }
+    logger.log("f", e, res);
+    return res;
+}
 
 void KingRaoTarjanMaximumFlow::set_flow(const edge &e, int c) {
+    logger.log("setFlow", e, c);
     flow[e] = c, flow[reverse(e)] = -c;
 }
 
 void KingRaoTarjanMaximumFlow::saturate(const edge &e) {
+    logger.log("saturate", e, capacity[e]);
     set_flow(e, capacity[e]);
     excess[e.first] -= capacity[e], excess[e.second] += capacity[e];
     update_positive_excess_map(e.first);
     update_positive_excess_map(e.second);
 
     // sat push => adversary edge kill
-    // edgeDesignator->response_adversary(e.first, d[e.first], e.second, d[e.first] - 1, false);
+    edge_designator.response_adversary(e.first, d[e.first], e.second, d[e.first] - 1, false);
 }
 
 void KingRaoTarjanMaximumFlow::add_edge(const edge &e) {
     const edge &e_rev = reverse(e);
     E_star.insert(e), E_star.insert(e_rev);
-    excess_hidden[e.first] -= capacity[e], excess_hidden[e.second] -= capacity[e_rev];
+    hidden_excess[e.first] -= capacity[e], hidden_excess[e.second] -= capacity[e_rev];
     update_positive_excess_map(e.first);
     update_positive_excess_map(e.second);
 
@@ -84,27 +103,120 @@ void KingRaoTarjanMaximumFlow::add_edge(const edge &e) {
 
 void KingRaoTarjanMaximumFlow::initialize() {
     graph->forEdges([&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight w) {
-        std::cout << "EDGE " << u + 1 << " " << v + 1 << " with weight " << w << std::endl;
-        capacity[std::make_pair(u, v)] = w;
-        excess_hidden[u] += w;
-        update_positive_excess_map(u);
+        capacity[std::make_pair(u + 1, v + 1)] = w;
+        hidden_excess[u + 1] += w;
+        update_positive_excess_map(u + 1);
     });
     graph->forNodes([&](NetworKit::node v) {
-        d[v] = 0;
+        d[v + 1] = 0;
     });
-    // dynamic_tree.initialize();
 
+    // Initialize Ef (link-cut tree)
     for (int i = 0; i < graph->numberOfNodes(); i++) {
-        // relabel(source);
+        relabel(source + 1);
     }
     graph->forNeighborsOf(source, [&](NetworKit::node v) {
-        add_edge(std::make_pair(source, v));
+        add_edge(std::make_pair(source + 1, v + 1));
+    });
+}
+
+std::vector<edge> KingRaoTarjanMaximumFlow::get_edges_list() {
+    logger.log("initEdgesList");
+    std::map<edge, int> edge_costs;
+    std::set<edge> edges;
+    graph->forEdges([&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight w) {
+        if (u == source || v == source) {
+            return;
+        }
+        auto e = std::make_pair(std::min(u + 1, v + 1), std::max(u + 1, v + 1));
+        edge_costs[e] += w;
+        edges.insert(e);
+    });
+    std::vector<edge> sorted_edges(edges.begin(), edges.end());
+    sort(sorted_edges.begin(), sorted_edges.end(), [&](const edge &a, const edge &b) {
+        return edge_costs[a] < edge_costs[b];
+    });
+    return sorted_edges;
+}
+
+void KingRaoTarjanMaximumFlow::cut(const edge &e) {
+    logger.log("cut", e, -1);
+    set_flow(e, capacity[e] - dynamic_tree.get_value(e.first));
+    dynamic_tree.cut(e.first, e.second);
+
+    // Sat push => adversary edge kill
+    edge_designator.response_adversary(e.first, d[e.first], e.second, d[e.second], false);
+}
+
+void KingRaoTarjanMaximumFlow::tree_push(NetworKit::node v, NetworKit::node vC) {
+    logger.log("treePush", v);
+    // Add current edge to the tree if needed
+    if (dynamic_tree.find_root(v) == v) {
+        auto e = std::make_pair(v, vC);
+        dynamic_tree.link(v, vC, capacity[e] - get_flow(e));
+    }
+
+    // Push flow
+    auto delta = std::min(dynamic_tree.get_minimum_path_residue_capacity(v), get_visible_excess(v));
+    dynamic_tree.add_value(v, -delta);
+
+    // Update excess
+    auto path_end = dynamic_tree.find_root(v);
+    excess[v] -= delta, excess[path_end] += delta;
+    update_positive_excess_map(v);
+    update_positive_excess_map(path_end);
+
+    // Remove saturated edges
+    for (auto e = dynamic_tree.find_saturated_edge(v); e.first != e.second;
+            e = dynamic_tree.find_saturated_edge(e.second)) {
+        cut(e);
+    }
+}
+
+void KingRaoTarjanMaximumFlow::relabel(NetworKit::node v) {
+    logger.log("relabel", v, d[v] + 1);
+    for (auto const &c: dynamic_tree.find_children(v)) {
+        cut(std::make_pair(c, v));
+    }
+    d[v]++;
+
+    // relabel => remove node <v,d[v]> in the game
+    edge_designator.response_adversary(-1, -1, v, d[v] - 1, true);
+
+    // remove ineligible edges incident to v in the game
+    graph->forNeighborsOf(v - 1, [&](NetworKit::node w) {
+        auto e = std::make_pair(v, w + 1);
+        // eligibility constraint
+        if (!(capacity[e] - get_flow(e) > 0 && d[v] == d[w + 1] + 1 && E_star.count(e))) {
+            edge_designator.response_adversary(v, d[v], w + 1, d[v] - 1, false);
+        }
     });
 }
 
 void KingRaoTarjanMaximumFlow::run() {
     std::cout << "KingRaoTarjanMaximumFlow::run() started" << std::endl;
-    flow_size = king_rao_tarjan(graph, source, target);
+    dynamic_tree.initialize(graph->numberOfNodes());
+    edge_designator.initialize(graph);
+
+    logger.log("run");
+    initialize();
+    auto L = get_edges_list();
+    while (!L.empty()) {
+        auto e = L.back();
+        L.pop_back();
+        add_edge(e);
+        int v;
+        while ((v = get_positive_excess_node()) > 0) {
+            auto u = edge_designator.current_edge(v, d[v]);
+            logger.log("currentEdge", v, u);
+            if (u == -1) {
+                relabel(v);
+            } else {
+                tree_push(v, u);
+            }
+        }
+    }
+    flow_size = get_visible_excess(target + 1);
     std::cout << "KingRaoTarjanMaximumFlow::run() finished" << std::endl;
     hasRun = true;
 }

@@ -77,9 +77,11 @@
 #define DOUBLE int
 #endif
 
+struct DYN_NODE;
+
 typedef struct DYN_ITEM{
-	void * back;
-}dyn_item;
+	DYN_NODE* back;
+} dyn_item;
 
 void dyn_make_tree(dyn_item * item, int value);
                                         /* Put item to a new 1-node
