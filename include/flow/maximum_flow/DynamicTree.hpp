@@ -26,42 +26,46 @@ public:
     }
 
     NetworKit::node find_parent(NetworKit::node v) {
-        return ids[dyn_find_father(&nodes[v])];
+        return ids[dyn_find_father(&nodes[v + 1])] - 1;
     }
 
     NetworKit::node find_root(NetworKit::node v) {
-        return ids[dyn_find_root(&nodes[v])];
+        return ids[dyn_find_root(&nodes[v + 1])] - 1;
     }
 
     std::unordered_set<NetworKit::node> find_children(NetworKit::node v) {
-        return children[v];
+        return children[v + 1];
     }
 
     int get_value(NetworKit::node v) {
-        return dyn_find_value(&nodes[v]);
+        return dyn_find_value(&nodes[v + 1]);
     }
 
     void add_value(NetworKit::node v, int delta) {
-        dyn_add_value(&nodes[v], delta);
+        dyn_add_value(&nodes[v + 1], delta);
     }
 
     void link(NetworKit::node u, NetworKit::node v, int capacity) {
-        dyn_link(&nodes[u], &nodes[v], capacity);
-        children[v].insert(u);
+        dyn_link(&nodes[u + 1], &nodes[v + 1], capacity);
+        children[v + 1].insert(u);
     }
 
     void cut(NetworKit::node u, NetworKit::node v) {
-        dyn_cut(&nodes[u]);
-        children[v].erase(u);
+        dyn_cut(&nodes[u + 1]);
+        children[v + 1].erase(u);
     }
 
-    std::pair<NetworKit::node, NetworKit::node> find_saturated_edge(int v) {
-        dyn_item *start = &nodes[v];
-        dyn_item *bottleneck = dyn_find_bottleneck(start, 0);
-        return std::make_pair(ids[bottleneck], ids[dyn_find_father(bottleneck)]);
+    std::pair<NetworKit::node, NetworKit::node> find_saturated_edge(NetworKit::node v) {
+        dyn_item *start = &nodes[v + 1];
+        dyn_item *bottleneck = dyn_find_bottleneck(start, 0), *root = dyn_find_root(start);
+        if (bottleneck != root) {
+            return std::make_pair(ids[bottleneck] - 1, ids[dyn_find_father(bottleneck)] - 1);
+        }
+        return std::make_pair(NetworKit::none, NetworKit::none);
     }
 
     int get_minimum_path_residue_capacity(NetworKit::node v) {
+        v += 1;
         int p = 0, q = std::numeric_limits<int>::max() - 1;
         dyn_item *root = dyn_find_root(&nodes[v]);
         while (p < q) {

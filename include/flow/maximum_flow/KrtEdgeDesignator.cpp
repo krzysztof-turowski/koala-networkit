@@ -79,8 +79,7 @@ int KRTEdgeDesignator::encodeId(int i, int k) const {
 }
 
 int KRTEdgeDesignator::decodeId(int i) const {
-    if (i == -1) return -1;
-    return i / MAX_K;
+    return i >= 0 ? i / MAX_K - 1 : NetworKit::none;
 }
 
 void KRTEdgeDesignator::update_rl(int v) {
@@ -243,37 +242,33 @@ void KRTEdgeDesignator::initialize(const std::optional<NetworKit::Graph> &graph)
 }
 
 int KRTEdgeDesignator::current_edge(int i, int k) {
-    return decodeId(designated[encodeId(i, k)]);
+    return decodeId(designated[encodeId(i + 1, k)]);
 }
 
 void KRTEdgeDesignator::response_adversary(int a, int da, int b, int db, bool remove_v) {
+    a += 1, b += 1;
     if (!remove_v) {
-        int u = encodeId(a, da);
-        int v = encodeId(b, db);
-
+        int u = encodeId(a, da), v = encodeId(b, db);
         remove_edge(u, v);
         if (designated[u] == v) {
-            auto v_prim = designate_edge(u);
-            if (rl[v_prim] == T) {
-                bool all_less;
-                do {
+            if (rl[designate_edge(u)] == T) {
+                bool all_less = true;
+                while (all_less) {
                     reset();
                     all_less = true;
-
                     for (int i = 0; i < N; ++i) {
                         if (rl[i] >= T) {
                             all_less = false;
                             break;
                         }
                     }
-                } while (all_less);
+                }
             }
         }
     } else {
         int v = encodeId(b, db);
-        // respond as if the adversary removed each edge (u, v) in any sequence
-        for (auto nei: V[v]) {
-            remove_edge(nei, v);
+        for (auto u : V[v]) {
+            remove_edge(u, v);
         }
     }
 }
