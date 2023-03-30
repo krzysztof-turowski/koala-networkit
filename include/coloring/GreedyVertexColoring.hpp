@@ -8,6 +8,7 @@
 #pragma once
 
 #include <map>
+#include <optional>
 
 #include <networkit/base/Algorithm.hpp>
 #include <networkit/graph/Graph.hpp>
