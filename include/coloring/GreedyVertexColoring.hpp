@@ -7,11 +7,7 @@
 
 #pragma once
 
-#include <map>
-#include <optional>
-
-#include <networkit/base/Algorithm.hpp>
-#include <networkit/graph/Graph.hpp>
+#include "VertexColoring.hpp"
 
 namespace Koala {
 
@@ -20,27 +16,12 @@ namespace Koala {
  * The base class for the greedy vertex coloring heuristics.
  *
  */
-class GreedyVertexColoring : public NetworKit::Algorithm {
+class GreedyVertexColoring : public VertexColoring {
 
 public:
-    /**
-     * Given an input graph, set up the greedy vertex coloring procedure.
-     *
-     * @param graph The input graph.
-     */
-    GreedyVertexColoring(const NetworKit::Graph &graph);
-
-    /**
-     * Return the coloring found by the algorithm.
-     *
-     * @return a map from nodes to colors.
-     */
-    const std::map<NetworKit::node, int>& getColoring() const;
+    using VertexColoring::VertexColoring;
 
 protected:
-    const std::optional<NetworKit::Graph> graph;
-    std::map<NetworKit::node, int> colors;
-
     std::map<NetworKit::node, int>::iterator greedy_color(NetworKit::node v);
 };
 

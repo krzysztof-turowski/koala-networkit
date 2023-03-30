@@ -51,8 +51,6 @@ protected:
     
     static std::pair<NetworKit::node, NetworKit::node> reverse(
         const std::pair<NetworKit::node, NetworKit::node>&);
-    
-    virtual void initialize() = 0;
 };
 
 /**

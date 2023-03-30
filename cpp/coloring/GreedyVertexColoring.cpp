@@ -12,14 +12,6 @@
 
 namespace Koala {
 
-GreedyVertexColoring::GreedyVertexColoring(
-        const NetworKit::Graph &graph) : graph(std::make_optional(graph)) { }
-
-const std::map<NetworKit::node, int>& GreedyVertexColoring::getColoring() const {
-    assureFinished();
-    return colors;
-}
-
 std::map<NetworKit::node, int>::iterator GreedyVertexColoring::greedy_color(NetworKit::node v) {
     std::map<NetworKit::node, int>::iterator first(colors.find(v));
     if (first != colors.end()) {
