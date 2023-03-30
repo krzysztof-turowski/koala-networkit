@@ -33,7 +33,6 @@ void KRTEdgeDesignator::initialize_ratios() {
 void KRTEdgeDesignator::initialize_neighbors() {
     U_neighbors.clear();
     U_neighbors.resize(N);
-
     for (int i = 0; i < N; ++i) {
         U_neighbors[i].resize(T + 1);
         U_neighbors[i][0] = std::unordered_set<int>(U[i].begin(), U[i].end());
@@ -43,7 +42,7 @@ void KRTEdgeDesignator::initialize_neighbors() {
 
 std::unordered_set<int> KRTEdgeDesignator::get_indexed_U(int k) {
     std::unordered_set<int> UK;
-    for (auto const u: U_prim) {
+    for (auto const u : U_prim) {
         int des = designated[u];
         if (V_prim.count(des) && rl[des] >= k) {
             UK.insert(u);
@@ -54,7 +53,7 @@ std::unordered_set<int> KRTEdgeDesignator::get_indexed_U(int k) {
 
 std::unordered_set<int> KRTEdgeDesignator::get_indexed_V(int k) {
     std::unordered_set<int> VK;
-    for (auto const v: V_prim) {
+    for (auto const v : V_prim) {
         if (rl[v] >= k) {
             VK.insert(v);
         }
@@ -72,7 +71,7 @@ NetworKit::node KRTEdgeDesignator::decodeId(int i) const {
 
 void KRTEdgeDesignator::update_rl(int v) {
     int num_of_designated = 0;
-    for (auto u: V[v]) {
+    for (auto u : V[v]) {
         if (designated[u] == v && U_prim.count(u)) {
             num_of_designated++;
         }
@@ -93,8 +92,7 @@ void KRTEdgeDesignator::update_rl(int v) {
 
 void KRTEdgeDesignator::update_erl(int v) {
     erl[v] = rl[v];
-
-    for (auto u: V[v]) {
+    for (auto u : V[v]) {
         if (!U_prim.count(u)) continue;
         bool found = false;
         for (int ratio = 0; ratio <= T; ++ratio) {
@@ -104,7 +102,9 @@ void KRTEdgeDesignator::update_erl(int v) {
                 break;
             }
         }
-        if (found) U_neighbors[u][erl[v]].insert(v);
+        if (found) {
+            U_neighbors[u][erl[v]].insert(v);
+        }
     }
 }
 
@@ -190,12 +190,10 @@ void KRTEdgeDesignator::initialize(const std::optional<NetworKit::Graph> &graph)
     rl = std::vector<int>(N, 0), erl = std::vector<int>(N, 0);
 
     graph->forEdges([&](NetworKit::node u, NetworKit::node v) {
-        for (int k = 1; k < MAX_K; ++k) {
-            int left = encodeId(u, k);
-            int right = encodeId(v, k - 1);
+        for (int k = 1; k < MAX_K; k++, M++) {
+            int left = encodeId(u, k), right = encodeId(v, k - 1);
             U[left].push_back(right);
             V[right].push_back(left);
-            M++;
         }
     });
     initialize_ratios();
@@ -221,14 +219,11 @@ void KRTEdgeDesignator::response_adversary(NetworKit::node a, int da, NetworKit:
     int u = encodeId(a, da), v = encodeId(b, db);
     remove_edge(u, v);
     if (designated[u] == v && rl[designate_edge(u)] == T) {
-        bool all_less = true;
-        while (all_less) {
+        while (true) {
             reset();
-            all_less = true;
             for (int i = 0; i < N; ++i) {
                 if (rl[i] >= T) {
-                    all_less = false;
-                    break;
+                    return;
                 }
             }
         }
