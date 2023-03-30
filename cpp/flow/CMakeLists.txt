@@ -1,8 +1,8 @@
 koala_add_module(flow
     MaximumFlow.cpp
+    krt/DynamicTree.cpp
     krt/king_rao_tarjan.hpp
     krt/krt_edge_designator.hpp
-    krt/krtgraph.hpp
     krt/linkcut.cpp
     krt/logger.hpp
     krt/dynamic_trees/dyn_tree.cpp

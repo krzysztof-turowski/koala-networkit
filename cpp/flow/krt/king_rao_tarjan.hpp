@@ -5,8 +5,6 @@
 #include <networkit/graph/GraphTools.hpp>
 
 #include "krt_edge_designator.hpp"
-
-#include "krtgraph.hpp"
 #include "logger.hpp"
 
 #include "dynamic_trees/dyn_tree.h"
@@ -19,17 +17,19 @@
 #endif
 
 
-class KRTPushRelabelAdd {
+using edge = std::pair<NetworKit::node, NetworKit::node>;
 
-    std::unordered_map<PII, int, boost::hash<PII>> g, cap;
+class KRTPushRelabelAdd {
+    const std::optional<NetworKit::Graph> graph;
+
+    std::unordered_map<PII, int, boost::hash<PII>> flow, capacity;
     std::vector<int> d, excess, excess_hidden;
     std::unordered_set<PII, boost::hash<PII>> E_star;
-    std::unordered_set<int> positiveEx;
+    std::unordered_set<int> positive_excess;
 
-    int N, M, S, T;
-    std::vector<std::vector<KRTEdge>> G;
+    int S, T;
 
-    EdgeDesignator *edgeDesignator;
+    KRTEdgeDesignator *edge_designator;
 
     std::vector<dyn_item *> dynamicTreeNodes;
     std::unordered_map<dyn_item *, int> dynamicTreeIds;
@@ -37,28 +37,29 @@ class KRTPushRelabelAdd {
 
     Logger logger;
 
-    // Util
-    static PII rev(PII const &x) {
-        return std::make_pair(x.second, x.first);
-    }
+edge reverse(const edge &p) {
+    return std::make_pair(p.second, p.first);
+}
 
-    // Visible excess
-    void maintain_positive_excess_data(int node) {
-        if (excess[node] - excess_hidden[node] <= 0) positiveEx.erase(node);
-        if (excess[node] - excess_hidden[node] > 0) positiveEx.insert(node);
+int get_visible_excess(NetworKit::node v) {
+    return std::max(0, excess[v] - excess_hidden[v]);
+}
+
+void update_positive_excess_map(NetworKit::node v) {
+    if (get_visible_excess(v) > 0) {
+        positive_excess.insert(v);
+    } else {
+        positive_excess.erase(v);
     }
+}
 
     int get_positive_excess_node() {
-        positiveEx.erase(S);
-        positiveEx.erase(T);
-        if (!positiveEx.empty()) {
-            return *positiveEx.begin();
+        positive_excess.erase(S);
+        positive_excess.erase(T);
+        if (!positive_excess.empty()) {
+            return *positive_excess.begin();
         }
         return -1;
-    }
-
-    int get_excess_visible(int v) {
-        return std::max(0, excess[v] - excess_hidden[v]);
     }
 
     // Flow
@@ -69,85 +70,79 @@ class KRTPushRelabelAdd {
         int res;
         if (firstParent == e.second) {
             // e in Ef
-            res = cap[e] - dyn_find_value(dynamicTreeNodes[e.first]);
+            res = capacity[e] - dyn_find_value(dynamicTreeNodes[e.first]);
         } else if (secondParent == e.first) {
-            // rev(e) in Ef
-            res = -(cap[rev(e)] - dyn_find_value(dynamicTreeNodes[e.second]));
+            // reverse(e) in Ef
+            res = -(capacity[reverse(e)] - dyn_find_value(dynamicTreeNodes[e.second]));
         } else {
             // e in E*
-            res = g[e];
+            res = flow[e];
         }
         logger.log("f", e, res);
         return res;
     }
 
-    void set_flow(PII const &e, int const &c) {
-        logger.log("setFlow", e, c);
-        g[e] = c;
-        g[rev(e)] = -c;
+void set_flow(const edge &e, int c) {
+    logger.log("setFlow", e, c);
+    flow[e] = c, flow[reverse(e)] = -c;
+}
+
+void saturate(const edge &e) {
+    logger.log("saturate", e, capacity[e]);
+    set_flow(e, capacity[e]);
+    excess[e.first] -= capacity[e], excess[e.second] += capacity[e];
+    update_positive_excess_map(e.first);
+    update_positive_excess_map(e.second);
+
+    // sat push => adversary edge kill
+    edge_designator->response_adversary(e.first, d[e.first], e.second, d[e.first] - 1, false);
+}
+
+void initialize() {
+    graph->forEdges([&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight w) {
+        capacity[std::make_pair(u + 1, v + 1)] = w;
+        excess_hidden[u + 1] += w;
+        update_positive_excess_map(u + 1);
+    });
+    graph->forNodes([&](NetworKit::node v) {
+        d[v + 1] = 0;
+    });
+
+    // dynamic_tree.initialize();
+    // Initialize Ef (link-cut tree)
+    dynamicTreeNodes.resize(graph->numberOfNodes() + 1);
+    dynamicTreeChildren.resize(graph->numberOfNodes() + 1);
+    for (int v = 0; v <= graph->numberOfNodes(); ++v) {
+        dynamicTreeNodes[v] = new dyn_item();
+        dynamicTreeIds[dynamicTreeNodes[v]] = v;
+        dyn_make_tree(dynamicTreeNodes[v], 0);
     }
 
-    void saturate(PII e) {
-        logger.log("saturate", e, cap[e]);
-        set_flow(e, cap[e]);
-
-        excess[e.first] -= cap[e];
-        excess[e.second] += cap[e];
-        maintain_positive_excess_data(e.first);
-        maintain_positive_excess_data(e.second);
-
-        // sat push => adversary edge kill
-        edgeDesignator->response_adversary(e.first, d[e.first], e.second, d[e.first] - 1, false);
+    for (int i = 0; i < graph->numberOfNodes(); i++) {
+        relabel(S);
     }
-
-    // General
-    void generic_init() {
-        logger.log("genericInit");
-        // Init helper vars
-        for (int v = 1; v <= N; ++v) {
-            for (auto const &nei: G[v]) {
-                cap[std::make_pair(v, nei.dest)] = nei.cost;
-                excess_hidden[v] += nei.cost;
-                maintain_positive_excess_data(v);
-            }
-            d[v] = 0;
-        }
-
-        // Initialize Ef (link-cut tree)
-        dynamicTreeNodes.resize(N + 1);
-        dynamicTreeChildren.resize(N + 1);
-        for (int v = 0; v <= N; ++v) {
-            dynamicTreeNodes[v] = new dyn_item();
-            dynamicTreeIds[dynamicTreeNodes[v]] = v;
-            dyn_make_tree(dynamicTreeNodes[v], 0);
-        }
-
-        // Push flow from S at start
-        // Sequence of relabels instead of simple d[S] = N; is needed to enforce adversary responses in the game
-        for (int i = 0; i < N; ++i) relabel(S);
-        for (auto const &nei: G[S]) {
-            auto e = std::make_pair(S, nei.dest);
-            add_edge(e);
-        }
-    }
+    graph->forNeighborsOf(S - 1, [&](NetworKit::node v) {
+        add_edge(std::make_pair(S, v + 1));
+    });
+}
 
     std::vector<PII > get_edges_list() {
         logger.log("initEdgesList");
-        std::unordered_map<PII, int, boost::hash<PII>> edgesCosts;
+        std::unordered_map<PII, int, boost::hash<PII>> edge_costs;
         std::unordered_set<PII, boost::hash<PII>> edges;
-        for (int i = 1; i <= N; ++i) {
-            for (auto const &e: G[i]) {
-                if (i == S || e.dest == S) continue;
-                auto e_pair = std::make_pair(std::min(i, e.dest), std::max(i, e.dest));
-                edgesCosts[e_pair] += e.cost;
-                edges.insert(e_pair);
+        graph->forEdges([&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight w) {
+            if (u + 1 == S || v + 1 == S) {
+                return;
             }
-        }
-        std::vector<PII > edgesR(edges.begin(), edges.end());
-        sort(edgesR.begin(), edgesR.end(), [&](PII const &a, PII const &b) {
-            return edgesCosts[a] < edgesCosts[b];
+            auto e = std::make_pair(std::min(u + 1, v + 1), std::max(u + 1, v + 1));
+            edge_costs[e] += w;
+            edges.insert(e);
         });
-        return edgesR;
+        std::vector<PII> sorted_edges(edges.begin(), edges.end());
+        sort(sorted_edges.begin(), sorted_edges.end(), [&](PII const &a, PII const &b) {
+            return edge_costs[a] < edge_costs[b];
+        });
+        return sorted_edges;
     }
 
     // TreePush/Relabel/AddEdge
@@ -167,7 +162,7 @@ class KRTPushRelabelAdd {
     }
 
     void link(PII e) {
-        auto resCap = cap[e] - get_flow(e);
+        auto resCap = capacity[e] - get_flow(e);
         logger.log("link", e, resCap);
 
         // Add edge to the tree
@@ -179,14 +174,14 @@ class KRTPushRelabelAdd {
         logger.log("cut", e, -1);
         // Extract f value based on tree data
         auto resCap = dyn_find_value(dynamicTreeNodes[e.first]);
-        set_flow(e, cap[e] - resCap);
+        set_flow(e, capacity[e] - resCap);
 
         // Remove edge from the tree
         dyn_cut(dynamicTreeNodes[e.first]);
         dynamicTreeChildren[e.second].erase(e.first);
 
         // Sat push => adversary edge kill
-        edgeDesignator->response_adversary(e.first, d[e.first], e.second, d[e.second], false);
+        edge_designator->response_adversary(e.first, d[e.first], e.second, d[e.second], false);
     }
 
     void tree_push(int v, int vC) {
@@ -198,7 +193,7 @@ class KRTPushRelabelAdd {
 
         // Push flow
         auto pathMinimumResCap = get_bottleneck(v);
-        auto excessVisible = get_excess_visible(v);
+        auto excessVisible = get_visible_excess(v);
         auto delta = std::min(pathMinimumResCap, excessVisible);
 
         dyn_add_value(dynamicTreeNodes[v], -delta);
@@ -207,8 +202,8 @@ class KRTPushRelabelAdd {
         auto pathEndNode = dynamicTreeIds[dyn_find_root(dynamicTreeNodes[v])];
         excess[v] -= delta;
         excess[pathEndNode] += delta;
-        maintain_positive_excess_data(v);
-        maintain_positive_excess_data(pathEndNode);
+        update_positive_excess_map(v);
+        update_positive_excess_map(pathEndNode);
 
         // Remove saturated edges
         dyn_item *start = dynamicTreeNodes[v];
@@ -232,56 +227,50 @@ class KRTPushRelabelAdd {
         d[v]++;
 
         // relabel => remove node <v,d[v]> in the game
-        edgeDesignator->response_adversary(-1, -1, v, d[v] - 1, true);
+        edge_designator->response_adversary(-1, -1, v, d[v] - 1, true);
 
         // remove ineligible edges incident to v in the game
-        for (auto const &w: G[v]) {
-            auto e = std::make_pair(v, w.dest);
+        graph->forNeighborsOf(v - 1, [&](NetworKit::node w) {
+            auto e = std::make_pair(v, w + 1);
             // eligibility constraint
-            if (!(cap[e] - get_flow(e) > 0 && d[v] == d[w.dest] + 1 && E_star.count(e))) {
-                edgeDesignator->response_adversary(v, d[v], w.dest, d[v] - 1, false);
+            if (!(capacity[e] - get_flow(e) > 0 && d[v] == d[w + 1] + 1 && E_star.count(e))) {
+                edge_designator->response_adversary(v, d[v], w + 1, d[v] - 1, false);
             }
-        }
+        });
     }
 
-    void add_edge(PII e) {
-        logger.log("addEdge", e, -1);
-        int v = e.first, w = e.second;
+void add_edge(const edge &e) {
+    const edge &e_rev = reverse(e);
+    E_star.insert(e), E_star.insert(e_rev);
+    excess_hidden[e.first] -= capacity[e], excess_hidden[e.second] -= capacity[e_rev];
+    update_positive_excess_map(e.first);
+    update_positive_excess_map(e.second);
 
-        // Add e to E*
-        E_star.insert(e);
-        E_star.insert(rev(e));
-
-        // Subtract hidden excess
-        excess_hidden[v] -= cap[e];
-        excess_hidden[w] -= cap[rev(e)];
-        maintain_positive_excess_data(v);
-        maintain_positive_excess_data(w);
-
-        // Saturate appropriate edge
-        if (d[v] > d[w]) saturate(std::make_pair(v, w));
-        else if (d[w] > d[v]) saturate(std::make_pair(w, v));
+    int &d_first = d[e.first], &d_second = d[e.second];
+    if (d_first > d_second) {
+        saturate(e);
+    } else if (d_second > d_first) {
+        saturate(e_rev);
     }
+}
 
 public:
     // Initialize
-    KRTPushRelabelAdd(int n, int m, int s, int t, const std::vector<std::vector<KRTEdge>> &g) : N(n), M(m), S(s), T(t),
-                                                                                                G(g),
-                                                                                                logger(Logger("KRT")) {
-        d = excess = excess_hidden = std::vector<int>(n + 1);
-        this->g.reserve(4 * m);
-        cap.reserve(4 * m);
-        E_star.rehash(4 * m);
-        positiveEx.reserve(2 * n);
-        edgeDesignator = new KRTEdgeDesignator(n, g);
+    KRTPushRelabelAdd(
+            const std::optional<NetworKit::Graph> &graph,
+            NetworKit::node source, NetworKit::node target) : graph(graph), S(source + 1), T(target + 1), logger(Logger("KRT")) {
+        d = excess = excess_hidden = std::vector<int>(graph->numberOfNodes() + 1);
+        flow.reserve(4 * graph->numberOfEdges());
+        capacity.reserve(4 * graph->numberOfEdges());
+        E_star.rehash(4 * graph->numberOfEdges());
+        positive_excess.reserve(2 * graph->numberOfNodes());
+        edge_designator = new KRTEdgeDesignator(graph->numberOfNodes(), graph);
     }
 
     // Run
     int run() {
         logger.log("run");
-
-        generic_init();
-
+        initialize();
         auto L = get_edges_list();
         while (!L.empty()) {
             auto e = L.back();
@@ -290,7 +279,7 @@ public:
 
             int v;
             while ((v = get_positive_excess_node()) > 0) {
-                auto currentEdge = edgeDesignator->ce(v, d[v]);
+                auto currentEdge = edge_designator->ce(v, d[v]);
 
                 logger.log("currentEdge", v, currentEdge);
                 if (currentEdge == -1) {
@@ -300,12 +289,14 @@ public:
                 }
             }
         }
-        return get_excess_visible(T);
+        return get_visible_excess(T);
     }
 };
 
 // API
-int king_rao_tarjan(KRTGraph const &graph) {
-    auto solver = KRTPushRelabelAdd(graph.getN(), graph.getM(), graph.getS(), graph.getT(), graph.getEdges());
+int king_rao_tarjan(
+      const std::optional<NetworKit::Graph> &graph,
+      NetworKit::node source, NetworKit::node target) {
+    auto solver = KRTPushRelabelAdd(graph, source, target);
     return solver.run();
 }

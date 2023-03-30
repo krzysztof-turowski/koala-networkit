@@ -10,6 +10,7 @@
 
 #include <optional>
 #include <map>
+#include <set>
 
 #include <networkit/base/Algorithm.hpp>
 #include <networkit/graph/Graph.hpp>
@@ -43,7 +44,13 @@ public:
 protected:
     const std::optional<NetworKit::Graph> graph;
     NetworKit::node source, target;
+    std::map<std::pair<NetworKit::node, NetworKit::node>, int> flow;
     int flow_size;
+    
+    static std::pair<NetworKit::node, NetworKit::node> reverse(
+        const std::pair<NetworKit::node, NetworKit::node>&);
+    
+    virtual void initialize() = 0;
 };
 
 /**
@@ -59,6 +66,19 @@ public:
      * Execute the King-Rao-Tarjan maximum flow algorithm.
      */
     void run();
+
+private:
+    std::map<std::pair<NetworKit::node, NetworKit::node>, int> capacity;
+    std::map<NetworKit::node, int> d, excess, excess_hidden;
+    std::set<std::pair<NetworKit::node, NetworKit::node>> E_star;
+    std::set<int> positive_excess;
+
+    int get_visible_excess(NetworKit::node);
+    void update_positive_excess_map(NetworKit::node);
+    void set_flow(const std::pair<NetworKit::node, NetworKit::node>&, int);
+    void saturate(const std::pair<NetworKit::node, NetworKit::node>&);
+    void initialize();
+    void add_edge(const std::pair<NetworKit::node, NetworKit::node>&);
 };
 
 } /* namespace Koala */

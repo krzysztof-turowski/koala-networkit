@@ -3,9 +3,7 @@
 
 #include <bits/stdc++.h>
 
-#include "krtgraph.hpp"
-
-#include "edge_designator.hpp"
+#include <networkit/graph/GraphTools.hpp>
 
 #ifndef PII
 #define PII std::pair<int, int>
@@ -14,18 +12,7 @@
 #define LD long double
 #endif
 
-std::vector<PII > get_undirected(std::vector<std::vector<KRTEdge>> const &g) {
-    std::set<PII > edges;
-    for (int i = 1; i < g.size(); ++i) {
-        for (auto const &e: g[i]) {
-            edges.insert(std::make_pair(i, e.dest));
-            edges.insert(std::make_pair(e.dest, i));
-        }
-    }
-    return std::vector<PII >(edges.begin(), edges.end());
-}
-
-class KRTEdgeDesignator : public EdgeDesignator {
+class KRTEdgeDesignator {
     // Constraint: R0 * L/X >= 176
     // T = ceil(log(N) / log((R0 * L)/(88x))) + 4;
     // Parameters selected empirically to (1) match given constraints, (2) get best results on our datasets
@@ -194,11 +181,11 @@ class KRTEdgeDesignator : public EdgeDesignator {
 
 public:
 
-    KRTEdgeDesignator(int n, const std::vector<std::vector<KRTEdge>> &g);
+    KRTEdgeDesignator(int n, const std::optional<NetworKit::Graph> &g);
 
-    int ce(int, int) override;
+    int ce(int, int);
 
-    void response_adversary(int a, int da, int b, int db, bool remove_v) override {
+    void response_adversary(int a, int da, int b, int db, bool remove_v) {
         if (!remove_v) {
             int u = encodeId(a, da);
             int v = encodeId(b, db);
@@ -294,9 +281,7 @@ std::unordered_set<int> KRTEdgeDesignator::get_indexed_V(int k) {
     return VK;
 }
 
-KRTEdgeDesignator::KRTEdgeDesignator(int n, const std::vector<std::vector<KRTEdge>> &g) {
-    auto A_undirected = get_undirected(g);
-
+KRTEdgeDesignator::KRTEdgeDesignator(int n, const std::optional<NetworKit::Graph> &graph) {
     MAX_K = 2 * n;
     N = (n + 1) * MAX_K;
     M = 0;
@@ -308,16 +293,15 @@ KRTEdgeDesignator::KRTEdgeDesignator(int n, const std::vector<std::vector<KRTEdg
     rl = std::vector<int>(N, 0);
     erl = std::vector<int>(N, 0);
 
-    for (auto const &uv: A_undirected) {
-        int u = uv.first, v = uv.second;
+    graph->forEdges([&](NetworKit::node u, NetworKit::node v) {
         for (int k = 1; k < MAX_K; ++k) {
-            int left = encodeId(u, k);
-            int right = encodeId(v, k - 1);
+            int left = encodeId(u + 1, k);
+            int right = encodeId(v + 1, k - 1);
             U[left].push_back(right);
             V[right].push_back(left);
             M++;
         }
-    }
+    });
     init_ratios();
     init_neighbors();
     init_prim();
