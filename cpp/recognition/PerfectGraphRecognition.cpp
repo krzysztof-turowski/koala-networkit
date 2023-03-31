@@ -57,7 +57,7 @@ void PerfectGraphRecognition::check() const {
     assert((!containsOddHole(*graph) && !containsOddHole(graph_complement)) == isPerfect());
 }
 
-static PerfectGraphRecognition::State PerfectGraphRecognition::containsSimpleProhibited(
+PerfectGraphRecognition::State PerfectGraphRecognition::containsSimpleProhibited(
         const NetworKit::Graph &graph) {
     if (containsJewel(graph)) {
         return State::HAS_JEWEL;

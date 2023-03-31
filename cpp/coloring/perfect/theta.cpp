@@ -1,7 +1,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <../lib/Csdp/include/declarations.h>
+
+#include <declarations.h>
 
 /* This theta.c file is based on  Csdp/theta/theta.c of Csdp project: https://github.com/coin-or/Csdp */
 
@@ -19,11 +20,11 @@ double theta(int n, int m, int *from, int *to) {
   struct constraintmatrix *constraints;
 
   C.nblocks = 1;
-  C.blocks = malloc(2 * sizeof(struct blockrec));
+  C.blocks = (blockrec*)malloc(2 * sizeof(struct blockrec));
 
   C.blocks[1].blockcategory = MATRIX;
   C.blocks[1].blocksize = n;
-  C.blocks[1].data.mat = malloc(n * n * sizeof(double));
+  C.blocks[1].data.mat = (double*)malloc(n * n * sizeof(double));
 
   for (i = 1; i <= n; i++)
     for (j = 1; j <= n; j++) C.blocks[1].data.mat[ijtok(i, j, n)] = 1.0;
@@ -81,7 +82,7 @@ double theta(int n, int m, int *from, int *to) {
     constraints[i].blocks->jindices[1] = finish;
   };
 
-  initsoln(n, m + 1, C, a, constraints, &X, &y, &Z);
+  /*initsoln(n, m + 1, C, a, constraints, &X, &y, &Z);
 
   int ret = easy_sdp(n, m + 1, C, a, constraints, 0.0, &X, &y, &Z, &pobj, &dobj);
 
@@ -89,6 +90,6 @@ double theta(int n, int m, int *from, int *to) {
 
   if (ret == 0)
     return (dobj + pobj) / 2;
-  else
+  else*/
     return -1;
 }

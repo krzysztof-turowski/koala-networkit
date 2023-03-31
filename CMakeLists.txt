@@ -66,9 +66,16 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(csdp)
 #</Csdp>
 
-add_custom_target(csdp COMMAND make all WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/lib/csdp")
+add_custom_target(csdp ALL
+    COMMAND make libsdp.a
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/lib/csdp/lib")
 add_library(csdp_lib STATIC IMPORTED)
+set_target_properties(csdp_lib PROPERTIES
+    IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/build/libsdp.a"
+    INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/lib/csdp/include")
 add_dependencies(csdp_lib csdp)
+
+include_directories("${CMAKE_SOURCE_DIR}/include")
 
 option(KOALA_BUILD_SHARED "Build shared library" OFF)
 option(KOALA_BUILD_TESTS "Build tests" ON)
@@ -85,24 +92,27 @@ if(KOALA_BUILD_SHARED)
 else()
     add_library(${PROJECT_NAME} STATIC cpp/koala.cpp)
 endif()
+target_link_libraries(${PROJECT_NAME} csdp_lib networkit boost_dynamic_bitset)
 set_target_properties(${PROJECT_NAME} PROPERTIES
     COMPILE_FLAGS ${KOALA_CXX_FLAGS}
     LINK_FLAGS ${KOALA_LINKER_FLAGS})
-target_include_directories(${PROJECT_NAME} PUBLIC include)
-target_link_libraries(${PROJECT_NAME} networkit boost_dynamic_bitset csdp_lib)
 add_subdirectory(cpp)
 
 function(koala_make_test testname testfile)
     add_executable(${testname} ${CMAKE_CURRENT_LIST_DIR}/${testfile})
-    target_include_directories(${testname} PUBLIC include)
-    target_link_libraries(${testname} gtest_main networkit boost_dynamic_bitset csdp_lib ${PROJECT_NAME})
+    target_link_libraries(${testname} ${PROJECT_NAME} gtest_main)
+    set_target_properties(${testname} PROPERTIES
+        COMPILE_FLAGS ${KOALA_CXX_FLAGS}
+        LINK_FLAGS ${KOALA_LINKER_FLAGS})
     add_test(${testname} ${testname})
 endfunction()
 
 function(koala_make_benchmark testname testfile scriptfile)
     add_executable(${testname} ${CMAKE_CURRENT_LIST_DIR}/${testfile})
-    target_include_directories(${testname} PUBLIC include)
-    target_link_libraries(${testname} networkit boost_dynamic_bitset csdp_lib ${PROJECT_NAME})
+    target_link_libraries(${testname} ${PROJECT_NAME})
+    set_target_properties(${testname} PROPERTIES
+        COMPILE_FLAGS ${KOALA_CXX_FLAGS}
+        LINK_FLAGS ${KOALA_LINKER_FLAGS})
     add_custom_command(TARGET ${testname}
         POST_BUILD COMMAND /bin/sh ${CMAKE_CURRENT_LIST_DIR}/${scriptfile} ${ARGN})
 endfunction()
