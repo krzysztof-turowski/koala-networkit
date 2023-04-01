@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(koala-networkit LANGUAGES CXX)
+project(koala-networkit LANGUAGES CXX C)
 set(PROJECT_NAME koala-networkit)
 
 find_program(CMAKE_CXX_COMPILER NAMES g++ clang++)
@@ -66,13 +66,16 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(csdp)
 #</Csdp>
 
+set(CMAKE_VERBOSE_MAKEFILE OFF)
+
 add_custom_target(csdp ALL
     COMMAND make libsdp.a
     WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/lib/csdp/lib")
 add_library(csdp_lib STATIC IMPORTED)
 set_target_properties(csdp_lib PROPERTIES
-    IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/build/libsdp.a"
-    INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/lib/csdp/include")
+    IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/lib/csdp/lib/libsdp.a"
+    INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/lib/csdp/include"
+    LINK_FLAGS ${KOALA_LINKER_FLAGS})
 add_dependencies(csdp_lib csdp)
 
 include_directories("${CMAKE_SOURCE_DIR}/include")
@@ -92,7 +95,7 @@ if(KOALA_BUILD_SHARED)
 else()
     add_library(${PROJECT_NAME} STATIC cpp/koala.cpp)
 endif()
-target_link_libraries(${PROJECT_NAME} networkit boost_dynamic_bitset csdp_lib)
+target_link_libraries(${PROJECT_NAME} networkit boost_dynamic_bitset csdp_lib lapack blas gfortran quadmath)
 set_target_properties(${PROJECT_NAME} PROPERTIES
     COMPILE_FLAGS ${KOALA_CXX_FLAGS}
     LINK_FLAGS ${KOALA_LINKER_FLAGS})
