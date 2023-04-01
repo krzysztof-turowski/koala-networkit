@@ -3,7 +3,6 @@ koala_add_module(coloring
     GreedyVertexColoring.cpp
     PerfectGraphColoring.cpp
     PerfectGraphColoring.cpp
-    perfect/color.cpp
     perfect/commons.cpp
     perfect/theta.cpp
 )

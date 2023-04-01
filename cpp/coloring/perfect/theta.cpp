@@ -2,7 +2,9 @@
 #include <cstdlib>
 #include <cstring>
 
+extern "C" {
 #include <declarations.h>
+}
 
 /* This theta.c file is based on  Csdp/theta/theta.c of Csdp project: https://github.com/coin-or/Csdp */
 
@@ -82,7 +84,7 @@ double theta(int n, int m, int *from, int *to) {
     constraints[i].blocks->jindices[1] = finish;
   };
 
-  /*initsoln(n, m + 1, C, a, constraints, &X, &y, &Z);
+  initsoln(n, m + 1, C, a, constraints, &X, &y, &Z);
 
   int ret = easy_sdp(n, m + 1, C, a, constraints, 0.0, &X, &y, &Z, &pobj, &dobj);
 
@@ -90,6 +92,6 @@ double theta(int n, int m, int *from, int *to) {
 
   if (ret == 0)
     return (dobj + pobj) / 2;
-  else*/
+  else
     return -1;
 }
