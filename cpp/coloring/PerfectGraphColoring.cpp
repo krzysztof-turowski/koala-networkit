@@ -22,7 +22,7 @@ int getTheta(const Graph &G, const std::set<int> &isNodeRemoved) {
         return 1;
     }
     if (G.n - isNodeRemoved.size() == 2) {
-        return 1 + G.areNeighbours(0, 1);
+        return 1 + !G.areNeighbours(0, 1);
     }
 
   std::map<int, int> V;
@@ -38,18 +38,20 @@ int getTheta(const Graph &G, const std::set<int> &isNodeRemoved) {
           continue;
       }
       for (auto j : G[i]) {
-          if (isNodeRemoved.count(i)) {
+          if (isNodeRemoved.count(j)) {
               continue;
           }
           if (j > i) {
             from.push_back(V[i]);
             to.push_back(V[j]);
+            std::cout << "THETA EDGE " << V[i] << " " << V[j] << std::endl;
             m++;
           }
       }
   }
   double th = theta(G.n - isNodeRemoved.size(), m, from.data(), to.data());
 
+  std::cout << "THETA FOR " << G.n << " and " << isNodeRemoved.size() << " is " << th << std::endl;
   if (th == -1) {
     throw std::logic_error("Theta returned -1");
   }
@@ -158,6 +160,8 @@ std::set<NetworKit::node> PerfectGraphColoring::get_stable_set_intersecting_all_
     int omegaG = K.back().size();
     while (true) {
         std::vector<int> S = getSSIntersectingCliques(G, K);
+        for (auto s : S) std::cout << s << " ";
+        std::cout << std::endl;
         std::vector<int> compS = getComplementNodesVec(G.n, S);
         Graph Gprim = G.getInducedStrong(compS);
         if (getOmega(Gprim) < omegaG) {
@@ -165,21 +169,24 @@ std::set<NetworKit::node> PerfectGraphColoring::get_stable_set_intersecting_all_
             for (auto i : S) {
                 out.insert(vertices[i]);
             }
+            std::cout << "RETURN " << out.size() << std::endl;
             return out;
         } else {
-            K.push_back();
-
+            K.push_back(getMaxCardClique(Gprim));
             for (int i = 0; i < K.back().size(); i++) {
               K.back()[i] = compS[K.back()[i]];
             }
         }
     }
+    std::cout << "RETURN 000" << std::endl;
 }
 
 void PerfectGraphColoring::run() {
     for (int color = 1; graph->numberOfNodes() > 0; color++) {
+          std::cout << "TEST " << color << std::endl;
         for (const auto &v : get_stable_set_intersecting_all_maximum_cliques()) {
             colors[v] = color;
+            std::cout << "COLOR " << v << " : " << color << std::endl;
             graph->removeNode(v);
         }
     }
