@@ -218,6 +218,7 @@ TEST_P(PerfectGraphVertexColoringTest, test) {
 
     auto colors = algorithm.getColoring();
     for (const auto &[u, v] : parameters.E) {
+        std::cout << "COLORS: " << colors[u] << " " << colors[v] << std::endl;
         EXPECT_NE(colors[u], colors[v]);
     }
 

@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include <set>
+
 #include "VertexColoring.hpp"
 
 namespace Koala {
@@ -25,6 +27,9 @@ public:
      * Execute the perfect graph vertex coloring algorithm using SDP.
      */
     void run();
+
+private:
+    std::set<NetworKit::node> get_stable_set_intersecting_all_maximum_cliques();
 };
 
 } /* namespace Koala */
