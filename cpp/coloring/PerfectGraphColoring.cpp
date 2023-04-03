@@ -14,22 +14,34 @@
 #include "perfect/commons.h"
 #include "perfect/theta.h"
 
-int getTheta(const Graph &G, const std::set<int> &isNodeRemoved) {
-    if (G.n - isNodeRemoved.size() == 0) {
-        return 0;
-    }
-    if (G.n - isNodeRemoved.size() == 1) {
-        return 1;
-    }
-    if (G.n - isNodeRemoved.size() == 2) {
-        return 1 + !G.areNeighbours(0, 1);
-    }
+int getTheta(const Graph &G, const std::vector<int> &isNodeRemoved) {
+  std::vector<int> nodeStays(isNodeRemoved.size());
+  for (int i = 0; i < isNodeRemoved.size(); i++) {
+    nodeStays[i] = !isNodeRemoved[i];
+  }
 
-  std::map<int, int> V;
-  int n = 1, m = 0;
+  while (nodeStays.size() < G.n) {
+    nodeStays.push_back(1);
+  }
+
+  std::vector<int> nodeNr(G.n);
+  std::partial_sum(nodeStays.begin(), nodeStays.end(), nodeNr.begin());
+  if (nodeNr.empty() || nodeNr.back() == 0) {
+    return 0;
+  }
+
+  int m = 0;
+  std::vector<int> from, to;
   for (int i = 0; i < G.n; i++) {
-      if (!isNodeRemoved.count(i)) {
-          V[i] = n++;
+    if (!nodeStays[i]) continue;
+
+    for (auto j : G[i]) {
+      if (!nodeStays[j]) continue;
+
+      if (j > i) {
+        from.push_back(nodeNr[i]);
+        to.push_back(nodeNr[j]);
+        m++;
       }
   }
   std::vector<int> from, to;
@@ -49,26 +61,46 @@ int getTheta(const Graph &G, const std::set<int> &isNodeRemoved) {
           }
       }
   }
-  double th = theta(G.n - isNodeRemoved.size(), m, from.data(), to.data());
+  auto e = std::make_tuple(nodeNr.back(), m, from, to);
 
-  std::cout << "THETA FOR " << G.n << " and " << isNodeRemoved.size() << " is " << th << std::endl;
-  if (th == -1) {
-    throw std::logic_error("Theta returned -1");
+  if (std::get<0>(e) == 0) {
+    return 0;
   }
-  if (abs(th - static_cast<int>(th + 0.5)) > 0.3) {
+  if (std::get<0>(e) == 1) {
+    return 1;
+  }
+
+  if (std::get<0>(e) == 2) {
+    if (std::get<1>(e) == 0)
+      return 2;
+    else
+      return 1;
+  }
+
+  static std::map<std::tuple<int, int, std::vector<int>, std::vector<int>>, int> MEM;
+  if (MEM.count(e) > 0) {
+    return MEM[e];
+  }
+
+  double th = theta(std::get<0>(e), std::get<1>(e), std::get<2>(e).data(), std::get<3>(e).data());
+  int thInt = th + 0.5;
+
+  double eps = 0.3;
+  if (abs(th - thInt) > eps) {
     throw std::logic_error("Theta returned non-integer for a Perfect Graph: " + std::to_string(th));
   }
-  return static_cast<int>(th + 0.5);
+  MEM[e] = thInt;
+  return thInt;
 }
 
 int getOmega(const Graph &G) {
-  return getTheta(G.getComplement(), std::set<int>());
+  return getTheta(G.getComplement(), std::vector<int>());
 }
 
 std::vector<int> getMaxCardStableSet(const Graph &G) {
-  int thetaG = getTheta(G, std::set<int>());
+  int thetaG = getTheta(G, std::vector<int>());
 
-  std::set<int> isNodeRemoved;
+  std::vector<int> isNodeRemoved(G.n, 0);
   std::vector<int> res;
 
   for (int i = 0; i < G.n; i++) {
@@ -96,16 +128,13 @@ std::vector<int> getSSIntersectingCliques(const Graph &G, std::vector<std::vecto
       c[v]++;
     }
   }
-
-  std::vector<int> prefC = getPrefSum(c);
-
-  std::vector<std::vector<int>> nneighbors(prefC.back());
-
+  std::partial_sum(c.begin(), c.end(), c.begin());
+  std::vector<std::vector<int>> nneighbors(c.back());
   for (int i = 0; i < G.n; i++) {
     for (int j = i + 1; j < G.n; j++) {
       if (G.areNeighbours(i, j)) {
-        for (int ni = i == 0 ? 0 : prefC[i - 1]; ni < prefC[i]; ni++) {
-          for (int nj = prefC[j - 1]; nj < prefC[j]; nj++) {
+        for (int ni = i == 0 ? 0 : c[i - 1]; ni < c[i]; ni++) {
+          for (int nj = c[j - 1]; nj < c[j]; nj++) {
             nneighbors[ni].push_back(nj);
             nneighbors[nj].push_back(ni);
           }
@@ -115,19 +144,16 @@ std::vector<int> getSSIntersectingCliques(const Graph &G, std::vector<std::vecto
   }
 
   Graph nG(nneighbors);
-
   std::vector<int> nSS = getMaxCardStableSet(Graph(nneighbors));
-
   std::vector<int> ret;
   int wsk = 0;
   for (int nSSnode : nSS) {
-    while (wsk < G.n && prefC[wsk] <= nSSnode) wsk++;
+    while (wsk < G.n && c[wsk] <= nSSnode) wsk++;
 
     if (ret.empty() || ret.back() != wsk) {
       ret.push_back(wsk);
     }
   }
-
   return ret;
 }
 
@@ -137,19 +163,29 @@ Graph generate_graph(std::optional<NetworKit::Graph> graph) {
     graph->forNodes([&](NetworKit::node v) {
         vertices[v] = nodes++;
     });
-    std::vector<std::vector<int>> M;
-    M.resize(nodes);
+    std::vector<std::vector<int>> M(nodes);
     graph->forEdges([&](NetworKit::node u, NetworKit::node v) {
         M[vertices[u]].push_back(vertices[v]), M[vertices[v]].push_back(vertices[u]);
-        std::cout << "EDGE " << u << " " << v << std::endl;
     });
     return Graph(M);
 }
 
 namespace Koala {
 
+int PerfectGraphColoring::get_omega() {
+    return getOmega(generate_graph(graph));
+}
+
+int PerfectGraphColoring::get_chi() {
+    run();
+    int out = 0;
+    for (auto &[_, v] : colors) {
+        out = std::max(out, v);
+    }
+    return out;
+}
+
 std::set<NetworKit::node> PerfectGraphColoring::get_stable_set_intersecting_all_maximum_cliques() {
-    std::cout << "GRAPH SIZE: " << graph->numberOfNodes() << std::endl;
     Graph G(generate_graph(graph));
     std::vector<int> vertices;
     graph->forNodes([&](NetworKit::node v) {
@@ -160,8 +196,6 @@ std::set<NetworKit::node> PerfectGraphColoring::get_stable_set_intersecting_all_
     int omegaG = K.back().size();
     while (true) {
         std::vector<int> S = getSSIntersectingCliques(G, K);
-        for (auto s : S) std::cout << s << " ";
-        std::cout << std::endl;
         std::vector<int> compS = getComplementNodesVec(G.n, S);
         Graph Gprim = G.getInducedStrong(compS);
         if (getOmega(Gprim) < omegaG) {
@@ -169,24 +203,20 @@ std::set<NetworKit::node> PerfectGraphColoring::get_stable_set_intersecting_all_
             for (auto i : S) {
                 out.insert(vertices[i]);
             }
-            std::cout << "RETURN " << out.size() << std::endl;
             return out;
         } else {
             K.push_back(getMaxCardClique(Gprim));
             for (int i = 0; i < K.back().size(); i++) {
-              K.back()[i] = compS[K.back()[i]];
+                K.back()[i] = compS[K.back()[i]];
             }
         }
     }
-    std::cout << "RETURN 000" << std::endl;
 }
 
 void PerfectGraphColoring::run() {
     for (int color = 1; graph->numberOfNodes() > 0; color++) {
-          std::cout << "TEST " << color << std::endl;
         for (const auto &v : get_stable_set_intersecting_all_maximum_cliques()) {
             colors[v] = color;
-            std::cout << "COLOR " << v << " : " << color << std::endl;
             graph->removeNode(v);
         }
     }

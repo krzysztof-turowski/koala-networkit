@@ -232,5 +232,7 @@ TEST_P(PerfectGraphVertexColoringTest, test) {
 INSTANTIATE_TEST_SUITE_P(
     test_example, PerfectGraphVertexColoringTest, testing::Values(
         VertexColoringParameters{
-            6, {{0, 1}, {0, 2}, {1, 2}, {0, 3}, {1, 4}, {2, 5}}, 3}
+            6, {{0, 1}, {0, 2}, {1, 2}, {0, 3}, {1, 4}, {2, 5}}, 3},
+        VertexColoringParameters{
+            6, {{0, 1}, {0, 2}, {1, 2}, {0, 3}, {1, 4}, {2, 5}, {3, 4}, {3, 5}, {4, 5}}, 3}
 ));

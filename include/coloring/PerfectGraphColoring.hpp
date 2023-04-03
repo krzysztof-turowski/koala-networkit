@@ -28,6 +28,8 @@ public:
      */
     void run();
 
+    int get_omega();
+    int get_chi();
 private:
     std::set<NetworKit::node> get_stable_set_intersecting_all_maximum_cliques();
 };

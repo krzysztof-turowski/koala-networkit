@@ -4,6 +4,14 @@
 #include <set>
 #include <unordered_set>
 
+Graph::Graph(int n) : n(n), _neighbours(n), _matrix(n) {
+  for (int i = 0; i < n; i++) {
+    _matrix[i].resize(n);
+  }
+
+  calculateFirstNextNeighbours();
+}
+
 void Graph::calculateNeighboursLists() {
   _neighbours.clear();
   for (int i = 0; i < n; i++) {
@@ -41,14 +49,6 @@ void Graph::checkSymmetry() {
       }
     }
   }
-}
-
-Graph::Graph(int n) : n(n), _neighbours(n), _matrix(n) {
-  for (int i = 0; i < n; i++) {
-    _matrix[i].resize(n);
-  }
-
-  calculateFirstNextNeighbours();
 }
 
 Graph::Graph(std::vector<std::vector<int>> neighbours) : n(neighbours.size()), _neighbours(neighbours) {
@@ -110,18 +110,6 @@ Graph Graph::getInducedStrong(std::vector<int> X) const {
 
   ret.calculateNeighboursLists();
   ret.calculateFirstNextNeighbours();
-  return ret;
-}
-
-std::vector<int> getPrefSum(const std::vector<int> &v) {
-  if (v.empty()) return std::vector<int>();
-
-  std::vector<int> ret(v.size());
-  ret[0] = v[0];
-  for (int i = 1; i < v.size(); i++) {
-    ret[i] = ret[i - 1] + v[i];
-  }
-
   return ret;
 }
 

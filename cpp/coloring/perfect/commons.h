@@ -31,6 +31,7 @@ struct Graph {
   // all other nodes will have number lowered by 1.
   Graph getInducedStrong(std::vector<int> X) const;
 
+ private:
   std::vector<std::vector<int>> _neighbours;
   std::vector<std::vector<int>> _matrix;
   std::vector<int> _first_neighbour;
@@ -41,9 +42,4 @@ struct Graph {
   void calculateFirstNextNeighbours();
 };
 
-// Calculates inclusive prefix sum. ret[i] = v[0] + ... + v[i]
-std::vector<int> getPrefSum(const std::vector<int> &v);
-
-// returns all vertices of graph of size n not on list X
-// X should be sorted
 std::vector<int> getComplementNodesVec(int n, const std::vector<int> &X);
