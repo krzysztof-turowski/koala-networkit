@@ -42,6 +42,9 @@ NetworKit::Graph retrieve_graph(const Graph &G) {
 }
 
 int getTheta(const NetworKit::Graph &graph, const std::vector<int> &keep_nodes) {
+        printf("KEEP NODES: ");
+        for(auto v : keep_nodes) printf("%d ", v);
+        printf("\n");
     std::vector<int> indices(keep_nodes.size());
     std::partial_sum(keep_nodes.begin(), keep_nodes.end(), indices.begin());
     if (indices.empty() || indices.back() == 0) {
@@ -55,8 +58,10 @@ int getTheta(const NetworKit::Graph &graph, const std::vector<int> &keep_nodes) 
     graph.forEdges([&](NetworKit::node u, NetworKit::node v) {
         if (keep_nodes[u] && keep_nodes[v]) {
             from.push_back(indices[u]), to.push_back(indices[v]);
+            printf("(%d,%d) ", from.back(), to.back());
         }
     });
+    printf("\n");
     if (indices.back() == 2) {
         return 1 + (from.size() == 0);
     }
@@ -85,9 +90,7 @@ std::vector<int> get_vector(const NetworKit::Graph &graph) {
 }
 
 int getOmega(const NetworKit::Graph &graph) {
-    auto graph_complement = Koala::GraphTools::toComplement(graph);
-    assert(graph.numberOfNodes() == graph_complement.numberOfNodes());
-    return getTheta(graph_complement, get_vector(graph_complement));
+    return getTheta(Koala::GraphTools::toComplement(graph), get_vector(graph));
 }
 
 int getOmega(const Graph &G) {
@@ -114,6 +117,10 @@ std::vector<int> get_maximum_clique(const Graph &G) {
   return get_maximum_stable_set(graph_complement);
 }
 
+std::vector<int> get_maximum_clique(const NetworKit::Graph &graph) {
+  return get_maximum_stable_set(Koala::GraphTools::toComplement(graph));
+}
+
 namespace Koala {
 
 int PerfectGraphColoring::get_omega() {
@@ -129,29 +136,74 @@ int PerfectGraphColoring::get_chi() {
     return out;
 }
 
-std::set<NetworKit::node> PerfectGraphColoring::get_stable_set_intersecting_all_maximum_cliques() {
+std::vector<NetworKit::node> PerfectGraphColoring::get_stable_set_intersecting_all_maximum_cliques() {
     Graph G(generate_graph(graph));
     std::vector<int> vertices;
     graph->forNodes([&](NetworKit::node v) {
         vertices.push_back(v);
     });
     auto K = get_maximum_clique(G);
+    auto K2 = get_maximum_clique(*graph);
     int omega = std::accumulate(K.begin(), K.end(), 0);
+    int omega2 = std::accumulate(K2.begin(), K2.end(), 0);
+    assert(omega == omega2);
     while (true) {
         std::vector<int> S = get_stable_set_intersecting_maximum_cliques(K);
         std::vector<int> compS = getComplementNodesVec(G.n, S);
+        std::vector<int> S2 = get_stable_set_intersecting_maximum_cliques_2(K2);
+        assert(std::accumulate(S.begin(), S.end(), 0) == std::accumulate(S2.begin(), S2.end(), 0));
         Graph Gprim = G.getInducedStrong(compS);
+        NetworKit::Graph subgraph2 = *graph;
+        for (auto v : S2) {
+            subgraph2.removeNode(v);
+        }
+        assert(Gprim.n == subgraph2.numberOfNodes());
+        printf("G1: ");
+        for (int i = 0; i < G.n; i++) for (int j = i + 1; j < G.n; j++)
+          if (G.areNeighbours(i, j)) printf("(%d,%d) ", i, j);
+        printf("\n");
+        printf("G1: ");
+        graph->forEdges([&](NetworKit::node u, NetworKit::node v) {
+            printf("(%d,%d) ", u, v);
+        });
+        printf("\n");
+        printf("S1: ");
+        for(auto v : S) printf("%d ", v);
+        printf("\n");
+        printf("S2: ");
+        for(auto v : S2) printf("%d ", v);
+        printf("\n");
+        printf("G2: ");
+        for (int i = 0; i < Gprim.n; i++) for (int j = i + 1; j < Gprim.n; j++)
+          if (Gprim.areNeighbours(i, j)) printf("(%d,%d) ", i, j);
+        printf("\n");
+        printf("G2: ");
+        subgraph2.forEdges([&](NetworKit::node u, NetworKit::node v) {
+            printf("(%d,%d) ", u, v);
+        });
+        printf("\n");
+        int omega3 = getOmega(Gprim);
+        int omega4 = getOmega(subgraph2);
+        printf("omega: %d %d\n", omega3, omega4);
+        assert(getOmega(Gprim) == getOmega(subgraph2));
         if (getOmega(Gprim) < omega) {
-            std::set<NetworKit::node> out;
+            std::vector<NetworKit::node> out;
             for (auto i : S) {
-                out.insert(vertices[i]);
+                out.push_back(vertices[i]);
             }
             return out;
-        } else {
-            auto clique = get_maximum_clique(Gprim);
-            for (int i = 0; i < clique.size(); i++) {
-                K[compS[i]] += clique[i];
-            }
+        }
+        auto subgraph = retrieve_graph(Gprim);
+        auto clique = get_maximum_clique(Gprim);
+        auto clique2 = get_maximum_clique(subgraph);
+        auto clique3 = get_maximum_clique(subgraph2);
+        assert(std::accumulate(clique.begin(), clique.end(), 0) == std::accumulate(clique2.begin(), clique2.end(), 0));
+        assert(std::accumulate(clique.begin(), clique.end(), 0) == std::accumulate(clique3.begin(), clique3.end(), 0));
+        for (int i = 0; i < clique.size(); i++) {
+            K[compS[i]] += clique[i];
+        }
+        for (int i = 0; i < clique3.size(); i++) {
+            K2[i] += clique3[i];
         }
     }
 }
@@ -168,6 +220,31 @@ std::vector<int> PerfectGraphColoring::get_stable_set_intersecting_maximum_cliqu
     graph->forEdges([&](NetworKit::node u, NetworKit::node v) {
         for (int ni = V[u] == 0 ? 0 : c[V[u] - 1]; ni < c[V[u]]; ni++) {
             for (int nj = V[v] == 0 ? 0 : c[V[v] - 1]; nj < c[V[v]]; nj++) {
+                auxiliary_graph.addEdge(ni, nj);
+            }
+        }
+    });
+    auto stable_set = get_maximum_stable_set(auxiliary_graph);
+    std::vector<int> out;
+    int wsk = 0;
+    for (int i = 0; i < stable_set.size(); i++) {
+        if (stable_set[i]) {
+            while (wsk < graph->numberOfNodes() && c[wsk] <= i) wsk++;
+            if (out.empty() || out.back() != wsk) {
+                out.push_back(wsk);
+            }
+        }
+    }
+    return out;
+}
+
+std::vector<int> PerfectGraphColoring::get_stable_set_intersecting_maximum_cliques_2(const std::vector<int> &K) {
+    std::vector<int> c(K.size());
+    std::partial_sum(K.begin(), K.end(), c.begin());
+    NetworKit::Graph auxiliary_graph(c.back(), false, false);
+    graph->forEdges([&](NetworKit::node u, NetworKit::node v) {
+        for (int ni = u == 0 ? 0 : c[u - 1]; ni < c[u]; ni++) {
+            for (int nj = v == 0 ? 0 : c[v - 1]; nj < c[v]; nj++) {
                 auxiliary_graph.addEdge(ni, nj);
             }
         }

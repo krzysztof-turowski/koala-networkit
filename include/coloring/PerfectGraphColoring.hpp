@@ -2,7 +2,8 @@
  * PerfectGraphColoring.hpp
  *
  *  Created on: 30.03.2023
- *      Author: Krzysztof Turowski (krzysztof.szymon.turowski@gmail.com)
+ *      Author: Adrian Siwiec
+ *      Ported by: Krzysztof Turowski (krzysztof.szymon.turowski@gmail.com)
  */
 
 #pragma once
@@ -31,8 +32,9 @@ public:
     int get_omega();
     int get_chi();
 private:
-    std::set<NetworKit::node> get_stable_set_intersecting_all_maximum_cliques();
+    std::vector<NetworKit::node> get_stable_set_intersecting_all_maximum_cliques();
     std::vector<int> get_stable_set_intersecting_maximum_cliques(const std::vector<int>&);
+    std::vector<int> get_stable_set_intersecting_maximum_cliques_2(const std::vector<int>&);
 };
 
 } /* namespace Koala */

@@ -16,17 +16,19 @@ namespace Koala {
 namespace GraphTools {
 
 NetworKit::Graph toComplement(const NetworKit::Graph &G) {
-    NetworKit::Graph GC(G.numberOfNodes(), false, false);
-    GC.forNodes([&](NetworKit::node v) {
+    NetworKit::Graph GC(G.upperNodeIdBound(), false, false);
+    for (NetworKit::node v = 0; v < G.upperNodeIdBound(); v++) {
         if (G.hasNode(v)) {
             std::set<NetworKit::node> neighbors(G.neighborRange(v).begin(), G.neighborRange(v).end());
             GC.forNodes([&](NetworKit::node u) {
-                if (G.hasNode(u) && u < v && !neighbors.count(u)) {
+                if (u < v && !neighbors.count(u)) {
                     GC.addEdge(u, v);
                 }
             });
+        } else {
+            GC.removeNode(v);
         }
-    });
+    }
     return GC;
 }
 
