@@ -4,98 +4,26 @@
 #include <set>
 #include <unordered_set>
 
-Graph::Graph(int n) : n(n), _neighbours(n), _matrix(n) {
+Graph::Graph(int n) : n(n), _matrix(n) {
   for (int i = 0; i < n; i++) {
     _matrix[i].resize(n);
   }
-
-  calculateFirstNextNeighbours();
 }
 
-void Graph::calculateNeighboursLists() {
-  _neighbours.clear();
-  for (int i = 0; i < n; i++) {
-    _neighbours.push_back(std::vector<int>());
-    for (int j = 0; j < n; j++) {
-      if (areNeighbours(i, j)) _neighbours[i].push_back(j);
-    }
-  }
-}
-
-void Graph::calculateFirstNextNeighbours() {
-  _first_neighbour = std::vector<int>(n, -1);
-  _next_neighbour = std::vector<std::vector<int>>(n);
-  for (int i = 0; i < n; i++) {
-    _next_neighbour[i] = std::vector<int>(n, -2);
-  }
-
-  for (int i = 0; i < n; i++) {
-    if (!_neighbours[i].empty()) {
-      _first_neighbour[i] = _neighbours[i].front();
-      _next_neighbour[i][_neighbours[i].back()] = -1;
-    }
-
-    for (int j = 1; j < _neighbours[i].size(); j++) {
-      _next_neighbour[i][_neighbours[i][j - 1]] = _neighbours[i][j];
-    }
-  }
-}
-
-void Graph::checkSymmetry() {
-  for (int i = 0; i < n; i++) {
-    for (int j = 0; j < n; j++) {
-      if (_matrix[i][j] != _matrix[j][i]) {
-        throw std::invalid_argument("Graph is not symmetrical. (" + std::to_string(i) + ", " + std::to_string(j) + ").");
-      }
-    }
-  }
-}
-
-Graph::Graph(std::vector<std::vector<int>> neighbours) : n(neighbours.size()), _neighbours(neighbours) {
+Graph::Graph(std::vector<std::vector<int>> neighbours) : n(neighbours.size()) {
   _matrix.resize(n);
   for (int i = 0; i < n; i++) {
     _matrix[i].resize(n);
   }
 
   for (int i = 0; i < n; i++) {
-    for (int j : _neighbours[i]) {
+    for (int j : neighbours[i]) {
       if (j < 0 || j >= n) {
         throw std::invalid_argument("Graph initialization from neighbours array failed. Neighbour out of range.");
       }
       _matrix[i][j] = true;
     }
   }
-
-  calculateFirstNextNeighbours();
-  checkSymmetry();
-}
-
-int Graph::getFirstNeighbour(int a) const { return _first_neighbour[a]; }
-
-int Graph::getNextNeighbour(int a, int b) const {
-  int ret = _next_neighbour[a][b];
-
-  if (ret == -2) {
-    char buff[100];
-    snprintf(buff, sizeof(buff), "Graph getNextNeighbour failed. %d is not a neighbour of %d.", b, a);
-
-    throw std::invalid_argument(buff);
-  }
-
-  return ret;
-}
-
-Graph Graph::getComplement() const {
-  Graph ret(n);
-  for (int i = 0; i < n; i++) {
-    for (int j = 0; j < n; j++) {
-      if (i != j) ret._matrix[i][j] = !_matrix[i][j];
-    }
-  }
-
-  ret.calculateNeighboursLists();
-  ret.calculateFirstNextNeighbours();
-  return ret;
 }
 
 Graph Graph::getInducedStrong(std::vector<int> X) const {
@@ -107,9 +35,6 @@ Graph Graph::getInducedStrong(std::vector<int> X) const {
       }
     }
   }
-
-  ret.calculateNeighboursLists();
-  ret.calculateFirstNextNeighbours();
   return ret;
 }
 
