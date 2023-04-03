@@ -14,57 +14,75 @@
 #include "perfect/commons.h"
 #include "perfect/theta.h"
 
-int getTheta(const Graph &G, const std::vector<int> &isNodeRemoved) {
-  std::vector<int> nodeStays(isNodeRemoved.size());
-  for (int i = 0; i < isNodeRemoved.size(); i++) {
-    nodeStays[i] = !isNodeRemoved[i];
+Graph generate_graph(std::optional<NetworKit::Graph> graph) {
+    std::map<NetworKit::node, int> vertices;
+    int nodes = 0;
+    graph->forNodes([&](NetworKit::node v) {
+        vertices[v] = nodes++;
+    });
+    std::vector<std::vector<int>> M(nodes);
+    graph->forEdges([&](NetworKit::node u, NetworKit::node v) {
+        M[vertices[u]].push_back(vertices[v]), M[vertices[v]].push_back(vertices[u]);
+    });
+    return Graph(M);
+}
+
+NetworKit::Graph retrieve_graph(const Graph &G) {
+  NetworKit::Graph graph(G.n, false, false);
+  for (int i = 0; i < G.n; i++) {
+    for (int j = i + 1; j < G.n; j++) {
+      if (G.areNeighbours(i, j)) {
+        graph.addEdge(i, j);
+      }
+    }
   }
-  std::vector<int> nodeNr(G.n);
-  std::partial_sum(nodeStays.begin(), nodeStays.end(), nodeNr.begin());
-  if (nodeNr.empty() || nodeNr.back() == 0) {
+  return graph;
+}
+
+int getTheta(const Graph &G, const std::vector<int> &isNodeRemoved) {
+  NetworKit::Graph graph(retrieve_graph(G));
+  std::vector<int> keep_nodes(isNodeRemoved.size());
+  for (int i = 0; i < isNodeRemoved.size(); i++) {
+    keep_nodes[i] = !isNodeRemoved[i];
+  }
+  std::vector<int> indices(graph.numberOfNodes());
+  std::partial_sum(keep_nodes.begin(), keep_nodes.end(), indices.begin());
+  if (indices.empty() || indices.back() == 0) {
     return 0;
   }
 
   int m = 0;
   std::vector<int> from, to;
-  for (int i = 0; i < G.n; i++) {
-      if (!nodeStays[i]) continue;
-
-      for (auto j : G[i]) {
-        if (!nodeStays[j]) continue;
-
-        if (j > i) {
-          from.push_back(nodeNr[i]);
-          to.push_back(nodeNr[j]);
-          m++;
-        }
+  graph.forEdges([&](NetworKit::node u, NetworKit::node v) {
+      if (keep_nodes[u] && keep_nodes[v]) {
+          from.push_back(indices[u]), to.push_back(indices[v]), m++;
+          assert(G.areNeighbours(u, v));
       }
-  }
+  });
 
-  if (nodeNr.back() == 0) {
+  if (indices.back() == 0) {
       return 0;
   }
-  if (nodeNr.back() == 1) {
+  if (indices.back() == 1) {
       return 1;
   }
-  if (nodeNr.back() == 2) {
+  if (indices.back() == 2) {
       return 1 + (m == 0);
   }
 
-  auto e = std::make_tuple(nodeNr.back(), m, from, to);
-  static std::map<std::tuple<int, int, std::vector<int>, std::vector<int>>, int> MEM;
-  if (MEM.count(e) > 0) {
-    return MEM[e];
+  auto e = std::make_tuple(indices.back(), m, from, to);
+  static std::map<std::tuple<int, int, std::vector<int>, std::vector<int>>, int> CACHE;
+  if (CACHE.count(e) > 0) {
+    return CACHE[e];
   }
 
-  double theta = get_theta(std::get<0>(e), std::get<1>(e), std::get<2>(e).data(), std::get<3>(e).data());
+  double theta = get_theta(indices.back(), m, from.data(), to.data());
   int theta_int = theta + 0.5;
-
   double eps = 0.3;
   if (abs(theta - theta_int) > eps) {
     throw std::logic_error("Theta returned non-integer for a Perfect Graph: " + std::to_string(theta));
   }
-  return MEM[e] = theta_int;
+  return CACHE[e] = theta_int;
 }
 
 int getOmega(const Graph &G) {
@@ -129,19 +147,6 @@ std::vector<int> getSSIntersectingCliques(const Graph &G, std::vector<std::vecto
     }
   }
   return ret;
-}
-
-Graph generate_graph(std::optional<NetworKit::Graph> graph) {
-    std::map<NetworKit::node, int> vertices;
-    int nodes = 0;
-    graph->forNodes([&](NetworKit::node v) {
-        vertices[v] = nodes++;
-    });
-    std::vector<std::vector<int>> M(nodes);
-    graph->forEdges([&](NetworKit::node u, NetworKit::node v) {
-        M[vertices[u]].push_back(vertices[v]), M[vertices[v]].push_back(vertices[u]);
-    });
-    return Graph(M);
 }
 
 namespace Koala {
