@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cassert>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -7,7 +8,7 @@ extern "C" {
 #include <declarations.h>
 }
 
-double theta(int n, int m, int *from, int *to) {
+double get_theta(int n, int m, int *from, int *to) {
     int i, j, start, finish, temp;
     double pobj, dobj, *y, *a;
     struct blockmatrix C, X, Z;
@@ -49,6 +50,7 @@ double theta(int n, int m, int *from, int *to) {
         constraints[i].blocks->jindices = (int*) malloc((2)* sizeof(int));
         constraints[i].blocks->entries[1] = 1.0;
         start = from[i - 2], finish = to[i - 2];
+        assert(start != 0 && finish != 0);
         if (start > finish) {
             std::swap(start, finish);
         }

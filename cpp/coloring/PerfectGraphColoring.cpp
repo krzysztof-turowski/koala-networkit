@@ -19,11 +19,6 @@ int getTheta(const Graph &G, const std::vector<int> &isNodeRemoved) {
   for (int i = 0; i < isNodeRemoved.size(); i++) {
     nodeStays[i] = !isNodeRemoved[i];
   }
-
-  while (nodeStays.size() < G.n) {
-    nodeStays.push_back(1);
-  }
-
   std::vector<int> nodeNr(G.n);
   std::partial_sum(nodeStays.begin(), nodeStays.end(), nodeNr.begin());
   if (nodeNr.empty() || nodeNr.back() == 0) {
@@ -33,82 +28,61 @@ int getTheta(const Graph &G, const std::vector<int> &isNodeRemoved) {
   int m = 0;
   std::vector<int> from, to;
   for (int i = 0; i < G.n; i++) {
-    if (!nodeStays[i]) continue;
+      if (!nodeStays[i]) continue;
 
-    for (auto j : G[i]) {
-      if (!nodeStays[j]) continue;
-
-      if (j > i) {
-        from.push_back(nodeNr[i]);
-        to.push_back(nodeNr[j]);
-        m++;
-      }
-  }
-  std::vector<int> from, to;
-  for (int i = 0; i < G.n; i++) {
-      if (isNodeRemoved.count(i)) {
-          continue;
-      }
       for (auto j : G[i]) {
-          if (isNodeRemoved.count(j)) {
-              continue;
-          }
-          if (j > i) {
-            from.push_back(V[i]);
-            to.push_back(V[j]);
-            std::cout << "THETA EDGE " << V[i] << " " << V[j] << std::endl;
-            m++;
-          }
+        if (!nodeStays[j]) continue;
+
+        if (j > i) {
+          from.push_back(nodeNr[i]);
+          to.push_back(nodeNr[j]);
+          m++;
+        }
       }
   }
-  auto e = std::make_tuple(nodeNr.back(), m, from, to);
 
-  if (std::get<0>(e) == 0) {
-    return 0;
+  if (nodeNr.back() == 0) {
+      return 0;
   }
-  if (std::get<0>(e) == 1) {
-    return 1;
-  }
-
-  if (std::get<0>(e) == 2) {
-    if (std::get<1>(e) == 0)
-      return 2;
-    else
+  if (nodeNr.back() == 1) {
       return 1;
   }
+  if (nodeNr.back() == 2) {
+      return 1 + (m == 0);
+  }
 
+  auto e = std::make_tuple(nodeNr.back(), m, from, to);
   static std::map<std::tuple<int, int, std::vector<int>, std::vector<int>>, int> MEM;
   if (MEM.count(e) > 0) {
     return MEM[e];
   }
 
-  double th = theta(std::get<0>(e), std::get<1>(e), std::get<2>(e).data(), std::get<3>(e).data());
-  int thInt = th + 0.5;
+  double theta = get_theta(std::get<0>(e), std::get<1>(e), std::get<2>(e).data(), std::get<3>(e).data());
+  int theta_int = theta + 0.5;
 
   double eps = 0.3;
-  if (abs(th - thInt) > eps) {
-    throw std::logic_error("Theta returned non-integer for a Perfect Graph: " + std::to_string(th));
+  if (abs(theta - theta_int) > eps) {
+    throw std::logic_error("Theta returned non-integer for a Perfect Graph: " + std::to_string(theta));
   }
-  MEM[e] = thInt;
-  return thInt;
+  return MEM[e] = theta_int;
 }
 
 int getOmega(const Graph &G) {
-  return getTheta(G.getComplement(), std::vector<int>());
+  return getTheta(G.getComplement(), std::vector<int>(G.n, 0));
 }
 
 std::vector<int> getMaxCardStableSet(const Graph &G) {
-  int thetaG = getTheta(G, std::vector<int>());
+  int thetaG = getTheta(G, std::vector<int>(G.n, 0));
 
   std::vector<int> isNodeRemoved(G.n, 0);
   std::vector<int> res;
 
   for (int i = 0; i < G.n; i++) {
-    isNodeRemoved.insert(i);
+    isNodeRemoved[i] = 1;
     int newTheta = getTheta(G, isNodeRemoved);
 
     if (newTheta != thetaG) {
-      isNodeRemoved.erase(i);
+      isNodeRemoved[i] = 0;
       res.push_back(i);
     }
   }
