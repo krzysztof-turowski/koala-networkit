@@ -2,7 +2,8 @@
  * PerfectGraphColoring.cpp
  *
  *  Created on: 30.03.2023
- *      Author: Krzysztof Turowski (krzysztof.szymon.turowski@gmail.com)
+ *      Author: Adrian Siwiec
+ *      Ported by: Krzysztof Turowski (krzysztof.szymon.turowski@gmail.com)
  */
 
 #include <map>
@@ -98,15 +99,13 @@ int getOmega(const Graph &G) {
 std::vector<int> get_maximum_stable_set(const NetworKit::Graph &graph) {
     std::vector<int> keep_nodes(get_vector(graph));
     int theta = getTheta(graph, keep_nodes);
-    std::vector<int> res;
     graph.forNodes([&](NetworKit::node v) {
         keep_nodes[v] = 0;
         if (getTheta(graph, keep_nodes) != theta) {
             keep_nodes[v] = 1;
-            res.push_back(v);
         }
     });
-    return res;
+    return keep_nodes;
 }
 
 std::vector<int> get_maximum_clique(const Graph &G) {
@@ -136,12 +135,8 @@ std::set<NetworKit::node> PerfectGraphColoring::get_stable_set_intersecting_all_
     graph->forNodes([&](NetworKit::node v) {
         vertices.push_back(v);
     });
-    auto maximum_clique = get_maximum_clique(G);
-    int omega = maximum_clique.size();
-    std::vector<int> K(graph->numberOfNodes(), 0);
-    for (auto v : maximum_clique) {
-        K[v] = 1;
-    }
+    auto K = get_maximum_clique(G);
+    int omega = std::accumulate(K.begin(), K.end(), 0);
     while (true) {
         std::vector<int> S = get_stable_set_intersecting_maximum_cliques(K);
         std::vector<int> compS = getComplementNodesVec(G.n, S);
@@ -154,8 +149,8 @@ std::set<NetworKit::node> PerfectGraphColoring::get_stable_set_intersecting_all_
             return out;
         } else {
             auto clique = get_maximum_clique(Gprim);
-            for (auto v : clique) {
-                K[compS[v]]++;
+            for (int i = 0; i < clique.size(); i++) {
+                K[compS[i]] += clique[i];
             }
         }
     }
@@ -177,16 +172,18 @@ std::vector<int> PerfectGraphColoring::get_stable_set_intersecting_maximum_cliqu
             }
         }
     });
-    std::vector<int> nSS = get_maximum_stable_set(auxiliary_graph);
-    std::vector<int> ret;
+    auto stable_set = get_maximum_stable_set(auxiliary_graph);
+    std::vector<int> out;
     int wsk = 0;
-    for (int nSSnode : nSS) {
-        while (wsk < graph->numberOfNodes() && c[wsk] <= nSSnode) wsk++;
-        if (ret.empty() || ret.back() != wsk) {
-            ret.push_back(wsk);
+    for (int i = 0; i < stable_set.size(); i++) {
+        if (stable_set[i]) {
+            while (wsk < graph->numberOfNodes() && c[wsk] <= i) wsk++;
+            if (out.empty() || out.back() != wsk) {
+                out.push_back(wsk);
+            }
         }
     }
-    return ret;
+    return out;
 }
 
 void PerfectGraphColoring::run() {
