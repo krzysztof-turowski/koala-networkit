@@ -32,6 +32,7 @@ public:
     int get_chi();
 private:
     std::set<NetworKit::node> get_stable_set_intersecting_all_maximum_cliques();
+    std::vector<int> get_stable_set_intersecting_maximum_cliques(const std::vector<int>&);
 };
 
 } /* namespace Koala */

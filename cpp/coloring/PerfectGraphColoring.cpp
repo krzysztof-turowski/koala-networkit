@@ -41,7 +41,7 @@ NetworKit::Graph retrieve_graph(const Graph &G) {
 }
 
 int getTheta(const NetworKit::Graph &graph, const std::vector<int> &keep_nodes) {
-    std::vector<int> indices(graph.numberOfNodes());
+    std::vector<int> indices(keep_nodes.size());
     std::partial_sum(keep_nodes.begin(), keep_nodes.end(), indices.begin());
     if (indices.empty() || indices.back() == 0) {
         return 0;
@@ -75,31 +75,38 @@ int getTheta(const NetworKit::Graph &graph, const std::vector<int> &keep_nodes) 
     return CACHE[e] = theta_int;
 }
 
+std::vector<int> get_vector(const NetworKit::Graph &graph) {
+    std::vector<int> out(graph.upperNodeIdBound(), 0);
+    graph.forNodes([&](NetworKit::node v) {
+        out[v] = 1;
+    });
+    return out;
+}
+
 int getOmega(const NetworKit::Graph &graph) {
-  auto graph_complement = Koala::GraphTools::toComplement(graph);
-  assert(graph.numberOfNodes() == graph_complement.numberOfNodes());
-  return getTheta(graph_complement, std::vector<int>(graph.numberOfNodes(), 1));
+    auto graph_complement = Koala::GraphTools::toComplement(graph);
+    assert(graph.numberOfNodes() == graph_complement.numberOfNodes());
+    return getTheta(graph_complement, get_vector(graph_complement));
 }
 
 int getOmega(const Graph &G) {
-  NetworKit::Graph graph(retrieve_graph(G));
-  auto graph_complement = Koala::GraphTools::toComplement(graph);
-  return getTheta(graph_complement, std::vector<int>(G.n, 1));
+    NetworKit::Graph graph(retrieve_graph(G));
+    auto graph_complement = Koala::GraphTools::toComplement(graph);
+    return getTheta(graph_complement, get_vector(graph_complement));
 }
 
 std::vector<int> get_maximum_stable_set(const NetworKit::Graph &graph) {
-  int thetaG = getTheta(graph, std::vector<int>(graph.numberOfNodes(), 1));
-  std::vector<int> keep_nodes(graph.numberOfNodes(), 1);
-  std::vector<int> res;
-  graph.forNodes([&](NetworKit::node v) {
-      keep_nodes[v] = 0;
-      int newTheta = getTheta(graph, keep_nodes);
-      if (newTheta != thetaG) {
-          keep_nodes[v] = 1;
-          res.push_back(v);
-      }
-  });
-  return res;
+    std::vector<int> keep_nodes(get_vector(graph));
+    int theta = getTheta(graph, keep_nodes);
+    std::vector<int> res;
+    graph.forNodes([&](NetworKit::node v) {
+        keep_nodes[v] = 0;
+        if (getTheta(graph, keep_nodes) != theta) {
+            keep_nodes[v] = 1;
+            res.push_back(v);
+        }
+    });
+    return res;
 }
 
 std::vector<int> get_maximum_clique(const Graph &G) {
