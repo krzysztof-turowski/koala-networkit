@@ -204,7 +204,7 @@ void KRTEdgeDesignator::initialize(const std::optional<NetworKit::Graph> &graph)
     }
 }
 
-int KRTEdgeDesignator::current_edge(NetworKit::node i, int k) {
+NetworKit::node KRTEdgeDesignator::current_edge(NetworKit::node i, int k) {
     return decodeId(designated[encodeId(i, k)]);
 }
 

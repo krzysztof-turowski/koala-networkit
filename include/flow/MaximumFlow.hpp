@@ -34,7 +34,7 @@ public:
      * @param s     The source vertex.
      * @param t     The sink vertex.
      */
-    MaximumFlow(const NetworKit::Graph &graph, NetworKit::node s, NetworKit::node t);
+    MaximumFlow(NetworKit::Graph &graph, NetworKit::node s, NetworKit::node t);
 
     /**
      * Return the flow size found by the algorithm.
@@ -44,15 +44,10 @@ public:
     int getFlowSize() const;
 
 protected:
-    const std::optional<NetworKit::Graph> graph;
+    std::optional<NetworKit::Graph> graph;
     NetworKit::node source, target;
     std::map<std::pair<NetworKit::node, NetworKit::node>, int> flow;
     int flow_size;
-    
-    static std::pair<NetworKit::node, NetworKit::node> reverse(
-        const std::pair<NetworKit::node, NetworKit::node>&);
-    
-    virtual void initialize() = 0;
 };
 
 /**

@@ -43,7 +43,7 @@ public:
      *
      * @param graph The input graph.
      */
-    PerfectGraphRecognition(const NetworKit::Graph &graph);
+    PerfectGraphRecognition(NetworKit::Graph &graph);
 
     /**
      * Execute the perfect graph recognition procedure.
@@ -76,7 +76,7 @@ public:
     static std::vector<std::vector<NetworKit::node>> getAuxiliaryComponents(
         const NetworKit::Graph &graph, const std::vector<NetworKit::node> &V);
 private:
-    const std::optional<NetworKit::Graph> graph;
+    std::optional<NetworKit::Graph> graph;
     State is_perfect;
 
     static State containsSimpleProhibited(const NetworKit::Graph &graph);

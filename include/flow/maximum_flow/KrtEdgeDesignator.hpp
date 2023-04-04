@@ -53,7 +53,7 @@ class KRTEdgeDesignator {
 
 public:
     void initialize(const std::optional<NetworKit::Graph>&);
-    int current_edge(NetworKit::node, int);
+    NetworKit::node current_edge(NetworKit::node, int);
     void response_adversary(NetworKit::node, int);
     void response_adversary(NetworKit::node, int, NetworKit::node, int);
 };

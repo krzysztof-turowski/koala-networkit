@@ -3,6 +3,7 @@
 #include <list>
 
 #include <coloring/GreedyVertexColoring.hpp>
+#include <coloring/PerfectGraphVertexColoring.hpp>
 
 struct VertexColoringParameters {
     int N;
@@ -25,6 +26,9 @@ class SaturatedLargestFirstVertexColoringTest
 class GreedyIndependentSetVertexColoringTest
     : public testing::TestWithParam<VertexColoringParameters> { };
 
+class PerfectGraphVertexColoringTest
+    : public testing::TestWithParam<VertexColoringParameters> { };
+
 NetworKit::Graph build_graph(const int &N, const std::list<std::pair<int, int>> &E) {
     NetworKit::Graph G(N, false, false);
     for (const auto &[u, v] : E) {
@@ -33,15 +37,9 @@ NetworKit::Graph build_graph(const int &N, const std::list<std::pair<int, int>> 
     return G;
 }
 
-TEST_P(RandomSequentialVertexColoringTest, test) {
-    VertexColoringParameters const& parameters = GetParam();
-    NetworKit::Graph G = build_graph(parameters.N, parameters.E);
-    auto algorithm = Koala::RandomSequentialVertexColoring(G);
-    algorithm.run();
-
-    auto colors = algorithm.getColoring();
-    for (const auto &[u, v] : parameters.E) {
-        EXPECT_NE(colors[u], colors[v]);
+void check(const auto &parameters, const auto &colors) {
+    for (auto [u, v] : parameters.E) {
+        EXPECT_NE(colors.at(u), colors.at(v));
     }
 
     int max_color = 0;
@@ -49,6 +47,14 @@ TEST_P(RandomSequentialVertexColoringTest, test) {
         max_color = std::max(max_color, c);
     }
     EXPECT_EQ(max_color, parameters.colors);
+}
+
+TEST_P(RandomSequentialVertexColoringTest, test) {
+    VertexColoringParameters const& parameters = GetParam();
+    NetworKit::Graph G = build_graph(parameters.N, parameters.E);
+    auto algorithm = Koala::RandomSequentialVertexColoring(G);
+    algorithm.run();
+    check(parameters, algorithm.getColoring());
 }
 
 INSTANTIATE_TEST_SUITE_P(
@@ -61,17 +67,7 @@ TEST_P(LargestFirstVertexColoringTest, test) {
     NetworKit::Graph G = build_graph(parameters.N, parameters.E);
     auto algorithm = Koala::LargestFirstVertexColoring(G);
     algorithm.run();
-
-    auto colors = algorithm.getColoring();
-    for (const auto &[u, v] : parameters.E) {
-        EXPECT_NE(colors[u], colors[v]);
-    }
-
-    int max_color = 0;
-    for (const auto &[v, c] : colors) {
-        max_color = std::max(max_color, c);
-    }
-    EXPECT_EQ(max_color, parameters.colors);
+    check(parameters, algorithm.getColoring());
 }
 
 INSTANTIATE_TEST_SUITE_P(
@@ -101,17 +97,7 @@ TEST_P(SmallestLastVertexColoringTest, test) {
     NetworKit::Graph G = build_graph(parameters.N, parameters.E);
     auto algorithm = Koala::SmallestLastVertexColoring(G);
     algorithm.run();
-
-    auto colors = algorithm.getColoring();
-    for (const auto &[u, v] : parameters.E) {
-        EXPECT_NE(colors[u], colors[v]);
-    }
-
-    int max_color = 0;
-    for (const auto &[v, c] : colors) {
-        max_color = std::max(max_color, c);
-    }
-    EXPECT_EQ(max_color, parameters.colors);
+    check(parameters, algorithm.getColoring());
 }
 
 INSTANTIATE_TEST_SUITE_P(
@@ -146,17 +132,7 @@ TEST_P(SaturatedLargestFirstVertexColoringTest, test) {
     NetworKit::Graph G = build_graph(parameters.N, parameters.E);
     auto algorithm = Koala::SaturatedLargestFirstVertexColoring(G);
     algorithm.run();
-
-    auto colors = algorithm.getColoring();
-    for (const auto &[u, v] : parameters.E) {
-        EXPECT_NE(colors[u], colors[v]);
-    }
-
-    int max_color = 0;
-    for (const auto &[v, c] : colors) {
-        max_color = std::max(max_color, c);
-    }
-    EXPECT_EQ(max_color, parameters.colors);
+    check(parameters, algorithm.getColoring());
 }
 
 INSTANTIATE_TEST_SUITE_P(
@@ -183,17 +159,7 @@ TEST_P(GreedyIndependentSetVertexColoringTest, test) {
     NetworKit::Graph G = build_graph(parameters.N, parameters.E);
     auto algorithm = Koala::GreedyIndependentSetVertexColoring(G);
     algorithm.run();
-
-    auto colors = algorithm.getColoring();
-    for (const auto &[u, v] : parameters.E) {
-        EXPECT_NE(colors[u], colors[v]);
-    }
-
-    int max_color = 0;
-    for (const auto &[v, c] : colors) {
-        max_color = std::max(max_color, c);
-    }
-    EXPECT_EQ(max_color, parameters.colors);
+    check(parameters, algorithm.getColoring());
 }
 
 INSTANTIATE_TEST_SUITE_P(
@@ -204,4 +170,20 @@ INSTANTIATE_TEST_SUITE_P(
             10, {{0, 1}, {0, 4}, {0, 5}, {0, 6}, {0, 8}, {1, 2}, {1, 4}, {1, 5}, {1, 7}, {1, 8},
                  {2, 3}, {2, 4}, {2, 6}, {2, 7}, {2, 9}, {3, 5}, {3, 6}, {3, 7}, {3, 8}, {4, 8},
                  {5, 6}, {5, 7}, {5, 8}, {5, 9}, {6, 9}, {7, 9}, {8, 9}}, 5}
+));
+
+TEST_P(PerfectGraphVertexColoringTest, test) {
+    VertexColoringParameters const& parameters = GetParam();
+    NetworKit::Graph G = build_graph(parameters.N, parameters.E);
+    auto algorithm = Koala::PerfectGraphVertexColoring(G);
+    algorithm.run();
+    check(parameters, algorithm.getColoring());
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    test_example, PerfectGraphVertexColoringTest, testing::Values(
+        VertexColoringParameters{
+            6, {{0, 1}, {0, 2}, {1, 2}, {0, 3}, {1, 4}, {2, 5}}, 3},
+        VertexColoringParameters{
+            6, {{0, 1}, {0, 2}, {1, 2}, {0, 3}, {1, 4}, {2, 5}, {3, 4}, {3, 5}, {4, 5}}, 3}
 ));

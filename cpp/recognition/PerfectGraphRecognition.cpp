@@ -16,7 +16,7 @@
 
 namespace Koala {
 
-PerfectGraphRecognition::PerfectGraphRecognition(const NetworKit::Graph &graph)
+PerfectGraphRecognition::PerfectGraphRecognition(NetworKit::Graph &graph)
     : graph(std::make_optional(graph)), is_perfect(State::UNKNOWN) { }
 
 bool PerfectGraphRecognition::isPerfect() const {
@@ -31,6 +31,10 @@ PerfectGraphRecognition::State PerfectGraphRecognition::getState() const {
 
 void PerfectGraphRecognition::run() {
     hasRun = true;
+    if (graph->numberOfNodes() <= 4) {
+        is_perfect = State::PERFECT;
+        return;
+    }
     is_perfect = containsSimpleProhibited(*graph);
     if (is_perfect != State::UNKNOWN) {
         return;
@@ -57,7 +61,7 @@ void PerfectGraphRecognition::check() const {
     assert((!containsOddHole(*graph) && !containsOddHole(graph_complement)) == isPerfect());
 }
 
-static PerfectGraphRecognition::State PerfectGraphRecognition::containsSimpleProhibited(
+PerfectGraphRecognition::State PerfectGraphRecognition::containsSimpleProhibited(
         const NetworKit::Graph &graph) {
     if (containsJewel(graph)) {
         return State::HAS_JEWEL;

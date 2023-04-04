@@ -11,20 +11,20 @@
 
 #include <flow/MaximumFlow.hpp>
 
-namespace Koala {
-
 using edge = std::pair<NetworKit::node, NetworKit::node>;
 
-MaximumFlow::MaximumFlow(const NetworKit::Graph &graph, NetworKit::node s, NetworKit::node t)
+edge reverse(const edge &p) {
+    return std::make_pair(p.second, p.first);
+}
+
+namespace Koala {
+
+MaximumFlow::MaximumFlow(NetworKit::Graph &graph, NetworKit::node s, NetworKit::node t)
     : graph(std::make_optional(graph)), source(s), target(t) { }
 
 int MaximumFlow::getFlowSize() const {
     assureFinished();
     return flow_size;
-}
-
-edge MaximumFlow::reverse(const edge &p) {
-    return std::make_pair(p.second, p.first);
 }
 
 int KingRaoTarjanMaximumFlow::get_visible_excess(NetworKit::node v) {
@@ -103,7 +103,7 @@ void KingRaoTarjanMaximumFlow::initialize() {
     graph->forNodes([&](NetworKit::node v) {
         d[v] = 0;
     });
-    for (int i = 0; i < graph->numberOfNodes(); i++) {
+    for (NetworKit::count i = 0; i < graph->numberOfNodes(); i++) {
         relabel(source);
     }
     graph->forNeighborsOf(source, [&](NetworKit::node v) {
@@ -177,7 +177,7 @@ void KingRaoTarjanMaximumFlow::run() {
         auto e = L.back();
         L.pop_back();
         add_edge(e);
-        for (int v = get_positive_excess_node(); v != NetworKit::none;
+        for (NetworKit::node v = get_positive_excess_node(); v != NetworKit::none;
                 v = get_positive_excess_node()) {
             auto u = edge_designator.current_edge(v, d[v]);
             if (u != NetworKit::none) {

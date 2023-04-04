@@ -1,11 +1,11 @@
 /* dyn_tree.c == Dynamic tree routines, see dyn_tree.h */
 /*
-   Implemented by 
-   Tamas Badics, 1991, 
+   Implemented by
+   Tamas Badics, 1991,
    Rutgers University, RUTCOR
    P.O.Box 5062
    New Brunswick, NJ, 08901
- 
+
   e-mail: badics@rutcor.rutgers.edu
 */
 
@@ -16,10 +16,7 @@
 #include <stdlib.h>
 
 /*==================================================================*/
-void dyn_make_tree(dyn_item *item, int value)
-/* Put item to a new 1-node
-   tree with value. */
-{
+void dyn_make_tree(dyn_item *item, int value) {
     dyn_node *node;
 
     node = (dyn_node *) malloc(sizeof(dyn_node));
@@ -34,11 +31,7 @@ void dyn_make_tree(dyn_item *item, int value)
 }
 
 /*==================================================================*/
-void dyn_link(dyn_item *oldroot, dyn_item *newfather, DOUBLE new_value)
-/* Hang the tree rooted in oldroot
-   to newfather. Must be in
-   different trees! */
-{
+void dyn_link(dyn_item *oldroot, dyn_item *newfather, DOUBLE new_value) {
     dyn_node *old_r = oldroot->back;
     dyn_node *nf = newfather->back;
 
@@ -50,8 +43,6 @@ void dyn_link(dyn_item *oldroot, dyn_item *newfather, DOUBLE new_value)
     if (nf->father == old_r) {
         printf("Error in dyn_link: Both in the same tree!\n");
         return;
-
-        exit(1);
     }
     old_r->father = nf;
     old_r->dval = new_value;
@@ -59,10 +50,7 @@ void dyn_link(dyn_item *oldroot, dyn_item *newfather, DOUBLE new_value)
 }
 
 /*==================================================================*/
-void dyn_cut(dyn_item *cuthere)   /* Cut the tree between cuthere
-									  and its father */
-
-{
+void dyn_cut(dyn_item *cuthere) {
     dyn_node *r, *c, *l;
 
     if ((c = cuthere->back)->father == NULL)
@@ -84,25 +72,15 @@ void dyn_cut(dyn_item *cuthere)   /* Cut the tree between cuthere
 }
 
 /*==================================================================*/
-dyn_item *dyn_find_root(dyn_item *item)
-/* Find the root of item's tree */
-
-{
+dyn_item *dyn_find_root(dyn_item *item) {
     dyn_node *r = item->back;
-
     return (r->father ? dyn_splay(r)->father->item : item);
 }
 
 /*==================================================================*/
-void dyn_add_value(dyn_item *from, DOUBLE value)
-/* Add value to each node
-   on the path from 'from'
-   to the root */
-{
+void dyn_add_value(dyn_item *from, DOUBLE value) {
     dyn_node *m, *r, *f = from->back;
-
     dyn_splay(f);
-
     dmf = MAX2(0, (r = f->right) ? dmr - dvr : 0);
     if ((m = f->left)) {
         dvf += value;
@@ -113,57 +91,40 @@ void dyn_add_value(dyn_item *from, DOUBLE value)
 }
 
 /*==========================================================*/
-DOUBLE dyn_find_value(dyn_item *item)   /* Find the value of item */
-
-{
+DOUBLE dyn_find_value(dyn_item *item) {
     dyn_node *n = item->back;
-
     dyn_splay(n);
     return (n->dval);
 }
 
 /*==========================================================*/
-dyn_item *dyn_find_bottleneck(dyn_item *from, DOUBLE neck)
-/* Find the bottleneck on the path
-   from 'from' to its root. That is
-   return the nearest ancestor of
-   'from', whose value is <= neck.
-   Otherwise return the root. */
-{
+dyn_item *dyn_find_bottleneck(dyn_item *from, DOUBLE neck) {
     int i;
     dyn_node *f, *c, *l;  /* f == from
-								c == candidate
-								l == c->left
-								*/
+                c == candidate
+                l == c->left
+                */
 
     DOUBLE valc;
-
     f = from->back;
-
     if (f->father == NULL)              /* from is The Root. */
         return from;
-
     dyn_splay(f);
-
     if (dvf - dmf > neck)
         return (f->father->item);          /* No bottleneck */
-
     if (dvf <= neck)
         return (from);                     /* from is the bottleneck */
-
     if ((c = f->right) == NULL || (valc = dvf + dvc) - dmc > neck)
         return (f->father->item);          /* No bottleneck */
 
     /* There is a bottleneck in the right subtree of f
        (rooted with c) */
-
     l = c->left;
     while ((i = (l ? valc + dvl - dml <= neck : 0)) || valc > neck) {
         if (i)
             c = l;
         else
             c = c->right;
-
         l = c->left;
         valc += dvc;
     }

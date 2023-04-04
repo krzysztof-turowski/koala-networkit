@@ -52,16 +52,16 @@ class GraphWriterToDimacsBinaryTest
     : public testing::TestWithParam<GraphIOParameters> { };
 
 TEST_P(GraphReaderFromDigraph6Test, test) {
-  GraphIOParameters const& parameters = GetParam();
-  NetworKit::Graph G = Koala::D6GraphReader().readline(parameters.G);
-  EXPECT_EQ(G.numberOfNodes(), parameters.N);
-  EXPECT_EQ(G.numberOfEdges(), parameters.E.size());
-  for (const auto &e : parameters.E) {
-    EXPECT_TRUE(G.hasEdge(e.first, e.second));
-  }
+    GraphIOParameters const& parameters = GetParam();
+    NetworKit::Graph G = Koala::D6GraphReader().readline(parameters.G);
+    EXPECT_EQ(G.numberOfNodes(), parameters.N);
+    EXPECT_EQ(G.numberOfEdges(), parameters.E.size());
+    for (const auto &e : parameters.E) {
+        EXPECT_TRUE(G.hasEdge(e.first, e.second));
+    }
 }
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
     test_small, GraphReaderFromDigraph6Test, testing::Values(
         GraphIOParameters{
             "&DI?AO?", 5, {{0, 2}, {0, 4}, {3, 1}, {3, 4}}}
@@ -77,7 +77,7 @@ TEST_P(GraphReaderFromGraph6Test, test) {
     }
 }
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
     test_small, GraphReaderFromGraph6Test, testing::Values(
         GraphIOParameters{
             "G?r@`_", 8, {{4, 0}, {4, 1}, {5, 0}, {5, 1}, {6, 2}, {6, 3}, {7, 2}, {7, 3}}},
@@ -99,7 +99,7 @@ TEST_P(GraphReaderFromSparse6Test, test) {
     }
 }
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
     test_small, GraphReaderFromSparse6Test, testing::Values(
         GraphIOParameters{
             ":Fa@x^", 7, {{1, 0}, {2, 0}, {2, 1}, {6, 5}}},
@@ -117,7 +117,7 @@ TEST_P(GraphReaderFromDimacsTest, test) {
     }
 }
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
     test_small, GraphReaderFromDimacsTest, testing::Values(
         GraphIOParameters{
             "input/example_1.col", 8,
@@ -140,7 +140,7 @@ TEST_P(GraphReaderFromDimacsBinaryTest, test) {
     }
 }
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
     test_small, GraphReaderFromDimacsBinaryTest, testing::Values(
         GraphIOParameters{
             "input/example_1.col.b", 11,
@@ -151,15 +151,15 @@ INSTANTIATE_TEST_CASE_P(
 ));
 
 TEST_P(GraphWriterToDigraph6Test, test) {
-  GraphIOParameters const& parameters = GetParam();
-  NetworKit::Graph G(parameters.N, false, true);
-  for (const auto &[u, v] : parameters.E) {
-    G.addEdge(u, v);
-  }
-  EXPECT_EQ(Koala::D6GraphWriter().writeline(G), parameters.G);
+    GraphIOParameters const& parameters = GetParam();
+    NetworKit::Graph G(parameters.N, false, true);
+    for (const auto &[u, v] : parameters.E) {
+        G.addEdge(u, v);
+    }
+    EXPECT_EQ(Koala::D6GraphWriter().writeline(G), parameters.G);
 }
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
     test_small, GraphWriterToDigraph6Test, testing::Values(
         GraphIOParameters{
             "&DI?AO?", 5, {{0, 2}, {0, 4}, {3, 1}, {3, 4}}}
@@ -174,7 +174,7 @@ TEST_P(GraphWriterToGraph6Test, test) {
     EXPECT_EQ(Koala::G6GraphWriter().writeline(G), parameters.G);
 }
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
     test_small, GraphWriterToGraph6Test, testing::Values(
         GraphIOParameters{
             "G?r@`_", 8, {{4, 0}, {4, 1}, {5, 0}, {5, 1}, {6, 2}, {6, 3}, {7, 2}, {7, 3}}},
@@ -195,7 +195,7 @@ TEST_P(GraphWriterToSparse6Test, test) {
     EXPECT_EQ(Koala::S6GraphWriter().writeline(G), parameters.G);
 }
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
     test_small, GraphWriterToSparse6Test, testing::Values(
         GraphIOParameters{
             ":Fa@x^", 7, {{1, 0}, {2, 0}, {2, 1}, {6, 5}}},
@@ -215,7 +215,7 @@ TEST_P(GraphWriterToDimacsTest, test) {
     remove(path.data());
 }
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
     test_small, GraphWriterToDimacsTest, testing::Values(
         GraphIOParameters{
             "input/example_1.col", 8,
@@ -240,7 +240,7 @@ TEST_P(GraphWriterToDimacsBinaryTest, test) {
     remove(path.data());
 }
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
     test_small, GraphWriterToDimacsBinaryTest, testing::Values(
         GraphIOParameters{
             "input/example_1.col.b", 11,
