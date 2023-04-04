@@ -139,25 +139,21 @@ int PerfectGraphColoring::get_chi() {
 std::vector<NetworKit::node> PerfectGraphColoring::get_stable_set_intersecting_all_maximum_cliques() {
     Graph G(generate_graph(graph));
     std::vector<int> vertices;
+    std::map<int, int> inv_vertices;
+    int nodes = 0;
     graph->forNodes([&](NetworKit::node v) {
         vertices.push_back(v);
+        inv_vertices[v] = nodes++;
     });
     auto K = get_maximum_clique(G);
     auto K2 = get_maximum_clique(*graph);
     int omega = std::accumulate(K.begin(), K.end(), 0);
     int omega2 = std::accumulate(K2.begin(), K2.end(), 0);
     assert(omega == omega2);
-    while (true) {
-        std::vector<int> S = get_stable_set_intersecting_maximum_cliques(K);
-        std::vector<int> compS = getComplementNodesVec(G.n, S);
-        std::vector<int> S2 = get_stable_set_intersecting_maximum_cliques_2(K2);
-        assert(std::accumulate(S.begin(), S.end(), 0) == std::accumulate(S2.begin(), S2.end(), 0));
-        Graph Gprim = G.getInducedStrong(compS);
-        NetworKit::Graph subgraph2 = *graph;
-        for (auto v : S2) {
-            subgraph2.removeNode(v);
-        }
-        assert(Gprim.n == subgraph2.numberOfNodes());
+        printf("map: ");
+        for (int i = 0; i < vertices.size(); i++)
+          printf("%d:%d ", i, vertices[i]);
+        printf("\n");
         printf("G1: ");
         for (int i = 0; i < G.n; i++) for (int j = i + 1; j < G.n; j++)
           if (G.areNeighbours(i, j)) printf("(%d,%d) ", i, j);
@@ -167,21 +163,41 @@ std::vector<NetworKit::node> PerfectGraphColoring::get_stable_set_intersecting_a
             printf("(%d,%d) ", u, v);
         });
         printf("\n");
+        printf("N1: ");
+        graph->forNodes([&](NetworKit::node v) {
+            printf("%d ", v);
+        });
+        printf("\n");
+        for (int i = 0; i < G.n; i++) for (int j = i + 1; j < G.n; j++)
+          if (G.areNeighbours(i, j)) assert(graph->hasEdge(vertices[i], vertices[j]));
+    while (true) {
+        std::vector<int> S = get_stable_set_intersecting_maximum_cliques(K);
+        std::vector<int> compS = getComplementNodesVec(G.n, S);
+        std::vector<int> S2 = get_stable_set_intersecting_maximum_cliques_2(K2);
+        int s1 = S.size(), s2 = S2.size();
+        printf("s: %d %d\n", s1, s2);
         printf("S1: ");
-        for(auto v : S) printf("%d ", v);
+        for(auto v : S) printf("%d (%d) ", v, vertices[v]);
         printf("\n");
         printf("S2: ");
         for(auto v : S2) printf("%d ", v);
         printf("\n");
-        printf("G2: ");
-        for (int i = 0; i < Gprim.n; i++) for (int j = i + 1; j < Gprim.n; j++)
-          if (Gprim.areNeighbours(i, j)) printf("(%d,%d) ", i, j);
-        printf("\n");
-        printf("G2: ");
-        subgraph2.forEdges([&](NetworKit::node u, NetworKit::node v) {
-            printf("(%d,%d) ", u, v);
+        assert(s1 == s2);
+        printf("G: ");
+        graph->forNodes([&](NetworKit::node v) {
+            printf("%d ", v);
         });
         printf("\n");
+        for (int i = 0; i < S.size(); i++) {
+            assert(graph->hasNode(S2[i]));
+            assert(vertices[S[i]] == S2[i]);
+        }
+        Graph Gprim = G.getInducedStrong(compS);
+        NetworKit::Graph subgraph2 = *graph;
+        for (auto v : S2) {
+            subgraph2.removeNode(v);
+        }
+        assert(Gprim.n == subgraph2.numberOfNodes());
         int omega3 = getOmega(Gprim);
         int omega4 = getOmega(subgraph2);
         printf("omega: %d %d\n", omega3, omega4);
@@ -193,6 +209,21 @@ std::vector<NetworKit::node> PerfectGraphColoring::get_stable_set_intersecting_a
             }
             return out;
         }
+        printf("map: ");
+        for (int i = 0; i < compS.size(); i++)
+          printf("%d:%d (%d) ", i, compS[i], vertices[compS[i]]);
+        printf("\n");
+        printf("G2: ");
+        for (int i = 0; i < Gprim.n; i++) for (int j = i + 1; j < Gprim.n; j++)
+          if (Gprim.areNeighbours(i, j)) printf("(%d,%d) ", i, j);
+        printf("\n");
+        printf("G2: ");
+        subgraph2.forEdges([&](NetworKit::node u, NetworKit::node v) {
+            printf("(%d,%d) ", u, v);
+        });
+        printf("\n");
+        for (int i = 0; i < Gprim.n; i++) for (int j = i + 1; j < Gprim.n; j++)
+          if (Gprim.areNeighbours(i, j)) assert(subgraph2.hasEdge(vertices[compS[i]], vertices[compS[j]]));
         auto subgraph = retrieve_graph(Gprim);
         auto clique = get_maximum_clique(Gprim);
         auto clique2 = get_maximum_clique(subgraph);
@@ -209,6 +240,9 @@ std::vector<NetworKit::node> PerfectGraphColoring::get_stable_set_intersecting_a
 }
 
 std::vector<int> PerfectGraphColoring::get_stable_set_intersecting_maximum_cliques(const std::vector<int> &K) {
+    printf("K:  ");
+    for(auto v : K) printf("%d ", v);
+    printf("\n");
     std::vector<int> c(K.size());
     std::map<NetworKit::node, int> V;
     int nodes = 0;
@@ -226,12 +260,13 @@ std::vector<int> PerfectGraphColoring::get_stable_set_intersecting_maximum_cliqu
     });
     auto stable_set = get_maximum_stable_set(auxiliary_graph);
     std::vector<int> out;
-    int wsk = 0;
-    for (int i = 0; i < stable_set.size(); i++) {
+    for (int i = 0, index = 0; i < stable_set.size(); i++) {
         if (stable_set[i]) {
-            while (wsk < graph->numberOfNodes() && c[wsk] <= i) wsk++;
-            if (out.empty() || out.back() != wsk) {
-                out.push_back(wsk);
+            while (index < c.size() && c[index] <= i) {
+                index++;
+            }
+            if (out.empty() || out.back() != index) {
+                out.push_back(index);
             }
         }
     }
@@ -239,6 +274,9 @@ std::vector<int> PerfectGraphColoring::get_stable_set_intersecting_maximum_cliqu
 }
 
 std::vector<int> PerfectGraphColoring::get_stable_set_intersecting_maximum_cliques_2(const std::vector<int> &K) {
+    printf("K2: ");
+    for(auto v : K) printf("%d ", v);
+    printf("\n");
     std::vector<int> c(K.size());
     std::partial_sum(K.begin(), K.end(), c.begin());
     NetworKit::Graph auxiliary_graph(c.back(), false, false);
@@ -250,16 +288,23 @@ std::vector<int> PerfectGraphColoring::get_stable_set_intersecting_maximum_cliqu
         }
     });
     auto stable_set = get_maximum_stable_set(auxiliary_graph);
+    printf("stable_set: ");
+    for(auto v : stable_set) printf("%d ", v);
+    printf("\n");
     std::vector<int> out;
-    int wsk = 0;
-    for (int i = 0; i < stable_set.size(); i++) {
+    for (int i = 0, index = 0; i < stable_set.size(); i++) {
         if (stable_set[i]) {
-            while (wsk < graph->numberOfNodes() && c[wsk] <= i) wsk++;
-            if (out.empty() || out.back() != wsk) {
-                out.push_back(wsk);
+            while (index < c.size() && c[index] <= i) {
+                index++;
+            }
+            if (out.empty() || out.back() != index) {
+                out.push_back(index);
             }
         }
     }
+    printf("stable_set_out: ");
+    for(auto v : out) printf("%d ", v);
+    printf("\n");
     return out;
 }
 
