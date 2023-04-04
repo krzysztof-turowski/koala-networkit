@@ -19,7 +19,8 @@ NetworKit::Graph toComplement(const NetworKit::Graph &G) {
     NetworKit::Graph GC(G.upperNodeIdBound(), false, false);
     for (NetworKit::node v = 0; v < G.upperNodeIdBound(); v++) {
         if (G.hasNode(v)) {
-            std::set<NetworKit::node> neighbors(G.neighborRange(v).begin(), G.neighborRange(v).end());
+            std::set<NetworKit::node> neighbors(
+                G.neighborRange(v).begin(), G.neighborRange(v).end());
             GC.forNodes([&](NetworKit::node u) {
                 if (u < v && !neighbors.count(u)) {
                     GC.addEdge(u, v);

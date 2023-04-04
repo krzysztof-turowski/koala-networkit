@@ -48,9 +48,6 @@ protected:
     NetworKit::node source, target;
     std::map<std::pair<NetworKit::node, NetworKit::node>, int> flow;
     int flow_size;
-    
-    static std::pair<NetworKit::node, NetworKit::node> reverse(
-        const std::pair<NetworKit::node, NetworKit::node>&);
 };
 
 /**

@@ -83,36 +83,28 @@ typedef struct DYN_ITEM{
   DYN_NODE* back;
 } dyn_item;
 
-void dyn_make_tree(dyn_item * item, int value);
-                                        /* Put item to a new 1-node
-                       tree with value */
+void dyn_make_tree(dyn_item *item, int value);
+/* Put item to a new 1-node tree with value */
 
-void dyn_link(dyn_item * oldroot, dyn_item * newfather, DOUBLE new_value);
-                                        /* Hang the tree rooted in oldroot
-                       to newfather with new_value.
-                       Must be in different trees! */
+void dyn_link(dyn_item *oldroot, dyn_item *newfather, DOUBLE new_value);
+/* Hang the tree rooted in oldroot to newfather with new_value.
+   Must be in different trees! */
 
-void dyn_cut(dyn_item * cuthere);       /* Cut the tree between cuthere
-                       and its father */
+void dyn_cut(dyn_item *cuthere);
+/* Cut the tree between cuthere and its father */
 
-void dyn_add_value(dyn_item * from, DOUBLE value);
-                                        /* Add value to each node
-                       on the path from 'from'
-                       to the root */
+void dyn_add_value(dyn_item *from, DOUBLE value);
+/* Add value to each node on the path from 'from' to the root */
 
-DOUBLE dyn_find_value(dyn_item * item); /* Find the value of item */
+DOUBLE dyn_find_value(dyn_item *item); /* Find the value of item */
 
-dyn_item * dyn_find_bottleneck(dyn_item * from, DOUBLE neck);
-                                        /* Find the bottleneck on the path
-                       from 'from' to its root. That is
-                       return the nearest ancestor of
-                       'from', whose value is <= neck. */
+dyn_item * dyn_find_bottleneck(dyn_item *from, DOUBLE neck);
+/* Find the bottleneck on the path from 'from' to its root.
+   That is return the nearest ancestor of 'from', whose value is <= neck. */
 
-dyn_item * dyn_find_root(dyn_item * item);
-                                        /* Find the root of item's tree */
+dyn_item * dyn_find_root(dyn_item *item); /* Find the root of item's tree */
 
-dyn_item * dyn_find_father(dyn_item * item);
-                                        /* Find the father in the tree */
+dyn_item * dyn_find_father(dyn_item *item); /* Find the father in the tree */
 
 #endif
 

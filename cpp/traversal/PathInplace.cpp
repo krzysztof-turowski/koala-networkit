@@ -59,8 +59,8 @@ bool check_last_vertex(
         }
     }
     if (mode == PathInplaceMode::INDUCED_ODD_HOLE) {
-        for (int i = 0; i < path.size() - 1; i++) {
-            for (int j = i + 2; j < path.size(); j++) {
+        for (unsigned i = 0; i < path.size() - 1; i++) {
+            for (unsigned j = i + 2; j < path.size(); j++) {
                 if (i == 0 && j == path.size() - 1) {
                     assert(graph.hasEdge(path[i], path[j]));
                 } else {
