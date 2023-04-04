@@ -1,11 +1,11 @@
 /* dyn_tree.c == Dynamic tree routines, see dyn_tree.h */
 /*
-   Implemented by 
-   Tamas Badics, 1991, 
+   Implemented by
+   Tamas Badics, 1991,
    Rutgers University, RUTCOR
    P.O.Box 5062
    New Brunswick, NJ, 08901
- 
+
   e-mail: badics@rutcor.rutgers.edu
 */
 
@@ -60,7 +60,7 @@ void dyn_link(dyn_item *oldroot, dyn_item *newfather, DOUBLE new_value)
 
 /*==================================================================*/
 void dyn_cut(dyn_item *cuthere)   /* Cut the tree between cuthere
-									  and its father */
+                    and its father */
 
 {
     dyn_node *r, *c, *l;
@@ -132,9 +132,9 @@ dyn_item *dyn_find_bottleneck(dyn_item *from, DOUBLE neck)
 {
     int i;
     dyn_node *f, *c, *l;  /* f == from
-								c == candidate
-								l == c->left
-								*/
+                c == candidate
+                l == c->left
+                */
 
     DOUBLE valc;
 

@@ -22,7 +22,7 @@ public:
     using VertexColoring::VertexColoring;
 
 protected:
-    std::map<NetworKit::node, int>::iterator greedy_color(NetworKit::node v);
+    [[maybe_unused]] std::map<NetworKit::node, int>::iterator greedy_color(NetworKit::node v);
 };
 
 /**

@@ -15,7 +15,7 @@ namespace Koala {
 
 using edge = std::pair<NetworKit::node, NetworKit::node>;
 
-MaximumFlow::MaximumFlow(const NetworKit::Graph &graph, NetworKit::node s, NetworKit::node t)
+MaximumFlow::MaximumFlow(NetworKit::Graph &graph, NetworKit::node s, NetworKit::node t)
     : graph(std::make_optional(graph)), source(s), target(t) { }
 
 int MaximumFlow::getFlowSize() const {
@@ -177,7 +177,7 @@ void KingRaoTarjanMaximumFlow::run() {
         auto e = L.back();
         L.pop_back();
         add_edge(e);
-        for (int v = get_positive_excess_node(); v != NetworKit::none;
+        for (NetworKit::node v = get_positive_excess_node(); v != NetworKit::none;
                 v = get_positive_excess_node()) {
             auto u = edge_designator.current_edge(v, d[v]);
             if (u != NetworKit::none) {

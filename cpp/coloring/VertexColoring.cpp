@@ -10,7 +10,7 @@
 namespace Koala {
 
 VertexColoring::VertexColoring(
-        const NetworKit::Graph &graph) : graph(std::make_optional(graph)) { }
+        NetworKit::Graph &graph) : graph(std::make_optional(graph)) { }
 
 const std::map<NetworKit::node, int>& VertexColoring::getColoring() const {
     assureFinished();

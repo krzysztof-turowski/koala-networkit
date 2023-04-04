@@ -16,7 +16,7 @@
 
 namespace Koala {
 
-PerfectGraphRecognition::PerfectGraphRecognition(const NetworKit::Graph &graph)
+PerfectGraphRecognition::PerfectGraphRecognition(NetworKit::Graph &graph)
     : graph(std::make_optional(graph)), is_perfect(State::UNKNOWN) { }
 
 bool PerfectGraphRecognition::isPerfect() const {

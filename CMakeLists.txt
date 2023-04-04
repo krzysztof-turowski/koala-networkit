@@ -1,16 +1,19 @@
 cmake_minimum_required(VERSION 3.20)
-project(koala-networkit LANGUAGES CXX C)
+
+find_program(CMAKE_CXX_COMPILER NAMES clang++)
+
+project(koala-networkit LANGUAGES CXX)
 set(PROJECT_NAME koala-networkit)
 
-find_program(CMAKE_CXX_COMPILER NAMES g++ clang++)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-set(KOALA_CXX_FLAGS "-Wall -Wextra -Wstrict-aliasing -Wpedantic -Werror -Wunreachable-code -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wmissing-include-dirs -Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wsign-promo -Wstrict-overflow=2 -Wswitch-default -Wundef -Wno-error -fpermissive -fdiagnostics-show-option -O3 -pthread")
+set(KOALA_CXX_FLAGS "-std=c++20 -Wall -Wextra -Wstrict-aliasing -Wpedantic -Werror -Wunreachable-code -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wmissing-include-dirs -Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wsign-promo -Wstrict-overflow=2 -Wswitch-default -Wundef -Wno-error -fpermissive -fdiagnostics-show-option -O3 -pthread")
 set(KOALA_LINKER_FLAGS "")
+message("Compiled with ${CMAKE_CXX_COMPILER_ID}: ${CMAKE_CXX_COMPILER}")
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     set(KOALA_CXX_FLAGS "${KOALA_CXX_FLAGS} -ferror-limit=5")
-    set(KOALA_LINKER_FLAGS "${KOALA_LINKER_FLAGS} -Xclang -fopenmp -lomp")
+    set(KOALA_LINKER_FLAGS "${KOALA_LINKER_FLAGS} -Xclang -fopenmp")
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     set(KOALA_CXX_FLAGS "${KOALA_CXX_FLAGS} -fmax-errors=5 -Wlogical-op -Wnoexcept -Wno-unknown-pragmas -Wstrict-null-sentinel -lstdc++")
     set(KOALA_LINKER_FLAGS "${KOALA_LINKER_FLAGS} -fopenmp")
@@ -69,7 +72,7 @@ FetchContent_MakeAvailable(csdp)
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
 add_custom_target(csdp ALL
-    COMMAND make libsdp.a
+    COMMAND CFLAGS=-I"${CMAKE_SOURCE_DIR}/lib/csdp/include" make libsdp.a
     WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/lib/csdp/lib")
 add_library(csdp_lib STATIC IMPORTED)
 set_target_properties(csdp_lib PROPERTIES

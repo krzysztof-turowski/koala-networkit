@@ -28,7 +28,7 @@ public:
      *
      * @param graph The input graph.
      */
-    VertexColoring(const NetworKit::Graph &graph);
+    VertexColoring(NetworKit::Graph &graph);
 
     /**
      * Return the coloring found by the algorithm.
@@ -38,7 +38,7 @@ public:
     const std::map<NetworKit::node, int>& getColoring() const;
 
 protected:
-    const std::optional<NetworKit::Graph> graph;
+    std::optional<NetworKit::Graph> graph;
     std::map<NetworKit::node, int> colors;
 };
 

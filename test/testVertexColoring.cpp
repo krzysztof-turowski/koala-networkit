@@ -37,15 +37,9 @@ NetworKit::Graph build_graph(const int &N, const std::list<std::pair<int, int>> 
     return G;
 }
 
-TEST_P(RandomSequentialVertexColoringTest, test) {
-    VertexColoringParameters const& parameters = GetParam();
-    NetworKit::Graph G = build_graph(parameters.N, parameters.E);
-    auto algorithm = Koala::RandomSequentialVertexColoring(G);
-    algorithm.run();
-
-    auto colors = algorithm.getColoring();
-    for (const auto &[u, v] : parameters.E) {
-        EXPECT_NE(colors[u], colors[v]);
+void check(const auto &parameters, const auto &colors) {
+    for (auto [u, v] : parameters.E) {
+        EXPECT_NE(colors.at(u), colors.at(v));
     }
 
     int max_color = 0;
@@ -53,6 +47,14 @@ TEST_P(RandomSequentialVertexColoringTest, test) {
         max_color = std::max(max_color, c);
     }
     EXPECT_EQ(max_color, parameters.colors);
+}
+
+TEST_P(RandomSequentialVertexColoringTest, test) {
+    VertexColoringParameters const& parameters = GetParam();
+    NetworKit::Graph G = build_graph(parameters.N, parameters.E);
+    auto algorithm = Koala::RandomSequentialVertexColoring(G);
+    algorithm.run();
+    check(parameters, algorithm.getColoring());
 }
 
 INSTANTIATE_TEST_SUITE_P(
@@ -65,17 +67,7 @@ TEST_P(LargestFirstVertexColoringTest, test) {
     NetworKit::Graph G = build_graph(parameters.N, parameters.E);
     auto algorithm = Koala::LargestFirstVertexColoring(G);
     algorithm.run();
-
-    auto colors = algorithm.getColoring();
-    for (const auto &[u, v] : parameters.E) {
-        EXPECT_NE(colors[u], colors[v]);
-    }
-
-    int max_color = 0;
-    for (const auto &[v, c] : colors) {
-        max_color = std::max(max_color, c);
-    }
-    EXPECT_EQ(max_color, parameters.colors);
+    check(parameters, algorithm.getColoring());
 }
 
 INSTANTIATE_TEST_SUITE_P(
@@ -105,17 +97,7 @@ TEST_P(SmallestLastVertexColoringTest, test) {
     NetworKit::Graph G = build_graph(parameters.N, parameters.E);
     auto algorithm = Koala::SmallestLastVertexColoring(G);
     algorithm.run();
-
-    auto colors = algorithm.getColoring();
-    for (const auto &[u, v] : parameters.E) {
-        EXPECT_NE(colors[u], colors[v]);
-    }
-
-    int max_color = 0;
-    for (const auto &[v, c] : colors) {
-        max_color = std::max(max_color, c);
-    }
-    EXPECT_EQ(max_color, parameters.colors);
+    check(parameters, algorithm.getColoring());
 }
 
 INSTANTIATE_TEST_SUITE_P(
@@ -150,17 +132,7 @@ TEST_P(SaturatedLargestFirstVertexColoringTest, test) {
     NetworKit::Graph G = build_graph(parameters.N, parameters.E);
     auto algorithm = Koala::SaturatedLargestFirstVertexColoring(G);
     algorithm.run();
-
-    auto colors = algorithm.getColoring();
-    for (const auto &[u, v] : parameters.E) {
-        EXPECT_NE(colors[u], colors[v]);
-    }
-
-    int max_color = 0;
-    for (const auto &[v, c] : colors) {
-        max_color = std::max(max_color, c);
-    }
-    EXPECT_EQ(max_color, parameters.colors);
+    check(parameters, algorithm.getColoring());
 }
 
 INSTANTIATE_TEST_SUITE_P(
@@ -187,17 +159,7 @@ TEST_P(GreedyIndependentSetVertexColoringTest, test) {
     NetworKit::Graph G = build_graph(parameters.N, parameters.E);
     auto algorithm = Koala::GreedyIndependentSetVertexColoring(G);
     algorithm.run();
-
-    auto colors = algorithm.getColoring();
-    for (const auto &[u, v] : parameters.E) {
-        EXPECT_NE(colors[u], colors[v]);
-    }
-
-    int max_color = 0;
-    for (const auto &[v, c] : colors) {
-        max_color = std::max(max_color, c);
-    }
-    EXPECT_EQ(max_color, parameters.colors);
+    check(parameters, algorithm.getColoring());
 }
 
 INSTANTIATE_TEST_SUITE_P(
@@ -215,18 +177,7 @@ TEST_P(PerfectGraphVertexColoringTest, test) {
     NetworKit::Graph G = build_graph(parameters.N, parameters.E);
     auto algorithm = Koala::PerfectGraphVertexColoring(G);
     algorithm.run();
-
-    auto colors = algorithm.getColoring();
-    for (const auto &[u, v] : parameters.E) {
-        std::cout << "COLORS: " << colors[u] << " " << colors[v] << std::endl;
-        EXPECT_NE(colors[u], colors[v]);
-    }
-
-    int max_color = 0;
-    for (const auto &[v, c] : colors) {
-        max_color = std::max(max_color, c);
-    }
-    EXPECT_EQ(max_color, parameters.colors);
+    check(parameters, algorithm.getColoring());
 }
 
 INSTANTIATE_TEST_SUITE_P(

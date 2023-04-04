@@ -31,7 +31,6 @@ int main() {
         classification[recognize.getState()]++;
         recognize.check();
         if (recognize.getState() == Koala::PerfectGraphRecognition::State::PERFECT) {
-            std::cout << line << std::endl;
             auto color = Koala::PerfectGraphVertexColoring(G);
             color.run();
             color.check();

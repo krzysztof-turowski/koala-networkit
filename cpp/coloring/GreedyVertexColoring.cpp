@@ -36,7 +36,7 @@ std::map<NetworKit::node, int>::iterator GreedyVertexColoring::greedy_color(Netw
 
 void RandomSequentialVertexColoring::run() {
     graph->forNodesInRandomOrder([&](NetworKit::node v) {
-        greedy_color(v)->second;
+        greedy_color(v);
     });
     hasRun = true;
 }
@@ -44,7 +44,7 @@ void RandomSequentialVertexColoring::run() {
 void LargestFirstVertexColoring::run() {
     std::vector<NetworKit::node> vertices(largest_first_ordering());
     for (const auto v : vertices) {
-        greedy_color(v)->second;
+        greedy_color(v);
     }
     hasRun = true;
 }
@@ -66,7 +66,7 @@ std::vector<NetworKit::node> LargestFirstVertexColoring::largest_first_ordering(
 void SmallestLastVertexColoring::run() {
     std::vector<NetworKit::node> vertices(smallest_last_ordering());
     for (const auto v : vertices) {
-        greedy_color(v)->second;
+        greedy_color(v);
     }
     hasRun = true;
 }
@@ -132,13 +132,11 @@ void GreedyIndependentSetVertexColoring::run() {
     std::vector<Aux::BucketPQ> queues(2, Aux::BucketPQ(graph->numberOfNodes(), 0, max_degree));
     graph->forNodes([&](NetworKit::node v) {
         if (colors.find(v) == colors.end()) {
-            queues[0].insert(graph->degree(v), v);
+            queues[1].insert(graph->degree(v), v);
         }
     });
-
-    int color = 1;
-    while (!queues[1 - color % 2].empty()) {
-        Aux::BucketPQ &queue = queues[1 - color % 2], &next = queues[color % 2];
+    for (int color = 1; !queues[color % 2].empty(); color++) {
+        Aux::BucketPQ &queue = queues[color % 2], &next = queues[1 - color % 2];
         while (!queue.empty()) {
             auto v = queue.extractMin().second;
             graph->forInNeighborsOf(v, [&](NetworKit::node u) {
@@ -151,7 +149,6 @@ void GreedyIndependentSetVertexColoring::run() {
             });
             colors.insert(std::make_pair(v, color));
         }
-        color++;
     }
     hasRun = true;
 }
