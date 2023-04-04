@@ -4,5 +4,4 @@ koala_add_module(coloring
     PerfectGraphColoring.cpp
     PerfectGraphColoring.cpp
     perfect/commons.cpp
-    perfect/theta.cpp
 )
