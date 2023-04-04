@@ -31,15 +31,10 @@ int main() {
         classification[recognize.getState()]++;
         recognize.check();
         if (recognize.getState() == Koala::PerfectGraphRecognition::State::PERFECT) {
-            std::cout << line << " ";
-            auto check = Koala::PerfectGraphColoring(G);
-            try {
-              int omega = check.get_omega(), chi = check.get_chi();
-              std::cout << omega << " " << chi <<std::endl;
-              assert(omega == chi);
-            } catch (std::logic_error &e) {
-              std::cout << e.what() << std::endl;
-            }
+            std::cout << line << std::endl;
+            auto color = Koala::PerfectGraphVertexColoring(G);
+            color.run();
+            color.check();
         }
     }
     for (const auto &[k, v] : classification) {

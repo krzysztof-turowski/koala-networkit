@@ -213,7 +213,7 @@ INSTANTIATE_TEST_SUITE_P(
 TEST_P(PerfectGraphVertexColoringTest, test) {
     VertexColoringParameters const& parameters = GetParam();
     NetworKit::Graph G = build_graph(parameters.N, parameters.E);
-    auto algorithm = Koala::PerfectGraphColoring(G);
+    auto algorithm = Koala::PerfectGraphVertexColoring(G);
     algorithm.run();
 
     auto colors = algorithm.getColoring();
