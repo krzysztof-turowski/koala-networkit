@@ -3,7 +3,7 @@
 #include <list>
 
 #include <coloring/GreedyVertexColoring.hpp>
-#include <coloring/PerfectGraphColoring.hpp>
+#include <coloring/PerfectGraphVertexColoring.hpp>
 
 struct VertexColoringParameters {
     int N;

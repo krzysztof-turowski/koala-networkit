@@ -1,7 +1,7 @@
 koala_make_benchmark(
-    benchmark_perfect_graph_recognition
-    benchmarkPerfectGraphRecognition.cpp
-    benchmarkPerfectGraphRecognition.sh)
+    benchmark_perfect_graphs
+    benchmarkPerfectGraphs.cpp
+    benchmarkPerfectGraphs.sh)
 
 koala_make_benchmark(
     benchmark_maximum_flow

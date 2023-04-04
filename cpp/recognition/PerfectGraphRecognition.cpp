@@ -31,6 +31,10 @@ PerfectGraphRecognition::State PerfectGraphRecognition::getState() const {
 
 void PerfectGraphRecognition::run() {
     hasRun = true;
+    if (graph->numberOfNodes() <= 4) {
+        is_perfect = State::PERFECT;
+        return;
+    }
     is_perfect = containsSimpleProhibited(*graph);
     if (is_perfect != State::UNKNOWN) {
         return;

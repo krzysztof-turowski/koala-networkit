@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-find_program(CMAKE_CXX_COMPILER NAMES clang++)
+find_program(CMAKE_CXX_COMPILER NAMES g++ clang++)
 
 project(koala-networkit LANGUAGES CXX)
 set(PROJECT_NAME koala-networkit)

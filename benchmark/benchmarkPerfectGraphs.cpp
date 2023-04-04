@@ -2,7 +2,7 @@
 #include <iostream>
 #include <map>
 
-#include <coloring/PerfectGraphColoring.hpp>
+#include <coloring/PerfectGraphVertexColoring.hpp>
 #include <io/G6GraphReader.hpp>
 #include <recognition/PerfectGraphRecognition.hpp>
 
