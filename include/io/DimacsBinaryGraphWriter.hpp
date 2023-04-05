@@ -20,8 +20,7 @@ namespace Koala {
  *
  */
 class DimacsBinaryGraphWriter final : public NetworKit::GraphWriter {
-
-public:
+ public:
     DimacsBinaryGraphWriter() = default;
 
     /**
@@ -33,4 +32,4 @@ public:
     void write(const NetworKit::Graph &G, const std::string &path) override;
 };
 
-} /* namespace Koala */
+}  /* namespace Koala */

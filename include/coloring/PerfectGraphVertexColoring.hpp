@@ -20,8 +20,7 @@ namespace Koala {
  *
  */
 class PerfectGraphVertexColoring : public VertexColoring {
-
-public:
+ public:
     using VertexColoring::VertexColoring;
 
     /**
@@ -33,7 +32,8 @@ public:
      * Verify the result found by the algorithm.
      */
     void check() const;
-private:
+
+ private:
     int omega;
 
     std::vector<int> get_stable_set_intersecting_all_maximum_cliques();
@@ -46,4 +46,4 @@ private:
         const NetworKit::Graph&, const std::vector<int>&);
 };
 
-} /* namespace Koala */
+}  /* namespace Koala */

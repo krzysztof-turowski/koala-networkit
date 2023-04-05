@@ -21,14 +21,13 @@ namespace Koala {
  *
  */
 class VertexColoring : public NetworKit::Algorithm {
-
-public:
+ public:
     /**
      * Given an input graph, set up the vertex coloring procedure.
      *
      * @param graph The input graph.
      */
-    VertexColoring(NetworKit::Graph &graph);
+    explicit VertexColoring(NetworKit::Graph &graph);
 
     /**
      * Return the coloring found by the algorithm.
@@ -37,7 +36,7 @@ public:
      */
     const std::map<NetworKit::node, int>& getColoring() const;
 
-protected:
+ protected:
     std::optional<NetworKit::Graph> graph;
     std::map<NetworKit::node, int> colors;
 };
