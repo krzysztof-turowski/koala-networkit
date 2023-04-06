@@ -4,6 +4,11 @@ koala_make_benchmark(
     benchmarkPerfectGraphs.sh)
 
 koala_make_benchmark(
+    benchmark_planar_graphs
+    benchmarkPlanarGraphs.cpp
+    benchmarkPlanarGraphs.sh)
+
+koala_make_benchmark(
     benchmark_maximum_flow
     benchmarkMaximumFlow.cpp
     benchmarkMaximumFlow.sh)

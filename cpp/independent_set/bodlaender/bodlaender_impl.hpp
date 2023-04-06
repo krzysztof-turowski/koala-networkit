@@ -26,7 +26,7 @@
 #include <boost/dynamic_bitset.hpp>
 #include <boost/multiprecision/cpp_int.hpp>
 #include <algorithm>
-#include "create_tree_decomposition.hpp"
+#include "../baker/create_tree_decomposition.hpp"
 
 using namespace boost;
 namespace mp = multiprecision;

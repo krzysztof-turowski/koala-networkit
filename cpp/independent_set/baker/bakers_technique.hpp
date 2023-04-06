@@ -7,7 +7,7 @@
 #define TECHNIKA_BAKER_BAKERS_TECHNIQUE_HPP
 
 #include <boost/graph/connected_components.hpp>
-#include "../baker/baker-k-outer-planar.hpp"
+#include "baker-k-outer-planar.hpp"
 #include "../bodlaender/bodlaender_impl.hpp"
 
 enum Algorithm {Baker, Bodlaender};

@@ -23,7 +23,7 @@
 #include <boost/graph/boyer_myrvold_planar_test.hpp>
 #include <boost/graph/make_maximal_planar.hpp>
 #include <boost/graph/subgraph.hpp>
-#include "../utils/cyclic_vector.hpp"
+#include "cyclic_vector.hpp"
 
 using namespace boost;
 
@@ -39,9 +39,9 @@ typedef subgraph<adjacency_list
 typedef std::vector<cyclic_vector< graph_traits<Graph>::edge_descriptor > > PlanarEmbedding;
 
 typedef graph_traits<Graph>::edge_descriptor Edge;
-#include "../utils/visitors.hpp"
-#include "../utils/level_face_traversal.hpp"
-#include "../utils/name_levels.hpp"
+#include "visitors.hpp"
+#include "level_face_traversal.hpp"
+#include "name_levels.hpp"
 
 struct tree_decomposition{
     std::vector< cyclic_vector<int> > tree;
