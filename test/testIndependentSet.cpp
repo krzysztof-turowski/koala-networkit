@@ -86,15 +86,25 @@ TYPED_TEST_P(SimpleGraphs, FruchtGraph) {
     this->verify(parameters);
 }
 
-REGISTER_TYPED_TEST_CASE_P(SimpleGraphs, WheelGraphW_8, UtilityGraphK_3_3, PetersenGraph, FruchtGraph);
+TYPED_TEST_P(SimpleGraphs, TroubleGraph_1) {
+    IndependentSetParameters parameters =
+    {7, {
+        {0,2}, {0,3}, {1,3}, {0,4}, {1,4}, {3,4}, {0,5}, {1,5}, {2,5}, {0,6}, {1,6}, {2,6},
+    },
+    3};
+    this->verify(parameters);
+}
+
+REGISTER_TYPED_TEST_CASE_P(SimpleGraphs, WheelGraphW_8, UtilityGraphK_3_3, PetersenGraph, FruchtGraph, TroubleGraph_1);
 
 typedef testing::Types<
     Koala::BruteForceIndependentSet,
     Koala::Mis1IndependentSet,
-    //Koala::Mis2IndependentSet, // TODO: this is bugged
+    Koala::Mis2IndependentSet,
     Koala::Mis3IndependentSet,
     Koala::Mis4IndependentSet,
-    Koala::Mis5IndependentSet> Algorithms;
+    Koala::Mis5IndependentSet
+    >Algorithms;
 INSTANTIATE_TYPED_TEST_CASE_P(IndependentSet, SimpleGraphs, Algorithms);
 
 
@@ -174,8 +184,7 @@ private:
 };
 
 TEST(CompareAlgorithmResults, test) {
-    constexpr int maximumGraphSize = 6;
-
+    constexpr int maximumGraphSize = 7;
     for (int numberOfVertices = 1; numberOfVertices <= maximumGraphSize; ++numberOfVertices) {
         AdjacencyMatrix adj(numberOfVertices);
         while(true) {
@@ -185,7 +194,7 @@ TEST(CompareAlgorithmResults, test) {
             std::vector<std::optional<int>> algorithmSetSizes {
                 runAndValidate<Koala::BruteForceIndependentSet>(G, edges),
                 runAndValidate<Koala::Mis1IndependentSet>(G, edges),
-                //runAndValidate<Koala::Mis2IndependentSet>(G, edges), // TODO: this is bugged
+                runAndValidate<Koala::Mis2IndependentSet>(G, edges),
                 runAndValidate<Koala::Mis3IndependentSet>(G, edges),
                 runAndValidate<Koala::Mis4IndependentSet>(G, edges),
                 runAndValidate<Koala::Mis5IndependentSet>(G, edges),
@@ -205,6 +214,13 @@ TEST(CompareAlgorithmResults, test) {
                 EXPECT_TRUE(algorithmSetSizes[i].has_value());
                 if (algorithmSetSizes[i].has_value()) {
                     EXPECT_EQ(algorithmSetSizes[i], bestAchievedSize);
+                    if (algorithmSetSizes[i] != bestAchievedSize) {
+                        for (auto e : edges) {
+                            std::cout << "(" << e.first << "," << e.second << ") ";
+                        } 
+                        std::cout << std::endl;  
+                        return;
+                    }
                 }
             }
 

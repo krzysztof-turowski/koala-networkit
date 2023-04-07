@@ -73,8 +73,13 @@ std::vector<NetworKit::node> SimpleIndependentSet::getMirrors(NetworKit::node v)
     std::set<NetworKit::node> neighbors2 = getNeighbors2(v);
     std::vector<NetworKit::node> neighborsV = getNeighbors(v);
 
+
+    //std::cout << "neighbors2 ";for (auto x : neighbors2) { std::cout << x << " "; } std::cout << std::endl;
+    //std::cout << "neighborsV ";for (auto x : neighborsV) { std::cout << x << " "; } std::cout << std::endl;
+
+
     for (auto w : neighbors2) {
-        std::vector<NetworKit::node> neighborsW = getNeighbors(v);
+        std::vector<NetworKit::node> neighborsW = getNeighbors(w);
         std::set<NetworKit::node> potentialClique(neighborsV.begin(), neighborsV.end());
         for (auto node : neighborsW) {
             potentialClique.erase(node);
@@ -353,25 +358,77 @@ std::vector<NetworKit::node> Mis2IndependentSet::recursive() {
                 std::vector<NetworKit::node> neighborsPlus = getNeighborsPlus(v);
                 EdgeSet connectedEdges = getConnectedEdges(neighborsPlus);
                 removeElements(neighborsPlus);
-                std::vector<NetworKit::node> setWithTwoDegreeNode = recursive();
-                setWithTwoDegreeNode.push_back(v);
+                std::vector<NetworKit::node> setWithV = recursive();
+                setWithV.push_back(v);
                 restoreElements(neighborsPlus, connectedEdges);
 
-                std::vector<NetworKit::node> twoDegreeNodeWithMirrors = getMirrors(v);
-                twoDegreeNodeWithMirrors.push_back(v);
-                connectedEdges = getConnectedEdges(twoDegreeNodeWithMirrors);
-                removeElements(twoDegreeNodeWithMirrors);
-                std::vector<NetworKit::node> setWithoutTwoDegreeNode = recursive();
-                setWithoutTwoDegreeNode.push_back(v);
-                restoreElements(twoDegreeNodeWithMirrors, connectedEdges);
+                std::vector<NetworKit::node> vWithMirrors = getMirrors(v);
+                vWithMirrors.push_back(v);
+                connectedEdges = getConnectedEdges(vWithMirrors);
+                removeElements(vWithMirrors);
+                std::vector<NetworKit::node> setWithoutV = recursive();
+                restoreElements(vWithMirrors, connectedEdges);
 
-                return setWithTwoDegreeNode.size() > setWithoutTwoDegreeNode.size() ? 
-                        setWithTwoDegreeNode : setWithoutTwoDegreeNode;
+                return setWithV.size() > setWithoutV.size() ? 
+                        setWithV : setWithoutV;
             }
         }
         break;
     }
     case 3:{
+        NetworKit::node u1 = graph->getIthNeighbor(v, 0);
+        NetworKit::node u2 = graph->getIthNeighbor(v, 1);
+        NetworKit::node u3 = graph->getIthNeighbor(v, 2);
+        if (!graph->hasEdge(u1, u2) && !graph->hasEdge(u2, u3) && !graph->hasEdge(u1, u3)) {
+            std::vector<NetworKit::node> vMirrors = getMirrors(v);
+            if (!vMirrors.empty()) {
+                std::vector<NetworKit::node> neighborsPlus = getNeighborsPlus(v);
+                EdgeSet connectedEdges = getConnectedEdges(neighborsPlus);
+                removeElements(neighborsPlus);
+                std::vector<NetworKit::node> setWithV = recursive();
+                setWithV.push_back(v);
+                restoreElements(neighborsPlus, connectedEdges);
+
+                std::vector<NetworKit::node> vWithMirrors = getMirrors(v);
+                vWithMirrors.push_back(v);
+                connectedEdges = getConnectedEdges(vWithMirrors);
+                removeElements(vWithMirrors);
+                std::vector<NetworKit::node> setWithoutV = recursive();
+                restoreElements(vWithMirrors, connectedEdges);
+
+                return setWithV.size() > setWithoutV.size() ? 
+                        setWithV : setWithoutV;
+            }
+            else {
+
+            }
+        }
+        else if (graph->hasEdge(u1, u2) && graph->hasEdge(u2, u3) && graph->hasEdge(u1, u3)) {
+            std::vector<NetworKit::node> neighborsPlus = getNeighborsPlus(v);
+            EdgeSet connectedEdges = getConnectedEdges(neighborsPlus);
+            removeElements(neighborsPlus);
+            std::vector<NetworKit::node> setWithV = recursive();
+            setWithV.push_back(v);
+            restoreElements(neighborsPlus, connectedEdges);
+            return setWithV;
+        }
+        else { // G[{u1,u2,u3}] has 1 or 2 edges
+            std::vector<NetworKit::node> neighborsPlus = getNeighborsPlus(v);
+            EdgeSet connectedEdges = getConnectedEdges(neighborsPlus);
+            removeElements(neighborsPlus);
+            std::vector<NetworKit::node> setWithV = recursive();
+            setWithV.push_back(v);
+            restoreElements(neighborsPlus, connectedEdges);
+
+            std::vector<NetworKit::node> vWithMirrors = getMirrors(v);
+            vWithMirrors.push_back(v);
+            connectedEdges = getConnectedEdges(vWithMirrors);
+            removeElements(vWithMirrors);
+            std::vector<NetworKit::node> setWithoutV = recursive();
+            restoreElements(vWithMirrors, connectedEdges);
+            return setWithV.size() > setWithoutV.size() ? 
+                    setWithV : setWithoutV;            
+        }
 
         break;
     }
@@ -595,8 +652,10 @@ TODO:
 https://stackoverflow.com/questions/16491675/how-to-send-custom-message-in-google-c-testing-framework
 maybe move run() function to the SimpleIndependentSet cuz its always the same and call overloaded recursive() functions
 maybe make function for remove, recursion, restore 
-maybe optimize neighbors2 functions, also mis2 is slow
-
+maybe optimize neighbors2 functions
+rename AdjacencyMatrix in tests
+mis2 has duplicated code for branching with v and without v and mirrors
+branching through connected components doesn't improve polynomial complexity because of how NetworKit::Graph is implemented
 
 add dodyxgen docs
 */
