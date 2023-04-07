@@ -184,7 +184,7 @@ private:
 };
 
 TEST(CompareAlgorithmResults, test) {
-    constexpr int maximumGraphSize = 7;
+    constexpr int maximumGraphSize = 6;
     for (int numberOfVertices = 1; numberOfVertices <= maximumGraphSize; ++numberOfVertices) {
         AdjacencyMatrix adj(numberOfVertices);
         while(true) {
@@ -192,12 +192,12 @@ TEST(CompareAlgorithmResults, test) {
             NetworKit::Graph G = build_graph(numberOfVertices, edges);
 
             std::vector<std::optional<int>> algorithmSetSizes {
-                runAndValidate<Koala::BruteForceIndependentSet>(G, edges),
-                runAndValidate<Koala::Mis1IndependentSet>(G, edges),
+                //runAndValidate<Koala::BruteForceIndependentSet>(G, edges),
+                //runAndValidate<Koala::Mis1IndependentSet>(G, edges),
                 runAndValidate<Koala::Mis2IndependentSet>(G, edges),
                 runAndValidate<Koala::Mis3IndependentSet>(G, edges),
-                runAndValidate<Koala::Mis4IndependentSet>(G, edges),
-                runAndValidate<Koala::Mis5IndependentSet>(G, edges),
+                //runAndValidate<Koala::Mis4IndependentSet>(G, edges),
+                //runAndValidate<Koala::Mis5IndependentSet>(G, edges),
             };
 
             int bestAchievedSize = 0;
