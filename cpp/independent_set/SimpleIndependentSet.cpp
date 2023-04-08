@@ -405,7 +405,6 @@ std::vector<NetworKit::node> Mis2IndependentSet::recursive() {
                         setWithV : setWithoutV;
             }
             else {
-                std::cout << "RARE CASE REACHED" << std::endl; // TODO
                 std::vector<NetworKit::node> vNeighborsPlus = {v, u1, u2, u3};
                 graph->removeNode(v);
                 std::vector<NetworKit::node> u1NeighborsPlus = getNeighborsPlus(u1); // without v
@@ -493,9 +492,23 @@ std::vector<NetworKit::node> Mis2IndependentSet::recursive() {
     }
     } // no verticle with deg 0,1,2,3 exists after leaving this switch
 
-    // if exists v with d(v) >= 6 then
-        // find graph maximum degree
-        // if >= 6 deal with it
+    v = getMaximumDegreeNode();
+    if (graph->degree(v) >= 6) {
+        std::vector<NetworKit::node> neighborsPlus = getNeighborsPlus(v);
+        EdgeSet connectedEdges = getConnectedEdges(neighborsPlus);
+        removeElements(neighborsPlus);
+        std::vector<NetworKit::node> setWithV = recursive();
+        setWithV.push_back(v);
+        restoreElements(neighborsPlus, connectedEdges);
+        
+        std::vector<NetworKit::node> justV = {v};
+        connectedEdges = getConnectedEdges(justV);
+        removeElements(justV);
+        std::vector<NetworKit::node> setWithoutV = recursive();
+        restoreElements(justV, connectedEdges);
+       
+        return setWithV.size() > setWithoutV.size() ? setWithV : setWithoutV;
+    }
 
     //if graph is disconnected then
         // do dfs and split
@@ -518,16 +531,11 @@ std::vector<NetworKit::node> Mis2IndependentSet::recursive() {
         setWithV.push_back(v);
         restoreElements(neighborsPlus, connectedEdges);
         
-        std::vector<NetworKit::node> vNeighbors;
-        graph->forEdgesOf(v, [&](NetworKit::node v, NetworKit::node u) {
-            vNeighbors.push_back(u);
-        });
-        graph->removeNode(v);
+        std::vector<NetworKit::node> justV = {v};
+        connectedEdges = getConnectedEdges(justV);
+        removeElements(justV);
         std::vector<NetworKit::node> setWithoutV = recursive();
-        graph->restoreNode(v);
-        for (auto u : vNeighbors) {
-            graph->addEdge(v, u);
-        }
+        restoreElements(justV, connectedEdges);
         
         return setWithV.size() > setWithoutV.size() ? setWithV : setWithoutV;
     }
@@ -586,23 +594,17 @@ std::vector<NetworKit::node> Mis3IndependentSet::recursive() {
     if (getGraphsMaximumDegree() >= 3) {
         NetworKit::node v = getMaximumDegreeNode();
         std::vector<NetworKit::node> neighborsPlus = getNeighborsPlus(v);
-        EdgeSet connectedEdges = getConnectedEdges(neighborsPlus);
-        
+        EdgeSet connectedEdges = getConnectedEdges(neighborsPlus);        
         removeElements(neighborsPlus);
         std::vector<NetworKit::node> setWithV = recursive();
         setWithV.push_back(v);
         restoreElements(neighborsPlus, connectedEdges);
         
-        std::vector<NetworKit::node> vNeighbors;
-        graph->forEdgesOf(v, [&](NetworKit::node v, NetworKit::node u) {
-            vNeighbors.push_back(u);
-        });
-        graph->removeNode(v);
+        std::vector<NetworKit::node> justV = {v};
+        connectedEdges = getConnectedEdges(justV);
+        removeElements(justV);
         std::vector<NetworKit::node> setWithoutV = recursive();
-        graph->restoreNode(v);
-        for (auto u : vNeighbors) {
-            graph->addEdge(v, u);
-        }
+        restoreElements(justV, connectedEdges);
         
         return setWithV.size() > setWithoutV.size() ? setWithV : setWithoutV;
     }
@@ -637,22 +639,16 @@ std::vector<NetworKit::node> Mis4IndependentSet::recursive() {
 
         std::vector<NetworKit::node> neighborsPlus = getNeighborsPlus(v);
         EdgeSet connectedEdges = getConnectedEdges(neighborsPlus);
-
         removeElements(neighborsPlus);
         std::vector<NetworKit::node> setWithV = recursive();
         setWithV.push_back(v);
         restoreElements(neighborsPlus, connectedEdges);
         
-        std::vector<NetworKit::node> vNeighbors;
-        graph->forEdgesOf(v, [&](NetworKit::node v, NetworKit::node u) {
-            vNeighbors.push_back(u);
-        });
-        graph->removeNode(v);
+        std::vector<NetworKit::node> justV = {v};
+        connectedEdges = getConnectedEdges(justV);
+        removeElements(justV);
         std::vector<NetworKit::node> setWithoutV = recursive();
-        graph->restoreNode(v);
-        for (auto u : vNeighbors) {
-            graph->addEdge(v, u);
-        }
+        restoreElements(justV, connectedEdges);
         
         return setWithV.size() > setWithoutV.size() ? setWithV : setWithoutV;
     }
@@ -682,22 +678,16 @@ std::vector<NetworKit::node> Mis5IndependentSet::recursive() {
 
         std::vector<NetworKit::node> neighborsPlus = getNeighborsPlus(v);
         EdgeSet connectedEdges = getConnectedEdges(neighborsPlus);
-
         removeElements(neighborsPlus);
         std::vector<NetworKit::node> setWithV = recursive();
         setWithV.push_back(v);
         restoreElements(neighborsPlus, connectedEdges);
         
-        std::vector<NetworKit::node> vNeighbors;
-        graph->forEdgesOf(v, [&](NetworKit::node v, NetworKit::node u) {
-            vNeighbors.push_back(u);
-        });
-        graph->removeNode(v);
+        std::vector<NetworKit::node> justV = {v};
+        connectedEdges = getConnectedEdges(justV);
+        removeElements(justV);
         std::vector<NetworKit::node> setWithoutV = recursive();
-        graph->restoreNode(v);
-        for (auto u : vNeighbors) {
-            graph->addEdge(v, u);
-        }
+        restoreElements(justV, connectedEdges);
         
         return setWithV.size() > setWithoutV.size() ? setWithV : setWithoutV;
     }
@@ -717,7 +707,7 @@ maybe optimize neighbors2 functions
 rename AdjacencyMatrix in tests
 mis2 has duplicated code for branching with v and without v and mirrors
 branching through connected components doesn't improve polynomial complexity because of how NetworKit::Graph is implemented
-tests for <= 9 vertices never reach mis2 case deg 3 with no u1,u2,u3 edges and no v mirrors
+max/small degree graph function exists in the library => use it
 
 add dodyxgen docs
 */
