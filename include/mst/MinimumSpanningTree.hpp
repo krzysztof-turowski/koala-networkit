@@ -1,7 +1,7 @@
 /*
  * MinimumSpanningTree.hpp
  *
- *  Created on: ?
+ *  Created on: 08.04.2023
  *      Author: Krzysztof Turowski (krzysztof.szymon.turowski@gmail.com)
  */
 
@@ -20,8 +20,7 @@ namespace Koala {
  *
  */
 class MinimumSpanningTree : public NetworKit::Algorithm {
-
-public:
+ public:
     /**
      * Given an input graph, set up the minimum spanning tree procedure.
      *
@@ -29,8 +28,29 @@ public:
      */
     MinimumSpanningTree(NetworKit::Graph &graph);
 
-protected:
-    std::optional<NetworKit::Graph> graph;
+    /**
+     * Return the spanning tree found by the algorithm.
+     *
+     * @return a spanning tree.
+     */
+    const NetworKit::Graph& getForest() const;
+
+ protected:
+    std::optional<NetworKit::Graph> graph, tree;
+};
+
+/**
+ * @ingroup mst
+ * The class for the Kruskal minimum spanning tree algorithm
+ */
+class KruskalMinimumSpanningTree final : public MinimumSpanningTree {
+ public:
+    using MinimumSpanningTree::MinimumSpanningTree;
+
+    /**
+     * Execute the Kruskal minimum spanning tree algorithm.
+     */
+    void run();
 };
 
 /**
@@ -38,8 +58,7 @@ protected:
  * The class for the Boruvka minimum spanning tree algorithm
  */
 class BoruvkaMinimumSpanningTree final : public MinimumSpanningTree {
-
-public:
+ public:
     using MinimumSpanningTree::MinimumSpanningTree;
 
     /**
@@ -53,8 +72,7 @@ public:
  * The class for the Karger-Klein-Tarjan randomized minimum spanning tree algorithm
  */
 class KargerKleinTarjanMinimumSpanningTree final : public MinimumSpanningTree {
-
-public:
+ public:
     using MinimumSpanningTree::MinimumSpanningTree;
 
     /**

@@ -1,7 +1,7 @@
 #include "LCA.hpp"
 #include "BoruvkaMST.hpp"
 #include <bitset>
-#include <utils.hpp>
+#include "utils.hpp"
 
 
 namespace MST {
