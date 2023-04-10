@@ -47,8 +47,10 @@ protected:
     std::vector<NetworKit::node> getNeighborsPlus(NetworKit::node v) const;
     std::set<NetworKit::node> getNeighbors2(NetworKit::node v) const;
     std::set<NetworKit::node> getNeighbors2Plus(NetworKit::node v) const;
-    EdgeSet getConnectedEdges(std::vector<NetworKit::node>& nodes);
+    EdgeSet getConnectedEdges(std::vector<NetworKit::node>& nodes) const;
+    EdgeSet getAllEdges() const;
     std::vector<NetworKit::node> getMirrors(NetworKit::node v) const;
+    void dfs(NetworKit::node v, std::vector<bool>& visited);
 
     NetworKit::count getGraphsMaximumDegree() const;
     NetworKit::node getMinimumDegreeNode() const;

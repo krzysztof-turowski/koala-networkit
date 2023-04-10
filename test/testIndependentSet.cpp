@@ -95,7 +95,16 @@ TYPED_TEST_P(SimpleGraphs, TroubleGraph_1) {
     this->verify(parameters);
 }
 
-REGISTER_TYPED_TEST_CASE_P(SimpleGraphs, WheelGraphW_8, UtilityGraphK_3_3, PetersenGraph, FruchtGraph, TroubleGraph_1);
+TYPED_TEST_P(SimpleGraphs, TwoK5) {
+    IndependentSetParameters parameters =
+    {10, {
+        {0,1}, {0,2}, {0,3}, {0,4}, {1,2}, {1,3}, {1,4}, {2,3}, {2,4}, {3,4},
+        {5,6}, {5,7}, {5,8}, {5,9}, {6,7}, {6,8}, {6,9}, {7,8}, {7,9}, {8,9},
+    },
+    2};
+    this->verify(parameters);
+}
+REGISTER_TYPED_TEST_CASE_P(SimpleGraphs, WheelGraphW_8, UtilityGraphK_3_3, PetersenGraph, FruchtGraph, TroubleGraph_1, TwoK5);
 
 typedef testing::Types<
     Koala::BruteForceIndependentSet,
