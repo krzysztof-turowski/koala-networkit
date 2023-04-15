@@ -31,6 +31,9 @@ void benchmark() {
 
 int main(int argc, const char *argv[]) {
     switch (std::stoi(argv[1])) {
+        case 0:
+            benchmark<Koala::BruteForceIndependentSet>();
+            break;
         case 1:
             benchmark<Koala::Mis1IndependentSet>();
             break;
@@ -45,6 +48,9 @@ int main(int argc, const char *argv[]) {
             break;
         case 5:
             benchmark<Koala::Mis5IndependentSet>();
+            break;
+        case 6:
+            benchmark<Koala::MeasureAndConquerIndependentSet>();
             break;
     }
     return 0;

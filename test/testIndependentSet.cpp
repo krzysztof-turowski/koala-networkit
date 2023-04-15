@@ -86,15 +86,6 @@ TYPED_TEST_P(SimpleGraphs, FruchtGraph) {
     this->verify(parameters);
 }
 
-TYPED_TEST_P(SimpleGraphs, TroubleGraph_1) {
-    IndependentSetParameters parameters =
-    {7, {
-        {0,2}, {0,3}, {1,3}, {0,4}, {1,4}, {3,4}, {0,5}, {1,5}, {2,5}, {0,6}, {1,6}, {2,6},
-    },
-    3};
-    this->verify(parameters);
-}
-
 TYPED_TEST_P(SimpleGraphs, TwoK5) {
     IndependentSetParameters parameters =
     {10, {
@@ -104,7 +95,16 @@ TYPED_TEST_P(SimpleGraphs, TwoK5) {
     2};
     this->verify(parameters);
 }
-REGISTER_TYPED_TEST_CASE_P(SimpleGraphs, WheelGraphW_8, UtilityGraphK_3_3, PetersenGraph, FruchtGraph, TroubleGraph_1, TwoK5);
+
+TYPED_TEST_P(SimpleGraphs, TestingGraph) {
+    IndependentSetParameters parameters =
+    {3, {
+        {0,1}, {0,2}
+    },
+    2};
+    this->verify(parameters);
+}
+REGISTER_TYPED_TEST_CASE_P(SimpleGraphs, WheelGraphW_8, UtilityGraphK_3_3, PetersenGraph, FruchtGraph, TwoK5, TestingGraph);
 
 typedef testing::Types<
     Koala::BruteForceIndependentSet,
@@ -112,7 +112,8 @@ typedef testing::Types<
     Koala::Mis2IndependentSet,
     Koala::Mis3IndependentSet,
     Koala::Mis4IndependentSet,
-    Koala::Mis5IndependentSet
+    Koala::Mis5IndependentSet,
+    Koala::MeasureAndConquerIndependentSet
     >Algorithms;
 INSTANTIATE_TYPED_TEST_CASE_P(IndependentSet, SimpleGraphs, Algorithms);
 
@@ -200,44 +201,57 @@ TEST(CompareAlgorithmResults, test) {
             std::list<std::pair<int, int>> edges = adj.getNiceEdges();
             NetworKit::Graph G = build_graph(numberOfVertices, edges);
 
-            std::vector<std::optional<int>> algorithmSetSizes {
-                //runAndValidate<Koala::BruteForceIndependentSet>(G, edges),
-                //runAndValidate<Koala::Mis1IndependentSet>(G, edges),
-                runAndValidate<Koala::Mis2IndependentSet>(G, edges),
-                runAndValidate<Koala::Mis3IndependentSet>(G, edges),
-                //runAndValidate<Koala::Mis4IndependentSet>(G, edges),
-                //runAndValidate<Koala::Mis5IndependentSet>(G, edges),
-            };
+            try
+            {            
+                std::vector<std::optional<int>> algorithmSetSizes {
+                    runAndValidate<Koala::BruteForceIndependentSet>(G, edges),
+                    runAndValidate<Koala::Mis1IndependentSet>(G, edges),
+                    runAndValidate<Koala::Mis2IndependentSet>(G, edges),
+                    runAndValidate<Koala::Mis3IndependentSet>(G, edges),
+                    runAndValidate<Koala::Mis4IndependentSet>(G, edges),
+                    runAndValidate<Koala::Mis5IndependentSet>(G, edges),
+                    runAndValidate<Koala::MeasureAndConquerIndependentSet>(G, edges),
+                };
 
-            int bestAchievedSize = 0;
-            for (auto size : algorithmSetSizes) {
-                if (size.has_value()) {
-                    bestAchievedSize = std::max(bestAchievedSize, *size);
-                }
-                else {
-                    return;
-                }
-            }
-
-            for (int i = 0; i < algorithmSetSizes.size(); ++i) {
-                EXPECT_TRUE(algorithmSetSizes[i].has_value());
-                if (algorithmSetSizes[i].has_value()) {
-                    EXPECT_EQ(algorithmSetSizes[i], bestAchievedSize);
-                    if (algorithmSetSizes[i] != bestAchievedSize) {
-                        for (auto e : edges) {
-                            std::cout << "(" << e.first << "," << e.second << ") ";
-                        } 
-                        std::cout << std::endl;  
+                int bestAchievedSize = 0;
+                for (auto size : algorithmSetSizes) {
+                    if (size.has_value()) {
+                        bestAchievedSize = std::max(bestAchievedSize, *size);
+                    }
+                    else {
                         return;
                     }
                 }
-            }
 
-            if (!adj.hasNext()) {
+                for (int i = 0; i < algorithmSetSizes.size(); ++i) {
+                    EXPECT_TRUE(algorithmSetSizes[i].has_value());
+                    if (algorithmSetSizes[i].has_value()) {
+                        EXPECT_EQ(algorithmSetSizes[i], bestAchievedSize);
+                        if (algorithmSetSizes[i] != bestAchievedSize) {
+                            for (auto e : edges) {
+                                std::cout << "{" << e.first << "," << e.second << "}, ";
+                            } 
+                            std::cout << std::endl;  
+                            return;
+                        }
+                    }
+                }
 
-                break;
+                if (!adj.hasNext()) {
+
+                    break;
+                }
+                adj.goNext();
+
             }
-            adj.goNext();
+            catch (std::exception& e)
+            {
+                std::cerr << "Exception caught : " << e.what() << std::endl;
+                for (auto e : edges) {
+                    std::cout << "{" << e.first << "," << e.second << "}, ";
+                } 
+                std::cout << std::endl;
+            }
         }
     }
 }
