@@ -98,10 +98,10 @@ TYPED_TEST_P(SimpleGraphs, TwoK5) {
 
 TYPED_TEST_P(SimpleGraphs, TestingGraph) {
     IndependentSetParameters parameters =
-    {3, {
-        {0,1}, {0,2}
+    {6, {
+        {1,2}, {0,3}, {1,3}, {2,3}, {0,4}, {2,4}, {0,5}, {1,5},
     },
-    2};
+    3};
     this->verify(parameters);
 }
 REGISTER_TYPED_TEST_CASE_P(SimpleGraphs, WheelGraphW_8, UtilityGraphK_3_3, PetersenGraph, FruchtGraph, TwoK5, TestingGraph);
@@ -137,6 +137,10 @@ std::optional<int> runAndValidate(NetworKit::Graph G, std::list<std::pair<int, i
         bool neighbors = independentSet[u] && independentSet[v];
         EXPECT_FALSE(neighbors);
         if (neighbors) {
+            for (auto e : edges) {
+                std::cout << "{" << e.first << "," << e.second << "}, ";
+            } 
+            std::cout << std::endl;
             return std::nullopt;
         }
     }
@@ -231,7 +235,7 @@ TEST(CompareAlgorithmResults, test) {
                             for (auto e : edges) {
                                 std::cout << "{" << e.first << "," << e.second << "}, ";
                             } 
-                            std::cout << std::endl;  
+                            std::cout << std::endl;
                             return;
                         }
                     }

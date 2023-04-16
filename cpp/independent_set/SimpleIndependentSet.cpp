@@ -22,7 +22,7 @@ void printGraph(const NetworKit::Graph* graph) { // TODO: its just debug
     });
     std::cout << std::endl;
     graph->forEdges([&](NetworKit::node u, NetworKit::node v) {
-        std::cout << "(" << u << "," << v << ") ";
+        std::cout << "{" << u << "," << v << "}, ";
     });
     std::cout << std::endl;
 }
@@ -874,7 +874,6 @@ std::vector<NetworKit::node> MeasureAndConquerIndependentSet::recursive() {
         std::set<NetworKit::node> neighbors;
     };
     std::vector<NodeNeighbors> nodeNeighbors;
-
     graph->forNodes([&](NetworKit::node v) {
         std::vector<NetworKit::node> vec = getNeighborsPlus(v);
         nodeNeighbors.push_back({v, std::set<NetworKit::node>(vec.begin(), vec.end())});        
@@ -906,9 +905,10 @@ std::vector<NetworKit::node> MeasureAndConquerIndependentSet::recursive() {
         if (graph->degree(v) <= 4) {
             std::vector<NetworKit::node> vNeighbors = getNeighbors(v);
             EdgeSet inducedEdges = getInducedEdges(vNeighbors);
+            bool shallFold = false;
 
             switch(graph->degree(v)) {
-            case 0: { // DONE
+            case 0: {
                 graph->removeNode(v);
                 std::vector<NetworKit::node> setWithV = recursive();
                 setWithV.push_back(v);
@@ -916,11 +916,12 @@ std::vector<NetworKit::node> MeasureAndConquerIndependentSet::recursive() {
                 return setWithV;
                 break;
             }
-            case 1: { // DONE
+            case 1: {
                 std::cout << "CAN'T BE HERE !!! (a)" << std::endl;
                 break;
             }
             case 2: {
+                //shallFold = true; break; // TODO also works
                 if (inducedEdges.empty()) {
                     NetworKit::node u1 = vNeighbors[0];
                     NetworKit::node u2 = vNeighbors[1];
@@ -966,78 +967,7 @@ std::vector<NetworKit::node> MeasureAndConquerIndependentSet::recursive() {
             case 3: {
                 if (!inducedEdges.empty()) {
                     if (inducedEdges.size() == 1) { // other cases removed by domination
-                        struct FoldingNode {
-                            NetworKit::node oldU1;
-                            NetworKit::node oldU2;
-                            NetworKit::node u12;                            
-                        };
-                        std::vector<FoldingNode> foldingNodes; // create one for each antiedge
-                        std::vector<std::set<NetworKit::node>> vNeighborsInfo(lastIndex + 1);
-                        std::set<NetworKit::node> vNeighborsPlusSet(vNeighbors.begin(), vNeighbors.end());
-                        vNeighborsPlusSet.insert(v);
-
-                        for (auto u : vNeighbors) {
-                            std::vector<NetworKit::node> uNeighborsVect = getNeighbors(u);
-                            std::set<NetworKit::node> uNeighborsSet(uNeighborsVect.begin(), uNeighborsVect.end());
-                            std::set<NetworKit::node> difference;
-                            std::set_difference(vNeighborsPlusSet.begin(), vNeighborsPlusSet.end(), 
-                                                uNeighborsSet.begin(), uNeighborsSet.end(),
-                                                std::inserter(difference, difference.end()));
-                            vNeighborsInfo[u] = {difference};
-                        }
-
-                        for (auto u : vNeighbors) {
-                            for (auto v : vNeighbors) {
-                                if (u < v) {
-                                    if (!graph->hasEdge(u, v)) {
-                                        foldingNodes.push_back({u, v});
-                                    }
-                                }
-                            }
-                        }
-                        for (int i = 0; i < foldingNodes.size(); ++i) {
-                            foldingNodes[i].u12 = vNeighbors[i];
-                        }
-                        
-                        std::vector<NetworKit::node> neighborsPlus = getNeighborsPlus(v);
-                        EdgeSet connectedEdges = getConnectedEdges(neighborsPlus);
-                        removeElements(neighborsPlus);
-                        
-                        for (auto f : foldingNodes) {
-                            graph->restoreNode(f.u12);
-                            for (auto node : vNeighborsInfo[f.u12]) {
-                                graph->addEdge(f.u12, node);
-                            }
-                        }
-                        for (auto f : foldingNodes) {
-                            for (auto g : foldingNodes) {
-                                if (f.u12 < g.u12) {
-                                    graph->addEdge(f.u12, g.u12);
-                                }
-                            }
-                        }
-
-                        std::vector<NetworKit::node> resultSet = recursive();
-                        bool newNodeChoosen = false;
-                        for (int i = 0; i < !newNodeChoosen && resultSet.size(); ++i) {
-                            for (auto f : foldingNodes) {
-                                if (resultSet[i] == f.u12) {
-                                    resultSet[i] = f.oldU1;
-                                    resultSet.push_back(f.oldU2);
-                                    newNodeChoosen = true;
-                                    break;
-                                }
-                            }                           
-                        }
-                        if (!newNodeChoosen) {
-                            resultSet.push_back(v);
-                        }
-
-                        for (auto f : foldingNodes) {
-                            graph->removeNode(f.u12);
-                        }
-                        restoreElements(neighborsPlus, connectedEdges);
-                        return resultSet;
+                        shallFold = true;   
                     }
                     else {
                         std::cout << "CAN'T BE HERE !!! (b)" << std::endl;
@@ -1051,50 +981,122 @@ std::vector<NetworKit::node> MeasureAndConquerIndependentSet::recursive() {
                 }
 
                 if (inducedEdges.size() >= 4) { // no triangle possible with 4 edges
-                    // FOLD
+                    std::cout << "induced size >= 4 case reached" << std::endl; // TODO: tests never reach this
+                    shallFold = true;
                 }
                 else if (inducedEdges.size() == 3) {
+                    std::cout << "induced size == 3 case reached" << std::endl; // TODO: tests never reach this
                     // FOLD <=> no induced vertex has degree 3
+                    bool hasDegree3 = false;
+                    std::map<NetworKit::node, int> counter;                    
+                    for (auto e : inducedEdges) {
+                        ++counter[e.u];
+                        ++counter[e.v];
+                        if (counter[e.u] == 3 || counter[e.v] == 3) {
+                            hasDegree3 = true;
+                        }
+                    }
+                    shallFold = !hasDegree3;
                 }
                 break;
-            }    
+            }
+            }
+            
+            if (shallFold) {
+                struct FoldingNode {
+                    NetworKit::node oldU1;
+                    NetworKit::node oldU2;
+                    NetworKit::node u12;                            
+                };
+                std::vector<FoldingNode> foldingNodes; // create one for each antiedge
+                std::vector<std::set<NetworKit::node>> vNeighborsNeighbors(lastIndex + 1);
+                std::set<NetworKit::node> vNeighborsPlusSet(vNeighbors.begin(), vNeighbors.end());
+                vNeighborsPlusSet.insert(v);
+
+                for (auto u : vNeighbors) {
+                    std::vector<NetworKit::node> uNeighborsVect = getNeighbors(u);
+                    std::set<NetworKit::node> uNeighborsSet(uNeighborsVect.begin(), uNeighborsVect.end());
+                    std::set_difference(uNeighborsSet.begin(), uNeighborsSet.end(),
+                                        vNeighborsPlusSet.begin(), vNeighborsPlusSet.end(), 
+                                        std::inserter(vNeighborsNeighbors[u], vNeighborsNeighbors[u].end()));
+                }              
+
+                for (auto u : vNeighbors) {
+                    for (auto v : vNeighbors) {
+                        if (u < v) {
+                            if (!graph->hasEdge(u, v)) {
+                                foldingNodes.push_back({u, v});
+                            }
+                        }
+                    }
+                }
+                for (int i = 0; i < foldingNodes.size(); ++i) {
+                    foldingNodes[i].u12 = vNeighbors[i];
+                }
+
+                std::vector<NetworKit::node> neighborsPlus = getNeighborsPlus(v);
+                EdgeSet connectedEdges = getConnectedEdges(neighborsPlus);
+                removeElements(neighborsPlus);
+                
+                for (auto f : foldingNodes) {
+                    graph->restoreNode(f.u12);
+                    for (auto node : vNeighborsNeighbors[f.oldU1]) {
+                        graph->addEdge(f.u12, node);
+                    }
+                    for (auto node : vNeighborsNeighbors[f.oldU2]) {
+                        if (!graph->hasEdge(f.u12, node)) {
+                            graph->addEdge(f.u12, node);
+                        }
+                    }
+                }
+                for (auto f : foldingNodes) {
+                    for (auto g : foldingNodes) {
+                        if (f.u12 < g.u12) {
+                            graph->addEdge(f.u12, g.u12);
+                        }
+                    }
+                }
+
+                std::vector<NetworKit::node> resultSet = recursive();
+                bool newNodeChoosen = false;
+                for (int i = 0; !newNodeChoosen && i < resultSet.size(); ++i) {
+                    for (auto f : foldingNodes) {
+                        if (resultSet[i] == f.u12) {
+                            resultSet[i] = f.oldU1;
+                            resultSet.push_back(f.oldU2);
+                            newNodeChoosen = true;
+                            break;
+                        }
+                    }                           
+                }
+                if (!newNodeChoosen) {
+                    resultSet.push_back(v);
+                }
+                for (auto f : foldingNodes) {
+                    graph->removeNode(f.u12);
+                }
+                restoreElements(neighborsPlus, connectedEdges);
+                return resultSet;
             }
         }
     }
 
+    NetworKit::node v = getMaximumDegreeNode();
+    std::vector<NetworKit::node> neighborsPlus = getNeighborsPlus(v);
+    EdgeSet connectedEdges = getConnectedEdges(neighborsPlus);
+    removeElements(neighborsPlus);
+    std::vector<NetworKit::node> setWithV = recursive();
+    setWithV.push_back(v);
+    restoreElements(neighborsPlus, connectedEdges);
 
+    std::vector<NetworKit::node> vWithMirrors = getMirrors(v);
+    vWithMirrors.push_back(v);
+    connectedEdges = getConnectedEdges(vWithMirrors);
+    removeElements(vWithMirrors);
+    std::vector<NetworKit::node> setWithoutV = recursive();
+    restoreElements(vWithMirrors, connectedEdges);
 
-
-
-
-
-    
-
-
-
-
-//  filler
-    if (getGraphsMaximumDegree() >= 3) {
-        NetworKit::node v = getMaximumDegreeNode();
-
-        std::vector<NetworKit::node> neighborsPlus = getNeighborsPlus(v);
-        EdgeSet connectedEdges = getConnectedEdges(neighborsPlus);
-        removeElements(neighborsPlus);
-        std::vector<NetworKit::node> setWithV = recursive();
-        setWithV.push_back(v);
-        restoreElements(neighborsPlus, connectedEdges);
-        
-        std::vector<NetworKit::node> justV = {v};
-        connectedEdges = getConnectedEdges(justV);
-        removeElements(justV);
-        std::vector<NetworKit::node> setWithoutV = recursive();
-        restoreElements(justV, connectedEdges);
-        
-        return setWithV.size() > setWithoutV.size() ? setWithV : setWithoutV;
-    }
-    else {
-        return runIndependentSetDegree2();
-    }
+    return setWithV.size() > setWithoutV.size() ? setWithV : setWithoutV;    
 }
 
 
