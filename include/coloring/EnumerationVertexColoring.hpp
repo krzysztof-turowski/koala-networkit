@@ -94,8 +94,10 @@ protected:
     bool is_interchangeable(std::vector<int>& K,
     NetworKit::node new_node,
     std::map<NetworKit::node, int>& solution);
-    std::vector<NetworKit::node>
-    interchange_component(std::vector<NetworKit::node>& subgraph, NetworKit::node new_node);
+    std::vector<NetworKit::node> interchange_component(std::vector<NetworKit::node>& subgraph,
+    std::map<NetworKit::node, int>& solution,
+    NetworKit::node new_node,
+    int alpha);
     std::vector<int> get_representatives_of_adjacent_predecessors(int i);
     void determine_current_predecessors(int r) override;
     void backwards();

@@ -255,21 +255,28 @@ void ChristofidesEnumerationVertexColoring::run() {
 
 std::vector<NetworKit::node> BrelazEnumerationVertexColoring::interchange_component(
 std::vector<NetworKit::node>& subgraph,
-NetworKit::node new_node) {
+std::map<NetworKit::node, int>& solution,
+NetworKit::node new_node,
+int alpha) {
     std::unordered_set<NetworKit::node> visited;
     int number_of_neighbours_in_component = 0;
+    std::vector<NetworKit::node> verticesToRecolor;
     for (NetworKit::node u : subgraph) {
         if (visited.find(u) == visited.end()) {
             std::vector<NetworKit::node> component;
             std::queue<NetworKit::node> queue;
-            number_of_neighbours_in_component = 0;
+            std::unordered_set<int> neighborsColors;
             queue.push(u);
             visited.insert(u);
             while (!queue.empty()) {
                 NetworKit::node v = queue.front();
                 queue.pop();
                 if (graph->hasEdge(new_node, v)) {
-                    ++number_of_neighbours_in_component;
+                    if (neighborsColors.size() == 0) {
+                        neighborsColors.insert(solution[v]);
+                    } else if (neighborsColors.find(solution[v]) == neighborsColors.end()) {
+                        return std::vector<NetworKit::node>();
+                    }
                 }
                 component.push_back(v);
                 for (NetworKit::node w : subgraph) {
@@ -279,12 +286,13 @@ NetworKit::node new_node) {
                     }
                 }
             }
-            if (number_of_neighbours_in_component == 1) {
-                return component;
+            if (neighborsColors.find(alpha) != neighborsColors.end()) {
+                verticesToRecolor.insert(
+                verticesToRecolor.end(), component.begin(), component.end());
             }
         }
     }
-    return std::vector<NetworKit::node>();
+    return verticesToRecolor;
 }
 
 bool BrelazEnumerationVertexColoring::is_interchangeable(std::vector<int>& K,
@@ -300,14 +308,13 @@ std::map<NetworKit::node, int>& solution) {
                     subgraph.push_back(node);
                 }
             }
-            auto interchangeable_component = interchange_component(subgraph, new_node);
+            auto interchangeable_component =
+            interchange_component(subgraph, solution, new_node, alpha);
             if (interchangeable_component.size() > 0) {
                 for (NetworKit::node v : interchangeable_component) {
                     solution[v] = (alpha == solution[v]) ? beta : alpha;
-                    if (graph->hasEdge(new_node, v)) {
-                        solution[new_node] = (alpha == solution[v]) ? beta : alpha;
-                    }
                 }
+                solution[new_node] = alpha;
                 return true;
             }
         }
