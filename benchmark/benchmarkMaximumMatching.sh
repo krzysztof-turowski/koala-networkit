@@ -1,0 +1,1 @@
+echo "benchmarkMaximumMatching.sh $@"

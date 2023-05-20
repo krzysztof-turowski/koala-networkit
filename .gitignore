@@ -1,3 +1,6 @@
 backup/*
 build/*
 input/*
+CMakeCache.txt
+CMakeFiles/
+*.code-workspace
