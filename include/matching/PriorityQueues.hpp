@@ -258,6 +258,8 @@ public:
 
         add_child_after(ref->parent, ref, new_node);
 
+        new_node->parent->update_min_until_root();
+
         return new_node;
     }
 
@@ -277,6 +279,8 @@ public:
         };
 
         add_child_before(ref->parent, ref, new_node);
+
+        new_node->parent->update_min_until_root();
 
         return new_node;
     }
@@ -403,7 +407,7 @@ public:
         return { left, right };
     }
 
-    void for_each(const std::function<void(E)>& handle) {
+    void for_each(const std::function<void(E, P)>& handle) {
         if (root != nullptr) root->for_each(handle);
     }
 
@@ -423,12 +427,21 @@ public:
             out << head << " | " << find_min().first << " : ";
         out << "{";
         std::vector<E> elements;
-        for_each([&elements](E element) { elements.push_back(element); });
+        for_each([&elements] (E element, P p) { elements.push_back(element); });
         for (int i = 0; i < elements.size(); ++ i) {
             out << elements[i];
             if (i != elements.size() - 1) out << ", ";
         }
         out << "}\n";
+    }
+
+    void check_consistency() {
+        if (root == nullptr) return;
+        if (root->queue != this) {
+            std::cerr << "root poins at wrong queue\n";
+            exit(1);
+        }
+        root->check_children();
     }
 
     struct Node {
@@ -512,17 +525,24 @@ public:
         }
 
         void check_children() {
+            if (parent == this) {
+                std::cerr << "parent link points to the node itself\n";
+                exit(1);
+            }
             for (int i = 0; i < 3; ++ i) {
-                if (children[i] && children[i]->parent != this) {
-                    std::cerr << "parent link wrong "; print(); std::cerr << std::endl;
-                    exit(1);
+                if (children[i]) {
+                    if (children[i]->parent != this) {
+                        std::cerr << "parent link wrong "; print(); std::cerr << std::endl;
+                        exit(1);
+                    }
+                    children[i]->check_children();
                 }
             }
         }
 
-        void for_each(const std::function<void(E)>& handle) {
+        void for_each(const std::function<void(E, P)>& handle) {
             if (is_leaf()) {
-                handle(min_element);
+                handle(min_element, min_priority);
                 return;
             }
             for (int i = 0; i < 3; ++ i) {
@@ -603,8 +623,8 @@ private:
             Node* four_children[4] = { target->children[0], target->children[1], 
                                        target->children[2], nullptr };
             insert_child(four_children, index, child_count, child);
-            target->children[0] = four_children[0];
-            target->children[1] = four_children[1];
+            target->children[0] = four_children[0]; four_children[0]->parent = target;
+            target->children[1] = four_children[1]; four_children[1]->parent = target;
             target->children[2] = nullptr;
             Node* new_node = new Node {
                 this, target->parent, { four_children[2], four_children[3], nullptr},
@@ -907,6 +927,17 @@ public:
         }
         delete group;
         return {nullptr, nullptr};
+    }
+
+    void for_each_in_group(Group* group, const std::function<void(E, P)>& handle) {
+        group->update_Delta(Delta);
+        group->elements.for_each([&handle, group] (E e, P p) {
+            handle(e, p - group->Delta_group);
+        });
+    }
+
+    void for_group_minima(const std::function<void(E, P)>& handle) {
+        group_minima.for_elements(handle);
     }
 
     struct Group { 

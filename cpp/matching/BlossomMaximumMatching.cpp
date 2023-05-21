@@ -94,7 +94,7 @@ bool BlossomMaximumMatching::consider_edge(EdgeInfo edge) {
         std::swap(u_blossom, v_blossom);
     }
 
-    std::cerr << "Consider edge (" << u << ", " << v << ")\n";
+    std::cerr << ">>>>>>>>>>>>>> Consider edge (" << u << ", " << v << ")\n";
 
     if (v_blossom->label == free) {
         // Useful edge to a free blossom
@@ -337,9 +337,10 @@ void BlossomMaximumMatching::augment_path_on_blossoms(
             swap_edges_on_even_path(base_blossom, blossom->base, pathB.rbegin()->second.v);
     }
 
+    handle_subblossom_shift(blossom, out_blossom);
     blossom->base = out_vertex;
     pathB.splice(pathB.end(), pathA);
-    blossom->sub_blossoms = pathB; // pathB + pathA
+    blossom->sub_blossoms = pathB; // pathB + pathA    
 }
 
 std::vector<BlossomMaximumMatching::Blossom*> 
@@ -528,6 +529,16 @@ void BlossomMaximumMatching::Blossom::short_print() {
         }
     }
     std::cerr << "}";
+}
+
+void BlossomMaximumMatching::Blossom::nodes_print() {
+    std::cerr << "("; 
+    if (is_trivial()) {
+        std::cerr << base;
+    } else {
+        for (auto sb : sub_blossoms) sb.first->nodes_print();
+    }
+    std::cerr << ")";
 }
 
 BlossomMaximumMatching::EdgeInfo BlossomMaximumMatching::reverse(const EdgeInfo& info) {

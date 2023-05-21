@@ -84,6 +84,7 @@ protected:
         void check_consistency();
         void print(int depth = 0);
         void short_print();
+        void nodes_print();
 
         void delete_all_children();
         ~Blossom();
@@ -122,6 +123,7 @@ protected:
     void cut_path_at(std::vector<BacktrackInfo>& path, Blossom* cut, Blossom* cut_2);
     virtual void handle_new_blossom(Blossom* b) = 0;
 
+    // TODO: lazy augmentation
     void augment_path(
             Blossom* u, Blossom* v, EdgeInfo edge,
             std::vector<BacktrackInfo>& u_path, std::vector<BacktrackInfo>& v_path);
@@ -135,6 +137,7 @@ protected:
     std::vector<Blossom*> blossoms_containing(NetworKit::node vertex, Blossom* until);
     static std::pair<std::list<std::pair<Blossom*, EdgeInfo>>,std::list<std::pair<Blossom*, EdgeInfo>>>
     split_subblossoms(std::list<std::pair<Blossom*, EdgeInfo>> sub_blossoms, Blossom* blossom);
+    virtual void handle_subblossom_shift(Blossom* blossom, Blossom* subblossom) = 0;
 
     void adjust_dual_variables();
     
@@ -187,6 +190,8 @@ private:
     void label_even(Blossom* b) override;
 
     void handle_new_blossom(Blossom* b) override;
+
+    void handle_subblossom_shift(Blossom* blossom, Blossom* subblossom) override;
     
     NetworKit::edgeweight calc_delta1() override;
     NetworKit::edgeweight calc_delta2() override;
@@ -244,6 +249,8 @@ private:
 
     void handle_new_blossom(Blossom* b) override;
     
+    void handle_subblossom_shift(Blossom* blossom, Blossom* subblossom) override;
+
     NetworKit::edgeweight calc_delta1() override;
     NetworKit::edgeweight calc_delta2() override;
     NetworKit::edgeweight calc_delta3() override;
@@ -333,6 +340,8 @@ private:
     void label_even(Blossom* b) override;
 
     void handle_new_blossom(Blossom* b) override;
+
+    void handle_subblossom_shift(Blossom* blossom, Blossom* subblossom) override;
     
     NetworKit::edgeweight calc_delta1() override;
     NetworKit::edgeweight calc_delta2() override;
