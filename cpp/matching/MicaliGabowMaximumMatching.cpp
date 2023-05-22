@@ -154,14 +154,6 @@ void MicaliGabowMaximumMatching::handle_new_blossom(Blossom* new_blossom) {
     for (auto [b, e] : new_blossom->sub_blossoms) {
         nodes.concat(std::move(get_data(b)->nodes), new_blossom);
 
-        // std::cerr << "Concat subblossom "; b->short_print(); std::cerr << std::endl;
-        // nodes.print();
-        // nodes.check_consistency();
-        // nodes.for_each([] (NetworKit::node v, NetworKit::node _) {
-        //     std::cerr << v << " ";
-        // });
-        // std::cerr << std::endl;
-
         if (b->label == even) {
             b->z = Zeven.current_priority(b->base);
             Zeven.remove(b->base);
@@ -256,6 +248,24 @@ void MicaliGabowMaximumMatching::handle_subblossom_shift(Blossom* blossom, Bloss
     data->nodes = std::move(before_blossom);
 }
 
+void EdmondsMaximumMatching::handle_odd_blossom_expansion(Blossom* blossom) {
+    for (auto [b, e] : blossom->sub_blossoms) {
+        Blossom* _b = b;
+        b->for_nodes([this, _b] (NetworKit::node v) {
+            current_blossom[v] = _b;
+        });
+    }
+}
+
+void EdmondsMaximumMatching::handle_even_blossom_expansion(Blossom* blossom) {
+    for (auto [b, e] : blossom->sub_blossoms) {
+        Blossom* _b = b;
+        b->for_nodes([this, _b] (NetworKit::node v) {
+            current_blossom[v] = _b;
+        });
+    }
+}
+
 void MicaliGabowMaximumMatching::adjust_by_delta(NetworKit::edgeweight delta) {
     Ueven.decrease_all_priorities(delta);
     Uodd.decrease_all_priorities(-delta);
@@ -314,79 +324,79 @@ void MicaliGabowMaximumMatching::find_delta3_useful_edges() {
     }
 }
 
-void MicaliGabowMaximumMatching::expand_odd_blossom(Blossom* blossom) {
-    std::cerr << "Expanding odd blossom "; blossom->short_print(); std::cerr << std::endl;
-    if (blossom->is_trivial()) return;
+// void MicaliGabowMaximumMatching::expand_odd_blossom(Blossom* blossom) {
+//     std::cerr << "Expanding odd blossom "; blossom->short_print(); std::cerr << std::endl;
+//     if (blossom->is_trivial()) return;
 
-    auto node = blossom->backtrack_edge.v;
-    Blossom* inner_blossom = *blossoms_containing(node, blossom).rbegin();
-    Blossom* base_blossom = blossom->sub_blossoms.rbegin()->first;
-    auto [pathA, pathB] = split_subblossoms(blossom->sub_blossoms, inner_blossom);
+//     auto node = blossom->backtrack_edge.v;
+//     Blossom* inner_blossom = *blossoms_containing(node, blossom).rbegin();
+//     Blossom* base_blossom = blossom->sub_blossoms.rbegin()->first;
+//     auto [pathA, pathB] = split_subblossoms(blossom->sub_blossoms, inner_blossom);
 
-    for (auto [b, e] : blossom->sub_blossoms) b->label = free;
+//     for (auto [b, e] : blossom->sub_blossoms) b->label = free;
 
-    inner_blossom->label = odd;
-    inner_blossom->backtrack_edge = blossom->backtrack_edge;
+//     inner_blossom->label = odd;
+//     inner_blossom->backtrack_edge = blossom->backtrack_edge;
 
-    if (pathB.size() % 2 == 0) {
-        int parity = 0;
-        for (auto iter = pathB.begin(); iter != pathB.end(); iter ++, parity ++) {
-            iter->first->label = parity % 2 == 0 ? even : odd;
-            iter->first->backtrack_edge = iter->second;
-        }
-    } else {
-        int parity = 0;
-        Blossom* prev = base_blossom;
-        for (auto iter = pathA.begin(); iter != pathA.end(); iter ++, parity ++) {
-            prev->label = parity % 2 == 0 ? odd : even;
-            prev->backtrack_edge = reverse(iter->second);
-            prev = iter->first;
-        }
-    }   
+//     if (pathB.size() % 2 == 0) {
+//         int parity = 0;
+//         for (auto iter = pathB.begin(); iter != pathB.end(); iter ++, parity ++) {
+//             iter->first->label = parity % 2 == 0 ? even : odd;
+//             iter->first->backtrack_edge = iter->second;
+//         }
+//     } else {
+//         int parity = 0;
+//         Blossom* prev = base_blossom;
+//         for (auto iter = pathA.begin(); iter != pathA.end(); iter ++, parity ++) {
+//             prev->label = parity % 2 == 0 ? odd : even;
+//             prev->backtrack_edge = reverse(iter->second);
+//             prev = iter->first;
+//         }
+//     }   
 
-    auto remaining_nodes = &get_data(blossom)->nodes;
-    auto remaining_edges = get_data(blossom)->even_edges;
+//     auto remaining_nodes = &get_data(blossom)->nodes;
+//     auto remaining_edges = get_data(blossom)->even_edges;
 
-    for (auto [b, e] : blossom->sub_blossoms) {
-        auto [nodes_b, nodes_rest] = remaining_nodes->split(nodes_refs[b->base], b, blossom);
-        remaining_nodes = nodes_rest;
-        get_data(b)->nodes = std::move(*nodes_b); delete nodes_b;
+//     for (auto [b, e] : blossom->sub_blossoms) {
+//         auto [nodes_b, nodes_rest] = remaining_nodes->split(nodes_refs[b->base], b, blossom);
+//         remaining_nodes = nodes_rest;
+//         get_data(b)->nodes = std::move(*nodes_b); delete nodes_b;
         
-        auto [edges_b, edges_rest] = even_edges.split_group(remaining_edges, dummy_edge_id(b->base));
-        remaining_edges = edges_rest;
-        if (b->label == even) 
-            even_edges.delete_group(edges_b);
-        else {
-            get_data(b)->even_edges = edges_b;
-            even_edges.change_status(edges_b, b->label == free);
-        }
+//         auto [edges_b, edges_rest] = even_edges.split_group(remaining_edges, dummy_edge_id(b->base));
+//         remaining_edges = edges_rest;
+//         if (b->label == even) 
+//             even_edges.delete_group(edges_b);
+//         else {
+//             get_data(b)->even_edges = edges_b;
+//             even_edges.change_status(edges_b, b->label == free);
+//         }
 
-        b->parent = nullptr;
-        blossoms.insert(b);
-    }
+//         b->parent = nullptr;
+//         blossoms.insert(b);
+//     }
 
-    blossoms.erase(blossom);
-    delete blossom;
-}
+//     blossoms.erase(blossom);
+//     delete blossom;
+// }
 
-void MicaliGabowMaximumMatching::expand_even_blossom(Blossom* blossom) {
-    std::cerr << "Expanding even blossom "; blossom->short_print(); std::cerr << std::endl;
-    if (blossom->is_trivial()) return;
+// void MicaliGabowMaximumMatching::expand_even_blossom(Blossom* blossom) {
+//     std::cerr << "Expanding even blossom "; blossom->short_print(); std::cerr << std::endl;
+//     if (blossom->is_trivial()) return;
 
-    auto remaining_nodes = &get_data(blossom)->nodes;
+//     auto remaining_nodes = &get_data(blossom)->nodes;
     
-    for (auto [b, e] : blossom->sub_blossoms) {
-        auto [nodes_b, nodes_rest] = remaining_nodes->split(nodes_refs[b->base], b, blossom);
-        remaining_nodes = nodes_rest;
-        get_data(b)->nodes = std::move(*nodes_b); delete nodes_b;
+//     for (auto [b, e] : blossom->sub_blossoms) {
+//         auto [nodes_b, nodes_rest] = remaining_nodes->split(nodes_refs[b->base], b, blossom);
+//         remaining_nodes = nodes_rest;
+//         get_data(b)->nodes = std::move(*nodes_b); delete nodes_b;
 
-        b->parent = nullptr;
-        blossoms.insert(b);
-    }
+//         b->parent = nullptr;
+//         blossoms.insert(b);
+//     }
 
-    blossoms.erase(blossom);
-    delete blossom;
-}
+//     blossoms.erase(blossom);
+//     delete blossom;
+// }
 
 MicaliGabowMaximumMatching::Blossom* MicaliGabowMaximumMatching::get_blossom(NetworKit::node vertex) {
     return nodes_refs[vertex]->find_queue()->head;

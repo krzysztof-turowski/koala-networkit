@@ -10,7 +10,8 @@ GabowMaximumMatching::GabowMaximumMatching(NetworKit::Graph &graph) :
     
     graph.sortEdges();
     NetworKit::edgeweight max_weight = std::numeric_limits<NetworKit::edgeweight>::min();
-    graph.forEdges([&max_weight] (NetworKit::node u, NetworKit::node v, NetworKit::edgeweight weight) { 
+    graph.forEdges([&max_weight] 
+            (NetworKit::node u, NetworKit::node v, NetworKit::edgeweight weight) { 
         max_weight = std::max(weight, max_weight);
     });
     U = std::vector<NetworKit::edgeweight>(graph.upperNodeIdBound(), max_weight / 2.);
@@ -108,6 +109,31 @@ void GabowMaximumMatching::handle_new_blossom(Blossom* new_blossom) {
     }
 }
 
+void GabowMaximumMatching::handle_subblossom_shift(Blossom* blossom, Blossom* subblossom) {}
+
+void GabowMaximumMatching::handle_odd_blossom_expansion(Blossom* blossom) {
+    for (auto [b, e] : blossom->sub_blossoms) {
+        Blossom* _b = b;
+        b->for_nodes([this, _b] (NetworKit::node v) {
+            current_blossom[v] = _b;
+        });
+    }
+    for (auto [b, e] : blossom->sub_blossoms) {
+        if (b->label == even) {
+            calc_best_edges(b);
+        }
+    }
+}
+
+void GabowMaximumMatching::handle_even_blossom_expansion(Blossom* blossom) {
+    for (auto [b, e] : blossom->sub_blossoms) {
+        Blossom* _b = b;
+        b->for_nodes([this, _b] (NetworKit::node v) {
+            current_blossom[v] = _b;
+        });
+    }
+}
+
 void GabowMaximumMatching::adjust_by_delta(NetworKit::edgeweight delta) {
     graph.forNodes([this, delta] (NetworKit::node v) {
         Blossom* v_blossom = this->get_blossom(v);
@@ -193,66 +219,14 @@ void GabowMaximumMatching::find_delta3_useful_edges() {
     }
 }
 
-void GabowMaximumMatching::expand_odd_blossom(Blossom* blossom) {
-    // TODO 
-    std::cerr << "Expanding odd blossom "; blossom->short_print(); std::cerr << std::endl;
-    if (blossom->is_trivial()) return;
-    auto node = blossom->backtrack_edge.v;
-    Blossom* inner_blossom = *blossoms_containing(node, blossom).rbegin();
-    Blossom* base_blossom = blossom->sub_blossoms.rbegin()->first;
-    auto [pathA, pathB] = split_subblossoms(blossom->sub_blossoms, inner_blossom);
-
-    for (auto [b, e] : blossom->sub_blossoms) b->label = free;
-
-    inner_blossom->label = odd;
-    inner_blossom->backtrack_edge = blossom->backtrack_edge;
-
-    if (pathB.size() % 2 == 0) {
-        int parity = 0;
-        for (auto iter = pathB.begin(); iter != pathB.end(); iter ++, parity ++) {
-            iter->first->label = parity % 2 == 0 ? even : odd;
-            iter->first->backtrack_edge = iter->second;
-        }
-    } else {
-        int parity = 0;
-        Blossom* prev = base_blossom;
-        for (auto iter = pathA.begin(); iter != pathA.end(); iter ++, parity ++) {
-            prev->label = parity % 2 == 0 ? odd : even;
-            prev->backtrack_edge = reverse(iter->second);
-            prev = iter->first;
-        }
-    }   
-
-    for (auto [b, e] : blossom->sub_blossoms) {
-        Blossom* _b = b;
-        b->parent = nullptr;
-        b->for_nodes([this, _b] (NetworKit::node v) {
-            this->current_blossom[v] = _b;
-        });
-        blossoms.insert(b);
-    }
-    blossoms.erase(blossom);
-    for (auto [b, e] : blossom->sub_blossoms) {
-        if (b->label == even) {
-            calc_best_edges(b);
+std::vector<GabowMaximumMatching::Blossom*> GabowMaximumMatching::get_odd_blossoms_to_expand() {
+    std::vector<Blossom*> to_expand;
+    for (auto b : blossoms) {
+        if (b->label == odd && b->z == 0.0 && !b->is_trivial()) {
+            to_expand.push_back(b);
         }
     }
-    delete blossom;
-}
-
-void GabowMaximumMatching::expand_even_blossom(Blossom* blossom) {
-    std::cerr << "Expanding even blossom "; blossom->short_print(); std::cerr << std::endl;
-    if (blossom->is_trivial()) return;
-    for (auto [b, e] : blossom->sub_blossoms) {
-        Blossom* _b = b;
-        b->parent = nullptr;
-        b->for_nodes([this, _b] (NetworKit::node v) {
-            this->current_blossom[v] = _b;
-        });
-        blossoms.insert(b);
-    }
-    blossoms.erase(blossom);
-    delete blossom;
+    return to_expand;
 }
 
 GabowMaximumMatching::Blossom* GabowMaximumMatching::get_blossom(NetworKit::node vertex) {

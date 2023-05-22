@@ -69,7 +69,9 @@ protected:
     public:
         class BlossomData {};
         Blossom* parent;
+        NetworKit::node initial_base;
         NetworKit::node base;
+        std::list<Blossom*> base_blossoms;
         std::list<std::pair<Blossom*, EdgeInfo>> sub_blossoms;
         BlossomLabel label;
         EdgeInfo backtrack_edge;
@@ -108,6 +110,8 @@ protected:
     bool run_substage();
     virtual void initialize_substage() = 0;
 
+    void expand_final_blossom(Blossom* b);
+
     virtual bool has_useful_edges() = 0;
     virtual EdgeInfo get_useful_edge() = 0;
 
@@ -117,26 +121,25 @@ protected:
     bool backtrack(Blossom* u, Blossom* v, EdgeInfo edge);
     bool backtrack_step(Blossom*& iter, std::vector<BacktrackInfo>& path);
     
-    void create_new_blossom(
-            Blossom* u, Blossom* v, EdgeInfo edge,
+    void create_new_blossom(Blossom* u, Blossom* v, EdgeInfo edge,
             std::vector<BacktrackInfo>& u_path, std::vector<BacktrackInfo>& v_path);
     void cut_path_at(std::vector<BacktrackInfo>& path, Blossom* cut, Blossom* cut_2);
     virtual void handle_new_blossom(Blossom* b) = 0;
 
-    // TODO: lazy augmentation
-    void augment_path(
-            Blossom* u, Blossom* v, EdgeInfo edge,
+    void augment_path(Blossom* u, Blossom* v, EdgeInfo edge,
             std::vector<BacktrackInfo>& u_path, std::vector<BacktrackInfo>& v_path);
-    void swap_edge_in_matching(NetworKit::edgeid edge);
-    void swap_edges_on_even_path(
-            Blossom* blossom, NetworKit::node u, NetworKit::node v);
-    void augment_path_on_blossoms(
-            Blossom* blossom, 
-            std::vector<Blossom*>::reverse_iterator iter,
-            NetworKit::node out_vertex);
-    std::vector<Blossom*> blossoms_containing(NetworKit::node vertex, Blossom* until);
-    static std::pair<std::list<std::pair<Blossom*, EdgeInfo>>,std::list<std::pair<Blossom*, EdgeInfo>>>
+
+    void swap_edges_on_even_path(Blossom* blossom, NetworKit::node u, NetworKit::node v);
+    void swap_edges_on_even_path(Blossom* blossom, NetworKit::node out_vertex, std::list<Blossom*>&& base_blossoms);
+
+    void lazy_augment_path_in_blossom(Blossom* blossom);
+
+    std::pair<std::list<std::pair<Blossom*, EdgeInfo>>,std::list<std::pair<Blossom*, EdgeInfo>>>
     split_subblossoms(std::list<std::pair<Blossom*, EdgeInfo>> sub_blossoms, Blossom* blossom);
+    void swap_edge_in_matching(NetworKit::edgeid edge);
+    void check_edge_in_matching(NetworKit::edgeid edge);
+    std::list<Blossom*> blossoms_containing(NetworKit::node u, Blossom* until);
+
     virtual void handle_subblossom_shift(Blossom* blossom, Blossom* subblossom) = 0;
 
     void adjust_dual_variables();
@@ -145,12 +148,17 @@ protected:
     virtual NetworKit::edgeweight calc_delta2() = 0;
     virtual NetworKit::edgeweight calc_delta3() = 0;
     virtual NetworKit::edgeweight calc_delta4() = 0;
+    
     virtual void adjust_by_delta(NetworKit::edgeweight delta) = 0;
     virtual void find_delta2_useful_edges() = 0;
     virtual void find_delta3_useful_edges() = 0;
+    virtual std::vector<Blossom*> get_odd_blossoms_to_expand() = 0;
 
-    virtual void expand_odd_blossom(Blossom* blossom) = 0;
-    virtual void expand_even_blossom(Blossom* blossom) = 0;
+    void expand_odd_blossom(Blossom* blossom);
+    void expand_even_blossom(Blossom* blossom);
+    
+    virtual void handle_odd_blossom_expansion(Blossom* blossom) = 0;
+    virtual void handle_even_blossom_expansion(Blossom* blossom) = 0;
 
     bool is_exposed(Blossom* b);
     
@@ -192,6 +200,8 @@ private:
     void handle_new_blossom(Blossom* b) override;
 
     void handle_subblossom_shift(Blossom* blossom, Blossom* subblossom) override;
+    void handle_odd_blossom_expansion(Blossom* blossom) override;
+    void handle_even_blossom_expansion(Blossom* blossom) override;
     
     NetworKit::edgeweight calc_delta1() override;
     NetworKit::edgeweight calc_delta2() override;
@@ -201,9 +211,7 @@ private:
 
     void find_delta2_useful_edges() override;
     void find_delta3_useful_edges() override;
-
-    void expand_odd_blossom(Blossom* blossom) override;
-    void expand_even_blossom(Blossom* blossom) override;
+    std::vector<Blossom*> get_odd_blossoms_to_expand() override;
     
     Blossom* get_blossom(NetworKit::node vertex) override;
 
@@ -211,7 +219,6 @@ private:
 
     NetworKit::edgeweight edge_dual_variable(NetworKit::edgeid edge);
     bool is_useful(NetworKit::node u, NetworKit::node v, NetworKit::edgeid edge);
-
 };
 
 /**
@@ -250,6 +257,8 @@ private:
     void handle_new_blossom(Blossom* b) override;
     
     void handle_subblossom_shift(Blossom* blossom, Blossom* subblossom) override;
+    void handle_odd_blossom_expansion(Blossom* blossom) override;
+    void handle_even_blossom_expansion(Blossom* blossom) override;
 
     NetworKit::edgeweight calc_delta1() override;
     NetworKit::edgeweight calc_delta2() override;
@@ -259,9 +268,7 @@ private:
 
     void find_delta2_useful_edges() override;
     void find_delta3_useful_edges() override;
-
-    void expand_odd_blossom(Blossom* blossom) override;
-    void expand_even_blossom(Blossom* blossom) override;
+    std::vector<Blossom*> get_odd_blossoms_to_expand() override;
     
     Blossom* get_blossom(NetworKit::node vertex) override;
 
@@ -342,6 +349,8 @@ private:
     void handle_new_blossom(Blossom* b) override;
 
     void handle_subblossom_shift(Blossom* blossom, Blossom* subblossom) override;
+    void handle_odd_blossom_expansion(Blossom* blossom) override;
+    void handle_even_blossom_expansion(Blossom* blossom) override;
     
     NetworKit::edgeweight calc_delta1() override;
     NetworKit::edgeweight calc_delta2() override;
@@ -351,9 +360,6 @@ private:
 
     void find_delta2_useful_edges() override;
     void find_delta3_useful_edges() override;
-
-    void expand_odd_blossom(Blossom* blossom) override;
-    void expand_even_blossom(Blossom* blossom) override;
     
     Blossom* get_blossom(NetworKit::node vertex) override;
 

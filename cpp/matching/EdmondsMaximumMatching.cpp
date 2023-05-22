@@ -41,10 +41,11 @@ void EdmondsMaximumMatching::initialize_substage() {
     useful_edges = {};
 
     graph.forEdges([this] (NetworKit::node u, NetworKit::node v, NetworKit::edgeid id) {
-        if (this->is_useful(u, v, id)) {
-            this->useful_edges.push({u, v, id});
-        } else if (this->is_useful(v, u, id)) {
-            this->useful_edges.push({v, u, id});
+        // std::cerr << u << " " << v << " " << is_useful(u, v, id) << " " << is_useful(v, u, id) << std::endl;
+        if (is_useful(u, v, id)) {
+            useful_edges.push({u, v, id});
+        } else if (is_useful(v, u, id)) {
+            useful_edges.push({v, u, id});
         }
     });
 }
@@ -63,9 +64,9 @@ void EdmondsMaximumMatching::label_odd(Blossom* b) {}
 void EdmondsMaximumMatching::label_even(Blossom* b) {
     // Check for new useful edges
     b->for_nodes([this] (NetworKit::node vertex) {
-        this->graph.forEdgesOf(vertex, [this] (NetworKit::node u, NetworKit::node v, NetworKit::edgeid id) {
-            if (this->is_useful(u, v, id)) 
-                this->useful_edges.push({u, v, id});
+        graph.forEdgesOf(vertex, [this] (NetworKit::node u, NetworKit::node v, NetworKit::edgeid id) {
+            if (is_useful(u, v, id)) 
+                useful_edges.push({u, v, id});
         });
     });
 }
@@ -74,6 +75,32 @@ void EdmondsMaximumMatching::handle_new_blossom(Blossom* new_blossom) {
     for (auto [b, edge] : new_blossom->sub_blossoms) { 
         b->for_nodes([this, new_blossom] (NetworKit::node v) {
             this->current_blossom[v] = new_blossom;
+        });
+        if (b->label == odd) {
+            label_even(b);
+        }
+    }
+}
+
+void EdmondsMaximumMatching::handle_subblossom_shift(Blossom* blossom, Blossom* subblossom) {}
+
+void EdmondsMaximumMatching::handle_odd_blossom_expansion(Blossom* blossom) {
+    for (auto [b, e] : blossom->sub_blossoms) {
+        Blossom* _b = b;
+        b->for_nodes([this, _b] (NetworKit::node v) {
+            current_blossom[v] = _b;
+        });
+        if (b->label == even) {
+            label_even(b);
+        }
+    }
+}
+
+void EdmondsMaximumMatching::handle_even_blossom_expansion(Blossom* blossom) {
+    for (auto [b, e] : blossom->sub_blossoms) {
+        Blossom* _b = b;
+        b->for_nodes([this, _b] (NetworKit::node v) {
+            current_blossom[v] = _b;
         });
     }
 }
@@ -154,59 +181,14 @@ NetworKit::edgeweight EdmondsMaximumMatching::calc_delta4() {
 void EdmondsMaximumMatching::find_delta2_useful_edges() {}
 void EdmondsMaximumMatching::find_delta3_useful_edges() {}
 
-void EdmondsMaximumMatching::expand_odd_blossom(Blossom* blossom) {
-    // std::cerr << "Expanding odd blossom "; blossom->short_print(); std::cerr << std::endl;
-    if (blossom->is_trivial()) return;
-    auto node = blossom->backtrack_edge.v;
-    Blossom* inner_blossom = *blossoms_containing(node, blossom).rbegin();
-    Blossom* base_blossom = blossom->sub_blossoms.rbegin()->first;
-    auto [pathA, pathB] = split_subblossoms(blossom->sub_blossoms, inner_blossom);
-
-    for (auto [b, e] : blossom->sub_blossoms) b->label = free;
-
-    inner_blossom->label = odd;
-    inner_blossom->backtrack_edge = blossom->backtrack_edge;
-
-    if (pathB.size() % 2 == 0) {
-        int parity = 0;
-        for (auto iter = pathB.begin(); iter != pathB.end(); iter ++, parity ++) {
-            iter->first->label = parity % 2 == 0 ? even : odd;
-            iter->first->backtrack_edge = iter->second;
+std::vector<EdmondsMaximumMatching::Blossom*> EdmondsMaximumMatching::get_odd_blossoms_to_expand() {
+    std::vector<Blossom*> to_expand;
+    for (auto b : blossoms) {
+        if (b->label == odd && b->z == 0.0 && !b->is_trivial()) {
+            to_expand.push_back(b);
         }
-    } else {
-        int parity = 0;
-        Blossom* prev = base_blossom;
-        for (auto iter = pathA.begin(); iter != pathA.end(); iter ++, parity ++) {
-            prev->label = parity % 2 == 0 ? odd : even;
-            prev->backtrack_edge = reverse(iter->second);
-            prev = iter->first;
-        }
-    }   
-
-    for (auto [b, e] : blossom->sub_blossoms) {
-        Blossom* _b = b;
-        b->parent = nullptr;
-        b->for_nodes([this, _b] (NetworKit::node v) {
-            this->current_blossom[v] = _b;
-        });
-        blossoms.insert(b);
     }
-    blossoms.erase(blossom);
-    delete blossom;
-}
-
-void EdmondsMaximumMatching::expand_even_blossom(Blossom* blossom) {
-    if (blossom->is_trivial()) return;
-    for (auto [b, e] : blossom->sub_blossoms) {
-        Blossom* _b = b;
-        b->parent = nullptr;
-        b->for_nodes([this, _b] (NetworKit::node v) {
-            this->current_blossom[v] = _b;
-        });
-        blossoms.insert(b);
-    }
-    blossoms.erase(blossom);
-    delete blossom;
+    return to_expand;
 }
 
 EdmondsMaximumMatching::Blossom* EdmondsMaximumMatching::get_blossom(NetworKit::node vertex) {
@@ -244,15 +226,27 @@ void EdmondsMaximumMatching::check_consistency() {
         if (!b->is_trivial()) {
             std::cerr << b->z << " "; b->short_print(); std::cerr << std::endl; }
     }
-    graph.forEdges([this] (NetworKit::node u, NetworKit::node v, NetworKit::edgeid id) {
-        std::cerr << u << " " << v << " " << edge_dual_variable(id) << std::endl;
-        if (this->is_in_matching[id]) {
-            if (this->matched_vertex[u] != v || this->matched_vertex[v] != u) {
-                std::cerr << "Inconsistent matching\n";
-                exit(1);
-            }
-        }
-    });
+    std::cerr << "Edge queue:\n";
+    std::queue<EdgeInfo> q = useful_edges;
+    while (!q.empty()) {
+        auto [u, v, id] = q.front(); q.pop();
+        std::cerr << "(" << u << ", " << v << ")\n";
+    }
+    // std::cerr << "Edges:\n";
+    // for (int id = 0; id < graph.upperEdgeIdBound(); ++ id) {
+    //     auto [u, v, w] = graph_edges[id];
+    //     std::cerr << "(" << u << ", " << v << ") : " << is_useful(u, v, id) << " "
+    //               << is_useful(v, u, id) << " " << edge_dual_variable(id) << std::endl; 
+    // }
+    // graph.forEdges([this] (NetworKit::node u, NetworKit::node v, NetworKit::edgeid id) {
+    //     std::cerr << u << " " << v << " " << edge_dual_variable(id) << std::endl;
+    //     if (this->is_in_matching[id]) {
+    //         if (this->matched_vertex[u] != v || this->matched_vertex[v] != u) {
+    //             std::cerr << "Inconsistent matching\n";
+    //             exit(1);
+    //         }
+    //     }
+    // });
     for (auto b : blossoms) {
         b->check_consistency();
         if (b->backtrack_edge.id == NetworKit::none) continue;

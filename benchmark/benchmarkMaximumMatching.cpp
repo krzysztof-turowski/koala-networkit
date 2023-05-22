@@ -17,7 +17,7 @@ int main(int argc, char **argv) {
     }
     auto G = Koala::DimacsGraphReader().read(path);
     G.indexEdges(true);
-    auto maximum_matching = Koala::MicaliGabowMaximumMatching(G);
+    auto maximum_matching = Koala::GabowMaximumMatching(G);
     maximum_matching.run();
     auto matching = maximum_matching.getMatching();
     NetworKit::edgeweight weight = 0.0;
