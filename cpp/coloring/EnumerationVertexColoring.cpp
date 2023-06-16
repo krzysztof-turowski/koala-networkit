@@ -259,7 +259,6 @@ std::map<NetworKit::node, int>& solution,
 NetworKit::node new_node,
 int alpha) {
     std::unordered_set<NetworKit::node> visited;
-    int number_of_neighbours_in_component = 0;
     std::vector<NetworKit::node> verticesToRecolor;
     for (NetworKit::node u : subgraph) {
         if (visited.find(u) == visited.end()) {
@@ -368,8 +367,9 @@ BrelazEnumerationVertexColoring::saturation_largest_first_with_interchange() {
 
     int max_color = 1;
     int max_clique_size = 0;
+    unsigned int number_of_vertices = graph->numberOfNodes();
 
-    while (solution.size() < n) {
+    while (solution.size() < number_of_vertices) {
         auto max_saturation = saturation.begin();
         NetworKit::node u = std::get<2>(*max_saturation);
         saturation.erase(max_saturation);
@@ -558,13 +558,14 @@ void KormanEnumerationVertexColoring::forwards() {
 }
 
 void KormanEnumerationVertexColoring::backwards() {
-    for (int i = r; i >= 0; i--) {
+    for (auto i = r; i >= 0; i--) {
         feasible_colors[new_ordering[i]].erase(current_solution[new_ordering[i]]);
         if (!feasible_colors[new_ordering[i]].empty()) {
             if (feasible_colors[new_ordering[i]].size() > 1 ||
             *feasible_colors[new_ordering[i]].begin() < ub) {
                 current_solution[new_ordering[i]] = *feasible_colors[new_ordering[i]].begin();
-                while (new_ordering.size() > i + 1)
+                int new_ordering_size = new_ordering.size();
+                while (new_ordering_size > i + 1)
                     new_ordering.pop_back();
                 r = i;
                 return;
