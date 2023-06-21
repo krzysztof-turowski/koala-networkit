@@ -67,10 +67,10 @@ protected:
     void determine_current_predecessors(int r) override;
 };
 
-class ChristofidesEnumerationVertexColoring : public EnumerationVertexColoring {
+class ChristofidesEnumerationVertexColoring : public BrownsOrdinaryEnumerationVertexColoring {
 
 public:
-    using EnumerationVertexColoring::EnumerationVertexColoring;
+    using BrownsOrdinaryEnumerationVertexColoring::BrownsOrdinaryEnumerationVertexColoring;
 
     void run();
     const std::vector<std::vector<bool>>& getTransitiveClosure() const;

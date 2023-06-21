@@ -7,6 +7,7 @@
 
 #include <coloring/DRVertexQueue.hpp>
 #include <coloring/EnumerationVertexColoring.hpp>
+#include <iostream>
 #include <limits>
 
 namespace Koala {
@@ -28,7 +29,7 @@ const std::map<NetworKit::node, int> EnumerationVertexColoring::getColoring() co
 
 void EnumerationVertexColoring::forwards() {
     for (int i = r; i < n; ++i) {
-        if (r < i)
+        if (r == 0 || i >= r + 1)
             determine_feasible_colors(i);
         if (feasible_colors[i].empty()) {
             r = i;
@@ -58,7 +59,7 @@ void EnumerationVertexColoring::backwards() {
         int i = *current_predecessors.begin();
         current_predecessors.erase(i);
         feasible_colors[i].erase(current_solution[i]);
-        if (!feasible_colors[i].empty()) {
+        if (!feasible_colors[i].empty() && *(feasible_colors[i]).begin() < ub) {
             r = i;
             return;
         }
@@ -226,12 +227,12 @@ ChristofidesEnumerationVertexColoring::getTransitiveClosure() const {
 }
 
 void ChristofidesEnumerationVertexColoring::run() {
-    graph->forNodes([&](NetworKit::node u) { ordering.push_back(u); });
+    ordering = greedy_largest_first_ordering();
     lower_bound = 1;
     upper_bound = graph->numberOfNodes();
     n = graph->numberOfNodes();
     r = 0;
-    ub = upper_bound + 1;
+    ub = upper_bound;
 
     calculate_transitive_closure();
 
@@ -413,13 +414,16 @@ BrelazEnumerationVertexColoring::saturation_largest_first_with_interchange() {
                 }
             }
         }
+        std::vector<std::tuple<int, int, NetworKit::node>> temp_satur;
         for (const auto& [saturation_degree, degree, node] : saturation) {
             if (graph->hasEdge(u, node)) {
                 neighbours_colors[node].insert(solution[u]);
-                saturation.erase(std::make_tuple(saturation_degree, degree, node));
-                saturation.insert(
-                std::make_tuple(neighbours_colors[node].size(), degree - 1, node));
+                temp_satur.push_back(std::make_tuple(saturation_degree, degree, node));
             }
+        }
+        for (const auto& [saturation_degree, degree, node] : temp_satur) {
+            saturation.erase(std::make_tuple(saturation_degree, degree, node));
+            saturation.insert(std::make_tuple(neighbours_colors[node].size(), degree - 1, node));
         }
     }
 
@@ -505,19 +509,20 @@ void KormanEnumerationVertexColoring::forwards() {
     std::vector<std::unordered_set<int>> neighbour_colors(n);
     DRVertexQueue queue;
 
-    for (int i = 0; i <= r; i++) {
+    for (int i : new_ordering) {
         is_colored[i] = true;
-    }
-
-    for (int i = r + 1; i < n; ++i) {
         graph->forNeighborsOf(ordering[i], [&](NetworKit::node v) {
             auto j = position[v];
-            if (is_colored[j]) {
-                neighbour_colors[i].insert(current_solution[j]);
-            }
+            neighbour_colors[j].insert(current_solution[i]);
         });
-        queue.insert(i, neighbour_colors[i].size());
     }
+
+    graph->forNodes([&](NetworKit::node u) {
+        auto j = position[u];
+        if (!is_colored[j]) {
+            queue.insert(j, neighbour_colors[j].size());
+        }
+    });
 
     while (!queue.empty()) {
         auto top = queue.pop();
@@ -528,7 +533,7 @@ void KormanEnumerationVertexColoring::forwards() {
         determine_feasible_colors(new_ordering.size() - 1, neighbour_colors[node]);
 
         if (feasible_colors[node].empty()) {
-            r = node;
+            r = new_ordering.size() - 1;
             return;
         }
 
@@ -548,8 +553,8 @@ void KormanEnumerationVertexColoring::forwards() {
     int maximal_color = 0;
     int maximal_color_index = -1;
     for (int i = 0; i < n; ++i) {
-        if (current_solution[i] > maximal_color) {
-            maximal_color = current_solution[i];
+        if (best_solution[new_ordering[i]] > maximal_color) {
+            maximal_color = best_solution[new_ordering[i]];
             maximal_color_index = i;
         }
     }
@@ -558,14 +563,12 @@ void KormanEnumerationVertexColoring::forwards() {
 }
 
 void KormanEnumerationVertexColoring::backwards() {
-    for (auto i = r; i >= 0; i--) {
+    for (auto i = r - 1; i >= 0; i--) {
         feasible_colors[new_ordering[i]].erase(current_solution[new_ordering[i]]);
         if (!feasible_colors[new_ordering[i]].empty()) {
-            if (feasible_colors[new_ordering[i]].size() > 1 ||
-            *feasible_colors[new_ordering[i]].begin() < ub) {
+            if (*feasible_colors[new_ordering[i]].begin() < ub) {
                 current_solution[new_ordering[i]] = *feasible_colors[new_ordering[i]].begin();
-                int new_ordering_size = new_ordering.size();
-                while (new_ordering_size > i + 1)
+                while (new_ordering.size() > i + 1)
                     new_ordering.pop_back();
                 r = i;
                 return;
