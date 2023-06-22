@@ -1,44 +1,65 @@
 // #include <iostream>
 #include <dominatingset/RooijBodlaenderMDS.hpp>
+#include <dominatingset/SchiermeyerMDS.hpp>
+#include <dominatingset/FominKratschWoeginger.hpp>
 #include <dominatingset/ExhaustiveMDS.hpp>
 // #include <chrono>
 #include <io/G6GraphReader.hpp>
 #include <fstream>
+#include<algorithm>
+#include<iterator>
+
 
 int dsSize(const std::vector<bool> &set) {
     return std::count(set.begin(), set.end(), true);
 }
 
-void test_graph_g6(const std::string inputFileName) {
+// void printGraph(const NetworKit::Graph &graph) {
+//     std::cout << "graph\n";
+//     graph.forNodes([&graph](NetworKit::node u) {
+//         std::cout << u << " has neighbors [";
+//         graph.forEdgesOf(u, [u](NetworKit::node v) {
+//             std::cout << v << " ";
+//         });
+//         std::cout << "]\n";
+//     });
+// }
+
+template <typename A>
+void test_algo_g6(const std::string inputFileName) {
     std::ifstream inputStream(inputFileName);
-    assert(inputStream.good());
+    assert(inputStream.good());    
     std::string g6Graph;
+    int processed = 0;
     while (std::getline(inputStream, g6Graph)) {
         Koala::G6GraphReader reader;
         NetworKit::Graph graph = reader.readline(g6Graph);
-        RooijBodlaenderMDS rooij(graph);
+        A algo(graph);
         ExhaustiveMDS exhaustive(graph);
 
-        rooij.run();
+        algo.run();
         exhaustive.run();
 
-        assert(rooij.isDominating(rooij.getDominatingSet()));
-        assert(rooij.isDominating(rooij.getDominatingSet()));
-        assert(dsSize(rooij.getDominatingSet()) == dsSize(exhaustive.getDominatingSet()));
+        assert(algo.isDominating(algo.getDominatingSet()));
+        assert(exhaustive.isDominating(exhaustive.getDominatingSet()));
+        assert(dsSize(algo.getDominatingSet()) == dsSize(exhaustive.getDominatingSet()));
+
+        processed++;
+        if ((processed % 100'000) == 0) {
+            std::cout << processed << " graphs processed\n";
+        }
     }
 }
 
 // https://users.cecs.anu.edu.au/~bdm/data/graphs.html
 int main() {
-    test_graph_g6("input/graph2.g6");
-    test_graph_g6("input/graph3.g6");
-    test_graph_g6("input/graph4.g6");
-    test_graph_g6("input/graph5.g6");
-    test_graph_g6("input/graph6.g6");
-    test_graph_g6("input/graph7.g6");
-    test_graph_g6("input/graph8.g6");
-    test_graph_g6("input/graph9.g6");
-    test_graph_g6("input/graph10.g6");
+    auto fileNames = {"input/graph2.g6", "input/graph3.g6", "input/graph4.g6", "input/graph5.g6", "input/graph6.g6", "input/graph7.g6", "input/graph8.g6", "input/graph9.g6", "input/graph10.g6"};
+    for (auto& name : fileNames) {
+        std::cout << "run " << name << "\n";
+        test_algo_g6<FominKratschWoegingerMDS>(name);
+        // test_algo_g6<SchiermeyerMDS>(name);
+        // test_algo_g6<RooijBodlaenderMDS>(name);
+    }
 }
 
 // void testPowerOfTwoAdjacency() {
