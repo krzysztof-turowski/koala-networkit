@@ -7,23 +7,20 @@
 #include <boost/graph/max_cardinality_matching.hpp>
 #include <boost/graph/adjacency_list.hpp>
 
-bool reducesToMatching(std::vector<std::set<NetworKit::node>> &family);
-bool isSubset(std::set<NetworKit::node> &subsetCandidate, std::set<NetworKit::node> &supersetCandidate);
-NetworKit::index findUniqueOccurenceSet(std::vector<std::set<NetworKit::index>> &occurences);
 std::tuple<NetworKit::index, NetworKit::index> findSetInculsion(std::vector<std::set<NetworKit::count>> &sets);
-
-bool reducesToMatching(std::vector<std::set<NetworKit::node>> &family);
-void excludeSet(NetworKit::index id, std::set<NetworKit::node> &excluded, std::vector<std::set<NetworKit::index>> &occurences);
-void includeSet(NetworKit::index id, std::set<NetworKit::node> &included, std::vector<std::set<NetworKit::index>> &occurences);
+void excludeSet(NetworKit::index id, std::set<NetworKit::node> &excluded, std::vector<std::set<NetworKit::index>> &reversed);
+void includeSet(NetworKit::index id, std::set<NetworKit::node> &included, std::vector<std::set<NetworKit::index>> &reversed);
 
 typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS> boost_graph_t;
 
 template<bool useEdgeCover>
 class BranchAndReduceMSCImpl {
 protected:
+    std::vector<std::set<NetworKit::node>> &family;
+    std::vector<std::set<NetworKit::index>> &occurences;
     virtual bool reduce(std::vector<bool> & solution) {
         // unique element rule
-        NetworKit::index forcedIndex = findUniqueOccurenceSet(occurences);
+        NetworKit::index forcedIndex = findUniqueOccurenceSet();
         if (forcedIndex != NetworKit::none) {
             solution = forcedSetCover(forcedIndex);
             return true;
@@ -37,8 +34,6 @@ protected:
         }
         return false;
     }
-    std::vector<std::set<NetworKit::node>> &family;
-    std::vector<std::set<NetworKit::index>> &occurences;
 
     std::vector<bool> discardedSetCover(NetworKit::index discardedIndex) {
         std::set<NetworKit::node> swapped;
@@ -110,6 +105,26 @@ protected:
         }
         return cover;
     }
+    
+    NetworKit::index findUniqueOccurenceSet() {
+        for (auto &elementOccurences : occurences) {
+            if (elementOccurences.size() == 1) {
+                NetworKit::node forcedIndex = *(elementOccurences.begin());
+                return forcedIndex;
+            }
+        }
+        return NetworKit::none;
+    }
+
+    bool reducesToMatching() {
+        for (auto &familyElement : family) {
+            if (familyElement.size() > 2) {
+                return false;
+            }
+        }
+        return true;
+    }
+
 public:
     BranchAndReduceMSCImpl(std::vector<std::set<NetworKit::node>> &family, std::vector<std::set<NetworKit::index>> &occurences) : family(family), occurences(occurences) {}
     std::vector<bool> run() {
@@ -129,7 +144,7 @@ public:
             return solutionFromReduce;
         }
 
-        if (useEdgeCover && reducesToMatching(family)) {
+        if (useEdgeCover && reducesToMatching()) {
             return blossom();
         }
 
