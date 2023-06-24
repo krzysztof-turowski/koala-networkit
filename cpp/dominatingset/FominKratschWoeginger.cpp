@@ -55,10 +55,9 @@ void FominKratschWoegingerMDS::run() {
 std::vector<bool> findMODSWhenDegreeAtLeast3(const NetworKit::Graph &G, const std::set<NetworKit::node> &free, const std::set<NetworKit::node> &bounded) {
     std::vector<NetworKit::node> possibilities = joinFreeAndBounded(free, bounded);
     for (size_t i = 1; 8 * i <= 3 * (free.size() + bounded.size()); i++) {
-        std::vector<NetworKit::node> choices{};
         std::vector<NetworKit::node> possibilities = joinFreeAndBounded(free, bounded);
 
-        bool found = recursiveSizedChoiceSearch([&G, &bounded](const std::vector<NetworKit::node> &arg) {return isOptionalDominatingSet(G, arg, bounded);}, possibilities, choices, 0, i);
+        auto [found, choices] = SizedChoiceSearcher([&G, &bounded](const std::vector<NetworKit::node> &arg) {return isOptionalDominatingSet(G, arg, bounded);}, possibilities, i).search();
         std::vector<bool> solution(G.numberOfNodes());
         if (found) {
             for (auto u : choices) {

@@ -7,8 +7,6 @@
 NetworKit::Graph core(const NetworKit::Graph &G, std::set<NetworKit::node> &free, std::set<NetworKit::node> &bounded, std::set<NetworKit::node> &required);
 std::tuple<bool, std::vector<bool>> findSmallMODS(const NetworKit::Graph &G, const std::set<NetworKit::node> &free, const std::set<NetworKit::node> &bounded, const std::set<NetworKit::node> &required);
 std::vector<bool> findBigMODS(const NetworKit::Graph &G, const std::set<NetworKit::node> &free, const std::set<NetworKit::node> &bounded, const std::set<NetworKit::node> &required);
-bool isOptionalDominatingSet(const NetworKit::Graph &G, const std::vector<NetworKit::node> &choices, const std::set<NetworKit::node> &bounded);
-NetworKit::Graph buildFromVectorSetRepresentation(const std::vector<std::set<NetworKit::node>> &neighbors);
 
 SchiermeyerMDS::SchiermeyerMDS(const NetworKit::Graph &G) : MinimumDominatingSet(G) {}
 
@@ -37,6 +35,19 @@ void SchiermeyerMDS::run() {
         dominatingSet = findBigMODS(coreGraph, free, bounded, required);
     }
     hasRun = true;
+}
+
+NetworKit::Graph buildFromVectorSetRepresentation(const std::vector<std::set<NetworKit::node>> &neighbors) {
+    NetworKit::Graph graph(neighbors.size());
+    for (int i = 0; i < neighbors.size(); i++) {
+        for (auto e : neighbors.at(i)) {
+            assert(neighbors.at(e).contains(i));
+            if (i < e) {
+                graph.addEdge(i, e);
+            }
+        }
+    }
+    return graph;
 }
 
 NetworKit::Graph core(const NetworKit::Graph &G, std::set<NetworKit::node> &free, std::set<NetworKit::node> &bounded, std::set<NetworKit::node> &required) {
@@ -134,14 +145,19 @@ NetworKit::Graph core(const NetworKit::Graph &G, std::set<NetworKit::node> &free
     return buildFromVectorSetRepresentation(intermediate);
 }
 
-bool recursiveSizedChoiceSearch(const std::function<bool(const std::vector<NetworKit::node>)>&  verifier, const std::vector<NetworKit::node> &possibilities, std::vector<NetworKit::node> &choices, const NetworKit::node decideOn, const int left) {
+std::tuple<bool, std::vector<NetworKit::node>> SizedChoiceSearcher::search() {
+    std::vector<NetworKit::node> choices{};
+    return {recursive(choices, 0, size), choices};
+}
+
+bool SizedChoiceSearcher::recursive(std::vector<NetworKit::node> &choices, NetworKit::node decideOn, int left) {
     if (decideOn == possibilities.size()) return verifier(choices);
     if (left > 0) {
         choices.push_back(possibilities.at(decideOn));
-        if (recursiveSizedChoiceSearch(verifier, possibilities, choices, decideOn + 1, left - 1)) return true;
+        if (recursive(choices, decideOn + 1, left - 1)) return true;
         choices.pop_back();
     }
-    return (decideOn + left < possibilities.size() && recursiveSizedChoiceSearch(verifier, possibilities, choices, decideOn + 1, left));
+    return (decideOn + left < possibilities.size() && recursive(choices, decideOn + 1, left));
 }
 
 std::vector<NetworKit::node> joinFreeAndBounded(const std::set<NetworKit::node> &free, const std::set<NetworKit::node> &bounded) {
@@ -158,8 +174,8 @@ std::vector<NetworKit::node> joinFreeAndBounded(const std::set<NetworKit::node> 
 std::tuple<bool, std::vector<bool>> findSmallMODS(const NetworKit::Graph &G, const std::set<NetworKit::node> &free, const std::set<NetworKit::node> &bounded, const std::set<NetworKit::node> &required) {
     const std::vector<NetworKit::node> possibilities = joinFreeAndBounded(free, bounded);
     for (int i = 1; 3 * i <= free.size() + bounded.size(); i++) {
-        std::vector<NetworKit::node> choices{};
-        bool found = recursiveSizedChoiceSearch([&G, &bounded](const std::vector<NetworKit::node> &arg) {return isOptionalDominatingSet(G, arg, bounded);}, possibilities, choices, 0, i);
+        // std::cout << "hello " << i << "\n";
+        auto [found, choices] = SizedChoiceSearcher([&G, &bounded](const std::vector<NetworKit::node> &arg) {return isOptionalDominatingSet(G, arg, bounded);}, possibilities, i).search();
         std::vector<bool> solution(G.numberOfNodes());
         if (found) {
             G.forNodes([&required, &solution](NetworKit::node u) {
@@ -174,7 +190,34 @@ std::tuple<bool, std::vector<bool>> findSmallMODS(const NetworKit::Graph &G, con
     return {false, std::vector<bool>{}};
 }
 
-void recursiveBigMODS(const NetworKit::Graph &graph, const std::function<std::vector<bool>(const std::set<NetworKit::node>)>& evaluator, std::vector<NetworKit::node> &possibilities, std::set<NetworKit::node> &choices, std::set<NetworKit::node> &closedNeighborhood, int decideOn, std::vector<bool> &bestSolution) {
+class BigMODSSolver {
+    const NetworKit::Graph &graph;
+    const std::function<std::vector<bool>(const std::set<NetworKit::node>)>& evaluator;
+    std::vector<NetworKit::node> &possibilities;
+    std::set<NetworKit::node> choices{};
+    std::set<NetworKit::node> closedNeighborhood{};
+    void recurse(int decideOn, std::vector<bool> &bestSolution);
+public:
+    BigMODSSolver(
+        const NetworKit::Graph &graph,
+        const std::function<std::vector<bool>(const std::set<NetworKit::node>)>& evaluator,
+        std::vector<NetworKit::node> &possibilities
+    ) : graph(graph), evaluator(evaluator), possibilities(possibilities) {}
+    std::vector<bool> run();
+};
+
+std::vector<bool> BigMODSSolver::run() {
+    std::vector<bool> bestSolution(graph.numberOfNodes());
+    for (auto e : possibilities) {
+        bestSolution.at(e) = true;
+    }
+    recurse(0, bestSolution);
+    return bestSolution;
+}
+
+
+
+void BigMODSSolver::recurse(int decideOn, std::vector<bool> &bestSolution) {
     if (decideOn == possibilities.size()) {
         if (closedNeighborhood.size() < 3 * choices.size() || closedNeighborhood.size() >= 3 * (choices.size() + 1)) {
             return;
@@ -183,7 +226,7 @@ void recursiveBigMODS(const NetworKit::Graph &graph, const std::function<std::ve
             if (choices.contains(e)) continue;
             std::set<int> addedNeighbors;
             if (!closedNeighborhood.contains(e)) addedNeighbors.insert(e);
-            graph.forNeighborsOf(e, [&addedNeighbors, &closedNeighborhood](NetworKit::node neighbor) { if (!closedNeighborhood.contains(neighbor)) {addedNeighbors.insert(neighbor);}});
+            graph.forNeighborsOf(e, [&addedNeighbors, this](NetworKit::node neighbor) { if (!closedNeighborhood.contains(neighbor)) {addedNeighbors.insert(neighbor);}});
             if (closedNeighborhood.size() + addedNeighbors.size() >= 3 * (choices.size() + 1)) {
                 return;
             }
@@ -195,7 +238,7 @@ void recursiveBigMODS(const NetworKit::Graph &graph, const std::function<std::ve
         return;
     }
     
-    recursiveBigMODS(graph, evaluator, possibilities, choices, closedNeighborhood, decideOn + 1, bestSolution);
+    recurse(decideOn + 1, bestSolution);
 
     if (3 * (choices.size() + 1) > possibilities.size()) {
         return;
@@ -203,19 +246,18 @@ void recursiveBigMODS(const NetworKit::Graph &graph, const std::function<std::ve
     std::set<int> addedNeighbors;
     NetworKit::node next = possibilities.at(decideOn);
     if (!closedNeighborhood.contains(next)) addedNeighbors.insert(next);
-    graph.forNeighborsOf(next, [&addedNeighbors, &closedNeighborhood](NetworKit::node neighbor) { if (!closedNeighborhood.contains(neighbor)) {addedNeighbors.insert(neighbor);}});
+    graph.forNeighborsOf(next, [&addedNeighbors, this](NetworKit::node neighbor) { if (!closedNeighborhood.contains(neighbor)) {addedNeighbors.insert(neighbor);}});
 
     choices.insert(next);
     for (auto e : addedNeighbors) {
         closedNeighborhood.insert(e);
     }
-    recursiveBigMODS(graph, evaluator, possibilities, choices, closedNeighborhood, decideOn + 1, bestSolution);
+    recurse(decideOn + 1, bestSolution);
     choices.erase(next);
     for (auto e : addedNeighbors) {
         closedNeighborhood.erase(e);
     }
 }
-
 
 void printGraph(const NetworKit::Graph &graph, const std::set<NetworKit::node> &S) {
     // std::cout << "test graph\n";
@@ -288,16 +330,8 @@ std::vector<bool> matchingMODS(const NetworKit::Graph &graph, const std::set<Net
 
 std::vector<bool> findBigMODS(const NetworKit::Graph &G, const std::set<NetworKit::node> &free, const std::set<NetworKit::node> &bounded, const std::set<NetworKit::node> &required) {
     std::vector<NetworKit::node> possibilities = joinFreeAndBounded(free, bounded);
-    std::set<NetworKit::node> choices;
-    std::set<NetworKit::node> closedNeighborhood;
     
-    std::vector<bool> bestSolution(G.numberOfNodes());
-    for (auto e : possibilities) {
-        bestSolution.at(e) = true;
-    }
-    
-    recursiveBigMODS(G, [&G, &free, &bounded](const std::set<NetworKit::node> S) {return matchingMODS(G, S, free, bounded);}, possibilities, choices, closedNeighborhood, 0, bestSolution);
-    
+    auto bestSolution = BigMODSSolver(G, [&G, &free, &bounded](const std::set<NetworKit::node> S) {return matchingMODS(G, S, free, bounded);}, possibilities).run();
     for (auto e : required) {
         bestSolution.at(e) = true;
     }
@@ -312,17 +346,4 @@ bool isOptionalDominatingSet(const NetworKit::Graph &G, const std::vector<Networ
         G.forNeighborsOf(e, [&boundedCopy](NetworKit::node neighbor) {boundedCopy.erase(neighbor);});
     }
     return boundedCopy.empty();
-}
-
-NetworKit::Graph buildFromVectorSetRepresentation(const std::vector<std::set<NetworKit::node>> &neighbors) {
-    NetworKit::Graph graph(neighbors.size());
-    for (int i = 0; i < neighbors.size(); i++) {
-        for (auto e : neighbors.at(i)) {
-            assert(neighbors.at(e).contains(i));
-            if (i < e) {
-                graph.addEdge(i, e);
-            }
-        }
-    }
-    return graph;
 }

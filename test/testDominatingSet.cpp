@@ -140,7 +140,7 @@ int main() {
         std::cout << "run " << name << "\n";
         // test_algo_g6<FominKratschWoegingerMDS>(name);
         // test_algo_g6<SchiermeyerMDS>(name);
-        test_algo_g6<FominKratschWoegingerMDS>(name);
+        test_algo_g6<SchiermeyerMDS>(name);
     }
 
     // testPowerOfTwoAdjacency<RooijBodlaenderMDS, BranchAndReduceMDS<RooijBodlaenderMSC>>(true);
