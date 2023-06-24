@@ -135,17 +135,17 @@ void testReduceCalls() {
 
 // https://users.cecs.anu.edu.au/~bdm/data/graphs.html
 int main() {
-    // auto fileNames = {"input/graph2.g6", "input/graph3.g6", "input/graph4.g6", "input/graph5.g6", "input/graph6.g6", "input/graph7.g6", "input/graph8.g6", "input/graph9.g6", "input/graph10.g6"};
-    // for (auto& name : fileNames) {
-    //     std::cout << "run " << name << "\n";
-    //     // test_algo_g6<FominKratschWoegingerMDS>(name);
-    //     // test_algo_g6<SchiermeyerMDS>(name);
-    //     test_algo_g6<RooijBodlaenderMDS>(name);
-    // }
+    auto fileNames = {"input/graph2.g6", "input/graph3.g6", "input/graph4.g6", "input/graph5.g6", "input/graph6.g6", "input/graph7.g6", "input/graph8.g6", "input/graph9.g6", "input/graph10.g6"};
+    for (auto& name : fileNames) {
+        std::cout << "run " << name << "\n";
+        // test_algo_g6<FominKratschWoegingerMDS>(name);
+        // test_algo_g6<SchiermeyerMDS>(name);
+        test_algo_g6<FominKratschWoegingerMDS>(name);
+    }
 
     // testPowerOfTwoAdjacency<RooijBodlaenderMDS, BranchAndReduceMDS<RooijBodlaenderMSC>>(true);
     // testReduceCalls();
-    testPowerOfTwoAdjacency<BranchAndReduceMDS<FominGrandoniKratschMSC>, BranchAndReduceMDS<RooijBodlaenderMSC>>(false);
+    // testPowerOfTwoAdjacency<BranchAndReduceMDS<FominGrandoniKratschMSC>, BranchAndReduceMDS<RooijBodlaenderMSC>>(false);
     // testPowerOfTwoAdjacency<BranchAndReduceMDS<GrandoniMSC>, BranchAndReduceMDS<RooijBodlaenderMSC>>(false);
 }
 
