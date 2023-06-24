@@ -19,6 +19,8 @@ public:
     }
 
     bool isDominating(const std::vector<bool> &dominating_set);
+    static int specialCounter1;
+    static int specialCounter2;
 };
 
 std::vector<bool> &smallerCardinalitySet(std::vector<bool> &lhs, std::vector<bool> &rhs);

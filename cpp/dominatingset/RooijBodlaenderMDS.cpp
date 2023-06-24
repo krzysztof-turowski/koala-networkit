@@ -52,6 +52,7 @@ std::vector<bool> minimumSetCover(std::vector<std::set<NetworKit::node>> &family
     if (emptyInstance) {
         return std::vector<bool>(family.size());
     }
+    MinimumDominatingSet::specialCounter1++;
     
     // unique element rule
     NetworKit::index forcedIndex = findUniqueOccurenceSet(occurences);
