@@ -249,7 +249,7 @@ bool is_pyramid(
     return std::count_if(b.cbegin(), b.cend(), [&](auto v) { return graph.hasEdge(a, v); }) <= 1;
 }
 
-bool PerfectGraphRecognition::containsPyramid(const NetworKit::Graph &graph) {
+bool PerfectGraphRecognition::contains_pyramid(const NetworKit::Graph &graph) {
     auto triangles = get_all_triangles(graph);
     auto emptyStarTriangles = get_all_empty_star_triangles(graph);
     for (const auto &b : triangles) {

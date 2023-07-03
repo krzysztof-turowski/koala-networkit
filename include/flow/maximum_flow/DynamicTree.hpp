@@ -17,7 +17,7 @@
 namespace Koala {
 
 class DynamicTree {
-public:
+ public:
     void initialize(NetworKit::count);
 
     NetworKit::node find_parent(NetworKit::node);
@@ -33,7 +33,7 @@ public:
     std::pair<NetworKit::node, NetworKit::node> find_saturated_edge(NetworKit::node);
     int get_minimum_path_residue_capacity(NetworKit::node);
 
-private:
+ private:
     std::vector<dyn_item> nodes;
     std::unordered_map<dyn_item*, NetworKit::node> ids;
     std::vector<std::unordered_set<NetworKit::node>> children;

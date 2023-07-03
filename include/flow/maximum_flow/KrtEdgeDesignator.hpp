@@ -18,10 +18,8 @@
 namespace Koala {
 
 class KRTEdgeDesignator {
-    // Constraint: R0 * L/X >= 176
-    // T = ceil(log(N) / log((R0 * L)/(88x))) + 4;
-    // Parameters selected empirically to (1) match given constraints, (2) get best results on our datasets
-    // TODO: Calculate parameters according to the Theorem for large enough graphs
+    // Constraint: R0 * L/X >= 176, then T = ceil(log(N) / log((R0 * L)/(88 * X))) + 4;
+    // Parameters selected empirically to (1) match constraints, (2) get best results on datasets
     static constexpr long double R0 = 0.7, X = 2;
     static constexpr int L = 512;
     static constexpr int T = 7;
@@ -51,7 +49,7 @@ class KRTEdgeDesignator {
 
     long double reset();
 
-public:
+ public:
     void initialize(const std::optional<NetworKit::Graph>&);
     NetworKit::node current_edge(NetworKit::node, int);
     void response_adversary(NetworKit::node, int);

@@ -26,7 +26,7 @@ namespace Koala {
  *
  */
 class MaximumFlow : public NetworKit::Algorithm {
-public:
+ public:
     /**
      * Given an input graph, set up the greedy vertex coloring procedure.
      *
@@ -43,7 +43,7 @@ public:
      */
     int getFlowSize() const;
 
-protected:
+ protected:
     std::optional<NetworKit::Graph> graph;
     NetworKit::node source, target;
     std::map<std::pair<NetworKit::node, NetworKit::node>, int> flow;
@@ -55,8 +55,7 @@ protected:
  * The class for the King-Rao-Tarjan maximum flow algorithm
  */
 class KingRaoTarjanMaximumFlow final : public MaximumFlow {
-
-public:
+ public:
     using MaximumFlow::MaximumFlow;
 
     /**
@@ -64,7 +63,7 @@ public:
      */
     void run();
 
-private:
+ private:
     std::map<std::pair<NetworKit::node, NetworKit::node>, int> capacity;
     std::map<NetworKit::node, int> d, excess, hidden_excess;
     std::set<int> positive_excess;
@@ -89,4 +88,4 @@ private:
     void relabel(NetworKit::node);
 };
 
-} /* namespace Koala */
+}  /* namespace Koala */
