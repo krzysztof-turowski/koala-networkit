@@ -8,7 +8,6 @@
 #include <dominating_set/BranchAndReduceMSC.hpp>
 #include <dominating_set/ExhaustiveMDS.hpp>
 #include <dominating_set/FominKratschWoeginger.hpp>
-#include <dominating_set/RooijBodlaenderMDS.hpp>
 #include <dominating_set/SchiermeyerMDS.hpp>
 
 template <typename A>
