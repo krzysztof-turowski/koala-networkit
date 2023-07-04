@@ -1,8 +1,7 @@
 #include <ranges>
 #include <tuple>
 
-#include <dominating_set/FominKratschWoeginger.hpp>
-#include <dominating_set/SchiermeyerMDS.hpp>
+#include <dominating_set/ExactDominatingSets.hpp>
 
 class RecursiveFKW {
     std::set<NetworKit::node> &free;

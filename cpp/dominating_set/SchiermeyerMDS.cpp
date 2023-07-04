@@ -4,7 +4,7 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/max_cardinality_matching.hpp>
 
-#include <dominating_set/SchiermeyerMDS.hpp>
+#include <dominating_set/ExactDominatingSets.hpp>
 
 NetworKit::Graph core(
     const NetworKit::Graph &G,

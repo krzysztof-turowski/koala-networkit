@@ -2,10 +2,7 @@
 #include <iostream>
 #include <map>
 
-#include <dominating_set/BranchAndReduceMDS.hpp>
-#include <dominating_set/SchiermeyerMDS.hpp>
-#include <dominating_set/FominKratschWoeginger.hpp>
-#include <dominating_set/ExhaustiveMDS.hpp>
+#include <dominating_set/ExactDominatingSets.hpp>
 #include <io/G6GraphReader.hpp>
 #include <set_cover/BranchAndReduceMSC.hpp>
 

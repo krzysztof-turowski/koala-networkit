@@ -1,4 +1,4 @@
-#include <dominating_set/ExhaustiveMDS.hpp>
+#include <dominating_set/ExactDominatingSets.hpp>
 
 ExhaustiveMDS::ExhaustiveMDS(const NetworKit::Graph &G) : MinimumDominatingSet(G) {}
 
