@@ -5,11 +5,21 @@
 #include <coloring/EnumerationVertexColoring.hpp>
 #include <io/G6GraphReader.hpp>
 
-template <typename T> void benchmark() {
-    std::map<int, int> chromatic_number;
+template <typename T>
+int run_algorithm(NetworKit::Graph &G) {
+    auto algorithm = T(G);
+    algorithm.run();
+    auto colors = algorithm.getColoring();
+    G.forEdges([&](NetworKit::node u, NetworKit::node v) { assert(colors[u] != colors[v]); });
+    int max_color = 0;
+    for (const auto& [v, c] : colors) {
+        max_color = std::max(max_color, c);
+    }
+    std::cout << max_color << " ";
+    return max_color;
+}
 
-    int i = 0;
-
+int main() {
     while (true) {
         std::string line;
         std::cin >> line;
@@ -17,31 +27,16 @@ template <typename T> void benchmark() {
             break;
         }
         NetworKit::Graph G = Koala::G6GraphReader().readline(line);
-        auto algorithm = T(G);
-        algorithm.run();
-        auto colors = algorithm.getColoring();
-        int max_color = 0;
-        G.forEdges([&](NetworKit::node u, NetworKit::node v) { assert(colors[u] != colors[v]); });
-        for (const auto& [v, c] : colors) {
-            max_color = std::max(max_color, c);
-        }
-        chromatic_number[i++] = max_color;
-    }
-    for (const auto& [k, v] : chromatic_number) {
-        std::cout << "GRAPH " << k << ": " << v << std::endl;
-    }
-}
+        std::cout << line << " " << G.numberOfEdges() << " ";
 
-int main(int argc, const char* argv[]) {
-    if (argc != 2) {
-        std::cerr << "Usage: " << argv[0] << " <algorithm>" << std::endl;
-        return 1;
-    }
-    switch (std::stoi(argv[1])) {
-    case 0: benchmark<Koala::BrownsOrdinaryEnumerationVertexColoring>(); break;
-    case 1: benchmark<Koala::ChristofidesEnumerationVertexColoring>(); break;
-    case 2: benchmark<Koala::BrelazEnumerationVertexColoring>(); break;
-    case 3: benchmark<Koala::KormanEnumerationVertexColoring>(); break;
+        std::set<int> C;
+        C.insert(run_algorithm<Koala::BrownsOrdinaryEnumerationVertexColoring>(G));
+        C.insert(run_algorithm<Koala::ChristofidesEnumerationVertexColoring>(G));
+        C.insert(run_algorithm<Koala::BrelazEnumerationVertexColoring>(G));
+        C.insert(run_algorithm<Koala::KormanEnumerationVertexColoring>(G));
+        assert(C.size() == 1);
+
+        std::cout << std::endl;
     }
     return 0;
 }
