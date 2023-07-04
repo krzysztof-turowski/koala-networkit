@@ -16,7 +16,7 @@ bool isSubset(
         });
 }
 
-std::tuple<NetworKit::index, NetworKit::index> findSetInculsion(
+std::tuple<NetworKit::index, NetworKit::index> findSetInclusion(
         std::vector<std::set<NetworKit::count>> &sets) {
     for (NetworKit::count i = 0; i < sets.size(); i++) {
         auto &subsetCandidate = sets.at(i);
@@ -110,7 +110,7 @@ bool RooijBodlaenderMSC::reduce(std::vector<bool> & solution) {
         return true;
     }
     // subsumption rule
-    auto [subsetIndex2, supersetIndex2] = findSetInculsion(occurences);
+    auto [subsetIndex2, supersetIndex2] = findSetInclusion(occurences);
     if (subsetIndex2 != NetworKit::none) {
         std::set<NetworKit::index> swapped;
         auto &superset = occurences.at(supersetIndex2);
