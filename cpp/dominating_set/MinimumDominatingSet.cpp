@@ -31,6 +31,3 @@ std::vector<bool> &smallerCardinalitySet(std::vector<bool> &lhs, std::vector<boo
         return rhs;
     }
 }
-
-int MinimumDominatingSet::specialCounter1 = 0;
-int MinimumDominatingSet::specialCounter2 = 0;

@@ -1,22 +1,112 @@
 #include <cassert>
 
 #include <dominating_set/BranchAndReduceMSC.hpp>
-#include <dominating_set/RooijBodlaenderMDS.hpp>
 
-NetworKit::index findCountingRuleReductionSet(
-    std::vector<std::set<NetworKit::node>> &family,
-    std::vector<std::set<NetworKit::index>> &occurences);
-NetworKit::index find2Cardinality2FrequencySet(
-    std::vector<std::set<NetworKit::node>> &family,
-    std::vector<std::set<NetworKit::index>> &occurences);
+bool isSubset(
+        std::set<NetworKit::node> &subsetCandidate,
+        std::set<NetworKit::node> &supersetCandidate) {
+    if (subsetCandidate.size() > supersetCandidate.size()) {
+        return false;
+    }
+    for (auto &node : subsetCandidate) {
+        if (supersetCandidate.count(node) == 0) {
+            return false;
+        }
+    }
+    return true;
+}
+
+std::tuple<NetworKit::index, NetworKit::index> findSetInculsion(
+        std::vector<std::set<NetworKit::count>> &sets) {
+    for (NetworKit::count i = 0; i < sets.size(); i++) {
+        auto &subsetCandidate = sets.at(i);
+        if (subsetCandidate.empty()) {
+            continue;
+        }
+        for (NetworKit::count j = 0; j < sets.size(); j++) {
+            if (i == j) {
+                continue;
+            }
+            auto &supersetCandidate = sets.at(j);
+            if (isSubset(subsetCandidate, supersetCandidate)) {
+                return {i, j};
+            }
+        }
+    }
+    return {NetworKit::none, NetworKit::none};
+}
+
+void excludeSet(
+        NetworKit::index id,
+        std::set<NetworKit::count> &excluded,
+        std::vector<std::set<NetworKit::count>> &reversed) {
+    for (auto &element : excluded) {
+        reversed.at(element).erase(id);
+    }
+}
+
+void includeSet(
+        NetworKit::index id,
+        std::set<NetworKit::count> &included,
+        std::vector<std::set<NetworKit::count>> &reversed) {
+    for (auto &element : included) {
+        reversed.at(element).insert(id);
+    }
+}
 
 RooijBodlaenderMSC::RooijBodlaenderMSC(
     std::vector<std::set<NetworKit::node>> &family,
     std::vector<std::set<NetworKit::index>> &occurences)
     : BranchAndReduceMSCImpl<true>(family, occurences) {}
 
+NetworKit::index RooijBodlaenderMSC::findCountingRuleReductionSet() {
+    for (NetworKit::index i = 0; i < family.size(); i++) {
+        auto &candidate = family.at(i);
+        int numberOfFrequency2elements = 0;
+        std::set<NetworKit::node> notCoveredByCandidate;
+        for (auto &element : candidate) {
+            if (occurences.at(element).size() == 2) {
+                numberOfFrequency2elements++;
+                for (auto &occurence : occurences.at(element)) {
+                    if (occurence == i) {
+                        continue;
+                    }
+                    for (auto &e : family.at(occurence)) {
+                        if (candidate.count(e) == 0) {
+                            notCoveredByCandidate.insert(e);
+                        }
+                    }
+                }
+            }
+        }
+        if (notCoveredByCandidate.size() < numberOfFrequency2elements) {
+            return i;
+        }
+    }
+    return NetworKit::none;
+}
+
+NetworKit::index RooijBodlaenderMSC::find2Cardinality2FrequencySet() {
+    for (NetworKit::index i = 0; i < family.size(); i++) {
+        auto &candidate = family.at(i);
+        if (candidate.size() != 2) {
+            continue;
+        }
+        bool satifies = true;
+        for (auto &element : candidate) {
+            if (occurences.at(element).size() != 2) {
+                satifies = false;
+                break;
+            }
+        }
+        if (satifies) {
+            return i;
+        }
+    }
+    return NetworKit::none;
+}
+
 bool RooijBodlaenderMSC::reduce(std::vector<bool> & solution) {
-    MinimumDominatingSet::specialCounter2++;
     if (BranchAndReduceMSCImpl<true>::reduce(solution)) {
         return true;
     }
@@ -34,13 +124,13 @@ bool RooijBodlaenderMSC::reduce(std::vector<bool> & solution) {
         return true;
     }
     // counting rule
-    NetworKit::index countingRuleIndex = findCountingRuleReductionSet(family, occurences);
+    NetworKit::index countingRuleIndex = findCountingRuleReductionSet();
     if (countingRuleIndex != NetworKit::none) {
         solution = forcedSetCover(countingRuleIndex);
         return true;
     }
     // size two set with frequency two elements rule
-    NetworKit::index cardinalityFrequencyIndex = find2Cardinality2FrequencySet(family, occurences);
+    NetworKit::index cardinalityFrequencyIndex = find2Cardinality2FrequencySet();
     if (cardinalityFrequencyIndex != NetworKit::none) {
         std::vector<NetworKit::index> indicesOfReplaced {cardinalityFrequencyIndex};
         for (auto &element : family.at(cardinalityFrequencyIndex)) {

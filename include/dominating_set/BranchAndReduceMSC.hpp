@@ -8,14 +8,7 @@
 
 #include <networkit/graph/Graph.hpp>
 
-std::tuple<NetworKit::index, NetworKit::index> findSetInculsion(
-    std::vector<std::set<NetworKit::count>> &sets);
-void excludeSet(
-    NetworKit::index id, std::set<NetworKit::node> &excluded,
-    std::vector<std::set<NetworKit::index>> &reversed);
-void includeSet(
-    NetworKit::index id, std::set<NetworKit::node> &included,
-    std::vector<std::set<NetworKit::index>> &reversed);
+#include <dominating_set/MinimumDominatingSet.hpp>
 
 template<bool useEdgeCover>
 class BranchAndReduceMSCImpl {
@@ -170,6 +163,8 @@ typedef BranchAndReduceMSCImpl<false> GrandoniMSC;
 typedef BranchAndReduceMSCImpl<true> FominGrandoniKratschMSC;
 
 class RooijBodlaenderMSC : public BranchAndReduceMSCImpl<true> {
+    NetworKit::index findCountingRuleReductionSet();
+    NetworKit::index find2Cardinality2FrequencySet();
  protected:
     bool reduce(std::vector<bool> &solution);
  public:
@@ -177,3 +172,12 @@ class RooijBodlaenderMSC : public BranchAndReduceMSCImpl<true> {
         std::vector<std::set<NetworKit::node>> &family,
         std::vector<std::set<NetworKit::index>> &occurences);
 };
+
+std::tuple<NetworKit::index, NetworKit::index> findSetInculsion(
+    std::vector<std::set<NetworKit::count>> &sets);
+void excludeSet(
+    NetworKit::index id, std::set<NetworKit::node> &excluded,
+    std::vector<std::set<NetworKit::index>> &reversed);
+void includeSet(
+    NetworKit::index id, std::set<NetworKit::node> &included,
+    std::vector<std::set<NetworKit::index>> &reversed);

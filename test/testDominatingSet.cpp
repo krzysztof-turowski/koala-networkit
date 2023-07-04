@@ -79,48 +79,6 @@ void testPowerOfTwoAdjacency(bool exactlySame) {
     }
 }
 
-void testReduceCalls() {
-    int dim = 6;
-    int nNodes = 1 << dim;
-    NetworKit::Graph graph(nNodes);
-    for (int i = 0; i < dim; i++) {
-        int diff = 1 << i;
-        for (int v = 0; v < nNodes - diff; v++) {
-            graph.addEdge(v, v + diff);
-        }
-    }
-
-    RooijBodlaenderMDS algorithmA(graph);
-    BranchAndReduceMDS<RooijBodlaenderMSC> algorithmB(graph);
-
-    {
-        auto start = std::chrono::high_resolution_clock::now();
-        algorithmA.run();
-        auto end = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-        std::cout << duration << "\n";
-    }
-    
-    {
-        auto start = std::chrono::high_resolution_clock::now();
-        algorithmB.run();
-        auto end = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-        std::cout << duration << "\n";
-    }
-    assert(algorithmA.isDominating(algorithmA.getDominatingSet()));
-    assert(algorithmB.isDominating(algorithmB.getDominatingSet()));
-    assert(
-        MinimumDominatingSet::dominatingSetSize(algorithmA.getDominatingSet()) ==
-        MinimumDominatingSet::dominatingSetSize(algorithmB.getDominatingSet()));
-
-    for (int i = 0; i < graph.numberOfNodes(); i++) {
-        assert(algorithmA.getDominatingSet().at(i) == algorithmB.getDominatingSet().at(i));
-    }
-    std::cout << MinimumDominatingSet::specialCounter1 << " vs " << MinimumDominatingSet::specialCounter2 << " calls\n";
-    assert(MinimumDominatingSet::specialCounter1 == MinimumDominatingSet::specialCounter2);
-}
-
 // https://users.cecs.anu.edu.au/~bdm/data/graphs.html
 int main() {
     auto fileNames = {"input/graph2.g6", "input/graph3.g6", "input/graph4.g6", "input/graph5.g6", "input/graph6.g6", "input/graph7.g6", "input/graph8.g6", "input/graph9.g6"}; //"input/graph10.g6"};
@@ -128,15 +86,10 @@ int main() {
         std::cout << "run " << name << "\n";
         test_algo_g6<FominKratschWoegingerMDS>(name);
         test_algo_g6<SchiermeyerMDS>(name);
-        test_algo_g6<RooijBodlaenderMDS>(name);
         test_algo_g6<BranchAndReduceMDS<RooijBodlaenderMSC>>(name);
         test_algo_g6<BranchAndReduceMDS<FominGrandoniKratschMSC>>(name);
         test_algo_g6<BranchAndReduceMDS<GrandoniMSC>>(name);
     }
-    // testPowerOfTwoAdjacency<RooijBodlaenderMDS, BranchAndReduceMDS<RooijBodlaenderMSC>>(true);
-    // testReduceCalls();
-    // testPowerOfTwoAdjacency<BranchAndReduceMDS<FominGrandoniKratschMSC>, BranchAndReduceMDS<RooijBodlaenderMSC>>(false);
-    // testPowerOfTwoAdjacency<BranchAndReduceMDS<GrandoniMSC>, BranchAndReduceMDS<RooijBodlaenderMSC>>(false);
 }
 
 

@@ -2,7 +2,6 @@
 #include <iostream>
 #include <map>
 
-#include <dominating_set/RooijBodlaenderMDS.hpp>
 #include <dominating_set/BranchAndReduceMDS.hpp>
 #include <dominating_set/BranchAndReduceMSC.hpp>
 #include <dominating_set/SchiermeyerMDS.hpp>
@@ -38,7 +37,6 @@ int main(int argc, char **argv) {
         std::set<int> D;
         switch (std::stoi(argv[1])) {
         case 0:
-            D.insert(run_algorithm<RooijBodlaenderMDS>(G));
             D.insert(run_algorithm<FominKratschWoegingerMDS>(G));
             D.insert(run_algorithm<SchiermeyerMDS>(G));
             D.insert(run_algorithm<BranchAndReduceMDS<RooijBodlaenderMSC>>(G));
@@ -46,21 +44,18 @@ int main(int argc, char **argv) {
             D.insert(run_algorithm<BranchAndReduceMDS<GrandoniMSC>>(G));
             break;
         case 1:
-            D.insert(run_algorithm<RooijBodlaenderMDS>(G));
-            break;
-        case 2:
             D.insert(run_algorithm<FominKratschWoegingerMDS>(G));
             break;
-        case 3:
+        case 2:
             D.insert(run_algorithm<SchiermeyerMDS>(G));
             break;
-        case 4:
+        case 3:
             D.insert(run_algorithm<BranchAndReduceMDS<RooijBodlaenderMSC>>(G));
             break;
-        case 5:
+        case 4:
             D.insert(run_algorithm<BranchAndReduceMDS<FominGrandoniKratschMSC>>(G));
             break;
-        case 6:
+        case 5:
             D.insert(run_algorithm<BranchAndReduceMDS<GrandoniMSC>>(G));
             break;
         }
