@@ -12,12 +12,12 @@ bool MinimumDominatingSet::isDominating(const std::vector<bool> &dominating_set)
             });
         }
     });
-    for (bool is_dominated : dominated) {
-        if (!is_dominated) {
-            return false;
-        }
-    }
-    return true;
+    return std::all_of(
+        dominated.begin(),
+        dominated.end(),
+        [](bool is_dominated) {
+            return is_dominated;
+        });
 }
 
 int MinimumDominatingSet::dominatingSetSize(const std::vector<bool> &set) {

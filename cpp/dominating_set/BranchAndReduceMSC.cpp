@@ -8,12 +8,12 @@ bool isSubset(
     if (subsetCandidate.size() > supersetCandidate.size()) {
         return false;
     }
-    for (auto &node : subsetCandidate) {
-        if (supersetCandidate.count(node) == 0) {
-            return false;
-        }
-    }
-    return true;
+    return std::all_of(
+        subsetCandidate.begin(),
+        subsetCandidate.end(),
+        [&supersetCandidate](const auto& node) {
+            return supersetCandidate.count(node) > 0;
+        });
 }
 
 std::tuple<NetworKit::index, NetworKit::index> findSetInculsion(
@@ -92,13 +92,12 @@ NetworKit::index RooijBodlaenderMSC::find2Cardinality2FrequencySet() {
         if (candidate.size() != 2) {
             continue;
         }
-        bool satifies = true;
-        for (auto &element : candidate) {
-            if (occurences.at(element).size() != 2) {
-                satifies = false;
-                break;
-            }
-        }
+        bool satifies = std::all_of(
+            candidate.begin(),
+            candidate.end(),
+            [this] (const auto& element) {
+                return occurences.at(element).size() == 2;
+            });
         if (satifies) {
             return i;
         }

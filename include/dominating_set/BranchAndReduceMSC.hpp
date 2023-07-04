@@ -113,12 +113,12 @@ class BranchAndReduceMSCImpl {
     }
 
     bool reducesToMatching() {
-        for (auto &familyElement : family) {
-            if (familyElement.size() > 2) {
-                return false;
-            }
-        }
-        return true;
+        return std::all_of(
+            family.begin(),
+            family.end(),
+            [](const auto& element) {
+                return element.size() <= 2;
+            });
     }
 
  public:
@@ -127,13 +127,12 @@ class BranchAndReduceMSCImpl {
         std::vector<std::set<NetworKit::index>> &occurences)
         : family(family), occurences(occurences) {}
     std::vector<bool> run() {
-        bool emptyInstance = true;
-        for (auto &familyElement : family) {
-            if (familyElement.size() != 0) {
-                emptyInstance = false;
-                break;
-            }
-        }
+        bool emptyInstance = std::all_of(
+            family.begin(),
+            family.end(),
+            [](const auto& element) {
+                return element.size() == 0;
+            });
         if (emptyInstance) {
             return std::vector<bool>(family.size());
         }
