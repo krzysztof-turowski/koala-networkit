@@ -23,7 +23,7 @@ class BranchAndReduceMSCImpl {
             return true;
         }
         // subset rule
-        auto [subsetIndex1, supersetIndex1] = findSetInculsion(family);
+        auto [subsetIndex1, supersetIndex1] = findSetInclusion(family);
         if (subsetIndex1 != NetworKit::none) {
             solution = discardedSetCover(subsetIndex1);
             return true;
@@ -172,7 +172,7 @@ class RooijBodlaenderMSC : public BranchAndReduceMSCImpl<true> {
         std::vector<std::set<NetworKit::index>> &occurences);
 };
 
-std::tuple<NetworKit::index, NetworKit::index> findSetInculsion(
+std::tuple<NetworKit::index, NetworKit::index> findSetInclusion(
     std::vector<std::set<NetworKit::count>> &sets);
 void excludeSet(
     NetworKit::index id, std::set<NetworKit::node> &excluded,
