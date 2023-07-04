@@ -57,8 +57,11 @@ void FominKratschWoegingerMDS::run() {
         G->forNeighborsOf(u, [u, &neighborhood](NetworKit::node neighbor) {
             neighborhood[u].insert(neighbor);
         });
-        if (G->degree(u) == 1) degreeOne.insert(u);
-        else if (G->degree(u) == 2) degreeTwo.insert(u);
+        if (G->degree(u) == 1) {
+            degreeOne.insert(u);
+        } else if (G->degree(u) == 2) {
+            degreeTwo.insert(u);
+        }
     });
     dominatingSet = RecursiveFKW(free, bounded, required, degreeOne, degreeTwo, neighborhood).run();
     hasRun = true;
@@ -251,7 +254,7 @@ std::vector<bool> RecursiveFKW::run() {
         solution = std::vector<bool>(neighborhood.size());
     } else {
         NetworKit::Graph graph(neighborhood.size());
-        for (int i = 0; i < neighborhood.size(); i++) {
+        for (NetworKit::node i = 0; i < neighborhood.size(); i++) {
             if (required.contains(i)) continue;
             for (auto e : neighborhood.at(i)) {
                 if (i < e) {

@@ -51,7 +51,7 @@ void SchiermeyerMDS::run() {
 NetworKit::Graph buildFromVectorSetRepresentation(
         const std::vector<std::set<NetworKit::node>> &neighbors) {
     NetworKit::Graph graph(neighbors.size());
-    for (int i = 0; i < neighbors.size(); i++) {
+    for (NetworKit::node i = 0; i < neighbors.size(); i++) {
         for (auto e : neighbors.at(i)) {
             assert(neighbors.at(e).contains(i));
             if (i < e) {
@@ -68,12 +68,9 @@ NetworKit::Graph core(
         std::set<NetworKit::node> &bounded,
         std::set<NetworKit::node> &required) {
     std::vector<std::set<NetworKit::node>> intermediate(G.numberOfNodes());
-    G.forNodes([&G, &intermediate](NetworKit::node u) {
-        G.forNeighborsOf(
-            u,
-            [u, &intermediate](NetworKit::node neighbor) {
-                intermediate[u].insert(neighbor);
-            });
+    G.forEdges([&intermediate](NetworKit::node u, NetworKit::node v) {
+        intermediate[u].insert(v);
+        intermediate[v].insert(u);
     });
     bool process = true;
     while (process) {
@@ -170,10 +167,14 @@ bool SizedChoiceSearcher::recursive(
         std::vector<NetworKit::node> &choices,
         NetworKit::node decideOn,
         int left) {
-    if (decideOn == possibilities.size()) return verifier(choices);
+    if (decideOn == possibilities.size()) {
+        return verifier(choices);
+    }
     if (left > 0) {
         choices.push_back(possibilities.at(decideOn));
-        if (recursive(choices, decideOn + 1, left - 1)) return true;
+        if (recursive(choices, decideOn + 1, left - 1)) {
+            return true;
+        }
         choices.pop_back();
     }
     return (decideOn + left < possibilities.size() && recursive(choices, decideOn + 1, left));
@@ -251,9 +252,13 @@ void BigMODSSolver::recurse(int decideOn, std::vector<bool> &bestSolution) {
             return;
         }
         for (auto e : possibilities) {
-            if (choices.contains(e)) continue;
+            if (choices.contains(e)) {
+                continue;
+            }
             std::set<int> addedNeighbors;
-            if (!closedNeighborhood.contains(e)) addedNeighbors.insert(e);
+            if (!closedNeighborhood.contains(e)) {
+                addedNeighbors.insert(e);
+            }
             graph.forNeighborsOf(e, [&addedNeighbors, this](NetworKit::node neighbor) {
                 if (!closedNeighborhood.contains(neighbor)) {
                     addedNeighbors.insert(neighbor);
@@ -276,11 +281,15 @@ void BigMODSSolver::recurse(int decideOn, std::vector<bool> &bestSolution) {
     }
     std::set<int> addedNeighbors;
     NetworKit::node next = possibilities.at(decideOn);
-    if (!closedNeighborhood.contains(next)) addedNeighbors.insert(next);
+    if (!closedNeighborhood.contains(next)) {
+        addedNeighbors.insert(next);
+    }
     graph.forNeighborsOf(
         next,
         [&addedNeighbors, this] (NetworKit::node neighbor) {
-            if (!closedNeighborhood.contains(neighbor)) {addedNeighbors.insert(neighbor);}
+            if (!closedNeighborhood.contains(neighbor)) {
+                addedNeighbors.insert(neighbor);
+            }
         });
 
     choices.insert(next);
@@ -319,7 +328,9 @@ std::vector<bool> matchingMODS(
         auto v2 = coreGraph.getIthNeighbor(u, 1);
         assert(v1 != NetworKit::none);
         assert(v2 != NetworKit::none);
-        if (v1 > v2) {std::swap(v1, v2);}
+        if (v1 > v2) {
+            std::swap(v1, v2);
+        }
         if (!owners.contains(std::tuple<NetworKit::node, NetworKit::node>(v1, v2))) {
             boost::add_edge(v1, v2, H);
             owners.emplace(std::tuple<NetworKit::node, NetworKit::node>(v1, v2), u);

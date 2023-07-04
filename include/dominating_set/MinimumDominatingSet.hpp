@@ -17,9 +17,6 @@ class MinimumDominatingSet : public NetworKit::Algorithm {
 
     bool isDominating(const std::vector<bool> &dominating_set);
     static int dominatingSetSize(const std::vector<bool> &set);
-
-    static int specialCounter1;
-    static int specialCounter2;
 };
 
 std::vector<bool> &smallerCardinalitySet(std::vector<bool> &lhs, std::vector<bool> &rhs);
