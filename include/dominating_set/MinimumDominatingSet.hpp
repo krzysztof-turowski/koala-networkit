@@ -3,6 +3,8 @@
 #include <networkit/base/Algorithm.hpp>
 #include <networkit/graph/Graph.hpp>
 
+namespace Koala {
+
 class MinimumDominatingSet : public NetworKit::Algorithm {
  protected:
     const NetworKit::Graph *G;
@@ -20,3 +22,5 @@ class MinimumDominatingSet : public NetworKit::Algorithm {
 };
 
 std::vector<bool> &smallerCardinalitySet(std::vector<bool> &lhs, std::vector<bool> &rhs);
+
+}  /* namespace Koala */

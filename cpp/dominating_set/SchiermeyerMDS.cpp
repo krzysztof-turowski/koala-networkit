@@ -6,6 +6,8 @@
 
 #include <dominating_set/ExactDominatingSets.hpp>
 
+namespace Koala {
+
 NetworKit::Graph core(
     const NetworKit::Graph &G,
     std::set<NetworKit::node> &free,
@@ -390,3 +392,4 @@ bool isOptionalDominatingSet(
     }
     return boundedCopy.empty();
 }
+}  /* namespace Koala */

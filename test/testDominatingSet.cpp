@@ -40,11 +40,11 @@ NetworKit::Graph build_graph(const int &N, const std::list<std::pair<int, int>> 
 TEST_P(GrandoniTest, test) {
     MinimumDominatingSetParameters const& parameters = GetParam();
     NetworKit::Graph G = build_graph(parameters.N, parameters.E);
-    auto algorithm = BranchAndReduceMDS<GrandoniMSC>(G);
+    auto algorithm = Koala::BranchAndReduceMDS<Koala::GrandoniMSC>(G);
     algorithm.run();
     EXPECT_TRUE(algorithm.isDominating(algorithm.getDominatingSet()));
     EXPECT_EQ(
-        MinimumDominatingSet::dominatingSetSize(algorithm.getDominatingSet()),
+        Koala::MinimumDominatingSet::dominatingSetSize(algorithm.getDominatingSet()),
         parameters.minimumDominatingSetSize);
 }
 
@@ -74,11 +74,11 @@ INSTANTIATE_TEST_SUITE_P(
 TEST_P(FominGrandoniKratschTest, test) {
     MinimumDominatingSetParameters const& parameters = GetParam();
     NetworKit::Graph G = build_graph(parameters.N, parameters.E);
-    auto algorithm = BranchAndReduceMDS<FominGrandoniKratschMSC>(G);
+    auto algorithm = Koala::BranchAndReduceMDS<Koala::FominGrandoniKratschMSC>(G);
     algorithm.run();
     EXPECT_TRUE(algorithm.isDominating(algorithm.getDominatingSet()));
     EXPECT_EQ(
-        MinimumDominatingSet::dominatingSetSize(algorithm.getDominatingSet()),
+        Koala::MinimumDominatingSet::dominatingSetSize(algorithm.getDominatingSet()),
         parameters.minimumDominatingSetSize);
 }
 
@@ -108,11 +108,11 @@ INSTANTIATE_TEST_SUITE_P(
 TEST_P(RooijBodlaenderTest, test) {
     MinimumDominatingSetParameters const& parameters = GetParam();
     NetworKit::Graph G = build_graph(parameters.N, parameters.E);
-    auto algorithm = BranchAndReduceMDS<RooijBodlaenderMSC>(G);
+    auto algorithm = Koala::BranchAndReduceMDS<Koala::RooijBodlaenderMSC>(G);
     algorithm.run();
     EXPECT_TRUE(algorithm.isDominating(algorithm.getDominatingSet()));
     EXPECT_EQ(
-        MinimumDominatingSet::dominatingSetSize(algorithm.getDominatingSet()),
+        Koala::MinimumDominatingSet::dominatingSetSize(algorithm.getDominatingSet()),
         parameters.minimumDominatingSetSize);
 }
 
@@ -142,11 +142,11 @@ INSTANTIATE_TEST_SUITE_P(
 TEST_P(FominKratschWoegingerTest, test) {
     MinimumDominatingSetParameters const& parameters = GetParam();
     NetworKit::Graph G = build_graph(parameters.N, parameters.E);
-    auto algorithm = FominKratschWoegingerMDS(G);
+    auto algorithm = Koala::FominKratschWoegingerMDS(G);
     algorithm.run();
     EXPECT_TRUE(algorithm.isDominating(algorithm.getDominatingSet()));
     EXPECT_EQ(
-        MinimumDominatingSet::dominatingSetSize(algorithm.getDominatingSet()),
+        Koala::MinimumDominatingSet::dominatingSetSize(algorithm.getDominatingSet()),
         parameters.minimumDominatingSetSize);
 }
 
@@ -176,11 +176,11 @@ INSTANTIATE_TEST_SUITE_P(
 TEST_P(SchiermeyerTest, test) {
     MinimumDominatingSetParameters const& parameters = GetParam();
     NetworKit::Graph G = build_graph(parameters.N, parameters.E);
-    auto algorithm = SchiermeyerMDS(G);
+    auto algorithm = Koala::SchiermeyerMDS(G);
     algorithm.run();
     EXPECT_TRUE(algorithm.isDominating(algorithm.getDominatingSet()));
     EXPECT_EQ(
-        MinimumDominatingSet::dominatingSetSize(algorithm.getDominatingSet()),
+        Koala::MinimumDominatingSet::dominatingSetSize(algorithm.getDominatingSet()),
         parameters.minimumDominatingSetSize);
 }
 
@@ -210,11 +210,11 @@ INSTANTIATE_TEST_SUITE_P(
 TEST_P(ExhaustiveTest, test) {
     MinimumDominatingSetParameters const& parameters = GetParam();
     NetworKit::Graph G = build_graph(parameters.N, parameters.E);
-    auto algorithm = ExhaustiveMDS(G);
+    auto algorithm = Koala::ExhaustiveMDS(G);
     algorithm.run();
     EXPECT_TRUE(algorithm.isDominating(algorithm.getDominatingSet()));
     EXPECT_EQ(
-        MinimumDominatingSet::dominatingSetSize(algorithm.getDominatingSet()),
+        Koala::MinimumDominatingSet::dominatingSetSize(algorithm.getDominatingSet()),
         parameters.minimumDominatingSetSize);
 }
 

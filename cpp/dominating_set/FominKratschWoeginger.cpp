@@ -3,6 +3,8 @@
 
 #include <dominating_set/ExactDominatingSets.hpp>
 
+namespace Koala {
+
 class RecursiveFKW {
     std::set<NetworKit::node> &free;
     std::set<NetworKit::node> &bounded;
@@ -274,3 +276,4 @@ std::vector<bool> RecursiveFKW::run() {
     }
     return solution;
 }
+}  /* namespace Koala */

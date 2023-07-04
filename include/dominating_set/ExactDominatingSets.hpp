@@ -4,6 +4,8 @@
 
 #include <dominating_set/MinimumDominatingSet.hpp>
 
+namespace Koala {
+
 template<typename BranchAndReduceMCS>
 class BranchAndReduceMDS : public MinimumDominatingSet {
  public:
@@ -71,3 +73,4 @@ class SizedChoiceSearcher {
         : verifier(verifier), possibilities(possibilities), size(size) {}
     std::tuple<bool, std::vector<NetworKit::node>> search();
 };
+}  /* namespace Koala */

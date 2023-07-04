@@ -1,5 +1,7 @@
 #include <dominating_set/ExactDominatingSets.hpp>
 
+namespace Koala {
+
 ExhaustiveMDS::ExhaustiveMDS(const NetworKit::Graph &G) : MinimumDominatingSet(G) {}
 
 void ExhaustiveMDS::run() {
@@ -28,3 +30,4 @@ std::vector<bool> ExhaustiveMDS::recursiveDominatingSubset(std::vector<bool> &su
         return recursiveDominatingSubset(superset, depth + 1);
     }
 }
+}  /* namespace Koala */

@@ -2,6 +2,8 @@
 
 #include <set_cover/BranchAndReduceMSC.hpp>
 
+namespace Koala {
+
 bool isSubset(
         std::set<NetworKit::node> &subsetCandidate,
         std::set<NetworKit::node> &supersetCandidate) {
@@ -178,3 +180,4 @@ bool RooijBodlaenderMSC::reduce(std::vector<bool> & solution) {
     }
     return false;
 }
+}  /* namespace Koala */

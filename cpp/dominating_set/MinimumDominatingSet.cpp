@@ -1,5 +1,7 @@
 #include <dominating_set/MinimumDominatingSet.hpp>
 
+namespace Koala {
+
 MinimumDominatingSet::MinimumDominatingSet(const NetworKit::Graph &G) : G(&G) {}
 
 bool MinimumDominatingSet::isDominating(const std::vector<bool> &dominating_set) {
@@ -31,3 +33,4 @@ std::vector<bool> &smallerCardinalitySet(std::vector<bool> &lhs, std::vector<boo
         return rhs;
     }
 }
+}  /* namespace Koala */

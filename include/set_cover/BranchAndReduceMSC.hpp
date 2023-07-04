@@ -10,6 +10,8 @@
 
 #include <dominating_set/MinimumDominatingSet.hpp>
 
+namespace Koala {
+
 template<bool useEdgeCover>
 class BranchAndReduceMSCImpl {
  protected:
@@ -180,3 +182,5 @@ void excludeSet(
 void includeSet(
     NetworKit::index id, std::set<NetworKit::node> &included,
     std::vector<std::set<NetworKit::index>> &reversed);
+
+}  /* namespace Koala */

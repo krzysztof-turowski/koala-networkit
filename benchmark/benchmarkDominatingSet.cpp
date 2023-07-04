@@ -34,26 +34,26 @@ int main(int argc, char **argv) {
         std::set<int> D;
         switch (std::stoi(argv[1])) {
         case 0:
-            D.insert(run_algorithm<FominKratschWoegingerMDS>(G));
-            D.insert(run_algorithm<SchiermeyerMDS>(G));
-            D.insert(run_algorithm<BranchAndReduceMDS<RooijBodlaenderMSC>>(G));
-            D.insert(run_algorithm<BranchAndReduceMDS<FominGrandoniKratschMSC>>(G));
-            D.insert(run_algorithm<BranchAndReduceMDS<GrandoniMSC>>(G));
+            D.insert(run_algorithm<Koala::FominKratschWoegingerMDS>(G));
+            D.insert(run_algorithm<Koala::SchiermeyerMDS>(G));
+            D.insert(run_algorithm<Koala::BranchAndReduceMDS<Koala::RooijBodlaenderMSC>>(G));
+            D.insert(run_algorithm<Koala::BranchAndReduceMDS<Koala::FominGrandoniKratschMSC>>(G));
+            D.insert(run_algorithm<Koala::BranchAndReduceMDS<Koala::GrandoniMSC>>(G));
             break;
         case 1:
-            D.insert(run_algorithm<FominKratschWoegingerMDS>(G));
+            D.insert(run_algorithm<Koala::FominKratschWoegingerMDS>(G));
             break;
         case 2:
-            D.insert(run_algorithm<SchiermeyerMDS>(G));
+            D.insert(run_algorithm<Koala::SchiermeyerMDS>(G));
             break;
         case 3:
-            D.insert(run_algorithm<BranchAndReduceMDS<RooijBodlaenderMSC>>(G));
+            D.insert(run_algorithm<Koala::BranchAndReduceMDS<Koala::RooijBodlaenderMSC>>(G));
             break;
         case 4:
-            D.insert(run_algorithm<BranchAndReduceMDS<FominGrandoniKratschMSC>>(G));
+            D.insert(run_algorithm<Koala::BranchAndReduceMDS<Koala::FominGrandoniKratschMSC>>(G));
             break;
         case 5:
-            D.insert(run_algorithm<BranchAndReduceMDS<GrandoniMSC>>(G));
+            D.insert(run_algorithm<Koala::BranchAndReduceMDS<Koala::GrandoniMSC>>(G));
             break;
         }
         assert(D.size() == 1);
