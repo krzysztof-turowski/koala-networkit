@@ -156,12 +156,13 @@ int KRTEdgeDesignator::designate_edge(int u) {
 
 long double KRTEdgeDesignator::reset() {
     auto k = T;
-    while (get_indexed_U(k - 3).size() >= (ratios[k - 3] * L) * get_indexed_U(k).size() / (88.0 * X)) {
+    constexpr long double threshold = L / (88.0 * X);
+    while (get_indexed_U(k - 3).size() >= ratios[k - 3] * threshold * get_indexed_U(k).size()) {
         k -= 3;
     }
-    for (auto v : get_indexed_V(k - 1)) {
+    for (const auto &v : get_indexed_V(k - 1)) {
         while (rl[v] >= k - 1) {
-            for (auto u: U_prim) {
+            for (const auto &u : U_prim) {
                 if (designated[u] == v) {
                     designated[u] = -1;
                     break;
@@ -173,7 +174,7 @@ long double KRTEdgeDesignator::reset() {
             update_erl(v);
         }
     }
-    for (auto u : get_indexed_U(k - 1)) {
+    for (const auto &u : get_indexed_U(k - 1)) {
         if (designated[u] == -1) {
             designate_edge(u);
         }
@@ -210,7 +211,7 @@ NetworKit::node KRTEdgeDesignator::current_edge(NetworKit::node i, int k) {
 
 void KRTEdgeDesignator::response_adversary(NetworKit::node a, int da) {
     int v = encodeId(a, da);
-    for (auto u : V[v]) {
+    for (const auto &u : V[v]) {
         remove_edge(u, v);
     }
 }

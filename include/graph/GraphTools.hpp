@@ -13,8 +13,8 @@ namespace Koala {
 
 namespace GraphTools {
 
-NetworKit::Graph toComplement(const NetworKit::Graph &G);
+NetworKit::Graph toComplement(const NetworKit::Graph&);
 
-} // namespace GraphTools
+}  // namespace GraphTools
 
-} // namespace Koala
+}  // namespace Koala

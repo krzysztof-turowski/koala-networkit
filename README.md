@@ -82,6 +82,7 @@ Moreover, they set up an online graph editor <a href="http://web.archive.org/web
     1. [Maximum flow](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/flow/MaximumFlow.hpp): King-Rao-Tarjan
 5. [Vertex coloring](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/coloring/)
     1. [Greedy heuristics](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/coloring/GreedyVertexColoring.hpp): RandomSequential, LargestFirst, SmallestLast, SaturatedLargestFirst, GreedyIndependentSet
+    2. [Grötschel-Lovász-Schrijver algorithm for perfect graphs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/coloring/PerfectGraphVertexColoring.hpp)
 
 For further planned changes, see the [Issues](https://github.com/krzysztof-turowski/koala-networkit/issues/) section.
 
@@ -97,7 +98,7 @@ To assess the speed of the algorithms we use primarily the publicly available St
 cmake -B build
 cmake --build build --parallel 4
 ```
-> Note: it may take a while to download and compile dependencies (googletest and networkit).
+> Note: it may take a while to download and compile dependencies (e.g. googletest, networkit, and boost).
 
 ## <a name="usage"></a>Usage
 

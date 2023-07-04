@@ -17,11 +17,10 @@ namespace Koala {
  *
  */
 class GreedyVertexColoring : public VertexColoring {
-
-public:
+ public:
     using VertexColoring::VertexColoring;
 
-protected:
+ protected:
     [[maybe_unused]] std::map<NetworKit::node, int>::iterator greedy_color(NetworKit::node v);
 };
 
@@ -30,8 +29,7 @@ protected:
  * The class for the random sequential greedy vertex coloring heuristic.
  */
 class RandomSequentialVertexColoring final : public GreedyVertexColoring {
-
-public:
+ public:
     using GreedyVertexColoring::GreedyVertexColoring;
 
     /**
@@ -45,8 +43,7 @@ public:
  * The class for the largest first greedy vertex coloring heuristic.
  */
 class LargestFirstVertexColoring final : public GreedyVertexColoring {
-
-public:
+ public:
     using GreedyVertexColoring::GreedyVertexColoring;
 
     /**
@@ -54,7 +51,7 @@ public:
      */
     void run();
 
-private:
+ private:
     std::vector<NetworKit::node> largest_first_ordering();
 };
 
@@ -63,8 +60,7 @@ private:
  * The class for the smallest last greedy vertex coloring heuristic.
  */
 class SmallestLastVertexColoring final : public GreedyVertexColoring {
-
-public:
+ public:
     using GreedyVertexColoring::GreedyVertexColoring;
 
     /**
@@ -72,7 +68,7 @@ public:
      */
     void run();
 
-private:
+ private:
     std::vector<NetworKit::node> smallest_last_ordering();
 };
 
@@ -81,8 +77,7 @@ private:
  * The class for the saturated largest first greedy vertex coloring heuristic.
  */
 class SaturatedLargestFirstVertexColoring final : public GreedyVertexColoring {
-
-public:
+ public:
     using GreedyVertexColoring::GreedyVertexColoring;
 
     /**
@@ -96,8 +91,7 @@ public:
  * The class for the greedy independent set vertex coloring heuristic.
  */
 class GreedyIndependentSetVertexColoring final : public GreedyVertexColoring {
-
-public:
+ public:
     using GreedyVertexColoring::GreedyVertexColoring;
 
     /**
@@ -106,4 +100,4 @@ public:
     void run();
 };
 
-} /* namespace Koala */
+}  /* namespace Koala */
