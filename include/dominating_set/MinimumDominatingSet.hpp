@@ -1,17 +1,14 @@
-#ifndef MINIMUM_DOMINATING_SET_HPP_
-#define MINIMUM_DOMINATING_SET_HPP_
+#pragma once
 
 #include <networkit/base/Algorithm.hpp>
 #include <networkit/graph/Graph.hpp>
 
 class MinimumDominatingSet : public NetworKit::Algorithm {
-protected:
+ protected:
     const NetworKit::Graph *G;
     std::vector<bool> dominatingSet;
-public:
-    MinimumDominatingSet(const NetworKit::Graph &G);
-
-    // void run() override = 0;
+ public:
+    explicit MinimumDominatingSet(const NetworKit::Graph &G);
 
     const std::vector<bool> &getDominatingSet() {
         assureFinished();
@@ -19,10 +16,10 @@ public:
     }
 
     bool isDominating(const std::vector<bool> &dominating_set);
+    static int dominatingSetSize(const std::vector<bool> &set);
+
     static int specialCounter1;
     static int specialCounter2;
 };
 
 std::vector<bool> &smallerCardinalitySet(std::vector<bool> &lhs, std::vector<bool> &rhs);
-
-#endif /* MINIMUM_DOMINATING_SET_HPP_ */

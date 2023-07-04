@@ -1,15 +1,15 @@
-#ifndef BRANCH_AND_REDUCE_MDS_HPP_
-#define BRANCH_AND_REDUCE_MDS_HPP_
+#pragma once
 
 #include <set>
-#include <dominatingset/MinimumDominatingSet.hpp>
+
+#include <dominating_set/MinimumDominatingSet.hpp>
 
 template<typename BranchAndReduceMCS>
 class BranchAndReduceMDS : public MinimumDominatingSet {
-public:
+ public:
     using MinimumDominatingSet::MinimumDominatingSet;
 
-    BranchAndReduceMDS(const NetworKit::Graph &G) : MinimumDominatingSet(G) {}
+    explicit BranchAndReduceMDS(const NetworKit::Graph &G) : MinimumDominatingSet(G) {}
 
     void run() override {
         std::vector<std::set<NetworKit::node>> family;
@@ -26,5 +26,3 @@ public:
         hasRun = true;
     }
 };
-
-#endif /* BRANCH_AND_REDUCE_MDS_HPP_ */

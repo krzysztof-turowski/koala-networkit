@@ -1,28 +1,45 @@
-#include <dominatingset/RooijBodlaenderMDS.hpp>
 #include <cassert>
-#include <boost/graph/max_cardinality_matching.hpp>
+
 #include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/max_cardinality_matching.hpp>
 
-bool isSubset(std::set<NetworKit::node> &subsetCandidate, std::set<NetworKit::node> &supersetCandidate);
-std::vector<bool> minimumSetCover(std::vector<std::set<NetworKit::node>> &family, std::vector<std::set<NetworKit::index>> &occurences);
+#include <dominating_set/RooijBodlaenderMDS.hpp>
+
+bool isSubset(
+    std::set<NetworKit::node> &subsetCandidate,
+    std::set<NetworKit::node> &supersetCandidate);
+std::vector<bool> minimumSetCover(
+    std::vector<std::set<NetworKit::node>> &family,
+    std::vector<std::set<NetworKit::index>> &occurences);
 NetworKit::index findUniqueOccurenceSet(std::vector<std::set<NetworKit::index>> &occurences);
-NetworKit::index findCountingRuleReductionSet(std::vector<std::set<NetworKit::node>> &family, std::vector<std::set<NetworKit::index>> &occurences);
-NetworKit::index find2Cardinality2FrequencySet(std::vector<std::set<NetworKit::node>> &family, std::vector<std::set<NetworKit::index>> &occurences);
-std::tuple<NetworKit::index, NetworKit::index> findSetInculsion(std::vector<std::set<NetworKit::count>> &sets);
+NetworKit::index findCountingRuleReductionSet(
+    std::vector<std::set<NetworKit::node>> &family,
+    std::vector<std::set<NetworKit::index>> &occurences);
+NetworKit::index find2Cardinality2FrequencySet(
+    std::vector<std::set<NetworKit::node>> &family,
+    std::vector<std::set<NetworKit::index>> &occurences);
+std::tuple<NetworKit::index, NetworKit::index> findSetInculsion(
+    std::vector<std::set<NetworKit::count>> &sets);
 bool reducesToMatching(std::vector<std::set<NetworKit::node>> &family);
-std::vector<bool> discardedSetCover(NetworKit::index discardedIndex, std::vector<std::set<NetworKit::node>> &family, std::vector<std::set<NetworKit::index>> &occurences);
-std::vector<bool> forcedSetCover(NetworKit::index forcedIndex, std::vector<std::set<NetworKit::node>> &family, std::vector<std::set<NetworKit::index>> &occurences);
-void excludeSet(NetworKit::index id, std::set<NetworKit::node> &excluded, std::vector<std::set<NetworKit::index>> &occurences);
-void includeSet(NetworKit::index id, std::set<NetworKit::node> &included, std::vector<std::set<NetworKit::index>> &occurences);
-std::vector<bool> blossom(std::vector<std::set<NetworKit::node>> &family, std::vector<std::set<NetworKit::index>> &occurences);
-
-template <typename T>
-std::set<T> setUnion(const std::set<T>& first, const std::set<T>& second)
-{
-    std::set<T> result = first;
-    result.insert(second.begin(), second.end());
-    return result;
-}
+std::vector<bool> discardedSetCover(
+    NetworKit::index discardedIndex,
+    std::vector<std::set<NetworKit::node>> &family,
+    std::vector<std::set<NetworKit::index>> &occurences);
+std::vector<bool> forcedSetCover(
+    NetworKit::index forcedIndex,
+    std::vector<std::set<NetworKit::node>> &family,
+    std::vector<std::set<NetworKit::index>> &occurences);
+void excludeSet(
+    NetworKit::index id,
+    std::set<NetworKit::node> &excluded,
+    std::vector<std::set<NetworKit::index>> &occurences);
+void includeSet(
+    NetworKit::index id,
+    std::set<NetworKit::node> &included,
+    std::vector<std::set<NetworKit::index>> &occurences);
+std::vector<bool> blossom(
+    std::vector<std::set<NetworKit::node>> &family,
+    std::vector<std::set<NetworKit::index>> &occurences);
 
 RooijBodlaenderMDS::RooijBodlaenderMDS(const NetworKit::Graph &G) : MinimumDominatingSet(G) {}
 
@@ -41,7 +58,9 @@ void RooijBodlaenderMDS::run() {
     hasRun = true;
 }
 
-std::vector<bool> minimumSetCover(std::vector<std::set<NetworKit::node>> &family, std::vector<std::set<NetworKit::index>> &occurences) {
+std::vector<bool> minimumSetCover(
+        std::vector<std::set<NetworKit::node>> &family,
+        std::vector<std::set<NetworKit::index>> &occurences) {
     bool emptyInstance = true;
     for (auto &familyElement : family) {
         if (familyElement.size() != 0) {
@@ -53,19 +72,16 @@ std::vector<bool> minimumSetCover(std::vector<std::set<NetworKit::node>> &family
         return std::vector<bool>(family.size());
     }
     MinimumDominatingSet::specialCounter1++;
-    
     // unique element rule
     NetworKit::index forcedIndex = findUniqueOccurenceSet(occurences);
     if (forcedIndex != NetworKit::none) {
         return forcedSetCover(forcedIndex, family, occurences);
     }
-    
     // subset rule
     auto [subsetIndex1, supersetIndex1] = findSetInculsion(family);
     if (subsetIndex1 != NetworKit::none) {
         return discardedSetCover(subsetIndex1, family, occurences);
     }
-
     // subsumption rule
     auto [subsetIndex2, supersetIndex2] = findSetInculsion(occurences);
     if (subsetIndex2 != NetworKit::none) {
@@ -78,13 +94,11 @@ std::vector<bool> minimumSetCover(std::vector<std::set<NetworKit::node>> &family
         includeSet(supersetIndex2, superset, family);
         return subcover;
     }
-
     // counting rule
     NetworKit::index countingRuleIndex = findCountingRuleReductionSet(family, occurences);
     if (countingRuleIndex != NetworKit::none) {
         return forcedSetCover(countingRuleIndex, family, occurences);
     }
-    
     // size two set with frequency two elements rule
     NetworKit::index cardinalityFrequencyIndex = find2Cardinality2FrequencySet(family, occurences);
     if (cardinalityFrequencyIndex != NetworKit::none) {
@@ -97,12 +111,19 @@ std::vector<bool> minimumSetCover(std::vector<std::set<NetworKit::node>> &family
                 indicesOfReplaced.push_back(removed);
             }
         }
-        std::set<NetworKit::node> replacement = setUnion<NetworKit::node>(family.at(indicesOfReplaced[1]), family.at(indicesOfReplaced[2]));
+        std::set<NetworKit::node> replacement;
+        auto& set1 = family.at(indicesOfReplaced[1]);
+        auto& set2 = family.at(indicesOfReplaced[2]);
+        std::set_union(
+            set1.begin(),
+            set1.end(),
+            set2.begin(),
+            set2.end(),
+            std::inserter(replacement, replacement.begin()));
         for (auto &element : family.at(cardinalityFrequencyIndex)) {
             replacement.erase(element);
         }
         std::set<NetworKit::node> swapped[3]{ {}, replacement, {} };
-        
         for (int j = 0; j < 3; j++) {
             excludeSet(indicesOfReplaced[j], family.at(indicesOfReplaced[j]), occurences);
         }
@@ -118,7 +139,6 @@ std::vector<bool> minimumSetCover(std::vector<std::set<NetworKit::node>> &family
         for (int j = 0; j < 3; j++) {
             includeSet(indicesOfReplaced[j], family.at(indicesOfReplaced[j]), occurences);
         }
-        
         if (replacedCover.at(indicesOfReplaced[1])) {
             replacedCover.at(indicesOfReplaced[2]) = true;
         } else {
@@ -130,11 +150,13 @@ std::vector<bool> minimumSetCover(std::vector<std::set<NetworKit::node>> &family
     if (reducesToMatching(family)) {
         return blossom(family, occurences);
     }
-
-    //branching
-    auto iteratorOfLargest = std::max_element(family.begin(), family.end(), [](const std::set<NetworKit::node>& lhs, const std::set<NetworKit::node>& rhs) {
-        return lhs.size() < rhs.size();
-    });
+    // branching
+    auto iteratorOfLargest = std::max_element(
+        family.begin(),
+        family.end(),
+        [](const auto& lhs, const auto& rhs) {
+            return lhs.size() < rhs.size();
+        });
     NetworKit::index indexOfLargest = iteratorOfLargest - family.begin();
     std::vector<bool> largestIncluded = forcedSetCover(indexOfLargest, family, occurences);
     std::vector<bool> largestExcluded = discardedSetCover(indexOfLargest, family, occurences);
@@ -152,7 +174,9 @@ NetworKit::index findUniqueOccurenceSet(std::vector<std::set<NetworKit::index>> 
     return NetworKit::none;
 }
 
-NetworKit::index findCountingRuleReductionSet(std::vector<std::set<NetworKit::node>> &family, std::vector<std::set<NetworKit::index>> &occurences) {
+NetworKit::index findCountingRuleReductionSet(
+        std::vector<std::set<NetworKit::node>> &family,
+        std::vector<std::set<NetworKit::index>> &occurences) {
     for (NetworKit::index i = 0; i < family.size(); i++) {
         auto &candidate = family.at(i);
         int numberOfFrequency2elements = 0;
@@ -179,7 +203,9 @@ NetworKit::index findCountingRuleReductionSet(std::vector<std::set<NetworKit::no
     return NetworKit::none;
 }
 
-NetworKit::index find2Cardinality2FrequencySet(std::vector<std::set<NetworKit::node>> &family, std::vector<std::set<NetworKit::index>> &occurences) {
+NetworKit::index find2Cardinality2FrequencySet(
+        std::vector<std::set<NetworKit::node>> &family,
+        std::vector<std::set<NetworKit::index>> &occurences) {
     for (NetworKit::index i = 0; i < family.size(); i++) {
         auto &candidate = family.at(i);
         if (candidate.size() != 2) {
@@ -199,7 +225,8 @@ NetworKit::index find2Cardinality2FrequencySet(std::vector<std::set<NetworKit::n
     return NetworKit::none;
 }
 
-std::tuple<NetworKit::index, NetworKit::index> findSetInculsion(std::vector<std::set<NetworKit::count>> &sets) {
+std::tuple<NetworKit::index, NetworKit::index> findSetInculsion(
+        std::vector<std::set<NetworKit::count>> &sets) {
     for (NetworKit::count i = 0; i < sets.size(); i++) {
         auto &subsetCandidate = sets.at(i);
         if (subsetCandidate.empty()) {
@@ -227,7 +254,10 @@ bool reducesToMatching(std::vector<std::set<NetworKit::node>> &family) {
     return true;
 }
 
-std::vector<bool> discardedSetCover(NetworKit::index discardedIndex, std::vector<std::set<NetworKit::node>> &family, std::vector<std::set<NetworKit::index>> &occurences) {
+std::vector<bool> discardedSetCover(
+        NetworKit::index discardedIndex,
+        std::vector<std::set<NetworKit::node>> &family,
+        std::vector<std::set<NetworKit::index>> &occurences) {
     std::set<NetworKit::node> swapped;
     excludeSet(discardedIndex, family.at(discardedIndex), occurences);
     family.at(discardedIndex).swap(swapped);
@@ -237,7 +267,10 @@ std::vector<bool> discardedSetCover(NetworKit::index discardedIndex, std::vector
     return largestExcluded;
 }
 
-std::vector<bool> forcedSetCover(NetworKit::index forcedIndex, std::vector<std::set<NetworKit::node>> &family, std::vector<std::set<NetworKit::index>> &occurences) {
+std::vector<bool> forcedSetCover(
+        NetworKit::index forcedIndex,
+        std::vector<std::set<NetworKit::node>> &family,
+        std::vector<std::set<NetworKit::index>> &occurences) {
     std::set<NetworKit::node> &forced = family.at(forcedIndex);
     std::vector<std::pair<NetworKit::index, NetworKit::node>> removed;
     for (auto &element : forced) {
@@ -258,7 +291,9 @@ std::vector<bool> forcedSetCover(NetworKit::index forcedIndex, std::vector<std::
     return subcover;
 }
 
-bool isSubset(std::set<NetworKit::node> &subsetCandidate, std::set<NetworKit::node> &supersetCandidate) {
+bool isSubset(
+        std::set<NetworKit::node> &subsetCandidate,
+        std::set<NetworKit::node> &supersetCandidate) {
     if (subsetCandidate.size() > supersetCandidate.size()) {
         return false;
     }
@@ -270,20 +305,28 @@ bool isSubset(std::set<NetworKit::node> &subsetCandidate, std::set<NetworKit::no
     return true;
 }
 
-void excludeSet(NetworKit::index id, std::set<NetworKit::count> &excluded, std::vector<std::set<NetworKit::count>> &reversed) {
+void excludeSet(
+        NetworKit::index id,
+        std::set<NetworKit::count> &excluded,
+        std::vector<std::set<NetworKit::count>> &reversed) {
     for (auto &element : excluded) {
         reversed.at(element).erase(id);
     }
 }
 
-void includeSet(NetworKit::index id, std::set<NetworKit::count> &included, std::vector<std::set<NetworKit::count>> &reversed) {
+void includeSet(
+        NetworKit::index id,
+        std::set<NetworKit::count> &included,
+        std::vector<std::set<NetworKit::count>> &reversed) {
     for (auto &element : included) {
         reversed.at(element).insert(id);
     }
 }
 
-typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS> boost_graph_t;
-std::vector<bool> blossom(std::vector<std::set<NetworKit::node>> &family, std::vector<std::set<NetworKit::index>> &occurences) {
+std::vector<bool> blossom(
+        std::vector<std::set<NetworKit::node>> &family,
+        std::vector<std::set<NetworKit::index>> &occurences) {
+    typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS> boost_graph_t;
     std::vector<bool> cover(family.size());
     std::vector<bool> dominated(occurences.size());
     boost_graph_t boost_graph(occurences.size());

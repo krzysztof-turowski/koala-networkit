@@ -1,8 +1,8 @@
-#include<ranges>
-
-#include <dominatingset/FominKratschWoeginger.hpp>
-#include <dominatingset/SchiermeyerMDS.hpp>
+#include <ranges>
 #include <tuple>
+
+#include <dominating_set/FominKratschWoeginger.hpp>
+#include <dominating_set/SchiermeyerMDS.hpp>
 
 class RecursiveFKW {
     std::set<NetworKit::node> &free;
@@ -12,7 +12,7 @@ class RecursiveFKW {
     std::set<NetworKit::node> &degreeTwo;
     std::vector<std::set<NetworKit::node>> &neighborhood;
 
-public:
+ public:
     RecursiveFKW(
         std::set<NetworKit::node> &free,
         std::set<NetworKit::node> &bounded,
@@ -20,7 +20,12 @@ public:
         std::set<NetworKit::node> &degreeOne,
         std::set<NetworKit::node> &degreeTwo,
         std::vector<std::set<NetworKit::node>> &neighborhood)
-        : free(free), bounded(bounded), required(required), degreeOne(degreeOne), degreeTwo(degreeTwo), neighborhood(neighborhood) {}
+        : free(free),
+        bounded(bounded),
+        required(required),
+        degreeOne(degreeOne),
+        degreeTwo(degreeTwo),
+        neighborhood(neighborhood) {}
     std::vector<bool> run();
     void onDegreeDecrement(NetworKit::node updated);
     void onDegreeIncrement(NetworKit::node updated);
@@ -29,10 +34,15 @@ public:
     bool forgetVertex(NetworKit::node forced);
     void retrieveVertex(NetworKit::node vertex, bool isFree);
     std::tuple<std::vector<NetworKit::node>, bool> addToTheSolution(NetworKit::node forced);
-    void removeFromTheSolution(NetworKit::node vertex, std::vector<NetworKit::node> &movedVertices, bool isVertexFree);
+    void removeFromTheSolution(
+        NetworKit::node vertex,
+        std::vector<NetworKit::node> &movedVertices,
+        bool isVertexFree);
 };
 
-FominKratschWoegingerMDS::FominKratschWoegingerMDS(const NetworKit::Graph &G) : MinimumDominatingSet(G) {}
+FominKratschWoegingerMDS::FominKratschWoegingerMDS(
+    const NetworKit::Graph &G)
+    : MinimumDominatingSet(G) {}
 
 void FominKratschWoegingerMDS::run() {
     std::set<NetworKit::node> free;
@@ -44,7 +54,9 @@ void FominKratschWoegingerMDS::run() {
 
     G->forNodes([&bounded, &neighborhood, &degreeOne, &degreeTwo, this](NetworKit::node u) {
         bounded.insert(u);
-        G->forNeighborsOf(u, [u, &neighborhood](NetworKit::node neighbor) {neighborhood[u].insert(neighbor);});
+        G->forNeighborsOf(u, [u, &neighborhood](NetworKit::node neighbor) {
+            neighborhood[u].insert(neighbor);
+        });
         if (G->degree(u) == 1) degreeOne.insert(u);
         else if (G->degree(u) == 2) degreeTwo.insert(u);
     });
@@ -52,12 +64,21 @@ void FominKratschWoegingerMDS::run() {
     hasRun = true;
 }
 
-std::vector<bool> findMODSWhenDegreeAtLeast3(const NetworKit::Graph &G, const std::set<NetworKit::node> &free, const std::set<NetworKit::node> &bounded) {
+std::vector<bool> findMODSWhenDegreeAtLeast3(
+        const NetworKit::Graph &G,
+        const std::set<NetworKit::node> &free,
+        const std::set<NetworKit::node> &bounded) {
     std::vector<NetworKit::node> possibilities = joinFreeAndBounded(free, bounded);
     for (size_t i = 1; 8 * i <= 3 * (free.size() + bounded.size()); i++) {
         std::vector<NetworKit::node> possibilities = joinFreeAndBounded(free, bounded);
 
-        auto [found, choices] = SizedChoiceSearcher([&G, &bounded](const std::vector<NetworKit::node> &arg) {return isOptionalDominatingSet(G, arg, bounded);}, possibilities, i).search();
+        auto [found, choices] = SizedChoiceSearcher(
+                [&G, &bounded](const std::vector<NetworKit::node> &arg) {
+                    return isOptionalDominatingSet(G, arg, bounded);
+                },
+                possibilities,
+                i)
+            .search();
         std::vector<bool> solution(G.numberOfNodes());
         if (found) {
             for (auto u : choices) {
@@ -138,7 +159,8 @@ void RecursiveFKW::retrieveVertex(NetworKit::node vertex, bool isFree) {
     }
 }
 
-std::tuple<std::vector<NetworKit::node>, bool> RecursiveFKW::addToTheSolution(NetworKit::node forced) {
+std::tuple<std::vector<NetworKit::node>, bool> RecursiveFKW::addToTheSolution(
+        NetworKit::node forced) {
     std::vector<NetworKit::node> movedVertices{};
     for (auto neighbor : neighborhood.at(forced)) {
         if (bounded.contains(neighbor)) {
@@ -153,7 +175,8 @@ std::tuple<std::vector<NetworKit::node>, bool> RecursiveFKW::addToTheSolution(Ne
     return {movedVertices, isFree};
 }
 
-void RecursiveFKW::removeFromTheSolution(NetworKit::node vertex, std::vector<NetworKit::node> &movedVertices, bool isVertexFree) {
+void RecursiveFKW::removeFromTheSolution(
+        NetworKit::node vertex, std::vector<NetworKit::node> &movedVertices, bool isVertexFree) {
     required.erase(vertex);
     retrieveVertex(vertex, isVertexFree);
     for (auto neighbor : std::views::reverse(movedVertices)) {
@@ -187,7 +210,6 @@ std::vector<bool> RecursiveFKW::run() {
         NetworKit::node u2 = *(++it);
 
         bool isFree = free.contains(v);
-        
         bool is1 = forgetVertex(v);
         auto [moved1, isFree1] = addToTheSolution(u1);
         auto solution1 = run();
@@ -224,7 +246,6 @@ std::vector<bool> RecursiveFKW::run() {
             boundedIsolatedVertices.insert(i);
         }
     }
-    
     std::vector<bool> solution;
     if (bounded.empty()) {
         solution = std::vector<bool>(neighborhood.size());

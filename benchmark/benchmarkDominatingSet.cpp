@@ -2,12 +2,12 @@
 #include <iostream>
 #include <map>
 
-#include <dominatingset/RooijBodlaenderMDS.hpp>
-#include <dominatingset/BranchAndReduceMDS.hpp>
-#include <dominatingset/BranchAndReduceMSC.hpp>
-#include <dominatingset/SchiermeyerMDS.hpp>
-#include <dominatingset/FominKratschWoeginger.hpp>
-#include <dominatingset/ExhaustiveMDS.hpp>
+#include <dominating_set/RooijBodlaenderMDS.hpp>
+#include <dominating_set/BranchAndReduceMDS.hpp>
+#include <dominating_set/BranchAndReduceMSC.hpp>
+#include <dominating_set/SchiermeyerMDS.hpp>
+#include <dominating_set/FominKratschWoeginger.hpp>
+#include <dominating_set/ExhaustiveMDS.hpp>
 #include <io/G6GraphReader.hpp>
 
 template <typename T>

@@ -1,21 +1,25 @@
-#ifndef BRANCH_AND_REDUCE_MSC_HPP_
-#define BRANCH_AND_REDUCE_MSC_HPP_
+#pragma once
 
 #include <set>
 #include <vector>
-#include <networkit/graph/Graph.hpp>
-#include <boost/graph/max_cardinality_matching.hpp>
+
 #include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/max_cardinality_matching.hpp>
 
-std::tuple<NetworKit::index, NetworKit::index> findSetInculsion(std::vector<std::set<NetworKit::count>> &sets);
-void excludeSet(NetworKit::index id, std::set<NetworKit::node> &excluded, std::vector<std::set<NetworKit::index>> &reversed);
-void includeSet(NetworKit::index id, std::set<NetworKit::node> &included, std::vector<std::set<NetworKit::index>> &reversed);
+#include <networkit/graph/Graph.hpp>
 
-typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS> boost_graph_t;
+std::tuple<NetworKit::index, NetworKit::index> findSetInculsion(
+    std::vector<std::set<NetworKit::count>> &sets);
+void excludeSet(
+    NetworKit::index id, std::set<NetworKit::node> &excluded,
+    std::vector<std::set<NetworKit::index>> &reversed);
+void includeSet(
+    NetworKit::index id, std::set<NetworKit::node> &included,
+    std::vector<std::set<NetworKit::index>> &reversed);
 
 template<bool useEdgeCover>
 class BranchAndReduceMSCImpl {
-protected:
+ protected:
     std::vector<std::set<NetworKit::node>> &family;
     std::vector<std::set<NetworKit::index>> &occurences;
     virtual bool reduce(std::vector<bool> & solution) {
@@ -25,7 +29,6 @@ protected:
             solution = forcedSetCover(forcedIndex);
             return true;
         }
-        
         // subset rule
         auto [subsetIndex1, supersetIndex1] = findSetInculsion(family);
         if (subsetIndex1 != NetworKit::none) {
@@ -67,6 +70,7 @@ protected:
     }
 
     std::vector<bool> blossom() {
+        typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS> boost_graph_t;
         std::vector<bool> cover(family.size());
         std::vector<bool> dominated(occurences.size());
         boost_graph_t boost_graph(occurences.size());
@@ -105,7 +109,6 @@ protected:
         }
         return cover;
     }
-    
     NetworKit::index findUniqueOccurenceSet() {
         for (auto &elementOccurences : occurences) {
             if (elementOccurences.size() == 1) {
@@ -125,8 +128,11 @@ protected:
         return true;
     }
 
-public:
-    BranchAndReduceMSCImpl(std::vector<std::set<NetworKit::node>> &family, std::vector<std::set<NetworKit::index>> &occurences) : family(family), occurences(occurences) {}
+ public:
+    BranchAndReduceMSCImpl(
+        std::vector<std::set<NetworKit::node>> &family,
+        std::vector<std::set<NetworKit::index>> &occurences)
+        : family(family), occurences(occurences) {}
     std::vector<bool> run() {
         bool emptyInstance = true;
         for (auto &familyElement : family) {
@@ -138,20 +144,20 @@ public:
         if (emptyInstance) {
             return std::vector<bool>(family.size());
         }
-        
         std::vector<bool> solutionFromReduce;
         if (reduce(solutionFromReduce)) {
             return solutionFromReduce;
         }
-
         if (useEdgeCover && reducesToMatching()) {
             return blossom();
         }
-
-        //branching
-        auto iteratorOfLargest = std::max_element(family.begin(), family.end(), [](const std::set<NetworKit::node>& lhs, const std::set<NetworKit::node>& rhs) {
-            return lhs.size() < rhs.size();
-        });
+        // branching
+        auto iteratorOfLargest = std::max_element(
+            family.begin(),
+            family.end(),
+            [](const auto& lhs, const auto& rhs) {
+                return lhs.size() < rhs.size();
+            });
         NetworKit::index indexOfLargest = iteratorOfLargest - family.begin();
         std::vector<bool> largestIncluded = forcedSetCover(indexOfLargest);
         std::vector<bool> largestExcluded = discardedSetCover(indexOfLargest);
@@ -164,10 +170,10 @@ typedef BranchAndReduceMSCImpl<false> GrandoniMSC;
 typedef BranchAndReduceMSCImpl<true> FominGrandoniKratschMSC;
 
 class RooijBodlaenderMSC : public BranchAndReduceMSCImpl<true> {
-protected:
+ protected:
     bool reduce(std::vector<bool> &solution);
-public:
-    RooijBodlaenderMSC(std::vector<std::set<NetworKit::node>> &family, std::vector<std::set<NetworKit::index>> &occurences);
+ public:
+    RooijBodlaenderMSC(
+        std::vector<std::set<NetworKit::node>> &family,
+        std::vector<std::set<NetworKit::index>> &occurences);
 };
-
-#endif /* BRANCH_AND_REDUCE_MSC_HPP_ */

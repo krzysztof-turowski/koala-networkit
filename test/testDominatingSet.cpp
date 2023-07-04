@@ -1,36 +1,20 @@
-// #include <iostream>
-#include <dominatingset/RooijBodlaenderMDS.hpp>
-#include <dominatingset/BranchAndReduceMDS.hpp>
-#include <dominatingset/BranchAndReduceMSC.hpp>
-#include <dominatingset/SchiermeyerMDS.hpp>
-#include <dominatingset/FominKratschWoeginger.hpp>
-#include <dominatingset/ExhaustiveMDS.hpp>
+#include <algorithm>
 #include <chrono>
-#include <io/G6GraphReader.hpp>
 #include <fstream>
-#include<algorithm>
-#include<iterator>
+#include <iterator>
+#include <io/G6GraphReader.hpp>
 
-
-int dsSize(const std::vector<bool> &set) {
-    return std::count(set.begin(), set.end(), true);
-}
-
-// void printGraph(const NetworKit::Graph &graph) {
-//     std::cout << "graph\n";
-//     graph.forNodes([&graph](NetworKit::node u) {
-//         std::cout << u << " has neighbors [";
-//         graph.forEdgesOf(u, [u](NetworKit::node v) {
-//             std::cout << v << " ";
-//         });
-//         std::cout << "]\n";
-//     });
-// }
+#include <dominating_set/BranchAndReduceMDS.hpp>
+#include <dominating_set/BranchAndReduceMSC.hpp>
+#include <dominating_set/ExhaustiveMDS.hpp>
+#include <dominating_set/FominKratschWoeginger.hpp>
+#include <dominating_set/RooijBodlaenderMDS.hpp>
+#include <dominating_set/SchiermeyerMDS.hpp>
 
 template <typename A>
 void test_algo_g6(const std::string inputFileName) {
     std::ifstream inputStream(inputFileName);
-    assert(inputStream.good());    
+    assert(inputStream.good());  
     std::string g6Graph;
     int processed = 0;
     while (std::getline(inputStream, g6Graph)) {
@@ -44,7 +28,9 @@ void test_algo_g6(const std::string inputFileName) {
 
         assert(algo.isDominating(algo.getDominatingSet()));
         assert(exhaustive.isDominating(exhaustive.getDominatingSet()));
-        assert(dsSize(algo.getDominatingSet()) == dsSize(exhaustive.getDominatingSet()));
+        assert(
+            MinimumDominatingSet::dominatingSetSize(algo.getDominatingSet()) ==
+            MinimumDominatingSet::dominatingSetSize(exhaustive.getDominatingSet()));
 
         processed++;
         if ((processed % 100'000) == 0) {
@@ -124,7 +110,9 @@ void testReduceCalls() {
     }
     assert(algorithmA.isDominating(algorithmA.getDominatingSet()));
     assert(algorithmB.isDominating(algorithmB.getDominatingSet()));
-    assert(dsSize(algorithmA.getDominatingSet()) == dsSize(algorithmB.getDominatingSet()));
+    assert(
+        MinimumDominatingSet::dominatingSetSize(algorithmA.getDominatingSet()) ==
+        MinimumDominatingSet::dominatingSetSize(algorithmB.getDominatingSet()));
 
     for (int i = 0; i < graph.numberOfNodes(); i++) {
         assert(algorithmA.getDominatingSet().at(i) == algorithmB.getDominatingSet().at(i));
@@ -135,14 +123,16 @@ void testReduceCalls() {
 
 // https://users.cecs.anu.edu.au/~bdm/data/graphs.html
 int main() {
-    auto fileNames = {"input/graph2.g6", "input/graph3.g6", "input/graph4.g6", "input/graph5.g6", "input/graph6.g6", "input/graph7.g6", "input/graph8.g6", "input/graph9.g6", "input/graph10.g6"};
+    auto fileNames = {"input/graph2.g6", "input/graph3.g6", "input/graph4.g6", "input/graph5.g6", "input/graph6.g6", "input/graph7.g6", "input/graph8.g6", "input/graph9.g6"}; //"input/graph10.g6"};
     for (auto& name : fileNames) {
         std::cout << "run " << name << "\n";
-        // test_algo_g6<FominKratschWoegingerMDS>(name);
-        // test_algo_g6<SchiermeyerMDS>(name);
+        test_algo_g6<FominKratschWoegingerMDS>(name);
         test_algo_g6<SchiermeyerMDS>(name);
+        test_algo_g6<RooijBodlaenderMDS>(name);
+        test_algo_g6<BranchAndReduceMDS<RooijBodlaenderMSC>>(name);
+        test_algo_g6<BranchAndReduceMDS<FominGrandoniKratschMSC>>(name);
+        test_algo_g6<BranchAndReduceMDS<GrandoniMSC>>(name);
     }
-
     // testPowerOfTwoAdjacency<RooijBodlaenderMDS, BranchAndReduceMDS<RooijBodlaenderMSC>>(true);
     // testReduceCalls();
     // testPowerOfTwoAdjacency<BranchAndReduceMDS<FominGrandoniKratschMSC>, BranchAndReduceMDS<RooijBodlaenderMSC>>(false);

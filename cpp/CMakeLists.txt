@@ -1,5 +1,5 @@
 add_subdirectory(coloring)
-add_subdirectory(dominatingset)
+add_subdirectory(dominating_set)
 add_subdirectory(io)
 add_subdirectory(flow)
 add_subdirectory(graph)

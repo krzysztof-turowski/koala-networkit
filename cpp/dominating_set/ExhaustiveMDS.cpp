@@ -1,4 +1,4 @@
-#include <dominatingset/ExhaustiveMDS.hpp>
+#include <dominating_set/ExhaustiveMDS.hpp>
 
 ExhaustiveMDS::ExhaustiveMDS(const NetworKit::Graph &G) : MinimumDominatingSet(G) {}
 
@@ -8,23 +8,23 @@ void ExhaustiveMDS::run() {
         all_vertices.emplace_back(true);
     });
 
-    dominatingSet = reccursiveDominatingSubset(all_vertices, 0);
+    dominatingSet = recursiveDominatingSubset(all_vertices, 0);
 
     hasRun = true;
 }
 
-std::vector<bool> ExhaustiveMDS::reccursiveDominatingSubset(std::vector<bool> &superset, int depth) {
+std::vector<bool> ExhaustiveMDS::recursiveDominatingSubset(std::vector<bool> &superset, int depth) {
     if (depth == superset.size()) {
         return superset;
     }
     superset[depth] = false;
     if (isDominating(superset)) {
-        std::vector<bool> excluded = reccursiveDominatingSubset(superset, depth + 1);
+        std::vector<bool> excluded = recursiveDominatingSubset(superset, depth + 1);
         superset[depth] = true;
-        std::vector<bool> included = reccursiveDominatingSubset(superset, depth + 1);
+        std::vector<bool> included = recursiveDominatingSubset(superset, depth + 1);
         return smallerCardinalitySet(excluded, included);
     } else {
         superset[depth] = true;
-        return reccursiveDominatingSubset(superset, depth + 1);
+        return recursiveDominatingSubset(superset, depth + 1);
     }
 }
