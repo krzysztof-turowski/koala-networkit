@@ -76,8 +76,13 @@ Moreover, they set up an online graph editor <a href="http://web.archive.org/web
 ### <a name="algorithms"></a>List of algorithms
 
 1. [Reading and writing graphs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/io): [graph6](https://users.cecs.anu.edu.au/~bdm/data/formats.html), [sparse6](https://users.cecs.anu.edu.au/~bdm/data/formats.html), [digraph6](https://users.cecs.anu.edu.au/~bdm/data/formats.html),[DIMACS](http://prolland.free.fr/works/research/dsat/dimacs.html), [DIMACS binary](https://mat.tepper.cmu.edu/COLOR/format/README.binformat) formats
-2. [Vertex coloring](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/coloring/)
+2. [Graph recognition](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/recognition/): [perfect graphs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/recognition/PerfectGraphRecognition.hpp)
+3. [Graph traversal](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/traversal/): [BFS](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/traversal/BFS.hpp), [DFS](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/traversal/DFS.hpp)
+4. [Flow algorithms](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/flow/)
+    1. [Maximum flow](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/flow/MaximumFlow.hpp): King-Rao-Tarjan
+5. [Vertex coloring](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/coloring/)
     1. [Greedy heuristics](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/coloring/GreedyVertexColoring.hpp): RandomSequential, LargestFirst, SmallestLast, SaturatedLargestFirst, GreedyIndependentSet
+    2. [Grötschel-Lovász-Schrijver algorithm for perfect graphs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/coloring/PerfectGraphVertexColoring.hpp)
 
 For further planned changes, see the [Issues](https://github.com/krzysztof-turowski/koala-networkit/issues/) section.
 
@@ -93,7 +98,7 @@ To assess the speed of the algorithms we use primarily the publicly available St
 cmake -B build
 cmake --build build --parallel 4
 ```
-> Note: it may take a while to download and compile dependencies (googletest and networkit).
+> Note: it may take a while to download and compile dependencies (e.g. googletest, networkit, and boost).
 
 ## <a name="usage"></a>Usage
 

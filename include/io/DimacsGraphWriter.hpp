@@ -20,8 +20,7 @@ namespace Koala {
  *
  */
 class DimacsGraphWriter final : public NetworKit::GraphWriter {
-
-public:
+ public:
     DimacsGraphWriter() = default;
 
     /**

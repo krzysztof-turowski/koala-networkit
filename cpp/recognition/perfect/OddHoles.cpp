@@ -7,6 +7,7 @@
  */
 
 #include <cassert>
+#include <ranges>
 
 #include <networkit/linkprediction/NeighborhoodUtility.hpp>
 
@@ -32,14 +33,14 @@ bool is_path(const NetworKit::Graph &graph, const std::vector<NetworKit::node> &
     return true;
 }
 
-bool PerfectGraphRecognition::containsOddHole(const NetworKit::Graph &graph) {
+bool PerfectGraphRecognition::contains_odd_hole(const NetworKit::Graph &graph) {
     std::vector<NetworKit::node> path;
     return Koala::Traversal::NextPathInplace(
         graph, std::numeric_limits<NetworKit::count>::max(), path,
         Koala::Traversal::PathInplaceMode::INDUCED_ODD_HOLE);
 }
 
-bool PerfectGraphRecognition::containsHole(
+bool PerfectGraphRecognition::contains_hole(
         const NetworKit::Graph &graph, NetworKit::count length) {
     if (length <= 3) {
         return false;
@@ -49,11 +50,11 @@ bool PerfectGraphRecognition::containsHole(
         graph, length, path, Koala::Traversal::PathInplaceMode::INDUCED_CYCLE);
 }
 
-bool PerfectGraphRecognition::containsT1(const NetworKit::Graph &graph) {
-    return containsHole(graph, 5);
+bool PerfectGraphRecognition::contains_t1(const NetworKit::Graph &graph) {
+    return contains_hole(graph, 5);
 }
 
-bool PerfectGraphRecognition::containsT2(const NetworKit::Graph &graph) {
+bool PerfectGraphRecognition::contains_t2(const NetworKit::Graph &graph) {
     for (const auto &v1 : graph.nodeRange()) {
         for (const auto &v2 : graph.neighborRange(v1)) {
             for (const auto &v3 : graph.neighborRange(v2)) {
@@ -160,7 +161,7 @@ bool is_t3(const NetworKit::Graph &graph, const std::vector<NetworKit::node> &V,
     return !graph.hasEdge(V[4], V[5]) || !PerfectGraphRecognition::isComplete(graph, X, V[5]);
 }
 
-bool PerfectGraphRecognition::containsT3(const NetworKit::Graph &graph) {
+bool PerfectGraphRecognition::contains_t3(const NetworKit::Graph &graph) {
     for (const auto &v1 : graph.nodeRange()) {
         for (const auto &v2 : graph.neighborRange(v1)) {
             for (const auto &v5 : graph.nodeRange()) {
@@ -176,13 +177,8 @@ bool PerfectGraphRecognition::containsT3(const NetworKit::Graph &graph) {
                     Koala::Traversal::DFSFrom(
                         graph, v5, [&](auto v) { Fprim.insert(v); },
                         [&](auto v) {
-                            if (graph.hasEdge(v1, v) || graph.hasEdge(v2, v)) {
-                                return false;
-                            }
-                            if (isComplete(graph, X, v)) {
-                                return false;
-                            }
-                            return true;
+                            return !graph.hasEdge(v1, v) && !graph.hasEdge(v2, v)
+                                && !isComplete(graph, X, v);
                     });
                     std::set<NetworKit::node> F(Fprim.begin(), Fprim.end());
                     for (const auto &fp : Fprim) {
@@ -208,9 +204,7 @@ bool PerfectGraphRecognition::containsT3(const NetworKit::Graph &graph) {
                         auto v6 = *it6;
 
                         bool v4_has_nonneighbour_in_x = std::any_of(
-                            X.begin(), X.end(), [&](auto x) {
-                                return !graph.hasEdge(v4, x);
-                        });
+                            X.begin(), X.end(), [&](auto x) { return !graph.hasEdge(v4, x); });
                         if (!v4_has_nonneighbour_in_x) {
                             continue;
                         }
@@ -221,9 +215,7 @@ bool PerfectGraphRecognition::containsT3(const NetworKit::Graph &graph) {
                                 continue;
                             }
                             bool v3_has_nonneighbour_in_x = std::any_of(
-                                X.begin(), X.end(), [&](auto x) {
-                                    return !graph.hasEdge(v3, x);
-                            });
+                                X.begin(), X.end(), [&](auto x) { return !graph.hasEdge(v3, x); });
                             if (!v3_has_nonneighbour_in_x) {
                                 continue;
                             }

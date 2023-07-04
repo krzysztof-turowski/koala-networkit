@@ -2,6 +2,7 @@
 #include <iostream>
 #include <map>
 
+#include <coloring/PerfectGraphVertexColoring.hpp>
 #include <io/G6GraphReader.hpp>
 #include <recognition/PerfectGraphRecognition.hpp>
 
@@ -29,6 +30,11 @@ int main() {
         recognize.run();
         classification[recognize.getState()]++;
         recognize.check();
+        if (recognize.getState() == Koala::PerfectGraphRecognition::State::PERFECT) {
+            auto color = Koala::PerfectGraphVertexColoring(G);
+            color.run();
+            color.check();
+        }
     }
     for (const auto &[k, v] : classification) {
         std::cout << types[static_cast<int>(k)] << ": " << v << std::endl;

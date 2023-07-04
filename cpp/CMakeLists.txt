@@ -1,5 +1,6 @@
 add_subdirectory(coloring)
 add_subdirectory(io)
+add_subdirectory(flow)
 add_subdirectory(graph)
 add_subdirectory(recognition)
 add_subdirectory(traversal)

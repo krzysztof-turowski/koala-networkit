@@ -8,14 +8,13 @@
 
 #pragma once
 
+#include <optional>
 #include <vector>
 
 #include <networkit/base/Algorithm.hpp>
 #include <networkit/components/ConnectedComponents.hpp>
 #include <networkit/graph/Graph.hpp>
 #include <networkit/graph/GraphTools.hpp>
-
-#include <recognition/PerfectGraphRecognition.hpp>
 
 namespace Koala {
 
@@ -26,8 +25,7 @@ namespace Koala {
  *
  */
 class PerfectGraphRecognition : public NetworKit::Algorithm {
-
-public:
+ public:
     enum class State {
         UNKNOWN,
         PERFECT,
@@ -44,7 +42,7 @@ public:
      *
      * @param graph The input graph.
      */
-    PerfectGraphRecognition(const NetworKit::Graph &graph);
+    explicit PerfectGraphRecognition(NetworKit::Graph &graph);
 
     /**
      * Execute the perfect graph recognition procedure.
@@ -76,20 +74,20 @@ public:
         const NetworKit::Graph &graph, const std::vector<NetworKit::node> &X);
     static std::vector<std::vector<NetworKit::node>> getAuxiliaryComponents(
         const NetworKit::Graph &graph, const std::vector<NetworKit::node> &V);
-private:
-    const std::optional<NetworKit::Graph> graph;
+ private:
+    std::optional<NetworKit::Graph> graph;
     State is_perfect;
 
-    static State containsSimpleProhibited(const NetworKit::Graph &graph);
-    static bool containsJewel(const NetworKit::Graph &graph);
-    static bool containsPyramid(const NetworKit::Graph &graph);
-    static bool containsT1(const NetworKit::Graph &graph);
-    static bool containsT2(const NetworKit::Graph &graph);
-    static bool containsT3(const NetworKit::Graph &graph);
-    static bool containsNearCleanerOddHole(const NetworKit::Graph &graph);
+    static State contains_simple_prohibited(const NetworKit::Graph &graph);
+    static bool contains_jewel(const NetworKit::Graph &graph);
+    static bool contains_pyramid(const NetworKit::Graph &graph);
+    static bool contains_t1(const NetworKit::Graph &graph);
+    static bool contains_t2(const NetworKit::Graph &graph);
+    static bool contains_t3(const NetworKit::Graph &graph);
+    static bool contains_near_cleaner_odd_hole(const NetworKit::Graph &graph);
 
-    static bool containsOddHole(const NetworKit::Graph &graph);
-    static bool containsHole(const NetworKit::Graph &graph, NetworKit::count length);
+    static bool contains_odd_hole(const NetworKit::Graph &graph);
+    static bool contains_hole(const NetworKit::Graph &graph, NetworKit::count length);
 };
 
 } /* namespace Koala */

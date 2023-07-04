@@ -27,9 +27,9 @@ std::string G6GraphWriter::writeline(const NetworKit::Graph &G) {
     const NetworKit::count SHORT_N = 1, MEDIUM_N = 2, LONG_N = 6, LENGTH = 6;
     const NetworKit::count SHORT_NODES = 63, LONG_NODES = 258048;
     NetworKit::count nodes_length = SHORT_N;
-    if (nodes_length >= SHORT_NODES) {
+    if (G.numberOfNodes() >= SHORT_NODES) {
         output.push_back(HIGH), nodes_length = MEDIUM_N;
-        if (nodes_length >= LONG_NODES) {
+        if (G.numberOfNodes() >= LONG_NODES) {
             output.push_back(HIGH), nodes_length = LONG_N;
         }
     }
