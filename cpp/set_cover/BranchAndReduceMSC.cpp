@@ -1,6 +1,6 @@
 #include <cassert>
 
-#include <dominating_set/BranchAndReduceMSC.hpp>
+#include <set_cover/BranchAndReduceMSC.hpp>
 
 bool isSubset(
         std::set<NetworKit::node> &subsetCandidate,

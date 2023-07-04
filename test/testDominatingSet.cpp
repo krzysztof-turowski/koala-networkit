@@ -1,10 +1,10 @@
 #include <gtest/gtest.h>
 
 #include <dominating_set/BranchAndReduceMDS.hpp>
-#include <dominating_set/BranchAndReduceMSC.hpp>
 #include <dominating_set/ExhaustiveMDS.hpp>
 #include <dominating_set/FominKratschWoeginger.hpp>
 #include <dominating_set/SchiermeyerMDS.hpp>
+#include <set_cover/BranchAndReduceMSC.hpp>
 
 #include "helpers.hpp"
 

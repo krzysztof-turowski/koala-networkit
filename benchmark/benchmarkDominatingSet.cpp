@@ -3,11 +3,11 @@
 #include <map>
 
 #include <dominating_set/BranchAndReduceMDS.hpp>
-#include <dominating_set/BranchAndReduceMSC.hpp>
 #include <dominating_set/SchiermeyerMDS.hpp>
 #include <dominating_set/FominKratschWoeginger.hpp>
 #include <dominating_set/ExhaustiveMDS.hpp>
 #include <io/G6GraphReader.hpp>
+#include <set_cover/BranchAndReduceMSC.hpp>
 
 template <typename T>
 int run_algorithm(NetworKit::Graph &G) {
