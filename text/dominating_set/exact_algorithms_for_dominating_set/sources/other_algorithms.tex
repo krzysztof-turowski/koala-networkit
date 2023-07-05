@@ -1,12 +1,12 @@
-\section{Algorithms for minimum optional dominating set}
-Domination in graph can be generalised with a concept of optional domination \cite{SCHIERMEYER20083291}.
+\section{Algorithms for the minimum optional dominating set}
+Domination in the graph can be generalised with the concept of optional domination \cite{SCHIERMEYER20083291}.
 \begin{definition}[optional dominating set]
-    Given graph $G$ and a partition of $V(G)$ into disjoint sets $V_F, V_B, V_R$ a set $D \subseteq V(G)$ is called optional dominating set if $V_R \subseteq D$ and $V_B \subseteq N[D]$.
+    Given graph $G$ and a partition of $V(G)$ into disjoint sets $V_F, V_B, V_R$ a set $D \subseteq V(G)$ is called an optional dominating set if $V_R \subseteq D$ and $V_B \subseteq N[D]$.
 \end{definition}
 \begin{definition}[Minimum Optional Dominating Set Problem]
-Given a graph $G$ the Minimum Optional Dominating Set Problem asks for a optional dominating set of minimum cardinality. (abbreviated to MODS)
+Given a graph $G$ the Minimum Optional Dominating Set Problem asks for an optional dominating set of minimum cardinality. (abbreviated to MODS)
 \end{definition}
-$V_F, V_B, V_R$ stand for free vertices, bound vertices and required vertices, respectively.
+$V_F, V_B, V_R$ stand for free vertices, bound vertices, and required vertices, respectively.
 When $V_F, V_R = \emptyset$, the above is equivalent to dominating set. 
 
 \begin{definition}[induced subgraph]
@@ -15,17 +15,17 @@ When $V_F, V_R = \emptyset$, the above is equivalent to dominating set.
 
 \subsection{Algorithm of Fomin-Kratsch-Woeginger}
 The algorithm is described in \cite{FominKratschWoeginger10.1007/978-3-540-30559-0_21}.
-\par In 1996 \citeauthor{reed_1996} proved the following result in combinatorics:
+\par In 1996, \citeauthor{reed_1996} proved the following result in combinatorics:
 \textit{Graph $G$ of minimum degree at least three contains a dominating set $D$ of size at most $\frac{3}{8}|V(G)|$} \cite{reed_1996}.
-\par The following algorithm behaves like branch and reduce on vertices of degree 1 or 2. The difference is when eventually the minimum degree in graph is $\geq$ 3 (or $V = \emptyset$). Then it exhaustively checks all sets of cardinality $\leq \frac{3}{8}|V(G)|$ (what is done in exponential time, unlike for the branch and reduce algorithms).
-\par In the Algorithm \ref{alg:fkw} \textit{adding $x$ to the solution} means move $x$ to $V_R$ and move $N(v) \cap V_B$ to $V_F$.
+\par The following algorithm behaves like Branch and Reduce on vertices of degree 1 or 2. The difference is when eventually the minimum degree in the graph is $\geq$ 3 (or $V = \emptyset$). Then it exhaustively checks all sets of cardinality $\leq \frac{3}{8}|V(G)|$ (what is done in exponential time, unlike for the branch and reduce algorithms).
+\par In Algorithm \ref{alg:fkw} \textit{adding $x$ to the solution} means moving $x$ to $V_R$ and moving $N(v) \cap V_B$ to $V_F$.
 \begin{algorithm}
 \caption{Minimum Optional Dominating Set}
 \label{alg:fkw}
 \begin{algorithmic}[1]
 \Procedure{MODS}{$V_F, V_B, V_R, E(G)$} \Comment{$V(G) = V_F \cup V_B \cup V_R$}
-\State if there exists $u\in V_F$ with unique neighbor $v$, remove $u$ and call recursively
-\State if there exists $u\in V_B$ with unique neighbor $v$, add $v$ to the solution, remove $u$ and call recursively
+\State if there exists $u\in V_F$ with a unique neighbor $v$, remove $u$, and call recursively
+\State if there exists $u\in V_B$ with a unique neighbor $v$, add $v$ to the solution, remove $u$, and call recursively
 \State if there exists $v\in V_F$ with two neighbors $u_1, u_2$, consider three branches:
 \begin{enumerate}
     \item add $u_1$ to the solution and remove $v$
@@ -41,33 +41,33 @@ and then call recursively
 \end{enumerate}
 and then call recursively
 \State let $I \subseteq V_B$ be the set of that are isolated (of degree 0). Move $I$ to $V_R$.
-\State minimum degree in $G[V_F \cup V_B]$ is 3. Among all $S \subseteq V_F \cup V_B$ such that $|S| \leq \frac{3}{8}|V_F \cup V_B|$ choose minimum optional dominating set $S^*$ in $G[V_F \cup V_B]$ and return $S^* \cup V_R$
+\State the minimum degree in $G[V_F \cup V_B]$ is 3. Among all $S \subseteq V_F \cup V_B$ such that $|S| \leq \frac{3}{8}|V_F \cup V_B|$ choose the minimum optional dominating set $S^*$ in $G[V_F \cup V_B]$ and return $S^* \cup V_R$
 \EndProcedure
 \end{algorithmic}
 \end{algorithm}
 
-\textbf{Correctness} Let's consider branching only (lines 4-5), as the rest is trivial. There is some minimum cardinality solution $D$. Then one can observe that there must exist minimum cardinality solution $D'$ which satisfies either
+\textbf{Correctness.} Let's consider branching only (lines 4-5), as the rest is trivial. There is some minimum cardinality solution $D$. Then one can observe that there must exist a minimum cardinality solution $D'$ which satisfies either
 \begin{enumerate}
     \item $v \notin D' \text{ and } u_1 \in D'$
     \item $v \in D' \text{ and } u_1, u_2 \notin D'$
     \item $v, u_1 \notin D'$
 \end{enumerate}
-If $v \notin D$, then $D$ satisfies 1. or 3. Otherwise either $D$ satisfies 2., or $v$ and (at least) one of its neighbors is in $D$. Let $D'$ contain the other neighbor instead of $v$. Then $|D'| = |D|$ and $D'$ is a solution. Now for $i = 1,2,3$ $i-th$ branch on lines $4-5$ works under assumption that there exists $D'$ satisfying $i-th$ condition from above.  
+If $v \notin D$, then $D$ satisfies 1. or 3. Otherwise, either $D$ satisfies 2., or $v$ and (at least) one of its neighbors is in $D$. Let $D'$ contain the other neighbor instead of $v$. Then $|D'| = |D|$ and $D'$ is a solution. Now for $i = 1,2,3$ $i-th$ branch on lines $4-5$ works under the assumption that there exists $D'$ satisfying the $i-th$ condition from above.  
 \par\textbf{Complexity analysis}
-For graphs of minimum degree 3, the algorithm tests $O^*(\binom{n}{\lfloor\frac{3n}{8}\rfloor}) = O^*(1.93782^n)$ subsets. The analysis of branching rules uses recursive inequalities, similarly as for measure and conquer algorithms. Let $T(n)$ denote total number of subsets tested in all sub-calls of the algorithm. As mentioned, for leaf sub-instance $T(n) = O^*(1.93782^n)$. Branching on line 4 gives the following inequality
+For graphs of minimum degree 3, the algorithm tests $O^*(\binom{n}{\lfloor\frac{3n}{8}\rfloor}) = O^*(1.93782^n)$ subsets. The analysis of branching rules uses recursive inequalities, similarly to Measure and Conquer algorithms. Let $T(n)$ denote total number of subsets tested in all sub-calls of the algorithm. As mentioned, for leaf sub-instance $T(n) = O^*(1.93782^n)$. Branching on line 4 gives the following inequality
 $$
 T(n) \leq T(n-2) + T(n-3) + T(n-1)
 $$
-as $n-2, n-3, n-1$ are the number of vertices in the first, the second and the third branch, respectively. This inequality corresponds to some $\alpha_1 \approx 1.8393$ (inequality \eqref{alpha_inequality})
+as $n-2, n-3, n-1$ are the number of vertices in the first, second and third branch, respectively. This inequality corresponds to some $\alpha_1 \approx 1.8393$ (inequality \eqref{alpha_inequality})
 Similarly, branching on line 5 gives the following inequality
 $$
 T(n) \leq T(n-2) + T(n-3) + T(n-2)
 $$
 This inequality corresponds to some $\alpha_2 \approx 1.6180$ (inequality \eqref{alpha_inequality}).
 
-Putting both recurrences together we get $\alpha_1, \alpha_2 < 1.93782$, thus the algorithm finishes in $O^*(1.93782^n)$.
+Putting both recurrences together, we get $\alpha_1, \alpha_2 < 1.93782$, thus the algorithm finishes in $O^*(1.93782^n)$.
 \subsection{Algorithm of Schiermeyer}
-The algorithm is described in \cite{SCHIERMEYER20083291}. Its part is a pre-processing algorithm, which mutates an instance of $MODS$, obtaining equivalent one (with same cardinality of minimum optional dominating set), which satisfies some useful properties.
+The algorithm is described in \cite{SCHIERMEYER20083291}. Its part is a pre-processing algorithm that mutates an instance of $MODS$, obtaining equivalent one (with same cardinality of minimum optional dominating set), which satisfies some useful properties.
 \begin{algorithm}
 \caption{Core pre-processing}
 \label{alg:core}
@@ -88,14 +88,14 @@ The algorithm is described in \cite{SCHIERMEYER20083291}. Its part is a pre-proc
 
 One can observe the following properties about the core instance:
 \begin{itemize}
-    \item during pre-processing any vertex can be moved only the following way: from $V_B$ to $V_F$ or from $V_B$ to $V_R$ or from from $V_F$ to $V_R$
-    \item $v \in V_F \cup V_B \implies \deg(v) \geq 2$. Moreover $V_F$ is an independent set, so $v\in V_F \implies |N[v] \cap V_B| \geq 2$ 
-    \item if $u \in V_F \cup V_B, v\in V_R$, then $u,v$ are in different connected components. $MODS$ can be solved for each connected component separately, thus one can move whole $V_R$ to a set $D$ and remove them from considerations: $V_R = \emptyset$.
+    \item during pre-processing, any vertex can be moved only in the following ways: from $V_B$ to $V_F$ or from $V_B$ to $V_R$ or from $V_F$ to $V_R$
+    \item $v \in V_F \cup V_B \implies \deg(v) \geq 2$. Moreover, $V_F$ is an independent set, so $v\in V_F \implies |N[v] \cap V_B| \geq 2$ 
+    \item if $u \in V_F \cup V_B, v\in V_R$, then $u,v$ are in different connected components. $MODS$ can be solved for each connected component separately, so one can move whole $V_R$ to a set $D$ and remove them from considerations: $V_R = \emptyset$.
 \end{itemize}
 Suppose that $S$ is a subset of $V_F \cup V_B$, such that $3|S| \leq |N[S]|$ and $\forall_{v\notin S}$ $3|S \cup \{v\}| > |N[S \cup \{v\}]|$. Then the following hold:
 \begin{itemize}
     \item $v \notin N[S] \implies v$ has at most one neighbor in $V \setminus N[S]$.
-    \item $T', U', S', E' = \textsc{CORE}(V_F \setminus S, V_B\setminus S, S, E(G))$, then $U' \subseteq V \setminus N[S]$. Thus any connected component of $G[U']$ is an isolated vertex or two connected vertices.
+    \item $T', U', S', E' = \textsc{CORE}(V_F \setminus S, V_B\setminus S, S, E(G))$, then $U' \subseteq V \setminus N[S]$. Thus, any connected component of $G[U']$ is an isolated vertex or two connected vertices.
     \item $v \in T' \implies v$ has at most two neighbors in $U'$. Since $|N[v] \cap V_B| \geq 2$, $|N[v] \cap V_B| = 2$
 \end{itemize}
 
@@ -109,17 +109,17 @@ The following algorithm returns minimum cardinality optional dominating set.
 \State $V_F, V_B, V_R, E(G) \gets \textsc{CORE}(V_F, V_B, V_R, E(G))$
 \State $D \gets V_R$, $V_R \gets \emptyset$
 \State if $V_B = \emptyset$, return $D$
-\State check whether there exists $S \subseteq V_F \cup V_B$ such that $3|S| \leq |V_F \cup V_B|$ and $S$ is optional dominating set in $G[V_B \cup V_F]$. If exists, choose one with minimum cardinality and return $D \cup S$
+\State check whether there exists $S \subseteq V_F \cup V_B$ such that $3|S| \leq |V_F \cup V_B|$ and $S$ is optional dominating set in $G[V_B \cup V_F]$. If one exists, choose one with minimum cardinality and return $D \cup S$
 \ForEach {$S \subseteq V_F \cup V_B$, such that $3|S| \leq |N[S]|$ and $\forall_{v\notin S}$ $3|S \cup \{v\}| > |N[S \cup \{v\}]|$}
 \State $T', U', S', E' = \textsc{CORE}(V_F \setminus S, V_B\setminus S, S, E(G))$
 \State let $H = G[U']$. For all $u\in T', v_1, v_2 \in U'$ such that $\{u, v_1\}, \{u, v_2\} \in E', \{v_1, v_2\} \notin E'$ add $\{v_1, v_2\}$ to $E(H)$.
-\State compute maximum matching $M$ in $H$ (with added edges)
-\State let set $D_S$ consist of vertices not covered by $M$ as well as for each $e \in M$ add one $v \in T' \cup U'$, such that both endpoints of $e$ are its neighbors in $G' = (T' \cup U', E')$.   
+\State compute the maximum matching $M$ in $H$ (with added edges)
+\State let set $D_S$ consist of vertices not covered by $M$, and for each $e \in M$ add one $v \in T' \cup U'$, such that both endpoints of $e$ are its neighbors in $G' = (T' \cup U', E')$.   
 \EndFor 
 \State out of all $S$ considered on line 7 return $D \cup S' \cup D_S$ with minimum cardinality
 \EndProcedure
 \end{algorithmic}
 \end{algorithm}
 
-\textbf{Correctness} Core pre-processing returns an instance with the same cardinality of optimal solution, because for lines 6,7 of Algorithm \ref{alg:core} if $u, v$ with $N[u] \cap V_B \subseteq N[v] \cap V_B$ it is always fine to take $v$ instead of $u$ to the solution. If Algorithm \ref{alg:mods} finishes before line 7, it checks all possibilities of core instance. If it continues, then there exists some optimal solution $D^*$ with $D \subseteq D^*$ and $3|D^* \setminus D| > |V_F \cup V_B|$. Therefore $3|D^* \setminus D| > |N[D^* \setminus D]|$. Let $S^* \subseteq D^* \setminus D$ be a (greedily computed) set such that $3|S| \leq |N[S]|$ and $\forall_{v\notin S^*}$ $3|S^* \cup \{v\}| > |N[S^* \cup \{v\}]|$. $S^*$ is then one of the sets considered on line 7 and for $S^*$ algorithm returns $D\cup {S^*}' \cup D_{S^*}$. Since core pre-processing is correct, there exists optimal ${D^*}'$, such that ${S^*}' \subseteq {D^*}'$. It remains $|{D^*}' \cap (T' \cup U')| = |D_{S^*}|$. This is true, because $v\in T' \cup U' \implies |N[v] \cap U'| \leq 2$. Thus minimum dominating set is equivalent to minimum edge cover \ref{mecp}, which is de facto what the algorithm constructs.
-\par\textbf{Complexity analysis} Core pre-processing runs in polynomial time, because in each iteration either an edge or a vertex is deleted or a vertex is moved in direction $V_B \to V_F \to V_R$. On line 6 of Algorithm \ref{alg:mods} there are $O^*(\binom{n}{\lfloor\frac{n}{3}\rfloor}) = O^*(1.8899^n)$ sets considered. On line 7 condition $3|S| \leq |N[S]|$ implies $|S| \leq \frac{n}{3}$, there are at most $O^*(1.8899^n)$ such sets. All other computations can be performed in polynomial time, that gives $O^*(1.8899^n)$ time complexity.
+\textbf{Correctness.} Core pre-processing returns an instance with the same cardinality of optimal solution because, for lines 6,7 of Algorithm \ref{alg:core} if $u, v$ with $N[u] \cap V_B \subseteq N[v] \cap V_B$ it is always fine to take $v$ instead of $u$ to the solution. If Algorithm \ref{alg:mods} finishes before line 7, it checks all possibilities of core instance. If it continues, then there exists some optimal solution $D^*$ with $D \subseteq D^*$ and $3|D^* \setminus D| > |V_F \cup V_B|$. Therefore $3|D^* \setminus D| > |N[D^* \setminus D]|$. Let $S^* \subseteq D^* \setminus D$ be a (greedily computed) set such that $3|S| \leq |N[S]|$ and $\forall_{v\notin S^*}$ $3|S^* \cup \{v\}| > |N[S^* \cup \{v\}]|$. $S^*$ is then one of the sets considered on line 7 and for $S^*$ algorithm returns $D\cup {S^*}' \cup D_{S^*}$. Since core pre-processing is correct, there exists optimal ${D^*}'$, such that ${S^*}' \subseteq {D^*}'$. It remains $|{D^*}' \cap (T' \cup U')| = |D_{S^*}|$. This is true because $v\in T' \cup U' \implies |N[v] \cap U'| \leq 2$. Thus, the minimum dominating set is equivalent to minimum edge cover \ref{mecp}, which is de facto what the algorithm constructs.
+\par\textbf{Complexity analysis.} Core pre-processing runs in polynomial time because, in each iteration, either an edge or a vertex is deleted or a vertex is moved in the direction $V_B \to V_F \to V_R$. On line 6 of Algorithm \ref{alg:mods} there are $O^*(\binom{n}{\lfloor\frac{n}{3}\rfloor}) = O^*(1.8899^n)$ sets considered. On line 7 condition $3|S| \leq |N[S]|$ implies $|S| \leq \frac{n}{3}$, there are at most $O^*(1.8899^n)$ such sets. All other computations can be performed in polynomial time, which gives $O^*(1.8899^n)$ time complexity.
