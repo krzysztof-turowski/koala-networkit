@@ -2,7 +2,7 @@
 #include <iostream>
 #include <map>
 
-#include <coloring/EnumerationVertexColoring.hpp>
+#include <coloring/ExactVertexColoring.hpp>
 #include <io/G6GraphReader.hpp>
 
 template <typename T>

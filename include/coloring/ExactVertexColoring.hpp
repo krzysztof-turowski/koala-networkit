@@ -1,5 +1,5 @@
 /*
- * EnumerationVertexColoring.hpp
+ * ExactVertexColoring.hpp
  *
  * Created on: 06.02.2023
  *   Author: Zofia Glapa (zofia.glapa@student.uj.edu.pl)
@@ -19,14 +19,13 @@
 namespace Koala {
 
 class EnumerationVertexColoring : public NetworKit::Algorithm {
-
-public:
+ public:
     /**
      * Given an input graph, set up the enumeration vertex coloring procedure.
      *
      * @param graph The input graph.
      */
-    EnumerationVertexColoring(const NetworKit::Graph& graph);
+    explicit EnumerationVertexColoring(const NetworKit::Graph& graph);
 
     /**
      * Return the coloring found by the algorithm.
@@ -35,7 +34,7 @@ public:
      */
     const std::map<NetworKit::node, int> getColoring() const;
 
-protected:
+ protected:
     const std::optional<NetworKit::Graph> graph;
     std::vector<NetworKit::node> ordering;
     std::unordered_map<NetworKit::node, int> position;
@@ -56,26 +55,24 @@ protected:
 };
 
 class BrownsOrdinaryEnumerationVertexColoring : public EnumerationVertexColoring {
-
-public:
+ public:
     using EnumerationVertexColoring::EnumerationVertexColoring;
 
     void run();
 
-protected:
+ protected:
     std::vector<NetworKit::node> greedy_largest_first_ordering();
     void determine_current_predecessors(int r) override;
 };
 
 class ChristofidesEnumerationVertexColoring : public BrownsOrdinaryEnumerationVertexColoring {
-
-public:
+ public:
     using BrownsOrdinaryEnumerationVertexColoring::BrownsOrdinaryEnumerationVertexColoring;
 
     void run();
     const std::vector<std::vector<bool>>& getTransitiveClosure() const;
 
-protected:
+ protected:
     std::vector<std::vector<bool>> transitive_closure;
 
     void calculate_transitive_closure();
@@ -83,13 +80,12 @@ protected:
 };
 
 class BrelazEnumerationVertexColoring : public EnumerationVertexColoring {
-
-public:
+ public:
     using EnumerationVertexColoring::EnumerationVertexColoring;
 
     void run();
 
-protected:
+ protected:
     std::vector<NetworKit::node> saturation_largest_first_with_interchange();
     bool is_interchangeable(std::vector<int>& K,
     NetworKit::node new_node,
@@ -104,13 +100,12 @@ protected:
 };
 
 class KormanEnumerationVertexColoring : public BrownsOrdinaryEnumerationVertexColoring {
-
-public:
+ public:
     using BrownsOrdinaryEnumerationVertexColoring::BrownsOrdinaryEnumerationVertexColoring;
 
     void run();
 
-protected:
+ protected:
     std::vector<int> new_ordering;
 
     void dynamic_rearrangement(int i);

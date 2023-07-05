@@ -5,10 +5,10 @@
  *   Author: Zofia Glapa (zofia.glapa@student.uj.edu.pl)
  */
 
-#include <coloring/DRVertexQueue.hpp>
-#include <coloring/EnumerationVertexColoring.hpp>
+#include <coloring/ExactVertexColoring.hpp>
 #include <iostream>
 #include <limits>
+#include <networkit/auxiliary/BucketPQ.hpp>
 
 namespace Koala {
 
@@ -507,7 +507,7 @@ void BrelazEnumerationVertexColoring::run() {
 void KormanEnumerationVertexColoring::forwards() {
     std::vector<bool> is_colored(n, false);
     std::vector<std::unordered_set<int>> neighbour_colors(n);
-    DRVertexQueue queue;
+    Aux::BucketPQ queue(n, -n+1, 0);
 
     for (int i : new_ordering) {
         is_colored[i] = true;
@@ -520,13 +520,13 @@ void KormanEnumerationVertexColoring::forwards() {
     graph->forNodes([&](NetworKit::node u) {
         auto j = position[u];
         if (!is_colored[j]) {
-            queue.insert(j, neighbour_colors[j].size());
+            queue.insert(-neighbour_colors[j].size(), j);
         }
     });
 
     while (!queue.empty()) {
-        auto top = queue.pop();
-        auto node = top.node;
+        auto top = queue.extractMin();
+        auto node = top.second;
 
         new_ordering.push_back(node);
 
@@ -544,7 +544,7 @@ void KormanEnumerationVertexColoring::forwards() {
             auto j = position[v];
             if (!is_colored[j]) {
                 neighbour_colors[j].insert(current_solution[node]);
-                queue.updateValue(j, neighbour_colors[j].size());
+                queue.changeKey(-neighbour_colors[j].size(), j);
             }
         });
     }
