@@ -1,0 +1,69 @@
+\section{Problem statement}
+\begin{definition}[dominating set]
+Given a graph $G$ a dominating set $D$ in $G$ is subset of $V(G)$, which satisfies the property that every vertex $v \in V(G)\setminus D$ is adjacent to at least one $u \in D$.
+\end{definition}
+The property of being dominating set may be beneficial. For instance, one can consider a network of devices. Then the dominating set could be the set of transmitters and each device would be transmitter or have direct connection with a transmitter \cite{dijkstra2022weighted}. It would be convenient if the number of transmitters would be least possible. In the scenario of ad hoc computer network, connected dominating sets can utilized as virtual backbones \cite{BAI2020102023}. Some other applications of dominating set or its variants are summarized in \cite{levin2020combinatorial}
+
+\begin{definition}[Dominating Set Problem]
+When given an instance consisting of a graph $G$ and a natural number $k$ the problem of deciding whether there exists a dominating set of cardinality at most $k$ in $G$ is called Dominating Set Problem \cite{Garey90}
+\end{definition}
+As $V(G)$ is clearly a dominating set in $G$, one may consider the following optimization problem instead.
+\begin{definition}[Minimum Dominating Set Problem]
+Given a graph $G$ the Minimum Dominating Set Problem asks for a dominating set of minimum cardinality.
+\end{definition}
+Above problem will be abbreviated to MDS in the following.
+\begin{definition}[Vertex Cover Problem]
+When given an instance consisting of a graph $G$ and a natural number $k$ the problem of deciding whether there exists a subset $C$ of $V(G)$, such that every edge is adjacent to at least one $u \in C$  is called Vertex Cover Problem \cite{Garey90}
+\end{definition}
+As mentioned in \citeauthor{Garey90} \cite{Garey90}, Dominating Set Problem is NP-complete due to the reduction from Vertex Cover Problem. The latter was proven to be NP-complete in \cite{Karp1972}. Having a polynomial time algorithm for MDS would give a solution to Dominating Set Problem in polynomial time, which would imply $\mathrm{P} = \mathrm{NP}$. Nevertheless there are other techniques to approach this problem. 
+\begin{enumerate}
+    \item \textbf{Parameterized Algorithms.} For instance when in graph $G$ the shortest cycle is of length at least 5, there is the FPT (fixed parameter tractable) algorithm, parameterized by the cardinality parameter $k$ of an instance $(G, k)$ of Dominating Set Problem \cite{cygan2015parameterized}. Authors consider polynomial-time kernelization into an equivalent instance $(G', k)$ with $|V(G')| = O(k^3)$. Afterwards one can proceed with any exact algorithm described in the following sections. This means that for small $k$ and large $n$ such instances can be solved in $2^{O(k^3)}$. Despite that, in general Dominating Set Problem is a W[2]-complete problem \cite{downey1992fixed}.
+    \item \textbf{Approximation Algorithms.} One may want to obtain an approximation for MDS. There is a $\big(\ln(\Delta(G) + 1) + 1\big)$-approximation algorithm for MDS \cite{KLASING200475}, where $\Delta(G)$ is maximum degree of a vertex in $G$. In worst-case $\Delta(G) = |V(G)| - 1$. The idea of the algorithm is that in each iteration to choose a vertex with the most adjacent vertices which are not dominated. However there is no $\epsilon$ for which there would exist an  $(1-\epsilon)\ln(|V(G)|)$-approximation algorithm unless NP $\subseteq$ DTIME$(|V(G)|^{O(\log \log(|V(G)|))})$ \cite{KLASING200475}.
+    \item One may be unsatisfied with $\big(\ln(\Delta(G) + 1) + 1\big)$-approximation or just may need exact solution. One may seek algorithms which are faster than exhaustive (brute-force) algorithms, as well as consider worst-case complexity bounds for each such algorithm. Having an $2^{o(V(G))}$ algorithm for MDS would imply that SNP $\subseteq$ SUBEXP \cite{FominKratschWoeginger10.1007/978-3-540-30559-0_21} or equivalently \textit{Exponential Time Hypothesis} fails \cite{Impagliazzo10.1006/jcss.2000.1727}. Due to the latter, some researchers are focused on providing exact algorithms for MDS running in time $O^*(c^{|V(G)|})$ with the smallest possible $c > 1$.
+\end{enumerate}
+Now we proceed to a related covering problem:
+\begin{definition}[set cover]
+Set cover $\mathcal{C}$ of a set $\mathcal{U}$ is any family of sets satisfying $\bigcup_{S\in \mathcal{C}} S = \mathcal{U}$
+\end{definition}
+\begin{definition}[Set Cover Problem]
+When given an instance consisting of $\mathcal{U}$, $\mathcal{S}$, such that $\mathcal{U} = \bigcup_{S\in\mathcal{S}} S$ and an integer $k$, the problem of deciding whether there exists a set cover $\mathcal{C} \subseteq \mathcal{S}$ with $|\mathcal{C}| \leq k$ (minimum cover in \cite{Garey90}).
+\end{definition}
+\begin{definition}[Minimum Set Cover Problem]
+Given an instance consisting of $\mathcal{U}$, $\mathcal{S}$, such that $\mathcal{U} = \bigcup_{S\in\mathcal{S}} S$, Minimum Set Cover Problem asks to find a set cover of minimum cardinality.
+\end{definition}
+Above problem will be abbreviated to MSC in the following. MSC is well-defined because $\mathcal{S}$ is a valid set cover. In the process of refining their MDS algorithms one may decide to generalize the original problem or to transform it into another problem in order to achieve better complexity of the algorithm. In the case of MDS one of such ways to do so is considering equivalent MSC instances. One may observe that an instance of MDS can be transformed to an instance of MSC, substituting $\mathcal{U} = V(G)$, $\mathcal{S} = \{N[v] : v\in V(G)\}$ \cite{VANROOIJ20112147}. Observe that a subset $D$ of $V(G)$ is a dominating set of $G$ if and only if $\bigcup_{v\in D} N$[$v$] = $V(G)$. Moreover if $D$ is minimum dominating set then $D$ and $\{N$[$v$]\ : $v\in D$\} have the same cardinalities. The other way a solution to MSC in which each $S\in \mathcal{S}$ is of the form $\{N$[$v$]\ : $v\in V(G)$\} can be translated into corresponding MDS solution of equal cardinality. That means one may transform any instance of MDS into an instance of MSC, solve this broader problem and given minimum set cover use association between sets of MSC with corresponding vertices of MDS to obtain construction of a dominating set of minimum cardinality.
+\begin{algorithm}
+\caption{Minimum dominating set algorithm}\label{alg:mds_to_msc}
+\begin{algorithmic}[1]
+\Procedure{MDS}{$G$}
+\State MSC($V(G)$, \{$N[v] : v\in V(G)\}$)
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+Although MSC is NP-complete in general \cite{Karp1972}, it can be solved in polynomial time in the case when each $S\in \mathcal{S}$ is of cardinality 2. Then one can associate each set in $\mathcal{S}$ with an edge in graph. 
+\begin{definition}[edge cover]
+Given a graph $G$ an edge cover $E'$ is a subset of $E(G)$ such that for any vertex $u \in V(G)$ there exists an edge $e \in E'$ containing $u$ \cite{Garey90}.
+\end{definition}
+\begin{definition}[Minimum Edge Cover Problem]\label{mecp}
+Given a graph $G$, containing no isolated vertices, the Minimum Edge Cover Problem asks for an edge cover of minimum cardinality.
+\end{definition}
+Minimum Edge Cover Problem can be solved by computing a maximum matching $\mathcal{M}$ of cardinality $m$. The latter has polynomial algorithm for an arbitrary graph $G$ \cite{edmonds_1965}. Then for each yet uncovered vertex choose an arbitrary edge adjacent to it \cite{VANROOIJ20112147}. Observe that the cardinality of this edge cover equals $m + (|V(G)| - 2m) = |V(G)| - m$ and is minimum possible. Indeed, suppose conversely that there exists edge cover $\mathcal{R}$ of cardinality $r < |V(G)| - m$. Assign to each $v \in V(G)$ an edge $e_v$ which covers $v$. Since each edge was assigned to at most 2 vertices, there are at least $|V(G)| - r$ edges which were assigned to exactly 2 vertices. These form a matching of cardinality greater than $m$, contradiction.
+
+In order to provide faster algorithms for computationally hard (exponential) problems like MDS, researchers started to seek patterns in a given instance so to avoid checking all possible candidates for a solution.
+In the following part exponential time, polynomial space algorithms are presented, together with their analysis. In the next section Measure and Conquer technique is introduced, together with Branch and Reduce algorithms, which can be analyzed with it. In the succeeding section other techniques are used: one algorithm of Schiermeyer and one of Fomin, Kratsch, Woeginger is described. In the last section some results of the implementations' executions are illustrated. The following table presents an overview of known exact algorithms. Algorithms which have been implemented are in bold. In addition exhaustive algorithm (running in $O^*(2^n)$) was implemented. Worth noting is that best bound was obtained by \citeauthor{iwata10.1007/978-3-642-28050-4_4}, who used Potential Method in the analysis of his algorithm.
+\begin{table}[ht]
+    \centering
+    \begin{tabular}{c|c|c|c}
+        \textbf{Refs} & \textbf{Authors} & \textbf{Year} & \textbf{Time} \\ \hline
+        \textbf{\cite{FominKratschWoeginger10.1007/978-3-540-30559-0_21}} & \textbf{Fomin, Kratsch, Woeginger} & \textbf{2004} & $O(1.9379^n)$\\
+        \textbf{\cite{grandoni2004,GRANDONI2006209}} & \textbf{Grandoni} & \textbf{2004/2006} & $O(1.9053^n)$\\
+        \textbf{\cite{schiermeyer2004,SCHIERMEYER20083291}} & \textbf{Schiermeyer} & \textbf{2004/2008} & $O(1.8899^n)$\\
+        \cite{fgps10.1007/11602613_58} & Fomin, Grandoni, Pyatkin, Stepanov & 2005 & $O(1.7697^n)$ \\
+        \textbf{\cite{DBLP:journals/eatcs/FominGK05,10.1007/11523468_16,10.1145/1552285.1552286}} & \textbf{Fomin, Kratsch, Grandoni} & \textbf{2005/2009} & $O(1.5263^n)$\\
+        \cite{vanrooij2008design} & van Rooij, Bodlander & 2008 & $O(1.5134^n)$ \\
+        \textbf{\cite{VANROOIJ20112147}} & \textbf{van Rooij, Bodlander} & \textbf{2011} & $O(1.4969^n)$ \\
+        \cite{iwata10.1007/978-3-642-28050-4_4} & \citeauthor{iwata10.1007/978-3-642-28050-4_4} & 2011 & $O(1.4864^n)$
+    \end{tabular}
+    \caption{Known Minimum Dominating Set algorithms, which use polynomial space. The implemented algorithms are presented in bold.}
+\end{table}
