@@ -169,7 +169,7 @@ void BrownsOrdinaryEnumerationVertexColoring::run() {
     upper_bound = graph->numberOfNodes();
     n = graph->numberOfNodes();
     r = 0;
-    ub = upper_bound;
+    ub = upper_bound + 1;
     feasible_colors.resize(n);
     feasible_colors[0].insert(1);
     current_solution.resize(n);
@@ -232,7 +232,7 @@ void ChristofidesEnumerationVertexColoring::run() {
     upper_bound = graph->numberOfNodes();
     n = graph->numberOfNodes();
     r = 0;
-    ub = upper_bound;
+    ub = upper_bound + 1;
 
     calculate_transitive_closure();
 
