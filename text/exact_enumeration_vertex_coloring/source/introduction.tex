@@ -1,0 +1,119 @@
+%History%
+Graph coloring is a frequently studied problem of graph theory and it is also one of the oldest in this field. Its beginnings can be traced back to the 1850s when Francis Guthrie, a mathematics student, made an observation while studying the administrative map of England. He noticed that it was possible to color the counties on the map using only four colors in such a way that no two adjacent counties shared the same color. In 1879 the Four Color Problem, stating that any map on the plane can be colored with 4 colors, was proposed. Later that year 
+Kempe \cite{kempe1879geographical}
+gave the first proof, in which he designed a method of obtaining such coloring. This was proven to be false in 1890 by 
+Heawood \cite{heawood1890map},
+who however managed to prove the problem for five colors using Kempe's technique.
+The concept of the chromatic polynomial was introduced in 1912 by
+Birkhoff \cite{birkhoff1912determinant}
+in an unsuccessful attempt to solve the problem.
+FCP was finally proved in 1976 by 
+Appel and Hanken \cite{appel1976every}
+. That proof was one of the first to strongly rely on computer assistance. Later more proofs for the problem were presented, requiring less computation like that by
+Seymour and Robertson \cite{robertson1996efficiently}.
+Meanwhile, the general problem became more popular with 
+Brooks \cite{brooks1941colouring}
+bounding the chromatic number by the degree of the graph and
+Grotzsch \cite{grotzsch1959dreifarbensatz}
+showing that every planar graph not containing a triangle is 3-colorable.
+
+%NP-completeness%
+The chromatic number problem was shown to be NP-complete by 
+Karp \cite{karp2010reducibility}
+in 1972 by a reduction from the boolean satisfiability problem, which was earlier proved to be NP-complete by 
+Cook \cite{cook1971complexity}
+.
+
+%Applications%
+Over the years various practical applications were discovered for graph coloring. One of them is register allocation in compilers -- i.e. the problem of optimally assigning variables used in a program to processor registers and managing the necessary data transfers between them. The first graph coloring approach was proposed by
+Chaitin et al. \cite{chaitin1981register}
+in 1981. The idea was to represent the variables as vertices in a graph, creating an edge between each pair that need to live simultaneously during the program's execution. This was later improved by
+Briggs et al. \cite{briggs1994improvements}
+in 1992 with the introduction of conservative coalescing and biased coloring.
+
+Graph coloring also becomes useful in various scheduling problems such as timetabling (de Werra \cite{de1985introduction}), assigning frequencies to mobile radio telephones (Roberts \cite{roberts}), printed circuit testing (Garey, Johnson \cite{1084138}) or pattern matching (Ogawa \cite{ogawa1986labeled}).
+
+%Definitions%
+\section{Basic graph definitions}
+Graph definitions as stated by Dietzel in Graph Theory [3rd edition] \cite{diestel2005graph}
+\begin{defn}[graph]
+	\label{def:graph}
+	A graph is a pair $G = (V, E)$ of sets such that $E \subseteq [V]^2$; thus, the elements of $E$ are $2$-element subsets of $V$. The elements of $V$ are the vertices of the graph $G$, and the elements of E are its edges.
+\end{defn}
+\begin{defn}[subgraph]
+	\label{def:subgraph}
+	If for two graphs $G = (V,E)$ and $G' = (V', E')$ $V' \subseteq V$ and $E' \subseteq E$ then $G'$ is a subgraph of $G$, written as $G' \subseteq G$.
+\end{defn}
+\begin{defn}[induced subgraph]
+	\label{def:inducedSubgraph}
+	If for two graphs $G = (V,E)$ and $G' = (V', E')$ $G' \subseteq G$ and $G'$ contains all the edges $xy \in E$ with $x,y \in V'$ then $G'$ is an induced subgraph of $G$.
+\end{defn}
+\begin{defn}[complete graph]
+    \label{def:completeGraph}
+    If all the vertices of $G$ are pairwise adjacent, then $G$ is complete. A complete graph on $n$ vertices is a $K^n$.
+\end{defn}
+\begin{defn}[clique]
+    \label{def:clique}
+    A maximal complete subgraph of a graph is a clique.
+\end{defn}
+\begin{defn}[vertex coloring]
+	\label{def:coloring}
+	A vertex coloring of a graph $G=(V, E)$ is map $c: V\rightarrow S$ such that $c(v) \neq c(w)$ whenever $v$ and $w$ are adjacent.
+\end{defn}
+\begin{defn}[chromatic number]
+	\label{def:chromaticNumber}
+	The chromatic number of a graph $G=(V, E)$ denoted by $\chi(G)$ is the smallest integer $k$ such that $G$ has a $k$-coloring, a vertex coloring $c: V\rightarrow \{ 1, \dots , k \}$.
+\end{defn}
+
+%Different approaches to solving NP-hard problems
+% - Approximate
+% - Parametrized
+% - Exact (exponential)
+%   -> Branch and bound
+%   -> Inclusion exclusion
+
+\section{Different approaches to solving graph coloring related problems}
+Two main types of the problem can be recognized -- the \textit{decision} problem of finding whether a graph can be $k$-colorable or the \textit{optimization} problem of finding the chromatic number.
+We may describe the ideal graph coloring algorithm as one that finds an exact solution for all graphs in a reasonable amount of time -- polynomial in the graph's size. Since the problem is NP-hard we suppose that it does not exist and as such one of these requirements has to be broken to give a working algorithm.
+
+Breaking the requirement for finding the exact solution yields an approximate algorithm. The approximate algorithms for optimization problems are polynomial time algorithms that produce a solution whose value is within a certain factor of the value of an optimal one. For graph coloring the performance guarantee is the worst-case ratio between the actual number of colors used by the algorithm and the chromatic number of the graph \cite{williamson2011design}.
+In 1974
+Johnson \cite{johnson1973approximation}
+presented an algorithm that achieved the performance guarantee of $O(n/\log n)$. This result was later improved by
+Widgerson \cite{wigderson1983improving}
+, who achieved the guarantee of $O(n(\log \log n)^2/(\log n)^2)$. The most recent improvement by
+Halldorsson \cite{halldorsson2015progress}
+achieved $O(n(\log \log n)^2/(\log n)^3)$. In 1995
+Bellare et al. \cite{bellare1998free}
+showed that for any arbitrary $\epsilon > 0$, there is no polynomial time approximation algorithm with the factor of $n^{\frac{1}{5} - \epsilon}$
+
+The parameterized approximation algorithms allow relaxation on the time complexity -- these algorithms produce an approximate solution to optimization problems in polynomial time in the input size and a function of a given parameter. The problems which require exponential time in the size of the parameter and polynomial in the size of the input are called fixed-parameter tractable, as they can be solved for small parameter values. Since \textit{3-coloring} is known to be NP-complete, under the assumption that $\mathrm{P}=\mathrm{NP}$ the graph coloring problem parametrized by the number of colors $k$ cannot be in FPT (and even in XP) because otherwise there would exist an algorithm running in time $f(k) n^{g(k)}$ for $k=3$.
+However, when parametrized by the treewidth of the graph the problem of vertex coloring is known to be W[1]-hard \cite{cygan2015parameterized}.
+
+However, if the exact solution is needed then we must fall back to exponential time algorithms. The dynamic programming algorithm presented in 1976 by
+Lawler \cite{lawler1976note}
+%25. Lawler, E.L.: A note on the complexity of the chromatic number problem. Inf. Process. Lett. 5(3), 66–67 (1976)%
+finds the optimal solution in $O(2.443^n)$. This was later improved in 2003 by 
+Eppstein \cite{eppstein2002small}
+to $O(2.4150^n)$
+and in 2004 by
+Byskov \cite{byskov2004enumerating} to $(2.4023^n)$.
+In 2008
+Bj\"orklund and Husfeldt \cite{bjorklund2008exact}
+improved these results using fast matrix multiplication achieving the complexity of $O(2.2326^n)$.
+. The current best result of $O^*(2^n)$  was presented by
+Bj\"orklund et al. \cite{doi:10.1137/070683933}
+using the inclusion-exclusion principle and fast zeta transform. These algorithms however use exponential space which is not ideal in the real-world scenario, where although time can be spared the space is obviously limited. Therefore exact polynomial space algorithms are sometimes preferred, even though they come at a cost of increased time complexity.
+One of the first polynomial space algorithms was described by 
+Zykov \cite{zykov1949some}
+in 1949 with the time complexity of $O(2^{n^2})$. In 1972 the idea of coloring with branch \& bound algorithms was presented by 
+Brown \cite{brown1972chromatic}
+with time complexity of $O^*(n!)$. This algorithm was later modified by 
+Christofides \cite{christofides1975graph},
+Brelaz \cite{brlaz1979new},
+and Korman \cite{korman1979graph}.
+In 2006 Bodleander and Kratsch \cite{bodlaender2006exact} gave an $O(5.283^n)$ dynamic programming algorithm. The current best polynomial space results are achieved using the inclusion-exclusion principle. 
+Bjorklund and Husfeldt \cite{Bjrklund2006InclusionExclusionBA}
+presented a method of converting an $O^*(x^n)$ algorithm for counting independent sets into $O^*((1+x)^n)$ time and polynomial space algorithm for vertex coloring by using the inclusion-exclusion principle. Recently, Gaspers and Lee \cite{gaspers2023faster} published an $O^*(1.2356^n)$ algorithm for the \#IS problem yielding an $O^*(2.2356^n)$ time and polynomial space algorithm for graph coloring. 
+
+The main focus of this paper is the branch \& bound approach. The four algorithms mentioned earlier are presented in detail in the next section.  The implementations are based on the work of Kubale and Jackowski \cite{10.1145/3341.3350} who gathered the above and gave a general frame algorithm for finding the optimal coloring.

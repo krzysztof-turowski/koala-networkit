@@ -20,8 +20,7 @@ namespace Koala {
  *
  */
 class G6GraphReader final : public NetworKit::GraphReader {
-
-public:
+ public:
     G6GraphReader() = default;
 
     /**
