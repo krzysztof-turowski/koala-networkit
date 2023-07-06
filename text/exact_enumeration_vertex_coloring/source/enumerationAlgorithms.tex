@@ -1,0 +1,543 @@
+In this section, we will describe a family of enumeration algorithms (also called branch and bound algorithms) that are used to solve graph coloring problems. These algorithms explore all possible solutions to find the optimal one. We will then cover four such algorithms in detail.
+
+\section{General idea}
+
+Let's imagine a depth-first search like traversal where the nodes are partial colorings and the leaves are total colorings of a given graph $G$. We will limit the tree only to contain proper colorings on its nodes, i.e. the algorithm will not follow the path that would lead to an invalid solution. Let $\{0, \dots, n - 1\}$ be a set of vertices and $\{1, \dots, n\}$ be the set of all possible colors. The algorithm starts at the solution tree's root -- a node with the vertex $0$ given the color 1. Then at the $i$th level in the tree, the node will contain a partial solution up to the $i$th vertex. To decide which nodes should be created and/or traversed next, the algorithm will determine the set of \textit{feasible colors} -- denoted $FC$ -- values from the color set that can be assigned to the $(i+1)$th vertex without conflicting with the partial solution. The suitable edges and nodes will be created and the algorithm will follow by choosing the smallest colored edge and going down that branch. When the algorithm reaches the leaf it will compare the solution at the leaf to the best one so far and replace it in case of finding a better one. In that way, all valid colorings will be found and the best one will be returned.
+While this approach requires traversing the whole solution tree there are some improvements that can be made to omit some branches:
+\begin{itemize}    
+    \item the number of colored edges going down from a node can be decreased to contain only edges up to the current maximum color $m$ + 1, since if the solution would need the color $m + 2$ while still using the $m+1$ further in the path, then we could swap them, 
+    \item since we are only interested in the best solution then after reaching the leaf node we can go back in the tree to the point where the current maximum color $m$ was used and only consider the nodes before that one in the current path as only these may influence that vertex's color.
+\end{itemize}
+This description has a few gaps and the way how following algorithms fill them is what differentiates them.
+For each one, we will define four crucial features:
+\begin{enumerate}
+    \item Initialization -- lower and upper bounds on the chromatic number and the initial order of the vertices 
+    \item Rearrangement -- whether and how the vertices are rearranged in the course of the algorithm
+    \item Determining feasible colors for vertices -- how to decide which edges should go down from the current node in the tree
+    \item Deciding which subtrees can be skipped in the backtrack because they would not produce a better solution
+\end{enumerate}
+% \subsection{Useful terms}
+% \begin{itemize}
+%     \item $G$ - a graph with $n$ vertices
+%     \item FC - \textit{feasible colors} - the set of colors that can be assigned to the vertex
+%     \item $lb, ub$ - lower and upper bound on the chromatic number of $G$
+%     \item \textit{resumption point} - the vertex at which we start the forward step after a backtrack
+%     \item $BS, CS$ - best and current solution
+% \end{itemize}
+
+\section{Brown's algorithm}
+\label{sec:BA}
+The simplest algorithm, most similar to the idea presented above contains 2 main parts: the forward step (going down the solution tree) and the backward step (backtracking) which interchange in the main loop. The run procedure initializes the ordering on the vertices and sets trivial bounds on the chromatic number. This algorithm uses the \textsc{Greedy Largest First} ordering on the vertices, namely for $i$th in the ordering it has more neighbors in the set $\{0,  \dots, i-1\}$ than any of the vertices from $\{i+1, \dots, n-1\}$. The vertex with the maximal degree is chosen as the first one and ties are broken by checking for a higher degree. Then, in repeat, the algorithm executes the forward step while searching for a total coloring. After the forward step, if the solution has been found the backtrack starting point is set to the first vertex with the maximal color, the best solution is replaced, and the upper bound is lowered to the highest used color. When the execution ends early and the solution has not been found, the starting point is set to the last seen vertex. Then the backward step is executed which corresponds to backtracking through the solution tree in pursuit of a possibly better solution. After the backtrack finds a possible resumption point of the \textsc{Forwards} procedure -- a vertex that can be recolored while still keeping the upper bound -- it returns execution back to the forward step. The algorithm ends when either the upper bound matches the lower bound or the backtrack reaches the first vertex completing the traversal.
+\newpage
+\begin{alg}[Brown's algorithm]
+	\label{alg:mainloopBrown}
+ \end{alg}
+
+\begin{algorithmic}[1]
+ \Statex \textbf{Global variables:}
+ \Statex $lb, ub$: lower and upper bounds
+	\mProcedure{run}{$G$}
+    \ls $ordering \gets$ \Call{GreedyLargestFirst}{$G$}
+    \ls $lb \gets 1$
+    \ls $ub \gets$ \Call{$G$.size}{}
+    \ls $r \gets 0$
+	\mWhile{\TRUE}
+		\ls \Call{Forwards}{$G$, $r$}
+        \mIf{$ub = lb$}
+            \ls \BREAK
+        \mEndIf
+        \ls \Call{Backwards}{$G$, $r$}
+        \mIf{$r = 0$}
+            \ls \BREAK
+        \mEndIf
+    \mEndWhile
+	\mEndProcedure
+\end{algorithmic}
+\vspace{10pt}
+The \textsc{Forwards} procedure initiated at the $r$th vertex loops through all remaining vertices, updates their feasible colors, and assigns them the smallest possible color. If some vertex cannot be assigned any color, then the execution stops and it is returned to be used as an entry point for backtracking. After the algorithm successfully colors all vertices the new solution is saved as the best one and the upper bound is updated. The vertex which was the first to reach maximum color is returned for \textsc{Backwards}.\vspace{10pt}
+\begin{algorithmic}[1]
+ \Statex \textbf{Global variables:}
+ \Statex $n$: number of vertices
+ \Statex $lb, ub$: lower and upper bounds
+ \Statex CS: current solution
+ \Statex BS: best solution
+ \Statex FC: map of feasible colors sets
+    \mProcedure{Forwards}{$G$, $r$}
+    \mFor{$i \gets r$ to $n-1$}
+        \ls FC[$i$] $\gets$ \Call{determineFeasibleColors}{i}
+        \mIf{FC[$i$] $= \emptyset$}
+            \ls $r \gets i$
+            \ls \RETURN
+        \mEndIf
+        \ls CS[$i$] $\gets$ FC[$i$].\Call{begin}{}
+    \mEndFor
+    \ls $ub \gets $ \Call{getMaxColor}{CS}
+    \ls $r \gets $ \Call{getMaxColorNode}{CS}
+    \ls BS $\gets$ CS
+	\mEndProcedure
+\end{algorithmic}
+\vspace{10pt}
+The \textsc{Backwards} procedure iterates back through $CP$ vertices, checks whether it's possible to assign them a different color, and if so proceeds to \textsc{Forwards} with that color. If not then it continues with the next $CP$ vertex. Since recoloring the first vertex will not make a difference, $r$ is assigned 0 after finishing the loop to signal that the algorithm has ended.
+\vspace{10pt}
+\begin{algorithmic}[1]
+ \Statex \textbf{Global variables:}
+ \Statex CS: current solution
+ \Statex FC: map of feasible colors sets
+	\mProcedure{Backwards}{$r$}
+        \ls CP $\gets$ \Call{determineCurrentPredeccessors}{$r$}
+        \mWhile{CP $\neq \emptyset$}
+            \ls $i \gets $ \Call{CP.front}{$ $}
+            \ls \Call{FC[$i$].erase}{CS[$i$]}
+            \mIf{FC[$i$] $\neq \emptyset$ and \Call{FC[$i$].begin}{$ $} $ < ub$}
+                \ls $r \gets i$
+                \ls \RETURN
+            \mEndIf
+        \mEndWhile
+        \ls $r \gets 0$
+	\mEndProcedure
+\end{algorithmic}
+\vspace{10pt}
+The \textsc{GreedyLargestFirst} procedure finds the GLF ordering on the vertices. It starts with adding the maximum degree vertex to the ordering, then it creates and maintains a queue of yet uncolored vertices sorted decreasingly by the number of already ordered neighbors with ties broken by taking the one with a larger degree.
+Subsequent vertices from the queue are added to the ordering, updating the remaining vertices' neighbors count after each pop.
+\vspace{10pt}
+\begin{algorithmic}[1]
+	\mProcedure{GreedyLargestFirst}{$G$}
+    \ls $ordering \gets []$
+    \ls $m \gets $ \Call{GetMaxDegreeNode}{$G$}
+    \ls $Q \gets $ \Call{Queue}{$ $} \Comment{sorted decreasingly by (number of already ordered neighbors, degree) pair} 
+    \mForEach{$u \in$ $m$\Call{.GetNeighbors}{$ $}}
+            \ls \Call{$Q$.push}{$u$}
+    \mEndFor
+    \mWhile{$Q$ $\neq \emptyset$}
+        \ls $v \gets $ \Call{$Q$.pop}{$ $}
+        \ls \Call{$ordering$.push}{v}
+        \mForEach{$u$ $\in$ $v$\Call{.GetNeighbors}{$ $}}
+            \ls $u$\Call{.NeighborsInOrdering}{}++
+        \mEndFor
+    \mEndWhile
+    \ls \RETURN$ordering$
+	\mEndProcedure
+\end{algorithmic}
+\vspace{10pt}
+The set of feasible colors for each vertex is determined in the following way: $FC[i] = \{1\dots \min{(C+1, ub -1)}\} \setminus NC[i] $, where $C$ is the maximum color used in the coloring so far and $NC[i]$ is the set of colors of the neighbors of $i$.
+\vspace{10pt}
+\begin{algorithmic}[1]
+ \Statex \textbf{Global variables:}
+ \Statex $lb, ub$: lower and upper bounds
+ \Statex CS: current solution
+	\mProcedure{DetermineFeasibleColors}{$i$}
+        \ls FC $\gets \{\}$
+        \ls $C \gets$ \Call{getMaxColor}{CS}
+        \mFor{$c = 1$ to \Call{min}{$C+1$, $ub-1$}}
+            \ls \Call{FC.push}{$c$}
+        \mEndFor
+        \mForEach{$u$ $\in$ $i$\Call{.neighbors}{}}
+            \ls \Call{FC.erase}{CS[$u$]}
+        \mEndFor
+        \ls \RETURN FC
+	\mEndProcedure
+\end{algorithmic}
+\vspace{10pt}
+The set of current predecessors is the set of all vertices appearing in the order before the current entry point $r$.
+\vspace{10pt}
+\begin{algorithmic}[1]
+	\mProcedure{DetermineCurrentPredeccessors}{$r$}
+        \ls CP $\gets$ \Call{Queue}{$ $}
+        \mFor{$i = 1$ to $r - 1$}
+            \ls \Call{CP.push}{$i$}
+        \mEndFor
+        \ls \RETURN CP
+	\mEndProcedure
+\end{algorithmic}
+
+\subsection{Proof of correctness}
+\subsubsection{The algorithm always terminates}
+The main loop alternates between the \textsc{Forwards} and the \textsc{Backwards} procedures while traversing the solution tree. It follows down on a path to the leaf in \textsc{Forwards} and then backtracks to another path in \textsc{Backwards}. Since it never goes back to a previously explored branch the algorithm terminates when it reaches the root, finding no other possible recoloring of the second vertex.
+\subsubsection{The algorithm finds the best solution possible}
+Let's define a simplified Brown's algorithm as an algorithm that does not perform any checks on the lower or upper bound, and also does not perform the reorder at the start, but is otherwise the same as shown before. We state the following:
+
+\begin{theorem}[ ]
+	The simplified Brown's algorithm enumerates all proper colorings of the graph of $n$ vertices.
+\end{theorem}
+\begin{proof}
+    If $|V(G)| = 1$ then there is only one possible coloring, and it is found correctly by the algorithm.
+    
+    Let $G$ be a graph of $k > 1$ vertices. Let $v$ be a vertex in $G$ such that it appears last in the order. Let $G'$ be a subgraph of $G$ without the vertex $v$ and all its incident edges. $G'$ is a graph of $k-1$ vertices and by induction, the algorithm enumerates all proper colorings of this subgraph. For each of the colorings found for $G'$, we can extend it by checking all feasible colors for $v$ in reference to the coloring of its neighbor and assigning one of them to it, i.e. performing another iteration of the loop in the \textsc{Forwards} procedure. Therefore the algorithm enumerates all proper colorings of $G$.
+\end{proof}
+
+Additionally, if Brown's algorithm works for any graph with any order of vertices, it will also work for a graph with \textsc{GreedyLargestFirst} ordering. Now let's prove that this simplification does not change the returned solution. 
+
+\begin{theorem}
+    Checking for lower or upper bounds only eliminates solutions that either use more colors or are lexicographically larger (in reference to GLF order) than the ones found before checking lower and upper bounds.
+\end{theorem}
+\begin{proof}
+    Since the algorithm always chooses the first color from the set of feasible colors, it is guaranteed to be lexicographically first with that number of colors used when a solution is found. Therefore any solution that may be found after it would have to be larger. Since the upper bound check only fails if the color to be assigned at this moment reaches or is larger than the current solution's largest color, then every coloring found after that assignment would be worse than the current one. Therefore at every moment if a better solution exists then we can be sure that it is not in an omitted subtree.
+\end{proof}
+
+By combining these two theorems we know that during its execution the algorithm finds a subset of all solutions that must include the best one, and given that it only substitutes the best solution if the new one has fewer colors than the previous one then the following is true.
+\begin{corollary}
+    Brown's algorithm correctly finds the lexicographically first proper coloring of the graph.
+\end{corollary}
+
+
+\section{Christofides algorithm}
+\label{sec:CA}
+
+The Christofides modification to Brown's algorithm reduces the number of necessary backtracks by limiting the $CP$ set to only include vertices laying on a monotonic path ending in $r$. A path is considered to be \textit{monotonic} when it passes through increasingly indexed vertices. The \textit{current predecessors} set is now defined as follows:
+\paragraph{}
+Let the predecessor set for $v_i$ be defined as $$P(i) = \{j < i \colon \text{ there exists a monotonic path from } v_j \text{ to } v_i \}$$ 
+We now define current predecessors as $CP = CP \cup P(r)$ for any vertex $v_r$ that is passed as an argument to the \textsc{Backwards} procedure. 
+\paragraph{}
+The new \textsc{DetermineCurrentPredecessors} method will now only add the vertex to the $CP$ set if it lies on a monotonic path ending in $r$. The monotonic paths between every 2 vertices can be precomputed before the actual coloring algorithm by calculating the transitive closure of the graph.
+\begin{alg}[Christofides algorithm]
+	\label{alg:christofides}
+ \end{alg}
+ \begin{algorithmic}[1]
+	\mProcedure{DetermineCurrentPredeccessors}{$r$}
+        \ls CP $\gets $ \Call{Queue}{$ $}
+        \mFor{$i = 1$ to $r - 1$}
+           \mIf{\Call{TransitiveClosure}{}[$i$][$r$]}
+                \ls \Call{CP.push}{$i$}
+            \mEndIf
+        \mEndFor
+	\mEndProcedure
+\end{algorithmic}
+
+ \begin{algorithmic}[1]
+  \Statex \textbf{Global variables:}
+ \Statex $G$: graph
+	\mProcedure{CalculateTransitiveClosure}{$r$}
+        \mForEach{$(u, v)$ $\in$ \Call{$G$.edges}{}}
+            \ls \Call{TransitiveClosure}{}[$u$][$v$] $\gets$ \TRUE
+        \mEndFor
+        \mFor{$u = 0$ to $n-1$}
+            \mFor{$v = 0$ to $n-1$}
+                \mIf{\Call{TransitiveClosure}{}[$u$][$v$]}
+                    \mFor{$w = 0$ to $n-1$}
+                        \mIf{\Call{TransitiveClosure}{}[$v$][$w$]}
+                            \ls  \Call{TransitiveClosure}{}[$u$][$v$] $\gets$ \TRUE
+                        \mEndIf
+                    \mEndFor
+                \mEndIf
+           \mEndFor
+        \mEndFor
+	\mEndProcedure
+\end{algorithmic}
+The rest of the algorithm remains the same as before.
+
+\subsection{Proof of correctness}
+In the previous algorithm, we showed that the enumeration approach always finds the best possible solution. The only change made was to limit the number of backtracks performed by the algorithm by restricting the $CP$ set. Now, we just need to prove that we cannot find a better solution by starting the forward step from the omitted vertices.
+
+\begin{theorem}
+    Whenever a better solution is found after backtracking, the vertex whose color change triggered the forward step lies on a monotonic path ending in the previously largest colored vertex.
+\end{theorem}
+\begin{proof}
+    Let $v$ be the triggering vertex. Since $r$ has the largest color its color has to get smaller to obtain a better solution. But for any vertex $u$ its color can only be changed if the color of a smaller indexed neighbor changed in the previous step. (Otherwise, the algorithm would still have chosen the smallest available color). Since that goes for every vertex but $v$ it is easy to notice that these changes happen along some path -- more precisely a path starting in $v$ and ending in $u$. Since the algorithm traverses the vertices in increasing order, such a path is monotonic.
+\end{proof}
+
+\section{Brelaz algorithm}
+Brelaz brings two major modifications to the base algorithm
+\begin{enumerate}
+    \item A new algorithm -- Saturation Largest First with Interchange (SLFI) -- is used for setting the initial ordering and bounds on the chromatic number
+    \item The $CP$ set is reduced to limit the number of backtracks by focusing on the smallest indexed predecessors for every color.
+\end{enumerate}
+\subsection{Saturation Largest First with Interchange}
+The SLFI algorithm finds the saturation largest first ordering on the vertices and computes a base solution that determines the initial bounds. We define \textit{saturation degree} of a vertex as the number of its distinctly colored neighbors. During the execution, the algorithm creates and maintains a queue of yet unordered vertices sorted decreasingly by saturation degree with ties broken by choosing a larger degree. At the same time, subsequent vertices are ordered and colored using a simple heuristic known from the \textsc{Forwards} procedure -- for each vertex, a set of forbidden colors (the ones used by its neighbors) is created and the smallest possible color is chosen. The interchange mechanism is applied if a new color needs to be used for the first time. For every pair $(\alpha, \beta)$ of neighbors' colors, a subgraph containing only that colored vertices is created and then divided into connected components. If all of the components neighbor the current vertex with vertices colored with at most one of $\{\alpha, \beta\}$ then we can flip the colors in the component neighboring with $\alpha$ thus making the current vertex free of $\alpha$-colored neighbors. That interchange allows the current vertex to be given $\alpha$ -- preventing from unnecessarily increasing the number of colors. If no possible interchange is found the current vertex is assigned a new color. Reusing any color for the first time means that all vertices up to that point were connected forming a clique, so when it happens the initial clique size is set to the number of colors used so far. When all vertices are ordered and colored the upper bound is set to the number of colors used and the lower bound is set to the initial clique size.
+
+\begin{alg}[Saturation Largest First with Interchange algorithm]
+	\label{alg:slfi}
+ \end{alg}
+ \begin{algorithmic}[1]
+  \Statex \textbf{Global variables:}
+ \Statex CS: current solution
+	\mProcedure{SLFI}{}
+        \ls maxColor $\gets 1$
+        \ls $Q \gets $ \Call{Queue}{$ $} \Comment{sorted decreasingly by (saturation degree, vertex degree) pair}
+        \ls $m \gets $ \Call{GetMaxDegreeNode}{$G$}
+        \ls $CS[m] \gets 1$
+        \ls \Call{$ordering$.push}{$m$}
+        \mForEach{$u \neq m$ $\in$ \Call{$G$.nodes}{}}
+            \ls \Call{$Q$.push}{$u$}
+        \mEndFor
+        \mWhile{$Q$ $\neq \emptyset$}
+            \ls $v$ $\gets$ \Call{$Q$.pop}{}
+            \ls \Call{$ordering$.push}{$v$}
+            \ls $c$ $\gets$ \Call{GetFirstValidColor}{$v$}
+            \mIf{$c \leq $ maxColor }
+                \ls $CS[v] \gets c$
+                \mIf{$IC = 0$}
+                    \ls $IC \gets$ maxColor
+                \mEndIf
+            \mElse
+                \mForEach{$w$ $\in$ \Call{$G$.neighbors}{$v$}}
+                    \ls \Call{$K$.insert}{$CS[w]$}
+                \mEndFor
+                \mIf{\Call{Interchange}{$K$, $v$, $CS$}}
+                    \mIf{$IC = 0$}
+                    \ls $IC \gets$ maxColor
+                \mEndIf
+                \mElse
+                    \ls $CS[v] \gets c$
+                    \ls maxColor++
+                \mEndIf
+            \mEndIf
+        \mEndWhile
+	\mEndProcedure
+\end{algorithmic}
+\vspace{10pt}
+
+The \textsc{Interchange} procedure tries to perform a color interchange for each pair of colors of current vertex $v$ neighbors. If possible it applies the flip where necessary and colors the current vertex with $\alpha$. If no possible interchange was found it returns false to indicate that a new color will be needed.
+
+\vspace{10pt}
+\begin{algorithmic}[1]
+	\mProcedure{Interchange}{$K, v, CS$}
+        \mForEach{$(\alpha, \beta)$ $\in$ $K\times K$}
+            \ls $G' \gets$ \Call{GetSubgraphOnColors}{$G, \alpha, \beta$}
+            \ls $verticesToRecolor$ $\gets$ \Call{IsInterchangeable}{$G', CS, v, \alpha$}
+            \mIf{$verticesToRecolor$\Call{.size}{$ $} $> 0$}
+                \mForEach{$u$ $\in$ $verticesToRecolor$}
+                    \ls \Call{flipColor}{$u$}
+                \mEndFor
+                \ls $CS[v] \gets \alpha$
+                \ls \RETURN \TRUE
+            \mEndIf
+        \mEndFor
+        \ls \RETURN \FALSE
+	\mEndProcedure
+\end{algorithmic}
+\vspace{10pt}
+
+The \textsc{IsInterchangeable} procedure performs the BFS dividing the graph into connected components. If it finds a component in which two vertices of different colors are connected with the current vertex $v$ (making it impossible to apply interchange) it stops the search early. Otherwise, all components connected with $v$ by $\alpha$ are bundled and returned to be recolored by the calling method.
+
+\vspace{10pt}
+\begin{algorithmic}[1]
+	\mProcedure{IsInterchangeable}{$G', CS, v, \alpha$}
+        \ls $neighborColor$ $\gets -1$
+        \ls $verticesToRecolor$ $\gets \{\}$ 
+        \mForEach{$u$ $\in$ \Call{$G'$.nodes}{$ $}}
+            \ls $Q \gets$ \Call{Queue}{$ $}
+            \mIf{not visited[$u$]}
+                \ls \Call{$Q$.push}{$u$}
+                \mWhile{$Q$ $\neq \emptyset$}
+                    \ls $w \gets$ \Call{Q.pop}{$ $}
+                    \mIf{\Call{$G$.hasEdge}{$(v,w)$}}
+                        \mIf{$neighborColor$ $= -1 $ \OR $neighborColor$ $= CS[w]$}
+                            \ls $neighborColor$ $\gets CS[w]$
+                        \mElse
+                            \ls \RETURN $\{\}$
+                        \mEndIf
+                    \mEndIf
+                    \ls \Call{component.push}{$w$}
+                    \mForEach{$w'$ $\in$ \Call{$G'$.neighbors}{$w$}}
+                        \mIf{not visited[$w'$]}
+                            \ls visited[$w'$] $\gets$ \TRUE
+                            \ls \Call{$Q$.push}{$w'$}
+                        \mEndIf
+                    \mEndFor
+                \mEndWhile
+                \mIf{$neighborColor$ $= \alpha$}
+                    \ls \Call{$verticesToRecolor$.insertAll}{component}
+                \mEndIf
+            \mEndIf
+        \mEndFor
+        \ls \RETURN $verticesToRecolor$
+	\mEndProcedure
+\end{algorithmic}
+
+\subsection{Reducing the CP set}
+
+The set of current predecessors for a vertex $i$ is defined as follows -- let $AP$ be the set of \textit{adjacent predecessors}
+$$AP_c(i) = \{j < i \text{ } \colon \text{ } j \in N(i) \wedge C[j] = c\}  \text{ for any } i\in \{1, \dots, n\}, c < ub   $$
+Let's call $r_c = \min AP_c(i)$ a \textit{representative} of $c$. Let $R$ be the set of representatives:
+\begin{equation*}
+  R(i) =
+    \begin{cases}
+      \emptyset & \text{if $AP(i) = \emptyset$,}\\
+      \{r_a, r_b, ... \} \setminus IC & \text{otherwise.}
+    \end{cases}       
+\end{equation*}
+Finally, we define the current predecessors as
+$$CP = CP \cup R(i)$$
+
+\begin{alg}[Brelaz algorithm]
+	\label{alg:brelaz}
+ \end{alg}
+ 
+\begin{algorithmic}[1]
+  \Statex \textbf{Global variables:}
+ \Statex CS: current solution
+	\mProcedure{DetermineCurrentPredecessors}{$i$}
+        \mFor{$j \gets 0$ to $n-1$}
+            \ls R[$j$] $\gets  \infty$
+        \mEndFor
+        \mFor{$j \gets 0$ to $i - 1$}
+            \mIf{$(i, j)$ $\in$ $G$ \AND CS$[j] < ub$ \AND R[CS[$j$]] $> j$}
+                \ls R[CS[$j$]] $\gets j$
+            \mEndIf
+        \mEndFor
+        \mForEach{$u$ $\in$ R}
+            \mIf{$u < \infty$}
+                \ls \Call{CP.push}{$u$}
+            \mEndIf
+        \mEndFor
+	\mEndProcedure
+\end{algorithmic}
+\vspace{10pt} 
+This modification creates the $CP$ set incrementally with each iteration of the while loop in the \textsc{Backwards} procedure.
+
+\vspace{10pt} 
+\begin{algorithmic}[1]
+ \Statex \textbf{Global variables:}
+ \Statex $lb, ub$: lower and upper bounds
+ \Statex FC: map of feasible colors sets
+	\mProcedure{Backwards}{$r$}
+        \ls CP $\gets$ \Call{determineCurrentPredeccessors}{$r$}
+        \mWhile{CP $\neq \emptyset$}
+            \ls $i \gets $ \Call{CP.front}{$ $}
+            \ls CP $\gets$ \Call{determineCurrentPredeccessors}{$i$}
+            \ls \Call{FC[$i$].erase}{CS[$i$]}
+            \mIf{FC[$i$] $\neq \emptyset$ and \Call{FC[$i$].begin}{$ $} $ < ub$}
+                \ls $r \gets i$
+                \ls \RETURN
+            \mEndIf
+        \mEndWhile
+        \ls $r \gets 0$
+	\mEndProcedure
+\end{algorithmic}
+
+\subsection{Proof of correctness}
+
+This algorithm brings two major changes, the first being the initial ordering and the second the definition of CP. We will prove now that none of these changes have any effect on the overall correctness of the algorithm, therefore proving that it indeed finds the best possible solution.
+
+\subsubsection{SLFI algorithm}
+Since we have already proven that the overall algorithm is correct no matter the vertex order, then the only thing left to prove is that it correctly finds the base solution and thus correctly sets the bounds.
+Let's assume that the coloring is not a valid one. There exist then two vertices $i < j$ sharing an edge and $C[i] = C[j] = c$. If the $j$ vertex was colored with $c$ then two things could have happened. Either $c$ was a newly created color or it already was used somewhere earlier. The first case is impossible since we know that $i$ was colored with $c$ first. Therefore the coloring had to have happened during the interchange, as $c$ would be in the forbidden colors set for $j$.
+
+\begin{theorem}
+    The interchange always gives a valid partial solution.
+\end{theorem}
+\begin{proof}
+    Let us denote the current vertex as $v$, and the colors of the subgraph $G'$ as $\alpha$ and $\beta$. Let's assume that after the interchange on this subgraph, the solution is no longer a proper coloring. Since it was correct before then either the flipped vertex not conflicts with an unflipped one or the current vertex conflicts with one of its neighbors. In the first case the conflict would mean that there exists an edge between the two -- making it appear in the same component which contradicts the assumption that only one of them was flipped. In the second case that would mean that one of $v$ neighbors is now colored with $\alpha$. But all components containing such components have been flipped so the one it is in had to have also a vertex colored with $\beta$ connected to $v$. However, such a situation would make the algorithm fail without a flip and therefore the interchange would not have happened at all. Therefore the interchange yields a valid partial solution.
+\end{proof}
+
+\subsubsection{Reducing the $CP$ set}
+Firstly let's remark that the recoloring of the initial clique will not produce better coloring as a simple switch of colors used in the clique would make it return to the original state. It can be therefore forever excluded from the $CP$.
+
+Let's assume for a moment that when we determine the current predecessors for a vertex we take all the neighboring vertices, not just the representatives. Dynamically updating the $CP$ in \textsc{Backwards} de facto creates the monotonic paths used in the Christofides algorithm. Because for every vertex processed, all its neighbors are pushed into the queue, then every vertex with the path to the $r$ vertex will be eventually pushed and then processed. Since any vertex from any path will be pushed then surely a vertex starting a monotonic path to $r$ will be pushed as well.
+
+Going back to the representatives' approach we can easily see that if two vertices adjacent to $r$ have the same color then changing the color of the one with a bigger index will not lead to that color being freed for $r$. If that change was however to influence some other neighbor to free its color then there are two options possible. Either that neighbor is the smallest representative of its color -- therefore the path that had to be traversed for this change would be added either way as queuing the neighbor would trigger it, or that neighbor is not the smallest representative in which case the color would not be freed as the smallest representative would not be touched by this change. Therefore it is sufficient for the representative to be included -- any path that would start by the greater one being changed would be started either way.
+
+\section{Korman's algorithm}
+Korman's modification adds the \textit{dynamic reordering} of the vertices to the base algorithm. Since during \textsc{Forwards} some vertices have fewer \textit{feasible colors} than others, Korman suggests changing the order so as to color them first. The rule for the ordering is simple -- repeatedly choose the vertex with the fewest feasible colors from the set $\{i, \dots, n-1\}$, change the order by placing it in the $i$th position and then continue with the coloring.
+
+\begin{alg}[Korman's algorithm]
+	\label{alg:korman}
+ \end{alg}
+
+ The new \textsc{Forwards} procedure maintains a queue of yet uncolored vertices ordered decreasingly by the number of distinctly colored neighbors (making the ones with fewer feasible colors appear on top). While the queue is not empty it retrieves the top vertex, places it in the ordering, determines the feasible colors, and then colors it with the smallest available one. When the loop finishes the upper bound is determined and the starting point for \textsc{Backwards} $r$ is set.
+ \vspace{10pt}
+ \begin{algorithmic}[1]
+  \Statex \textbf{Global variables:}
+ \Statex $lb, ub$: lower and upper bounds
+ \Statex CS: current solution
+ \Statex BS: best solution
+ \Statex FC: map of feasible colors sets
+ \Statex NO: new ordering
+ \Statex G: graph
+	\mProcedure{Forwards}{$r$}
+        \mForEach{$u \in G$}
+            \ls $blockedColors[u] \gets \{\}$
+        \mEndFor
+        \ls $Q \gets$ \Call{Queue}{$ $} \Comment{sorted by the number of distinctly colored neighbors}
+        \mWhile{$Q$ $\neq \emptyset$}
+            \ls $i \gets$ \Call{$Q$.pop}{$ $}
+            \ls \Call{NO.push}{$i$}
+            \ls FC$[i] \gets $ \Call{DetermineFeasibleColors}{$i$}
+            \mIf{FC$[i]$ $= \emptyset$}
+                \ls $r \gets i$
+                \ls \RETURN
+            \mEndIf
+            \ls isColored[$i$] $\gets$ \TRUE
+            \ls CS$[i] \gets$ \Call{FC$[i]$.begin}{$ $}
+            \mForEach{$u \in $ \Call{$G$.neighbors}{$i$}}
+                \ls \Call{$blockedColors[u]$.insert}{CS[$i$]} 
+            \mEndFor
+        \mEndWhile
+        \ls $ub \gets $ \Call{getMaxColor}{$CS$}
+        \ls $r \gets $ \Call{getMaxColorNode}{$CS$}
+        \ls BS $\gets$ CS
+	\mEndProcedure
+\end{algorithmic}
+
+\vspace{10pt}
+Since the set of colors blocked by neighbors has to be maintained in \textsc{Forwards} for the purposes of the queue, the \textsc{DetermineFeasibleColors} method just computes the complement of this set, adding only the color current max + 1 when necessary.
+\vspace{10pt}
+
+ \begin{algorithmic}[1]
+  \Statex \textbf{Global variables:}
+ \Statex $lb, ub$: lower and upper bounds
+ \Statex CS: current solution
+ \Statex FC: map of feasible colors sets
+ \Statex NO: new ordering
+	\mProcedure{DetermineFeasibleColors}{$i, blockedColors$}
+        \ls $m \gets$ \Call{getMaxColor}{CS}
+        \mFor{$c = 1$ to $\min(m + 1, ub - 1)$}
+            \mIf{$c \notin$ $blockedColors$[$j$]}
+                \ls \Call{FC[NO$[i]]$.push}{$c$}
+            \mEndIf
+        \mEndFor
+	\mEndProcedure
+\end{algorithmic}
+
+\vspace{10pt}
+The \textsc{Backwards} method now has to take the new ordering $NO$ into the account while searching for the resumption point for \textsc{Forwards}. When the backtrack finishes and the resumption point is determined, the appropriate vertex is recolored and the part of the new ordering after that vertex is invalidated so it can be redefined in the forward step.
+\vspace{10pt}
+
+ \begin{algorithmic}[1]
+  \Statex \textbf{Global variables:}
+ \Statex $lb, ub$: lower and upper bounds
+ \Statex CS: current solution
+ \Statex FC: map of feasible colors sets
+ \Statex NO: new ordering
+	\mProcedure{Backwards}{$r$}
+        \mFor{$i \gets r - 1$ to $0$}
+            \ls $j \gets$ NO$[i]$
+            \ls \Call{FC$[j]$.erase}{CS$[j]$}
+            \mIf{FC$[j]$ $\neq \emptyset$}
+                \mIf{\Call{FC$[j]$.size}{$ $} $ > 1$ \OR \Call{FC$[j]$.begin}{$ $} $ < ub$}
+                    \ls CS$[j] \gets $ \Call{FC$[j]$.begin}{}
+                    \mWhile{\Call{NO.size}{$ $} $ > i + 1$}
+                        \ls \Call{NO.pop}{$ $} 
+                    \mEndWhile
+                    \ls $r \gets i$
+                    \RETURN
+                \mEndIf
+            \mEndIf
+        \mEndFor
+        \ls $r \gets 0$
+	\mEndProcedure
+\end{algorithmic}
+
+\subsection{Proof of correctness}
+Let's start with a few observations. The \textsc{Backwards} method removes the new ordering information for all vertices which were colored after the resumption point $r$, so:
+\begin{observation}
+    The ordering created by the \textsc{Forwards} procedure is only saved for vertices below the resumption point defined in the \textsc{Backwards} procedure.
+\end{observation}
+Which instantly gives the following
+\begin{observation}
+    If a vertex was permanently reordered, its position could only be changed when a vertex before it becomes a resumption point discarding the ordering of the following vertices and that only happens when the algorithm switches to a new branch (upon the recolor of the resumption vertex).
+\end{observation}
+This leads us to the conclusion that the algorithm must always terminate.
+\begin{corollaryobs}
+    The same solution (i.e. the same branch) cannot be visited twice during the \textsc{Forwards} method -- so the algorithm must terminate as the solution tree is finite.
+\end{corollaryobs}
+
+\begin{theorem}
+    The algorithm returns the optimal coloring.
+\end{theorem}
+\begin{proof}
+    The \textsc{Forwards} method of Korman's algorithm does not in fact differ much from the \textsc{Forwards} method in Brown's algorithm. If we assume that the vertices were originally ordered with the result ordering of Korman's \textsc{Forwards} then Brown's algorithm would behave exactly the same and would produce the same coloring. The best solution that Korman's algorithm has found also produced an ordering $O$ on the vertices. Earlier we proved that the simplified Brown's algorithm produces the optimal coloring for every possible ordering on the vertices. Therefore the solution found optimal in Korman's would also be found optimal for the simplified Brown's algorithm with vertices preordered by $\pi$.
+\end{proof}
+
+\section{Complexity}
+The upper bound on the number of leaves in the solution tree for graph coloring is $n!$ since in the worst-case scenario the graph is a clique and $n!$ is the number of permutations of the color set. Since one iteration of \textsc{Forwards} and \textsc{Backwards} traverses one path to the leaf down and then up (and that path is never visited again) then the complexity is given by the number of paths ending in leaves in the tree -- $O^*(n!)$. The polynomial factor can be given as $f(n)+b(n)$ -- the complexities of \textsc{Forwards} and \textsc{Backwards} respectively. The described implementation gives the polynomial factor of $O(n^2\log n)$ for Brown's and Christofides' and $O(n^2\log^2 n)$ for Brelaz's and Korman's versions.
