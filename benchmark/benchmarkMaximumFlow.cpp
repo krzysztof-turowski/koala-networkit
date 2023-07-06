@@ -6,7 +6,11 @@
 #include <flow/MaximumFlow.hpp>
 #include <io/DimacsGraphReader.hpp>
 
-int main(int, char **argv) {
+int main(int argc, char **argv) {
+    if (argc == 1) {
+        std::cout << "Filename is empty" << std::endl;
+        return 0;
+    }
     std::string path(argv[1]);
     if (!std::filesystem::exists(path)) {
         std::cout << "File " << path << " does not exist" << std::endl;

@@ -19,7 +19,7 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     set(KOALA_LINKER_FLAGS "${KOALA_LINKER_FLAGS} -fopenmp")
 endif()
 
-set(CMAKE_CXX_CPPLINT cpplint --linelength=100 --extensions=cpp,hpp --filter=-legal/copyright,-build/c++20,-build/include,-build/namespaces,-build/header_guard,-runtime/references,-runtime/string --recursive)
+set(CMAKE_CXX_CPPLINT cpplint --linelength=100 --extensions=cpp,hpp --filter=-legal/copyright,-build/c++20,-build/include,-build/namespaces,-build/header_guard,-runtime/references,-runtime/string --recursive --exclude=${CMAKE_SOURCE_DIR}/backup/* --exclude=${CMAKE_SOURCE_DIR}/build/* --exclude=${CMAKE_SOURCE_DIR}/input/* --exclude=${CMAKE_SOURCE_DIR}/lib/* --exclude=${CMAKE_SOURCE_DIR}/cpp/flow/maximum_flow/dynamic_tree/*)
 
 include(FetchContent)
 
@@ -98,7 +98,7 @@ if(KOALA_BUILD_SHARED)
 else()
     add_library(${PROJECT_NAME} STATIC cpp/koala.cpp)
 endif()
-target_link_libraries(${PROJECT_NAME} networkit boost_dynamic_bitset csdp_lib lapack blas gfortran quadmath)
+target_link_libraries(${PROJECT_NAME} networkit boost_dynamic_bitset boost_graph csdp_lib lapack blas gfortran quadmath)
 set_target_properties(${PROJECT_NAME} PROPERTIES
     COMPILE_FLAGS ${KOALA_CXX_FLAGS}
     LINK_FLAGS ${KOALA_LINKER_FLAGS})

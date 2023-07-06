@@ -62,6 +62,7 @@ Its main part consists of an implementation of a broad set of procedures in the 
 - graph recognition for graph families: empty graphs, cliques, paths, caterpillar, trees, forests, cycles, connected, complete $k$-partite, regular, subcubic, block, bipartite, chordal, comparability, interval, split, cographs,
 - graph generation for several graph families (cliques, paths, cycles, fans, wheels, caterpillars, complete $k$-partite, regular trees) and random graphs models (Erdős–Rényi, Barabási–Albert, Watts–Strogatz),
 - operation on graphs: closures (reflexive, symmetric, transitive), line graphs, products of graphs (Cartesian, tensor, lexicographic, strong).
+- dominating set: exact exponential-time
 
 <p align="justify">
 The library was built on a custom, versatile, object-oriented templated graph structure, capable of handling edges of multiple types (undirected, directed, loops) at the same time.
@@ -82,6 +83,9 @@ Moreover, they set up an online graph editor <a href="http://web.archive.org/web
     1. [Maximum flow](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/flow/MaximumFlow.hpp): King-Rao-Tarjan
 5. [Vertex coloring](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/coloring/)
     1. [Greedy heuristics](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/coloring/GreedyVertexColoring.hpp): RandomSequential, LargestFirst, SmallestLast, SaturatedLargestFirst, GreedyIndependentSet
+    2. [Grötschel-Lovász-Schrijver algorithm for perfect graphs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/coloring/PerfectGraphVertexColoring.hpp)
+6. [Minimum dominating set](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/dominating_set/): Grandoni, Fomin-Grandoni-Kratsch, van Rooij-Bodlaender, Fomin-Kratsch-Woeginger, Schiermeyer
+
 
 For further planned changes, see the [Issues](https://github.com/krzysztof-turowski/koala-networkit/issues/) section.
 
@@ -97,7 +101,7 @@ To assess the speed of the algorithms we use primarily the publicly available St
 cmake -B build
 cmake --build build --parallel 4
 ```
-> Note: it may take a while to download and compile dependencies (googletest and networkit).
+> Note: it may take a while to download and compile dependencies (e.g. googletest, networkit, and boost).
 
 ## <a name="usage"></a>Usage
 

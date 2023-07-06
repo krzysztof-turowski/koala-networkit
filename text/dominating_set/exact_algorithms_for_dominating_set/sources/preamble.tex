@@ -1,0 +1,23 @@
+\usepackage{amsthm}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{mathtools}
+\usepackage{float}
+\usepackage{cleveref}
+
+\algdef{SE}[DOWHILE]{Do}{doWhile}{\algorithmicdo}[1]{\algorithmicwhile\ #1}%
+\algnewcommand\algorithmicforeach{\textbf{for each:}}
+\algdef{S}[FOR]{ForEach}[1]{\algorithmicforeach\ #1\ \algorithmicdo}
+\usepackage{xcolor}
+
+\newtheorem{definition}{Definition}
+
+\usepackage[
+  style=numeric,
+  maxbibnames=5
+]{biblatex}
+\addbibresource{bibliography.bib}

@@ -36,6 +36,6 @@ void DFSFrom(
     }
 }
 
-} // namespace Traversal
+}  // namespace Traversal
 
-} // namespace Koala
+}  // namespace Koala
