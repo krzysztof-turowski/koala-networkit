@@ -42,14 +42,6 @@ class BrelazEnumerationVertexColoringTest
 class KormanEnumerationVertexColoringTest
     : public testing::TestWithParam<VertexColoringParameters> { };
 
-NetworKit::Graph build_graph(const int &N, const std::list<std::pair<int, int>> &E) {
-    NetworKit::Graph G(N, false, false);
-    for (const auto &[u, v] : E) {
-        G.addEdge(u, v);
-    }
-    return G;
-}
-
 void check(const auto &parameters, const auto &colors) {
     for (auto [u, v] : parameters.E) {
         EXPECT_NE(colors.at(u), colors.at(v));

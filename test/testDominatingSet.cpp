@@ -27,15 +27,7 @@ class SchiermeyerTest
     : public testing::TestWithParam<MinimumDominatingSetParameters> {};
 
 class ExhaustiveTest
-    : public testing::TestWithParam<MinimumDominatingSetParameters> {};
-
-NetworKit::Graph build_graph(const int &N, const std::list<std::pair<int, int>> &E) {
-    NetworKit::Graph G(N, false, false);
-    for (const auto &[u, v] : E) {
-        G.addEdge(u, v);
-    }
-    return G;
-}
+    : public testing::TestWithParam<MinimumDominatingSetParameters> {}; 
 
 TEST_P(GrandoniTest, test) {
     MinimumDominatingSetParameters const& parameters = GetParam();
