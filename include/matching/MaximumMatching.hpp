@@ -11,6 +11,8 @@
 
 #include <matching/PriorityQueues.hpp>
 
+#define DEBUG_LOGGING 0
+
 namespace Koala {
 
 /**
@@ -71,6 +73,7 @@ protected:
         Blossom* parent;
         NetworKit::node initial_base;
         NetworKit::node base;
+        NetworKit::node last_node;
         std::list<Blossom*> base_blossoms;
         std::list<std::pair<Blossom*, EdgeInfo>> sub_blossoms;
         BlossomLabel label;
@@ -97,11 +100,11 @@ protected:
         EdgeInfo edge; 
     };
 
-    std::vector<bool> is_in_matching;
     std::vector<std::tuple<NetworKit::node, NetworKit::node, NetworKit::edgeweight>> graph_edges;
+    std::vector<bool> is_in_matching;
     std::set<Blossom*> blossoms;
-    std::vector<Blossom*> trivial_blossom;
     std::vector<NetworKit::node> matched_vertex;
+    std::vector<Blossom*> trivial_blossom;
 
     void run_stage();
     virtual void initialize_stage() = 0;
@@ -360,6 +363,7 @@ private:
 
     void find_delta2_useful_edges() override;
     void find_delta3_useful_edges() override;
+    std::vector<Blossom*> get_odd_blossoms_to_expand() override;
     
     Blossom* get_blossom(NetworKit::node vertex) override;
 

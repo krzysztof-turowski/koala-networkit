@@ -6,6 +6,8 @@
 #include <iostream>
 namespace Koala {
 
+#define QUEUE_DEBUG 0
+
 /**
  * Implementation of pq1 from the paper 'An O(EV log V) algorithm for finding a maximal 
  * weighted mathcing in general graphs' by Galil, Micali, Gabow. 
@@ -103,6 +105,19 @@ public:
         }
     }
 
+    /**
+     * Call function for each element of queue until it returns true or there are no more elements. The function receives the value and priority of each element
+     * 
+     * @param handle the function to be called
+    */
+    void for_elements_until(const std::function<bool(E,P)>& handle) {
+        for (auto entry : queue) {
+            if (handle(entry.value, entry.modified_priority - Delta)) {
+                break;
+            }
+        }
+    }
+
 private:
     struct Entry { 
         P modified_priority; 
@@ -160,16 +175,21 @@ public:
             root->parent = nullptr;
         }
         fix_root();
-        // if (root) root->check_children();
+
+        #if QUEUE_DEBUG
+        check_consistency();
+        #endif
     }
 
     ConcatenableQueue(const ConcatenableQueue<H, E, P>& other) {
-        // TODO make it copy
-        // std::cerr << this << ": construct & "; other.print();
+        // TODO make it copy contents or disable it
         root = other.root;
         head = other.head;
         fix_root();
-        // if (root) root->check_children();
+        
+        #if QUEUE_DEBUG
+        check_consistency();
+        #endif
     }
 
     void swap(ConcatenableQueue<H, E, P>& other) {
@@ -179,7 +199,7 @@ public:
         other.fix_root();
     }
 
-    void fix_root() { if (root != nullptr) root->queue = this; }
+    void fix_root() { if (root != nullptr) { root->parent = nullptr; root->queue = this; } }
 
     ConcatenableQueue& operator=(const ConcatenableQueue<H, E, P>& other) {
         if (this != &other) {
@@ -190,12 +210,14 @@ public:
     }
 
     ConcatenableQueue(ConcatenableQueue&& other) {
-        // std::cerr << this << ": construct && "; other.print();
         root = other.root;
         head = other.head;
         other.root = nullptr;
         fix_root();
-        // if (root) root->check_children();
+        
+        #if QUEUE_DEBUG
+        check_consistency();
+        #endif
     }
 
     ConcatenableQueue& operator=(ConcatenableQueue&& other) {
@@ -224,6 +246,10 @@ public:
      *         Preserved by splits and concatenations.
     */
     ElementRef append(E element, P priority) {
+        #if QUEUE_DEBUG
+        std::cerr << this << " append " << element << std::endl;
+        #endif
+
         if (empty()) {
             Node* new_node = new Node {
                 this, nullptr, { nullptr, nullptr, nullptr },
@@ -251,6 +277,10 @@ public:
      *         Preserved by splits and concatenations.
     */
     ElementRef insert_after(ElementRef ref, E element, P priority) {
+        #if QUEUE_DEBUG
+        std::cerr << this << " insert after "; ref->print(); std::cerr << element << std::endl;
+        #endif
+
         Node* new_node = new Node {
             this, nullptr, { nullptr, nullptr, nullptr },
             0, element, priority
@@ -259,6 +289,11 @@ public:
         add_child_after(ref->parent, ref, new_node);
 
         new_node->parent->update_min_until_root();
+
+        #if QUEUE_DEBUG
+        root->print(); std::cerr << std::endl;
+        check_consistency();
+        #endif
 
         return new_node;
     }
@@ -273,6 +308,12 @@ public:
      *         Preserved by splits and concatenations.
     */
     ElementRef insert_before(ElementRef ref, E element, P priority) {
+        #if QUEUE_DEBUG
+        std::cerr << this << " insert " << element << " before "; ref->print(); 
+        std::cerr << " in queue "; root->print(); std::cerr << std::endl;
+        check_consistency();
+        #endif
+
         Node* new_node = new Node {
             this, nullptr, { nullptr, nullptr, nullptr },
             0, element, priority
@@ -281,6 +322,11 @@ public:
         add_child_before(ref->parent, ref, new_node);
 
         new_node->parent->update_min_until_root();
+
+        #if QUEUE_DEBUG
+        root->print(); std::cerr << std::endl;
+        check_consistency();
+        #endif
 
         return new_node;
     }
@@ -298,6 +344,12 @@ public:
      * @param element_ref reference to the element to remove
     */
     void remove(ElementRef element_ref) {
+        #if QUEUE_DEBUG
+        std::cerr << this << " remove "; element_ref->print(); 
+        std::cerr << " from "; root->print(); std::cerr << std::endl;
+        #endif
+        
+
         if (element_ref->parent == root && root->children_count() == 1) {
             delete root;
             delete element_ref;
@@ -305,6 +357,11 @@ public:
             return;
         }
         remove_node(element_ref);
+
+        #if QUEUE_DEBUG
+        root->print(); std::cerr << std::endl;
+        check_consistency();
+        #endif
     }
 
     /**
@@ -340,9 +397,12 @@ public:
     }
 
     void concat(ConcatenableQueue<H, E, P>&& other, H new_head, bool update_min = true) {
-        // std::cerr << "Concat:\n";
-        // std::cerr << "  "; print();
-        // std::cerr << "  "; other.print();
+        #if QUEUE_DEBUG
+        // std::cerr << "Concat: " << this << " and " << &other << "\n";
+        // std::cerr << "  "; print_elements();
+        // std::cerr << "  "; other.print_elements();
+        #endif
+
         if (other.empty()) { head = new_head; return; }
         if (empty()) {
             *this = std::move(other);
@@ -373,10 +433,22 @@ public:
         }
         fix_root();
         other.root = nullptr;
+
+        #if QUEUE_DEBUG
+        // print_elements();
+        check_consistency();
+        #endif
     }
 
     std::pair<ConcatenableQueue<H, E, P>*, ConcatenableQueue<H, E, P>*> 
     split(ElementRef split_element, H head_left, H head_right) {
+        #if QUEUE_DEBUG
+        std::cerr << "Split " << this << " on "; 
+        split_element->print(); 
+        std::cerr << std::endl;
+        print_elements();
+        #endif
+
         Node* prev = split_element;
         Node* iter = split_element->parent;
         ConcatenableQueue<H, E, P>* left = new ConcatenableQueue<H, E, P>(head_left, split_element);
@@ -404,6 +476,14 @@ public:
         root = nullptr;
         left->last_element()->parent->update_min_until_root();
         if (!right->empty()) right->first_element()->parent->update_min_until_root();
+
+        #if QUEUE_DEBUG
+        std::cerr << "left:  "; left->print_elements();
+        std::cerr << "right: "; right->print_elements();
+        left->check_consistency();
+        right->check_consistency();
+        #endif
+
         return { left, right };
     }
 
@@ -437,8 +517,13 @@ public:
 
     void check_consistency() {
         if (root == nullptr) return;
+        if (root->parent != nullptr) {
+            std::cerr << "root's parent is not null\n";
+            assert(false);
+            // exit(1);
+        }
         if (root->queue != this) {
-            std::cerr << "root poins at wrong queue\n";
+            std::cerr << "root points at wrong queue\n";
             exit(1);
         }
         root->check_children();
@@ -556,7 +641,7 @@ public:
             if (is_leaf()) {
                 out << min_element;
             } else {
-                out << children_count() << "|" << min_element << ":";
+                out << children_count() /* << "|" << min_element */ << ":";
                 for (int i = 0; i < 3; ++ i) {
                     if (children[i] == nullptr) break;
                     children[i]->print(out);
@@ -584,6 +669,12 @@ private:
     }
 
     void make_new_root(Node* a, Node* b) {
+        // std::cerr << "make new root ("; 
+        // a->print();
+        // std::cerr << ", ";
+        // b->print();
+        // std::cerr << ")\n";
+
         Node* new_root = new Node { 
             this, nullptr, { a, b, nullptr },
             a->height + 1, a->min_element, a->min_priority
@@ -595,6 +686,15 @@ private:
     }
 
     void add_child_after(Node* target, Node* after, Node* child) {
+        // std::cerr << "add child after ("; 
+        // after->print();
+        // std::cerr << ", ";
+        // child->print();
+        // std::cerr << ") in parent ";
+        // if (target == nullptr) std::cerr << "nullptr";
+        // else target->print();
+        // std::cerr << "\n";
+
         if (target == nullptr) {
             make_new_root(after, child);
             return;
@@ -605,6 +705,15 @@ private:
     }
 
     void add_child_before(Node* target, Node* before, Node* child) {
+        // std::cerr << "add child before ("; 
+        // before->print();
+        // std::cerr << ", ";
+        // child->print();
+        // std::cerr << ") in parent ";
+        // if (target == nullptr) std::cerr << "nullptr";
+        // else target->print();
+        // std::cerr << "\n";
+
         if (target == nullptr) {
             make_new_root(child, before);
             return;
@@ -615,6 +724,13 @@ private:
     }
 
     void insert_child_at_index(Node* target, int index, Node* child) {
+        // std::cerr << "add child "; 
+        // child->print();
+        // std::cerr << " at index " << index <<  " in target ";
+        // if (target == nullptr) std::cerr << "nullptr";
+        // else target->print();
+        // std::cerr << "\n";
+
         int child_count = target->children_count();
         if (child_count < 3) {
             insert_child(target->children, index, child_count, child);
@@ -632,6 +748,8 @@ private:
             };
             four_children[2]->parent = new_node;
             four_children[3]->parent = new_node;
+            target->update_min();
+            new_node->update_min();
             add_child_after(target->parent, target, new_node);
         }
     }
@@ -740,7 +858,40 @@ private:
 template<typename E, typename P>
 class PriorityQueue2 {
 public:
-    class Group;
+    struct Group { 
+        Group(bool active, P Delta_last, P Delta_group): 
+            elements(this), active(active), Delta_last(Delta_last), Delta_group(Delta_group) {}
+        
+        Group(ConcatenableQueue<Group*, E, P>&& elements_, 
+                bool active, P Delta_last, P Delta_group): 
+            elements(std::move(elements_)),
+            active(active), Delta_last(Delta_last), Delta_group(Delta_group) {
+
+            elements.head = this;
+        }
+
+        ConcatenableQueue<Group*, E, P> elements;
+        bool active;
+        P Delta_last;
+        P Delta_group;
+
+        bool empty() {
+            return elements.empty() || elements.find_min().second == dummy_element_priority;
+        }
+
+        std::pair<E, P> find_min() {
+            auto [value, priority] = elements.find_min();
+            return {value, priority - Delta_group};
+        }
+
+        void update_Delta(P Delta) {
+            if (active) {
+                Delta_group = Delta_group + Delta - Delta_last;
+            }
+            Delta_last = Delta;
+        }
+    };
+    
     /**
      * Creates a queue that stores elements between 0 and size - 1.
      * 
@@ -756,6 +907,13 @@ public:
     */
     void append_dummy(E value, Group* group) {
         elements[value] = group->elements.append(value, dummy_element_priority);
+
+        #if QUEUE_DEBUG
+        std::cerr << "=========================================\n";
+        std::cerr << "append dummy " << value << " to group ";
+        group->elements.print_elements();
+        group->elements.check_consistency();
+        #endif
     }
 
     /**
@@ -769,13 +927,24 @@ public:
         group->update_Delta(Delta);
         auto [last_min, last_min_priority] = group->find_min();
 
+        #if QUEUE_DEBUG
+        std::cerr << "=========================================\n";
+        std::cerr << "append " << value << " to group " << group->active << " ";
+        group->elements.print_elements();
+        std::cerr << "with min " << last_min << " " << last_min_priority << std::endl;
+        #endif
+
         elements[value] = group->elements.append(value, priority + group->Delta_group);
         
+        #if QUEUE_DEBUG
+        group->elements.check_consistency();
+        #endif
+
         // Check if the new element is the minimum in group
         if (group->active && group->find_min().first == value) {
             if (last_min_priority != dummy_element_priority)
                 group_minima.remove(last_min);
-            group_minima.insert(value, priority + group->Delta_group);
+            group_minima.insert(value, priority);
         }
     }
 
@@ -791,13 +960,28 @@ public:
         group->update_Delta(Delta);
         auto [last_min, last_min_priority] = group->find_min();
 
+        #if QUEUE_DEBUG
+        std::cerr << "=========================================\n";
+        std::cerr << "insert " << value << " with priority " << priority
+                  << " before " << before << " in group " << group->active << " ";
+        group->elements.print_elements();
+        std::cerr << "with min " << last_min << " " << last_min_priority << std::endl;
+        group_minima.for_elements([] (E u, P w) {
+            std::cerr << u << " " << w << std::endl;
+        });
+        #endif
+
         elements[value] = group->elements.insert_before(elements[before], value, priority + group->Delta_group);
+
+        #if QUEUE_DEBUG
+        group->elements.check_consistency();
+        #endif
         
         // Check if the new element is the minimum in group
         if (group->active && group->find_min().first == value) {
             if (last_min_priority != dummy_element_priority)
                 group_minima.remove(last_min);
-            group_minima.insert(value, priority + group->Delta_group);
+            group_minima.insert(value, priority);
         }
     }
 
@@ -810,8 +994,19 @@ public:
         Group* group = elements[value]->find_queue()->head;
         group->update_Delta(Delta);
         auto [last_min, last_min_priority] = group->find_min();
+
+        #if QUEUE_DEBUG
+        std::cerr << "=========================================\n";
+        std::cerr << "remove " << value << " from group ";
+        group->elements.print_elements();
+        std::cerr << "with min " << last_min << " " << last_min_priority << std::endl;
+        #endif
         
         group->elements.remove(elements[value]);
+
+        #if QUEUE_DEBUG
+        group->elements.check_consistency();
+        #endif
 
         // Check if the removed element was the minimum in group
         if (last_min == value && group->active) {
@@ -868,6 +1063,17 @@ public:
      * @param group the group to be deleted
     */
     void delete_group(Group* group) {
+        #if QUEUE_DEBUG
+        auto [min, min_p] = group->find_min();
+        std::cerr << "=========================================\n";
+        std::cerr << "delete group " << group->active << " ";
+        group->elements.print_elements();
+        std::cerr << "with min " << min << " " << min_p << std::endl;
+        group_minima.for_elements([] (E u, P w) {
+            std::cerr << u << " " << w << std::endl;
+        });
+        #endif
+
         if (group->active && !group->empty()) {
             group_minima.remove(group->find_min().first);
         }
@@ -884,6 +1090,18 @@ public:
         if (group->active == active) return;
         group->update_Delta(Delta);
         group->active = active;
+
+        #if QUEUE_DEBUG
+        auto [min, min_p] = group->find_min();
+        std::cerr << "=========================================\n";
+        std::cerr << "change status to " << active << " of group ";
+        group->elements.print_elements();
+        std::cerr << "with min " << min << " " << min_p << std::endl;
+        group_minima.for_elements([] (E u, P w) {
+            std::cerr << u << " " << w << std::endl;
+        });
+        #endif
+
         if (active && !group->empty()) {
             auto [v, p] = group->find_min();
             group_minima.insert(v, p);
@@ -903,6 +1121,18 @@ public:
     */
     std::pair<Group*, Group*> split_group(Group* group, E value) {
         group->update_Delta(Delta);
+
+        #if QUEUE_DEBUG
+        auto [min, min_p] = group->find_min();
+        std::cerr << "=========================================\n";
+        std::cerr << "split at " << value << " the gruop " << group->active << " ";
+        group->elements.print_elements();
+        std::cerr << "with min " << min << " " << min_p << std::endl;
+        group_minima.for_elements([] (E u, P w) {
+            std::cerr << u << " " << w << std::endl;
+        });
+        #endif
+
         if (group->active && !group->empty()) {
             auto [v, p] = group->find_min();
             group_minima.remove(v);
@@ -910,10 +1140,21 @@ public:
 
         auto [elements_left, elements_right] = group->elements.split(elements[value], group, group);
 
+        #if QUEUE_DEBUG
+        elements_left->print_elements();
+        elements_right->print_elements();
+        #endif
+
         Group* group_left  = new Group(std::move(*elements_left),
                                 group->active, group->Delta_last, group->Delta_group);
         Group* group_right = new Group(std::move(*elements_right),
                                 group->active, group->Delta_last, group->Delta_group);
+        
+        #if QUEUE_DEBUG
+        std::cerr << group_left << " " << group_right << std::endl;
+        group_left->elements.print_elements();
+        group_right->elements.print_elements();
+        #endif
 
         if (group->active) {
             if (!group_left->empty()) {
@@ -926,7 +1167,18 @@ public:
             }
         }
         delete group;
-        return {nullptr, nullptr};
+        return {group_left, group_right};
+    }
+
+    void shift_group(Group* group, E value) {
+        group->update_Delta(Delta);
+
+        auto [elements_left, elements_right] = group->elements.split(elements[value], group, group);
+
+        elements_right->concat(std::move(*elements_left), group);
+        group->elements = std::move(*elements_right);
+        delete elements_left;
+        delete elements_right;
     }
 
     void for_each_in_group(Group* group, const std::function<void(E, P)>& handle) {
@@ -940,44 +1192,10 @@ public:
         group_minima.for_elements(handle);
     }
 
-    struct Group { 
-        Group(bool active, P Delta_last, P Delta_group): 
-            elements(this), active(active), Delta_last(Delta_last), Delta_group(Delta_group) {}
-        
-        Group(ConcatenableQueue<Group*, E, P>&& elements, 
-                bool active, P Delta_last, P Delta_group): 
-            elements(std::move(elements)), active(active), 
-            Delta_last(Delta_last), Delta_group(Delta_group) {
-            
-            elements.head = this;
-        }
-
-        ConcatenableQueue<Group*, E, P> elements;
-        bool active;
-        P Delta_last;
-        P Delta_group;
-
-        bool empty() {
-            return elements.empty() || elements.find_min().second == dummy_element_priority;
-        }
-
-        std::pair<E, P> find_min() {
-            auto [value, priority] = elements.find_min();
-            return {value, priority - Delta_group};
-        }
-
-        void update_Delta(P Delta) {
-            if (active) {
-                Delta_group = Delta_group + Delta - Delta_last;
-            }
-            Delta_last = Delta;
-        }
-    };
-
 private:
     static constexpr P dummy_element_priority = std::numeric_limits<P>::max();
 
-    PriorityQueue1<int, int> group_minima;
+    PriorityQueue1<E, P> group_minima;
     std::vector<typename ConcatenableQueue<Group*, E, P>::ElementRef> elements;
     
     P Delta = 0;

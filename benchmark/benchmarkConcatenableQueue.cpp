@@ -12,7 +12,7 @@ std::map<int, CQ::ElementRef> E;
 
 void process_line(std::string line) {
     std::string command, name, name2, name3;
-    int after, val, val2, length;
+    int after, before, val, val2, length;
     std::stringstream ss; ss << line;
     ss >> command;
     if (command == "h" || command == "help") {
@@ -23,7 +23,7 @@ void process_line(std::string line) {
         std::cout << "g: range name start stop\n";
         std::cout << "p: print name\n";
         std::cout << "f: find val\n";
-        std::cout << "i: insert name after val\n";
+        std::cout << "i: insert name before val\n";
         std::cout << "a: append name val\n";
         std::cout << "r: remove name val\n";
         std::cout << "m: min name\n";
@@ -91,13 +91,13 @@ void process_line(std::string line) {
         q->print(std::cerr);
 
     } else if (command == "i" || command == "insert") {
-        ss >> name >> after >> val;
+        ss >> name >> before >> val;
 
         if (Q.find(name) == Q.end()) { std::cerr << "No such queue '" << name << "'\n"; return; }
-        if (E.find(after) == E.end()) { std::cerr << "No such element: " << after << "\n"; return; }
+        if (E.find(before) == E.end()) { std::cerr << "No such element: " << before << "\n"; return; }
         if (E.find(val) != E.end()) { std::cerr << "Element " << val << " already exists\n"; return; }
 
-        E[val] = Q[name]->insert_after(E[after], val, 0);
+        E[val] = Q[name]->insert_before(E[before], val, 0);
         Q[name]->print(std::cerr);
         Q[name]->print_elements(std::cerr);
 

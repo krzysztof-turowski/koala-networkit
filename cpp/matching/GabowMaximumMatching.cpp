@@ -284,67 +284,40 @@ NetworKit::edgeweight GabowMaximumMatching::edge_slack(NetworKit::edgeid edge) {
 }
 
 void GabowMaximumMatching::check_consistency() {
-    // std::cerr << "Current vertices: \n";
-    // graph.forNodes([this] (NetworKit::node v) {
-    //     if (this->matched_vertex[v] != NetworKit::none)
-    //         std::cerr << v << " " << this->matched_vertex[v] << "  ";
-    //     else std::cerr << v << " none  ";
-    //     this->get_blossom(v)->short_print(); std::cerr << std::endl;
-    // });
+    std::cerr << "Current vertices: \n";
+    graph.forNodes([this] (NetworKit::node v) {
+        if (this->matched_vertex[v] != NetworKit::none)
+            std::cerr << v << " " << this->matched_vertex[v] << "  ";
+        else std::cerr << v << " none  ";
+        this->get_blossom(v)->short_print(); std::cerr << std::endl;
+    });
 
-    // std::cerr << "Current weights: \n";
-    // graph.forNodes([this] (NetworKit::node v) {
-    //     std::cerr << "U[" << v << "] = " << U[v] << std::endl;
-    // });
+    std::cerr << "Current weights: \n";
+    graph.forNodes([this] (NetworKit::node v) {
+        std::cerr << "U[" << v << "] = " << U[v] << std::endl;
+    });
 
-    // for (auto b : blossoms) if (!b->is_trivial()) {
-    //     b->short_print(); std::cerr << ": " << b->z << std::endl; 
-    // }
+    for (auto b : blossoms) if (!b->is_trivial()) {
+        b->short_print(); std::cerr << ": " << b->z << std::endl; 
+    }
 
-    // std::cerr << "Current best edges: \n";
-    // graph.forNodes([this] (NetworKit::node v) {
-    //     if (get_blossom(v)->label != even) {
-    //         std::cerr << "best_edge[" << v << "] = (" 
-    //             << best_edge[v].u << ", " << best_edge[v].v << ") : " 
-    //             << edge_slack(best_edge[v].id) << std::endl;
-    //     }
-    // });
-    // for (auto b : blossoms) {
-    //     if (b->label != even) continue;
-    //     std::cerr << "Best edges of "; b->short_print(); std::cerr << std::endl;
-    //     for (auto [c, e] : get_data(b)->best_edges) {
-    //         c->short_print(); 
-    //         std::cerr << " : (" << e.u << ", " << e.v << ") : " << edge_slack(e.id) << std::endl;
-    //     }
-    //     auto edge = get_data(b)->best_edge;
-    //     std::cerr << "Best one: (" << edge.u << ", " << edge.v << ") : " << edge_slack(edge.id) << std::endl;
-    // }
-    graph.forEdges([this] (NetworKit::node u, NetworKit::node v, NetworKit::edgeid id) {
-        if (this->is_in_matching[id]) {
-            if (this->matched_vertex[u] != v || this->matched_vertex[v] != u) {
-                std::cerr << "Inconsistent matching\n";
-                exit(1);
-            }
+    std::cerr << "Current best edges: \n";
+    graph.forNodes([this] (NetworKit::node v) {
+        if (get_blossom(v)->label != even) {
+            std::cerr << "best_edge[" << v << "] = (" 
+                << best_edge[v].u << ", " << best_edge[v].v << ") : " 
+                << edge_slack(best_edge[v].id) << std::endl;
         }
     });
     for (auto b : blossoms) {
-        b->check_consistency();
-        if (b->backtrack_edge.id == NetworKit::none) continue;
-        NetworKit::node u = b->backtrack_edge.u;
-        NetworKit::node v = b->backtrack_edge.v;
-        Blossom* u_blossom = get_blossom(u);
-        Blossom* v_blossom = get_blossom(v);
-
-        if (u_blossom == b) {
-            std::cerr << "Backtrack edge originates in blossom\n";
-            b->short_print(); std::cerr << std::endl;
-            exit(1);
+        if (b->label != even) continue;
+        std::cerr << "Best edges of "; b->short_print(); std::cerr << std::endl;
+        for (auto [c, e] : get_data(b)->best_edges) {
+            c->short_print(); 
+            std::cerr << " : (" << e.u << ", " << e.v << ") : " << edge_slack(e.id) << std::endl;
         }
-        if (v_blossom != b) {
-            std::cerr << "Backtrack edge not ends in blossom\n";
-            b->short_print(); std::cerr << std::endl;
-            exit(1);
-        }
+        auto edge = get_data(b)->best_edge;
+        std::cerr << "Best one: (" << edge.u << ", " << edge.v << ") : " << edge_slack(edge.id) << std::endl;
     }
 }
 
