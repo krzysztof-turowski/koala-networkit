@@ -2,7 +2,7 @@
 #include <iostream>
 #include <map>
 
-#include <dominating_set/ExactDominatingSets.hpp>
+#include <dominating_set/ExactDominatingSet.hpp>
 #include <io/G6GraphReader.hpp>
 #include <set_cover/BranchAndReduceSetCover.hpp>
 
@@ -10,8 +10,8 @@ template <typename T>
 int run_algorithm(NetworKit::Graph &G) {
     auto algorithm = T(G);
     algorithm.run();
-    auto dominating_set = algorithm.getDominatingSet();
-    assert(algorithm.isDominating(dominating_set));
+    algorithm.check();
+    auto &dominating_set = algorithm.getDominatingSet();
     int size = std::count(dominating_set.begin(), dominating_set.end(), true);
     std::cout << size << " " << std::flush;
     return size;
@@ -36,9 +36,11 @@ int main(int argc, char **argv) {
         case 0:
             D.insert(run_algorithm<Koala::FominKratschWoegingerMDS>(G));
             D.insert(run_algorithm<Koala::SchiermeyerMDS>(G));
-            D.insert(run_algorithm<Koala::BranchAndReduceMDS<Koala::RooijBodlaenderSetCover>>(G));
-            D.insert(run_algorithm<Koala::BranchAndReduceMDS<Koala::FominGrandoniKratschSetCover>>(G));
-            D.insert(run_algorithm<Koala::BranchAndReduceMDS<Koala::GrandoniSetCover>>(G));
+            D.insert(run_algorithm<
+                Koala::BranchAndReduceDominatingSet<Koala::RooijBodlaenderSetCover>>(G));
+            D.insert(run_algorithm<
+                Koala::BranchAndReduceDominatingSet<Koala::FominGrandoniKratschSetCover>>(G));
+            D.insert(run_algorithm<Koala::BranchAndReduceDominatingSet<Koala::GrandoniSetCover>>(G));
             break;
         case 1:
             D.insert(run_algorithm<Koala::FominKratschWoegingerMDS>(G));
@@ -47,13 +49,16 @@ int main(int argc, char **argv) {
             D.insert(run_algorithm<Koala::SchiermeyerMDS>(G));
             break;
         case 3:
-            D.insert(run_algorithm<Koala::BranchAndReduceMDS<Koala::RooijBodlaenderSetCover>>(G));
+            D.insert(run_algorithm<
+                Koala::BranchAndReduceDominatingSet<Koala::RooijBodlaenderSetCover>>(G));
             break;
         case 4:
-            D.insert(run_algorithm<Koala::BranchAndReduceMDS<Koala::FominGrandoniKratschSetCover>>(G));
+            D.insert(run_algorithm<
+                Koala::BranchAndReduceDominatingSet<Koala::FominGrandoniKratschSetCover>>(G));
             break;
         case 5:
-            D.insert(run_algorithm<Koala::BranchAndReduceMDS<Koala::GrandoniSetCover>>(G));
+            D.insert(run_algorithm<
+                Koala::BranchAndReduceDominatingSet<Koala::GrandoniSetCover>>(G));
             break;
         }
         assert(D.size() == 1);

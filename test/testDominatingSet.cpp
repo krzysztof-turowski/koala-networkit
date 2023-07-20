@@ -1,48 +1,52 @@
 #include <gtest/gtest.h>
 
-#include <dominating_set/ExactDominatingSets.hpp>
+#include <dominating_set/ExactDominatingSet.hpp>
 #include <set_cover/BranchAndReduceSetCover.hpp>
 
 #include "helpers.hpp"
 
-struct MinimumDominatingSetParameters {
+struct DominatingSetParameters {
     int N;
     std::list<std::pair<int, int>> E;
     int minimumDominatingSetSize;
 };
 
 class GrandoniTest
-    : public testing::TestWithParam<MinimumDominatingSetParameters> {};
+    : public testing::TestWithParam<DominatingSetParameters> {};
 
 class FominGrandoniKratschTest
-    : public testing::TestWithParam<MinimumDominatingSetParameters> {};
+    : public testing::TestWithParam<DominatingSetParameters> {};
 
 class RooijBodlaenderTest
-    : public testing::TestWithParam<MinimumDominatingSetParameters> {};
+    : public testing::TestWithParam<DominatingSetParameters> {};
 
 class FominKratschWoegingerTest
-    : public testing::TestWithParam<MinimumDominatingSetParameters> {};
+    : public testing::TestWithParam<DominatingSetParameters> {};
 
 class SchiermeyerTest
-    : public testing::TestWithParam<MinimumDominatingSetParameters> {};
+    : public testing::TestWithParam<DominatingSetParameters> {};
 
 class ExhaustiveTest
-    : public testing::TestWithParam<MinimumDominatingSetParameters> {}; 
+    : public testing::TestWithParam<DominatingSetParameters> {};
+
+void check(const auto &parameters, const auto &dominating_set) {
+    EXPECT_EQ(
+        std::count(dominating_set.begin(), dominating_set.end(), true),
+        parameters.minimumDominatingSetSize);
+}
 
 TEST_P(GrandoniTest, test) {
-    MinimumDominatingSetParameters const& parameters = GetParam();
+    DominatingSetParameters const& parameters = GetParam();
     NetworKit::Graph G = build_graph(parameters.N, parameters.E);
-    auto algorithm = Koala::BranchAndReduceMDS<Koala::GrandoniSetCover>(G);
+    auto algorithm = Koala::BranchAndReduceDominatingSet<Koala::GrandoniSetCover>(G);
     algorithm.run();
-    EXPECT_TRUE(algorithm.isDominating(algorithm.getDominatingSet()));
-    EXPECT_EQ(
-        Koala::MinimumDominatingSet::dominatingSetSize(algorithm.getDominatingSet()),
-        parameters.minimumDominatingSetSize);
+    algorithm.check();
+    check(parameters, algorithm.getDominatingSet());
 }
 
 INSTANTIATE_TEST_SUITE_P(
     test_example, GrandoniTest, testing::Values(
-        MinimumDominatingSetParameters{
+        DominatingSetParameters{
             32,
             {{0, 1}, {0, 2}, {0, 4}, {0, 8}, {0, 16}, {1, 2}, {1, 3}, {1, 5}, {1, 9}, {1, 17},
             {2, 3}, {2, 4}, {2, 6}, {2, 10}, {2, 18}, {3, 4}, {3, 5}, {3, 7}, {3, 11}, {3, 19},
@@ -64,19 +68,18 @@ INSTANTIATE_TEST_SUITE_P(
 );
 
 TEST_P(FominGrandoniKratschTest, test) {
-    MinimumDominatingSetParameters const& parameters = GetParam();
+    DominatingSetParameters const&
+    parameters = GetParam();
     NetworKit::Graph G = build_graph(parameters.N, parameters.E);
-    auto algorithm = Koala::BranchAndReduceMDS<Koala::FominGrandoniKratschSetCover>(G);
+    auto algorithm = Koala::BranchAndReduceDominatingSet<Koala::FominGrandoniKratschSetCover>(G);
     algorithm.run();
-    EXPECT_TRUE(algorithm.isDominating(algorithm.getDominatingSet()));
-    EXPECT_EQ(
-        Koala::MinimumDominatingSet::dominatingSetSize(algorithm.getDominatingSet()),
-        parameters.minimumDominatingSetSize);
+    algorithm.check();
+    check(parameters, algorithm.getDominatingSet());
 }
 
 INSTANTIATE_TEST_SUITE_P(
     test_example, FominGrandoniKratschTest, testing::Values(
-        MinimumDominatingSetParameters{
+        DominatingSetParameters{
             32,
             {{0, 1}, {0, 2}, {0, 4}, {0, 8}, {0, 16}, {1, 2}, {1, 3}, {1, 5}, {1, 9}, {1, 17},
             {2, 3}, {2, 4}, {2, 6}, {2, 10}, {2, 18}, {3, 4}, {3, 5}, {3, 7}, {3, 11}, {3, 19},
@@ -98,19 +101,17 @@ INSTANTIATE_TEST_SUITE_P(
 );
 
 TEST_P(RooijBodlaenderTest, test) {
-    MinimumDominatingSetParameters const& parameters = GetParam();
+    DominatingSetParameters const& parameters = GetParam();
     NetworKit::Graph G = build_graph(parameters.N, parameters.E);
-    auto algorithm = Koala::BranchAndReduceMDS<Koala::RooijBodlaenderSetCover>(G);
+    auto algorithm = Koala::BranchAndReduceDominatingSet<Koala::RooijBodlaenderSetCover>(G);
     algorithm.run();
-    EXPECT_TRUE(algorithm.isDominating(algorithm.getDominatingSet()));
-    EXPECT_EQ(
-        Koala::MinimumDominatingSet::dominatingSetSize(algorithm.getDominatingSet()),
-        parameters.minimumDominatingSetSize);
+    algorithm.check();
+    check(parameters, algorithm.getDominatingSet());
 }
 
 INSTANTIATE_TEST_SUITE_P(
     test_example, RooijBodlaenderTest, testing::Values(
-        MinimumDominatingSetParameters{
+        DominatingSetParameters{
             32,
             {{0, 1}, {0, 2}, {0, 4}, {0, 8}, {0, 16}, {1, 2}, {1, 3}, {1, 5}, {1, 9}, {1, 17},
             {2, 3}, {2, 4}, {2, 6}, {2, 10}, {2, 18}, {3, 4}, {3, 5}, {3, 7}, {3, 11}, {3, 19},
@@ -132,19 +133,17 @@ INSTANTIATE_TEST_SUITE_P(
 );
 
 TEST_P(FominKratschWoegingerTest, test) {
-    MinimumDominatingSetParameters const& parameters = GetParam();
+    DominatingSetParameters const& parameters = GetParam();
     NetworKit::Graph G = build_graph(parameters.N, parameters.E);
     auto algorithm = Koala::FominKratschWoegingerMDS(G);
     algorithm.run();
-    EXPECT_TRUE(algorithm.isDominating(algorithm.getDominatingSet()));
-    EXPECT_EQ(
-        Koala::MinimumDominatingSet::dominatingSetSize(algorithm.getDominatingSet()),
-        parameters.minimumDominatingSetSize);
+    algorithm.check();
+    check(parameters, algorithm.getDominatingSet());
 }
 
 INSTANTIATE_TEST_SUITE_P(
     test_example, FominKratschWoegingerTest, testing::Values(
-        MinimumDominatingSetParameters{
+        DominatingSetParameters{
             32,
             {{0, 1}, {0, 2}, {0, 4}, {0, 8}, {0, 16}, {1, 2}, {1, 3}, {1, 5}, {1, 9}, {1, 17},
             {2, 3}, {2, 4}, {2, 6}, {2, 10}, {2, 18}, {3, 4}, {3, 5}, {3, 7}, {3, 11}, {3, 19},
@@ -166,19 +165,17 @@ INSTANTIATE_TEST_SUITE_P(
 );
 
 TEST_P(SchiermeyerTest, test) {
-    MinimumDominatingSetParameters const& parameters = GetParam();
+    DominatingSetParameters const& parameters = GetParam();
     NetworKit::Graph G = build_graph(parameters.N, parameters.E);
     auto algorithm = Koala::SchiermeyerMDS(G);
     algorithm.run();
-    EXPECT_TRUE(algorithm.isDominating(algorithm.getDominatingSet()));
-    EXPECT_EQ(
-        Koala::MinimumDominatingSet::dominatingSetSize(algorithm.getDominatingSet()),
-        parameters.minimumDominatingSetSize);
+    algorithm.check();
+    check(parameters, algorithm.getDominatingSet());
 }
 
 INSTANTIATE_TEST_SUITE_P(
     test_example, SchiermeyerTest, testing::Values(
-        MinimumDominatingSetParameters{
+        DominatingSetParameters{
             32,
             {{0, 1}, {0, 2}, {0, 4}, {0, 8}, {0, 16}, {1, 2}, {1, 3}, {1, 5}, {1, 9}, {1, 17},
             {2, 3}, {2, 4}, {2, 6}, {2, 10}, {2, 18}, {3, 4}, {3, 5}, {3, 7}, {3, 11}, {3, 19},
@@ -200,19 +197,17 @@ INSTANTIATE_TEST_SUITE_P(
 );
 
 TEST_P(ExhaustiveTest, test) {
-    MinimumDominatingSetParameters const& parameters = GetParam();
+    DominatingSetParameters const& parameters = GetParam();
     NetworKit::Graph G = build_graph(parameters.N, parameters.E);
     auto algorithm = Koala::ExhaustiveMDS(G);
     algorithm.run();
-    EXPECT_TRUE(algorithm.isDominating(algorithm.getDominatingSet()));
-    EXPECT_EQ(
-        Koala::MinimumDominatingSet::dominatingSetSize(algorithm.getDominatingSet()),
-        parameters.minimumDominatingSetSize);
+    algorithm.check();
+    check(parameters, algorithm.getDominatingSet());
 }
 
 INSTANTIATE_TEST_SUITE_P(
     test_example, ExhaustiveTest, testing::Values(
-        MinimumDominatingSetParameters{
+        DominatingSetParameters{
             32,
             {{0, 1}, {0, 2}, {0, 4}, {0, 8}, {0, 16}, {1, 2}, {1, 3}, {1, 5}, {1, 9}, {1, 17},
             {2, 3}, {2, 4}, {2, 6}, {2, 10}, {2, 18}, {3, 4}, {3, 5}, {3, 7}, {3, 11}, {3, 19},

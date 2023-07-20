@@ -1,6 +1,5 @@
 koala_add_module(dominating_set
-    MinimumDominatingSet.cpp
-    SchiermeyerMDS.cpp
-    FominKratschWoeginger.cpp
+    DominatingSet.cpp
+    ExactDominatingSet.cpp
     ExhaustiveMDS.cpp
 )

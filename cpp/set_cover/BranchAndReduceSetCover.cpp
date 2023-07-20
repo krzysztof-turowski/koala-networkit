@@ -67,6 +67,7 @@ BranchAndReduceSetCover::BranchAndReduceSetCover(
     : family(family), occurences(occurences) { }
 
 void BranchAndReduceSetCover::run() {
+    hasRun = true;
     set_cover = std::vector<bool>(family.size());
     if (std::all_of(family.begin(), family.end(), [](const auto& e) { return e.size() == 0; })) {
         return;
@@ -85,17 +86,16 @@ void BranchAndReduceSetCover::run() {
     int included_size = std::count(included.begin(), included.end(), true);
     int excluded_size = std::count(excluded.begin(), excluded.end(), true);
     set_cover = included_size < excluded_size ? included : excluded;
-    hasRun = true;
 }
 
 std::vector<bool> BranchAndReduceSetCover::getSetCover() const {
-    // assureFinished();
+    assureFinished();
     return set_cover;
 }
 
 void BranchAndReduceSetCover::check() const {
     assureFinished();
-    ///////////
+    // TODO
 }
 
 bool BranchAndReduceSetCover::reduce() {
