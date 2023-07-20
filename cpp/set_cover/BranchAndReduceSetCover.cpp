@@ -7,37 +7,35 @@
 
 #include <cassert>
 
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/max_cardinality_matching.hpp>
+
 #include <set_cover/BranchAndReduceSetCover.hpp>
 
 namespace Koala {
 
-bool isSubset(
-        std::set<NetworKit::node> &subsetCandidate,
-        std::set<NetworKit::node> &supersetCandidate) {
-    if (subsetCandidate.size() > supersetCandidate.size()) {
+bool is_subset(
+        std::set<NetworKit::node> &subset, std::set<NetworKit::node> &superset) {
+    if (subset.size() > superset.size()) {
         return false;
     }
     return std::all_of(
-        subsetCandidate.begin(),
-        subsetCandidate.end(),
-        [&supersetCandidate](const auto& node) {
-            return supersetCandidate.count(node) > 0;
-        });
+        subset.begin(), subset.end(), [&](const auto& v) { return superset.count(v) > 0; });
 }
 
-std::tuple<NetworKit::index, NetworKit::index> findSetInclusion(
-        std::vector<std::set<NetworKit::count>> &sets) {
-    for (NetworKit::count i = 0; i < sets.size(); i++) {
-        auto &subsetCandidate = sets.at(i);
-        if (subsetCandidate.empty()) {
+std::tuple<NetworKit::index, NetworKit::index> find_set_inclusion(
+        std::vector<std::set<NetworKit::count>> &S) {
+    for (NetworKit::count i = 0; i < S.size(); i++) {
+        auto &subset = S.at(i);
+        if (subset.empty()) {
             continue;
         }
-        for (NetworKit::count j = 0; j < sets.size(); j++) {
+        for (NetworKit::count j = 0; j < S.size(); j++) {
             if (i == j) {
                 continue;
             }
-            auto &supersetCandidate = sets.at(j);
-            if (isSubset(subsetCandidate, supersetCandidate)) {
+            auto &superset = S.at(j);
+            if (is_subset(subset, superset)) {
                 return {i, j};
             }
         }
@@ -45,7 +43,7 @@ std::tuple<NetworKit::index, NetworKit::index> findSetInclusion(
     return {NetworKit::none, NetworKit::none};
 }
 
-void excludeSet(
+void exclude_set(
         NetworKit::index id,
         std::set<NetworKit::count> &excluded,
         std::vector<std::set<NetworKit::count>> &reversed) {
@@ -54,7 +52,7 @@ void excludeSet(
     }
 }
 
-void includeSet(
+void include_set(
         NetworKit::index id,
         std::set<NetworKit::count> &included,
         std::vector<std::set<NetworKit::count>> &reversed) {
@@ -63,39 +61,238 @@ void includeSet(
     }
 }
 
-RooijBodlaenderMSC::RooijBodlaenderMSC(
-    std::vector<std::set<NetworKit::node>> &family,
-    std::vector<std::set<NetworKit::index>> &occurences)
-    : BranchAndReduceMSCImpl<true>(family, occurences) {}
+BranchAndReduceSetCover::BranchAndReduceSetCover(
+        std::vector<std::set<NetworKit::node>> &family,
+        std::vector<std::set<NetworKit::index>> &occurences)
+    : family(family), occurences(occurences) { }
 
-NetworKit::index RooijBodlaenderMSC::findCountingRuleReductionSet() {
+void BranchAndReduceSetCover::run() {
+    set_cover = std::vector<bool>(family.size());
+    if (std::all_of(family.begin(), family.end(), [](const auto& e) { return e.size() == 0; })) {
+        return;
+    }
+    if (reduce()) {
+        return;
+    }
+    if (reduce_matching()) {
+        return;
+    }
+    // branching
+    NetworKit::index largest = std::max_element(
+        family.begin(), family.end(),
+        [](const auto& a, const auto& b) { return a.size() < b.size(); }) - family.begin();
+    auto included = forced_set_cover(largest), excluded = discarded_set_cover(largest);
+    int included_size = std::count(included.begin(), included.end(), true);
+    int excluded_size = std::count(excluded.begin(), excluded.end(), true);
+    set_cover = included_size < excluded_size ? included : excluded;
+    hasRun = true;
+}
+
+std::vector<bool> BranchAndReduceSetCover::getSetCover() const {
+    // assureFinished();
+    return set_cover;
+}
+
+void BranchAndReduceSetCover::check() const {
+    assureFinished();
+    ///////////
+}
+
+bool BranchAndReduceSetCover::reduce() {
+    // unique element rule
+    NetworKit::index forced_index = find_unique_occurence_set();
+    if (forced_index != NetworKit::none) {
+        set_cover = forced_set_cover(forced_index);
+        return true;
+    }
+    // subset rule
+    auto [subset_index, superset_index] = find_set_inclusion(family);
+    if (subset_index != NetworKit::none) {
+        set_cover = discarded_set_cover(subset_index);
+        return true;
+    }
+    return false;
+}
+
+NetworKit::index BranchAndReduceSetCover::find_unique_occurence_set() {
+    for (auto &occurence : occurences) {
+        if (occurence.size() == 1) {
+            return *(occurence.begin());
+        }
+    }
+    return NetworKit::none;
+}
+
+std::vector<bool> BranchAndReduceSetCover::forced_set_cover(NetworKit::index index) {
+    std::set<NetworKit::node> &forced = family.at(index);
+    std::vector<std::pair<NetworKit::index, NetworKit::node>> removed;
+    for (auto &element : forced) {
+        for (auto &occurence : occurences.at(element)) {
+            removed.emplace_back(occurence, element);
+        }
+        occurences.at(element) = std::set<NetworKit::index>();
+    }
+    for (auto &element : removed) {
+        family.at(element.first).erase(element.second);
+    }
+    run();
+    for (auto &element : removed) {
+        family.at(element.first).insert(element.second);
+        occurences.at(element.second).insert(element.first);
+    }
+    set_cover.at(index) = true;
+    return set_cover;
+}
+
+std::vector<bool> BranchAndReduceSetCover::discarded_set_cover(NetworKit::index index) {
+    std::set<NetworKit::node> swapped;
+    exclude_set(index, family.at(index), occurences);
+    family.at(index).swap(swapped);
+    run();
+    family.at(index).swap(swapped);
+    include_set(index, family.at(index), occurences);
+    return set_cover;
+}
+
+bool GrandoniSetCover::reduce_matching() {
+    return false;
+}
+
+bool FominGrandoniKratschSetCover::reduce_matching() {
+    if (std::any_of(family.begin(), family.end(), [](const auto& e) { return e.size() > 2; })) {
+        return false;
+    }
+
+    typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS> boost_graph_t;
+    boost_graph_t boost_graph(occurences.size());
+    std::vector<boost::graph_traits<boost_graph_t>::vertex_descriptor> mate(occurences.size());
+    for (auto &element : family) {
+        if (element.size() == 0) {
+            continue;
+        }
+        std::set<NetworKit::node>::iterator it = element.begin();
+        boost::add_edge(*it, *(++it), boost_graph);
+    }
+
+    assert(boost::checked_edmonds_maximum_cardinality_matching(boost_graph, &mate[0]));
+
+    set_cover = std::vector<bool>(family.size());
+    std::vector<bool> dominated(occurences.size());
+    for (NetworKit::index i = 0; i < family.size(); i++) {
+        auto &element = family.at(i);
+        if (element.size() == 0) {
+            continue;
+        }
+        std::set<NetworKit::node>::iterator it = element.begin();
+        NetworKit::node v1 = *it, v2 = *(++it);
+        if (mate[v1] == v2) {
+            set_cover[i] = dominated[v1] = dominated[v2] = true;
+        }
+    }
+    for (NetworKit::node i = 0; i < occurences.size(); i++) {
+        if (!dominated[i] && occurences.at(i).size() != 0) {
+            set_cover[*occurences.at(i).begin()] = true;
+        }
+    }
+    return true;
+}
+
+bool RooijBodlaenderSetCover::reduce() {
+    if (FominGrandoniKratschSetCover::reduce()) {
+        return true;
+    }
+    // subsumption rule
+    auto [subset_index, superset_index] = find_set_inclusion(occurences);
+    if (subset_index != NetworKit::none) {
+        std::set<NetworKit::index> swapped;
+        auto &superset = occurences.at(superset_index);
+        exclude_set(superset_index, superset, family);
+        superset.swap(swapped);
+        run();
+        superset.swap(swapped);
+        include_set(superset_index, superset, family);
+        return true;
+    }
+    // counting rule
+    NetworKit::index counting_rule_index = find_counting_rule_reduction_set();
+    if (counting_rule_index != NetworKit::none) {
+        set_cover = forced_set_cover(counting_rule_index);
+        return true;
+    }
+    // size two set with frequency two elements rule
+    NetworKit::index cardinality_frequency_index = find_cardinality_frequency_set();
+    if (cardinality_frequency_index == NetworKit::none) {
+        return false;
+    }
+    std::vector<NetworKit::index> indices{cardinality_frequency_index};
+    for (auto &element : family.at(cardinality_frequency_index)) {
+        for (auto removed : occurences.at(element)) {
+            if (removed == cardinality_frequency_index) {
+                continue;
+            }
+            indices.push_back(removed);
+        }
+    }
+    std::set<NetworKit::node> replacement;
+    auto &set1 = family.at(indices[1]), &set2 = family.at(indices[2]);
+    std::set_union(
+        set1.begin(), set1.end(), set2.begin(), set2.end(),
+        std::inserter(replacement, replacement.begin()));
+    for (auto &element : family.at(cardinality_frequency_index)) {
+        replacement.erase(element);
+    }
+    std::set<NetworKit::node> swapped[3]{ {}, replacement, {} };
+    for (int j = 0; j < 3; j++) {
+        exclude_set(indices[j], family.at(indices[j]), occurences);
+    }
+    include_set(indices[1], swapped[1], occurences);
+    for (int j = 0; j < 3; j++) {
+        swapped[j].swap(family.at(indices[j]));
+    }
+    run();
+    for (int j = 0; j < 3; j++) {
+        swapped[j].swap(family.at(indices[j]));
+    }
+    exclude_set(indices[1], swapped[1], occurences);
+    for (int j = 0; j < 3; j++) {
+        include_set(indices[j], family.at(indices[j]), occurences);
+    }
+    if (set_cover.at(indices[1])) {
+        set_cover.at(indices[2]) = true;
+    } else {
+        set_cover.at(indices[0]) = true;
+    }
+    return true;
+}
+
+NetworKit::index RooijBodlaenderSetCover::find_counting_rule_reduction_set() {
     for (NetworKit::index i = 0; i < family.size(); i++) {
         auto &candidate = family.at(i);
-        int numberOfFrequency2elements = 0;
-        std::set<NetworKit::node> notCoveredByCandidate;
+        int count_frequency_two = 0;
+        std::set<NetworKit::node> not_covered;
         for (auto &element : candidate) {
             if (occurences.at(element).size() == 2) {
-                numberOfFrequency2elements++;
+                count_frequency_two++;
                 for (auto &occurence : occurences.at(element)) {
                     if (occurence == i) {
                         continue;
                     }
                     for (auto &e : family.at(occurence)) {
                         if (candidate.count(e) == 0) {
-                            notCoveredByCandidate.insert(e);
+                            not_covered.insert(e);
                         }
                     }
                 }
             }
         }
-        if (notCoveredByCandidate.size() < numberOfFrequency2elements) {
+        if (not_covered.size() < count_frequency_two) {
             return i;
         }
     }
     return NetworKit::none;
 }
 
-NetworKit::index RooijBodlaenderMSC::find2Cardinality2FrequencySet() {
+NetworKit::index RooijBodlaenderSetCover::find_cardinality_frequency_set() {
     for (NetworKit::index i = 0; i < family.size(); i++) {
         auto &candidate = family.at(i);
         if (candidate.size() != 2) {
@@ -103,82 +300,12 @@ NetworKit::index RooijBodlaenderMSC::find2Cardinality2FrequencySet() {
         }
         bool satifies = std::all_of(
             candidate.begin(), candidate.end(),
-            [this] (const auto& element) { return occurences.at(element).size() == 2; });
+            [this] (const auto& e) { return occurences.at(e).size() == 2; });
         if (satifies) {
             return i;
         }
     }
     return NetworKit::none;
-}
-
-bool RooijBodlaenderMSC::reduce(std::vector<bool> & solution) {
-    if (BranchAndReduceMSCImpl<true>::reduce(solution)) {
-        return true;
-    }
-    // subsumption rule
-    auto [subsetIndex2, supersetIndex2] = findSetInclusion(occurences);
-    if (subsetIndex2 != NetworKit::none) {
-        std::set<NetworKit::index> swapped;
-        auto &superset = occurences.at(supersetIndex2);
-        excludeSet(supersetIndex2, superset, family);
-        superset.swap(swapped);
-        std::vector<bool> subcover = run();
-        superset.swap(swapped);
-        includeSet(supersetIndex2, superset, family);
-        solution = subcover;
-        return true;
-    }
-    // counting rule
-    NetworKit::index countingRuleIndex = findCountingRuleReductionSet();
-    if (countingRuleIndex != NetworKit::none) {
-        solution = forcedSetCover(countingRuleIndex);
-        return true;
-    }
-    // size two set with frequency two elements rule
-    NetworKit::index cardinalityFrequencyIndex = find2Cardinality2FrequencySet();
-    if (cardinalityFrequencyIndex != NetworKit::none) {
-        std::vector<NetworKit::index> indicesOfReplaced{cardinalityFrequencyIndex};
-        for (auto &element : family.at(cardinalityFrequencyIndex)) {
-            for (auto removed : occurences.at(element)) {
-                if (removed == cardinalityFrequencyIndex) {
-                    continue;
-                }
-                indicesOfReplaced.push_back(removed);
-            }
-        }
-        std::set<NetworKit::node> replacement;
-        auto &set1 = family.at(indicesOfReplaced[1]), &set2 = family.at(indicesOfReplaced[2]);
-        std::set_union(
-            set1.begin(), set1.end(), set2.begin(), set2.end(),
-            std::inserter(replacement, replacement.begin()));
-        for (auto &element : family.at(cardinalityFrequencyIndex)) {
-            replacement.erase(element);
-        }
-        std::set<NetworKit::node> swapped[3]{ {}, replacement, {} };
-        for (int j = 0; j < 3; j++) {
-            excludeSet(indicesOfReplaced[j], family.at(indicesOfReplaced[j]), occurences);
-        }
-        includeSet(indicesOfReplaced[1], swapped[1], occurences);
-        for (int j = 0; j < 3; j++) {
-            swapped[j].swap(family.at(indicesOfReplaced[j]));
-        }
-        std::vector<bool> replacedCover = run();
-        for (int j = 0; j < 3; j++) {
-            swapped[j].swap(family.at(indicesOfReplaced[j]));
-        }
-        excludeSet(indicesOfReplaced[1], swapped[1], occurences);
-        for (int j = 0; j < 3; j++) {
-            includeSet(indicesOfReplaced[j], family.at(indicesOfReplaced[j]), occurences);
-        }
-        if (replacedCover.at(indicesOfReplaced[1])) {
-            replacedCover.at(indicesOfReplaced[2]) = true;
-        } else {
-            replacedCover.at(indicesOfReplaced[0]) = true;
-        }
-        solution = replacedCover;
-        return true;
-    }
-    return false;
 }
 
 }  /* namespace Koala */

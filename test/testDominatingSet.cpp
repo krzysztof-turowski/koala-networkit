@@ -32,7 +32,7 @@ class ExhaustiveTest
 TEST_P(GrandoniTest, test) {
     MinimumDominatingSetParameters const& parameters = GetParam();
     NetworKit::Graph G = build_graph(parameters.N, parameters.E);
-    auto algorithm = Koala::BranchAndReduceMDS<Koala::GrandoniMSC>(G);
+    auto algorithm = Koala::BranchAndReduceMDS<Koala::GrandoniSetCover>(G);
     algorithm.run();
     EXPECT_TRUE(algorithm.isDominating(algorithm.getDominatingSet()));
     EXPECT_EQ(
@@ -66,7 +66,7 @@ INSTANTIATE_TEST_SUITE_P(
 TEST_P(FominGrandoniKratschTest, test) {
     MinimumDominatingSetParameters const& parameters = GetParam();
     NetworKit::Graph G = build_graph(parameters.N, parameters.E);
-    auto algorithm = Koala::BranchAndReduceMDS<Koala::FominGrandoniKratschMSC>(G);
+    auto algorithm = Koala::BranchAndReduceMDS<Koala::FominGrandoniKratschSetCover>(G);
     algorithm.run();
     EXPECT_TRUE(algorithm.isDominating(algorithm.getDominatingSet()));
     EXPECT_EQ(
@@ -100,7 +100,7 @@ INSTANTIATE_TEST_SUITE_P(
 TEST_P(RooijBodlaenderTest, test) {
     MinimumDominatingSetParameters const& parameters = GetParam();
     NetworKit::Graph G = build_graph(parameters.N, parameters.E);
-    auto algorithm = Koala::BranchAndReduceMDS<Koala::RooijBodlaenderMSC>(G);
+    auto algorithm = Koala::BranchAndReduceMDS<Koala::RooijBodlaenderSetCover>(G);
     algorithm.run();
     EXPECT_TRUE(algorithm.isDominating(algorithm.getDominatingSet()));
     EXPECT_EQ(

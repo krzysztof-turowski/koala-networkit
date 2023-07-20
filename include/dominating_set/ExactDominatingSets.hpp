@@ -24,7 +24,9 @@ class BranchAndReduceMDS : public MinimumDominatingSet {
             family.emplace_back(neighborhood);
         });
         std::vector<std::set<NetworKit::index>> occurences(family);
-        dominatingSet = BranchAndReduceMCS(family, occurences).run();
+        auto msc = BranchAndReduceMCS(family, occurences);
+        msc.run();
+        dominatingSet = msc.getSetCover();
         hasRun = true;
     }
 };
