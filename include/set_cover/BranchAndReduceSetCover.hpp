@@ -1,3 +1,10 @@
+/*
+ * BranchAndReduceSetCover.cpp
+ *
+ *  Created on: 01.07.2023
+ *      Author: Piotr Kubaty
+ */
+
 #pragma once
 
 #include <set>
@@ -12,11 +19,18 @@
 
 namespace Koala {
 
+/**
+ * @ingroup set_cover
+ * The class for exact determination of minimum set cover
+ * via branch and reduce algorithm.
+ *
+ */
 template<bool useEdgeCover>
 class BranchAndReduceMSCImpl {
  protected:
     std::vector<std::set<NetworKit::node>> &family;
     std::vector<std::set<NetworKit::index>> &occurences;
+
     virtual bool reduce(std::vector<bool> & solution) {
         // unique element rule
         NetworKit::index forcedIndex = findUniqueOccurenceSet();
@@ -66,8 +80,7 @@ class BranchAndReduceMSCImpl {
 
     std::vector<bool> blossom() {
         typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS> boost_graph_t;
-        std::vector<bool> cover(family.size());
-        std::vector<bool> dominated(occurences.size());
+        std::vector<bool> cover(family.size()), dominated(occurences.size());
         boost_graph_t boost_graph(occurences.size());
         std::vector<boost::graph_traits<boost_graph_t>::vertex_descriptor> mate(occurences.size());
         for (auto &element : family) {
@@ -75,8 +88,7 @@ class BranchAndReduceMSCImpl {
                 continue;
             }
             std::set<NetworKit::node>::iterator it = element.begin();
-            NetworKit::node v1 = *(it);
-            NetworKit::node v2 = *(++it);
+            NetworKit::node v1 = *(it), v2 = *(++it);
             boost::add_edge(v1, v2, boost_graph);
         }
 

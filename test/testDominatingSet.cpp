@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <dominating_set/ExactDominatingSets.hpp>
-#include <set_cover/BranchAndReduceMSC.hpp>
+#include <set_cover/BranchAndReduceSetCover.hpp>
 
 #include "helpers.hpp"
 

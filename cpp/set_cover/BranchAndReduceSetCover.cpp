@@ -1,6 +1,13 @@
+/*
+ * BranchAndReduceSetCover.cpp
+ *
+ *  Created on: 01.07.2023
+ *      Author: Piotr Kubaty
+ */
+
 #include <cassert>
 
-#include <set_cover/BranchAndReduceMSC.hpp>
+#include <set_cover/BranchAndReduceSetCover.hpp>
 
 namespace Koala {
 
@@ -95,11 +102,8 @@ NetworKit::index RooijBodlaenderMSC::find2Cardinality2FrequencySet() {
             continue;
         }
         bool satifies = std::all_of(
-            candidate.begin(),
-            candidate.end(),
-            [this] (const auto& element) {
-                return occurences.at(element).size() == 2;
-            });
+            candidate.begin(), candidate.end(),
+            [this] (const auto& element) { return occurences.at(element).size() == 2; });
         if (satifies) {
             return i;
         }
@@ -133,7 +137,7 @@ bool RooijBodlaenderMSC::reduce(std::vector<bool> & solution) {
     // size two set with frequency two elements rule
     NetworKit::index cardinalityFrequencyIndex = find2Cardinality2FrequencySet();
     if (cardinalityFrequencyIndex != NetworKit::none) {
-        std::vector<NetworKit::index> indicesOfReplaced {cardinalityFrequencyIndex};
+        std::vector<NetworKit::index> indicesOfReplaced{cardinalityFrequencyIndex};
         for (auto &element : family.at(cardinalityFrequencyIndex)) {
             for (auto removed : occurences.at(element)) {
                 if (removed == cardinalityFrequencyIndex) {
@@ -143,13 +147,9 @@ bool RooijBodlaenderMSC::reduce(std::vector<bool> & solution) {
             }
         }
         std::set<NetworKit::node> replacement;
-        auto& set1 = family.at(indicesOfReplaced[1]);
-        auto& set2 = family.at(indicesOfReplaced[2]);
+        auto &set1 = family.at(indicesOfReplaced[1]), &set2 = family.at(indicesOfReplaced[2]);
         std::set_union(
-            set1.begin(),
-            set1.end(),
-            set2.begin(),
-            set2.end(),
+            set1.begin(), set1.end(), set2.begin(), set2.end(),
             std::inserter(replacement, replacement.begin()));
         for (auto &element : family.at(cardinalityFrequencyIndex)) {
             replacement.erase(element);
@@ -180,4 +180,5 @@ bool RooijBodlaenderMSC::reduce(std::vector<bool> & solution) {
     }
     return false;
 }
+
 }  /* namespace Koala */

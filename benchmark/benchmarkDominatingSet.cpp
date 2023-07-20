@@ -4,7 +4,7 @@
 
 #include <dominating_set/ExactDominatingSets.hpp>
 #include <io/G6GraphReader.hpp>
-#include <set_cover/BranchAndReduceMSC.hpp>
+#include <set_cover/BranchAndReduceSetCover.hpp>
 
 template <typename T>
 int run_algorithm(NetworKit::Graph &G) {
