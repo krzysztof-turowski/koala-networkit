@@ -6,6 +6,8 @@
 #include <coloring/GreedyVertexColoring.hpp>
 #include <coloring/PerfectGraphVertexColoring.hpp>
 
+#include "helpers.hpp"
+
 struct VertexColoringParameters {
     int N;
     std::list<std::pair<int, int>> E;
@@ -42,14 +44,6 @@ class BrelazEnumerationVertexColoringTest
 class KormanEnumerationVertexColoringTest
     : public testing::TestWithParam<VertexColoringParameters> { };
 
-NetworKit::Graph build_graph(const int &N, const std::list<std::pair<int, int>> &E) {
-    NetworKit::Graph G(N, false, false);
-    for (const auto &[u, v] : E) {
-        G.addEdge(u, v);
-    }
-    return G;
-}
-
 void check(const auto &parameters, const auto &colors) {
     for (auto [u, v] : parameters.E) {
         EXPECT_NE(colors.at(u), colors.at(v));
@@ -64,7 +58,7 @@ void check(const auto &parameters, const auto &colors) {
 
 TEST_P(RandomSequentialVertexColoringTest, test) {
     VertexColoringParameters const& parameters = GetParam();
-    NetworKit::Graph G = build_graph(parameters.N, parameters.E);
+    NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
     auto algorithm = Koala::RandomSequentialVertexColoring(G);
     algorithm.run();
     check(parameters, algorithm.getColoring());
@@ -77,7 +71,7 @@ INSTANTIATE_TEST_SUITE_P(
 
 TEST_P(LargestFirstVertexColoringTest, test) {
     VertexColoringParameters const& parameters = GetParam();
-    NetworKit::Graph G = build_graph(parameters.N, parameters.E);
+    NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
     auto algorithm = Koala::LargestFirstVertexColoring(G);
     algorithm.run();
     check(parameters, algorithm.getColoring());
@@ -107,7 +101,7 @@ INSTANTIATE_TEST_SUITE_P(
 
 TEST_P(SmallestLastVertexColoringTest, test) {
     VertexColoringParameters const& parameters = GetParam();
-    NetworKit::Graph G = build_graph(parameters.N, parameters.E);
+    NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
     auto algorithm = Koala::SmallestLastVertexColoring(G);
     algorithm.run();
     check(parameters, algorithm.getColoring());
@@ -142,7 +136,7 @@ INSTANTIATE_TEST_SUITE_P(
 
 TEST_P(SaturatedLargestFirstVertexColoringTest, test) {
     VertexColoringParameters const& parameters = GetParam();
-    NetworKit::Graph G = build_graph(parameters.N, parameters.E);
+    NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
     auto algorithm = Koala::SaturatedLargestFirstVertexColoring(G);
     algorithm.run();
     check(parameters, algorithm.getColoring());
@@ -169,7 +163,7 @@ INSTANTIATE_TEST_SUITE_P(
 
 TEST_P(GreedyIndependentSetVertexColoringTest, test) {
     VertexColoringParameters const& parameters = GetParam();
-    NetworKit::Graph G = build_graph(parameters.N, parameters.E);
+    NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
     auto algorithm = Koala::GreedyIndependentSetVertexColoring(G);
     algorithm.run();
     check(parameters, algorithm.getColoring());
@@ -187,7 +181,7 @@ INSTANTIATE_TEST_SUITE_P(
 
 TEST_P(PerfectGraphVertexColoringTest, test) {
     VertexColoringParameters const& parameters = GetParam();
-    NetworKit::Graph G = build_graph(parameters.N, parameters.E);
+    NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
     auto algorithm = Koala::PerfectGraphVertexColoring(G);
     algorithm.run();
     check(parameters, algorithm.getColoring());
@@ -203,7 +197,7 @@ INSTANTIATE_TEST_SUITE_P(
 
 TEST_P(BrownsOrdinaryEnumerationVertexColoringTest, test) {
     VertexColoringParameters const& parameters = GetParam();
-    NetworKit::Graph G = build_graph(parameters.N, parameters.E);
+    NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
     auto algorithm = Koala::BrownsOrdinaryEnumerationVertexColoring(G);
     algorithm.run();
 
@@ -241,7 +235,7 @@ INSTANTIATE_TEST_SUITE_P(test_example,
 
 TEST_P(ChristofidesEnumerationVertexColoringTest, test) {
     VertexColoringParameters const& parameters = GetParam();
-    NetworKit::Graph G = build_graph(parameters.N, parameters.E);
+    NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
     auto algorithm = Koala::ChristofidesEnumerationVertexColoring(G);
     algorithm.run();
 
@@ -279,7 +273,7 @@ INSTANTIATE_TEST_SUITE_P(test_example,
 
 TEST_P(BrelazEnumerationVertexColoringTest, test) {
     VertexColoringParameters const& parameters = GetParam();
-    NetworKit::Graph G = build_graph(parameters.N, parameters.E);
+    NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
     auto algorithm = Koala::BrelazEnumerationVertexColoring(G);
     algorithm.run();
 
@@ -317,7 +311,7 @@ INSTANTIATE_TEST_SUITE_P(test_example,
 
 TEST_P(KormanEnumerationVertexColoringTest, test) {
     VertexColoringParameters const& parameters = GetParam();
-    NetworKit::Graph G = build_graph(parameters.N, parameters.E);
+    NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
     auto algorithm = Koala::KormanEnumerationVertexColoring(G);
     algorithm.run();
 

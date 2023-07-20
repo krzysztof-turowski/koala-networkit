@@ -29,17 +29,9 @@ class SchiermeyerTest
 class ExhaustiveTest
     : public testing::TestWithParam<MinimumDominatingSetParameters> {};
 
-NetworKit::Graph build_graph(const int &N, const std::list<std::pair<int, int>> &E) {
-    NetworKit::Graph G(N, false, false);
-    for (const auto &[u, v] : E) {
-        G.addEdge(u, v);
-    }
-    return G;
-}
-
 TEST_P(GrandoniTest, test) {
     MinimumDominatingSetParameters const& parameters = GetParam();
-    NetworKit::Graph G = build_graph(parameters.N, parameters.E);
+    NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
     auto algorithm = Koala::BranchAndReduceMDS<Koala::GrandoniMSC>(G);
     algorithm.run();
     EXPECT_TRUE(algorithm.isDominating(algorithm.getDominatingSet()));
@@ -73,7 +65,7 @@ INSTANTIATE_TEST_SUITE_P(
 
 TEST_P(FominGrandoniKratschTest, test) {
     MinimumDominatingSetParameters const& parameters = GetParam();
-    NetworKit::Graph G = build_graph(parameters.N, parameters.E);
+    NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
     auto algorithm = Koala::BranchAndReduceMDS<Koala::FominGrandoniKratschMSC>(G);
     algorithm.run();
     EXPECT_TRUE(algorithm.isDominating(algorithm.getDominatingSet()));
@@ -107,7 +99,7 @@ INSTANTIATE_TEST_SUITE_P(
 
 TEST_P(RooijBodlaenderTest, test) {
     MinimumDominatingSetParameters const& parameters = GetParam();
-    NetworKit::Graph G = build_graph(parameters.N, parameters.E);
+    NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
     auto algorithm = Koala::BranchAndReduceMDS<Koala::RooijBodlaenderMSC>(G);
     algorithm.run();
     EXPECT_TRUE(algorithm.isDominating(algorithm.getDominatingSet()));
@@ -141,7 +133,7 @@ INSTANTIATE_TEST_SUITE_P(
 
 TEST_P(FominKratschWoegingerTest, test) {
     MinimumDominatingSetParameters const& parameters = GetParam();
-    NetworKit::Graph G = build_graph(parameters.N, parameters.E);
+    NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
     auto algorithm = Koala::FominKratschWoegingerMDS(G);
     algorithm.run();
     EXPECT_TRUE(algorithm.isDominating(algorithm.getDominatingSet()));
@@ -175,7 +167,7 @@ INSTANTIATE_TEST_SUITE_P(
 
 TEST_P(SchiermeyerTest, test) {
     MinimumDominatingSetParameters const& parameters = GetParam();
-    NetworKit::Graph G = build_graph(parameters.N, parameters.E);
+    NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
     auto algorithm = Koala::SchiermeyerMDS(G);
     algorithm.run();
     EXPECT_TRUE(algorithm.isDominating(algorithm.getDominatingSet()));
@@ -209,7 +201,7 @@ INSTANTIATE_TEST_SUITE_P(
 
 TEST_P(ExhaustiveTest, test) {
     MinimumDominatingSetParameters const& parameters = GetParam();
-    NetworKit::Graph G = build_graph(parameters.N, parameters.E);
+    NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
     auto algorithm = Koala::ExhaustiveMDS(G);
     algorithm.run();
     EXPECT_TRUE(algorithm.isDominating(algorithm.getDominatingSet()));
