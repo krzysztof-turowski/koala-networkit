@@ -19,7 +19,7 @@ int run_algorithm(NetworKit::Graph &G) {
     return max_color;
 }
 
-int main() {
+int main(int argc, char **argv) {
     if (argc != 2) {
         std::cerr << "Usage: " << argv[0] << " <algorithm>" << std::endl;
         return 1;

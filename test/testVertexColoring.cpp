@@ -6,6 +6,8 @@
 #include <coloring/GreedyVertexColoring.hpp>
 #include <coloring/PerfectGraphVertexColoring.hpp>
 
+#include "helpers.hpp"
+
 struct VertexColoringParameters {
     int N;
     std::list<std::pair<int, int>> E;
