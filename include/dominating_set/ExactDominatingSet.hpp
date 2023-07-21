@@ -76,7 +76,7 @@ class FominKratschWoegingerDominatingSet : public ExactDominatingSet {
     std::vector<std::set<NetworKit::node>> neighborhood;
     std::vector<NetworKit::node> possibilities;
 
-    std::vector<bool> recurse();
+    std::vector<bool> find_big_MODS_recursive();
     std::vector<bool> find_MODS_for_minimum_degree_3();
     std::tuple<std::vector<NetworKit::node>, bool> add_to_solution(NetworKit::node vertex);
     void remove_from_solution(
@@ -108,7 +108,10 @@ class SchiermeyerDominatingSet : public ExactDominatingSet {
     std::set<NetworKit::node> choices, neighborhood;
     std::vector<NetworKit::node> possibilities;
 
-    void recurse(const NetworKit::Graph &G, NetworKit::node index);
+    void find_big_MODS_recursive(const NetworKit::Graph &G, NetworKit::count index);
+    std::set<NetworKit::node> get_new_neighborhood(
+        const NetworKit::Graph &G, NetworKit::node vertex);
+
     std::vector<bool> get_matching_MODS(
         const NetworKit::Graph &G, const std::set<NetworKit::node> &required);
     NetworKit::Graph core(
