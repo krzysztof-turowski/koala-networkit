@@ -254,7 +254,7 @@ void SchiermeyerDominatingSet::run() {
     hasRun = true;
     dominating_set.resize(graph->numberOfNodes());
     bound.insert(graph->nodeRange().begin(), graph->nodeRange().end());
-    NetworKit::Graph core_graph = core(*graph, free, bound, required);
+    NetworKit::Graph core_graph = get_core(*graph, free, bound, required);
     if (bound.empty()) {
         for (auto u : required) {
             dominating_set.at(u) = true;
@@ -348,7 +348,7 @@ std::vector<bool> SchiermeyerDominatingSet::get_matching_MODS(
     auto S_prim(required);
     auto T_prim(free);
     auto U_prim(bound);
-    auto core_graph = core(G, T_prim, U_prim, S_prim);
+    auto core_graph = get_core(G, T_prim, U_prim, S_prim);
 
     typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS> boost_graph_t;
     boost_graph_t H(G.numberOfNodes());
@@ -419,7 +419,7 @@ void compare(const NetworKit::Graph &G1, const NetworKit::Graph &G2) {
     });
 }
 
-NetworKit::Graph SchiermeyerDominatingSet::core(
+NetworKit::Graph SchiermeyerDominatingSet::get_core(
         const NetworKit::Graph &G,
         std::set<NetworKit::node> &free,
         std::set<NetworKit::node> &bound,
@@ -430,7 +430,6 @@ NetworKit::Graph SchiermeyerDominatingSet::core(
         intermediate[u].insert(v);
         intermediate[v].insert(u);
     });
-    compare(G_prim, intermediate);
     bool process = true;
     while (process) {
         process = false;
@@ -446,13 +445,13 @@ NetworKit::Graph SchiermeyerDominatingSet::core(
         for (auto u : bound) {
             auto it = std::find_if(
                 G_prim.neighborRange(u).begin(), G_prim.neighborRange(u).end(),
-                [&required] (auto v) { return required.contains(v); });
+                [&required](auto v) { return required.contains(v); });
             if (it != G_prim.neighborRange(u).end()) {
                 rule2change.insert(u), process = true;
             }
         }
         free.insert(rule2change.begin(), rule2change.end());
-        std::erase_if(bound, [&rule2change](NetworKit::node u) { return rule2change.contains(u);});
+        std::erase_if(bound, [&rule2change](auto u) { return rule2change.contains(u); });
         compare(G_prim, intermediate);
         // Rule 3
         std::vector<NetworKit::Edge> edges(G_prim.edgeRange().begin(), G_prim.edgeRange().end());
@@ -471,11 +470,11 @@ NetworKit::Graph SchiermeyerDominatingSet::core(
         for (const auto &u : free) {
             auto it = std::find_if(
                 G_prim.neighborRange(u).begin(), G_prim.neighborRange(u).end(),
-                [&bound] (auto v) { return bound.contains(v); });
+                [&bound](auto v) { return bound.contains(v); });
             if (it != G_prim.neighborRange(u).end()) {
                 it = std::find_if(
                     std::next(it), G_prim.neighborRange(u).end(),
-                    [&bound] (auto v) { return bound.contains(v); });
+                    [&bound](auto v) { return bound.contains(v); });
             }
             if (it == G_prim.neighborRange(u).end()) {
                 rule4change.insert(u);
@@ -486,7 +485,7 @@ NetworKit::Graph SchiermeyerDominatingSet::core(
                 intermediate[nei].erase(e);
             }
             intermediate[e].clear();
-            G_prim.removeNode(e), process = true;
+            G_prim.removeAdjacentEdges(e, [](auto) { return true; }), process = true;
         }
         std::erase_if(free, [&rule4change](auto u) { return rule4change.contains(u); });
         compare(G_prim, intermediate);
@@ -498,6 +497,7 @@ NetworKit::Graph SchiermeyerDominatingSet::core(
             }
         }
         std::erase_if(bound, [&required](auto u) { return required.contains(u); });
+        compare(G_prim, intermediate);
     }
 
     NetworKit::Graph graph(intermediate.size());

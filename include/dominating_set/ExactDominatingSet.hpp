@@ -29,7 +29,7 @@ class BranchAndReduceDominatingSet : public DominatingSet {
     void run() {
         hasRun = true;
         std::vector<std::set<NetworKit::node>> family;
-        graph->forNodes([&family, this](NetworKit::node u) {
+        graph->forNodes([&family, this](auto u) {
             std::set<NetworKit::node> neighborhood;
             neighborhood.insert(u);
             graph->forNeighborsOf(u, [&neighborhood](NetworKit::node v) {
@@ -114,7 +114,7 @@ class SchiermeyerDominatingSet : public ExactDominatingSet {
 
     std::vector<bool> get_matching_MODS(
         const NetworKit::Graph &G, const std::set<NetworKit::node> &required);
-    NetworKit::Graph core(
+    NetworKit::Graph get_core(
         const NetworKit::Graph &G, std::set<NetworKit::node> &free,
         std::set<NetworKit::node> &bound, std::set<NetworKit::node> &required);
 };
