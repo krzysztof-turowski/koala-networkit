@@ -20,7 +20,7 @@ namespace Koala {
 bool is_optional_dominating_set(
         const NetworKit::Graph &G,
         const std::vector<NetworKit::node> &choices,
-        const std::set<NetworKit::node> bounded) {
+        std::set<NetworKit::node> bounded) {
     for (auto u : choices) {
         bounded.erase(u);
         G.forNeighborsOf(u, [&bounded](NetworKit::node v) { bounded.erase(v); });
@@ -29,58 +29,132 @@ bool is_optional_dominating_set(
 }
 
 std::vector<NetworKit::node> merge(
-        const std::set<NetworKit::node> &A,
-        const std::set<NetworKit::node> &B) {
-    std::vector<NetworKit::node> possibilities(A.size() + B.size());
-    for (auto e : A) {
-        possibilities.push_back(e);
-    }
-    for (auto e : B) {
-        possibilities.push_back(e);
-    }
-    return possibilities;
+        const std::set<NetworKit::node> &A, const std::set<NetworKit::node> &B) {
+    std::vector<NetworKit::node> merged(A.size() + B.size());
+    std::copy(A.begin(), A.end(), merged.begin());
+    std::copy(B.begin(), B.end(), merged.begin() + A.size());
+    return merged;
 }
 
-////////////
+///////////////
+class SizedChoiceSearcher {
+    const std::function<bool(const std::vector<NetworKit::node>)> &verifier;
+    const std::vector<NetworKit::node> &possibilities;
+    int size;
+    bool recursive(std::vector<NetworKit::node> &choices, NetworKit::node decideOn, int left);
+ public:
+    SizedChoiceSearcher(
+        const std::function<bool(const std::vector<NetworKit::node>)> &verifier,
+        const std::vector<NetworKit::node> &possibilities,
+        int size)
+        : verifier(verifier), possibilities(possibilities), size(size) {}
+    std::tuple<bool, std::vector<NetworKit::node>> search();
+};
 
-int dominatingSetSize(const std::vector<bool> &set) {
-  return std::count(set.begin(), set.end(), true);
+std::tuple<bool, std::vector<NetworKit::node>> SizedChoiceSearcher::search() {
+    std::vector<NetworKit::node> choices{};
+    return {recursive(choices, 0, size), choices};
 }
 
-NetworKit::Graph core(
-    const NetworKit::Graph &G,
-    std::set<NetworKit::node> &free,
-    std::set<NetworKit::node> &bounded,
-    std::set<NetworKit::node> &required);
-std::tuple<bool, std::vector<bool>> findSmallMODS(
-    const NetworKit::Graph &G,
-    const std::set<NetworKit::node> &free,
-    const std::set<NetworKit::node> &bounded,
-    const std::set<NetworKit::node> &required);
-std::vector<bool> findBigMODS(
-    const NetworKit::Graph &G,
-    const std::set<NetworKit::node> &free,
-    const std::set<NetworKit::node> &bounded,
-    const std::set<NetworKit::node> &required);
+bool SizedChoiceSearcher::recursive(
+        std::vector<NetworKit::node> &choices,
+        NetworKit::node decideOn,
+        int left) {
+    if (decideOn == possibilities.size()) {
+        return verifier(choices);
+    }
+    if (left > 0) {
+        choices.push_back(possibilities.at(decideOn));
+        if (recursive(choices, decideOn + 1, left - 1)) {
+            return true;
+        }
+        choices.pop_back();
+    }
+    return (decideOn + left < possibilities.size() && recursive(choices, decideOn + 1, left));
+}
 
-void SchiermeyerMDS::run() {
-    std::set<NetworKit::node> free;
-    std::set<NetworKit::node> bounded;
-    std::set<NetworKit::node> required;
+class BigMODSSolver {
+    const NetworKit::Graph &graph;
+    const std::function<std::vector<bool>(const std::set<NetworKit::node>)>& evaluator;
+    std::vector<NetworKit::node> &possibilities;
+    std::set<NetworKit::node> choices{};
+    std::set<NetworKit::node> closedNeighborhood{};
+    void recurse(int decideOn, std::vector<bool> &bestSolution);
+ public:
+    BigMODSSolver(
+        const NetworKit::Graph &graph,
+        const std::function<std::vector<bool>(const std::set<NetworKit::node>)>& evaluator,
+        std::vector<NetworKit::node> &possibilities)
+        : graph(graph), evaluator(evaluator), possibilities(possibilities) {}
+    std::vector<bool> run();
+};
 
-    graph->forNodes([&bounded](NetworKit::node u) {
-        bounded.insert(u);
-    });
-    NetworKit::Graph coreGraph = core(*graph, free, bounded, required);
-    if (bounded.empty()) {
-        dominating_set = std::vector<bool>(graph->numberOfNodes());
-        graph->forNodes([&required, this](NetworKit::node u) {
-            this->dominating_set.at(u) = required.contains(u);
+std::vector<bool> BigMODSSolver::run() {
+    std::vector<bool> bestSolution(graph.numberOfNodes());
+    for (auto e : possibilities) {
+        bestSolution.at(e) = true;
+    }
+    recurse(0, bestSolution);
+    return bestSolution;
+}
+
+void BigMODSSolver::recurse(int decideOn, std::vector<bool> &bestSolution) {
+    if (decideOn == possibilities.size()) {
+        if (closedNeighborhood.size() < 3 * choices.size()
+            || closedNeighborhood.size() >= 3 * (choices.size() + 1)) {
+            return;
+        }
+        for (auto e : possibilities) {
+            if (choices.contains(e)) {
+                continue;
+            }
+            std::set<int> addedNeighbors;
+            if (!closedNeighborhood.contains(e)) {
+                addedNeighbors.insert(e);
+            }
+            graph.forNeighborsOf(e, [&addedNeighbors, this](NetworKit::node neighbor) {
+                if (!closedNeighborhood.contains(neighbor)) {
+                    addedNeighbors.insert(neighbor);
+                }});
+            if (closedNeighborhood.size() + addedNeighbors.size() >= 3 * (choices.size() + 1)) {
+                return;
+            }
+        }
+        auto optionalDominatingSet = evaluator(choices);
+        int optionalDominatingSetSize = std::count(optionalDominatingSet.begin(), optionalDominatingSet.end(), true);
+        int bestSolutionSize = std::count(bestSolution.begin(), bestSolution.end(), true);
+        if (optionalDominatingSetSize < bestSolutionSize) {
+            bestSolution = optionalDominatingSet;
+        }
+        return;
+    }
+    recurse(decideOn + 1, bestSolution);
+
+    if (3 * (choices.size() + 1) > possibilities.size()) {
+        return;
+    }
+    std::set<int> addedNeighbors;
+    NetworKit::node next = possibilities.at(decideOn);
+    if (!closedNeighborhood.contains(next)) {
+        addedNeighbors.insert(next);
+    }
+    graph.forNeighborsOf(
+        next,
+        [&addedNeighbors, this] (NetworKit::node neighbor) {
+            if (!closedNeighborhood.contains(neighbor)) {
+                addedNeighbors.insert(neighbor);
+            }
         });
+
+    choices.insert(next);
+    for (auto e : addedNeighbors) {
+        closedNeighborhood.insert(e);
     }
-    auto [found, smallSolution] = findSmallMODS(coreGraph, free, bounded, required);
-    dominating_set = found ? smallSolution : findBigMODS(coreGraph, free, bounded, required);
-    hasRun = true;
+    recurse(decideOn + 1, bestSolution);
+    choices.erase(next);
+    for (auto e : addedNeighbors) {
+        closedNeighborhood.erase(e);
+    }
 }
 
 NetworKit::Graph buildFromVectorSetRepresentation(
@@ -193,138 +267,6 @@ NetworKit::Graph core(
     return buildFromVectorSetRepresentation(intermediate);
 }
 
-std::tuple<bool, std::vector<NetworKit::node>> SizedChoiceSearcher::search() {
-    std::vector<NetworKit::node> choices{};
-    return {recursive(choices, 0, size), choices};
-}
-
-bool SizedChoiceSearcher::recursive(
-        std::vector<NetworKit::node> &choices,
-        NetworKit::node decideOn,
-        int left) {
-    if (decideOn == possibilities.size()) {
-        return verifier(choices);
-    }
-    if (left > 0) {
-        choices.push_back(possibilities.at(decideOn));
-        if (recursive(choices, decideOn + 1, left - 1)) {
-            return true;
-        }
-        choices.pop_back();
-    }
-    return (decideOn + left < possibilities.size() && recursive(choices, decideOn + 1, left));
-}
-
-std::tuple<bool, std::vector<bool>> findSmallMODS(
-        const NetworKit::Graph &G, const std::set<NetworKit::node> &free,
-        const std::set<NetworKit::node> &bounded,
-        const std::set<NetworKit::node> &required) {
-    const std::vector<NetworKit::node> possibilities = merge(free, bounded);
-    for (int i = 1; 3 * i <= free.size() + bounded.size(); i++) {
-        auto [found, choices] = SizedChoiceSearcher(
-                [&G, &bounded](const std::vector<NetworKit::node> &arg) {
-                    return is_optional_dominating_set(G, arg, bounded);
-                },
-                possibilities,
-                i)
-            .search();
-        std::vector<bool> solution(G.numberOfNodes());
-        if (found) {
-            G.forNodes([&required, &solution](NetworKit::node u) {
-                solution.at(u) = required.contains(u);
-            });
-            for (auto u : choices) {
-                solution.at(u) = true;
-            }
-            return {true, solution};
-        }
-    }
-    return {false, std::vector<bool>{}};
-}
-
-class BigMODSSolver {
-    const NetworKit::Graph &graph;
-    const std::function<std::vector<bool>(const std::set<NetworKit::node>)>& evaluator;
-    std::vector<NetworKit::node> &possibilities;
-    std::set<NetworKit::node> choices{};
-    std::set<NetworKit::node> closedNeighborhood{};
-    void recurse(int decideOn, std::vector<bool> &bestSolution);
- public:
-    BigMODSSolver(
-        const NetworKit::Graph &graph,
-        const std::function<std::vector<bool>(const std::set<NetworKit::node>)>& evaluator,
-        std::vector<NetworKit::node> &possibilities)
-        : graph(graph), evaluator(evaluator), possibilities(possibilities) {}
-    std::vector<bool> run();
-};
-
-std::vector<bool> BigMODSSolver::run() {
-    std::vector<bool> bestSolution(graph.numberOfNodes());
-    for (auto e : possibilities) {
-        bestSolution.at(e) = true;
-    }
-    recurse(0, bestSolution);
-    return bestSolution;
-}
-
-void BigMODSSolver::recurse(int decideOn, std::vector<bool> &bestSolution) {
-    if (decideOn == possibilities.size()) {
-        if (closedNeighborhood.size() < 3 * choices.size()
-            || closedNeighborhood.size() >= 3 * (choices.size() + 1)) {
-            return;
-        }
-        for (auto e : possibilities) {
-            if (choices.contains(e)) {
-                continue;
-            }
-            std::set<int> addedNeighbors;
-            if (!closedNeighborhood.contains(e)) {
-                addedNeighbors.insert(e);
-            }
-            graph.forNeighborsOf(e, [&addedNeighbors, this](NetworKit::node neighbor) {
-                if (!closedNeighborhood.contains(neighbor)) {
-                    addedNeighbors.insert(neighbor);
-                }});
-            if (closedNeighborhood.size() + addedNeighbors.size() >= 3 * (choices.size() + 1)) {
-                return;
-            }
-        }
-        auto optionalDominatingSet = evaluator(choices);
-        if (dominatingSetSize(optionalDominatingSet) <
-            dominatingSetSize(bestSolution)) {
-            bestSolution = optionalDominatingSet;
-        }
-        return;
-    }
-    recurse(decideOn + 1, bestSolution);
-
-    if (3 * (choices.size() + 1) > possibilities.size()) {
-        return;
-    }
-    std::set<int> addedNeighbors;
-    NetworKit::node next = possibilities.at(decideOn);
-    if (!closedNeighborhood.contains(next)) {
-        addedNeighbors.insert(next);
-    }
-    graph.forNeighborsOf(
-        next,
-        [&addedNeighbors, this] (NetworKit::node neighbor) {
-            if (!closedNeighborhood.contains(neighbor)) {
-                addedNeighbors.insert(neighbor);
-            }
-        });
-
-    choices.insert(next);
-    for (auto e : addedNeighbors) {
-        closedNeighborhood.insert(e);
-    }
-    recurse(decideOn + 1, bestSolution);
-    choices.erase(next);
-    for (auto e : addedNeighbors) {
-        closedNeighborhood.erase(e);
-    }
-}
-
 std::vector<bool> matchingMODS(
         const NetworKit::Graph &graph,
         const std::set<NetworKit::node> &S,
@@ -375,26 +317,59 @@ std::vector<bool> matchingMODS(
     return optionalDominatingSet;
 }
 
-std::vector<bool> findBigMODS(
-        const NetworKit::Graph &G,
-        const std::set<NetworKit::node> &free,
-        const std::set<NetworKit::node> &bounded,
-        const std::set<NetworKit::node> &required) {
-    std::vector<NetworKit::node> possibilities = merge(free, bounded);
-    auto bestSolution = BigMODSSolver(
-            G,
-            [&G, &free, &bounded](const std::set<NetworKit::node> S) {
-                return matchingMODS(G, S, free, bounded);
-            },
-            possibilities)
-        .run();
-    for (auto e : required) {
-        bestSolution.at(e) = true;
+///////////////
+
+void SchiermeyerDominatingSet::run() {
+    hasRun = true;
+    dominating_set.resize(graph->numberOfNodes());
+    graph->forNodes([this](NetworKit::node u) {
+        bounded.insert(u);
+    });
+    NetworKit::Graph core_graph = core(*graph, free, bounded, required);
+    if (bounded.empty()) {
+        graph->forNodes([this](NetworKit::node u) {
+            dominating_set.at(u) = required.contains(u);
+        });
     }
-    return bestSolution;
+    if (find_small_MODS(core_graph)) {
+        return;
+    }
+    find_big_MODS(core_graph);
 }
 
-///////
+bool SchiermeyerDominatingSet::find_small_MODS(const NetworKit::Graph &G) {
+    auto possibilities = merge(free, bounded);
+    for (int i = 1; 3 * i <= possibilities.size(); i++) {
+        auto [found, choices] = SizedChoiceSearcher(
+                [&G, this](const std::vector<NetworKit::node> &arg) {
+                    return is_optional_dominating_set(G, arg, bounded);
+                }, possibilities, i).search();
+        if (found) {
+            G.forNodes([this](NetworKit::node u) {
+                dominating_set.at(u) = required.contains(u);
+            });
+            for (auto u : choices) {
+                dominating_set.at(u) = true;
+            }
+            return true;
+        }
+    }
+    return false;
+}
+
+void SchiermeyerDominatingSet::find_big_MODS(const NetworKit::Graph &G) {
+    auto possibilities = merge(free, bounded);
+    dominating_set = BigMODSSolver(
+        G,
+        [&G, this](const std::set<NetworKit::node> &S) {
+            return matchingMODS(G, S, free, bounded);
+        }, possibilities).run();
+    for (auto e : required) {
+        dominating_set.at(e) = true;
+    }
+}
+
+//////////////////////
 
 std::vector<bool> &smaller(std::vector<bool> &lhs, std::vector<bool> &rhs) {
     if (std::count(lhs.begin(), lhs.end(), true) < std::count(rhs.begin(), rhs.end(), true)) {
@@ -404,48 +379,12 @@ std::vector<bool> &smaller(std::vector<bool> &lhs, std::vector<bool> &rhs) {
     }
 }
 
-class RecursiveFKW {
-    std::set<NetworKit::node> &free;
-    std::set<NetworKit::node> &bounded;
-    std::set<NetworKit::node> &required;
-    std::set<NetworKit::node> &degreeOne;
-    std::set<NetworKit::node> &degreeTwo;
-    std::vector<std::set<NetworKit::node>> &neighborhood;
-
- public:
-    RecursiveFKW(
-        std::set<NetworKit::node> &free,
-        std::set<NetworKit::node> &bounded,
-        std::set<NetworKit::node> &required,
-        std::set<NetworKit::node> &degreeOne,
-        std::set<NetworKit::node> &degreeTwo,
-        std::vector<std::set<NetworKit::node>> &neighborhood)
-        : free(free),
-        bounded(bounded),
-        required(required),
-        degreeOne(degreeOne),
-        degreeTwo(degreeTwo),
-        neighborhood(neighborhood) {}
-    std::vector<bool> run();
-    void onDegreeDecrement(NetworKit::node updated);
-    void onDegreeIncrement(NetworKit::node updated);
-    void forgetVertexInNeighbors(NetworKit::node vertex);
-    void retrieveVertexInNeighbors(NetworKit::node vertex);
-    bool forgetVertex(NetworKit::node forced);
-    void retrieveVertex(NetworKit::node vertex, bool isFree);
-    std::tuple<std::vector<NetworKit::node>, bool> addToTheSolution(NetworKit::node forced);
-    void removeFromTheSolution(
-        NetworKit::node vertex,
-        std::vector<NetworKit::node> &movedVertices,
-        bool isVertexFree);
-};
-
-void FominKratschWoegingerMDS::run() {
-    std::set<NetworKit::node> free, bounded, required, degreeOne, degreeTwo;
-    std::vector<std::set<NetworKit::node>> neighborhood(graph->numberOfNodes());
-    graph->forNodes([&bounded, &neighborhood, &degreeOne, &degreeTwo, this](NetworKit::node u) {
+void FominKratschWoegingerDominatingSet::run() {
+    hasRun = true;
+    neighborhood.resize(graph->numberOfNodes());
+    graph->forNodes([this](NetworKit::node u) {
         bounded.insert(u);
-        graph->forNeighborsOf(u, [u, &neighborhood](NetworKit::node neighbor) {
+        graph->forNeighborsOf(u, [u, this](NetworKit::node neighbor) {
             neighborhood[u].insert(neighbor);
         });
         if (graph->degree(u) == 1) {
@@ -454,8 +393,7 @@ void FominKratschWoegingerMDS::run() {
             degreeTwo.insert(u);
         }
     });
-    dominating_set = RecursiveFKW(free, bounded, required, degreeOne, degreeTwo, neighborhood).run();
-    hasRun = true;
+    dominating_set = recurse();
 }
 
 std::vector<bool> findMODSWhenDegreeAtLeast3(
@@ -463,14 +401,11 @@ std::vector<bool> findMODSWhenDegreeAtLeast3(
         const std::set<NetworKit::node> &free,
         const std::set<NetworKit::node> &bounded) {
     std::vector<NetworKit::node> possibilities = merge(free, bounded);
-    for (size_t i = 1; 8 * i <= 3 * (free.size() + bounded.size()); i++) {
-        std::vector<NetworKit::node> possibilities = merge(free, bounded);
-
+    for (size_t i = 1; 8 * i <= 3 * possibilities.size(); i++) {
         auto [found, choices] = SizedChoiceSearcher(
-                [&G, &bounded](const std::vector<NetworKit::node> &arg) {
-                    return is_optional_dominating_set(G, arg, bounded);
-                },
-                possibilities, i).search();
+            [&G, &bounded](const std::vector<NetworKit::node> &arg) {
+                return is_optional_dominating_set(G, arg, bounded);
+            }, possibilities, i).search();
         std::vector<bool> solution(G.numberOfNodes());
         if (found) {
             for (auto u : choices) {
@@ -482,7 +417,7 @@ std::vector<bool> findMODSWhenDegreeAtLeast3(
     throw std::invalid_argument("findMODSWhenDegreeAtLeast3 arguments are corrupted");
 }
 
-void RecursiveFKW::onDegreeDecrement(NetworKit::node updated) {
+void FominKratschWoegingerDominatingSet::onDegreeDecrement(NetworKit::node updated) {
     auto currentDegree = neighborhood.at(updated).size();
     if (currentDegree == 0) {
         degreeOne.erase(updated);
@@ -494,7 +429,7 @@ void RecursiveFKW::onDegreeDecrement(NetworKit::node updated) {
     }
 }
 
-void RecursiveFKW::onDegreeIncrement(NetworKit::node updated) {
+void FominKratschWoegingerDominatingSet::onDegreeIncrement(NetworKit::node updated) {
     auto currentDegree = neighborhood.at(updated).size();
     if (currentDegree == 1) {
         degreeOne.insert(updated);
@@ -506,22 +441,22 @@ void RecursiveFKW::onDegreeIncrement(NetworKit::node updated) {
     }
 }
 
-void RecursiveFKW::forgetVertexInNeighbors(NetworKit::node vertex) {
+void FominKratschWoegingerDominatingSet::forgetVertexInNeighbors(NetworKit::node vertex) {
     for (auto neighbor : neighborhood.at(vertex)) {
         neighborhood.at(neighbor).erase(vertex);
         onDegreeDecrement(neighbor);
     }
 }
-void RecursiveFKW::retrieveVertexInNeighbors(NetworKit::node vertex) {
+void FominKratschWoegingerDominatingSet::retrieveVertexInNeighbors(NetworKit::node vertex) {
     for (auto neighbor : neighborhood.at(vertex)) {
         neighborhood.at(neighbor).insert(vertex);
         onDegreeIncrement(neighbor);
     }
 }
 
-bool RecursiveFKW::forgetVertex(NetworKit::node vertex) {
-    bool isFree = free.contains(vertex);
-    if (isFree) {
+bool FominKratschWoegingerDominatingSet::forgetVertex(NetworKit::node vertex) {
+    bool is_free = free.contains(vertex);
+    if (is_free) {
         free.erase(vertex);
     } else {
         bounded.erase(vertex);
@@ -533,10 +468,10 @@ bool RecursiveFKW::forgetVertex(NetworKit::node vertex) {
         degreeTwo.erase(vertex);
     }
     forgetVertexInNeighbors(vertex);
-    return isFree;
+    return is_free;
 }
 
-void RecursiveFKW::retrieveVertex(NetworKit::node vertex, bool isFree) {
+void FominKratschWoegingerDominatingSet::retrieveVertex(NetworKit::node vertex, bool is_free) {
     retrieveVertexInNeighbors(vertex);
     auto degree = neighborhood.at(vertex).size();
     if (degree == 1) {
@@ -544,14 +479,14 @@ void RecursiveFKW::retrieveVertex(NetworKit::node vertex, bool isFree) {
     } else if (degree == 2) {
         degreeTwo.insert(vertex);
     }
-    if (isFree) {
+    if (is_free) {
         free.insert(vertex);
     } else {
         bounded.insert(vertex);
     }
 }
 
-std::tuple<std::vector<NetworKit::node>, bool> RecursiveFKW::addToTheSolution(
+std::tuple<std::vector<NetworKit::node>, bool> FominKratschWoegingerDominatingSet::addToTheSolution(
         NetworKit::node forced) {
     std::vector<NetworKit::node> movedVertices{};
     for (auto neighbor : neighborhood.at(forced)) {
@@ -561,13 +496,12 @@ std::tuple<std::vector<NetworKit::node>, bool> RecursiveFKW::addToTheSolution(
             movedVertices.push_back(neighbor);
         }
     }
-    bool isFree = forgetVertex(forced);
-
+    bool is_free = forgetVertex(forced);
     required.insert(forced);
-    return {movedVertices, isFree};
+    return {movedVertices, is_free};
 }
 
-void RecursiveFKW::removeFromTheSolution(
+void FominKratschWoegingerDominatingSet::removeFromTheSolution(
         NetworKit::node vertex, std::vector<NetworKit::node> &movedVertices, bool isVertexFree) {
     required.erase(vertex);
     retrieveVertex(vertex, isVertexFree);
@@ -577,56 +511,46 @@ void RecursiveFKW::removeFromTheSolution(
     }
 }
 
-std::vector<bool> RecursiveFKW::run() {
+std::vector<bool> FominKratschWoegingerDominatingSet::recurse() {
     if (!degreeOne.empty()) {
-        NetworKit::node u = *degreeOne.begin();
-        NetworKit::node unique = *neighborhood.at(u).begin();
+        NetworKit::node u = *degreeOne.begin(), unique = *neighborhood.at(u).begin();
         std::vector<bool> solution;
-
-        bool isFree = forgetVertex(u);
-
-        if (isFree) {
-            solution = run();
+        bool is_free = forgetVertex(u);
+        if (is_free) {
+            solution = recurse();
         } else {
-            auto status = addToTheSolution(unique);
-            solution = run();
-            removeFromTheSolution(unique, std::get<0>(status), std::get<1>(status));
+            auto [moved1, is_free1] = addToTheSolution(unique);
+            solution = recurse();
+            removeFromTheSolution(unique, moved1, is_free1);
         }
-        retrieveVertex(u, isFree);
+        retrieveVertex(u, is_free);
         return solution;
     }
     if (!degreeTwo.empty()) {
         NetworKit::node v = *degreeTwo.begin();
         std::set<NetworKit::node>::iterator it = neighborhood.at(v).begin();
-        NetworKit::node u1 = *(it);
-        NetworKit::node u2 = *(++it);
+        NetworKit::node u1 = *it, u2 = *(++it);
 
-        bool isFree = free.contains(v);
-        bool is1 = forgetVertex(v);
-        auto [moved1, isFree1] = addToTheSolution(u1);
-        auto solution1 = run();
-
-        removeFromTheSolution(u1, moved1, isFree1);
+        bool is_free = free.contains(v), is1 = forgetVertex(v);
+        auto [moved1, is_free1] = addToTheSolution(u1);
+        auto solution1 = recurse();
+        removeFromTheSolution(u1, moved1, is_free1);
         retrieveVertex(v, is1);
 
-        bool is2 = forgetVertex(u1);
-        bool is3 = forgetVertex(u2);
-        auto [moved2, isFree2] = addToTheSolution(v);
-
-        auto solution2 = run();
-
-        removeFromTheSolution(v, moved2, isFree2);
-        retrieveVertex(u2, is3);
-        retrieveVertex(u1, is2);
+        bool is2 = forgetVertex(u1), is3 = forgetVertex(u2);
+        auto [moved2, is_free2] = addToTheSolution(v);
+        auto solution2 = recurse();
+        removeFromTheSolution(v, moved2, is_free2);
+        retrieveVertex(u2, is3), retrieveVertex(u1, is2);
 
         std::vector<bool> solution3;
         bool is4 = forgetVertex(v);
-        if (isFree) {
-            solution3 = run();
+        if (is_free) {
+            solution3 = recurse();
         } else {
-            auto [moved3, isFree3] = addToTheSolution(u2);
-            solution3 = run();
-            removeFromTheSolution(u2, moved3, isFree3);
+            auto [moved3, is_free3] = addToTheSolution(u2);
+            solution3 = recurse();
+            removeFromTheSolution(u2, moved3, is_free3);
         }
         retrieveVertex(v, is4);
         return smaller(smaller(solution1, solution2), solution3);

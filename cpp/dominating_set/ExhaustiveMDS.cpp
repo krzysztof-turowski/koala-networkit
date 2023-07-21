@@ -10,7 +10,7 @@ std::vector<bool> &smallerCardinalitySet(std::vector<bool> &lhs, std::vector<boo
     }
 }
 
-void ExhaustiveMDS::run() {
+void ExhaustiveDominatingSet::run() {
     std::vector<bool> all_vertices;
     graph->forNodes([&all_vertices, this](NetworKit::node u) {
         all_vertices.emplace_back(true);
@@ -20,7 +20,7 @@ void ExhaustiveMDS::run() {
     hasRun = true;
 }
 
-std::vector<bool> ExhaustiveMDS::recursiveDominatingSubset(std::vector<bool> &superset, int depth) {
+std::vector<bool> ExhaustiveDominatingSet::recursiveDominatingSubset(std::vector<bool> &superset, int depth) {
     if (depth == superset.size()) {
         return superset;
     }

@@ -34,19 +34,20 @@ int main(int argc, char **argv) {
         std::set<int> D;
         switch (std::stoi(argv[1])) {
         case 0:
-            D.insert(run_algorithm<Koala::FominKratschWoegingerMDS>(G));
-            D.insert(run_algorithm<Koala::SchiermeyerMDS>(G));
+            D.insert(run_algorithm<Koala::FominKratschWoegingerDominatingSet>(G));
+            D.insert(run_algorithm<Koala::SchiermeyerDominatingSet>(G));
             D.insert(run_algorithm<
                 Koala::BranchAndReduceDominatingSet<Koala::RooijBodlaenderSetCover>>(G));
             D.insert(run_algorithm<
                 Koala::BranchAndReduceDominatingSet<Koala::FominGrandoniKratschSetCover>>(G));
-            D.insert(run_algorithm<Koala::BranchAndReduceDominatingSet<Koala::GrandoniSetCover>>(G));
+            D.insert(run_algorithm<
+                Koala::BranchAndReduceDominatingSet<Koala::GrandoniSetCover>>(G));
             break;
         case 1:
-            D.insert(run_algorithm<Koala::FominKratschWoegingerMDS>(G));
+            D.insert(run_algorithm<Koala::FominKratschWoegingerDominatingSet>(G));
             break;
         case 2:
-            D.insert(run_algorithm<Koala::SchiermeyerMDS>(G));
+            D.insert(run_algorithm<Koala::SchiermeyerDominatingSet>(G));
             break;
         case 3:
             D.insert(run_algorithm<

@@ -135,7 +135,7 @@ INSTANTIATE_TEST_SUITE_P(
 TEST_P(FominKratschWoegingerTest, test) {
     DominatingSetParameters const& parameters = GetParam();
     NetworKit::Graph G = build_graph(parameters.N, parameters.E);
-    auto algorithm = Koala::FominKratschWoegingerMDS(G);
+    auto algorithm = Koala::FominKratschWoegingerDominatingSet(G);
     algorithm.run();
     algorithm.check();
     check(parameters, algorithm.getDominatingSet());
@@ -167,7 +167,7 @@ INSTANTIATE_TEST_SUITE_P(
 TEST_P(SchiermeyerTest, test) {
     DominatingSetParameters const& parameters = GetParam();
     NetworKit::Graph G = build_graph(parameters.N, parameters.E);
-    auto algorithm = Koala::SchiermeyerMDS(G);
+    auto algorithm = Koala::SchiermeyerDominatingSet(G);
     algorithm.run();
     algorithm.check();
     check(parameters, algorithm.getDominatingSet());
@@ -199,7 +199,7 @@ INSTANTIATE_TEST_SUITE_P(
 TEST_P(ExhaustiveTest, test) {
     DominatingSetParameters const& parameters = GetParam();
     NetworKit::Graph G = build_graph(parameters.N, parameters.E);
-    auto algorithm = Koala::ExhaustiveMDS(G);
+    auto algorithm = Koala::ExhaustiveDominatingSet(G);
     algorithm.run();
     algorithm.check();
     check(parameters, algorithm.getDominatingSet());
