@@ -345,9 +345,7 @@ std::set<NetworKit::node> SchiermeyerDominatingSet::get_new_neighborhood(
 
 std::vector<bool> SchiermeyerDominatingSet::get_matching_MODS(
         const NetworKit::Graph &G, const std::set<NetworKit::node> &required) {
-    auto S_prim(required);
-    auto T_prim(free);
-    auto U_prim(bound);
+    std::set<NetworKit::node> S_prim(required), T_prim(free), U_prim(bound);
     auto core_graph = get_core(G, T_prim, U_prim, S_prim);
 
     typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS> boost_graph_t;
@@ -445,7 +443,7 @@ NetworKit::Graph SchiermeyerDominatingSet::get_core(
         // Rule 5
         for (const auto &u : bound) {
             if (G_prim.degree(u) == 1 && !required.contains(u)) {
-                auto unique = *(G_prim.neighborRange(u).begin());
+                auto unique = G_prim.getIthNeighbor(u, 0);
                 free.erase(unique), required.insert(unique), process = true;
             }
         }
