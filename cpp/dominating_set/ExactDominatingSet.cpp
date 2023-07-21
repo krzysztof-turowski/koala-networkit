@@ -30,36 +30,33 @@ bool is_optional_dominating_set(
 
 std::vector<NetworKit::node> merge(
         const std::set<NetworKit::node> &A, const std::set<NetworKit::node> &B) {
-    std::vector<NetworKit::node> merged(A.size() + B.size());
-    std::copy(A.begin(), A.end(), merged.begin());
-    std::copy(B.begin(), B.end(), merged.begin() + A.size());
+    std::vector<NetworKit::node> merged;
+    std::set_union(
+        A.begin(), A.end(), B.begin(), B.end(),
+        std::inserter(merged, merged.begin()));
     return merged;
 }
 
-///////////////
+////////////
 class SizedChoiceSearcher {
     const std::function<bool(const std::vector<NetworKit::node>)> &verifier;
     const std::vector<NetworKit::node> &possibilities;
-    int size;
     bool recursive(std::vector<NetworKit::node> &choices, NetworKit::node decideOn, int left);
  public:
     SizedChoiceSearcher(
         const std::function<bool(const std::vector<NetworKit::node>)> &verifier,
-        const std::vector<NetworKit::node> &possibilities,
-        int size)
-        : verifier(verifier), possibilities(possibilities), size(size) {}
-    std::tuple<bool, std::vector<NetworKit::node>> search();
+        const std::vector<NetworKit::node> &possibilities)
+        : verifier(verifier), possibilities(possibilities) {}
+    std::tuple<bool, std::vector<NetworKit::node>> search(int size);
 };
 
-std::tuple<bool, std::vector<NetworKit::node>> SizedChoiceSearcher::search() {
+std::tuple<bool, std::vector<NetworKit::node>> SizedChoiceSearcher::search(int size) {
     std::vector<NetworKit::node> choices{};
     return {recursive(choices, 0, size), choices};
 }
 
 bool SizedChoiceSearcher::recursive(
-        std::vector<NetworKit::node> &choices,
-        NetworKit::node decideOn,
-        int left) {
+        std::vector<NetworKit::node> &choices, NetworKit::node decideOn, int left) {
     if (decideOn == possibilities.size()) {
         return verifier(choices);
     }
@@ -72,6 +69,212 @@ bool SizedChoiceSearcher::recursive(
     }
     return (decideOn + left < possibilities.size() && recursive(choices, decideOn + 1, left));
 }
+
+void FominKratschWoegingerDominatingSet::run() {
+    hasRun = true;
+    neighborhood.resize(graph->numberOfNodes());
+    graph->forNodes([this](NetworKit::node u) {
+        bounded.insert(u);
+        graph->forNeighborsOf(u, [u, this](NetworKit::node neighbor) {
+            neighborhood[u].insert(neighbor);
+        });
+        if (graph->degree(u) == 1) {
+            degree_one.insert(u);
+        } else if (graph->degree(u) == 2) {
+            degree_two.insert(u);
+        }
+    });
+    dominating_set = recurse();
+}
+
+std::vector<bool> FominKratschWoegingerDominatingSet::find_MODS_for_minimum_degree_3() {
+    NetworKit::Graph G(neighborhood.size());
+    for (NetworKit::node i = 0; i < neighborhood.size(); i++) {
+        if (required.contains(i)) {
+            continue;
+        }
+        for (auto e : neighborhood.at(i)) {
+            if (i < e) {
+                G.addEdge(i, e);
+            }
+        }
+    }
+    std::vector<NetworKit::node> possibilities = merge(free, bounded);
+    for (size_t i = 1; 8 * i <= 3 * possibilities.size(); i++) {
+        auto [found, choices] = SizedChoiceSearcher(
+            [&G, this](const std::vector<NetworKit::node> &arg) {
+                return is_optional_dominating_set(G, arg, bounded);
+            }, possibilities).search(i);
+        std::vector<bool> solution(G.numberOfNodes());
+        if (found) {
+            for (auto u : choices) {
+                solution.at(u) = true;
+            }
+            return solution;
+        }
+    }
+    throw std::invalid_argument("find_MODS_for_minimum_degree_3 arguments are corrupted");
+}
+
+std::vector<bool> FominKratschWoegingerDominatingSet::recurse() {
+    std::vector<bool> solution;
+    if (!degree_one.empty()) {
+        NetworKit::node u = *degree_one.begin(), unique = *neighborhood.at(u).begin();
+        bool is_free = forget_vertex(u);
+        if (is_free) {
+            recurse().swap(solution);
+        } else {
+            auto [moved1, is_free1] = add_to_solution(unique);
+            solution = recurse();
+            remove_from_solution(unique, moved1, is_free1);
+        }
+        retrieve_vertex(u, is_free);
+        return solution;
+    }
+    if (!degree_two.empty()) {
+        NetworKit::node v = *degree_two.begin();
+        std::set<NetworKit::node>::iterator it = neighborhood.at(v).begin();
+        NetworKit::node u1 = *it, u2 = *(++it);
+
+        bool is_free = free.contains(v), is1 = forget_vertex(v);
+        auto [moved1, is_free1] = add_to_solution(u1);
+        recurse().swap(solution);
+        remove_from_solution(u1, moved1, is_free1);
+        retrieve_vertex(v, is1);
+        int solution_size = std::count(solution.begin(), solution.end(), true);
+
+        bool is2 = forget_vertex(u1), is3 = forget_vertex(u2);
+        auto [moved2, is_free2] = add_to_solution(v);
+        auto solution2 = recurse();
+        remove_from_solution(v, moved2, is_free2);
+        retrieve_vertex(u2, is3), retrieve_vertex(u1, is2);
+        int solution2_size = std::count(solution2.begin(), solution2.end(), true);
+        if (solution2_size < solution_size) {
+            solution.swap(solution2), solution_size = solution2_size;
+        }
+
+        std::vector<bool> solution3;
+        bool is4 = forget_vertex(v);
+        if (is_free) {
+            solution3 = recurse();
+        } else {
+            auto [moved3, is_free3] = add_to_solution(u2);
+            solution3 = recurse();
+            remove_from_solution(u2, moved3, is_free3);
+        }
+        retrieve_vertex(v, is4);
+        int solution3_size = std::count(solution3.begin(), solution3.end(), true);
+        if (solution3_size < solution_size) {
+            solution.swap(solution3), solution_size = solution3_size;
+        }
+        return solution;
+    }
+    std::set<NetworKit::node> bounded_isolated_vertices;
+    for (int i = 0; i < neighborhood.size(); i++) {
+        if (neighborhood.at(i).empty() && bounded.contains(i)) {
+            bounded.erase(i), bounded_isolated_vertices.insert(i);
+        }
+    }
+    if (bounded.empty()) {
+        solution.resize(neighborhood.size());
+    } else {
+        find_MODS_for_minimum_degree_3().swap(solution);
+    }
+    for (auto u : required) {
+        solution.at(u) = true;
+    }
+    for (auto u : bounded_isolated_vertices) {
+        solution.at(u) = true;
+        bounded.insert(u);
+    }
+    return solution;
+}
+
+std::tuple<std::vector<NetworKit::node>, bool> FominKratschWoegingerDominatingSet::add_to_solution(
+        NetworKit::node vertex) {
+    std::vector<NetworKit::node> moved_vertices;
+    for (auto neighbor : neighborhood.at(vertex)) {
+        if (bounded.contains(neighbor)) {
+            bounded.erase(neighbor), free.insert(neighbor);
+            moved_vertices.push_back(neighbor);
+        }
+    }
+    bool is_free = forget_vertex(vertex);
+    required.insert(vertex);
+    return {moved_vertices, is_free};
+}
+
+void FominKratschWoegingerDominatingSet::remove_from_solution(
+        NetworKit::node vertex, std::vector<NetworKit::node> &moved_vertices, bool is_free) {
+    required.erase(vertex);
+    retrieve_vertex(vertex, is_free);
+    for (auto neighbor : std::views::reverse(moved_vertices)) {
+        free.erase(neighbor);
+        bounded.insert(neighbor);
+    }
+}
+
+bool FominKratschWoegingerDominatingSet::forget_vertex(NetworKit::node vertex) {
+    bool is_free = free.contains(vertex);
+    if (is_free) {
+        free.erase(vertex);
+    } else {
+        bounded.erase(vertex);
+    }
+    auto degree = neighborhood.at(vertex).size();
+    if (degree == 1) {
+        degree_one.erase(vertex);
+    } else if (degree == 2) {
+        degree_two.erase(vertex);
+    }
+    for (auto neighbor : neighborhood.at(vertex)) {
+        neighborhood.at(neighbor).erase(vertex);
+        on_degree_decrement(neighbor);
+    }
+    return is_free;
+}
+
+void FominKratschWoegingerDominatingSet::retrieve_vertex(NetworKit::node vertex, bool is_free) {
+    for (auto neighbor : neighborhood.at(vertex)) {
+        neighborhood.at(neighbor).insert(vertex);
+        on_degree_increment(neighbor);
+    }
+    auto degree = neighborhood.at(vertex).size();
+    if (degree == 1) {
+        degree_one.insert(vertex);
+    } else if (degree == 2) {
+        degree_two.insert(vertex);
+    }
+    if (is_free) {
+        free.insert(vertex);
+    } else {
+        bounded.insert(vertex);
+    }
+}
+
+void FominKratschWoegingerDominatingSet::on_degree_decrement(NetworKit::node vertex) {
+    auto degree = neighborhood.at(vertex).size();
+    if (degree == 0) {
+        degree_one.erase(vertex);
+    } else if (degree == 1) {
+        degree_one.insert(vertex), degree_two.erase(vertex);
+    } else if (degree == 2) {
+        degree_two.insert(vertex);
+    }
+}
+
+void FominKratschWoegingerDominatingSet::on_degree_increment(NetworKit::node vertex) {
+    auto degree = neighborhood.at(vertex).size();
+    if (degree == 1) {
+        degree_one.insert(vertex);
+    } else if (degree == 2) {
+        degree_one.erase(vertex), degree_two.insert(vertex);
+    } else if (degree == 3) {
+        degree_two.erase(vertex);
+    }
+}
+
+///////////////
 
 class BigMODSSolver {
     const NetworKit::Graph &graph;
@@ -343,7 +546,7 @@ bool SchiermeyerDominatingSet::find_small_MODS(const NetworKit::Graph &G) {
         auto [found, choices] = SizedChoiceSearcher(
                 [&G, this](const std::vector<NetworKit::node> &arg) {
                     return is_optional_dominating_set(G, arg, bounded);
-                }, possibilities, i).search();
+                }, possibilities).search(i);
         if (found) {
             G.forNodes([this](NetworKit::node u) {
                 dominating_set.at(u) = required.contains(u);
@@ -367,226 +570,6 @@ void SchiermeyerDominatingSet::find_big_MODS(const NetworKit::Graph &G) {
     for (auto e : required) {
         dominating_set.at(e) = true;
     }
-}
-
-//////////////////////
-
-std::vector<bool> &smaller(std::vector<bool> &lhs, std::vector<bool> &rhs) {
-    if (std::count(lhs.begin(), lhs.end(), true) < std::count(rhs.begin(), rhs.end(), true)) {
-        return lhs;
-    } else {
-        return rhs;
-    }
-}
-
-void FominKratschWoegingerDominatingSet::run() {
-    hasRun = true;
-    neighborhood.resize(graph->numberOfNodes());
-    graph->forNodes([this](NetworKit::node u) {
-        bounded.insert(u);
-        graph->forNeighborsOf(u, [u, this](NetworKit::node neighbor) {
-            neighborhood[u].insert(neighbor);
-        });
-        if (graph->degree(u) == 1) {
-            degreeOne.insert(u);
-        } else if (graph->degree(u) == 2) {
-            degreeTwo.insert(u);
-        }
-    });
-    dominating_set = recurse();
-}
-
-std::vector<bool> findMODSWhenDegreeAtLeast3(
-        const NetworKit::Graph &G,
-        const std::set<NetworKit::node> &free,
-        const std::set<NetworKit::node> &bounded) {
-    std::vector<NetworKit::node> possibilities = merge(free, bounded);
-    for (size_t i = 1; 8 * i <= 3 * possibilities.size(); i++) {
-        auto [found, choices] = SizedChoiceSearcher(
-            [&G, &bounded](const std::vector<NetworKit::node> &arg) {
-                return is_optional_dominating_set(G, arg, bounded);
-            }, possibilities, i).search();
-        std::vector<bool> solution(G.numberOfNodes());
-        if (found) {
-            for (auto u : choices) {
-                solution.at(u) = true;
-            }
-            return solution;
-        }
-    }
-    throw std::invalid_argument("findMODSWhenDegreeAtLeast3 arguments are corrupted");
-}
-
-void FominKratschWoegingerDominatingSet::onDegreeDecrement(NetworKit::node updated) {
-    auto currentDegree = neighborhood.at(updated).size();
-    if (currentDegree == 0) {
-        degreeOne.erase(updated);
-    } else if (currentDegree == 1) {
-        degreeOne.insert(updated);
-        degreeTwo.erase(updated);
-    } else if (currentDegree == 2) {
-        degreeTwo.insert(updated);
-    }
-}
-
-void FominKratschWoegingerDominatingSet::onDegreeIncrement(NetworKit::node updated) {
-    auto currentDegree = neighborhood.at(updated).size();
-    if (currentDegree == 1) {
-        degreeOne.insert(updated);
-    } else if (currentDegree == 2) {
-        degreeOne.erase(updated);
-        degreeTwo.insert(updated);
-    } else if (currentDegree == 3) {
-        degreeTwo.erase(updated);
-    }
-}
-
-void FominKratschWoegingerDominatingSet::forgetVertexInNeighbors(NetworKit::node vertex) {
-    for (auto neighbor : neighborhood.at(vertex)) {
-        neighborhood.at(neighbor).erase(vertex);
-        onDegreeDecrement(neighbor);
-    }
-}
-void FominKratschWoegingerDominatingSet::retrieveVertexInNeighbors(NetworKit::node vertex) {
-    for (auto neighbor : neighborhood.at(vertex)) {
-        neighborhood.at(neighbor).insert(vertex);
-        onDegreeIncrement(neighbor);
-    }
-}
-
-bool FominKratschWoegingerDominatingSet::forgetVertex(NetworKit::node vertex) {
-    bool is_free = free.contains(vertex);
-    if (is_free) {
-        free.erase(vertex);
-    } else {
-        bounded.erase(vertex);
-    }
-    auto degree = neighborhood.at(vertex).size();
-    if (degree == 1) {
-        degreeOne.erase(vertex);
-    } else if (degree == 2) {
-        degreeTwo.erase(vertex);
-    }
-    forgetVertexInNeighbors(vertex);
-    return is_free;
-}
-
-void FominKratschWoegingerDominatingSet::retrieveVertex(NetworKit::node vertex, bool is_free) {
-    retrieveVertexInNeighbors(vertex);
-    auto degree = neighborhood.at(vertex).size();
-    if (degree == 1) {
-        degreeOne.insert(vertex);
-    } else if (degree == 2) {
-        degreeTwo.insert(vertex);
-    }
-    if (is_free) {
-        free.insert(vertex);
-    } else {
-        bounded.insert(vertex);
-    }
-}
-
-std::tuple<std::vector<NetworKit::node>, bool> FominKratschWoegingerDominatingSet::addToTheSolution(
-        NetworKit::node forced) {
-    std::vector<NetworKit::node> movedVertices{};
-    for (auto neighbor : neighborhood.at(forced)) {
-        if (bounded.contains(neighbor)) {
-            bounded.erase(neighbor);
-            free.insert(neighbor);
-            movedVertices.push_back(neighbor);
-        }
-    }
-    bool is_free = forgetVertex(forced);
-    required.insert(forced);
-    return {movedVertices, is_free};
-}
-
-void FominKratschWoegingerDominatingSet::removeFromTheSolution(
-        NetworKit::node vertex, std::vector<NetworKit::node> &movedVertices, bool isVertexFree) {
-    required.erase(vertex);
-    retrieveVertex(vertex, isVertexFree);
-    for (auto neighbor : std::views::reverse(movedVertices)) {
-        free.erase(neighbor);
-        bounded.insert(neighbor);
-    }
-}
-
-std::vector<bool> FominKratschWoegingerDominatingSet::recurse() {
-    if (!degreeOne.empty()) {
-        NetworKit::node u = *degreeOne.begin(), unique = *neighborhood.at(u).begin();
-        std::vector<bool> solution;
-        bool is_free = forgetVertex(u);
-        if (is_free) {
-            solution = recurse();
-        } else {
-            auto [moved1, is_free1] = addToTheSolution(unique);
-            solution = recurse();
-            removeFromTheSolution(unique, moved1, is_free1);
-        }
-        retrieveVertex(u, is_free);
-        return solution;
-    }
-    if (!degreeTwo.empty()) {
-        NetworKit::node v = *degreeTwo.begin();
-        std::set<NetworKit::node>::iterator it = neighborhood.at(v).begin();
-        NetworKit::node u1 = *it, u2 = *(++it);
-
-        bool is_free = free.contains(v), is1 = forgetVertex(v);
-        auto [moved1, is_free1] = addToTheSolution(u1);
-        auto solution1 = recurse();
-        removeFromTheSolution(u1, moved1, is_free1);
-        retrieveVertex(v, is1);
-
-        bool is2 = forgetVertex(u1), is3 = forgetVertex(u2);
-        auto [moved2, is_free2] = addToTheSolution(v);
-        auto solution2 = recurse();
-        removeFromTheSolution(v, moved2, is_free2);
-        retrieveVertex(u2, is3), retrieveVertex(u1, is2);
-
-        std::vector<bool> solution3;
-        bool is4 = forgetVertex(v);
-        if (is_free) {
-            solution3 = recurse();
-        } else {
-            auto [moved3, is_free3] = addToTheSolution(u2);
-            solution3 = recurse();
-            removeFromTheSolution(u2, moved3, is_free3);
-        }
-        retrieveVertex(v, is4);
-        return smaller(smaller(solution1, solution2), solution3);
-    }
-    std::set<NetworKit::node> boundedIsolatedVertices;
-    for (int i = 0; i < neighborhood.size(); i++) {
-        if (neighborhood.at(i).empty() && bounded.contains(i)) {
-            bounded.erase(i);
-            boundedIsolatedVertices.insert(i);
-        }
-    }
-    std::vector<bool> solution;
-    if (bounded.empty()) {
-        solution = std::vector<bool>(neighborhood.size());
-    } else {
-        NetworKit::Graph graph(neighborhood.size());
-        for (NetworKit::node i = 0; i < neighborhood.size(); i++) {
-            if (required.contains(i)) continue;
-            for (auto e : neighborhood.at(i)) {
-                if (i < e) {
-                    graph.addEdge(i, e);
-                }
-            }
-        }
-        solution = findMODSWhenDegreeAtLeast3(graph, free, bounded);
-    }
-    for (auto u : required) {
-        solution.at(u) = true;
-    }
-    for (auto u : boundedIsolatedVertices) {
-        solution.at(u) = true;
-    }
-    for (auto u : boundedIsolatedVertices) {
-        bounded.insert(u);
-    }
-    return solution;
 }
 
 }  /* namespace Koala */

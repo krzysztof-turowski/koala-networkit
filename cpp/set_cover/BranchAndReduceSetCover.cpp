@@ -66,32 +66,6 @@ BranchAndReduceSetCover::BranchAndReduceSetCover(
         std::vector<std::set<NetworKit::index>> &occurences)
     : family(family), occurences(occurences) { }
 
-void BranchAndReduceSetCover::run() {
-    hasRun = true;
-    set_cover = std::vector<bool>(family.size());
-    if (std::all_of(family.begin(), family.end(), [](const auto& e) { return e.empty(); })) {
-        return;
-    }
-    if (reduce()) {
-        return;
-    }
-    if (reduce_matching()) {
-        return;
-    }
-    // branching
-    NetworKit::index largest = std::max_element(
-        family.begin(), family.end(),
-        [](const auto& a, const auto& b) { return a.size() < b.size(); }) - family.begin();
-    auto included = forced_set_cover(largest), excluded = discarded_set_cover(largest);
-    int included_size = std::count(included.begin(), included.end(), true);
-    int excluded_size = std::count(excluded.begin(), excluded.end(), true);
-    if (included_size < excluded_size) {
-      set_cover.swap(included);
-    } else {
-      set_cover.swap(excluded);
-    }
-}
-
 std::vector<bool> BranchAndReduceSetCover::getSetCover() const {
     assureFinished();
     return set_cover;
@@ -102,19 +76,43 @@ void BranchAndReduceSetCover::check() const {
     // TODO
 }
 
+void BranchAndReduceSetCover::run() {
+    hasRun = true;
+    recurse().swap(set_cover);
+}
+
+std::vector<bool> BranchAndReduceSetCover::recurse() {
+    if (std::all_of(family.begin(), family.end(), [](const auto& e) { return e.empty(); })) {
+        return std::vector<bool>(family.size());
+    }
+    if (reduce()) {
+        return set_cover;
+    }
+    if (reduce_matching()) {
+        return set_cover;
+    }
+    // branching
+    NetworKit::index largest = std::max_element(
+        family.begin(), family.end(),
+        [](const auto& a, const auto& b) { return a.size() < b.size(); }) - family.begin();
+    auto included(forced_set_cover(largest)), excluded(discarded_set_cover(largest));
+    int included_size = std::count(included.begin(), included.end(), true);
+    int excluded_size = std::count(excluded.begin(), excluded.end(), true);
+    set_cover.swap(included_size < excluded_size ? included : excluded);
+    return set_cover;
+}
+
 bool BranchAndReduceSetCover::reduce() {
     // unique element rule
     NetworKit::index forced_index = find_unique_occurence_set();
     if (forced_index != NetworKit::none) {
-        auto solution = forced_set_cover(forced_index);
-        set_cover.swap(solution);
+        forced_set_cover(forced_index).swap(set_cover);
         return true;
     }
     // subset rule
     auto [subset_index, superset_index] = find_set_inclusion(family);
     if (subset_index != NetworKit::none) {
-        auto solution = discarded_set_cover(subset_index);
-        set_cover.swap(solution);
+        discarded_set_cover(subset_index).swap(set_cover);
         return true;
     }
     return false;
@@ -130,7 +128,7 @@ NetworKit::index BranchAndReduceSetCover::find_unique_occurence_set() {
 }
 
 std::vector<bool> BranchAndReduceSetCover::forced_set_cover(NetworKit::index index) {
-    std::set<NetworKit::node> &forced = family.at(index);
+    auto &forced = family.at(index);
     std::vector<std::pair<NetworKit::index, NetworKit::node>> removed;
     for (auto &element : forced) {
         for (auto &occurence : occurences.at(element)) {
@@ -142,9 +140,7 @@ std::vector<bool> BranchAndReduceSetCover::forced_set_cover(NetworKit::index ind
         family.at(element.first).erase(element.second);
     }
     std::vector<bool> solution;
-    solution.swap(set_cover);
-    run();
-    solution.swap(set_cover);
+    recurse().swap(solution);
     for (auto &element : removed) {
         family.at(element.first).insert(element.second);
         occurences.at(element.second).insert(element.first);
@@ -155,11 +151,11 @@ std::vector<bool> BranchAndReduceSetCover::forced_set_cover(NetworKit::index ind
 
 std::vector<bool> BranchAndReduceSetCover::discarded_set_cover(NetworKit::index index) {
     std::set<NetworKit::node> swapped;
-    std::vector<bool> solution;
     exclude_set(index, family.at(index), occurences);
-    family.at(index).swap(swapped), solution.swap(set_cover);
-    run();
-    family.at(index).swap(swapped), solution.swap(set_cover);
+    family.at(index).swap(swapped);
+    std::vector<bool> solution;
+    recurse().swap(solution);
+    family.at(index).swap(swapped);
     include_set(index, family.at(index), occurences);
     return solution;
 }
@@ -185,6 +181,7 @@ bool FominGrandoniKratschSetCover::reduce_matching() {
     }
     assert(boost::checked_edmonds_maximum_cardinality_matching(boost_graph, &mate[0]));
 
+    set_cover.resize(family.size());
     std::vector<bool> dominated(occurences.size());
     for (NetworKit::index i = 0; i < family.size(); i++) {
         auto &element = family.at(i);
@@ -212,20 +209,19 @@ bool RooijBodlaenderSetCover::reduce() {
     // subsumption rule
     auto [subset_index, superset_index] = find_set_inclusion(occurences);
     if (subset_index != NetworKit::none) {
-        std::set<NetworKit::index> swapped;
+        std::set<NetworKit::index> temp;
         auto &superset = occurences.at(superset_index);
         exclude_set(superset_index, superset, family);
-        superset.swap(swapped);
-        run();
-        superset.swap(swapped);
+        superset.swap(temp);
+        recurse().swap(set_cover);
+        superset.swap(temp);
         include_set(superset_index, superset, family);
         return true;
     }
     // counting rule
     NetworKit::index counting_rule_index = find_counting_rule_reduction_set();
     if (counting_rule_index != NetworKit::none) {
-        auto solution = forced_set_cover(counting_rule_index);
-        set_cover.swap(solution);
+        forced_set_cover(counting_rule_index).swap(set_cover);
         return true;
     }
     // size two set with frequency two elements rule
@@ -243,9 +239,9 @@ bool RooijBodlaenderSetCover::reduce() {
         }
     }
     std::set<NetworKit::node> replacement;
-    auto &set1 = family.at(indices[1]), &set2 = family.at(indices[2]);
+    auto &A = family.at(indices[1]), &B = family.at(indices[2]);
     std::set_union(
-        set1.begin(), set1.end(), set2.begin(), set2.end(),
+        A.begin(), A.end(), B.begin(), B.end(),
         std::inserter(replacement, replacement.begin()));
     for (auto &element : family.at(cardinality_frequency_index)) {
         replacement.erase(element);
@@ -258,7 +254,7 @@ bool RooijBodlaenderSetCover::reduce() {
     for (int j = 0; j < 3; j++) {
         swapped[j].swap(family.at(indices[j]));
     }
-    run();
+    recurse().swap(set_cover);
     for (int j = 0; j < 3; j++) {
         swapped[j].swap(family.at(indices[j]));
     }
@@ -287,7 +283,7 @@ NetworKit::index RooijBodlaenderSetCover::find_counting_rule_reduction_set() {
                         continue;
                     }
                     for (auto &e : family.at(occurence)) {
-                        if (candidate.count(e) == 0) {
+                        if (!candidate.count(e)) {
                             not_covered.insert(e);
                         }
                     }

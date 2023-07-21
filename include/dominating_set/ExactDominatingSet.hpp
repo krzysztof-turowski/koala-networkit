@@ -40,7 +40,7 @@ class BranchAndReduceDominatingSet : public DominatingSet {
         std::vector<std::set<NetworKit::index>> occurences(family);
         auto set_cover_algorithm = SetCoverAlgorithm(family, occurences);
         set_cover_algorithm.run();
-        dominating_set = set_cover_algorithm.getSetCover();
+        set_cover_algorithm.getSetCover().swap(dominating_set);
     }
 };
 
@@ -72,22 +72,18 @@ class FominKratschWoegingerDominatingSet : public ExactDominatingSet {
     void run();
 
  protected:
-    std::set<NetworKit::node> degreeOne, degreeTwo;
+    std::set<NetworKit::node> degree_one, degree_two;
     std::vector<std::set<NetworKit::node>> neighborhood;
 
     std::vector<bool> recurse();
-    ////////////
-    void onDegreeDecrement(NetworKit::node updated);
-    void onDegreeIncrement(NetworKit::node updated);
-    void forgetVertexInNeighbors(NetworKit::node vertex);
-    void retrieveVertexInNeighbors(NetworKit::node vertex);
-    bool forgetVertex(NetworKit::node forced);
-    void retrieveVertex(NetworKit::node vertex, bool isFree);
-    std::tuple<std::vector<NetworKit::node>, bool> addToTheSolution(NetworKit::node forced);
-    void removeFromTheSolution(
-        NetworKit::node vertex,
-        std::vector<NetworKit::node> &movedVertices,
-        bool isVertexFree);
+    std::vector<bool> find_MODS_for_minimum_degree_3();
+    std::tuple<std::vector<NetworKit::node>, bool> add_to_solution(NetworKit::node vertex);
+    void remove_from_solution(
+        NetworKit::node vertex, std::vector<NetworKit::node> &moved, bool is_free);
+    bool forget_vertex(NetworKit::node vertex);
+    void retrieve_vertex(NetworKit::node vertex, bool is_free);
+    void on_degree_decrement(NetworKit::node vertex);
+    void on_degree_increment(NetworKit::node vertex);
 };
 
 /**

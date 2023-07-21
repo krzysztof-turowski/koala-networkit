@@ -55,6 +55,7 @@ class BranchAndReduceSetCover : public NetworKit::Algorithm {
     std::vector<std::set<NetworKit::index>> &occurences;
     std::vector<bool> set_cover;
 
+    std::vector<bool> recurse();
     bool reduce();
     NetworKit::index find_unique_occurence_set();
     virtual bool reduce_matching() = 0;
