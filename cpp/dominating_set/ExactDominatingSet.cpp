@@ -19,14 +19,14 @@ namespace Koala {
 
 bool is_optional_dominating_set(
         const NetworKit::Graph &G, const std::vector<bool> &solution,
-        std::set<NetworKit::node> bounded) {
+        std::set<NetworKit::node> bound) {
     for (int u = 0; u < solution.size(); u++) {
         if (solution[u]) {
-            bounded.erase(u);
-            G.forNeighborsOf(u, [&bounded](NetworKit::node v) { bounded.erase(v); });
+            bound.erase(u);
+            G.forNeighborsOf(u, [&bound](NetworKit::node v) { bound.erase(v); });
         }
     }
-    return bounded.empty();
+    return bound.empty();
 }
 
 std::vector<NetworKit::node> merge(
@@ -57,7 +57,7 @@ void FominKratschWoegingerDominatingSet::run() {
     hasRun = true;
     neighborhood.resize(graph->numberOfNodes());
     graph->forNodes([this](NetworKit::node u) {
-        bounded.insert(u);
+        bound.insert(u);
         graph->forNeighborsOf(u, [u, this](NetworKit::node neighbor) {
             neighborhood[u].insert(neighbor);
         });
@@ -81,12 +81,12 @@ std::vector<bool> FominKratschWoegingerDominatingSet::find_MODS_for_minimum_degr
           }
       }
     }
-    std::vector<NetworKit::node> possibilities = merge(free, bounded);
+    std::vector<NetworKit::node> possibilities = merge(free, bound);
     for (size_t i = 1; 8 * i <= 3 * possibilities.size(); i++) {
         std::vector<bool> solution(G.numberOfNodes());
         bool found = sized_choice_recursive(
             [&G, this](const std::vector<bool> &S) {
-                return is_optional_dominating_set(G, S, bounded);
+                return is_optional_dominating_set(G, S, bound);
             }, possibilities, 0, i, solution);
         if (found) {
             return solution;
@@ -148,13 +148,13 @@ std::vector<bool> FominKratschWoegingerDominatingSet::recurse() {
         }
         return solution;
     }
-    std::set<NetworKit::node> bounded_isolated_vertices;
+    std::set<NetworKit::node> bound_isolated_vertices;
     for (int i = 0; i < neighborhood.size(); i++) {
-        if (neighborhood.at(i).empty() && bounded.contains(i)) {
-            bounded.erase(i), bounded_isolated_vertices.insert(i);
+        if (neighborhood.at(i).empty() && bound.contains(i)) {
+            bound.erase(i), bound_isolated_vertices.insert(i);
         }
     }
-    if (bounded.empty()) {
+    if (bound.empty()) {
         solution.resize(neighborhood.size());
     } else {
         find_MODS_for_minimum_degree_3().swap(solution);
@@ -162,9 +162,9 @@ std::vector<bool> FominKratschWoegingerDominatingSet::recurse() {
     for (auto u : required) {
         solution.at(u) = true;
     }
-    for (auto u : bounded_isolated_vertices) {
+    for (auto u : bound_isolated_vertices) {
         solution.at(u) = true;
-        bounded.insert(u);
+        bound.insert(u);
     }
     return solution;
 }
@@ -173,8 +173,8 @@ std::tuple<std::vector<NetworKit::node>, bool> FominKratschWoegingerDominatingSe
         NetworKit::node vertex) {
     std::vector<NetworKit::node> moved_vertices;
     for (auto neighbor : neighborhood.at(vertex)) {
-        if (bounded.contains(neighbor)) {
-            bounded.erase(neighbor), free.insert(neighbor);
+        if (bound.contains(neighbor)) {
+            bound.erase(neighbor), free.insert(neighbor);
             moved_vertices.push_back(neighbor);
         }
     }
@@ -189,7 +189,7 @@ void FominKratschWoegingerDominatingSet::remove_from_solution(
     retrieve_vertex(vertex, is_free);
     for (auto neighbor : std::views::reverse(moved_vertices)) {
         free.erase(neighbor);
-        bounded.insert(neighbor);
+        bound.insert(neighbor);
     }
 }
 
@@ -198,7 +198,7 @@ bool FominKratschWoegingerDominatingSet::forget_vertex(NetworKit::node vertex) {
     if (is_free) {
         free.erase(vertex);
     } else {
-        bounded.erase(vertex);
+        bound.erase(vertex);
     }
     auto degree = neighborhood.at(vertex).size();
     if (degree == 1) {
@@ -227,7 +227,7 @@ void FominKratschWoegingerDominatingSet::retrieve_vertex(NetworKit::node vertex,
     if (is_free) {
         free.insert(vertex);
     } else {
-        bounded.insert(vertex);
+        bound.insert(vertex);
     }
 }
 
@@ -253,110 +253,158 @@ void FominKratschWoegingerDominatingSet::on_degree_increment(NetworKit::node ver
     }
 }
 
-///////////////
-
-class BigMODSSolver {
-    const NetworKit::Graph &graph;
-    const std::function<std::vector<bool>(const std::set<NetworKit::node>)>& evaluator;
-    std::vector<NetworKit::node> &possibilities;
-    std::set<NetworKit::node> choices{};
-    std::set<NetworKit::node> closedNeighborhood{};
-    void recurse(int decideOn, std::vector<bool> &bestSolution);
- public:
-    BigMODSSolver(
-        const NetworKit::Graph &graph,
-        const std::function<std::vector<bool>(const std::set<NetworKit::node>)>& evaluator,
-        std::vector<NetworKit::node> &possibilities)
-        : graph(graph), evaluator(evaluator), possibilities(possibilities) {}
-    std::vector<bool> run();
-};
-
-std::vector<bool> BigMODSSolver::run() {
-    std::vector<bool> bestSolution(graph.numberOfNodes());
-    for (auto e : possibilities) {
-        bestSolution.at(e) = true;
+void SchiermeyerDominatingSet::run() {
+    hasRun = true;
+    dominating_set.resize(graph->numberOfNodes());
+    graph->forNodes([this](NetworKit::node u) {
+        bound.insert(u);
+    });
+    NetworKit::Graph core_graph = core(*graph, free, bound, required);
+    if (bound.empty()) {
+        graph->forNodes([this](NetworKit::node u) {
+            dominating_set.at(u) = required.contains(u);
+        });
     }
-    recurse(0, bestSolution);
-    return bestSolution;
+    possibilities = merge(free, bound);
+    if (find_small_MODS(core_graph)) {
+        return;
+    }
+    find_big_MODS(core_graph);
 }
 
-void BigMODSSolver::recurse(int decideOn, std::vector<bool> &bestSolution) {
-    if (decideOn == possibilities.size()) {
-        if (closedNeighborhood.size() < 3 * choices.size()
-            || closedNeighborhood.size() >= 3 * (choices.size() + 1)) {
+bool SchiermeyerDominatingSet::find_small_MODS(const NetworKit::Graph &G) {
+    for (int i = 1; 3 * i <= possibilities.size(); i++) {
+        bool found = sized_choice_recursive(
+            [&G, this](const std::vector<bool> &S) {
+                return is_optional_dominating_set(G, S, bound);
+            }, possibilities, 0, i, dominating_set);
+        if (found) {
+            G.forNodes([this](NetworKit::node u) {
+                dominating_set.at(u) = dominating_set.at(u) | required.contains(u);
+            });
+            return true;
+        }
+    }
+    return false;
+}
+
+void SchiermeyerDominatingSet::find_big_MODS(const NetworKit::Graph &G) {
+    dominating_set = std::vector<bool>(G.numberOfNodes());
+    for (auto u : possibilities) {
+        dominating_set.at(u) = true;
+    }
+    recurse(G, 0);
+    for (auto u : required) {
+        dominating_set.at(u) = true;
+    }
+}
+
+void SchiermeyerDominatingSet::recurse(const NetworKit::Graph &G, NetworKit::node index) {
+    std::set<NetworKit::node> added;
+    if (index == possibilities.size()) {
+        if (neighborhood.size() < 3 * choices.size() || neighborhood.size() >= 3 * (choices.size() + 1)) {
             return;
         }
-        for (auto e : possibilities) {
-            if (choices.contains(e)) {
+        for (auto u : possibilities) {
+            if (choices.contains(u)) {
                 continue;
             }
-            std::set<int> addedNeighbors;
-            if (!closedNeighborhood.contains(e)) {
-                addedNeighbors.insert(e);
+            if (!neighborhood.contains(u)) {
+                added.insert(u);
             }
-            graph.forNeighborsOf(e, [&addedNeighbors, this](NetworKit::node neighbor) {
-                if (!closedNeighborhood.contains(neighbor)) {
-                    addedNeighbors.insert(neighbor);
+            G.forNeighborsOf(u, [&added, this](NetworKit::node v) {
+                if (!neighborhood.contains(v)) {
+                    added.insert(v);
                 }});
-            if (closedNeighborhood.size() + addedNeighbors.size() >= 3 * (choices.size() + 1)) {
+            if (neighborhood.size() + added.size() >= 3 * (choices.size() + 1)) {
                 return;
             }
         }
-        auto optionalDominatingSet = evaluator(choices);
-        int optionalDominatingSetSize = std::count(optionalDominatingSet.begin(), optionalDominatingSet.end(), true);
-        int bestSolutionSize = std::count(bestSolution.begin(), bestSolution.end(), true);
-        if (optionalDominatingSetSize < bestSolutionSize) {
-            bestSolution = optionalDominatingSet;
+        auto optional_dominating_set = get_matching_MODS(G, choices);
+        auto optional_dominating_set_size = std::count(optional_dominating_set.begin(), optional_dominating_set.end(), true);
+        auto dominating_set_size = std::count(dominating_set.begin(), dominating_set.end(), true);
+        if (optional_dominating_set_size < dominating_set_size) {
+            dominating_set = optional_dominating_set;
         }
         return;
     }
-    recurse(decideOn + 1, bestSolution);
+    recurse(G, index + 1);
 
     if (3 * (choices.size() + 1) > possibilities.size()) {
         return;
     }
-    std::set<int> addedNeighbors;
-    NetworKit::node next = possibilities.at(decideOn);
-    if (!closedNeighborhood.contains(next)) {
-        addedNeighbors.insert(next);
+    NetworKit::node next = possibilities.at(index);
+    if (!neighborhood.contains(next)) {
+        added.insert(next);
     }
-    graph.forNeighborsOf(
+    G.forNeighborsOf(
         next,
-        [&addedNeighbors, this] (NetworKit::node neighbor) {
-            if (!closedNeighborhood.contains(neighbor)) {
-                addedNeighbors.insert(neighbor);
+        [&added, this] (NetworKit::node v) {
+            if (!neighborhood.contains(v)) {
+                added.insert(v);
             }
         });
 
     choices.insert(next);
-    for (auto e : addedNeighbors) {
-        closedNeighborhood.insert(e);
+    for (auto e : added) {
+        neighborhood.insert(e);
     }
-    recurse(decideOn + 1, bestSolution);
+    recurse(G, index + 1);
     choices.erase(next);
-    for (auto e : addedNeighbors) {
-        closedNeighborhood.erase(e);
+    for (auto e : added) {
+        neighborhood.erase(e);
     }
 }
 
-NetworKit::Graph buildFromVectorSetRepresentation(
-        const std::vector<std::set<NetworKit::node>> &neighbors) {
-    NetworKit::Graph graph(neighbors.size());
-    for (NetworKit::node i = 0; i < neighbors.size(); i++) {
-        for (auto e : neighbors.at(i)) {
-            assert(neighbors.at(e).contains(i));
-            if (i < e) {
-                graph.addEdge(i, e);
-            }
+std::vector<bool> SchiermeyerDominatingSet::get_matching_MODS(
+        const NetworKit::Graph &G, const std::set<NetworKit::node> &required) {
+    auto S_prim(required);
+    auto T_prim(free);
+    auto U_prim(bound);
+    auto core_graph = core(G, T_prim, U_prim, S_prim);
+
+    typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS> boost_graph_t;
+    boost_graph_t H(G.numberOfNodes());
+    std::map<std::tuple<NetworKit::node, NetworKit::node>, NetworKit::node> owners;
+    for (auto u : U_prim) {
+        NetworKit::node v = core_graph.getIthNeighbor(u, 0);
+        if (v != NetworKit::none && u < v) {
+            boost::add_edge(u, v, H);
+            owners.emplace(std::make_tuple(u, v), u);
         }
     }
-    return graph;
+    for (auto u : T_prim) {
+        NetworKit::node v1 = core_graph.getIthNeighbor(u, 0), v2 = core_graph.getIthNeighbor(u, 1);
+        assert(v1 != NetworKit::none && v2 != NetworKit::none);
+        if (v1 > v2) {
+            std::swap(v1, v2);
+        }
+        if (!owners.contains(std::make_tuple(v1, v2))) {
+            boost::add_edge(v1, v2, H);
+            owners.emplace(std::make_tuple(v1, v2), u);
+        }
+    }
+    std::vector<boost::graph_traits<boost_graph_t>::vertex_descriptor> mate(G.numberOfNodes());
+    assert(boost::checked_edmonds_maximum_cardinality_matching(H, &mate[0]));
+
+    std::vector<bool> optional_dominating_set(G.numberOfNodes());
+    for (auto u : U_prim) {
+        if (mate[u] == NetworKit::none) {
+            optional_dominating_set[u] = true;
+        } else if (u < mate[u]) {
+            optional_dominating_set[owners.at(std::make_tuple(u, mate[u]))] = true;
+        }
+    }
+    for (auto e : S_prim) {
+        optional_dominating_set[e] = true;
+    }
+    return optional_dominating_set;
 }
 
-NetworKit::Graph core(
+NetworKit::Graph SchiermeyerDominatingSet::core(
         const NetworKit::Graph &G,
         std::set<NetworKit::node> &free,
-        std::set<NetworKit::node> &bounded,
+        std::set<NetworKit::node> &bound,
         std::set<NetworKit::node> &required) {
     std::vector<std::set<NetworKit::node>> intermediate(G.numberOfNodes());
     G.forEdges([&intermediate](NetworKit::node u, NetworKit::node v) {
@@ -366,19 +414,19 @@ NetworKit::Graph core(
     bool process = true;
     while (process) {
         process = false;
-        for (auto e : bounded) {
+        for (auto e : bound) {
             if (intermediate[e].empty()) {
                 process = true;
                 required.insert(e);
             }
         }
         std::erase_if(
-            bounded,
+            bound,
             [&intermediate](NetworKit::node u) {
                 return intermediate[u].empty();
             });
         std::set<NetworKit::node> rule2change;
-        for (auto e : bounded) {
+        for (auto e : bound) {
             for (auto nei : intermediate[e]) {
                 if (required.contains(nei)) {
                     process = true;
@@ -390,7 +438,7 @@ NetworKit::Graph core(
         for (auto e : rule2change) {
             free.insert(e);
         }
-        std::erase_if(bounded, [&rule2change](NetworKit::node u) {return rule2change.contains(u);});
+        std::erase_if(bound, [&rule2change](NetworKit::node u) {return rule2change.contains(u);});
         for (int i = 0; i < intermediate.size(); i++) {
             if (free.contains(i)) {
                 auto erased = std::erase_if(
@@ -405,7 +453,7 @@ NetworKit::Graph core(
                 if (!intermediate[i].empty()) {
                     process = true;
                     for (auto e : intermediate[i]) {
-                        if (bounded.contains(e)) {
+                        if (bound.contains(e)) {
                             intermediate.at(e).erase(i);
                         }
                     }
@@ -417,7 +465,7 @@ NetworKit::Graph core(
         for (auto e : free) {
             int boundCount = 0;
             for (auto nei : intermediate[e]) {
-                if (bounded.contains(nei)) {
+                if (bound.contains(nei)) {
                     boundCount++;
                 }
                 if (boundCount > 1) {
@@ -436,7 +484,7 @@ NetworKit::Graph core(
             intermediate[e].clear();
         }
         std::erase_if(free, [&rule4change](NetworKit::node u) { return rule4change.contains(u); });
-        for (auto e : bounded) {
+        for (auto e : bound) {
             if (intermediate[e].size() == 1 && !required.contains(e)) {
                 process = true;
                 auto unique = *intermediate[e].begin();
@@ -444,108 +492,19 @@ NetworKit::Graph core(
                 required.insert(unique);
             }
         }
-        std::erase_if(bounded, [&required](NetworKit::node u) { return required.contains(u); });
+        std::erase_if(bound, [&required](NetworKit::node u) { return required.contains(u); });
     }
-    return buildFromVectorSetRepresentation(intermediate);
-}
 
-std::vector<bool> matchingMODS(
-        const NetworKit::Graph &graph,
-        const std::set<NetworKit::node> &S,
-        const std::set<NetworKit::node> &free,
-        const std::set<NetworKit::node> &bounded) {
-    typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS> boost_graph_t;
-    auto SPrim(S);
-    auto TPrim(free);
-    auto UPrim(bounded);
-    auto coreGraph = core(graph, TPrim, UPrim, SPrim);
-    boost_graph_t H(graph.numberOfNodes());
-    std::map<std::tuple<NetworKit::node, NetworKit::node>, NetworKit::node> owners;
-    for (auto u : UPrim) {
-        NetworKit::node v = coreGraph.getIthNeighbor(u, 0);
-        if (v != NetworKit::none && u < v) {
-            boost::add_edge(u, v, H);
-            owners.emplace(std::tuple<NetworKit::node, NetworKit::node>(u, v), u);
+    NetworKit::Graph graph(intermediate.size());
+    for (NetworKit::node i = 0; i < intermediate.size(); i++) {
+        for (auto e : intermediate.at(i)) {
+            assert(intermediate.at(e).contains(i));
+            if (i < e) {
+                graph.addEdge(i, e);
+            }
         }
     }
-
-    for (auto u : TPrim) {
-        auto v1 = coreGraph.getIthNeighbor(u, 0), v2 = coreGraph.getIthNeighbor(u, 1);
-        assert(v1 != NetworKit::none);
-        assert(v2 != NetworKit::none);
-        if (v1 > v2) {
-            std::swap(v1, v2);
-        }
-        if (!owners.contains(std::tuple<NetworKit::node, NetworKit::node>(v1, v2))) {
-            boost::add_edge(v1, v2, H);
-            owners.emplace(std::tuple<NetworKit::node, NetworKit::node>(v1, v2), u);
-        }
-    }
-    std::vector<boost::graph_traits<boost_graph_t>::vertex_descriptor> mate(graph.numberOfNodes());
-    assert(boost::checked_edmonds_maximum_cardinality_matching(H, &mate[0]));
-
-    std::vector<bool> optionalDominatingSet(graph.numberOfNodes());
-    for (auto e : UPrim) {
-        if (mate[e] == NetworKit::none) {
-            optionalDominatingSet[e] = true;
-        } else if (e < mate[e]) {
-            auto owner = owners.at(std::tuple<NetworKit::node, NetworKit::node>(e, mate[e]));
-            optionalDominatingSet[owner] = true;
-        }
-    }
-    for (auto e : SPrim) {
-        optionalDominatingSet[e] = true;
-    }
-    return optionalDominatingSet;
-}
-
-///////////////
-
-void SchiermeyerDominatingSet::run() {
-    hasRun = true;
-    dominating_set.resize(graph->numberOfNodes());
-    graph->forNodes([this](NetworKit::node u) {
-        bounded.insert(u);
-    });
-    NetworKit::Graph core_graph = core(*graph, free, bounded, required);
-    if (bounded.empty()) {
-        graph->forNodes([this](NetworKit::node u) {
-            dominating_set.at(u) = required.contains(u);
-        });
-    }
-    if (find_small_MODS(core_graph)) {
-        return;
-    }
-    find_big_MODS(core_graph);
-}
-
-bool SchiermeyerDominatingSet::find_small_MODS(const NetworKit::Graph &G) {
-    auto possibilities = merge(free, bounded);
-    for (int i = 1; 3 * i <= possibilities.size(); i++) {
-        bool found = sized_choice_recursive(
-            [&G, this](const std::vector<bool> &S) {
-                return is_optional_dominating_set(G, S, bounded);
-            }, possibilities, 0, i, dominating_set);
-        if (found) {
-            G.forNodes([this](NetworKit::node u) {
-                dominating_set.at(u) = dominating_set.at(u) | required.contains(u);
-            });
-            return true;
-        }
-    }
-    return false;
-}
-
-void SchiermeyerDominatingSet::find_big_MODS(const NetworKit::Graph &G) {
-    auto possibilities = merge(free, bounded);
-    dominating_set = BigMODSSolver(
-        G,
-        [&G, this](const std::set<NetworKit::node> &S) {
-            return matchingMODS(G, S, free, bounded);
-        }, possibilities).run();
-    for (auto e : required) {
-        dominating_set.at(e) = true;
-    }
+    return graph;
 }
 
 }  /* namespace Koala */

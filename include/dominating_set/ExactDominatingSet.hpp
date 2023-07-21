@@ -54,7 +54,7 @@ class ExactDominatingSet : public DominatingSet {
     using DominatingSet::DominatingSet;
 
  protected:
-    std::set<NetworKit::node> free, bounded, required;
+    std::set<NetworKit::node> free, bound, required;
 };
 
 /**
@@ -74,6 +74,7 @@ class FominKratschWoegingerDominatingSet : public ExactDominatingSet {
  protected:
     std::set<NetworKit::node> degree_one, degree_two;
     std::vector<std::set<NetworKit::node>> neighborhood;
+    std::vector<NetworKit::node> possibilities;
 
     std::vector<bool> recurse();
     std::vector<bool> find_MODS_for_minimum_degree_3();
@@ -103,7 +104,16 @@ class SchiermeyerDominatingSet : public ExactDominatingSet {
  private:
     bool find_small_MODS(const NetworKit::Graph &G);
     void find_big_MODS(const NetworKit::Graph &G);
-    std::vector<bool> get_matching_MODS(const std::set<NetworKit::node> &S);
+
+    std::set<NetworKit::node> choices, neighborhood;
+    std::vector<NetworKit::node> possibilities;
+
+    void recurse(const NetworKit::Graph &G, NetworKit::node index);
+    std::vector<bool> get_matching_MODS(
+        const NetworKit::Graph &G, const std::set<NetworKit::node> &required);
+    NetworKit::Graph core(
+        const NetworKit::Graph &G, std::set<NetworKit::node> &free,
+        std::set<NetworKit::node> &bound, std::set<NetworKit::node> &required);
 };
 
 }  /* namespace Koala */
