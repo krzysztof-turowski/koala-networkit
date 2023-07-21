@@ -388,48 +388,10 @@ std::vector<bool> SchiermeyerDominatingSet::get_matching_MODS(
     return optional_dominating_set;
 }
 
-void compare(const NetworKit::Graph &G, std::vector<std::set<NetworKit::node>> intermediate) {
-    int edges = 0;
-    for (auto v : intermediate) {
-        edges += v.size();
-    }
-    // std::cout << "EDGES: " << G.numberOfEdges() << " " << edges << std::endl;
-    // for (int i = 0; i < intermediate.size(); i++) {
-        // std::cout << "D: " << (G.hasNode(i) ? G.degree(i) : 0) << " " << intermediate[i].size() << std::endl;
-    // }
-    // G.forEdges([](NetworKit::node u, NetworKit::node v) {
-        // std::cout << "EDGE " << u << " " << v << std::endl;
-    // });
-    // for (int i = 0; i < intermediate.size(); i++) {
-        // for (auto u : intermediate[i]) {
-        // std::cout << "EDGEX " << i << " " << u << std::endl;
-        // }
-    // }
-    assert(G.numberOfEdges() == edges / 2);
-    G.forEdges([&intermediate](NetworKit::node u, NetworKit::node v) {
-        assert(intermediate[u].contains(v));
-        assert(intermediate[v].contains(u));
-    });
-}
-
-void compare(const NetworKit::Graph &G1, const NetworKit::Graph &G2) {
-    assert(G1.numberOfEdges() == G2.numberOfEdges());
-    G1.forEdges([&G2](NetworKit::node u, NetworKit::node v) {
-        assert(G2.hasEdge(u, v));
-    });
-}
-
 NetworKit::Graph SchiermeyerDominatingSet::get_core(
-        const NetworKit::Graph &G,
-        std::set<NetworKit::node> &free,
-        std::set<NetworKit::node> &bound,
-        std::set<NetworKit::node> &required) {
+        const NetworKit::Graph &G, std::set<NetworKit::node> &free,
+        std::set<NetworKit::node> &bound, std::set<NetworKit::node> &required) {
     NetworKit::Graph G_prim(G);
-    std::vector<std::set<NetworKit::node>> intermediate(G.numberOfNodes());
-    G.forEdges([&intermediate](NetworKit::node u, NetworKit::node v) {
-        intermediate[u].insert(v);
-        intermediate[v].insert(u);
-    });
     bool process = true;
     while (process) {
         process = false;
@@ -452,19 +414,15 @@ NetworKit::Graph SchiermeyerDominatingSet::get_core(
         }
         free.insert(rule2change.begin(), rule2change.end());
         std::erase_if(bound, [&rule2change](auto u) { return rule2change.contains(u); });
-        compare(G_prim, intermediate);
         // Rule 3
         std::vector<NetworKit::Edge> edges(G_prim.edgeRange().begin(), G_prim.edgeRange().end());
         for (const auto &[u, v] : edges) {
             if (required.contains(u) || required.contains(v)) {
                 G_prim.removeEdge(u, v), process = true;
-                intermediate.at(u).erase(v), intermediate.at(v).erase(u);
             } else if (free.contains(u) && free.contains(v)) {
                 G_prim.removeEdge(u, v), process = true;
-                intermediate.at(u).erase(v), intermediate.at(v).erase(u);
             }
         }
-        compare(G_prim, intermediate);
         // Rule 4
         std::set<NetworKit::node> rule4change;
         for (const auto &u : free) {
@@ -480,15 +438,10 @@ NetworKit::Graph SchiermeyerDominatingSet::get_core(
                 rule4change.insert(u);
             }
         }
-        for (auto e : rule4change) {
-            for (auto nei : intermediate[e]) {
-                intermediate[nei].erase(e);
-            }
-            intermediate[e].clear();
-            G_prim.removeAdjacentEdges(e, [](auto) { return true; }), process = true;
+        for (const auto &u : rule4change) {
+            G_prim.removeNode(u), G_prim.restoreNode(u), process = true;
         }
         std::erase_if(free, [&rule4change](auto u) { return rule4change.contains(u); });
-        compare(G_prim, intermediate);
         // Rule 5
         for (const auto &u : bound) {
             if (G_prim.degree(u) == 1 && !required.contains(u)) {
@@ -497,20 +450,8 @@ NetworKit::Graph SchiermeyerDominatingSet::get_core(
             }
         }
         std::erase_if(bound, [&required](auto u) { return required.contains(u); });
-        compare(G_prim, intermediate);
     }
-
-    NetworKit::Graph graph(intermediate.size());
-    for (NetworKit::node i = 0; i < intermediate.size(); i++) {
-        for (auto e : intermediate.at(i)) {
-            assert(intermediate.at(e).contains(i));
-            if (i < e) {
-                graph.addEdge(i, e);
-            }
-        }
-    }
-    compare(G_prim, graph);
-    return graph;
+    return G_prim;
 }
 
 }  /* namespace Koala */
