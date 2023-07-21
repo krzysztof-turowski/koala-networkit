@@ -102,21 +102,26 @@ class SchiermeyerDominatingSet : public ExactDominatingSet {
     void run();
 
  private:
-    bool find_small_MODS(const NetworKit::Graph &G);
-    void find_big_MODS(const NetworKit::Graph &G);
+    bool find_small_MODS(
+        const NetworKit::Graph &G, const std::vector<NetworKit::node> &possibilities);
+    void find_big_MODS(
+        const NetworKit::Graph &G, const std::vector<NetworKit::node> &possibilities);
 
-    std::set<NetworKit::node> choices, neighborhood;
-    std::vector<NetworKit::node> possibilities;
-
-    void find_big_MODS_recursive(const NetworKit::Graph &G, NetworKit::count index);
-    std::set<NetworKit::node> get_new_neighborhood(
-        const NetworKit::Graph &G, NetworKit::node vertex);
-
-    std::vector<bool> get_matching_MODS(
-        const NetworKit::Graph &G, const std::set<NetworKit::node> &required);
-    NetworKit::Graph get_core(
+    static NetworKit::Graph get_core(
         const NetworKit::Graph &G, std::set<NetworKit::node> &free,
         std::set<NetworKit::node> &bound, std::set<NetworKit::node> &required);
+
+    void find_big_MODS_recursive(
+        const NetworKit::Graph &G, const std::vector<NetworKit::node> &vertices,
+        NetworKit::count index, std::set<NetworKit::node> &choices,
+        std::set<NetworKit::node> &neighborhood, std::vector<bool> &solution);
+    static std::set<NetworKit::node> get_new_neighborhood(
+        const NetworKit::Graph &G, NetworKit::node vertex,
+        const std::set<NetworKit::node> &neighborhood);
+
+    static std::vector<bool> get_matching_MODS(
+        const NetworKit::Graph &G, std::set<NetworKit::node> free,
+        std::set<NetworKit::node> bound, std::set<NetworKit::node> required);
 };
 
 }  /* namespace Koala */
