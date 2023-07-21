@@ -106,14 +106,4 @@ class SchiermeyerDominatingSet : public ExactDominatingSet {
     std::vector<bool> get_matching_MODS(const std::set<NetworKit::node> &S);
 };
 
-///////////
-
-class ExhaustiveDominatingSet : public DominatingSet {
- public:
-    using DominatingSet::DominatingSet;
-    void run();
- private:
-    std::vector<bool> recursiveDominatingSubset(std::vector<bool> &superset, int depth);
-};
-
 }  /* namespace Koala */
