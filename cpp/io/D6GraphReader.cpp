@@ -27,7 +27,7 @@ NetworKit::Graph D6GraphReader::readline(const std::string &line) {
     ++it;
 
     const char LOW = 0x3f, HIGH = 0x7e, MASK = 0x20;
-    const int SHORT_N = 1, MEDIUM_N = 2, LONG_N = 6, LENGTH = 6;
+    const int SHORT_N = 1, MEDIUM_N = 3, LONG_N = 6, LENGTH = 6;
     NetworKit::count nodes_length = SHORT_N;
     if (*it >= HIGH) {
         nodes_length = MEDIUM_N, ++it;
