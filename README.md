@@ -71,7 +71,7 @@ At the most basic level, they presented generic versions of the algorithms, but 
 </p>
 
 <p align="justify">
-Moreover, they set up an online graph editor <a href="http://web.archive.org/web/20200721190618/http://koala.os.niwa.gda.pl/zgred">Zgred</a>, written in JavaScript. It allows to create, edit and visualize graphs. Furthermore, it is capable of running several algorithms from the library.
+Moreover, they set up an online graph editor <a href="https://stos.eti.pg.gda.pl/~kmocet/zgred/1.1.22/zgred.html">Zgred</a>, written in JavaScript. It allows to create, edit and visualize graphs. Furthermore, it is capable of running several algorithms from the library.
 </p>
 
 ### <a name="algorithms"></a>List of algorithms
