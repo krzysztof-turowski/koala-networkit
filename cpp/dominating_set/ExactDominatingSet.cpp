@@ -63,11 +63,11 @@ void FominKratschWoegingerDominatingSet::run() {
             degree[1].insert(u);
         }
     });
-    NetworKit::Graph G_prim(graph->numberOfNodes(), false, true);
+    NetworKit::Graph G_directed(graph->numberOfNodes(), false, true);
     for (const auto &[u, v] : graph->edgeRange()) {
-        G_prim.addEdge(u, v), G_prim.addEdge(v, u);
+        G_directed.addEdge(u, v), G_directed.addEdge(v, u);
     }
-    dominating_set = find_big_MODS_recursive(G_prim);
+    dominating_set = find_big_MODS_recursive(G_directed);
 }
 
 std::set<NetworKit::node> FominKratschWoegingerDominatingSet::find_big_MODS_recursive(
@@ -92,7 +92,6 @@ std::set<NetworKit::node> FominKratschWoegingerDominatingSet::find_big_MODS_recu
         NetworKit::node v = *degree[1].begin();
         NetworKit::node u1 = G.getIthNeighbor(v, 0), u2 = G.getIthNeighbor(v, 1);
         bool is_free_v, is_free_u1, is_free_u2;
-
         // Branch 1
         is_free_v = forget_vertex(G, v, false);
         auto moved_1 = move_to_solution(G, u1);
@@ -101,7 +100,6 @@ std::set<NetworKit::node> FominKratschWoegingerDominatingSet::find_big_MODS_recu
         required.erase(u1), retrieve_vertex(G, u1, is_free_u1, true);
         remove_from_solution(u1, moved_1);
         retrieve_vertex(G, v, is_free_v, false);
-
         // Branch 2
         is_free_u1 = forget_vertex(G, u1, false), is_free_u2 = forget_vertex(G, u2, false);
         auto moved_2 = move_to_solution(G, v);
@@ -113,7 +111,6 @@ std::set<NetworKit::node> FominKratschWoegingerDominatingSet::find_big_MODS_recu
         if (other_solution.size() < solution.size()) {
             solution.swap(other_solution);
         }
-
         // Branch 3
         is_free_v = forget_vertex(G, v, false);
         if (is_free_v) {
@@ -242,6 +239,7 @@ void SchiermeyerDominatingSet::run() {
     NetworKit::Graph core_graph = get_core_graph(*graph, free, bound, required);
     if (bound.empty()) {
         dominating_set.insert(required.begin(), required.end());
+        return;
     }
     auto possibilities = merge(free, bound);
     if (find_small_MODS(core_graph, possibilities)) {
@@ -329,53 +327,51 @@ bool SchiermeyerDominatingSet::find_small_MODS(
 
 void SchiermeyerDominatingSet::find_big_MODS(
         const NetworKit::Graph &G, const std::vector<NetworKit::node> &V) {
-    std::set<NetworKit::node> S, NS;
-    auto solution = find_big_MODS_recursive(G, V, 0, S, NS);
+    auto solution = find_big_MODS_recursive(G, V, 0);
     dominating_set.insert(solution.begin(), solution.end());
     dominating_set.insert(required.begin(), required.end());
 }
 
 std::vector<NetworKit::node> SchiermeyerDominatingSet::find_big_MODS_recursive(
-        const NetworKit::Graph &G, const std::vector<NetworKit::node> &V, NetworKit::index index,
-        std::set<NetworKit::node> &S, std::set<NetworKit::node> &NS) {
+        const NetworKit::Graph &G, const std::vector<NetworKit::node> &V, NetworKit::index index) {
     if (index == V.size()) {
-        if (NS.size() < 3 * S.size() || NS.size() >= 3 * (S.size() + 1)) {
+        if (neighborhood.size() < 3 * S.size() || neighborhood.size() >= 3 * (S.size() + 1)) {
             return V;
         }
         for (const auto &u : V) {
             if (S.contains(u)) {
                 continue;
             }
-            if (NS.size() + get_new_neighborhood(G, u, NS).size() >= 3 * (S.size() + 1)) {
+            if (neighborhood.size() + get_new_neighborhood(G, u).size() >= 3 * (S.size() + 1)) {
                 return V;
             }
         }
         return get_matching_MODS(G, free, bound, S);
     }
-    auto solution = find_big_MODS_recursive(G, V, index + 1, S, NS);
+    auto solution = find_big_MODS_recursive(G, V, index + 1);
     if (V.size() < 3 * (S.size() + 1)) {
         return solution;
     }
     NetworKit::node next = V.at(index);
-    auto added = get_new_neighborhood(G, next, NS);
-    S.insert(next), NS.insert(added.begin(), added.end());
-    auto other_solution = find_big_MODS_recursive(G, V, index + 1, S, NS);
+    auto added = get_new_neighborhood(G, next);
+    S.insert(next), neighborhood.insert(added.begin(), added.end());
+    auto other_solution = find_big_MODS_recursive(G, V, index + 1);
     S.erase(next);
     for (auto u : added) {
-        NS.erase(u);
+        neighborhood.erase(u);
     }
     return solution.size() < other_solution.size() ? solution : other_solution;
 }
 
 std::vector<NetworKit::node> SchiermeyerDominatingSet::get_new_neighborhood(
-        const NetworKit::Graph &G, NetworKit::node vertex, const std::set<NetworKit::node> &NS) {
+        const NetworKit::Graph &G, NetworKit::node vertex) {
     std::vector<NetworKit::node> out;
-    if (!NS.contains(vertex)) {
+    if (!neighborhood.contains(vertex)) {
         out.push_back(vertex);
     }
     std::copy_if(
         G.neighborRange(vertex).begin(), G.neighborRange(vertex).end(), std::back_inserter(out),
-        [&NS](auto v){ return !NS.contains(v); });
+        [this](auto v){ return !neighborhood.contains(v); });
     return out;
 }
 

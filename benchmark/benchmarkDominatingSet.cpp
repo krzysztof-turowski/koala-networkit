@@ -7,7 +7,7 @@
 #include <set_cover/BranchAndReduceSetCover.hpp>
 
 template <typename T>
-int run_algorithm(NetworKit::Graph &G) {
+int run_algorithm(NetworKit::Graph &G, bool print = false) {
     auto algorithm = T(G);
     algorithm.run();
     auto &dominating_set = algorithm.getDominatingSet();
@@ -15,6 +15,10 @@ int run_algorithm(NetworKit::Graph &G) {
     algorithm.check();
     return dominating_set.size();
 }
+
+std::map<std::string, int> ALGORITHM = {
+  { "all", 0 }, { "FKW", 1 }, { "Schiermeyer", 2 }, { "Grandoni", 3 }, { "FGK", 4 }, { "Rooij", 5 }
+};
 
 int main(int argc, char **argv) {
     if (argc != 2) {
@@ -28,41 +32,38 @@ int main(int argc, char **argv) {
             break;
         }
         NetworKit::Graph G = Koala::G6GraphReader().readline(line);
-        std::cout << line << " " << G.numberOfEdges() << " ";
-
         std::set<int> D;
-        switch (std::stoi(argv[1])) {
+        switch (ALGORITHM[std::string(argv[1])]) {
         case 0:
+            std::cout << line << " ";
             D.insert(run_algorithm<Koala::FominKratschWoegingerDominatingSet>(G));
             D.insert(run_algorithm<Koala::SchiermeyerDominatingSet>(G));
             D.insert(run_algorithm<
-                Koala::BranchAndReduceDominatingSet<Koala::RooijBodlaenderSetCover>>(G));
+                Koala::BranchAndReduceDominatingSet<Koala::GrandoniSetCover>>(G));
             D.insert(run_algorithm<
                 Koala::BranchAndReduceDominatingSet<Koala::FominGrandoniKratschSetCover>>(G));
             D.insert(run_algorithm<
-                Koala::BranchAndReduceDominatingSet<Koala::GrandoniSetCover>>(G));
+                Koala::BranchAndReduceDominatingSet<Koala::RooijBodlaenderSetCover>>(G));
+            assert(D.size() == 1);
             break;
         case 1:
-            D.insert(run_algorithm<Koala::FominKratschWoegingerDominatingSet>(G));
+            run_algorithm<Koala::FominKratschWoegingerDominatingSet>(G);
             break;
         case 2:
-            D.insert(run_algorithm<Koala::SchiermeyerDominatingSet>(G));
+            run_algorithm<Koala::SchiermeyerDominatingSet>(G);
             break;
         case 3:
-            D.insert(run_algorithm<
-                Koala::BranchAndReduceDominatingSet<Koala::RooijBodlaenderSetCover>>(G));
+            run_algorithm<Koala::BranchAndReduceDominatingSet<Koala::GrandoniSetCover>>(G);
             break;
         case 4:
-            D.insert(run_algorithm<
-                Koala::BranchAndReduceDominatingSet<Koala::FominGrandoniKratschSetCover>>(G));
+            run_algorithm<
+                Koala::BranchAndReduceDominatingSet<Koala::FominGrandoniKratschSetCover>>(G);
             break;
         case 5:
-            D.insert(run_algorithm<
-                Koala::BranchAndReduceDominatingSet<Koala::GrandoniSetCover>>(G));
+            run_algorithm<Koala::BranchAndReduceDominatingSet<Koala::RooijBodlaenderSetCover>>(G);
             break;
         }
         std::cout << std::endl;
-        assert(D.size() == 1);
     }
     return 0;
 }

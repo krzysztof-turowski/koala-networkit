@@ -105,6 +105,8 @@ class SchiermeyerDominatingSet : public ExactDominatingSet {
     void run();
 
  private:
+    std::set<NetworKit::node> S, neighborhood;
+
     static NetworKit::Graph get_core_graph(
         const NetworKit::Graph &G, std::set<NetworKit::node> &free,
         std::set<NetworKit::node> &bound, std::set<NetworKit::node> &required);
@@ -113,10 +115,9 @@ class SchiermeyerDominatingSet : public ExactDominatingSet {
     void find_big_MODS(
         const NetworKit::Graph &G, const std::vector<NetworKit::node> &V);
     std::vector<NetworKit::node> find_big_MODS_recursive(
-        const NetworKit::Graph &G, const std::vector<NetworKit::node> &V,
-        NetworKit::index index, std::set<NetworKit::node> &S, std::set<NetworKit::node> &NS);
-    static std::vector<NetworKit::node> get_new_neighborhood(
-        const NetworKit::Graph &G, NetworKit::node vertex, const std::set<NetworKit::node> &NS);
+        const NetworKit::Graph &G, const std::vector<NetworKit::node> &V, NetworKit::index index);
+    std::vector<NetworKit::node> get_new_neighborhood(
+        const NetworKit::Graph &G, NetworKit::node vertex);
     static std::vector<NetworKit::node> get_matching_MODS(
         const NetworKit::Graph &G, std::set<NetworKit::node> free,
         std::set<NetworKit::node> bound, std::set<NetworKit::node> required);
