@@ -10,10 +10,10 @@ template <typename T>
 int run_algorithm(NetworKit::Graph &G) {
     auto algorithm = T(G);
     algorithm.run();
-    algorithm.check();
     auto &dominating_set = algorithm.getDominatingSet();
     int size = std::count(dominating_set.begin(), dominating_set.end(), true);
     std::cout << size << " " << std::flush;
+    algorithm.check();
     return size;
 }
 
@@ -62,9 +62,8 @@ int main(int argc, char **argv) {
                 Koala::BranchAndReduceDominatingSet<Koala::GrandoniSetCover>>(G));
             break;
         }
-        assert(D.size() == 1);
-
         std::cout << std::endl;
+        assert(D.size() == 1);
     }
     return 0;
 }

@@ -29,14 +29,12 @@ class BranchAndReduceDominatingSet : public DominatingSet {
     void run() {
         hasRun = true;
         std::vector<std::set<NetworKit::node>> family;
-        graph->forNodes([&family, this](auto u) {
-            std::set<NetworKit::node> neighborhood;
+        for (const auto &u : graph->nodeRange()) {
+            std::set<NetworKit::node> neighborhood(
+                graph->neighborRange(u).begin(), graph->neighborRange(u).end());
             neighborhood.insert(u);
-            graph->forNeighborsOf(u, [&neighborhood](NetworKit::node v) {
-                neighborhood.insert(v);
-            });
             family.emplace_back(neighborhood);
-        });
+        }
         std::vector<std::set<NetworKit::index>> occurences(family);
         auto set_cover_algorithm = SetCoverAlgorithm(family, occurences);
         set_cover_algorithm.run();
@@ -55,6 +53,10 @@ class ExactDominatingSet : public DominatingSet {
 
  protected:
     std::set<NetworKit::node> free, bound, required;
+
+    bool find_small_MODS_recursive(
+        const NetworKit::Graph &G, const std::vector<NetworKit::node> &V,
+        NetworKit::index index, NetworKit::count size, std::set<NetworKit::node> &S);
 };
 
 /**
@@ -73,18 +75,14 @@ class FominKratschWoegingerDominatingSet : public ExactDominatingSet {
 
  protected:
     std::set<NetworKit::node> degree_one, degree_two;
-    std::vector<std::set<NetworKit::node>> neighborhood;
-    std::vector<NetworKit::node> possibilities;
 
-    std::vector<bool> find_big_MODS_recursive();
-    std::vector<bool> find_MODS_for_minimum_degree_3();
-    std::tuple<std::vector<NetworKit::node>, bool> add_to_solution(NetworKit::node vertex);
-    void remove_from_solution(
-        NetworKit::node vertex, std::vector<NetworKit::node> &moved, bool is_free);
-    bool forget_vertex(NetworKit::node vertex);
-    void retrieve_vertex(NetworKit::node vertex, bool is_free);
-    void on_degree_decrement(NetworKit::node vertex);
-    void on_degree_increment(NetworKit::node vertex);
+    std::set<NetworKit::node> find_big_MODS_recursive(NetworKit::Graph &G);
+    std::set<NetworKit::node> find_MODS_for_minimum_degree_3(NetworKit::Graph &G);
+    std::vector<NetworKit::node> move_to_solution(NetworKit::Graph &G, NetworKit::node vertex);
+    void remove_from_solution(NetworKit::node vertex, const std::vector<NetworKit::node> &moved);
+    bool forget_vertex(NetworKit::Graph &G, NetworKit::node vertex, bool is_required);
+    void retrieve_vertex(
+        NetworKit::Graph &G, NetworKit::node vertex, bool is_free, bool is_required);
 };
 
 /**
@@ -102,24 +100,19 @@ class SchiermeyerDominatingSet : public ExactDominatingSet {
     void run();
 
  private:
-    bool find_small_MODS(
-        const NetworKit::Graph &G, const std::vector<NetworKit::node> &possibilities);
-    void find_big_MODS(
-        const NetworKit::Graph &G, const std::vector<NetworKit::node> &possibilities);
-
-    static NetworKit::Graph get_core(
+    static NetworKit::Graph get_core_graph(
         const NetworKit::Graph &G, std::set<NetworKit::node> &free,
         std::set<NetworKit::node> &bound, std::set<NetworKit::node> &required);
-
-    void find_big_MODS_recursive(
-        const NetworKit::Graph &G, const std::vector<NetworKit::node> &vertices,
-        NetworKit::count index, std::set<NetworKit::node> &choices,
-        std::set<NetworKit::node> &neighborhood, std::vector<bool> &solution);
-    static std::set<NetworKit::node> get_new_neighborhood(
-        const NetworKit::Graph &G, NetworKit::node vertex,
-        const std::set<NetworKit::node> &neighborhood);
-
-    static std::vector<bool> get_matching_MODS(
+    bool find_small_MODS(
+        const NetworKit::Graph &G, const std::vector<NetworKit::node> &V);
+    void find_big_MODS(
+        const NetworKit::Graph &G, const std::vector<NetworKit::node> &V);
+    std::vector<NetworKit::node> find_big_MODS_recursive(
+        const NetworKit::Graph &G, const std::vector<NetworKit::node> &V,
+        NetworKit::index index, std::set<NetworKit::node> &S, std::set<NetworKit::node> &NS);
+    static std::vector<NetworKit::node> get_new_neighborhood(
+        const NetworKit::Graph &G, NetworKit::node vertex, const std::set<NetworKit::node> &NS);
+    static std::vector<NetworKit::node> get_matching_MODS(
         const NetworKit::Graph &G, std::set<NetworKit::node> free,
         std::set<NetworKit::node> bound, std::set<NetworKit::node> required);
 };
