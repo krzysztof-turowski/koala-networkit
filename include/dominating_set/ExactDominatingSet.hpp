@@ -38,7 +38,12 @@ class BranchAndReduceDominatingSet : public DominatingSet {
         std::vector<std::set<NetworKit::index>> occurences(family);
         auto set_cover_algorithm = SetCoverAlgorithm(family, occurences);
         set_cover_algorithm.run();
-        set_cover_algorithm.getSetCover().swap(dominating_set);
+        auto set_cover = set_cover_algorithm.getSetCover();
+        for (int i = 0; i < set_cover.size(); i++) {
+            if (set_cover[i]) {
+                dominating_set.insert(i);
+            }
+        }
     }
 };
 
@@ -74,7 +79,7 @@ class FominKratschWoegingerDominatingSet : public ExactDominatingSet {
     void run();
 
  protected:
-    std::set<NetworKit::node> degree_one, degree_two;
+    std::set<NetworKit::node> degree[2];
 
     std::set<NetworKit::node> find_big_MODS_recursive(NetworKit::Graph &G);
     std::set<NetworKit::node> find_MODS_for_minimum_degree_3(NetworKit::Graph &G);

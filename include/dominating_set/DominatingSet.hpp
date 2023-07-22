@@ -8,6 +8,7 @@
 #pragma once
 
 #include <optional>
+#include <set>
 
 #include <networkit/base/Algorithm.hpp>
 #include <networkit/graph/Graph.hpp>
@@ -31,9 +32,9 @@ class DominatingSet : public NetworKit::Algorithm {
     /**
      * Return the dominating set found by the algorithm.
      *
-     * @return a vector indicating vertices in the dominating set.
+     * @return a set with vertices in the dominating set.
      */
-    const std::vector<bool>& getDominatingSet() const;
+    const std::set<NetworKit::node>& getDominatingSet() const;
 
     /**
      * Verify the result found by the algorithm.
@@ -42,7 +43,7 @@ class DominatingSet : public NetworKit::Algorithm {
 
  protected:
     std::optional<NetworKit::Graph> graph;
-    std::vector<bool> dominating_set;
+    std::set<NetworKit::node> dominating_set;
 };
 
 }  /* namespace Koala */

@@ -11,10 +11,9 @@ int run_algorithm(NetworKit::Graph &G) {
     auto algorithm = T(G);
     algorithm.run();
     auto &dominating_set = algorithm.getDominatingSet();
-    int size = std::count(dominating_set.begin(), dominating_set.end(), true);
-    std::cout << size << " " << std::flush;
+    std::cout << dominating_set.size() << " " << std::flush;
     algorithm.check();
-    return size;
+    return dominating_set.size();
 }
 
 int main(int argc, char **argv) {

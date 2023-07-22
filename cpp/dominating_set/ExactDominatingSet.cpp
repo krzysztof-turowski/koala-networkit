@@ -58,44 +58,23 @@ void FominKratschWoegingerDominatingSet::run() {
     graph->forNodes([this](NetworKit::node u) {
         bound.insert(u);
         if (graph->degree(u) == 1) {
-            degree_one.insert(u);
+            degree[0].insert(u);
         } else if (graph->degree(u) == 2) {
-            degree_two.insert(u);
+            degree[1].insert(u);
         }
     });
     NetworKit::Graph G_prim(graph->numberOfNodes(), false, true);
     for (const auto &[u, v] : graph->edgeRange()) {
         G_prim.addEdge(u, v), G_prim.addEdge(v, u);
     }
-    dominating_set.resize(graph->numberOfNodes());
-    for (auto u : find_big_MODS_recursive(G_prim)) {
-        dominating_set.at(u) = true;
-    }
-}
-
-std::set<NetworKit::node> FominKratschWoegingerDominatingSet::find_MODS_for_minimum_degree_3(
-        NetworKit::Graph &G) {
-    NetworKit::Graph G_prim(G.numberOfNodes());
-    for (const auto &[u, v] : G.edgeRange()) {
-        if (!required.contains(u) && !required.contains(v) && !G_prim.hasEdge(u, v)) {
-            G_prim.addEdge(u, v);
-        }
-    }
-    auto possibilities = merge(free, bound);
-    for (NetworKit::count i = 1; 8 * i <= 3 * possibilities.size(); i++) {
-        std::set<NetworKit::node> solution;
-        if (find_small_MODS_recursive(G_prim, possibilities, 0, i, solution)) {
-            return solution;
-        }
-    }
-    throw std::invalid_argument("find_MODS_for_minimum_degree_3 arguments are corrupted");
+    dominating_set = find_big_MODS_recursive(G_prim);
 }
 
 std::set<NetworKit::node> FominKratschWoegingerDominatingSet::find_big_MODS_recursive(
         NetworKit::Graph &G) {
     std::set<NetworKit::node> solution;
-    if (!degree_one.empty()) {
-        NetworKit::node u = *degree_one.begin(), unique = G.getIthNeighbor(u, 0);
+    if (!degree[0].empty()) {
+        NetworKit::node u = *degree[0].begin(), unique = G.getIthNeighbor(u, 0);
         bool is_free = forget_vertex(G, u, false);
         if (is_free) {
             solution = find_big_MODS_recursive(G);
@@ -109,8 +88,8 @@ std::set<NetworKit::node> FominKratschWoegingerDominatingSet::find_big_MODS_recu
         retrieve_vertex(G, u, is_free, false);
         return solution;
     }
-    if (!degree_two.empty()) {
-        NetworKit::node v = *degree_two.begin();
+    if (!degree[1].empty()) {
+        NetworKit::node v = *degree[1].begin();
         NetworKit::node u1 = G.getIthNeighbor(v, 0), u2 = G.getIthNeighbor(v, 1);
         bool is_free_v, is_free_u1, is_free_u2;
 
@@ -164,6 +143,24 @@ std::set<NetworKit::node> FominKratschWoegingerDominatingSet::find_big_MODS_recu
     return solution;
 }
 
+std::set<NetworKit::node> FominKratschWoegingerDominatingSet::find_MODS_for_minimum_degree_3(
+        NetworKit::Graph &G) {
+    NetworKit::Graph G_prim(G.numberOfNodes());
+    for (const auto &[u, v] : G.edgeRange()) {
+        if (!required.contains(u) && !required.contains(v) && !G_prim.hasEdge(u, v)) {
+            G_prim.addEdge(u, v);
+        }
+    }
+    auto possibilities = merge(free, bound);
+    for (NetworKit::count i = 1; 8 * i <= 3 * possibilities.size(); i++) {
+        std::set<NetworKit::node> solution;
+        if (find_small_MODS_recursive(G_prim, possibilities, 0, i, solution)) {
+            return solution;
+        }
+    }
+    throw std::invalid_argument("find_MODS_for_minimum_degree_3 arguments are corrupted");
+}
+
 std::vector<NetworKit::node> FominKratschWoegingerDominatingSet::move_to_solution(
         NetworKit::Graph &G, NetworKit::node vertex) {
     std::vector<NetworKit::node> moved_vertices;
@@ -192,18 +189,18 @@ bool FominKratschWoegingerDominatingSet::forget_vertex(
         bound.erase(vertex);
     }
     if (G.degree(vertex) == 1) {
-        degree_one.erase(vertex);
+        degree[0].erase(vertex);
     } else if (G.degree(vertex) == 2) {
-        degree_two.erase(vertex);
+        degree[1].erase(vertex);
     }
     for (auto u : G.neighborRange(vertex)) {
         G.removeEdge(u, vertex);
         if (G.degree(u) == 0) {
-            degree_one.erase(u);
+            degree[0].erase(u);
         } else if (G.degree(u) == 1) {
-            degree_one.insert(u), degree_two.erase(u);
+            degree[0].insert(u), degree[1].erase(u);
         } else if (G.degree(u) == 2) {
-            degree_two.insert(u);
+            degree[1].insert(u);
         }
     }
     if (is_required) {
@@ -217,17 +214,17 @@ void FominKratschWoegingerDominatingSet::retrieve_vertex(
     for (auto u : G.neighborRange(vertex)) {
         G.addEdge(u, vertex);
         if (G.degree(u) == 1) {
-            degree_one.insert(u);
+            degree[0].insert(u);
         } else if (G.degree(u) == 2) {
-            degree_one.erase(u), degree_two.insert(u);
+            degree[0].erase(u), degree[1].insert(u);
         } else if (G.degree(u) == 3) {
-            degree_two.erase(u);
+            degree[1].erase(u);
         }
     }
     if (G.degree(vertex) == 1) {
-        degree_one.insert(vertex);
+        degree[0].insert(vertex);
     } else if (G.degree(vertex) == 2) {
-        degree_two.insert(vertex);
+        degree[1].insert(vertex);
     }
     if (is_required) {
         required.erase(vertex);
@@ -241,13 +238,10 @@ void FominKratschWoegingerDominatingSet::retrieve_vertex(
 
 void SchiermeyerDominatingSet::run() {
     hasRun = true;
-    dominating_set.resize(graph->numberOfNodes());
     bound.insert(graph->nodeRange().begin(), graph->nodeRange().end());
     NetworKit::Graph core_graph = get_core_graph(*graph, free, bound, required);
     if (bound.empty()) {
-        for (auto u : required) {
-            dominating_set.at(u) = true;
-        }
+        dominating_set.insert(required.begin(), required.end());
     }
     auto possibilities = merge(free, bound);
     if (find_small_MODS(core_graph, possibilities)) {
@@ -325,12 +319,8 @@ NetworKit::Graph SchiermeyerDominatingSet::get_core_graph(
 bool SchiermeyerDominatingSet::find_small_MODS(
         const NetworKit::Graph &G, const std::vector<NetworKit::node> &V) {
     for (NetworKit::count i = 1; 3 * i <= V.size(); i++) {
-        std::set<NetworKit::node> solution;
-        if (find_small_MODS_recursive(G, V, 0, i, solution)) {
-            solution.insert(required.begin(), required.end());
-            for (auto u : solution) {
-                dominating_set.at(u) = true;
-            }
+        if (find_small_MODS_recursive(G, V, 0, i, dominating_set)) {
+            dominating_set.insert(required.begin(), required.end());
             return true;
         }
     }
@@ -341,10 +331,8 @@ void SchiermeyerDominatingSet::find_big_MODS(
         const NetworKit::Graph &G, const std::vector<NetworKit::node> &V) {
     std::set<NetworKit::node> S, NS;
     auto solution = find_big_MODS_recursive(G, V, 0, S, NS);
-    std::copy(required.begin(), required.end(), std::back_inserter(solution));
-    for (auto u : solution) {
-        dominating_set.at(u) = true;
-    }
+    dominating_set.insert(solution.begin(), solution.end());
+    dominating_set.insert(required.begin(), required.end());
 }
 
 std::vector<NetworKit::node> SchiermeyerDominatingSet::find_big_MODS_recursive(
