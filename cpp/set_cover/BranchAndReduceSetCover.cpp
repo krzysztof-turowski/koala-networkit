@@ -73,7 +73,7 @@ std::vector<bool> BranchAndReduceSetCover::getSetCover() const {
 
 void BranchAndReduceSetCover::check() const {
     assureFinished();
-    // TODO
+    // TODO(kturowski): implement checks
 }
 
 void BranchAndReduceSetCover::run() {

@@ -59,6 +59,7 @@ class ExactDominatingSet : public DominatingSet {
  protected:
     std::set<NetworKit::node> free, bound, required;
 
+    // TODO(kturowski): return solution or empty set
     bool find_small_MODS_recursive(
         const NetworKit::Graph &G, const std::vector<NetworKit::node> &V,
         NetworKit::index index, NetworKit::count size, std::set<NetworKit::node> &S);
@@ -105,7 +106,7 @@ class SchiermeyerDominatingSet : public ExactDominatingSet {
     void run();
 
  private:
-    std::set<NetworKit::node> S, neighborhood;
+    std::set<NetworKit::node> neighborhood;
 
     static NetworKit::Graph get_core_graph(
         const NetworKit::Graph &G, std::set<NetworKit::node> &free,
