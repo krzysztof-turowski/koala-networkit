@@ -1,0 +1,1 @@
+echo "benchmarkFibonacciHeap.sh $@"

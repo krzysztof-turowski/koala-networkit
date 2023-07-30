@@ -3,4 +3,5 @@ koala_add_module(matching
     EdmondsMaximumMatching.cpp
     GabowMaximumMatching.cpp
     MicaliGabowMaximumMatching.cpp
+    MicaliVaziraniMatching.cpp
 )

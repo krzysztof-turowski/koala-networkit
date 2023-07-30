@@ -3,6 +3,7 @@
 #include <map>
 #include <set>
 #include <list>
+#include <deque>
 #include <optional>
 #include <functional>
 
@@ -11,7 +12,7 @@
 
 #include <matching/PriorityQueues.hpp>
 
-#define DEBUG_LOGGING 0
+#define DEBUG_LOGGING 1
 
 namespace Koala {
 
@@ -368,6 +369,125 @@ private:
     Blossom* get_blossom(NetworKit::node vertex) override;
 
     void check_consistency() override;
+};
+
+
+/**
+ * @ingroup matching
+ * The base class for the maximum cardinality matching algorithms.
+ *
+ */
+class MaximumCardinalityMatching : public NetworKit::Algorithm {
+
+public:
+    /**
+     * Given an input graph, set up the maximum matching algorithm.
+     *
+     * @param graph The input graph.
+     */
+    MaximumCardinalityMatching(NetworKit::Graph &graph);
+
+    /**
+     * Return the matching found by the algorithm.
+     *
+     * @return a matching between nodes.
+     */
+    const std::map<NetworKit::node, NetworKit::node>& getMatching() const;
+
+protected:
+    NetworKit::Graph graph;
+    std::map<NetworKit::node, NetworKit::node> matching;
+};
+
+/**
+ * @ingroup matching
+ * The class for the Edmonds maximum matching algorithm.
+ */
+class MicaliVaziraniMatching final : public MaximumCardinalityMatching {
+
+public:
+    MicaliVaziraniMatching(NetworKit::Graph &graph);
+
+    /**
+     * Execute the Micali Vazirani maximum cardinality matching algorithm.
+     */
+    void run();
+
+private:
+    struct Bloom {
+        NetworKit::node base;
+        NetworKit::node left_peak;
+        NetworKit::node right_peak;
+        NetworKit::edgeid peak_edge;
+        int id;
+    };
+
+    struct VertexData {
+        enum Mark { left, right, unmarked };
+        NetworKit::node match;
+        NetworKit::edgeid match_edge;
+        NetworKit::node parent;
+        NetworKit::edgeid parent_edge;
+        int even_level;
+        int odd_level;
+        Bloom* bloom;
+        std::vector<std::pair<NetworKit::node, NetworKit::edgeid>> predecessors;
+        std::vector<NetworKit::node> successors;
+        std::vector<std::pair<NetworKit::node, NetworKit::edgeid>> anomalies;
+        int count;
+        Mark mark;
+        bool erased;
+        bool visited;
+    };
+
+    struct EdgeData {
+        NetworKit::node u, v;
+        bool matched;
+        bool used;
+        bool visited;
+    };
+
+    std::vector<VertexData> V;
+    std::vector<EdgeData> E;
+    std::vector<std::vector<NetworKit::node>> candidates;
+    std::vector<std::vector<NetworKit::edgeid>> bridges;
+
+    bool augmentation_happened;
+    bool bloom_found;
+    int iter;
+
+    std::vector<Bloom*> current_blooms;
+    UnionFind<NetworKit::node> bloom_bases;
+    std::vector<NetworKit::node> bloom_nodes;
+
+    void search();
+
+    void bloss_aug(NetworKit::node s, NetworKit::node t, NetworKit::edgeid id);
+    void left_dfs(
+        NetworKit::node s, NetworKit::node& v_L, NetworKit::node& v_R, 
+        NetworKit::node& dcv, NetworKit::node& barrier);
+    void right_dfs(
+        NetworKit::node& v_L, NetworKit::node& v_R, 
+        NetworKit::node& dcv, NetworKit::node& barrier);
+    
+    void erase(std::vector<NetworKit::node>& Y);
+    
+    std::pair<std::list<NetworKit::node>, std::list<NetworKit::edgeid>> 
+    find_path(NetworKit::node high, NetworKit::node low, Bloom* B);
+
+    std::pair<std::list<NetworKit::node>, std::list<NetworKit::edgeid>>  
+    open(NetworKit::node x);
+    
+    NetworKit::node base_star(Bloom* bloom);
+
+    bool exposed(NetworKit::node vertex);
+    int level(NetworKit::node vertex);
+    bool outer(NetworKit::node vertex);
+    bool inner(NetworKit::node vertex);
+
+    void print_path(const std::list<NetworKit::node>& P, const std::list<NetworKit::edgeid>& EP);
+    void print_path(const std::vector<NetworKit::node>& P, const std::vector<NetworKit::edgeid>& EP);
+    void print_state();
 };
 
 } /* namespace Koala */

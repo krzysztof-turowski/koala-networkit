@@ -17,3 +17,13 @@ koala_make_benchmark(
     benchmark_concat_queues
     benchmarkConcatenableQueue.cpp
     benchmarkConcatenableQueue.sh)
+
+koala_make_benchmark(
+    benchmark_fheap
+    benchmarkFibonacciHeap.cpp
+    benchmarkFibonacciHeap.sh)
+
+koala_make_benchmark(
+    benchmark_mv
+    benchmarkMicaliVazirani.cpp
+    benchmarkMicaliVazirani.sh)

@@ -1201,4 +1201,168 @@ private:
     P Delta = 0;
 };
 
+
+// template<typename E, typename P>
+// class FHeap {
+// public:
+//     void insert(E val, P priority) {
+//         nodes.push_back({ val, priority });
+//     }
+
+//     P find_min() {
+
+//     }
+
+//     void delete_min() {
+//         if (min_node == nodes.end()) return;
+//         nodes.splice(nodes.end(), min_node->children);
+//         nodes.erase(min_node);
+//         consolidaate();
+//     }
+
+//     void decrease_cost(E val, P priority) {
+
+//     }
+
+//     void merge(FHeap& other) {
+//         nodes.splice(nodes.end(), other.nodes);
+//         min_node = min_node->priority < other.min_node->priority ? 
+//             min_node : other.min_node;
+//     }
+
+// private:
+//     struct Node {
+//         Node(): value(0), priority(0) {}
+//         Node(E val, P priority): value(val), priority(priority) {}
+
+//         E value;
+//         P priority;
+//         std::list<Node> children;
+
+//         int degree() { return children.size(); }
+//     };
+
+//     std::list<Node> nodes;
+//     std::list<Node>::iterator min_node;
+
+//     int max_degree() {
+//         int res = 0;
+//         for (auto n : nodes)
+//     }
+
+//     void consolidate() {
+//         int D = max_degree();
+//         Node nodes[D + 1];
+
+//         for (auto node : nodes) {
+//             Node new_node = node;
+//             int deg = new_node.degree();
+
+//             while (nodes[])
+//         }
+
+//         nodes.clear();
+//     }
+// };
+
+
+// template<typename E, typename P>
+// class SplittingList {
+// public:
+//     void insert(E val, P priority) {
+//         nodes.push_back({ val, priority });
+//     }
+
+//     P find_min() {
+
+//     }
+
+//     void delete_min() {
+//         if (min_node == nodes.end()) return;
+//         nodes.splice(nodes.end(), min_node->children);
+//         nodes.erase(min_node);
+//         consolidaate();
+//     }
+
+//     void decrease_cost(E val, P priority) {
+
+//     }
+
+//     void merge(FHeap& other) {
+//         nodes.splice(nodes.end(), other.nodes);
+//         min_node = min_node->priority < other.min_node->priority ? 
+//             min_node : other.min_node;
+//     }
+
+// private:
+//     struct Node {
+//         Node(): value(0), priority(0) {}
+//         Node(E val, P priority): value(val), priority(priority) {}
+
+//         E value;
+//         P priority;
+//         std::list<Node> children;
+
+//         int degree() { return children.size(); }
+//     };
+
+//     std::list<Node> nodes;
+//     std::list<Node>::iterator min_node;
+
+//     int max_degree() {
+//         int res = 0;
+//         for (auto n : nodes)
+//     }
+
+//     void consolidate() {
+//         int D = max_degree();
+//         Node nodes[D + 1];
+
+//         for (auto node : nodes) {
+//             Node new_node = node;
+//             int deg = new_node.degree();
+
+//             while (nodes[])
+//         }
+
+//         nodes.clear();
+//     }
+// };
+
+template<typename N>
+class UnionFind {
+public:
+    void reset() {
+        name.clear();
+        parent.clear();
+    }
+
+    int create(N x_name) {
+        int x = name.size();
+        name.push_back(x_name);
+        parent.push_back(x);
+        return x;
+    }
+
+    int link(int x, N y_name) {
+        int y = name.size();
+        name.push_back(y_name);
+        parent.push_back(y);
+        return y;
+    }
+
+    N find(int x) {
+        return name[find_root(x)];
+    }
+
+private:
+    std::vector<N> name;
+    std::vector<int> parent;
+
+    int find_root(int x) {
+        return parent[x] == x ? x : (parent[x] = find_root(parent[x]));
+    }
+};
+
+
 } // namespace Koala
