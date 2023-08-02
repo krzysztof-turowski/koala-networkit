@@ -419,7 +419,6 @@ private:
         NetworKit::node left_peak;
         NetworKit::node right_peak;
         NetworKit::edgeid peak_edge;
-        int id;
     };
 
     struct VertexData {
@@ -454,10 +453,10 @@ private:
 
     bool augmentation_happened;
     bool bloom_found;
-    int iter;
+    int iter, max_iter;
 
     std::vector<Bloom*> current_blooms;
-    UnionFind<NetworKit::node> bloom_bases;
+    UnionFind bloom_bases;
     std::vector<NetworKit::node> bloom_nodes;
 
     void search();
@@ -473,7 +472,7 @@ private:
     void erase(std::vector<NetworKit::node>& Y);
     
     std::pair<std::list<NetworKit::node>, std::list<NetworKit::edgeid>> 
-    find_path(NetworKit::node high, NetworKit::node low, Bloom* B);
+    find_path(NetworKit::node high, NetworKit::node low, Bloom* B, VertexData::Mark mark);
 
     std::pair<std::list<NetworKit::node>, std::list<NetworKit::edgeid>>  
     open(NetworKit::node x);
@@ -488,6 +487,8 @@ private:
     void print_path(const std::list<NetworKit::node>& P, const std::list<NetworKit::edgeid>& EP);
     void print_path(const std::vector<NetworKit::node>& P, const std::vector<NetworKit::edgeid>& EP);
     void print_state();
+    void check_consistency();
+    std::string mark_to_str(VertexData::Mark mark);
 };
 
 } /* namespace Koala */

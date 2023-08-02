@@ -1329,35 +1329,43 @@ private:
 //     }
 // };
 
-template<typename N>
 class UnionFind {
 public:
+    UnionFind(int size): size(size), root(size), parent(size), rank(size) {
+        reset();
+    }
+
     void reset() {
-        name.clear();
-        parent.clear();
+        for (int i = 0; i < size; ++ i) {
+            root[i] = parent[i] = i;
+            rank[i] = 0;
+        }
     }
 
-    int create(N x_name) {
-        int x = name.size();
-        name.push_back(x_name);
-        parent.push_back(x);
-        return x;
+    void link(int x, int y) {
+        int rx = find_root(x);
+        int ry = find_root(y);
+
+        if (rank[rx] < rank[ry]) {
+            parent[rx] = ry;
+            root[ry] = root[rx];
+        } else {
+            parent[ry] = rx;
+            if (rank[rx] == rank[ry]) {
+                rank[rx] ++;
+            }
+        } 
     }
 
-    int link(int x, N y_name) {
-        int y = name.size();
-        name.push_back(y_name);
-        parent.push_back(y);
-        return y;
-    }
-
-    N find(int x) {
-        return name[find_root(x)];
+    int find(int x) {
+        return root[find_root(x)];
     }
 
 private:
-    std::vector<N> name;
+    int size;
+    std::vector<int> root;
     std::vector<int> parent;
+    std::vector<int> rank;
 
     int find_root(int x) {
         return parent[x] == x ? x : (parent[x] = find_root(parent[x]));

@@ -1,0 +1,9457 @@
+GRAPH:
+0 : 13 6 
+1 : 25 17 4 
+2 : 15 24 
+3 : 20 5 11 26 17 6 24 
+4 : 12 15 1 
+5 : 3 21 8 
+6 : 18 14 3 13 0 
+7 : 22 25 20 
+8 : 5 
+9 : 13 19 14 22 
+10 : 20 26 
+11 : 3 15 26 
+12 : 22 4 26 
+13 : 0 21 9 15 26 19 6 
+14 : 25 6 9 
+15 : 23 11 4 2 13 
+16 : 26 
+17 : 20 18 3 1 
+18 : 6 27 17 
+19 : 20 9 13 
+20 : 17 3 7 19 10 23 
+21 : 13 5 
+22 : 12 7 9 
+23 : 27 15 20 
+24 : 3 2 
+25 : 14 1 7 
+26 : 16 3 11 13 12 10 
+27 : 23 18 
+
+4 1
+5 3
+6 3
+6 0
+8 5
+11 3
+12 4
+13 0
+13 9
+13 6
+14 6
+14 9
+15 11
+15 4
+15 2
+15 13
+17 3
+17 1
+18 6
+18 17
+19 9
+19 13
+20 17
+20 3
+20 7
+20 19
+20 10
+21 13
+21 5
+22 12
+22 7
+22 9
+23 15
+23 20
+24 3
+24 2
+25 14
+25 1
+25 7
+26 16
+26 3
+26 11
+26 13
+26 12
+26 10
+27 23
+27 18
+
+=============================
+SEARCH
+--------------------------------
+LEVEL 0
+VERTEX 0: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 1: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 2: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 3: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 4: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 5: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 6: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 7: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 8: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 9: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 10: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 11: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 12: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 13: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 14: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 15: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 16: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 17: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 18: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 19: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 20: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 21: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 22: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 23: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 24: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 25: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 26: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 27: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+CHECK 0
+LOOK AT NEIGHBOR 13
+BRIDGE FOUND 13 0 AT LEVEL 0
+LOOK AT NEIGHBOR 6
+BRIDGE FOUND 6 0 AT LEVEL 0
+CHECK 1
+LOOK AT NEIGHBOR 25
+BRIDGE FOUND 25 1 AT LEVEL 0
+LOOK AT NEIGHBOR 17
+BRIDGE FOUND 17 1 AT LEVEL 0
+LOOK AT NEIGHBOR 4
+BRIDGE FOUND 4 1 AT LEVEL 0
+CHECK 2
+LOOK AT NEIGHBOR 15
+BRIDGE FOUND 15 2 AT LEVEL 0
+LOOK AT NEIGHBOR 24
+BRIDGE FOUND 24 2 AT LEVEL 0
+CHECK 3
+LOOK AT NEIGHBOR 20
+BRIDGE FOUND 20 3 AT LEVEL 0
+LOOK AT NEIGHBOR 5
+BRIDGE FOUND 5 3 AT LEVEL 0
+LOOK AT NEIGHBOR 11
+BRIDGE FOUND 11 3 AT LEVEL 0
+LOOK AT NEIGHBOR 26
+BRIDGE FOUND 26 3 AT LEVEL 0
+LOOK AT NEIGHBOR 17
+BRIDGE FOUND 17 3 AT LEVEL 0
+LOOK AT NEIGHBOR 6
+BRIDGE FOUND 6 3 AT LEVEL 0
+LOOK AT NEIGHBOR 24
+BRIDGE FOUND 24 3 AT LEVEL 0
+CHECK 4
+LOOK AT NEIGHBOR 12
+BRIDGE FOUND 12 4 AT LEVEL 0
+LOOK AT NEIGHBOR 15
+BRIDGE FOUND 15 4 AT LEVEL 0
+LOOK AT NEIGHBOR 1
+BRIDGE FOUND 1 4 AT LEVEL 0
+CHECK 5
+LOOK AT NEIGHBOR 3
+BRIDGE FOUND 3 5 AT LEVEL 0
+LOOK AT NEIGHBOR 21
+BRIDGE FOUND 21 5 AT LEVEL 0
+LOOK AT NEIGHBOR 8
+BRIDGE FOUND 8 5 AT LEVEL 0
+CHECK 6
+LOOK AT NEIGHBOR 18
+BRIDGE FOUND 18 6 AT LEVEL 0
+LOOK AT NEIGHBOR 14
+BRIDGE FOUND 14 6 AT LEVEL 0
+LOOK AT NEIGHBOR 3
+BRIDGE FOUND 3 6 AT LEVEL 0
+LOOK AT NEIGHBOR 13
+BRIDGE FOUND 13 6 AT LEVEL 0
+LOOK AT NEIGHBOR 0
+BRIDGE FOUND 0 6 AT LEVEL 0
+CHECK 7
+LOOK AT NEIGHBOR 22
+BRIDGE FOUND 22 7 AT LEVEL 0
+LOOK AT NEIGHBOR 25
+BRIDGE FOUND 25 7 AT LEVEL 0
+LOOK AT NEIGHBOR 20
+BRIDGE FOUND 20 7 AT LEVEL 0
+CHECK 8
+LOOK AT NEIGHBOR 5
+BRIDGE FOUND 5 8 AT LEVEL 0
+CHECK 9
+LOOK AT NEIGHBOR 13
+BRIDGE FOUND 13 9 AT LEVEL 0
+LOOK AT NEIGHBOR 19
+BRIDGE FOUND 19 9 AT LEVEL 0
+LOOK AT NEIGHBOR 14
+BRIDGE FOUND 14 9 AT LEVEL 0
+LOOK AT NEIGHBOR 22
+BRIDGE FOUND 22 9 AT LEVEL 0
+CHECK 10
+LOOK AT NEIGHBOR 20
+BRIDGE FOUND 20 10 AT LEVEL 0
+LOOK AT NEIGHBOR 26
+BRIDGE FOUND 26 10 AT LEVEL 0
+CHECK 11
+LOOK AT NEIGHBOR 3
+BRIDGE FOUND 3 11 AT LEVEL 0
+LOOK AT NEIGHBOR 15
+BRIDGE FOUND 15 11 AT LEVEL 0
+LOOK AT NEIGHBOR 26
+BRIDGE FOUND 26 11 AT LEVEL 0
+CHECK 12
+LOOK AT NEIGHBOR 22
+BRIDGE FOUND 22 12 AT LEVEL 0
+LOOK AT NEIGHBOR 4
+BRIDGE FOUND 4 12 AT LEVEL 0
+LOOK AT NEIGHBOR 26
+BRIDGE FOUND 26 12 AT LEVEL 0
+CHECK 13
+LOOK AT NEIGHBOR 0
+BRIDGE FOUND 0 13 AT LEVEL 0
+LOOK AT NEIGHBOR 21
+BRIDGE FOUND 21 13 AT LEVEL 0
+LOOK AT NEIGHBOR 9
+BRIDGE FOUND 9 13 AT LEVEL 0
+LOOK AT NEIGHBOR 15
+BRIDGE FOUND 15 13 AT LEVEL 0
+LOOK AT NEIGHBOR 26
+BRIDGE FOUND 26 13 AT LEVEL 0
+LOOK AT NEIGHBOR 19
+BRIDGE FOUND 19 13 AT LEVEL 0
+LOOK AT NEIGHBOR 6
+BRIDGE FOUND 6 13 AT LEVEL 0
+CHECK 14
+LOOK AT NEIGHBOR 25
+BRIDGE FOUND 25 14 AT LEVEL 0
+LOOK AT NEIGHBOR 6
+BRIDGE FOUND 6 14 AT LEVEL 0
+LOOK AT NEIGHBOR 9
+BRIDGE FOUND 9 14 AT LEVEL 0
+CHECK 15
+LOOK AT NEIGHBOR 23
+BRIDGE FOUND 23 15 AT LEVEL 0
+LOOK AT NEIGHBOR 11
+BRIDGE FOUND 11 15 AT LEVEL 0
+LOOK AT NEIGHBOR 4
+BRIDGE FOUND 4 15 AT LEVEL 0
+LOOK AT NEIGHBOR 2
+BRIDGE FOUND 2 15 AT LEVEL 0
+LOOK AT NEIGHBOR 13
+BRIDGE FOUND 13 15 AT LEVEL 0
+CHECK 16
+LOOK AT NEIGHBOR 26
+BRIDGE FOUND 26 16 AT LEVEL 0
+CHECK 17
+LOOK AT NEIGHBOR 20
+BRIDGE FOUND 20 17 AT LEVEL 0
+LOOK AT NEIGHBOR 18
+BRIDGE FOUND 18 17 AT LEVEL 0
+LOOK AT NEIGHBOR 3
+BRIDGE FOUND 3 17 AT LEVEL 0
+LOOK AT NEIGHBOR 1
+BRIDGE FOUND 1 17 AT LEVEL 0
+CHECK 18
+LOOK AT NEIGHBOR 6
+BRIDGE FOUND 6 18 AT LEVEL 0
+LOOK AT NEIGHBOR 27
+BRIDGE FOUND 27 18 AT LEVEL 0
+LOOK AT NEIGHBOR 17
+BRIDGE FOUND 17 18 AT LEVEL 0
+CHECK 19
+LOOK AT NEIGHBOR 20
+BRIDGE FOUND 20 19 AT LEVEL 0
+LOOK AT NEIGHBOR 9
+BRIDGE FOUND 9 19 AT LEVEL 0
+LOOK AT NEIGHBOR 13
+BRIDGE FOUND 13 19 AT LEVEL 0
+CHECK 20
+LOOK AT NEIGHBOR 17
+BRIDGE FOUND 17 20 AT LEVEL 0
+LOOK AT NEIGHBOR 3
+BRIDGE FOUND 3 20 AT LEVEL 0
+LOOK AT NEIGHBOR 7
+BRIDGE FOUND 7 20 AT LEVEL 0
+LOOK AT NEIGHBOR 19
+BRIDGE FOUND 19 20 AT LEVEL 0
+LOOK AT NEIGHBOR 10
+BRIDGE FOUND 10 20 AT LEVEL 0
+LOOK AT NEIGHBOR 23
+BRIDGE FOUND 23 20 AT LEVEL 0
+CHECK 21
+LOOK AT NEIGHBOR 13
+BRIDGE FOUND 13 21 AT LEVEL 0
+LOOK AT NEIGHBOR 5
+BRIDGE FOUND 5 21 AT LEVEL 0
+CHECK 22
+LOOK AT NEIGHBOR 12
+BRIDGE FOUND 12 22 AT LEVEL 0
+LOOK AT NEIGHBOR 7
+BRIDGE FOUND 7 22 AT LEVEL 0
+LOOK AT NEIGHBOR 9
+BRIDGE FOUND 9 22 AT LEVEL 0
+CHECK 23
+LOOK AT NEIGHBOR 27
+BRIDGE FOUND 27 23 AT LEVEL 0
+LOOK AT NEIGHBOR 15
+BRIDGE FOUND 15 23 AT LEVEL 0
+LOOK AT NEIGHBOR 20
+BRIDGE FOUND 20 23 AT LEVEL 0
+CHECK 24
+LOOK AT NEIGHBOR 3
+BRIDGE FOUND 3 24 AT LEVEL 0
+LOOK AT NEIGHBOR 2
+BRIDGE FOUND 2 24 AT LEVEL 0
+CHECK 25
+LOOK AT NEIGHBOR 14
+BRIDGE FOUND 14 25 AT LEVEL 0
+LOOK AT NEIGHBOR 1
+BRIDGE FOUND 1 25 AT LEVEL 0
+LOOK AT NEIGHBOR 7
+BRIDGE FOUND 7 25 AT LEVEL 0
+CHECK 26
+LOOK AT NEIGHBOR 16
+BRIDGE FOUND 16 26 AT LEVEL 0
+LOOK AT NEIGHBOR 3
+BRIDGE FOUND 3 26 AT LEVEL 0
+LOOK AT NEIGHBOR 11
+BRIDGE FOUND 11 26 AT LEVEL 0
+LOOK AT NEIGHBOR 13
+BRIDGE FOUND 13 26 AT LEVEL 0
+LOOK AT NEIGHBOR 12
+BRIDGE FOUND 12 26 AT LEVEL 0
+LOOK AT NEIGHBOR 10
+BRIDGE FOUND 10 26 AT LEVEL 0
+CHECK 27
+LOOK AT NEIGHBOR 23
+BRIDGE FOUND 23 27 AT LEVEL 0
+LOOK AT NEIGHBOR 18
+BRIDGE FOUND 18 27 AT LEVEL 0
+VERTEX 0: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 1: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 2: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 3: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 4: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 5: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 6: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 7: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 8: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 9: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 10: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 11: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 12: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 13: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 14: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 15: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 16: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 17: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 18: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 19: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 20: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 21: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 22: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 23: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 24: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 25: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 26: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 27: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+BLOSS AUG 13 0
+MARK 13 left
+MARK 0 right
+DFS 13 0 18446744073709551615 0
+AUGMENT ON PATH 13 ~~ 13 - 0 ~~ 0
+11
+FIND PATH 13 13 in 0 MARKED left
+FIND PATH 0 0 in 0 MARKED right
+AUGMENTING ON PATH 13 ~~ 13 - 0 ~~ 0 :
+13 (13, 0) 0 
+MATCH 13 0 (13 0)
+ERASE 13
+ERASE 0
+BLOSS AUG 25 1
+MARK 25 left
+MARK 1 right
+DFS 25 1 18446744073709551615 1
+AUGMENT ON PATH 25 ~~ 25 - 1 ~~ 1
+11
+FIND PATH 25 25 in 0 MARKED left
+FIND PATH 1 1 in 0 MARKED right
+AUGMENTING ON PATH 25 ~~ 25 - 1 ~~ 1 :
+25 (25, 1) 1 
+MATCH 25 1 (25 1)
+ERASE 25
+ERASE 1
+BLOSS AUG 15 2
+MARK 15 left
+MARK 2 right
+DFS 15 2 18446744073709551615 2
+AUGMENT ON PATH 15 ~~ 15 - 2 ~~ 2
+11
+FIND PATH 15 15 in 0 MARKED left
+FIND PATH 2 2 in 0 MARKED right
+AUGMENTING ON PATH 15 ~~ 15 - 2 ~~ 2 :
+15 (15, 2) 2 
+MATCH 15 2 (15 2)
+ERASE 15
+ERASE 2
+BLOSS AUG 20 3
+MARK 20 left
+MARK 3 right
+DFS 20 3 18446744073709551615 3
+AUGMENT ON PATH 20 ~~ 20 - 3 ~~ 3
+11
+FIND PATH 20 20 in 0 MARKED left
+FIND PATH 3 3 in 0 MARKED right
+AUGMENTING ON PATH 20 ~~ 20 - 3 ~~ 3 :
+20 (20, 3) 3 
+MATCH 20 3 (20 3)
+ERASE 20
+ERASE 3
+BLOSS AUG 12 4
+MARK 12 left
+MARK 4 right
+DFS 12 4 18446744073709551615 4
+AUGMENT ON PATH 12 ~~ 12 - 4 ~~ 4
+11
+FIND PATH 12 12 in 0 MARKED left
+FIND PATH 4 4 in 0 MARKED right
+AUGMENTING ON PATH 12 ~~ 12 - 4 ~~ 4 :
+12 (12, 4) 4 
+MATCH 12 4 (12 4)
+ERASE 12
+ERASE 4
+BLOSS AUG 21 5
+MARK 21 left
+MARK 5 right
+DFS 21 5 18446744073709551615 5
+AUGMENT ON PATH 21 ~~ 21 - 5 ~~ 5
+11
+FIND PATH 21 21 in 0 MARKED left
+FIND PATH 5 5 in 0 MARKED right
+AUGMENTING ON PATH 21 ~~ 21 - 5 ~~ 5 :
+21 (21, 5) 5 
+MATCH 21 5 (21 5)
+ERASE 21
+ERASE 5
+BLOSS AUG 18 6
+MARK 18 left
+MARK 6 right
+DFS 18 6 18446744073709551615 6
+AUGMENT ON PATH 18 ~~ 18 - 6 ~~ 6
+11
+FIND PATH 18 18 in 0 MARKED left
+FIND PATH 6 6 in 0 MARKED right
+AUGMENTING ON PATH 18 ~~ 18 - 6 ~~ 6 :
+18 (18, 6) 6 
+MATCH 18 6 (18 6)
+ERASE 18
+ERASE 6
+BLOSS AUG 22 7
+MARK 22 left
+MARK 7 right
+DFS 22 7 18446744073709551615 7
+AUGMENT ON PATH 22 ~~ 22 - 7 ~~ 7
+11
+FIND PATH 22 22 in 0 MARKED left
+FIND PATH 7 7 in 0 MARKED right
+AUGMENTING ON PATH 22 ~~ 22 - 7 ~~ 7 :
+22 (22, 7) 7 
+MATCH 22 7 (22 7)
+ERASE 22
+ERASE 7
+BLOSS AUG 19 9
+MARK 19 left
+MARK 9 right
+DFS 19 9 18446744073709551615 9
+AUGMENT ON PATH 19 ~~ 19 - 9 ~~ 9
+11
+FIND PATH 19 19 in 0 MARKED left
+FIND PATH 9 9 in 0 MARKED right
+AUGMENTING ON PATH 19 ~~ 19 - 9 ~~ 9 :
+19 (19, 9) 9 
+MATCH 19 9 (19 9)
+ERASE 19
+ERASE 9
+BLOSS AUG 26 10
+MARK 26 left
+MARK 10 right
+DFS 26 10 18446744073709551615 10
+AUGMENT ON PATH 26 ~~ 26 - 10 ~~ 10
+11
+FIND PATH 26 26 in 0 MARKED left
+FIND PATH 10 10 in 0 MARKED right
+AUGMENTING ON PATH 26 ~~ 26 - 10 ~~ 10 :
+26 (26, 10) 10 
+MATCH 26 10 (26 10)
+ERASE 26
+ERASE 10
+BLOSS AUG 27 23
+MARK 27 left
+MARK 23 right
+DFS 27 23 18446744073709551615 23
+AUGMENT ON PATH 27 ~~ 27 - 23 ~~ 23
+11
+FIND PATH 27 27 in 0 MARKED left
+FIND PATH 23 23 in 0 MARKED right
+AUGMENTING ON PATH 27 ~~ 27 - 23 ~~ 23 :
+27 (27, 23) 23 
+MATCH 27 23 (27 23)
+ERASE 27
+ERASE 23
+=============================
+SEARCH
+--------------------------------
+LEVEL 0
+VERTEX 0: 
+   MATCH       13
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 1: 
+   MATCH       25
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 2: 
+   MATCH       15
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 3: 
+   MATCH       20
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 4: 
+   MATCH       12
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 5: 
+   MATCH       21
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 6: 
+   MATCH       18
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 7: 
+   MATCH       22
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 8: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 9: 
+   MATCH       19
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 10: 
+   MATCH       26
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 11: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 12: 
+   MATCH       4
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 13: 
+   MATCH       0
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 14: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 15: 
+   MATCH       2
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 16: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 17: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 18: 
+   MATCH       6
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 19: 
+   MATCH       9
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 20: 
+   MATCH       3
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 21: 
+   MATCH       5
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 22: 
+   MATCH       7
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 23: 
+   MATCH       27
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 24: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 25: 
+   MATCH       1
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 26: 
+   MATCH       10
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 27: 
+   MATCH       23
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+CHECK 8
+LOOK AT NEIGHBOR 5
+QUEUE 5 AT LEVEL 1
+MAKE 8 A PRED OF 5
+CHECK 11
+LOOK AT NEIGHBOR 3
+QUEUE 3 AT LEVEL 1
+MAKE 11 A PRED OF 3
+LOOK AT NEIGHBOR 15
+QUEUE 15 AT LEVEL 1
+MAKE 11 A PRED OF 15
+LOOK AT NEIGHBOR 26
+QUEUE 26 AT LEVEL 1
+MAKE 11 A PRED OF 26
+CHECK 14
+LOOK AT NEIGHBOR 25
+QUEUE 25 AT LEVEL 1
+MAKE 14 A PRED OF 25
+LOOK AT NEIGHBOR 6
+QUEUE 6 AT LEVEL 1
+MAKE 14 A PRED OF 6
+LOOK AT NEIGHBOR 9
+QUEUE 9 AT LEVEL 1
+MAKE 14 A PRED OF 9
+CHECK 16
+LOOK AT NEIGHBOR 26
+MAKE 16 A PRED OF 26
+CHECK 17
+LOOK AT NEIGHBOR 20
+QUEUE 20 AT LEVEL 1
+MAKE 17 A PRED OF 20
+LOOK AT NEIGHBOR 18
+QUEUE 18 AT LEVEL 1
+MAKE 17 A PRED OF 18
+LOOK AT NEIGHBOR 3
+MAKE 17 A PRED OF 3
+LOOK AT NEIGHBOR 1
+QUEUE 1 AT LEVEL 1
+MAKE 17 A PRED OF 1
+CHECK 24
+LOOK AT NEIGHBOR 3
+MAKE 24 A PRED OF 3
+LOOK AT NEIGHBOR 2
+QUEUE 2 AT LEVEL 1
+MAKE 24 A PRED OF 2
+VERTEX 0: 
+   MATCH       13
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 1: 
+   MATCH       25
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        17 
+   BLOOM       0
+   MARK        -
+VERTEX 2: 
+   MATCH       15
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0
+   MARK        -
+VERTEX 3: 
+   MATCH       20
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        11 17 24 
+   BLOOM       0
+   MARK        -
+VERTEX 4: 
+   MATCH       12
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 5: 
+   MATCH       21
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        8 
+   BLOOM       0
+   MARK        -
+VERTEX 6: 
+   MATCH       18
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        14 
+   BLOOM       0
+   MARK        -
+VERTEX 7: 
+   MATCH       22
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 8: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 9: 
+   MATCH       19
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        14 
+   BLOOM       0
+   MARK        -
+VERTEX 10: 
+   MATCH       26
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 11: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 12: 
+   MATCH       4
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 13: 
+   MATCH       0
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 14: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 15: 
+   MATCH       2
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        11 
+   BLOOM       0
+   MARK        -
+VERTEX 16: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 17: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 18: 
+   MATCH       6
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        17 
+   BLOOM       0
+   MARK        -
+VERTEX 19: 
+   MATCH       9
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 20: 
+   MATCH       3
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        17 
+   BLOOM       0
+   MARK        -
+VERTEX 21: 
+   MATCH       5
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 22: 
+   MATCH       7
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 23: 
+   MATCH       27
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 24: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 25: 
+   MATCH       1
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        14 
+   BLOOM       0
+   MARK        -
+VERTEX 26: 
+   MATCH       10
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        11 16 
+   BLOOM       0
+   MARK        -
+VERTEX 27: 
+   MATCH       23
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+--------------------------------
+LEVEL 1
+VERTEX 0: 
+   MATCH       13
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 1: 
+   MATCH       25
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        17 
+   BLOOM       0
+   MARK        -
+VERTEX 2: 
+   MATCH       15
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0
+   MARK        -
+VERTEX 3: 
+   MATCH       20
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        11 17 24 
+   BLOOM       0
+   MARK        -
+VERTEX 4: 
+   MATCH       12
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 5: 
+   MATCH       21
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        8 
+   BLOOM       0
+   MARK        -
+VERTEX 6: 
+   MATCH       18
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        14 
+   BLOOM       0
+   MARK        -
+VERTEX 7: 
+   MATCH       22
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 8: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 9: 
+   MATCH       19
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        14 
+   BLOOM       0
+   MARK        -
+VERTEX 10: 
+   MATCH       26
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 11: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 12: 
+   MATCH       4
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 13: 
+   MATCH       0
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 14: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 15: 
+   MATCH       2
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        11 
+   BLOOM       0
+   MARK        -
+VERTEX 16: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 17: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 18: 
+   MATCH       6
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        17 
+   BLOOM       0
+   MARK        -
+VERTEX 19: 
+   MATCH       9
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 20: 
+   MATCH       3
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        17 
+   BLOOM       0
+   MARK        -
+VERTEX 21: 
+   MATCH       5
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 22: 
+   MATCH       7
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 23: 
+   MATCH       27
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 24: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 25: 
+   MATCH       1
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        14 
+   BLOOM       0
+   MARK        -
+VERTEX 26: 
+   MATCH       10
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        11 16 
+   BLOOM       0
+   MARK        -
+VERTEX 27: 
+   MATCH       23
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+CHECK 5
+LOOK AT MATCH 21
+QUEUE 21 AT LEVEL 2
+MAKE 5 A PRED OF 21
+CHECK 3
+LOOK AT MATCH 20
+BRIDGE FOUND 20 3 AT LEVEL 1
+CHECK 15
+LOOK AT MATCH 2
+BRIDGE FOUND 2 15 AT LEVEL 1
+CHECK 26
+LOOK AT MATCH 10
+QUEUE 10 AT LEVEL 2
+MAKE 26 A PRED OF 10
+CHECK 25
+LOOK AT MATCH 1
+BRIDGE FOUND 1 25 AT LEVEL 1
+CHECK 6
+LOOK AT MATCH 18
+BRIDGE FOUND 18 6 AT LEVEL 1
+CHECK 9
+LOOK AT MATCH 19
+QUEUE 19 AT LEVEL 2
+MAKE 9 A PRED OF 19
+CHECK 20
+LOOK AT MATCH 3
+BRIDGE FOUND 3 20 AT LEVEL 1
+CHECK 18
+LOOK AT MATCH 6
+BRIDGE FOUND 6 18 AT LEVEL 1
+CHECK 1
+LOOK AT MATCH 25
+BRIDGE FOUND 25 1 AT LEVEL 1
+CHECK 2
+LOOK AT MATCH 15
+BRIDGE FOUND 15 2 AT LEVEL 1
+VERTEX 0: 
+   MATCH       13
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 1: 
+   MATCH       25
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        17 
+   BLOOM       0
+   MARK        -
+VERTEX 2: 
+   MATCH       15
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0
+   MARK        -
+VERTEX 3: 
+   MATCH       20
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        11 17 24 
+   BLOOM       0
+   MARK        -
+VERTEX 4: 
+   MATCH       12
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 5: 
+   MATCH       21
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        8 
+   BLOOM       0
+   MARK        -
+VERTEX 6: 
+   MATCH       18
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        14 
+   BLOOM       0
+   MARK        -
+VERTEX 7: 
+   MATCH       22
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 8: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 9: 
+   MATCH       19
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        14 
+   BLOOM       0
+   MARK        -
+VERTEX 10: 
+   MATCH       26
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        26 
+   BLOOM       0
+   MARK        -
+VERTEX 11: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 12: 
+   MATCH       4
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 13: 
+   MATCH       0
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 14: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 15: 
+   MATCH       2
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        11 
+   BLOOM       0
+   MARK        -
+VERTEX 16: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 17: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 18: 
+   MATCH       6
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        17 
+   BLOOM       0
+   MARK        -
+VERTEX 19: 
+   MATCH       9
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        9 
+   BLOOM       0
+   MARK        -
+VERTEX 20: 
+   MATCH       3
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        17 
+   BLOOM       0
+   MARK        -
+VERTEX 21: 
+   MATCH       5
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        5 
+   BLOOM       0
+   MARK        -
+VERTEX 22: 
+   MATCH       7
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 23: 
+   MATCH       27
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 24: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 25: 
+   MATCH       1
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        14 
+   BLOOM       0
+   MARK        -
+VERTEX 26: 
+   MATCH       10
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        11 16 
+   BLOOM       0
+   MARK        -
+VERTEX 27: 
+   MATCH       23
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+BLOSS AUG 20 3
+MARK 20 left
+MARK 3 right
+
+DFS 20 3 - 3
+ADVANCE LEFT
+USE EDGE (20, 17)
+MARK 17 LEFT
+
+DFS 17 3 - 3
+ADVANCE RIGHT
+USE EDGE (11, 3)
+MARK 11 RIGHT
+DFS 17 11 18446744073709551615 3
+AUGMENT ON PATH 17 ~~ 20 - 3 ~~ 11
+11
+FIND PATH 20 17 in 0 MARKED left
+
+V = 20
+U = 20
+FOUND UNVISITED PRED 17
+MARK (20, 17) visited
+U = 17
+ERASED = 0
+VISITED = 0
+LEVEL(u) = 0
+LEVEL(low) = 0
+MARK(u) = left
+BLOOM(u) = 0
+BASE_START(BLOM(u)) = -
+MARK(BASE_START(BLOM(u))) = -
+CONDITION = 0
+PARENT(17) = 20
+APPEND 17 WITH PARENT 20
+PREPATH:
+20 (20, 17) 17 
+FIND PATH 3 11 in 0 MARKED right
+
+V = 3
+U = 3
+FOUND UNVISITED PRED 11
+MARK (11, 3) visited
+U = 11
+ERASED = 0
+VISITED = 0
+LEVEL(u) = 0
+LEVEL(low) = 0
+MARK(u) = right
+BLOOM(u) = 0
+BASE_START(BLOM(u)) = -
+MARK(BASE_START(BLOM(u))) = -
+CONDITION = 0
+PARENT(11) = 3
+APPEND 11 WITH PARENT 3
+PREPATH:
+3 (11, 3) 11 
+AUGMENTING ON PATH 17 ~~ 20 - 3 ~~ 11 :
+17 (20, 17) 20 (20, 3) 3 (11, 3) 11 
+MATCH 17 20 (20 17)
+UNMATCH  (20 3)
+MATCH 3 11 (11 3)
+ERASE 17
+ERASE 20
+ERASE 3
+ERASE 11
+ERASE 20
+ERASE 18
+ERASE 1
+ERASE 15
+=============================
+SEARCH
+--------------------------------
+LEVEL 0
+VERTEX 0: 
+   MATCH       13
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 1: 
+   MATCH       25
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 2: 
+   MATCH       15
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 3: 
+   MATCH       11
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 4: 
+   MATCH       12
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 5: 
+   MATCH       21
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 6: 
+   MATCH       18
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 7: 
+   MATCH       22
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 8: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 9: 
+   MATCH       19
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 10: 
+   MATCH       26
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 11: 
+   MATCH       3
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 12: 
+   MATCH       4
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 13: 
+   MATCH       0
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 14: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 15: 
+   MATCH       2
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 16: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 17: 
+   MATCH       20
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 18: 
+   MATCH       6
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 19: 
+   MATCH       9
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 20: 
+   MATCH       17
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 21: 
+   MATCH       5
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 22: 
+   MATCH       7
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 23: 
+   MATCH       27
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 24: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 25: 
+   MATCH       1
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 26: 
+   MATCH       10
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 27: 
+   MATCH       23
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+CHECK 8
+LOOK AT NEIGHBOR 5
+QUEUE 5 AT LEVEL 1
+MAKE 8 A PRED OF 5
+CHECK 14
+LOOK AT NEIGHBOR 25
+QUEUE 25 AT LEVEL 1
+MAKE 14 A PRED OF 25
+LOOK AT NEIGHBOR 6
+QUEUE 6 AT LEVEL 1
+MAKE 14 A PRED OF 6
+LOOK AT NEIGHBOR 9
+QUEUE 9 AT LEVEL 1
+MAKE 14 A PRED OF 9
+CHECK 16
+LOOK AT NEIGHBOR 26
+QUEUE 26 AT LEVEL 1
+MAKE 16 A PRED OF 26
+CHECK 24
+LOOK AT NEIGHBOR 3
+QUEUE 3 AT LEVEL 1
+MAKE 24 A PRED OF 3
+LOOK AT NEIGHBOR 2
+QUEUE 2 AT LEVEL 1
+MAKE 24 A PRED OF 2
+VERTEX 0: 
+   MATCH       13
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 1: 
+   MATCH       25
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 2: 
+   MATCH       15
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0
+   MARK        -
+VERTEX 3: 
+   MATCH       11
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0
+   MARK        -
+VERTEX 4: 
+   MATCH       12
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 5: 
+   MATCH       21
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        8 
+   BLOOM       0
+   MARK        -
+VERTEX 6: 
+   MATCH       18
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        14 
+   BLOOM       0
+   MARK        -
+VERTEX 7: 
+   MATCH       22
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 8: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 9: 
+   MATCH       19
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        14 
+   BLOOM       0
+   MARK        -
+VERTEX 10: 
+   MATCH       26
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 11: 
+   MATCH       3
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 12: 
+   MATCH       4
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 13: 
+   MATCH       0
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 14: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 15: 
+   MATCH       2
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 16: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 17: 
+   MATCH       20
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 18: 
+   MATCH       6
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 19: 
+   MATCH       9
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 20: 
+   MATCH       17
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 21: 
+   MATCH       5
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 22: 
+   MATCH       7
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 23: 
+   MATCH       27
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 24: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 25: 
+   MATCH       1
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        14 
+   BLOOM       0
+   MARK        -
+VERTEX 26: 
+   MATCH       10
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        16 
+   BLOOM       0
+   MARK        -
+VERTEX 27: 
+   MATCH       23
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+--------------------------------
+LEVEL 1
+VERTEX 0: 
+   MATCH       13
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 1: 
+   MATCH       25
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 2: 
+   MATCH       15
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0
+   MARK        -
+VERTEX 3: 
+   MATCH       11
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0
+   MARK        -
+VERTEX 4: 
+   MATCH       12
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 5: 
+   MATCH       21
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        8 
+   BLOOM       0
+   MARK        -
+VERTEX 6: 
+   MATCH       18
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        14 
+   BLOOM       0
+   MARK        -
+VERTEX 7: 
+   MATCH       22
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 8: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 9: 
+   MATCH       19
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        14 
+   BLOOM       0
+   MARK        -
+VERTEX 10: 
+   MATCH       26
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 11: 
+   MATCH       3
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 12: 
+   MATCH       4
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 13: 
+   MATCH       0
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 14: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 15: 
+   MATCH       2
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 16: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 17: 
+   MATCH       20
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 18: 
+   MATCH       6
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 19: 
+   MATCH       9
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 20: 
+   MATCH       17
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 21: 
+   MATCH       5
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 22: 
+   MATCH       7
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 23: 
+   MATCH       27
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 24: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 25: 
+   MATCH       1
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        14 
+   BLOOM       0
+   MARK        -
+VERTEX 26: 
+   MATCH       10
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        16 
+   BLOOM       0
+   MARK        -
+VERTEX 27: 
+   MATCH       23
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+CHECK 5
+LOOK AT MATCH 21
+QUEUE 21 AT LEVEL 2
+MAKE 5 A PRED OF 21
+CHECK 25
+LOOK AT MATCH 1
+QUEUE 1 AT LEVEL 2
+MAKE 25 A PRED OF 1
+CHECK 6
+LOOK AT MATCH 18
+QUEUE 18 AT LEVEL 2
+MAKE 6 A PRED OF 18
+CHECK 9
+LOOK AT MATCH 19
+QUEUE 19 AT LEVEL 2
+MAKE 9 A PRED OF 19
+CHECK 26
+LOOK AT MATCH 10
+QUEUE 10 AT LEVEL 2
+MAKE 26 A PRED OF 10
+CHECK 3
+LOOK AT MATCH 11
+QUEUE 11 AT LEVEL 2
+MAKE 3 A PRED OF 11
+CHECK 2
+LOOK AT MATCH 15
+QUEUE 15 AT LEVEL 2
+MAKE 2 A PRED OF 15
+VERTEX 0: 
+   MATCH       13
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 1: 
+   MATCH       25
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        25 
+   BLOOM       0
+   MARK        -
+VERTEX 2: 
+   MATCH       15
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0
+   MARK        -
+VERTEX 3: 
+   MATCH       11
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0
+   MARK        -
+VERTEX 4: 
+   MATCH       12
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 5: 
+   MATCH       21
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        8 
+   BLOOM       0
+   MARK        -
+VERTEX 6: 
+   MATCH       18
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        14 
+   BLOOM       0
+   MARK        -
+VERTEX 7: 
+   MATCH       22
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 8: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 9: 
+   MATCH       19
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        14 
+   BLOOM       0
+   MARK        -
+VERTEX 10: 
+   MATCH       26
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        26 
+   BLOOM       0
+   MARK        -
+VERTEX 11: 
+   MATCH       3
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        3 
+   BLOOM       0
+   MARK        -
+VERTEX 12: 
+   MATCH       4
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 13: 
+   MATCH       0
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 14: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 15: 
+   MATCH       2
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        2 
+   BLOOM       0
+   MARK        -
+VERTEX 16: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 17: 
+   MATCH       20
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 18: 
+   MATCH       6
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        6 
+   BLOOM       0
+   MARK        -
+VERTEX 19: 
+   MATCH       9
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        9 
+   BLOOM       0
+   MARK        -
+VERTEX 20: 
+   MATCH       17
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 21: 
+   MATCH       5
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        5 
+   BLOOM       0
+   MARK        -
+VERTEX 22: 
+   MATCH       7
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 23: 
+   MATCH       27
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 24: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 25: 
+   MATCH       1
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        14 
+   BLOOM       0
+   MARK        -
+VERTEX 26: 
+   MATCH       10
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        16 
+   BLOOM       0
+   MARK        -
+VERTEX 27: 
+   MATCH       23
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+--------------------------------
+LEVEL 2
+VERTEX 0: 
+   MATCH       13
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 1: 
+   MATCH       25
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        25 
+   BLOOM       0
+   MARK        -
+VERTEX 2: 
+   MATCH       15
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0
+   MARK        -
+VERTEX 3: 
+   MATCH       11
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0
+   MARK        -
+VERTEX 4: 
+   MATCH       12
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 5: 
+   MATCH       21
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        8 
+   BLOOM       0
+   MARK        -
+VERTEX 6: 
+   MATCH       18
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        14 
+   BLOOM       0
+   MARK        -
+VERTEX 7: 
+   MATCH       22
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 8: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 9: 
+   MATCH       19
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        14 
+   BLOOM       0
+   MARK        -
+VERTEX 10: 
+   MATCH       26
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        26 
+   BLOOM       0
+   MARK        -
+VERTEX 11: 
+   MATCH       3
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        3 
+   BLOOM       0
+   MARK        -
+VERTEX 12: 
+   MATCH       4
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 13: 
+   MATCH       0
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 14: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 15: 
+   MATCH       2
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        2 
+   BLOOM       0
+   MARK        -
+VERTEX 16: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 17: 
+   MATCH       20
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 18: 
+   MATCH       6
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        6 
+   BLOOM       0
+   MARK        -
+VERTEX 19: 
+   MATCH       9
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        9 
+   BLOOM       0
+   MARK        -
+VERTEX 20: 
+   MATCH       17
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 21: 
+   MATCH       5
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        5 
+   BLOOM       0
+   MARK        -
+VERTEX 22: 
+   MATCH       7
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 23: 
+   MATCH       27
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 24: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 25: 
+   MATCH       1
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        14 
+   BLOOM       0
+   MARK        -
+VERTEX 26: 
+   MATCH       10
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        16 
+   BLOOM       0
+   MARK        -
+VERTEX 27: 
+   MATCH       23
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+CHECK 21
+LOOK AT NEIGHBOR 13
+QUEUE 13 AT LEVEL 3
+MAKE 21 A PRED OF 13
+CHECK 1
+LOOK AT NEIGHBOR 17
+QUEUE 17 AT LEVEL 3
+MAKE 1 A PRED OF 17
+LOOK AT NEIGHBOR 4
+QUEUE 4 AT LEVEL 3
+MAKE 1 A PRED OF 4
+CHECK 18
+LOOK AT NEIGHBOR 27
+QUEUE 27 AT LEVEL 3
+MAKE 18 A PRED OF 27
+LOOK AT NEIGHBOR 17
+MAKE 18 A PRED OF 17
+CHECK 19
+LOOK AT NEIGHBOR 20
+QUEUE 20 AT LEVEL 3
+MAKE 19 A PRED OF 20
+LOOK AT NEIGHBOR 13
+MAKE 19 A PRED OF 13
+CHECK 10
+LOOK AT NEIGHBOR 20
+MAKE 10 A PRED OF 20
+CHECK 11
+LOOK AT NEIGHBOR 15
+BRIDGE FOUND 15 11 AT LEVEL 2
+LOOK AT NEIGHBOR 26
+CHECK 15
+LOOK AT NEIGHBOR 23
+QUEUE 23 AT LEVEL 3
+MAKE 15 A PRED OF 23
+LOOK AT NEIGHBOR 11
+BRIDGE FOUND 11 15 AT LEVEL 2
+LOOK AT NEIGHBOR 4
+MAKE 15 A PRED OF 4
+LOOK AT NEIGHBOR 13
+MAKE 15 A PRED OF 13
+VERTEX 0: 
+   MATCH       13
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 1: 
+   MATCH       25
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        25 
+   BLOOM       0
+   MARK        -
+VERTEX 2: 
+   MATCH       15
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0
+   MARK        -
+VERTEX 3: 
+   MATCH       11
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0
+   MARK        -
+VERTEX 4: 
+   MATCH       12
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        1 15 
+   BLOOM       0
+   MARK        -
+VERTEX 5: 
+   MATCH       21
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        8 
+   BLOOM       0
+   MARK        -
+VERTEX 6: 
+   MATCH       18
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        14 
+   BLOOM       0
+   MARK        -
+VERTEX 7: 
+   MATCH       22
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 8: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 9: 
+   MATCH       19
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        14 
+   BLOOM       0
+   MARK        -
+VERTEX 10: 
+   MATCH       26
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        26 
+   BLOOM       0
+   MARK        -
+VERTEX 11: 
+   MATCH       3
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        3 
+   BLOOM       0
+   MARK        -
+VERTEX 12: 
+   MATCH       4
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 13: 
+   MATCH       0
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        21 19 15 
+   BLOOM       0
+   MARK        -
+VERTEX 14: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 15: 
+   MATCH       2
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        2 
+   BLOOM       0
+   MARK        -
+VERTEX 16: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 17: 
+   MATCH       20
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        1 18 
+   BLOOM       0
+   MARK        -
+VERTEX 18: 
+   MATCH       6
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        6 
+   BLOOM       0
+   MARK        -
+VERTEX 19: 
+   MATCH       9
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        9 
+   BLOOM       0
+   MARK        -
+VERTEX 20: 
+   MATCH       17
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        19 10 
+   BLOOM       0
+   MARK        -
+VERTEX 21: 
+   MATCH       5
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        5 
+   BLOOM       0
+   MARK        -
+VERTEX 22: 
+   MATCH       7
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 23: 
+   MATCH       27
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        15 
+   BLOOM       0
+   MARK        -
+VERTEX 24: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 25: 
+   MATCH       1
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        14 
+   BLOOM       0
+   MARK        -
+VERTEX 26: 
+   MATCH       10
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        16 
+   BLOOM       0
+   MARK        -
+VERTEX 27: 
+   MATCH       23
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        18 
+   BLOOM       0
+   MARK        -
+BLOSS AUG 15 11
+MARK 15 left
+MARK 11 right
+
+DFS 15 11 - 11
+ADVANCE LEFT
+USE EDGE (15, 2)
+MARK 2 LEFT
+
+DFS 2 11 - 11
+ADVANCE RIGHT
+USE EDGE (11, 3)
+MARK 3 RIGHT
+
+DFS 2 3 - 11
+ADVANCE LEFT
+USE EDGE (24, 2)
+MARK 24 LEFT
+
+DFS 24 3 - 11
+ADVANCE RIGHT
+USE EDGE (24, 3)
+DCV = 24
+
+DFS 24 11 24 11
+ADVANCE RIGHT
+MARK 24 RIGHT
+
+DFS 2 24 24 24
+ADVANCE LEFT
+
+DFS 15 24 24 24
+ADVANCE LEFT
+BLOOM FOUND 
+DFS 15 24 24 24
+ADDRESS = 0x55e9b74583e0
+BASE = 24
+LEFT PEAK = 15
+RIGHT PEAK = 11
+NODES: 15 11 2 3 
+QUEUE 2 AT LEVEL 4
+QUEUE 3 AT LEVEL 4
+--------------------------------
+LEVEL 3
+VERTEX 0: 
+   MATCH       13
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 1: 
+   MATCH       25
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        25 
+   BLOOM       0
+   MARK        -
+VERTEX 2: 
+   MATCH       15
+   EVEN LEVEL  4
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0x55e9b74583e0
+   MARK        left
+VERTEX 3: 
+   MATCH       11
+   EVEN LEVEL  4
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0x55e9b74583e0
+   MARK        right
+VERTEX 4: 
+   MATCH       12
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        1 15 
+   BLOOM       0
+   MARK        -
+VERTEX 5: 
+   MATCH       21
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        8 
+   BLOOM       0
+   MARK        -
+VERTEX 6: 
+   MATCH       18
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        14 
+   BLOOM       0
+   MARK        -
+VERTEX 7: 
+   MATCH       22
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 8: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 9: 
+   MATCH       19
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        14 
+   BLOOM       0
+   MARK        -
+VERTEX 10: 
+   MATCH       26
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        26 
+   BLOOM       0
+   MARK        -
+VERTEX 11: 
+   MATCH       3
+   EVEN LEVEL  2
+   ODD LEVEL   3
+   PRED        3 
+   BLOOM       0x55e9b74583e0
+   MARK        right
+VERTEX 12: 
+   MATCH       4
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 13: 
+   MATCH       0
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        21 19 15 
+   BLOOM       0
+   MARK        -
+VERTEX 14: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 15: 
+   MATCH       2
+   EVEN LEVEL  2
+   ODD LEVEL   3
+   PRED        2 
+   BLOOM       0x55e9b74583e0
+   MARK        left
+VERTEX 16: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 17: 
+   MATCH       20
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        1 18 
+   BLOOM       0
+   MARK        -
+VERTEX 18: 
+   MATCH       6
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        6 
+   BLOOM       0
+   MARK        -
+VERTEX 19: 
+   MATCH       9
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        9 
+   BLOOM       0
+   MARK        -
+VERTEX 20: 
+   MATCH       17
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        19 10 
+   BLOOM       0
+   MARK        -
+VERTEX 21: 
+   MATCH       5
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        5 
+   BLOOM       0
+   MARK        -
+VERTEX 22: 
+   MATCH       7
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 23: 
+   MATCH       27
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        15 
+   BLOOM       0
+   MARK        -
+VERTEX 24: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 25: 
+   MATCH       1
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        14 
+   BLOOM       0
+   MARK        -
+VERTEX 26: 
+   MATCH       10
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        16 
+   BLOOM       0
+   MARK        -
+VERTEX 27: 
+   MATCH       23
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        18 
+   BLOOM       0
+   MARK        -
+BLOSSOM 0x55e9b74583e0
+   BASE        24
+   LEFT PEAK   15
+   RIGHT PEAK  11
+   BASE STAR   24
+CHECK 13
+LOOK AT MATCH 0
+QUEUE 0 AT LEVEL 4
+MAKE 13 A PRED OF 0
+CHECK 17
+LOOK AT MATCH 20
+BRIDGE FOUND 20 17 AT LEVEL 3
+CHECK 4
+LOOK AT MATCH 12
+QUEUE 12 AT LEVEL 4
+MAKE 4 A PRED OF 12
+CHECK 27
+LOOK AT MATCH 23
+BRIDGE FOUND 23 27 AT LEVEL 3
+CHECK 20
+LOOK AT MATCH 17
+BRIDGE FOUND 17 20 AT LEVEL 3
+CHECK 23
+LOOK AT MATCH 27
+BRIDGE FOUND 27 23 AT LEVEL 3
+VERTEX 0: 
+   MATCH       13
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        13 
+   BLOOM       0
+   MARK        -
+VERTEX 1: 
+   MATCH       25
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        25 
+   BLOOM       0
+   MARK        -
+VERTEX 2: 
+   MATCH       15
+   EVEN LEVEL  4
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0x55e9b74583e0
+   MARK        left
+VERTEX 3: 
+   MATCH       11
+   EVEN LEVEL  4
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0x55e9b74583e0
+   MARK        right
+VERTEX 4: 
+   MATCH       12
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        1 15 
+   BLOOM       0
+   MARK        -
+VERTEX 5: 
+   MATCH       21
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        8 
+   BLOOM       0
+   MARK        -
+VERTEX 6: 
+   MATCH       18
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        14 
+   BLOOM       0
+   MARK        -
+VERTEX 7: 
+   MATCH       22
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 8: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 9: 
+   MATCH       19
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        14 
+   BLOOM       0
+   MARK        -
+VERTEX 10: 
+   MATCH       26
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        26 
+   BLOOM       0
+   MARK        -
+VERTEX 11: 
+   MATCH       3
+   EVEN LEVEL  2
+   ODD LEVEL   3
+   PRED        3 
+   BLOOM       0x55e9b74583e0
+   MARK        right
+VERTEX 12: 
+   MATCH       4
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        4 
+   BLOOM       0
+   MARK        -
+VERTEX 13: 
+   MATCH       0
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        21 19 15 
+   BLOOM       0
+   MARK        -
+VERTEX 14: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 15: 
+   MATCH       2
+   EVEN LEVEL  2
+   ODD LEVEL   3
+   PRED        2 
+   BLOOM       0x55e9b74583e0
+   MARK        left
+VERTEX 16: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 17: 
+   MATCH       20
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        1 18 
+   BLOOM       0
+   MARK        -
+VERTEX 18: 
+   MATCH       6
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        6 
+   BLOOM       0
+   MARK        -
+VERTEX 19: 
+   MATCH       9
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        9 
+   BLOOM       0
+   MARK        -
+VERTEX 20: 
+   MATCH       17
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        19 10 
+   BLOOM       0
+   MARK        -
+VERTEX 21: 
+   MATCH       5
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        5 
+   BLOOM       0
+   MARK        -
+VERTEX 22: 
+   MATCH       7
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 23: 
+   MATCH       27
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        15 
+   BLOOM       0
+   MARK        -
+VERTEX 24: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 25: 
+   MATCH       1
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        14 
+   BLOOM       0
+   MARK        -
+VERTEX 26: 
+   MATCH       10
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        16 
+   BLOOM       0
+   MARK        -
+VERTEX 27: 
+   MATCH       23
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        18 
+   BLOOM       0
+   MARK        -
+BLOSSOM 0x55e9b74583e0
+   BASE        24
+   LEFT PEAK   15
+   RIGHT PEAK  11
+   BASE STAR   24
+BLOSS AUG 20 17
+MARK 20 left
+MARK 17 right
+
+DFS 20 17 - 17
+ADVANCE LEFT
+USE EDGE (20, 19)
+MARK 19 LEFT
+
+DFS 19 17 - 17
+ADVANCE RIGHT
+USE EDGE (17, 1)
+MARK 1 RIGHT
+
+DFS 19 1 - 17
+ADVANCE LEFT
+USE EDGE (19, 9)
+MARK 9 LEFT
+
+DFS 9 1 - 17
+ADVANCE RIGHT
+USE EDGE (25, 1)
+MARK 25 RIGHT
+
+DFS 9 25 - 17
+ADVANCE LEFT
+USE EDGE (14, 9)
+MARK 14 LEFT
+
+DFS 14 25 - 17
+ADVANCE RIGHT
+USE EDGE (25, 14)
+DCV = 14
+
+DFS 14 1 14 17
+ADVANCE RIGHT
+
+DFS 14 17 14 17
+ADVANCE RIGHT
+USE EDGE (18, 17)
+MARK 18 RIGHT
+
+DFS 14 18 14 17
+ADVANCE RIGHT
+USE EDGE (18, 6)
+MARK 6 RIGHT
+
+DFS 14 6 14 17
+ADVANCE RIGHT
+USE EDGE (14, 6)
+DCV = 14
+
+DFS 14 18 14 17
+ADVANCE RIGHT
+
+DFS 14 17 14 17
+ADVANCE RIGHT
+MARK 14 RIGHT
+
+DFS 9 14 14 14
+ADVANCE LEFT
+
+DFS 19 14 14 14
+ADVANCE LEFT
+
+DFS 20 14 14 14
+ADVANCE LEFT
+USE EDGE (20, 10)
+MARK 10 LEFT
+
+DFS 10 14 14 14
+ADVANCE LEFT
+USE EDGE (26, 10)
+MARK 26 LEFT
+
+DFS 26 14 14 14
+ADVANCE LEFT
+USE EDGE (26, 16)
+MARK 16 LEFT
+DFS 16 14 14 14
+AUGMENT ON PATH 16 ~~ 20 - 17 ~~ 14
+11
+FIND PATH 20 16 in 0 MARKED left
+
+V = 20
+U = 20
+FOUND UNVISITED PRED 19
+MARK (20, 19) visited
+U = 19
+ERASED = 0
+VISITED = 0
+LEVEL(u) = 2
+LEVEL(low) = 0
+MARK(u) = left
+BLOOM(u) = 0
+BASE_START(BLOM(u)) = -
+MARK(BASE_START(BLOM(u))) = -
+CONDITION = 1
+PARENT(19) = 20
+
+V = 19
+U = 19
+FOUND UNVISITED PRED 9
+MARK (19, 9) visited
+U = 9
+ERASED = 0
+VISITED = 0
+LEVEL(u) = 1
+LEVEL(low) = 0
+MARK(u) = left
+BLOOM(u) = 0
+BASE_START(BLOM(u)) = -
+MARK(BASE_START(BLOM(u))) = -
+CONDITION = 1
+PARENT(9) = 19
+
+V = 9
+U = 9
+FOUND UNVISITED PRED 14
+MARK (14, 9) visited
+U = 14
+ERASED = 0
+VISITED = 0
+LEVEL(u) = 0
+LEVEL(low) = 0
+MARK(u) = right
+BLOOM(u) = 0
+BASE_START(BLOM(u)) = -
+MARK(BASE_START(BLOM(u))) = -
+CONDITION = 0
+BACK TO PARENT OF 9 = 19
+
+V = 19
+U = 14
+BACK TO PARENT OF 19 = 20
+
+V = 20
+U = 14
+FOUND UNVISITED PRED 10
+MARK (20, 10) visited
+U = 10
+ERASED = 0
+VISITED = 0
+LEVEL(u) = 2
+LEVEL(low) = 0
+MARK(u) = left
+BLOOM(u) = 0
+BASE_START(BLOM(u)) = -
+MARK(BASE_START(BLOM(u))) = -
+CONDITION = 1
+PARENT(10) = 20
+
+V = 10
+U = 10
+FOUND UNVISITED PRED 26
+MARK (26, 10) visited
+U = 26
+ERASED = 0
+VISITED = 0
+LEVEL(u) = 1
+LEVEL(low) = 0
+MARK(u) = left
+BLOOM(u) = 0
+BASE_START(BLOM(u)) = -
+MARK(BASE_START(BLOM(u))) = -
+CONDITION = 1
+PARENT(26) = 10
+
+V = 26
+U = 26
+FOUND UNVISITED PRED 16
+MARK (26, 16) visited
+U = 16
+ERASED = 0
+VISITED = 0
+LEVEL(u) = 0
+LEVEL(low) = 0
+MARK(u) = left
+BLOOM(u) = 0
+BASE_START(BLOM(u)) = -
+MARK(BASE_START(BLOM(u))) = -
+CONDITION = 0
+PARENT(16) = 26
+APPEND 16 WITH PARENT 26
+APPEND 26 WITH PARENT 10
+APPEND 10 WITH PARENT 20
+PREPATH:
+20 (20, 10) 10 (26, 10) 26 (26, 16) 16 
+FIND PATH 17 14 in 0 MARKED right
+
+V = 17
+U = 17
+FOUND UNVISITED PRED 1
+MARK (17, 1) visited
+U = 1
+ERASED = 0
+VISITED = 0
+LEVEL(u) = 2
+LEVEL(low) = 0
+MARK(u) = right
+BLOOM(u) = 0
+BASE_START(BLOM(u)) = -
+MARK(BASE_START(BLOM(u))) = -
+CONDITION = 1
+PARENT(1) = 17
+
+V = 1
+U = 1
+FOUND UNVISITED PRED 25
+MARK (25, 1) visited
+U = 25
+ERASED = 0
+VISITED = 0
+LEVEL(u) = 1
+LEVEL(low) = 0
+MARK(u) = right
+BLOOM(u) = 0
+BASE_START(BLOM(u)) = -
+MARK(BASE_START(BLOM(u))) = -
+CONDITION = 1
+PARENT(25) = 1
+
+V = 25
+U = 25
+FOUND UNVISITED PRED 14
+MARK (25, 14) visited
+U = 14
+ERASED = 0
+VISITED = 0
+LEVEL(u) = 0
+LEVEL(low) = 0
+MARK(u) = right
+BLOOM(u) = 0
+BASE_START(BLOM(u)) = -
+MARK(BASE_START(BLOM(u))) = -
+CONDITION = 0
+PARENT(14) = 25
+APPEND 14 WITH PARENT 25
+APPEND 25 WITH PARENT 1
+APPEND 1 WITH PARENT 17
+PREPATH:
+17 (17, 1) 1 (25, 1) 25 (25, 14) 14 
+AUGMENTING ON PATH 16 ~~ 20 - 17 ~~ 14 :
+16 (26, 16) 26 (26, 10) 10 (20, 10) 20 (20, 17) 17 (17, 1) 1 (25, 1) 25 (25, 14) 14 
+MATCH 16 26 (26 16)
+UNMATCH  (26 10)
+MATCH 10 20 (20 10)
+UNMATCH  (20 17)
+MATCH 17 1 (17 1)
+UNMATCH  (25 1)
+MATCH 25 14 (25 14)
+ERASE 16
+ERASE 26
+ERASE 10
+ERASE 20
+ERASE 17
+ERASE 1
+ERASE 25
+ERASE 14
+ERASE 26
+ERASE 10
+ERASE 6
+ERASE 9
+ERASE 18
+ERASE 19
+ERASE 27
+=============================
+SEARCH
+--------------------------------
+LEVEL 0
+VERTEX 0: 
+   MATCH       13
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 1: 
+   MATCH       17
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 2: 
+   MATCH       15
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 3: 
+   MATCH       11
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 4: 
+   MATCH       12
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 5: 
+   MATCH       21
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 6: 
+   MATCH       18
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 7: 
+   MATCH       22
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 8: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 9: 
+   MATCH       19
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 10: 
+   MATCH       20
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 11: 
+   MATCH       3
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 12: 
+   MATCH       4
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 13: 
+   MATCH       0
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 14: 
+   MATCH       25
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 15: 
+   MATCH       2
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 16: 
+   MATCH       26
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 17: 
+   MATCH       1
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 18: 
+   MATCH       6
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 19: 
+   MATCH       9
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 20: 
+   MATCH       10
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 21: 
+   MATCH       5
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 22: 
+   MATCH       7
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 23: 
+   MATCH       27
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 24: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 25: 
+   MATCH       14
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 26: 
+   MATCH       16
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 27: 
+   MATCH       23
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+CHECK 8
+LOOK AT NEIGHBOR 5
+QUEUE 5 AT LEVEL 1
+MAKE 8 A PRED OF 5
+CHECK 24
+LOOK AT NEIGHBOR 3
+QUEUE 3 AT LEVEL 1
+MAKE 24 A PRED OF 3
+LOOK AT NEIGHBOR 2
+QUEUE 2 AT LEVEL 1
+MAKE 24 A PRED OF 2
+VERTEX 0: 
+   MATCH       13
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 1: 
+   MATCH       17
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 2: 
+   MATCH       15
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0
+   MARK        -
+VERTEX 3: 
+   MATCH       11
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0
+   MARK        -
+VERTEX 4: 
+   MATCH       12
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 5: 
+   MATCH       21
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        8 
+   BLOOM       0
+   MARK        -
+VERTEX 6: 
+   MATCH       18
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 7: 
+   MATCH       22
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 8: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 9: 
+   MATCH       19
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 10: 
+   MATCH       20
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 11: 
+   MATCH       3
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 12: 
+   MATCH       4
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 13: 
+   MATCH       0
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 14: 
+   MATCH       25
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 15: 
+   MATCH       2
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 16: 
+   MATCH       26
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 17: 
+   MATCH       1
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 18: 
+   MATCH       6
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 19: 
+   MATCH       9
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 20: 
+   MATCH       10
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 21: 
+   MATCH       5
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 22: 
+   MATCH       7
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 23: 
+   MATCH       27
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 24: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 25: 
+   MATCH       14
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 26: 
+   MATCH       16
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 27: 
+   MATCH       23
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+--------------------------------
+LEVEL 1
+VERTEX 0: 
+   MATCH       13
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 1: 
+   MATCH       17
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 2: 
+   MATCH       15
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0
+   MARK        -
+VERTEX 3: 
+   MATCH       11
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0
+   MARK        -
+VERTEX 4: 
+   MATCH       12
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 5: 
+   MATCH       21
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        8 
+   BLOOM       0
+   MARK        -
+VERTEX 6: 
+   MATCH       18
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 7: 
+   MATCH       22
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 8: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 9: 
+   MATCH       19
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 10: 
+   MATCH       20
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 11: 
+   MATCH       3
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 12: 
+   MATCH       4
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 13: 
+   MATCH       0
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 14: 
+   MATCH       25
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 15: 
+   MATCH       2
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 16: 
+   MATCH       26
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 17: 
+   MATCH       1
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 18: 
+   MATCH       6
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 19: 
+   MATCH       9
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 20: 
+   MATCH       10
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 21: 
+   MATCH       5
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 22: 
+   MATCH       7
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 23: 
+   MATCH       27
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 24: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 25: 
+   MATCH       14
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 26: 
+   MATCH       16
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 27: 
+   MATCH       23
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+CHECK 5
+LOOK AT MATCH 21
+QUEUE 21 AT LEVEL 2
+MAKE 5 A PRED OF 21
+CHECK 3
+LOOK AT MATCH 11
+QUEUE 11 AT LEVEL 2
+MAKE 3 A PRED OF 11
+CHECK 2
+LOOK AT MATCH 15
+QUEUE 15 AT LEVEL 2
+MAKE 2 A PRED OF 15
+VERTEX 0: 
+   MATCH       13
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 1: 
+   MATCH       17
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 2: 
+   MATCH       15
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0
+   MARK        -
+VERTEX 3: 
+   MATCH       11
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0
+   MARK        -
+VERTEX 4: 
+   MATCH       12
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 5: 
+   MATCH       21
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        8 
+   BLOOM       0
+   MARK        -
+VERTEX 6: 
+   MATCH       18
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 7: 
+   MATCH       22
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 8: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 9: 
+   MATCH       19
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 10: 
+   MATCH       20
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 11: 
+   MATCH       3
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        3 
+   BLOOM       0
+   MARK        -
+VERTEX 12: 
+   MATCH       4
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 13: 
+   MATCH       0
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 14: 
+   MATCH       25
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 15: 
+   MATCH       2
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        2 
+   BLOOM       0
+   MARK        -
+VERTEX 16: 
+   MATCH       26
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 17: 
+   MATCH       1
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 18: 
+   MATCH       6
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 19: 
+   MATCH       9
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 20: 
+   MATCH       10
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 21: 
+   MATCH       5
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        5 
+   BLOOM       0
+   MARK        -
+VERTEX 22: 
+   MATCH       7
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 23: 
+   MATCH       27
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 24: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 25: 
+   MATCH       14
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 26: 
+   MATCH       16
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 27: 
+   MATCH       23
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+--------------------------------
+LEVEL 2
+VERTEX 0: 
+   MATCH       13
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 1: 
+   MATCH       17
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 2: 
+   MATCH       15
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0
+   MARK        -
+VERTEX 3: 
+   MATCH       11
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0
+   MARK        -
+VERTEX 4: 
+   MATCH       12
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 5: 
+   MATCH       21
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        8 
+   BLOOM       0
+   MARK        -
+VERTEX 6: 
+   MATCH       18
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 7: 
+   MATCH       22
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 8: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 9: 
+   MATCH       19
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 10: 
+   MATCH       20
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 11: 
+   MATCH       3
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        3 
+   BLOOM       0
+   MARK        -
+VERTEX 12: 
+   MATCH       4
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 13: 
+   MATCH       0
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 14: 
+   MATCH       25
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 15: 
+   MATCH       2
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        2 
+   BLOOM       0
+   MARK        -
+VERTEX 16: 
+   MATCH       26
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 17: 
+   MATCH       1
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 18: 
+   MATCH       6
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 19: 
+   MATCH       9
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 20: 
+   MATCH       10
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 21: 
+   MATCH       5
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        5 
+   BLOOM       0
+   MARK        -
+VERTEX 22: 
+   MATCH       7
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 23: 
+   MATCH       27
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 24: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 25: 
+   MATCH       14
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 26: 
+   MATCH       16
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 27: 
+   MATCH       23
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+CHECK 21
+LOOK AT NEIGHBOR 13
+QUEUE 13 AT LEVEL 3
+MAKE 21 A PRED OF 13
+CHECK 11
+LOOK AT NEIGHBOR 15
+BRIDGE FOUND 15 11 AT LEVEL 2
+LOOK AT NEIGHBOR 26
+QUEUE 26 AT LEVEL 3
+MAKE 11 A PRED OF 26
+CHECK 15
+LOOK AT NEIGHBOR 23
+QUEUE 23 AT LEVEL 3
+MAKE 15 A PRED OF 23
+LOOK AT NEIGHBOR 11
+BRIDGE FOUND 11 15 AT LEVEL 2
+LOOK AT NEIGHBOR 4
+QUEUE 4 AT LEVEL 3
+MAKE 15 A PRED OF 4
+LOOK AT NEIGHBOR 13
+MAKE 15 A PRED OF 13
+VERTEX 0: 
+   MATCH       13
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 1: 
+   MATCH       17
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 2: 
+   MATCH       15
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0
+   MARK        -
+VERTEX 3: 
+   MATCH       11
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0
+   MARK        -
+VERTEX 4: 
+   MATCH       12
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        15 
+   BLOOM       0
+   MARK        -
+VERTEX 5: 
+   MATCH       21
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        8 
+   BLOOM       0
+   MARK        -
+VERTEX 6: 
+   MATCH       18
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 7: 
+   MATCH       22
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 8: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 9: 
+   MATCH       19
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 10: 
+   MATCH       20
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 11: 
+   MATCH       3
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        3 
+   BLOOM       0
+   MARK        -
+VERTEX 12: 
+   MATCH       4
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 13: 
+   MATCH       0
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        21 15 
+   BLOOM       0
+   MARK        -
+VERTEX 14: 
+   MATCH       25
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 15: 
+   MATCH       2
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        2 
+   BLOOM       0
+   MARK        -
+VERTEX 16: 
+   MATCH       26
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 17: 
+   MATCH       1
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 18: 
+   MATCH       6
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 19: 
+   MATCH       9
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 20: 
+   MATCH       10
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 21: 
+   MATCH       5
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        5 
+   BLOOM       0
+   MARK        -
+VERTEX 22: 
+   MATCH       7
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 23: 
+   MATCH       27
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        15 
+   BLOOM       0
+   MARK        -
+VERTEX 24: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 25: 
+   MATCH       14
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 26: 
+   MATCH       16
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        11 
+   BLOOM       0
+   MARK        -
+VERTEX 27: 
+   MATCH       23
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+BLOSS AUG 15 11
+MARK 15 left
+MARK 11 right
+
+DFS 15 11 - 11
+ADVANCE LEFT
+USE EDGE (15, 2)
+MARK 2 LEFT
+
+DFS 2 11 - 11
+ADVANCE RIGHT
+USE EDGE (11, 3)
+MARK 3 RIGHT
+
+DFS 2 3 - 11
+ADVANCE LEFT
+USE EDGE (24, 2)
+MARK 24 LEFT
+
+DFS 24 3 - 11
+ADVANCE RIGHT
+USE EDGE (24, 3)
+DCV = 24
+
+DFS 24 11 24 11
+ADVANCE RIGHT
+MARK 24 RIGHT
+
+DFS 2 24 24 24
+ADVANCE LEFT
+
+DFS 15 24 24 24
+ADVANCE LEFT
+BLOOM FOUND 
+DFS 15 24 24 24
+ADDRESS = 0x55e9b74583e0
+BASE = 24
+LEFT PEAK = 15
+RIGHT PEAK = 11
+NODES: 15 11 2 3 
+QUEUE 2 AT LEVEL 4
+QUEUE 3 AT LEVEL 4
+--------------------------------
+LEVEL 3
+VERTEX 0: 
+   MATCH       13
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 1: 
+   MATCH       17
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 2: 
+   MATCH       15
+   EVEN LEVEL  4
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0x55e9b74583e0
+   MARK        left
+VERTEX 3: 
+   MATCH       11
+   EVEN LEVEL  4
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0x55e9b74583e0
+   MARK        right
+VERTEX 4: 
+   MATCH       12
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        15 
+   BLOOM       0
+   MARK        -
+VERTEX 5: 
+   MATCH       21
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        8 
+   BLOOM       0
+   MARK        -
+VERTEX 6: 
+   MATCH       18
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 7: 
+   MATCH       22
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 8: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 9: 
+   MATCH       19
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 10: 
+   MATCH       20
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 11: 
+   MATCH       3
+   EVEN LEVEL  2
+   ODD LEVEL   3
+   PRED        3 
+   BLOOM       0x55e9b74583e0
+   MARK        right
+VERTEX 12: 
+   MATCH       4
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 13: 
+   MATCH       0
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        21 15 
+   BLOOM       0
+   MARK        -
+VERTEX 14: 
+   MATCH       25
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 15: 
+   MATCH       2
+   EVEN LEVEL  2
+   ODD LEVEL   3
+   PRED        2 
+   BLOOM       0x55e9b74583e0
+   MARK        left
+VERTEX 16: 
+   MATCH       26
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 17: 
+   MATCH       1
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 18: 
+   MATCH       6
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 19: 
+   MATCH       9
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 20: 
+   MATCH       10
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 21: 
+   MATCH       5
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        5 
+   BLOOM       0
+   MARK        -
+VERTEX 22: 
+   MATCH       7
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 23: 
+   MATCH       27
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        15 
+   BLOOM       0
+   MARK        -
+VERTEX 24: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 25: 
+   MATCH       14
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 26: 
+   MATCH       16
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        11 
+   BLOOM       0
+   MARK        -
+VERTEX 27: 
+   MATCH       23
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+BLOSSOM 0x55e9b74583e0
+   BASE        24
+   LEFT PEAK   15
+   RIGHT PEAK  11
+   BASE STAR   24
+CHECK 13
+LOOK AT MATCH 0
+QUEUE 0 AT LEVEL 4
+MAKE 13 A PRED OF 0
+CHECK 26
+LOOK AT MATCH 16
+QUEUE 16 AT LEVEL 4
+MAKE 26 A PRED OF 16
+CHECK 23
+LOOK AT MATCH 27
+QUEUE 27 AT LEVEL 4
+MAKE 23 A PRED OF 27
+CHECK 4
+LOOK AT MATCH 12
+QUEUE 12 AT LEVEL 4
+MAKE 4 A PRED OF 12
+VERTEX 0: 
+   MATCH       13
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        13 
+   BLOOM       0
+   MARK        -
+VERTEX 1: 
+   MATCH       17
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 2: 
+   MATCH       15
+   EVEN LEVEL  4
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0x55e9b74583e0
+   MARK        left
+VERTEX 3: 
+   MATCH       11
+   EVEN LEVEL  4
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0x55e9b74583e0
+   MARK        right
+VERTEX 4: 
+   MATCH       12
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        15 
+   BLOOM       0
+   MARK        -
+VERTEX 5: 
+   MATCH       21
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        8 
+   BLOOM       0
+   MARK        -
+VERTEX 6: 
+   MATCH       18
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 7: 
+   MATCH       22
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 8: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 9: 
+   MATCH       19
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 10: 
+   MATCH       20
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 11: 
+   MATCH       3
+   EVEN LEVEL  2
+   ODD LEVEL   3
+   PRED        3 
+   BLOOM       0x55e9b74583e0
+   MARK        right
+VERTEX 12: 
+   MATCH       4
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        4 
+   BLOOM       0
+   MARK        -
+VERTEX 13: 
+   MATCH       0
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        21 15 
+   BLOOM       0
+   MARK        -
+VERTEX 14: 
+   MATCH       25
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 15: 
+   MATCH       2
+   EVEN LEVEL  2
+   ODD LEVEL   3
+   PRED        2 
+   BLOOM       0x55e9b74583e0
+   MARK        left
+VERTEX 16: 
+   MATCH       26
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        26 
+   BLOOM       0
+   MARK        -
+VERTEX 17: 
+   MATCH       1
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 18: 
+   MATCH       6
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 19: 
+   MATCH       9
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 20: 
+   MATCH       10
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 21: 
+   MATCH       5
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        5 
+   BLOOM       0
+   MARK        -
+VERTEX 22: 
+   MATCH       7
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 23: 
+   MATCH       27
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        15 
+   BLOOM       0
+   MARK        -
+VERTEX 24: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 25: 
+   MATCH       14
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 26: 
+   MATCH       16
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        11 
+   BLOOM       0
+   MARK        -
+VERTEX 27: 
+   MATCH       23
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        23 
+   BLOOM       0
+   MARK        -
+BLOSSOM 0x55e9b74583e0
+   BASE        24
+   LEFT PEAK   15
+   RIGHT PEAK  11
+   BASE STAR   24
+--------------------------------
+LEVEL 4
+VERTEX 0: 
+   MATCH       13
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        13 
+   BLOOM       0
+   MARK        -
+VERTEX 1: 
+   MATCH       17
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 2: 
+   MATCH       15
+   EVEN LEVEL  4
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0x55e9b74583e0
+   MARK        left
+VERTEX 3: 
+   MATCH       11
+   EVEN LEVEL  4
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0x55e9b74583e0
+   MARK        right
+VERTEX 4: 
+   MATCH       12
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        15 
+   BLOOM       0
+   MARK        -
+VERTEX 5: 
+   MATCH       21
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        8 
+   BLOOM       0
+   MARK        -
+VERTEX 6: 
+   MATCH       18
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 7: 
+   MATCH       22
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 8: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 9: 
+   MATCH       19
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 10: 
+   MATCH       20
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 11: 
+   MATCH       3
+   EVEN LEVEL  2
+   ODD LEVEL   3
+   PRED        3 
+   BLOOM       0x55e9b74583e0
+   MARK        right
+VERTEX 12: 
+   MATCH       4
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        4 
+   BLOOM       0
+   MARK        -
+VERTEX 13: 
+   MATCH       0
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        21 15 
+   BLOOM       0
+   MARK        -
+VERTEX 14: 
+   MATCH       25
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 15: 
+   MATCH       2
+   EVEN LEVEL  2
+   ODD LEVEL   3
+   PRED        2 
+   BLOOM       0x55e9b74583e0
+   MARK        left
+VERTEX 16: 
+   MATCH       26
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        26 
+   BLOOM       0
+   MARK        -
+VERTEX 17: 
+   MATCH       1
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 18: 
+   MATCH       6
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 19: 
+   MATCH       9
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 20: 
+   MATCH       10
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 21: 
+   MATCH       5
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        5 
+   BLOOM       0
+   MARK        -
+VERTEX 22: 
+   MATCH       7
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 23: 
+   MATCH       27
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        15 
+   BLOOM       0
+   MARK        -
+VERTEX 24: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 25: 
+   MATCH       14
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 26: 
+   MATCH       16
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        11 
+   BLOOM       0
+   MARK        -
+VERTEX 27: 
+   MATCH       23
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        23 
+   BLOOM       0
+   MARK        -
+BLOSSOM 0x55e9b74583e0
+   BASE        24
+   LEFT PEAK   15
+   RIGHT PEAK  11
+   BASE STAR   24
+CHECK 2
+LOOK AT NEIGHBOR 24
+BRIDGE FOUND 24 2 AT LEVEL 2
+CHECK 3
+LOOK AT NEIGHBOR 20
+QUEUE 20 AT LEVEL 5
+MAKE 3 A PRED OF 20
+LOOK AT NEIGHBOR 5
+LOOK AT NEIGHBOR 26
+LOOK AT NEIGHBOR 17
+QUEUE 17 AT LEVEL 5
+MAKE 3 A PRED OF 17
+LOOK AT NEIGHBOR 6
+QUEUE 6 AT LEVEL 5
+MAKE 3 A PRED OF 6
+LOOK AT NEIGHBOR 24
+BRIDGE FOUND 24 3 AT LEVEL 2
+CHECK 0
+LOOK AT NEIGHBOR 6
+MAKE 0 A PRED OF 6
+CHECK 16
+CHECK 27
+LOOK AT NEIGHBOR 18
+QUEUE 18 AT LEVEL 5
+MAKE 27 A PRED OF 18
+CHECK 12
+LOOK AT NEIGHBOR 22
+QUEUE 22 AT LEVEL 5
+MAKE 12 A PRED OF 22
+LOOK AT NEIGHBOR 26
+VERTEX 0: 
+   MATCH       13
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        13 
+   BLOOM       0
+   MARK        -
+VERTEX 1: 
+   MATCH       17
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 2: 
+   MATCH       15
+   EVEN LEVEL  4
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0x55e9b74583e0
+   MARK        left
+VERTEX 3: 
+   MATCH       11
+   EVEN LEVEL  4
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0x55e9b74583e0
+   MARK        right
+VERTEX 4: 
+   MATCH       12
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        15 
+   BLOOM       0
+   MARK        -
+VERTEX 5: 
+   MATCH       21
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        8 
+   BLOOM       0
+   MARK        -
+VERTEX 6: 
+   MATCH       18
+   EVEN LEVEL  inf
+   ODD LEVEL   5
+   PRED        3 0 
+   BLOOM       0
+   MARK        -
+VERTEX 7: 
+   MATCH       22
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 8: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 9: 
+   MATCH       19
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 10: 
+   MATCH       20
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 11: 
+   MATCH       3
+   EVEN LEVEL  2
+   ODD LEVEL   3
+   PRED        3 
+   BLOOM       0x55e9b74583e0
+   MARK        right
+VERTEX 12: 
+   MATCH       4
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        4 
+   BLOOM       0
+   MARK        -
+VERTEX 13: 
+   MATCH       0
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        21 15 
+   BLOOM       0
+   MARK        -
+VERTEX 14: 
+   MATCH       25
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 15: 
+   MATCH       2
+   EVEN LEVEL  2
+   ODD LEVEL   3
+   PRED        2 
+   BLOOM       0x55e9b74583e0
+   MARK        left
+VERTEX 16: 
+   MATCH       26
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        26 
+   BLOOM       0
+   MARK        -
+VERTEX 17: 
+   MATCH       1
+   EVEN LEVEL  inf
+   ODD LEVEL   5
+   PRED        3 
+   BLOOM       0
+   MARK        -
+VERTEX 18: 
+   MATCH       6
+   EVEN LEVEL  inf
+   ODD LEVEL   5
+   PRED        27 
+   BLOOM       0
+   MARK        -
+VERTEX 19: 
+   MATCH       9
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 20: 
+   MATCH       10
+   EVEN LEVEL  inf
+   ODD LEVEL   5
+   PRED        3 
+   BLOOM       0
+   MARK        -
+VERTEX 21: 
+   MATCH       5
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        5 
+   BLOOM       0
+   MARK        -
+VERTEX 22: 
+   MATCH       7
+   EVEN LEVEL  inf
+   ODD LEVEL   5
+   PRED        12 
+   BLOOM       0
+   MARK        -
+VERTEX 23: 
+   MATCH       27
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        15 
+   BLOOM       0
+   MARK        -
+VERTEX 24: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 25: 
+   MATCH       14
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 26: 
+   MATCH       16
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        11 
+   BLOOM       0
+   MARK        -
+VERTEX 27: 
+   MATCH       23
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        23 
+   BLOOM       0
+   MARK        -
+BLOSSOM 0x55e9b74583e0
+   BASE        24
+   LEFT PEAK   15
+   RIGHT PEAK  11
+   BASE STAR   24
+--------------------------------
+LEVEL 5
+VERTEX 0: 
+   MATCH       13
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        13 
+   BLOOM       0
+   MARK        -
+VERTEX 1: 
+   MATCH       17
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 2: 
+   MATCH       15
+   EVEN LEVEL  4
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0x55e9b74583e0
+   MARK        left
+VERTEX 3: 
+   MATCH       11
+   EVEN LEVEL  4
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0x55e9b74583e0
+   MARK        right
+VERTEX 4: 
+   MATCH       12
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        15 
+   BLOOM       0
+   MARK        -
+VERTEX 5: 
+   MATCH       21
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        8 
+   BLOOM       0
+   MARK        -
+VERTEX 6: 
+   MATCH       18
+   EVEN LEVEL  inf
+   ODD LEVEL   5
+   PRED        3 0 
+   BLOOM       0
+   MARK        -
+VERTEX 7: 
+   MATCH       22
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 8: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 9: 
+   MATCH       19
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 10: 
+   MATCH       20
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 11: 
+   MATCH       3
+   EVEN LEVEL  2
+   ODD LEVEL   3
+   PRED        3 
+   BLOOM       0x55e9b74583e0
+   MARK        right
+VERTEX 12: 
+   MATCH       4
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        4 
+   BLOOM       0
+   MARK        -
+VERTEX 13: 
+   MATCH       0
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        21 15 
+   BLOOM       0
+   MARK        -
+VERTEX 14: 
+   MATCH       25
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 15: 
+   MATCH       2
+   EVEN LEVEL  2
+   ODD LEVEL   3
+   PRED        2 
+   BLOOM       0x55e9b74583e0
+   MARK        left
+VERTEX 16: 
+   MATCH       26
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        26 
+   BLOOM       0
+   MARK        -
+VERTEX 17: 
+   MATCH       1
+   EVEN LEVEL  inf
+   ODD LEVEL   5
+   PRED        3 
+   BLOOM       0
+   MARK        -
+VERTEX 18: 
+   MATCH       6
+   EVEN LEVEL  inf
+   ODD LEVEL   5
+   PRED        27 
+   BLOOM       0
+   MARK        -
+VERTEX 19: 
+   MATCH       9
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 20: 
+   MATCH       10
+   EVEN LEVEL  inf
+   ODD LEVEL   5
+   PRED        3 
+   BLOOM       0
+   MARK        -
+VERTEX 21: 
+   MATCH       5
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        5 
+   BLOOM       0
+   MARK        -
+VERTEX 22: 
+   MATCH       7
+   EVEN LEVEL  inf
+   ODD LEVEL   5
+   PRED        12 
+   BLOOM       0
+   MARK        -
+VERTEX 23: 
+   MATCH       27
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        15 
+   BLOOM       0
+   MARK        -
+VERTEX 24: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 25: 
+   MATCH       14
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 26: 
+   MATCH       16
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        11 
+   BLOOM       0
+   MARK        -
+VERTEX 27: 
+   MATCH       23
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        23 
+   BLOOM       0
+   MARK        -
+BLOSSOM 0x55e9b74583e0
+   BASE        24
+   LEFT PEAK   15
+   RIGHT PEAK  11
+   BASE STAR   24
+CHECK 20
+LOOK AT MATCH 10
+QUEUE 10 AT LEVEL 6
+MAKE 20 A PRED OF 10
+CHECK 17
+LOOK AT MATCH 1
+QUEUE 1 AT LEVEL 6
+MAKE 17 A PRED OF 1
+CHECK 6
+LOOK AT MATCH 18
+BRIDGE FOUND 18 6 AT LEVEL 5
+CHECK 18
+LOOK AT MATCH 6
+BRIDGE FOUND 6 18 AT LEVEL 5
+CHECK 22
+LOOK AT MATCH 7
+QUEUE 7 AT LEVEL 6
+MAKE 22 A PRED OF 7
+VERTEX 0: 
+   MATCH       13
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        13 
+   BLOOM       0
+   MARK        -
+VERTEX 1: 
+   MATCH       17
+   EVEN LEVEL  6
+   ODD LEVEL   inf
+   PRED        17 
+   BLOOM       0
+   MARK        -
+VERTEX 2: 
+   MATCH       15
+   EVEN LEVEL  4
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0x55e9b74583e0
+   MARK        left
+VERTEX 3: 
+   MATCH       11
+   EVEN LEVEL  4
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0x55e9b74583e0
+   MARK        right
+VERTEX 4: 
+   MATCH       12
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        15 
+   BLOOM       0
+   MARK        -
+VERTEX 5: 
+   MATCH       21
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        8 
+   BLOOM       0
+   MARK        -
+VERTEX 6: 
+   MATCH       18
+   EVEN LEVEL  inf
+   ODD LEVEL   5
+   PRED        3 0 
+   BLOOM       0
+   MARK        -
+VERTEX 7: 
+   MATCH       22
+   EVEN LEVEL  6
+   ODD LEVEL   inf
+   PRED        22 
+   BLOOM       0
+   MARK        -
+VERTEX 8: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 9: 
+   MATCH       19
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 10: 
+   MATCH       20
+   EVEN LEVEL  6
+   ODD LEVEL   inf
+   PRED        20 
+   BLOOM       0
+   MARK        -
+VERTEX 11: 
+   MATCH       3
+   EVEN LEVEL  2
+   ODD LEVEL   3
+   PRED        3 
+   BLOOM       0x55e9b74583e0
+   MARK        right
+VERTEX 12: 
+   MATCH       4
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        4 
+   BLOOM       0
+   MARK        -
+VERTEX 13: 
+   MATCH       0
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        21 15 
+   BLOOM       0
+   MARK        -
+VERTEX 14: 
+   MATCH       25
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 15: 
+   MATCH       2
+   EVEN LEVEL  2
+   ODD LEVEL   3
+   PRED        2 
+   BLOOM       0x55e9b74583e0
+   MARK        left
+VERTEX 16: 
+   MATCH       26
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        26 
+   BLOOM       0
+   MARK        -
+VERTEX 17: 
+   MATCH       1
+   EVEN LEVEL  inf
+   ODD LEVEL   5
+   PRED        3 
+   BLOOM       0
+   MARK        -
+VERTEX 18: 
+   MATCH       6
+   EVEN LEVEL  inf
+   ODD LEVEL   5
+   PRED        27 
+   BLOOM       0
+   MARK        -
+VERTEX 19: 
+   MATCH       9
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 20: 
+   MATCH       10
+   EVEN LEVEL  inf
+   ODD LEVEL   5
+   PRED        3 
+   BLOOM       0
+   MARK        -
+VERTEX 21: 
+   MATCH       5
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        5 
+   BLOOM       0
+   MARK        -
+VERTEX 22: 
+   MATCH       7
+   EVEN LEVEL  inf
+   ODD LEVEL   5
+   PRED        12 
+   BLOOM       0
+   MARK        -
+VERTEX 23: 
+   MATCH       27
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        15 
+   BLOOM       0
+   MARK        -
+VERTEX 24: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 25: 
+   MATCH       14
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 26: 
+   MATCH       16
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        11 
+   BLOOM       0
+   MARK        -
+VERTEX 27: 
+   MATCH       23
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        23 
+   BLOOM       0
+   MARK        -
+BLOSSOM 0x55e9b74583e0
+   BASE        24
+   LEFT PEAK   15
+   RIGHT PEAK  11
+   BASE STAR   24
+BLOSS AUG 18 6
+MARK 18 left
+MARK 6 right
+
+DFS 18 6 - 6
+ADVANCE LEFT
+USE EDGE (27, 18)
+MARK 27 LEFT
+
+DFS 27 6 - 6
+ADVANCE RIGHT
+USE EDGE (6, 3)
+MARK 24 RIGHT
+
+DFS 27 24 - 6
+ADVANCE LEFT
+USE EDGE (27, 23)
+MARK 23 LEFT
+
+DFS 23 24 - 6
+ADVANCE LEFT
+USE EDGE (23, 15)
+
+DFS 27 24 24 6
+ADVANCE LEFT
+
+DFS 18 24 24 6
+ADVANCE LEFT
+BLOOM FOUND 
+DFS 18 24 24 6
+ADDRESS = 0x55e9b745a060
+BASE = 24
+LEFT PEAK = 18
+RIGHT PEAK = 6
+NODES: 18 6 27 23 
+QUEUE 18 AT LEVEL 6
+QUEUE 6 AT LEVEL 6
+QUEUE 23 AT LEVEL 8
+--------------------------------
+LEVEL 6
+VERTEX 0: 
+   MATCH       13
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        13 
+   BLOOM       0
+   MARK        -
+VERTEX 1: 
+   MATCH       17
+   EVEN LEVEL  6
+   ODD LEVEL   inf
+   PRED        17 
+   BLOOM       0
+   MARK        -
+VERTEX 2: 
+   MATCH       15
+   EVEN LEVEL  4
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0x55e9b74583e0
+   MARK        left
+VERTEX 3: 
+   MATCH       11
+   EVEN LEVEL  4
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0x55e9b74583e0
+   MARK        right
+VERTEX 4: 
+   MATCH       12
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        15 
+   BLOOM       0
+   MARK        -
+VERTEX 5: 
+   MATCH       21
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        8 
+   BLOOM       0
+   MARK        -
+VERTEX 6: 
+   MATCH       18
+   EVEN LEVEL  6
+   ODD LEVEL   5
+   PRED        3 0 
+   BLOOM       0x55e9b745a060
+   MARK        right
+VERTEX 7: 
+   MATCH       22
+   EVEN LEVEL  6
+   ODD LEVEL   inf
+   PRED        22 
+   BLOOM       0
+   MARK        -
+VERTEX 8: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 9: 
+   MATCH       19
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 10: 
+   MATCH       20
+   EVEN LEVEL  6
+   ODD LEVEL   inf
+   PRED        20 
+   BLOOM       0
+   MARK        -
+VERTEX 11: 
+   MATCH       3
+   EVEN LEVEL  2
+   ODD LEVEL   3
+   PRED        3 
+   BLOOM       0x55e9b74583e0
+   MARK        right
+VERTEX 12: 
+   MATCH       4
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        4 
+   BLOOM       0
+   MARK        -
+VERTEX 13: 
+   MATCH       0
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        21 15 
+   BLOOM       0
+   MARK        -
+VERTEX 14: 
+   MATCH       25
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 15: 
+   MATCH       2
+   EVEN LEVEL  2
+   ODD LEVEL   3
+   PRED        2 
+   BLOOM       0x55e9b74583e0
+   MARK        left
+VERTEX 16: 
+   MATCH       26
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        26 
+   BLOOM       0
+   MARK        -
+VERTEX 17: 
+   MATCH       1
+   EVEN LEVEL  inf
+   ODD LEVEL   5
+   PRED        3 
+   BLOOM       0
+   MARK        -
+VERTEX 18: 
+   MATCH       6
+   EVEN LEVEL  6
+   ODD LEVEL   5
+   PRED        27 
+   BLOOM       0x55e9b745a060
+   MARK        left
+VERTEX 19: 
+   MATCH       9
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 20: 
+   MATCH       10
+   EVEN LEVEL  inf
+   ODD LEVEL   5
+   PRED        3 
+   BLOOM       0
+   MARK        -
+VERTEX 21: 
+   MATCH       5
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        5 
+   BLOOM       0
+   MARK        -
+VERTEX 22: 
+   MATCH       7
+   EVEN LEVEL  inf
+   ODD LEVEL   5
+   PRED        12 
+   BLOOM       0
+   MARK        -
+VERTEX 23: 
+   MATCH       27
+   EVEN LEVEL  8
+   ODD LEVEL   3
+   PRED        15 
+   BLOOM       0x55e9b745a060
+   MARK        left
+VERTEX 24: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 25: 
+   MATCH       14
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 26: 
+   MATCH       16
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        11 
+   BLOOM       0
+   MARK        -
+VERTEX 27: 
+   MATCH       23
+   EVEN LEVEL  4
+   ODD LEVEL   7
+   PRED        23 
+   BLOOM       0x55e9b745a060
+   MARK        left
+BLOSSOM 0x55e9b74583e0
+   BASE        24
+   LEFT PEAK   15
+   RIGHT PEAK  11
+   BASE STAR   24
+BLOSSOM 0x55e9b745a060
+   BASE        24
+   LEFT PEAK   18
+   RIGHT PEAK  6
+   BASE STAR   24
+CHECK 10
+LOOK AT NEIGHBOR 26
+CHECK 1
+LOOK AT NEIGHBOR 25
+QUEUE 25 AT LEVEL 7
+MAKE 1 A PRED OF 25
+LOOK AT NEIGHBOR 4
+CHECK 7
+LOOK AT NEIGHBOR 25
+MAKE 7 A PRED OF 25
+LOOK AT NEIGHBOR 20
+CHECK 18
+LOOK AT NEIGHBOR 27
+BRIDGE FOUND 27 18 AT LEVEL 5
+LOOK AT NEIGHBOR 17
+CHECK 6
+LOOK AT NEIGHBOR 14
+QUEUE 14 AT LEVEL 7
+MAKE 6 A PRED OF 14
+LOOK AT NEIGHBOR 3
+BRIDGE FOUND 3 6 AT LEVEL 5
+LOOK AT NEIGHBOR 13
+LOOK AT NEIGHBOR 0
+BRIDGE FOUND 0 6 AT LEVEL 5
+VERTEX 0: 
+   MATCH       13
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        13 
+   BLOOM       0
+   MARK        -
+VERTEX 1: 
+   MATCH       17
+   EVEN LEVEL  6
+   ODD LEVEL   inf
+   PRED        17 
+   BLOOM       0
+   MARK        -
+VERTEX 2: 
+   MATCH       15
+   EVEN LEVEL  4
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0x55e9b74583e0
+   MARK        left
+VERTEX 3: 
+   MATCH       11
+   EVEN LEVEL  4
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0x55e9b74583e0
+   MARK        right
+VERTEX 4: 
+   MATCH       12
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        15 
+   BLOOM       0
+   MARK        -
+VERTEX 5: 
+   MATCH       21
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        8 
+   BLOOM       0
+   MARK        -
+VERTEX 6: 
+   MATCH       18
+   EVEN LEVEL  6
+   ODD LEVEL   5
+   PRED        3 0 
+   BLOOM       0x55e9b745a060
+   MARK        right
+VERTEX 7: 
+   MATCH       22
+   EVEN LEVEL  6
+   ODD LEVEL   inf
+   PRED        22 
+   BLOOM       0
+   MARK        -
+VERTEX 8: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 9: 
+   MATCH       19
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 10: 
+   MATCH       20
+   EVEN LEVEL  6
+   ODD LEVEL   inf
+   PRED        20 
+   BLOOM       0
+   MARK        -
+VERTEX 11: 
+   MATCH       3
+   EVEN LEVEL  2
+   ODD LEVEL   3
+   PRED        3 
+   BLOOM       0x55e9b74583e0
+   MARK        right
+VERTEX 12: 
+   MATCH       4
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        4 
+   BLOOM       0
+   MARK        -
+VERTEX 13: 
+   MATCH       0
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        21 15 
+   BLOOM       0
+   MARK        -
+VERTEX 14: 
+   MATCH       25
+   EVEN LEVEL  inf
+   ODD LEVEL   7
+   PRED        6 
+   BLOOM       0
+   MARK        -
+VERTEX 15: 
+   MATCH       2
+   EVEN LEVEL  2
+   ODD LEVEL   3
+   PRED        2 
+   BLOOM       0x55e9b74583e0
+   MARK        left
+VERTEX 16: 
+   MATCH       26
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        26 
+   BLOOM       0
+   MARK        -
+VERTEX 17: 
+   MATCH       1
+   EVEN LEVEL  inf
+   ODD LEVEL   5
+   PRED        3 
+   BLOOM       0
+   MARK        -
+VERTEX 18: 
+   MATCH       6
+   EVEN LEVEL  6
+   ODD LEVEL   5
+   PRED        27 
+   BLOOM       0x55e9b745a060
+   MARK        left
+VERTEX 19: 
+   MATCH       9
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 20: 
+   MATCH       10
+   EVEN LEVEL  inf
+   ODD LEVEL   5
+   PRED        3 
+   BLOOM       0
+   MARK        -
+VERTEX 21: 
+   MATCH       5
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        5 
+   BLOOM       0
+   MARK        -
+VERTEX 22: 
+   MATCH       7
+   EVEN LEVEL  inf
+   ODD LEVEL   5
+   PRED        12 
+   BLOOM       0
+   MARK        -
+VERTEX 23: 
+   MATCH       27
+   EVEN LEVEL  8
+   ODD LEVEL   3
+   PRED        15 
+   BLOOM       0x55e9b745a060
+   MARK        left
+VERTEX 24: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 25: 
+   MATCH       14
+   EVEN LEVEL  inf
+   ODD LEVEL   7
+   PRED        1 7 
+   BLOOM       0
+   MARK        -
+VERTEX 26: 
+   MATCH       16
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        11 
+   BLOOM       0
+   MARK        -
+VERTEX 27: 
+   MATCH       23
+   EVEN LEVEL  4
+   ODD LEVEL   7
+   PRED        23 
+   BLOOM       0x55e9b745a060
+   MARK        left
+BLOSSOM 0x55e9b74583e0
+   BASE        24
+   LEFT PEAK   15
+   RIGHT PEAK  11
+   BASE STAR   24
+BLOSSOM 0x55e9b745a060
+   BASE        24
+   LEFT PEAK   18
+   RIGHT PEAK  6
+   BASE STAR   24
+--------------------------------
+LEVEL 7
+VERTEX 0: 
+   MATCH       13
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        13 
+   BLOOM       0
+   MARK        -
+VERTEX 1: 
+   MATCH       17
+   EVEN LEVEL  6
+   ODD LEVEL   inf
+   PRED        17 
+   BLOOM       0
+   MARK        -
+VERTEX 2: 
+   MATCH       15
+   EVEN LEVEL  4
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0x55e9b74583e0
+   MARK        left
+VERTEX 3: 
+   MATCH       11
+   EVEN LEVEL  4
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0x55e9b74583e0
+   MARK        right
+VERTEX 4: 
+   MATCH       12
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        15 
+   BLOOM       0
+   MARK        -
+VERTEX 5: 
+   MATCH       21
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        8 
+   BLOOM       0
+   MARK        -
+VERTEX 6: 
+   MATCH       18
+   EVEN LEVEL  6
+   ODD LEVEL   5
+   PRED        3 0 
+   BLOOM       0x55e9b745a060
+   MARK        right
+VERTEX 7: 
+   MATCH       22
+   EVEN LEVEL  6
+   ODD LEVEL   inf
+   PRED        22 
+   BLOOM       0
+   MARK        -
+VERTEX 8: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 9: 
+   MATCH       19
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 10: 
+   MATCH       20
+   EVEN LEVEL  6
+   ODD LEVEL   inf
+   PRED        20 
+   BLOOM       0
+   MARK        -
+VERTEX 11: 
+   MATCH       3
+   EVEN LEVEL  2
+   ODD LEVEL   3
+   PRED        3 
+   BLOOM       0x55e9b74583e0
+   MARK        right
+VERTEX 12: 
+   MATCH       4
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        4 
+   BLOOM       0
+   MARK        -
+VERTEX 13: 
+   MATCH       0
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        21 15 
+   BLOOM       0
+   MARK        -
+VERTEX 14: 
+   MATCH       25
+   EVEN LEVEL  inf
+   ODD LEVEL   7
+   PRED        6 
+   BLOOM       0
+   MARK        -
+VERTEX 15: 
+   MATCH       2
+   EVEN LEVEL  2
+   ODD LEVEL   3
+   PRED        2 
+   BLOOM       0x55e9b74583e0
+   MARK        left
+VERTEX 16: 
+   MATCH       26
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        26 
+   BLOOM       0
+   MARK        -
+VERTEX 17: 
+   MATCH       1
+   EVEN LEVEL  inf
+   ODD LEVEL   5
+   PRED        3 
+   BLOOM       0
+   MARK        -
+VERTEX 18: 
+   MATCH       6
+   EVEN LEVEL  6
+   ODD LEVEL   5
+   PRED        27 
+   BLOOM       0x55e9b745a060
+   MARK        left
+VERTEX 19: 
+   MATCH       9
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 20: 
+   MATCH       10
+   EVEN LEVEL  inf
+   ODD LEVEL   5
+   PRED        3 
+   BLOOM       0
+   MARK        -
+VERTEX 21: 
+   MATCH       5
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        5 
+   BLOOM       0
+   MARK        -
+VERTEX 22: 
+   MATCH       7
+   EVEN LEVEL  inf
+   ODD LEVEL   5
+   PRED        12 
+   BLOOM       0
+   MARK        -
+VERTEX 23: 
+   MATCH       27
+   EVEN LEVEL  8
+   ODD LEVEL   3
+   PRED        15 
+   BLOOM       0x55e9b745a060
+   MARK        left
+VERTEX 24: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 25: 
+   MATCH       14
+   EVEN LEVEL  inf
+   ODD LEVEL   7
+   PRED        1 7 
+   BLOOM       0
+   MARK        -
+VERTEX 26: 
+   MATCH       16
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        11 
+   BLOOM       0
+   MARK        -
+VERTEX 27: 
+   MATCH       23
+   EVEN LEVEL  4
+   ODD LEVEL   7
+   PRED        23 
+   BLOOM       0x55e9b745a060
+   MARK        left
+BLOSSOM 0x55e9b74583e0
+   BASE        24
+   LEFT PEAK   15
+   RIGHT PEAK  11
+   BASE STAR   24
+BLOSSOM 0x55e9b745a060
+   BASE        24
+   LEFT PEAK   18
+   RIGHT PEAK  6
+   BASE STAR   24
+CHECK 25
+LOOK AT MATCH 14
+BRIDGE FOUND 14 25 AT LEVEL 7
+CHECK 14
+LOOK AT MATCH 25
+BRIDGE FOUND 25 14 AT LEVEL 7
+VERTEX 0: 
+   MATCH       13
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        13 
+   BLOOM       0
+   MARK        -
+VERTEX 1: 
+   MATCH       17
+   EVEN LEVEL  6
+   ODD LEVEL   inf
+   PRED        17 
+   BLOOM       0
+   MARK        -
+VERTEX 2: 
+   MATCH       15
+   EVEN LEVEL  4
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0x55e9b74583e0
+   MARK        left
+VERTEX 3: 
+   MATCH       11
+   EVEN LEVEL  4
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0x55e9b74583e0
+   MARK        right
+VERTEX 4: 
+   MATCH       12
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        15 
+   BLOOM       0
+   MARK        -
+VERTEX 5: 
+   MATCH       21
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        8 
+   BLOOM       0
+   MARK        -
+VERTEX 6: 
+   MATCH       18
+   EVEN LEVEL  6
+   ODD LEVEL   5
+   PRED        3 0 
+   BLOOM       0x55e9b745a060
+   MARK        right
+VERTEX 7: 
+   MATCH       22
+   EVEN LEVEL  6
+   ODD LEVEL   inf
+   PRED        22 
+   BLOOM       0
+   MARK        -
+VERTEX 8: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 9: 
+   MATCH       19
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 10: 
+   MATCH       20
+   EVEN LEVEL  6
+   ODD LEVEL   inf
+   PRED        20 
+   BLOOM       0
+   MARK        -
+VERTEX 11: 
+   MATCH       3
+   EVEN LEVEL  2
+   ODD LEVEL   3
+   PRED        3 
+   BLOOM       0x55e9b74583e0
+   MARK        right
+VERTEX 12: 
+   MATCH       4
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        4 
+   BLOOM       0
+   MARK        -
+VERTEX 13: 
+   MATCH       0
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        21 15 
+   BLOOM       0
+   MARK        -
+VERTEX 14: 
+   MATCH       25
+   EVEN LEVEL  inf
+   ODD LEVEL   7
+   PRED        6 
+   BLOOM       0
+   MARK        -
+VERTEX 15: 
+   MATCH       2
+   EVEN LEVEL  2
+   ODD LEVEL   3
+   PRED        2 
+   BLOOM       0x55e9b74583e0
+   MARK        left
+VERTEX 16: 
+   MATCH       26
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        26 
+   BLOOM       0
+   MARK        -
+VERTEX 17: 
+   MATCH       1
+   EVEN LEVEL  inf
+   ODD LEVEL   5
+   PRED        3 
+   BLOOM       0
+   MARK        -
+VERTEX 18: 
+   MATCH       6
+   EVEN LEVEL  6
+   ODD LEVEL   5
+   PRED        27 
+   BLOOM       0x55e9b745a060
+   MARK        left
+VERTEX 19: 
+   MATCH       9
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 20: 
+   MATCH       10
+   EVEN LEVEL  inf
+   ODD LEVEL   5
+   PRED        3 
+   BLOOM       0
+   MARK        -
+VERTEX 21: 
+   MATCH       5
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        5 
+   BLOOM       0
+   MARK        -
+VERTEX 22: 
+   MATCH       7
+   EVEN LEVEL  inf
+   ODD LEVEL   5
+   PRED        12 
+   BLOOM       0
+   MARK        -
+VERTEX 23: 
+   MATCH       27
+   EVEN LEVEL  8
+   ODD LEVEL   3
+   PRED        15 
+   BLOOM       0x55e9b745a060
+   MARK        left
+VERTEX 24: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 25: 
+   MATCH       14
+   EVEN LEVEL  inf
+   ODD LEVEL   7
+   PRED        1 7 
+   BLOOM       0
+   MARK        -
+VERTEX 26: 
+   MATCH       16
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        11 
+   BLOOM       0
+   MARK        -
+VERTEX 27: 
+   MATCH       23
+   EVEN LEVEL  4
+   ODD LEVEL   7
+   PRED        23 
+   BLOOM       0x55e9b745a060
+   MARK        left
+BLOSSOM 0x55e9b74583e0
+   BASE        24
+   LEFT PEAK   15
+   RIGHT PEAK  11
+   BASE STAR   24
+BLOSSOM 0x55e9b745a060
+   BASE        24
+   LEFT PEAK   18
+   RIGHT PEAK  6
+   BASE STAR   24
+BLOSS AUG 25 14
+MARK 25 left
+MARK 14 right
+
+DFS 25 14 - 14
+ADVANCE LEFT
+USE EDGE (25, 1)
+MARK 1 LEFT
+
+DFS 1 14 - 14
+ADVANCE RIGHT
+USE EDGE (14, 6)
+MARK 24 RIGHT
+
+DFS 1 24 - 14
+ADVANCE LEFT
+USE EDGE (17, 1)
+MARK 17 LEFT
+
+DFS 17 24 - 14
+ADVANCE LEFT
+USE EDGE (17, 3)
+
+DFS 1 24 24 14
+ADVANCE LEFT
+
+DFS 25 24 24 14
+ADVANCE LEFT
+USE EDGE (25, 7)
+MARK 7 LEFT
+
+DFS 7 24 24 14
+ADVANCE LEFT
+USE EDGE (22, 7)
+MARK 22 LEFT
+
+DFS 22 24 24 14
+ADVANCE LEFT
+USE EDGE (22, 12)
+MARK 12 LEFT
+
+DFS 12 24 24 14
+ADVANCE LEFT
+USE EDGE (12, 4)
+MARK 4 LEFT
+
+DFS 4 24 24 14
+ADVANCE LEFT
+USE EDGE (15, 4)
+
+DFS 12 24 24 14
+ADVANCE LEFT
+
+DFS 22 24 24 14
+ADVANCE LEFT
+
+DFS 7 24 24 14
+ADVANCE LEFT
+
+DFS 25 24 24 14
+ADVANCE LEFT
+BLOOM FOUND 
+DFS 25 24 24 14
+ADDRESS = 0x55e9b745a030
+BASE = 24
+LEFT PEAK = 25
+RIGHT PEAK = 14
+NODES: 25 14 1 17 7 22 12 4 
+QUEUE 25 AT LEVEL 8
+QUEUE 14 AT LEVEL 8
+QUEUE 17 AT LEVEL 10
+BRIDGE FOUND 17 18 AT LEVEL 8
+QUEUE 22 AT LEVEL 10
+QUEUE 4 AT LEVEL 12
+BRIDGE FOUND 4 1 AT LEVEL 9
+--------------------------------
+LEVEL 8
+VERTEX 0: 
+   MATCH       13
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        13 
+   BLOOM       0
+   MARK        -
+VERTEX 1: 
+   MATCH       17
+   EVEN LEVEL  6
+   ODD LEVEL   9
+   PRED        17 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 2: 
+   MATCH       15
+   EVEN LEVEL  4
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0x55e9b74583e0
+   MARK        left
+VERTEX 3: 
+   MATCH       11
+   EVEN LEVEL  4
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0x55e9b74583e0
+   MARK        right
+VERTEX 4: 
+   MATCH       12
+   EVEN LEVEL  12
+   ODD LEVEL   3
+   PRED        15 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 5: 
+   MATCH       21
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        8 
+   BLOOM       0
+   MARK        -
+VERTEX 6: 
+   MATCH       18
+   EVEN LEVEL  6
+   ODD LEVEL   5
+   PRED        3 0 
+   BLOOM       0x55e9b745a060
+   MARK        right
+VERTEX 7: 
+   MATCH       22
+   EVEN LEVEL  6
+   ODD LEVEL   9
+   PRED        22 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 8: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 9: 
+   MATCH       19
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 10: 
+   MATCH       20
+   EVEN LEVEL  6
+   ODD LEVEL   inf
+   PRED        20 
+   BLOOM       0
+   MARK        -
+VERTEX 11: 
+   MATCH       3
+   EVEN LEVEL  2
+   ODD LEVEL   3
+   PRED        3 
+   BLOOM       0x55e9b74583e0
+   MARK        right
+VERTEX 12: 
+   MATCH       4
+   EVEN LEVEL  4
+   ODD LEVEL   11
+   PRED        4 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 13: 
+   MATCH       0
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        21 15 
+   BLOOM       0
+   MARK        -
+VERTEX 14: 
+   MATCH       25
+   EVEN LEVEL  8
+   ODD LEVEL   7
+   PRED        6 
+   BLOOM       0x55e9b745a030
+   MARK        right
+VERTEX 15: 
+   MATCH       2
+   EVEN LEVEL  2
+   ODD LEVEL   3
+   PRED        2 
+   BLOOM       0x55e9b74583e0
+   MARK        left
+VERTEX 16: 
+   MATCH       26
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        26 
+   BLOOM       0
+   MARK        -
+VERTEX 17: 
+   MATCH       1
+   EVEN LEVEL  10
+   ODD LEVEL   5
+   PRED        3 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 18: 
+   MATCH       6
+   EVEN LEVEL  6
+   ODD LEVEL   5
+   PRED        27 
+   BLOOM       0x55e9b745a060
+   MARK        left
+VERTEX 19: 
+   MATCH       9
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 20: 
+   MATCH       10
+   EVEN LEVEL  inf
+   ODD LEVEL   5
+   PRED        3 
+   BLOOM       0
+   MARK        -
+VERTEX 21: 
+   MATCH       5
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        5 
+   BLOOM       0
+   MARK        -
+VERTEX 22: 
+   MATCH       7
+   EVEN LEVEL  10
+   ODD LEVEL   5
+   PRED        12 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 23: 
+   MATCH       27
+   EVEN LEVEL  8
+   ODD LEVEL   3
+   PRED        15 
+   BLOOM       0x55e9b745a060
+   MARK        left
+VERTEX 24: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 25: 
+   MATCH       14
+   EVEN LEVEL  8
+   ODD LEVEL   7
+   PRED        1 7 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 26: 
+   MATCH       16
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        11 
+   BLOOM       0
+   MARK        -
+VERTEX 27: 
+   MATCH       23
+   EVEN LEVEL  4
+   ODD LEVEL   7
+   PRED        23 
+   BLOOM       0x55e9b745a060
+   MARK        left
+BLOSSOM 0x55e9b74583e0
+   BASE        24
+   LEFT PEAK   15
+   RIGHT PEAK  11
+   BASE STAR   24
+BLOSSOM 0x55e9b745a060
+   BASE        24
+   LEFT PEAK   18
+   RIGHT PEAK  6
+   BASE STAR   24
+BLOSSOM 0x55e9b745a030
+   BASE        24
+   LEFT PEAK   25
+   RIGHT PEAK  14
+   BASE STAR   24
+CHECK 23
+LOOK AT NEIGHBOR 15
+BRIDGE FOUND 15 23 AT LEVEL 5
+LOOK AT NEIGHBOR 20
+CHECK 25
+LOOK AT NEIGHBOR 1
+BRIDGE FOUND 1 25 AT LEVEL 7
+LOOK AT NEIGHBOR 7
+BRIDGE FOUND 7 25 AT LEVEL 7
+CHECK 14
+LOOK AT NEIGHBOR 6
+BRIDGE FOUND 6 14 AT LEVEL 7
+LOOK AT NEIGHBOR 9
+QUEUE 9 AT LEVEL 9
+MAKE 14 A PRED OF 9
+VERTEX 0: 
+   MATCH       13
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        13 
+   BLOOM       0
+   MARK        -
+VERTEX 1: 
+   MATCH       17
+   EVEN LEVEL  6
+   ODD LEVEL   9
+   PRED        17 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 2: 
+   MATCH       15
+   EVEN LEVEL  4
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0x55e9b74583e0
+   MARK        left
+VERTEX 3: 
+   MATCH       11
+   EVEN LEVEL  4
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0x55e9b74583e0
+   MARK        right
+VERTEX 4: 
+   MATCH       12
+   EVEN LEVEL  12
+   ODD LEVEL   3
+   PRED        15 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 5: 
+   MATCH       21
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        8 
+   BLOOM       0
+   MARK        -
+VERTEX 6: 
+   MATCH       18
+   EVEN LEVEL  6
+   ODD LEVEL   5
+   PRED        3 0 
+   BLOOM       0x55e9b745a060
+   MARK        right
+VERTEX 7: 
+   MATCH       22
+   EVEN LEVEL  6
+   ODD LEVEL   9
+   PRED        22 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 8: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 9: 
+   MATCH       19
+   EVEN LEVEL  inf
+   ODD LEVEL   9
+   PRED        14 
+   BLOOM       0
+   MARK        -
+VERTEX 10: 
+   MATCH       20
+   EVEN LEVEL  6
+   ODD LEVEL   inf
+   PRED        20 
+   BLOOM       0
+   MARK        -
+VERTEX 11: 
+   MATCH       3
+   EVEN LEVEL  2
+   ODD LEVEL   3
+   PRED        3 
+   BLOOM       0x55e9b74583e0
+   MARK        right
+VERTEX 12: 
+   MATCH       4
+   EVEN LEVEL  4
+   ODD LEVEL   11
+   PRED        4 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 13: 
+   MATCH       0
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        21 15 
+   BLOOM       0
+   MARK        -
+VERTEX 14: 
+   MATCH       25
+   EVEN LEVEL  8
+   ODD LEVEL   7
+   PRED        6 
+   BLOOM       0x55e9b745a030
+   MARK        right
+VERTEX 15: 
+   MATCH       2
+   EVEN LEVEL  2
+   ODD LEVEL   3
+   PRED        2 
+   BLOOM       0x55e9b74583e0
+   MARK        left
+VERTEX 16: 
+   MATCH       26
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        26 
+   BLOOM       0
+   MARK        -
+VERTEX 17: 
+   MATCH       1
+   EVEN LEVEL  10
+   ODD LEVEL   5
+   PRED        3 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 18: 
+   MATCH       6
+   EVEN LEVEL  6
+   ODD LEVEL   5
+   PRED        27 
+   BLOOM       0x55e9b745a060
+   MARK        left
+VERTEX 19: 
+   MATCH       9
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 20: 
+   MATCH       10
+   EVEN LEVEL  inf
+   ODD LEVEL   5
+   PRED        3 
+   BLOOM       0
+   MARK        -
+VERTEX 21: 
+   MATCH       5
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        5 
+   BLOOM       0
+   MARK        -
+VERTEX 22: 
+   MATCH       7
+   EVEN LEVEL  10
+   ODD LEVEL   5
+   PRED        12 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 23: 
+   MATCH       27
+   EVEN LEVEL  8
+   ODD LEVEL   3
+   PRED        15 
+   BLOOM       0x55e9b745a060
+   MARK        left
+VERTEX 24: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 25: 
+   MATCH       14
+   EVEN LEVEL  8
+   ODD LEVEL   7
+   PRED        1 7 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 26: 
+   MATCH       16
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        11 
+   BLOOM       0
+   MARK        -
+VERTEX 27: 
+   MATCH       23
+   EVEN LEVEL  4
+   ODD LEVEL   7
+   PRED        23 
+   BLOOM       0x55e9b745a060
+   MARK        left
+BLOSSOM 0x55e9b74583e0
+   BASE        24
+   LEFT PEAK   15
+   RIGHT PEAK  11
+   BASE STAR   24
+BLOSSOM 0x55e9b745a060
+   BASE        24
+   LEFT PEAK   18
+   RIGHT PEAK  6
+   BASE STAR   24
+BLOSSOM 0x55e9b745a030
+   BASE        24
+   LEFT PEAK   25
+   RIGHT PEAK  14
+   BASE STAR   24
+BLOSS AUG 18 17
+--------------------------------
+LEVEL 9
+VERTEX 0: 
+   MATCH       13
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        13 
+   BLOOM       0
+   MARK        -
+VERTEX 1: 
+   MATCH       17
+   EVEN LEVEL  6
+   ODD LEVEL   9
+   PRED        17 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 2: 
+   MATCH       15
+   EVEN LEVEL  4
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0x55e9b74583e0
+   MARK        left
+VERTEX 3: 
+   MATCH       11
+   EVEN LEVEL  4
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0x55e9b74583e0
+   MARK        right
+VERTEX 4: 
+   MATCH       12
+   EVEN LEVEL  12
+   ODD LEVEL   3
+   PRED        15 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 5: 
+   MATCH       21
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        8 
+   BLOOM       0
+   MARK        -
+VERTEX 6: 
+   MATCH       18
+   EVEN LEVEL  6
+   ODD LEVEL   5
+   PRED        3 0 
+   BLOOM       0x55e9b745a060
+   MARK        right
+VERTEX 7: 
+   MATCH       22
+   EVEN LEVEL  6
+   ODD LEVEL   9
+   PRED        22 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 8: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 9: 
+   MATCH       19
+   EVEN LEVEL  inf
+   ODD LEVEL   9
+   PRED        14 
+   BLOOM       0
+   MARK        -
+VERTEX 10: 
+   MATCH       20
+   EVEN LEVEL  6
+   ODD LEVEL   inf
+   PRED        20 
+   BLOOM       0
+   MARK        -
+VERTEX 11: 
+   MATCH       3
+   EVEN LEVEL  2
+   ODD LEVEL   3
+   PRED        3 
+   BLOOM       0x55e9b74583e0
+   MARK        right
+VERTEX 12: 
+   MATCH       4
+   EVEN LEVEL  4
+   ODD LEVEL   11
+   PRED        4 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 13: 
+   MATCH       0
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        21 15 
+   BLOOM       0
+   MARK        -
+VERTEX 14: 
+   MATCH       25
+   EVEN LEVEL  8
+   ODD LEVEL   7
+   PRED        6 
+   BLOOM       0x55e9b745a030
+   MARK        right
+VERTEX 15: 
+   MATCH       2
+   EVEN LEVEL  2
+   ODD LEVEL   3
+   PRED        2 
+   BLOOM       0x55e9b74583e0
+   MARK        left
+VERTEX 16: 
+   MATCH       26
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        26 
+   BLOOM       0
+   MARK        -
+VERTEX 17: 
+   MATCH       1
+   EVEN LEVEL  10
+   ODD LEVEL   5
+   PRED        3 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 18: 
+   MATCH       6
+   EVEN LEVEL  6
+   ODD LEVEL   5
+   PRED        27 
+   BLOOM       0x55e9b745a060
+   MARK        left
+VERTEX 19: 
+   MATCH       9
+   EVEN LEVEL  inf
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 20: 
+   MATCH       10
+   EVEN LEVEL  inf
+   ODD LEVEL   5
+   PRED        3 
+   BLOOM       0
+   MARK        -
+VERTEX 21: 
+   MATCH       5
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        5 
+   BLOOM       0
+   MARK        -
+VERTEX 22: 
+   MATCH       7
+   EVEN LEVEL  10
+   ODD LEVEL   5
+   PRED        12 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 23: 
+   MATCH       27
+   EVEN LEVEL  8
+   ODD LEVEL   3
+   PRED        15 
+   BLOOM       0x55e9b745a060
+   MARK        left
+VERTEX 24: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 25: 
+   MATCH       14
+   EVEN LEVEL  8
+   ODD LEVEL   7
+   PRED        1 7 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 26: 
+   MATCH       16
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        11 
+   BLOOM       0
+   MARK        -
+VERTEX 27: 
+   MATCH       23
+   EVEN LEVEL  4
+   ODD LEVEL   7
+   PRED        23 
+   BLOOM       0x55e9b745a060
+   MARK        left
+BLOSSOM 0x55e9b74583e0
+   BASE        24
+   LEFT PEAK   15
+   RIGHT PEAK  11
+   BASE STAR   24
+BLOSSOM 0x55e9b745a060
+   BASE        24
+   LEFT PEAK   18
+   RIGHT PEAK  6
+   BASE STAR   24
+BLOSSOM 0x55e9b745a030
+   BASE        24
+   LEFT PEAK   25
+   RIGHT PEAK  14
+   BASE STAR   24
+CHECK 9
+LOOK AT MATCH 19
+QUEUE 19 AT LEVEL 10
+MAKE 9 A PRED OF 19
+VERTEX 0: 
+   MATCH       13
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        13 
+   BLOOM       0
+   MARK        -
+VERTEX 1: 
+   MATCH       17
+   EVEN LEVEL  6
+   ODD LEVEL   9
+   PRED        17 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 2: 
+   MATCH       15
+   EVEN LEVEL  4
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0x55e9b74583e0
+   MARK        left
+VERTEX 3: 
+   MATCH       11
+   EVEN LEVEL  4
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0x55e9b74583e0
+   MARK        right
+VERTEX 4: 
+   MATCH       12
+   EVEN LEVEL  12
+   ODD LEVEL   3
+   PRED        15 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 5: 
+   MATCH       21
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        8 
+   BLOOM       0
+   MARK        -
+VERTEX 6: 
+   MATCH       18
+   EVEN LEVEL  6
+   ODD LEVEL   5
+   PRED        3 0 
+   BLOOM       0x55e9b745a060
+   MARK        right
+VERTEX 7: 
+   MATCH       22
+   EVEN LEVEL  6
+   ODD LEVEL   9
+   PRED        22 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 8: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 9: 
+   MATCH       19
+   EVEN LEVEL  inf
+   ODD LEVEL   9
+   PRED        14 
+   BLOOM       0
+   MARK        -
+VERTEX 10: 
+   MATCH       20
+   EVEN LEVEL  6
+   ODD LEVEL   inf
+   PRED        20 
+   BLOOM       0
+   MARK        -
+VERTEX 11: 
+   MATCH       3
+   EVEN LEVEL  2
+   ODD LEVEL   3
+   PRED        3 
+   BLOOM       0x55e9b74583e0
+   MARK        right
+VERTEX 12: 
+   MATCH       4
+   EVEN LEVEL  4
+   ODD LEVEL   11
+   PRED        4 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 13: 
+   MATCH       0
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        21 15 
+   BLOOM       0
+   MARK        -
+VERTEX 14: 
+   MATCH       25
+   EVEN LEVEL  8
+   ODD LEVEL   7
+   PRED        6 
+   BLOOM       0x55e9b745a030
+   MARK        right
+VERTEX 15: 
+   MATCH       2
+   EVEN LEVEL  2
+   ODD LEVEL   3
+   PRED        2 
+   BLOOM       0x55e9b74583e0
+   MARK        left
+VERTEX 16: 
+   MATCH       26
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        26 
+   BLOOM       0
+   MARK        -
+VERTEX 17: 
+   MATCH       1
+   EVEN LEVEL  10
+   ODD LEVEL   5
+   PRED        3 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 18: 
+   MATCH       6
+   EVEN LEVEL  6
+   ODD LEVEL   5
+   PRED        27 
+   BLOOM       0x55e9b745a060
+   MARK        left
+VERTEX 19: 
+   MATCH       9
+   EVEN LEVEL  10
+   ODD LEVEL   inf
+   PRED        9 
+   BLOOM       0
+   MARK        -
+VERTEX 20: 
+   MATCH       10
+   EVEN LEVEL  inf
+   ODD LEVEL   5
+   PRED        3 
+   BLOOM       0
+   MARK        -
+VERTEX 21: 
+   MATCH       5
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        5 
+   BLOOM       0
+   MARK        -
+VERTEX 22: 
+   MATCH       7
+   EVEN LEVEL  10
+   ODD LEVEL   5
+   PRED        12 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 23: 
+   MATCH       27
+   EVEN LEVEL  8
+   ODD LEVEL   3
+   PRED        15 
+   BLOOM       0x55e9b745a060
+   MARK        left
+VERTEX 24: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 25: 
+   MATCH       14
+   EVEN LEVEL  8
+   ODD LEVEL   7
+   PRED        1 7 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 26: 
+   MATCH       16
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        11 
+   BLOOM       0
+   MARK        -
+VERTEX 27: 
+   MATCH       23
+   EVEN LEVEL  4
+   ODD LEVEL   7
+   PRED        23 
+   BLOOM       0x55e9b745a060
+   MARK        left
+BLOSSOM 0x55e9b74583e0
+   BASE        24
+   LEFT PEAK   15
+   RIGHT PEAK  11
+   BASE STAR   24
+BLOSSOM 0x55e9b745a060
+   BASE        24
+   LEFT PEAK   18
+   RIGHT PEAK  6
+   BASE STAR   24
+BLOSSOM 0x55e9b745a030
+   BASE        24
+   LEFT PEAK   25
+   RIGHT PEAK  14
+   BASE STAR   24
+--------------------------------
+LEVEL 10
+VERTEX 0: 
+   MATCH       13
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        13 
+   BLOOM       0
+   MARK        -
+VERTEX 1: 
+   MATCH       17
+   EVEN LEVEL  6
+   ODD LEVEL   9
+   PRED        17 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 2: 
+   MATCH       15
+   EVEN LEVEL  4
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0x55e9b74583e0
+   MARK        left
+VERTEX 3: 
+   MATCH       11
+   EVEN LEVEL  4
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0x55e9b74583e0
+   MARK        right
+VERTEX 4: 
+   MATCH       12
+   EVEN LEVEL  12
+   ODD LEVEL   3
+   PRED        15 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 5: 
+   MATCH       21
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        8 
+   BLOOM       0
+   MARK        -
+VERTEX 6: 
+   MATCH       18
+   EVEN LEVEL  6
+   ODD LEVEL   5
+   PRED        3 0 
+   BLOOM       0x55e9b745a060
+   MARK        right
+VERTEX 7: 
+   MATCH       22
+   EVEN LEVEL  6
+   ODD LEVEL   9
+   PRED        22 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 8: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 9: 
+   MATCH       19
+   EVEN LEVEL  inf
+   ODD LEVEL   9
+   PRED        14 
+   BLOOM       0
+   MARK        -
+VERTEX 10: 
+   MATCH       20
+   EVEN LEVEL  6
+   ODD LEVEL   inf
+   PRED        20 
+   BLOOM       0
+   MARK        -
+VERTEX 11: 
+   MATCH       3
+   EVEN LEVEL  2
+   ODD LEVEL   3
+   PRED        3 
+   BLOOM       0x55e9b74583e0
+   MARK        right
+VERTEX 12: 
+   MATCH       4
+   EVEN LEVEL  4
+   ODD LEVEL   11
+   PRED        4 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 13: 
+   MATCH       0
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        21 15 
+   BLOOM       0
+   MARK        -
+VERTEX 14: 
+   MATCH       25
+   EVEN LEVEL  8
+   ODD LEVEL   7
+   PRED        6 
+   BLOOM       0x55e9b745a030
+   MARK        right
+VERTEX 15: 
+   MATCH       2
+   EVEN LEVEL  2
+   ODD LEVEL   3
+   PRED        2 
+   BLOOM       0x55e9b74583e0
+   MARK        left
+VERTEX 16: 
+   MATCH       26
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        26 
+   BLOOM       0
+   MARK        -
+VERTEX 17: 
+   MATCH       1
+   EVEN LEVEL  10
+   ODD LEVEL   5
+   PRED        3 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 18: 
+   MATCH       6
+   EVEN LEVEL  6
+   ODD LEVEL   5
+   PRED        27 
+   BLOOM       0x55e9b745a060
+   MARK        left
+VERTEX 19: 
+   MATCH       9
+   EVEN LEVEL  10
+   ODD LEVEL   inf
+   PRED        9 
+   BLOOM       0
+   MARK        -
+VERTEX 20: 
+   MATCH       10
+   EVEN LEVEL  inf
+   ODD LEVEL   5
+   PRED        3 
+   BLOOM       0
+   MARK        -
+VERTEX 21: 
+   MATCH       5
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        5 
+   BLOOM       0
+   MARK        -
+VERTEX 22: 
+   MATCH       7
+   EVEN LEVEL  10
+   ODD LEVEL   5
+   PRED        12 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 23: 
+   MATCH       27
+   EVEN LEVEL  8
+   ODD LEVEL   3
+   PRED        15 
+   BLOOM       0x55e9b745a060
+   MARK        left
+VERTEX 24: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 25: 
+   MATCH       14
+   EVEN LEVEL  8
+   ODD LEVEL   7
+   PRED        1 7 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 26: 
+   MATCH       16
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        11 
+   BLOOM       0
+   MARK        -
+VERTEX 27: 
+   MATCH       23
+   EVEN LEVEL  4
+   ODD LEVEL   7
+   PRED        23 
+   BLOOM       0x55e9b745a060
+   MARK        left
+BLOSSOM 0x55e9b74583e0
+   BASE        24
+   LEFT PEAK   15
+   RIGHT PEAK  11
+   BASE STAR   24
+BLOSSOM 0x55e9b745a060
+   BASE        24
+   LEFT PEAK   18
+   RIGHT PEAK  6
+   BASE STAR   24
+BLOSSOM 0x55e9b745a030
+   BASE        24
+   LEFT PEAK   25
+   RIGHT PEAK  14
+   BASE STAR   24
+CHECK 17
+LOOK AT NEIGHBOR 20
+LOOK AT NEIGHBOR 18
+BRIDGE FOUND 18 17 AT LEVEL 8
+LOOK AT NEIGHBOR 3
+BRIDGE FOUND 3 17 AT LEVEL 7
+CHECK 22
+LOOK AT NEIGHBOR 12
+BRIDGE FOUND 12 22 AT LEVEL 7
+LOOK AT NEIGHBOR 9
+CHECK 19
+LOOK AT NEIGHBOR 20
+LOOK AT NEIGHBOR 13
+VERTEX 0: 
+   MATCH       13
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        13 
+   BLOOM       0
+   MARK        -
+VERTEX 1: 
+   MATCH       17
+   EVEN LEVEL  6
+   ODD LEVEL   9
+   PRED        17 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 2: 
+   MATCH       15
+   EVEN LEVEL  4
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0x55e9b74583e0
+   MARK        left
+VERTEX 3: 
+   MATCH       11
+   EVEN LEVEL  4
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0x55e9b74583e0
+   MARK        right
+VERTEX 4: 
+   MATCH       12
+   EVEN LEVEL  12
+   ODD LEVEL   3
+   PRED        15 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 5: 
+   MATCH       21
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        8 
+   BLOOM       0
+   MARK        -
+VERTEX 6: 
+   MATCH       18
+   EVEN LEVEL  6
+   ODD LEVEL   5
+   PRED        3 0 
+   BLOOM       0x55e9b745a060
+   MARK        right
+VERTEX 7: 
+   MATCH       22
+   EVEN LEVEL  6
+   ODD LEVEL   9
+   PRED        22 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 8: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 9: 
+   MATCH       19
+   EVEN LEVEL  inf
+   ODD LEVEL   9
+   PRED        14 
+   BLOOM       0
+   MARK        -
+VERTEX 10: 
+   MATCH       20
+   EVEN LEVEL  6
+   ODD LEVEL   inf
+   PRED        20 
+   BLOOM       0
+   MARK        -
+VERTEX 11: 
+   MATCH       3
+   EVEN LEVEL  2
+   ODD LEVEL   3
+   PRED        3 
+   BLOOM       0x55e9b74583e0
+   MARK        right
+VERTEX 12: 
+   MATCH       4
+   EVEN LEVEL  4
+   ODD LEVEL   11
+   PRED        4 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 13: 
+   MATCH       0
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        21 15 
+   BLOOM       0
+   MARK        -
+VERTEX 14: 
+   MATCH       25
+   EVEN LEVEL  8
+   ODD LEVEL   7
+   PRED        6 
+   BLOOM       0x55e9b745a030
+   MARK        right
+VERTEX 15: 
+   MATCH       2
+   EVEN LEVEL  2
+   ODD LEVEL   3
+   PRED        2 
+   BLOOM       0x55e9b74583e0
+   MARK        left
+VERTEX 16: 
+   MATCH       26
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        26 
+   BLOOM       0
+   MARK        -
+VERTEX 17: 
+   MATCH       1
+   EVEN LEVEL  10
+   ODD LEVEL   5
+   PRED        3 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 18: 
+   MATCH       6
+   EVEN LEVEL  6
+   ODD LEVEL   5
+   PRED        27 
+   BLOOM       0x55e9b745a060
+   MARK        left
+VERTEX 19: 
+   MATCH       9
+   EVEN LEVEL  10
+   ODD LEVEL   inf
+   PRED        9 
+   BLOOM       0
+   MARK        -
+VERTEX 20: 
+   MATCH       10
+   EVEN LEVEL  inf
+   ODD LEVEL   5
+   PRED        3 
+   BLOOM       0
+   MARK        -
+VERTEX 21: 
+   MATCH       5
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        5 
+   BLOOM       0
+   MARK        -
+VERTEX 22: 
+   MATCH       7
+   EVEN LEVEL  10
+   ODD LEVEL   5
+   PRED        12 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 23: 
+   MATCH       27
+   EVEN LEVEL  8
+   ODD LEVEL   3
+   PRED        15 
+   BLOOM       0x55e9b745a060
+   MARK        left
+VERTEX 24: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 25: 
+   MATCH       14
+   EVEN LEVEL  8
+   ODD LEVEL   7
+   PRED        1 7 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 26: 
+   MATCH       16
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        11 
+   BLOOM       0
+   MARK        -
+VERTEX 27: 
+   MATCH       23
+   EVEN LEVEL  4
+   ODD LEVEL   7
+   PRED        23 
+   BLOOM       0x55e9b745a060
+   MARK        left
+BLOSSOM 0x55e9b74583e0
+   BASE        24
+   LEFT PEAK   15
+   RIGHT PEAK  11
+   BASE STAR   24
+BLOSSOM 0x55e9b745a060
+   BASE        24
+   LEFT PEAK   18
+   RIGHT PEAK  6
+   BASE STAR   24
+BLOSSOM 0x55e9b745a030
+   BASE        24
+   LEFT PEAK   25
+   RIGHT PEAK  14
+   BASE STAR   24
+--------------------------------
+LEVEL 11
+VERTEX 0: 
+   MATCH       13
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        13 
+   BLOOM       0
+   MARK        -
+VERTEX 1: 
+   MATCH       17
+   EVEN LEVEL  6
+   ODD LEVEL   9
+   PRED        17 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 2: 
+   MATCH       15
+   EVEN LEVEL  4
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0x55e9b74583e0
+   MARK        left
+VERTEX 3: 
+   MATCH       11
+   EVEN LEVEL  4
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0x55e9b74583e0
+   MARK        right
+VERTEX 4: 
+   MATCH       12
+   EVEN LEVEL  12
+   ODD LEVEL   3
+   PRED        15 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 5: 
+   MATCH       21
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        8 
+   BLOOM       0
+   MARK        -
+VERTEX 6: 
+   MATCH       18
+   EVEN LEVEL  6
+   ODD LEVEL   5
+   PRED        3 0 
+   BLOOM       0x55e9b745a060
+   MARK        right
+VERTEX 7: 
+   MATCH       22
+   EVEN LEVEL  6
+   ODD LEVEL   9
+   PRED        22 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 8: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 9: 
+   MATCH       19
+   EVEN LEVEL  inf
+   ODD LEVEL   9
+   PRED        14 
+   BLOOM       0
+   MARK        -
+VERTEX 10: 
+   MATCH       20
+   EVEN LEVEL  6
+   ODD LEVEL   inf
+   PRED        20 
+   BLOOM       0
+   MARK        -
+VERTEX 11: 
+   MATCH       3
+   EVEN LEVEL  2
+   ODD LEVEL   3
+   PRED        3 
+   BLOOM       0x55e9b74583e0
+   MARK        right
+VERTEX 12: 
+   MATCH       4
+   EVEN LEVEL  4
+   ODD LEVEL   11
+   PRED        4 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 13: 
+   MATCH       0
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        21 15 
+   BLOOM       0
+   MARK        -
+VERTEX 14: 
+   MATCH       25
+   EVEN LEVEL  8
+   ODD LEVEL   7
+   PRED        6 
+   BLOOM       0x55e9b745a030
+   MARK        right
+VERTEX 15: 
+   MATCH       2
+   EVEN LEVEL  2
+   ODD LEVEL   3
+   PRED        2 
+   BLOOM       0x55e9b74583e0
+   MARK        left
+VERTEX 16: 
+   MATCH       26
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        26 
+   BLOOM       0
+   MARK        -
+VERTEX 17: 
+   MATCH       1
+   EVEN LEVEL  10
+   ODD LEVEL   5
+   PRED        3 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 18: 
+   MATCH       6
+   EVEN LEVEL  6
+   ODD LEVEL   5
+   PRED        27 
+   BLOOM       0x55e9b745a060
+   MARK        left
+VERTEX 19: 
+   MATCH       9
+   EVEN LEVEL  10
+   ODD LEVEL   inf
+   PRED        9 
+   BLOOM       0
+   MARK        -
+VERTEX 20: 
+   MATCH       10
+   EVEN LEVEL  inf
+   ODD LEVEL   5
+   PRED        3 
+   BLOOM       0
+   MARK        -
+VERTEX 21: 
+   MATCH       5
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        5 
+   BLOOM       0
+   MARK        -
+VERTEX 22: 
+   MATCH       7
+   EVEN LEVEL  10
+   ODD LEVEL   5
+   PRED        12 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 23: 
+   MATCH       27
+   EVEN LEVEL  8
+   ODD LEVEL   3
+   PRED        15 
+   BLOOM       0x55e9b745a060
+   MARK        left
+VERTEX 24: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 25: 
+   MATCH       14
+   EVEN LEVEL  8
+   ODD LEVEL   7
+   PRED        1 7 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 26: 
+   MATCH       16
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        11 
+   BLOOM       0
+   MARK        -
+VERTEX 27: 
+   MATCH       23
+   EVEN LEVEL  4
+   ODD LEVEL   7
+   PRED        23 
+   BLOOM       0x55e9b745a060
+   MARK        left
+BLOSSOM 0x55e9b74583e0
+   BASE        24
+   LEFT PEAK   15
+   RIGHT PEAK  11
+   BASE STAR   24
+BLOSSOM 0x55e9b745a060
+   BASE        24
+   LEFT PEAK   18
+   RIGHT PEAK  6
+   BASE STAR   24
+BLOSSOM 0x55e9b745a030
+   BASE        24
+   LEFT PEAK   25
+   RIGHT PEAK  14
+   BASE STAR   24
+VERTEX 0: 
+   MATCH       13
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        13 
+   BLOOM       0
+   MARK        -
+VERTEX 1: 
+   MATCH       17
+   EVEN LEVEL  6
+   ODD LEVEL   9
+   PRED        17 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 2: 
+   MATCH       15
+   EVEN LEVEL  4
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0x55e9b74583e0
+   MARK        left
+VERTEX 3: 
+   MATCH       11
+   EVEN LEVEL  4
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0x55e9b74583e0
+   MARK        right
+VERTEX 4: 
+   MATCH       12
+   EVEN LEVEL  12
+   ODD LEVEL   3
+   PRED        15 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 5: 
+   MATCH       21
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        8 
+   BLOOM       0
+   MARK        -
+VERTEX 6: 
+   MATCH       18
+   EVEN LEVEL  6
+   ODD LEVEL   5
+   PRED        3 0 
+   BLOOM       0x55e9b745a060
+   MARK        right
+VERTEX 7: 
+   MATCH       22
+   EVEN LEVEL  6
+   ODD LEVEL   9
+   PRED        22 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 8: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 9: 
+   MATCH       19
+   EVEN LEVEL  inf
+   ODD LEVEL   9
+   PRED        14 
+   BLOOM       0
+   MARK        -
+VERTEX 10: 
+   MATCH       20
+   EVEN LEVEL  6
+   ODD LEVEL   inf
+   PRED        20 
+   BLOOM       0
+   MARK        -
+VERTEX 11: 
+   MATCH       3
+   EVEN LEVEL  2
+   ODD LEVEL   3
+   PRED        3 
+   BLOOM       0x55e9b74583e0
+   MARK        right
+VERTEX 12: 
+   MATCH       4
+   EVEN LEVEL  4
+   ODD LEVEL   11
+   PRED        4 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 13: 
+   MATCH       0
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        21 15 
+   BLOOM       0
+   MARK        -
+VERTEX 14: 
+   MATCH       25
+   EVEN LEVEL  8
+   ODD LEVEL   7
+   PRED        6 
+   BLOOM       0x55e9b745a030
+   MARK        right
+VERTEX 15: 
+   MATCH       2
+   EVEN LEVEL  2
+   ODD LEVEL   3
+   PRED        2 
+   BLOOM       0x55e9b74583e0
+   MARK        left
+VERTEX 16: 
+   MATCH       26
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        26 
+   BLOOM       0
+   MARK        -
+VERTEX 17: 
+   MATCH       1
+   EVEN LEVEL  10
+   ODD LEVEL   5
+   PRED        3 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 18: 
+   MATCH       6
+   EVEN LEVEL  6
+   ODD LEVEL   5
+   PRED        27 
+   BLOOM       0x55e9b745a060
+   MARK        left
+VERTEX 19: 
+   MATCH       9
+   EVEN LEVEL  10
+   ODD LEVEL   inf
+   PRED        9 
+   BLOOM       0
+   MARK        -
+VERTEX 20: 
+   MATCH       10
+   EVEN LEVEL  inf
+   ODD LEVEL   5
+   PRED        3 
+   BLOOM       0
+   MARK        -
+VERTEX 21: 
+   MATCH       5
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        5 
+   BLOOM       0
+   MARK        -
+VERTEX 22: 
+   MATCH       7
+   EVEN LEVEL  10
+   ODD LEVEL   5
+   PRED        12 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 23: 
+   MATCH       27
+   EVEN LEVEL  8
+   ODD LEVEL   3
+   PRED        15 
+   BLOOM       0x55e9b745a060
+   MARK        left
+VERTEX 24: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 25: 
+   MATCH       14
+   EVEN LEVEL  8
+   ODD LEVEL   7
+   PRED        1 7 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 26: 
+   MATCH       16
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        11 
+   BLOOM       0
+   MARK        -
+VERTEX 27: 
+   MATCH       23
+   EVEN LEVEL  4
+   ODD LEVEL   7
+   PRED        23 
+   BLOOM       0x55e9b745a060
+   MARK        left
+BLOSSOM 0x55e9b74583e0
+   BASE        24
+   LEFT PEAK   15
+   RIGHT PEAK  11
+   BASE STAR   24
+BLOSSOM 0x55e9b745a060
+   BASE        24
+   LEFT PEAK   18
+   RIGHT PEAK  6
+   BASE STAR   24
+BLOSSOM 0x55e9b745a030
+   BASE        24
+   LEFT PEAK   25
+   RIGHT PEAK  14
+   BASE STAR   24
+--------------------------------
+LEVEL 12
+VERTEX 0: 
+   MATCH       13
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        13 
+   BLOOM       0
+   MARK        -
+VERTEX 1: 
+   MATCH       17
+   EVEN LEVEL  6
+   ODD LEVEL   9
+   PRED        17 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 2: 
+   MATCH       15
+   EVEN LEVEL  4
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0x55e9b74583e0
+   MARK        left
+VERTEX 3: 
+   MATCH       11
+   EVEN LEVEL  4
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0x55e9b74583e0
+   MARK        right
+VERTEX 4: 
+   MATCH       12
+   EVEN LEVEL  12
+   ODD LEVEL   3
+   PRED        15 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 5: 
+   MATCH       21
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        8 
+   BLOOM       0
+   MARK        -
+VERTEX 6: 
+   MATCH       18
+   EVEN LEVEL  6
+   ODD LEVEL   5
+   PRED        3 0 
+   BLOOM       0x55e9b745a060
+   MARK        right
+VERTEX 7: 
+   MATCH       22
+   EVEN LEVEL  6
+   ODD LEVEL   9
+   PRED        22 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 8: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 9: 
+   MATCH       19
+   EVEN LEVEL  inf
+   ODD LEVEL   9
+   PRED        14 
+   BLOOM       0
+   MARK        -
+VERTEX 10: 
+   MATCH       20
+   EVEN LEVEL  6
+   ODD LEVEL   inf
+   PRED        20 
+   BLOOM       0
+   MARK        -
+VERTEX 11: 
+   MATCH       3
+   EVEN LEVEL  2
+   ODD LEVEL   3
+   PRED        3 
+   BLOOM       0x55e9b74583e0
+   MARK        right
+VERTEX 12: 
+   MATCH       4
+   EVEN LEVEL  4
+   ODD LEVEL   11
+   PRED        4 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 13: 
+   MATCH       0
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        21 15 
+   BLOOM       0
+   MARK        -
+VERTEX 14: 
+   MATCH       25
+   EVEN LEVEL  8
+   ODD LEVEL   7
+   PRED        6 
+   BLOOM       0x55e9b745a030
+   MARK        right
+VERTEX 15: 
+   MATCH       2
+   EVEN LEVEL  2
+   ODD LEVEL   3
+   PRED        2 
+   BLOOM       0x55e9b74583e0
+   MARK        left
+VERTEX 16: 
+   MATCH       26
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        26 
+   BLOOM       0
+   MARK        -
+VERTEX 17: 
+   MATCH       1
+   EVEN LEVEL  10
+   ODD LEVEL   5
+   PRED        3 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 18: 
+   MATCH       6
+   EVEN LEVEL  6
+   ODD LEVEL   5
+   PRED        27 
+   BLOOM       0x55e9b745a060
+   MARK        left
+VERTEX 19: 
+   MATCH       9
+   EVEN LEVEL  10
+   ODD LEVEL   inf
+   PRED        9 
+   BLOOM       0
+   MARK        -
+VERTEX 20: 
+   MATCH       10
+   EVEN LEVEL  inf
+   ODD LEVEL   5
+   PRED        3 
+   BLOOM       0
+   MARK        -
+VERTEX 21: 
+   MATCH       5
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        5 
+   BLOOM       0
+   MARK        -
+VERTEX 22: 
+   MATCH       7
+   EVEN LEVEL  10
+   ODD LEVEL   5
+   PRED        12 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 23: 
+   MATCH       27
+   EVEN LEVEL  8
+   ODD LEVEL   3
+   PRED        15 
+   BLOOM       0x55e9b745a060
+   MARK        left
+VERTEX 24: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 25: 
+   MATCH       14
+   EVEN LEVEL  8
+   ODD LEVEL   7
+   PRED        1 7 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 26: 
+   MATCH       16
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        11 
+   BLOOM       0
+   MARK        -
+VERTEX 27: 
+   MATCH       23
+   EVEN LEVEL  4
+   ODD LEVEL   7
+   PRED        23 
+   BLOOM       0x55e9b745a060
+   MARK        left
+BLOSSOM 0x55e9b74583e0
+   BASE        24
+   LEFT PEAK   15
+   RIGHT PEAK  11
+   BASE STAR   24
+BLOSSOM 0x55e9b745a060
+   BASE        24
+   LEFT PEAK   18
+   RIGHT PEAK  6
+   BASE STAR   24
+BLOSSOM 0x55e9b745a030
+   BASE        24
+   LEFT PEAK   25
+   RIGHT PEAK  14
+   BASE STAR   24
+CHECK 4
+LOOK AT NEIGHBOR 15
+BRIDGE FOUND 15 4 AT LEVEL 7
+LOOK AT NEIGHBOR 1
+BRIDGE FOUND 1 4 AT LEVEL 9
+VERTEX 0: 
+   MATCH       13
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        13 
+   BLOOM       0
+   MARK        -
+VERTEX 1: 
+   MATCH       17
+   EVEN LEVEL  6
+   ODD LEVEL   9
+   PRED        17 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 2: 
+   MATCH       15
+   EVEN LEVEL  4
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0x55e9b74583e0
+   MARK        left
+VERTEX 3: 
+   MATCH       11
+   EVEN LEVEL  4
+   ODD LEVEL   1
+   PRED        24 
+   BLOOM       0x55e9b74583e0
+   MARK        right
+VERTEX 4: 
+   MATCH       12
+   EVEN LEVEL  12
+   ODD LEVEL   3
+   PRED        15 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 5: 
+   MATCH       21
+   EVEN LEVEL  inf
+   ODD LEVEL   1
+   PRED        8 
+   BLOOM       0
+   MARK        -
+VERTEX 6: 
+   MATCH       18
+   EVEN LEVEL  6
+   ODD LEVEL   5
+   PRED        3 0 
+   BLOOM       0x55e9b745a060
+   MARK        right
+VERTEX 7: 
+   MATCH       22
+   EVEN LEVEL  6
+   ODD LEVEL   9
+   PRED        22 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 8: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 9: 
+   MATCH       19
+   EVEN LEVEL  inf
+   ODD LEVEL   9
+   PRED        14 
+   BLOOM       0
+   MARK        -
+VERTEX 10: 
+   MATCH       20
+   EVEN LEVEL  6
+   ODD LEVEL   inf
+   PRED        20 
+   BLOOM       0
+   MARK        -
+VERTEX 11: 
+   MATCH       3
+   EVEN LEVEL  2
+   ODD LEVEL   3
+   PRED        3 
+   BLOOM       0x55e9b74583e0
+   MARK        right
+VERTEX 12: 
+   MATCH       4
+   EVEN LEVEL  4
+   ODD LEVEL   11
+   PRED        4 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 13: 
+   MATCH       0
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        21 15 
+   BLOOM       0
+   MARK        -
+VERTEX 14: 
+   MATCH       25
+   EVEN LEVEL  8
+   ODD LEVEL   7
+   PRED        6 
+   BLOOM       0x55e9b745a030
+   MARK        right
+VERTEX 15: 
+   MATCH       2
+   EVEN LEVEL  2
+   ODD LEVEL   3
+   PRED        2 
+   BLOOM       0x55e9b74583e0
+   MARK        left
+VERTEX 16: 
+   MATCH       26
+   EVEN LEVEL  4
+   ODD LEVEL   inf
+   PRED        26 
+   BLOOM       0
+   MARK        -
+VERTEX 17: 
+   MATCH       1
+   EVEN LEVEL  10
+   ODD LEVEL   5
+   PRED        3 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 18: 
+   MATCH       6
+   EVEN LEVEL  6
+   ODD LEVEL   5
+   PRED        27 
+   BLOOM       0x55e9b745a060
+   MARK        left
+VERTEX 19: 
+   MATCH       9
+   EVEN LEVEL  10
+   ODD LEVEL   inf
+   PRED        9 
+   BLOOM       0
+   MARK        -
+VERTEX 20: 
+   MATCH       10
+   EVEN LEVEL  inf
+   ODD LEVEL   5
+   PRED        3 
+   BLOOM       0
+   MARK        -
+VERTEX 21: 
+   MATCH       5
+   EVEN LEVEL  2
+   ODD LEVEL   inf
+   PRED        5 
+   BLOOM       0
+   MARK        -
+VERTEX 22: 
+   MATCH       7
+   EVEN LEVEL  10
+   ODD LEVEL   5
+   PRED        12 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 23: 
+   MATCH       27
+   EVEN LEVEL  8
+   ODD LEVEL   3
+   PRED        15 
+   BLOOM       0x55e9b745a060
+   MARK        left
+VERTEX 24: 
+   MATCH       -
+   EVEN LEVEL  0
+   ODD LEVEL   inf
+   PRED        
+   BLOOM       0
+   MARK        -
+VERTEX 25: 
+   MATCH       14
+   EVEN LEVEL  8
+   ODD LEVEL   7
+   PRED        1 7 
+   BLOOM       0x55e9b745a030
+   MARK        left
+VERTEX 26: 
+   MATCH       16
+   EVEN LEVEL  inf
+   ODD LEVEL   3
+   PRED        11 
+   BLOOM       0
+   MARK        -
+VERTEX 27: 
+   MATCH       23
+   EVEN LEVEL  4
+   ODD LEVEL   7
+   PRED        23 
+   BLOOM       0x55e9b745a060
+   MARK        left
+BLOSSOM 0x55e9b74583e0
+   BASE        24
+   LEFT PEAK   15
+   RIGHT PEAK  11
+   BASE STAR   24
+BLOSSOM 0x55e9b745a060
+   BASE        24
+   LEFT PEAK   18
+   RIGHT PEAK  6
+   BASE STAR   24
+BLOSSOM 0x55e9b745a030
+   BASE        24
+   LEFT PEAK   25
+   RIGHT PEAK  14
+   BASE STAR   24
