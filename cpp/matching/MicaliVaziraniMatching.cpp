@@ -244,6 +244,11 @@ void MicaliVaziraniMatching::search() {
 
 
 void MicaliVaziraniMatching::bloss_aug(NetworKit::node s, NetworKit::node t, NetworKit::edgeid e) {
+    #if DEBUG_LOGGING
+    std::cerr << "BLOSS AUG " << s << " " <<  t << std::endl;
+    std::cerr << V[s].bloom << " " << V[t].bloom << std::endl;
+    #endif
+    
     if (V[s].bloom == V[t].bloom && V[s].bloom != nullptr) return;
 
     #if DEBUG_LOGGING
@@ -425,9 +430,21 @@ void MicaliVaziraniMatching::left_dfs(
             v_L = u;
             bloom_nodes.push_back(v_L);
             return;
-        } 
-        else if (u == v_R) {
+        } else if (u == v_R) {
+            #if DEBUG_LOGGING
+            std::cerr << "MET WITH RIGHT\n";
+            std::cerr << level(u) << " " << level(barrier) << std::endl;
+            #endif
+
             dcv = u;
+            if (level(u) < level(barrier)) {
+                v_R = V[v_R].parent;
+                V[u].mark = VertexData::Mark::left;
+                V[u].parent = v_L;
+                V[u].parent_edge = e;
+                v_L = u;
+                return;
+            }
         }
     }
 
@@ -563,26 +580,48 @@ MicaliVaziraniMatching::find_path(
             std::cerr << "LEVEL(low) = " << level(low) << std::endl;
             std::cerr << "MARK(u) = " << mark_to_str(V[u].mark) << std::endl;
             std::cerr << "BLOOM(u) = " << V[u].bloom << std::endl;
-            std::cerr << "BASE_START(BLOM(u)) = "
+            std::cerr << "BASE_STAR(BLOOM(u)) = "
                       << (V[u].bloom == nullptr ? "-" : node_to_str(base_star(V[u].bloom)))
                       << std::endl;
-            std::cerr << "MARK(BASE_START(BLOM(u))) = " 
+            std::cerr << "MARK(BASE_STAR(BLOOM(u))) = " 
                       << (V[u].bloom == nullptr ? "-" : mark_to_str(V[base_star(V[u].bloom)].mark)) 
                       << std::endl;
+            std::cerr << (V[u].bloom == B && V[u].mark == mark) 
+                      << (V[u].bloom != nullptr && V[u].bloom != B && 
+                            V[base_star(V[u].bloom)].mark == mark)
+                      << (V[u].bloom != nullptr && V[u].bloom != B && 
+                            base_star(V[u].bloom) == low)
+                    //   << (V[u].bloom != nullptr && V[u].bloom != B && V[low].bloom != nullptr && 
+                    //      base_star(V[u].bloom) == base_star(V[low].bloom))
+                      << std::endl;
             std::cerr << "CONDITION = " 
-                      << (!V[u].erased && level(u) > level(low) && !V[u].visited && (V[u].mark == mark 
-                || (V[u].bloom != nullptr && V[u].bloom != B && (V[base_star(V[u].bloom)].mark == mark || base_star(V[u].bloom) == low))))
+                      <<    (!V[u].erased && !V[u].visited && 
+                            level(u) > level(low) &&  
+                                ((V[u].bloom == B && V[u].mark == mark) || 
+                                (V[u].bloom != nullptr && V[u].bloom != B && 
+                                    (V[base_star(V[u].bloom)].mark == mark || 
+                                    base_star(V[u].bloom) == low /* || 
+                                    (V[low].bloom != nullptr && low != base_star(V[low].bloom) &&
+                                        base_star(V[u].bloom) == base_star(V[low].bloom)) */)
+                            )))
                       << std::endl;
             #endif
 
-            if (!V[u].erased && level(u) > level(low) /* && !V[u].visited */ && (V[u].mark == mark 
-                || (V[u].bloom != nullptr && V[u].bloom != B && (V[base_star(V[u].bloom)].mark == mark || level(base_star(V[u].bloom)) <= level(low))))) {
+            if (!V[u].erased && !V[u].visited && 
+                level(u) > level(low) &&  
+                ((V[u].bloom == B && V[u].mark == mark) || 
+                (V[u].bloom != nullptr && V[u].bloom != B && 
+                    (V[base_star(V[u].bloom)].mark == mark || 
+                    base_star(V[u].bloom) == low /* || 
+                    (V[low].bloom != nullptr && low != base_star(V[low].bloom) &&
+                        base_star(V[u].bloom) == base_star(V[low].bloom)) */)
+                ))) {
 
                 #if DEBUG_LOGGING
                 std::cerr << "PARENT(" << u << ") = " << v << std::endl;
                 #endif 
 
-                // V[u].visited = true;
+                V[u].visited = true;
                 V[u].parent = v;
                 V[u].parent_edge = ue;
                 v = u;
@@ -599,6 +638,7 @@ MicaliVaziraniMatching::find_path(
             std::cerr << "BACK TO PARENT OF " << v << " = " << V[v].parent << std::endl;
             #endif 
 
+            // V[v].visited = false;
             v = V[v].parent;
         }  
     }

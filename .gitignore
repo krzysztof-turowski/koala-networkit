@@ -4,3 +4,4 @@ input/*
 CMakeCache.txt
 CMakeFiles/
 *.code-workspace
+log
