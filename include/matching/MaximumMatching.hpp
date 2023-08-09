@@ -40,6 +40,7 @@ public:
 
 protected:
     NetworKit::Graph graph;
+    
     std::map<NetworKit::node, NetworKit::node> matching;
 };
 
@@ -428,20 +429,17 @@ private:
 
     struct VertexData {
         NetworKit::node match;
-        NetworKit::edgeid match_edge;
         NetworKit::node parent;
-        NetworKit::edgeid parent_edge;
         int even_level;
         int odd_level;
         Bloom* bloom;
+        int color;
         std::vector<NetworKit::node> predecessors;
         size_t pred_it;
+        int pred_count;
         std::vector<NetworKit::node> successors;
         std::vector<std::pair<NetworKit::node, NetworKit::node>> children;
-        int count;
-        int color;
         bool erased;
-        bool visited;
     };
 
     static constexpr int no_color = 0;
@@ -449,9 +447,8 @@ private:
 
     struct EdgeData {
         enum Type { none, prop, bridge };
-        Type type;
         NetworKit::node u, v;
-        bool visited;
+        Type type;
     };
 
     std::vector<VertexData> V;
@@ -468,24 +465,27 @@ private:
     std::vector<NetworKit::node> bridge_support;
     std::vector<NetworKit::node> erase_queue;
 
+    void reset();
     void search();
+    void clear_blooms();
 
-    void bloss_aug(NetworKit::node s, NetworKit::node t, NetworKit::edgeid id);
-    void red_dfs_step(NetworKit::node& v_R, int red_color, NetworKit::node& v_G, int green_color, 
+    void bloss_aug(NetworKit::node s, NetworKit::node t);
+    void red_dfs_step(NetworKit::node& v_R, int red_color, NetworKit::node& v_G, 
                   NetworKit::node r, NetworKit::node& barrier);
-    void green_dfs_step(NetworKit::node& v_G, int green_color, NetworKit::node& v_R, int red_color, 
-                  NetworKit::node r, NetworKit::node& barrier);
+    void green_dfs_step(NetworKit::node& v_G, int green_color, NetworKit::node& v_R, 
+                  NetworKit::node& barrier);
 
     
     void erase(std::vector<NetworKit::node>& Y);
     
-    std::list<NetworKit::node> find_path(NetworKit::node high, NetworKit::node low, Bloom* B, int color);
-    std::list<NetworKit::node> open(NetworKit::node x);
+    void find_path(NetworKit::node x, NetworKit::node y);
+    bool open(NetworKit::node cur, NetworKit::node bcur, NetworKit::node b);
     
     NetworKit::node base_star(Bloom* bloom);
     NetworKit::node base_star(NetworKit::node vertex);
     NetworKit::node base(NetworKit::node vertex);
 
+    void flip_edge(NetworKit::node u, NetworKit::node v);
     void set_level(NetworKit::node vertex, int level);
     bool exposed(NetworKit::node vertex);
     int min_level(NetworKit::node vertex);
@@ -497,13 +497,7 @@ private:
     std::tuple<NetworKit::node, NetworKit::node, NetworKit::node, NetworKit::node> 
     get_bridge(NetworKit::node vertex);
 
-    void print_state();
-    void check_consistency();
-
-    void flip(NetworKit::node u, NetworKit::node v);
-    void augumentPath(NetworKit::node u, NetworKit::node v, bool initial = false);
-    bool openingDfs(NetworKit::node cur, NetworKit::node bcur, NetworKit::node b);
-
+    // void print_state();
 };
 
 } /* namespace Koala */
