@@ -14,7 +14,7 @@ MicaliVaziraniMatching::MicaliVaziraniMatching(NetworKit::Graph &graph):
         V(graph.upperNodeIdBound()),
         E(graph.upperEdgeIdBound()),
         candidates(graph.upperNodeIdBound()),
-        bridges(graph.upperNodeIdBound()),
+        bridges(2 * graph.upperNodeIdBound() + 1),
         bloom_bases(graph.upperNodeIdBound()) {
 
         }
@@ -31,7 +31,7 @@ void print_nodes(const std::vector<std::pair<NetworKit::node, NetworKit::edgeid>
 }
 
 std::string level_to_str(int level) {
-    return level == std::numeric_limits<int>::max() ? "inf" : std::to_string(level);
+    return level == 1e9 ? "inf" : std::to_string(level);
 }
 
 std::string node_to_str(NetworKit::node vertex) {
@@ -55,10 +55,12 @@ void MicaliVaziraniMatching::run() {
     std::cerr << std::endl;
     #endif
 
+    color_counter = 1;
+
     graph.forEdges([this] (NetworKit::node u, NetworKit::node v, NetworKit::edgeid id) {
         E[static_cast<unsigned int>(id)].u = u;
         E[static_cast<unsigned int>(id)].v = v;
-        E[static_cast<unsigned int>(id)].matched = false;
+        // E[static_cast<unsigned int>(id)].matched = false;
     });
 
     graph.forNodes([this] (NetworKit::node vertex) {
@@ -68,33 +70,37 @@ void MicaliVaziraniMatching::run() {
 
     do {
         augmentation_happened = false;
+        color_counter = 1;
 
         graph.forNodes([this] (NetworKit::node vertex) {
             V[vertex].parent = NetworKit::none;
             V[vertex].parent_edge = NetworKit::none;
-            V[vertex].even_level = std::numeric_limits<int>::max();
-            V[vertex].odd_level = std::numeric_limits<int>::max();
+            V[vertex].even_level = inf_level;
+            V[vertex].odd_level = inf_level;
             V[vertex].bloom = nullptr;
             V[vertex].predecessors.clear();
+            V[vertex].pred_it = 0;
             V[vertex].successors.clear();
-            V[vertex].anomalies.clear();
+            V[vertex].children.clear();
             V[vertex].count = 0;
             V[vertex].erased = false;
             V[vertex].visited = false;
-            V[vertex].mark = VertexData::Mark::unmarked;
+            V[vertex].color = no_color;
         });
 
         graph.forEdges([this] (NetworKit::node u, NetworKit::node v, NetworKit::edgeid id) {
-            E[static_cast<unsigned int>(id)].used = false;
-            E[static_cast<unsigned int>(id)].visited = false;
+            id = static_cast<unsigned int>(id);
+            E[id].visited = false;
+            E[id].type = EdgeData::Type::none;
         });
 
         for (int i = 0; i < graph.upperNodeIdBound(); ++ i) {
             candidates[i].clear();
-            bridges[i].clear();
+            bridges[2 * i + 1].clear();
         }
 
         bloom_bases.reset();
+        erase_queue.clear();
 
         search();
 
@@ -120,398 +126,388 @@ void MicaliVaziraniMatching::search() {
 
     graph.forNodes([this] (NetworKit::node vertex) {
         if (exposed(vertex)) {
-            V[vertex].even_level = 0;
-            candidates[0].push_back(vertex);
+            set_level(vertex, 0);
         }
     });
 
     iter = max_iter = 0;
     augmentation_happened = false;
-    while (iter <= max_iter && !augmentation_happened) {
+    for (iter = 0; iter < candidates.size() && !augmentation_happened; iter ++) {
         #if DEBUG_LOGGING
-        std::cerr << "--------------------------------\n";
-        std::cerr << "LEVEL " << iter << std::endl;
-        print_state();
-        #endif
-        
-        if (iter % 2 == 0) {
-            for (auto v : candidates[iter]) {
-                #if DEBUG_LOGGING
-                std::cerr << "CHECK " << v << std::endl;
-                #endif
-
-                graph.forEdgesOf(v, [this] (NetworKit::node v, NetworKit::node u, NetworKit::edgeid e) {
-                    e = static_cast<int>(e);
-
-                    if (V[u].erased || u == V[v].match) return;
-
-                    #if DEBUG_LOGGING
-                    std::cerr << "LOOK AT NEIGHBOR " << u << std::endl;
-                    #endif
-
-                    if (V[u].even_level < std::numeric_limits<int>::max()) {
-                        int j = (V[u].even_level + V[v].even_level) / 2;
-                        bridges[j].push_back(e);
-
-                        #if DEBUG_LOGGING
-                        std::cerr << "BRIDGE FOUND " << u << " " <<  v << " AT LEVEL " << j << std::endl;
-                        #endif
-                    } else {
-                        if (V[u].odd_level == std::numeric_limits<int>::max()) {
-                            V[u].odd_level = iter + 1;
-                            candidates[iter + 1].push_back(u);
-                            max_iter = std::max(max_iter, iter + 1);
-                            
-                            #if DEBUG_LOGGING
-                            std::cerr << "QUEUE " << u << " AT LEVEL " << iter + 1 << std::endl;
-                            #endif
-                        } 
-                        if (V[u].odd_level == iter + 1) {
-                            V[u].count ++;
-                            V[u].predecessors.push_back({v, e});
-
-                            #if DEBUG_LOGGING
-                            std::cerr << "MAKE " << v << " A PRED OF " <<  u << std::endl;
-                            #endif
-
-                            V[v].successors.push_back(u);
-                        } 
-                        if (V[u].odd_level < iter) {
-                            V[u].anomalies.push_back({v, e});
-                        }
-                    }
-                });
-            }
+        if (candidates[iter].size() > 0) {
+            std::cerr << "------------------------------------------------------\n";
+            std::cerr << "LEVEL " << iter << std::endl;
+            print_state();
         }
+        #endif
 
-        if (iter % 2 == 1) {
-            for (auto v : candidates[iter]) {
+        for (auto v : candidates[iter]) {
+            #if DEBUG_LOGGING
+            std::cerr << "CHECK " << v << std::endl;
+            #endif
+
+            graph.forEdgesOf(v, [this] (NetworKit::node v, NetworKit::node u, NetworKit::edgeid e) {
+                e = static_cast<int>(e);
+
+                if (V[u].erased || E[e].type != EdgeData::Type::none ||
+                    (iter % 2 == 0 && u == V[v].match) || (iter % 2 == 1 && u != V[v].match))
+                    return;
+
                 #if DEBUG_LOGGING
-                std::cerr << "CHECK " << v << std::endl;
+                std::cerr << "LOOK AT " << u << std::endl;
                 #endif
 
-                if (V[v].bloom != nullptr) continue;
-                auto u = V[v].match;
-                auto e = V[v].match_edge;
-
-                #if DEBUG_LOGGING
-                std::cerr << "LOOK AT MATCH " << u << std::endl;
-                #endif
-
-                if (V[u].odd_level < std::numeric_limits<int>::max()) {
-                    int j = (V[u].odd_level + V[v].odd_level) / 2;
-                    bridges[j].push_back(e);
-
-                    #if DEBUG_LOGGING
-                    std::cerr << "BRIDGE FOUND " << u << " " <<  v << " AT LEVEL " << j << std::endl;
-                    #endif
-                } else if (V[u].even_level == std::numeric_limits<int>::max()) {
-                    V[u].predecessors.clear();
-                    V[u].predecessors.push_back({v, V[u].match_edge});
-                    V[v].successors.clear();
+                if (min_level(u) >= iter + 1) {
+                    E[e].type = EdgeData::Type::prop;
+                    if (min_level(u) > iter + 1) {
+                        set_level(u, iter + 1);
+                    }
+                    V[u].predecessors.push_back(v);
+                    V[u].count ++;
                     V[v].successors.push_back(u);
-                    V[u].count = 1;
-                    V[u].even_level = iter + 1;
-                    candidates[iter + 1].push_back(u);
-                    max_iter = std::max(max_iter, iter + 1);
 
                     #if DEBUG_LOGGING
-                    std::cerr << "QUEUE " << u << " AT LEVEL " << iter + 1 << std::endl;
                     std::cerr << "MAKE " << v << " A PRED OF " <<  u << std::endl;
                     #endif
-                }
-            }
+                } else {
+                    E[e].type = EdgeData::Type::bridge;
+                    auto t = tenacity(u, v);
+                    if (t < inf_level) {
+                        bridges[t].push_back(e);
 
-            #if DEBUG_LOGGING
-            check_consistency();
-            #endif
+                        #if DEBUG_LOGGING
+                        std::cerr << "BRIDGE FOUND " << u << " " <<  v << " WITH TENACITY " << t << " AND ID " << e << std::endl;
+                        #endif
+                    }
+                }
+            });
         }
 
         #if DEBUG_LOGGING
         print_state();
         #endif 
 
-        for (auto e : bridges[iter]) {
-            auto s = E[static_cast<int>(e)].u;
-            auto t = E[static_cast<int>(e)].v;
+        for (int i = 0; i < bridges[2 * iter + 1].size(); ++ i) {
+            auto e = bridges[2 * iter + 1][i];
+            auto s = E[e].v;
+            auto t = E[e].u;
             if (!V[s].erased && !V[t].erased)
                 bloss_aug(s, t, e);
         }
-
-        iter ++;
     }
 }
 
-
-void MicaliVaziraniMatching::bloss_aug(NetworKit::node s, NetworKit::node t, NetworKit::edgeid e) {
+void MicaliVaziraniMatching::flip(NetworKit::node u, NetworKit::node v) {
     #if DEBUG_LOGGING
-    std::cerr << "BLOSS AUG " << s << " " <<  t << std::endl;
-    std::cerr << V[s].bloom << " " << V[t].bloom << std::endl;
+    std::cerr << "FLIP " << u << " " << v << std::endl;
     #endif
     
-    if (V[s].bloom == V[t].bloom && V[s].bloom != nullptr) return;
+    if(V[u].erased || V[v].erased || V[u].match == v) return;
+
+    V[u].match = v;
+    V[v].match = u;
+
+    V[u].erased = true;
+    V[v].erased = true;
+    erase_queue.push_back(u);
+    erase_queue.push_back(v);
+}
+
+bool MicaliVaziraniMatching::openingDfs(NetworKit::node cur, NetworKit::node bcur, NetworKit::node b) {
+    #if DEBUG_LOGGING
+    std::cerr << "OPENING DFS " << cur << " " << bcur << " " << b << std::endl;
+    #endif
+    
+    if(bcur == b) {
+        augumentPath(cur, bcur);
+        return true;
+    }
 
     #if DEBUG_LOGGING
-    std::cerr << "BLOSS AUG " << s << " " <<  t << std::endl;
+    for(auto a: V[bcur].children)
+        std::cerr << a.first << " " << a.second << " " << V[a.second].color << " " << V[bcur].color << std::endl;
     #endif
 
-    auto v_L = (V[s].bloom == nullptr) ? s : base_star(V[s].bloom);
-    auto v_R = (V[t].bloom == nullptr) ? t : base_star(V[t].bloom);
+    for(auto a: V[bcur].children) { 
+        if((a.second == b || V[a.second].color == V[bcur].color) && openingDfs(a.first,a.second,b)) {
+            augumentPath(cur, bcur);
+            flip(bcur,a.first);
+            return true;
+        }
+    }
+    return false;
+}
 
-    if (v_L == v_R) return;
+void MicaliVaziraniMatching::augumentPath(NetworKit::node u, NetworKit::node v, bool initial) {
+    #if DEBUG_LOGGING
+    std::cerr << "AUGMENT PATH " << u << " " << v << " " << initial << std::endl;
+    #endif
+    
+    if(u == v) return;
+    if(!initial && min_level(u) == V[u].even_level) { //simply follow predecessors
+        int x = V[u].predecessors[0]; //no need to flip edge since we know it's matched
 
-    V[v_L].mark = VertexData::Mark::left;
-    V[v_L].parent = s;
-    V[v_R].mark = VertexData::Mark::right;
-    V[v_R].parent = t;
-    auto dcv = NetworKit::none;
-    auto barrier = v_R;
-    bloom_nodes = { v_L, v_R };
+        int idx = 0;
+        while(base_star(V[x].predecessors[idx]) != base_star(x)) {
+            idx++; 
+            assert(idx < (int)V[x].predecessors.size());
+        }
+        u = V[x].predecessors[idx];
+        flip(x,u);
+        augumentPath(u,v);
+    }
+    else { //through bridge
+        auto B = V[u].bloom;
+        auto u3 = B->red_peak, v3 = B->green_peak, u2 = B->red_root, v2 = B->green_root;
+        
+        #if DEBUG_LOGGING
+        std::cerr << u3 << " " << v3 << " " << u2 << " " << v2 << std::endl;
+        std::cerr << V[u2].color << " " << V[u].color << " " << V[v2].color << std::endl;
+        #endif
+
+        if ((V[u2].color^1) == V[u].color || V[v2].color == V[u].color) {
+            std::swap(u2, v2);
+            std::swap(u3, v3);
+        }
+
+        flip(u3, v3);
+        bool openingDfsSucceed1 = openingDfs(u3,u2,u);
+        assert(openingDfsSucceed1);
+
+        int v4 = B->base;
+        bool openingDfsSucceed2 = openingDfs(v3,v2,v4);
+        assert(openingDfsSucceed2);
+        augumentPath(v4, v);
+    }
+}
+
+void MicaliVaziraniMatching::bloss_aug(NetworKit::node g, NetworKit::node r, NetworKit::edgeid e) {    
+    if (V[g].bloom == V[r].bloom && V[g].bloom != nullptr) return;
+
+    #if DEBUG_LOGGING
+    std::cerr << "\nBLOSS AUG " << g << " " <<  r << std::endl;
+    #endif
+
+    auto v_G = (V[g].bloom == nullptr) ? g : base_star(V[g].bloom);
+    auto v_R = (V[r].bloom == nullptr) ? r : base_star(V[r].bloom);
+    auto green_root = v_G;
+    auto red_root = v_R;
+
+    if (v_G == v_R) return;
+
+    int green_color = ++ color_counter;
+    int red_color = ++ color_counter;
+    V[v_G].color = green_color;
+    V[v_G].parent = v_G;
+    V[v_R].color = red_color;
+    V[v_R].parent = r;
+    auto barrier = v_G;
+    bridge_support = { v_G, v_R };
     bloom_found = false;
 
     #if DEBUG_LOGGING
-    std::cerr << "MARK " << v_L << " left" << std::endl;
-    std::cerr << "MARK " << v_R << " right" << std::endl;
+    std::cerr << "MARK " << v_G << " green " << green_color << std::endl;
+    std::cerr << "MARK " << v_R << " red " << red_color << std::endl;
     #endif
 
-    while (!exposed(v_L) || !exposed(v_R)) {
+    while ((!exposed(v_G) || !exposed(v_R)) && !bloom_found) {
         #if DEBUG_LOGGING
-        std::cerr << "\nDFS " << node_to_str(v_L) << " " <<  node_to_str(v_R) << " " << node_to_str(dcv) << " " << node_to_str(barrier) << std::endl;
+        std::cerr << "DFS " << node_to_str(v_R) << " " <<  node_to_str(v_G) << " " << node_to_str(barrier) << std::endl;
         #endif
 
-        if (v_L == NetworKit::none || v_R == NetworKit::none) return;
+        // if (v_G == NetworKit::none || v_R == NetworKit::none) return;
 
-        if (level(v_L) >= level(v_R)) {
+        if (min_level(v_R) >= min_level(v_G)) {
             #if DEBUG_LOGGING
-            std::cerr << "ADVANCE LEFT\n";
+            std::cerr << "ADVANCE RED\n";
             #endif
 
-            left_dfs(s, v_L, v_R, dcv, barrier);
+            dfs_step(v_R, red_color, v_G, green_color, red_color, r, barrier);
         } else {
             #if DEBUG_LOGGING
-            std::cerr << "ADVANCE RIGHT\n";
+            std::cerr << "ADVANCE GREEN\n";
             #endif
 
-            right_dfs(v_L, v_R, dcv, barrier);
-        }
-        if (bloom_found) {
-            #if DEBUG_LOGGING
-            std::cerr << "BLOOM FOUND " << std::endl;
-            std::cerr << "DFS " << node_to_str(v_L) << " " <<  node_to_str(v_R) << " " << node_to_str(dcv) << " " << node_to_str(barrier) << std::endl;
-            #endif
-            if (dcv == NetworKit::none) return;
-
-            Bloom *B = new Bloom { dcv, s, t, e };
-            current_blooms.push_back(B);
-
-            #if DEBUG_LOGGING
-            std::cerr << "ADDRESS = " << B << std::endl;
-            std::cerr << "BASE = " << B->base << std::endl;
-            std::cerr << "LEFT PEAK = " << B->left_peak << std::endl;
-            std::cerr << "RIGHT PEAK = " << B->right_peak << std::endl;
-            std::cerr << "NODES: ";
-            #endif
-
-            V[dcv].mark = VertexData::Mark::unmarked;
-
-            #if DEBUG_LOGGING
-            for (auto y : bloom_nodes)
-                if (V[y].mark != VertexData::Mark::unmarked) 
-                    std::cerr << y << " ";
-            std::cerr << std::endl;
-            #endif
-
-            for (auto y : bloom_nodes) {
-                if (V[y].mark == VertexData::Mark::unmarked) continue;
-
-                V[y].bloom = B;
-                bloom_bases.link(B->base, y);
-
-                if (outer(y)) {
-                    V[y].odd_level = 2 * iter + 1 - V[y].even_level;
-                    // V[y].predecessors.push_back({V[y].parent, V[y].parent_edge});
-                } else {
-                    if (2 * iter + 1  - V[y].odd_level < V[y].even_level) {
-                        V[y].even_level = 2 * iter + 1  - V[y].odd_level;
-                        // V[y].predecessors.push_back({V[y].parent, V[y].parent_edge});
-                        candidates[V[y].even_level].push_back(y);
-                        max_iter = std::max(max_iter, V[y].even_level);
-
-                        #if DEBUG_LOGGING
-                        std::cerr << "QUEUE " << y << " AT LEVEL " << V[y].even_level << std::endl;
-                        #endif
-                    }
-
-                    for (auto [z, e] : V[y].anomalies) {
-                        int j = (V[y].even_level + V[z].even_level) / 2;
-                        bridges[j].push_back(e);
-
-                        #if DEBUG_LOGGING
-                        std::cerr << "BRIDGE FOUND " << y << " " << z << " AT LEVEL " << j << std::endl;
-                        #endif
-
-                        E[static_cast<int>(e)].used = true;
-                    }
-                }
-            }
-            
-            return;
+            dfs_step(v_G, green_color, v_R, red_color, red_color, r, barrier);
         }
     }
 
+    Bloom *B = new Bloom { v_G, green_color, red_color, g, green_root, r, red_root };
+    current_blooms.push_back(B);
+    V[B->base].color = no_color;
+
     #if DEBUG_LOGGING
-    std::cerr << "DFS " << v_L << " " <<  v_R << " " << dcv << " " << barrier << std::endl;
+    std::cerr << "BLOOM FOUND " << std::endl;
+    std::cerr << "ADDRESS = " << B << std::endl;
+    std::cerr << "BASE = " << B->base << std::endl;
+    std::cerr << "GREEN COLOR = " << B->green_color << std::endl;
+    std::cerr << "RED COLOR = " << B->red_color << std::endl;
+    std::cerr << "GREEN PEAK = " << B->green_peak << std::endl;
+    std::cerr << "RED PEAK = " << B->red_peak << std::endl;
+    std::cerr << "NODES: ";
+    for (auto y : bridge_support)
+        if (V[y].color != no_color) 
+            std::cerr << y << " ";
+    std::cerr << std::endl;
     #endif
+
+    for (auto y : bridge_support) {
+        if (V[y].color == no_color) continue;
+
+        V[y].bloom = B;
+        bloom_bases.link(B->base, y);
+        set_level(y, 2 * iter + 1 - min_level(y));
+        
+        if (inner(y)) {
+            graph.forEdgesOf(y, [this] (NetworKit::node y, NetworKit::node u, NetworKit::edgeid e) {
+                e = static_cast<int>(e);
+                if (E[e].type != EdgeData::Type::bridge) return;
+
+                int t = tenacity(y, u);
+                if (t < inf_level) 
+                    bridges[t].push_back(e);
+            });
+        }
+    }
+
+    if (bloom_found) return;
 
     augmentation_happened = true;
+    augumentPath(v_R, v_G, true);
 
-    #if DEBUG_LOGGING
-    std::cerr << "AUGMENT ON PATH " << v_L << " ~~ " << s << " - " << t << " ~~ " << v_R << std::endl;
-    std::cerr << exposed(v_L) << exposed(v_R) << std::endl;
-    #endif
+    erase(erase_queue);
 
-    auto [P_L, EP_L] = find_path(s, v_L, nullptr, VertexData::Mark::left);
-    auto [P_R, EP_R] = find_path(t, v_R, nullptr, VertexData::Mark::right);
-    std::reverse(P_L.begin(), P_L.end());
-    std::reverse(EP_L.begin(), EP_L.end());
-    std::vector<NetworKit::node> P;
-    std::vector<NetworKit::node> EP;
-    for (auto v : P_L) P.push_back(v);
-    for (auto e : EP_L) EP.push_back(e);
-    EP.push_back(e);
-    for (auto v : P_R) P.push_back(v);
-    for (auto e : EP_R) EP.push_back(e);
+    // #if DEBUG_LOGGING
+    // std::cerr << "DFS " << v_G << " " <<  v_R << " " << " " << barrier << std::endl;
+    // std::cerr << "AUGMENT ON PATH " << v_G << " ~~ " << g << " - " << r << " ~~ " << v_R << std::endl;
+    // #endif
 
-    #if DEBUG_LOGGING
-    std::cerr << "AUGMENTING ON PATH " << v_L << " ~~ " << s << " - " << t << " ~~ " << v_R << " :" << std::endl;
-    print_path(P, EP);
-    #endif
+    // augmentation_happened = true;
+    // auto P_L = find_path(g, v_G, nullptr, green_color);
+    // auto P_R = find_path(r, v_R, nullptr, red_color);
+    // std::reverse(P_L.begin(), P_L.end());
+    // std::vector<NetworKit::node> P;
+    // for (auto v : P_L) P.push_back(v);
+    // for (auto v : P_R) P.push_back(v);
 
-    for (int i = 0; i < P.size(); i += 2) {
-        auto u = P[i];
-        auto v = P[i + 1];
-        V[u].match = v;
-        V[v].match = u;
-        V[u].match_edge = V[v].match_edge = EP[i];
-        E[EP[i]].matched = true;
-        if (i + 2 < P.size()) E[EP[i+1]].matched = false;
+    // #if DEBUG_LOGGING
+    // std::cerr << "AUGMENTING ON PATH " << v_G << " ~~ " << g << " - " << r << " ~~ " << v_R << " :" << std::endl;
+    // for (auto v : P) std::cerr << v << " ";
+    // std::cerr << std::endl;
+    // #endif
 
-        #if DEBUG_LOGGING
-        std::cerr << "MATCH " << u << " " << v << " (" << E[EP[i]].u << " " << E[EP[i]].v << ")" << std::endl;
-        if (i + 2 < P.size()) std::cerr << "UNMATCH " << " (" << E[EP[i+1]].u << " " << E[EP[i+1]].v << ")" << std::endl;
-        #endif
-    }
-    erase(P);
+    // for (int i = 0; i < P.size(); i += 2) {
+    //     auto u = P[i];
+    //     auto v = P[i + 1];
+    //     V[u].match = v;
+    //     V[v].match = u;
+
+    //     #if DEBUG_LOGGING
+        
+    //     #endif
+    // }
+    // erase(P);
 }
 
-void MicaliVaziraniMatching::left_dfs(
-    NetworKit::node s, NetworKit::node& v_L, NetworKit::node& v_R, 
-    NetworKit::node& dcv, NetworKit::node& barrier) {
+void MicaliVaziraniMatching::dfs_step(
+        NetworKit::node& v_1, int color_1, NetworKit::node& v_2, int color_2, 
+        int red_color, int r, NetworKit::node& barrier) {
     
-    for (auto [u, e] : V[v_L].predecessors) {
-        if (E[static_cast<int>(e)].used || V[u].erased) continue;
-        E[static_cast<int>(e)].used = true;
+    while (V[v_1].pred_it < V[v_1].predecessors.size()) {
+        auto u = V[v_1].predecessors[V[v_1].pred_it ++];
+        auto x = u;
 
         #if DEBUG_LOGGING
-        std::cerr << "USE EDGE (" << E[static_cast<int>(e)].u << ", " << E[static_cast<int>(e)].v << ")\n";
+        std::cerr << "LOOK AT " << u << " PRED OF " << v_1 << std::endl;;
         #endif
 
-        if (V[u].bloom != nullptr) {
-            u = base_star(V[u].bloom);
-        }
-        if (V[u].mark == VertexData::Mark::unmarked) {
+        if (V[u].erased) continue;
+
+        if (V[u].bloom != nullptr) u = base_star(V[u].bloom);
+
+        if (V[u].color == no_color) {
+            V[v_1].children.push_back({x, u});
+            V[u].color = color_1;
+            V[u].parent = v_1;
+
             #if DEBUG_LOGGING
-            std::cerr << "MARK " << u << " LEFT\n";
+            std::cerr << "PARENT(" << u << ") = " << v_1 << std::endl;
+            std::cerr << "MARK " << u << " WITH " << color_1 << std::endl;
             #endif
 
-            V[u].mark = VertexData::Mark::left;
-            V[u].parent = v_L;
-            V[u].parent_edge = e;
-            v_L = u;
-            bloom_nodes.push_back(v_L);
+            v_1 = u;
+            bridge_support.push_back(v_1);
+
+            #if DEBUG_LOGGING
+            std::cerr << "MOVE TO " << v_1 << "\n";
+            #endif
+
             return;
-        } else if (u == v_R) {
-            #if DEBUG_LOGGING
-            std::cerr << "MET WITH RIGHT\n";
-            std::cerr << level(u) << " " << level(barrier) << std::endl;
-            #endif
+        } else if (u == v_2) {
+            V[v_1].children.push_back({x, u});
+            if (color_1 == red_color && u != barrier) {
+                v_2 = V[v_2].parent;
 
-            dcv = u;
-            if (level(u) < level(barrier)) {
-                v_R = V[v_R].parent;
-                V[u].mark = VertexData::Mark::left;
-                V[u].parent = v_L;
-                V[u].parent_edge = e;
-                v_L = u;
+                #if DEBUG_LOGGING
+                std::cerr << "BACKTRACK GREEN TO " << v_2 << "\n";
+                #endif
+
+                V[u].color = color_1;
+                V[u].parent = v_1;
+
+                #if DEBUG_LOGGING
+                std::cerr << "PARENT(" << u << ") = " << v_1 << std::endl;
+                std::cerr << "MARK " << u << " WITH " << color_1 << std::endl;
+                #endif
+
+                v_1 = u;
+
+                #if DEBUG_LOGGING
+                std::cerr << "TAKE OVER " << v_1 << "\n";
+                #endif
                 return;
             }
         }
     }
 
-    if (v_L == s) {
-        bloom_found = true;
-    } else {
-        // V[v_L].mark = VertexData::Mark::unmarked;
-        v_L = V[v_L].parent;
-    }
-}
-
-void MicaliVaziraniMatching::right_dfs(
-    NetworKit::node& v_L, NetworKit::node& v_R, 
-    NetworKit::node& dcv, NetworKit::node& barrier) {
-
-    for (auto [u, e] : V[v_R].predecessors) {
-        if (E[static_cast<int>(e)].used || V[u].erased) continue;
-        E[static_cast<int>(e)].used = true;
-
-        #if DEBUG_LOGGING
-        std::cerr << "USE EDGE (" << E[static_cast<int>(e)].u << ", " << E[static_cast<int>(e)].v << ")\n";
-        #endif
-
-        if (V[u].bloom != nullptr) {
-            u = base_star(V[u].bloom);
-        }
-        if (V[u].mark == VertexData::Mark::unmarked) {
-            #if DEBUG_LOGGING
-            std::cerr << "MARK " << u << " RIGHT\n";
-            #endif
-
-            V[u].mark = VertexData::Mark::right;
-            V[u].parent = v_R;
-            V[u].parent_edge = e;
-            v_R = u;
-            bloom_nodes.push_back(v_R);
-            return;
-        } else if (u == v_L) {
-            dcv = u;
+    if (color_1 == red_color) {
+        if (v_1 ==  r) {
+            bloom_found = true;
 
             #if DEBUG_LOGGING
-            std::cerr << "DCV = " << u << std::endl;
+            std::cerr << "BLOOM FOUND\n";
+            #endif
+        } else {
+            v_1 = V[v_1].parent;
+
+            #if DEBUG_LOGGING
+            std::cerr << "BACKTRACK TO " << v_1 << "\n";
             #endif
         }
-    }
-
-    if (v_R == barrier) {
-        v_R = dcv;
-        barrier = dcv;
-        V[v_R].mark = VertexData::Mark::right;
-
-        #if DEBUG_LOGGING
-        std::cerr << "MARK " << v_R << " RIGHT\n";
-        #endif
-
-        v_L = V[v_L].parent;
-        bloom_nodes.push_back(v_R);
     } else {
-        // V[v_R].mark = VertexData::Mark::unmarked;
-        v_R = V[v_R].parent;
+        if (v_1 == barrier) {
+            barrier = v_2;
+            v_1 = v_2;
+            V[v_1].color = color_1;
+            v_2 = V[v_2].parent;
+
+            #if DEBUG_LOGGING
+            std::cerr << "GIVE OVER " << v_1 << " TO GREEN\n";
+            std::cerr << "MARK " << v_1 << " WITH " << color_1 << std::endl;
+            #endif
+        } else {
+            v_1 = V[v_1].parent;
+
+            #if DEBUG_LOGGING
+            std::cerr << "BACKTRACK TO " << v_1 << "\n";
+            #endif
+        }
     }
 }
 
 void MicaliVaziraniMatching::erase(std::vector<NetworKit::node>& Y) {
     for (int i = 0; i < Y.size(); ++ i) {
         auto y = Y[i];
-        V[y].erased = true;
 
         #if DEBUG_LOGGING
         std::cerr << "ERASE " << y << std::endl;
@@ -522,317 +518,220 @@ void MicaliVaziraniMatching::erase(std::vector<NetworKit::node>& Y) {
 
             V[z].count --;
             if (V[z].count == 0) {
+                V[z].erased = true;
                 Y.push_back(z);
             }
         }
     }
 }
 
-std::pair<std::list<NetworKit::node>, std::list<NetworKit::edgeid>> 
-MicaliVaziraniMatching::find_path(
-    NetworKit::node high, NetworKit::node low, Bloom* B, VertexData::Mark mark) {
+// std::list<NetworKit::node> MicaliVaziraniMatching::find_path(
+//     NetworKit::node high, NetworKit::node low, Bloom* B, int color) {
 
-    #if DEBUG_LOGGING
-    std::cerr << "FIND PATH " << high << " " << low << " in " << B << " MARKED " << mark_to_str(mark) << std::endl;
-    #endif 
+//     #if DEBUG_LOGGING
+//     std::cerr << "FIND PATH " << high << " " << low << " in " << B << " MARKED " << color << std::endl;
+//     #endif 
 
-    if (high == low) {
-        return {{ high }, {}};
-    }
+//     if (high == low) {
+//         return {{ high }, {}};
+//     }
 
-    auto v = high;
-    auto u = high;
-    NetworKit::edgeid ue;
-    while (u != low) {
-        #if DEBUG_LOGGING
-        std::cerr << std::endl;
-        std::cerr << "V = " << v << std::endl;
-        std::cerr << "U = " << u << std::endl;
-        #endif 
+//     auto v = high;
+//     auto u = high;
+//     NetworKit::edgeid ue;
+//     while (u != low) {
+//         #if DEBUG_LOGGING
+//         std::cerr << std::endl;
+//         std::cerr << "V = " << v << std::endl;
+//         std::cerr << "U = " << u << std::endl;
+//         #endif 
 
-        bool unvisited = false;
-        for (auto [q, e] : V[v].predecessors) {
-            if (E[static_cast<int>(e)].visited) continue;
+//         bool unvisited = false;
+//         for (auto [q, e] : V[v].predecessors) {
+//             if (E[static_cast<int>(e)].visited) continue;
 
-            #if DEBUG_LOGGING
-            std::cerr << "FOUND UNVISITED PRED " << q <<  "\n";
-            #endif
+//             #if DEBUG_LOGGING
+//             std::cerr << "FOUND UNVISITED PRED " << q <<  "\n";
+//             #endif
 
-            if (V[v].bloom == nullptr || V[v].bloom == B) {
-                E[static_cast<int>(e)].visited = true;
+//             if (V[v].bloom == nullptr || V[v].bloom == B) {
+//                 E[static_cast<int>(e)].visited = true;
 
-                #if DEBUG_LOGGING
-                std::cerr << "MARK (" << E[static_cast<int>(e)].u << ", " << E[static_cast<int>(e)].v <<  ") visited\n";
-                #endif
+//                 #if DEBUG_LOGGING
+//                 std::cerr << "MARK (" << E[static_cast<int>(e)].u << ", " << E[static_cast<int>(e)].v <<  ") visited\n";
+//                 #endif
 
-                u = q;
-                ue = e;
-            } else {
-                u = V[v].bloom->base;
-                ue = NetworKit::none;
-            }     
+//                 u = q;
+//             } else {
+//                 u = V[v].bloom->base;
+//             }
+            
+//             if (u == low) break;
+//         }
 
-            #if DEBUG_LOGGING
-            std::cerr << "U = " << u << std::endl;
-            std::cerr << "ERASED = " << V[u].erased << std::endl;
-            std::cerr << "VISITED = " << V[u].visited << std::endl;
-            std::cerr << "LEVEL(u) = " << level(u) << std::endl;
-            std::cerr << "LEVEL(low) = " << level(low) << std::endl;
-            std::cerr << "MARK(u) = " << mark_to_str(V[u].mark) << std::endl;
-            std::cerr << "BLOOM(u) = " << V[u].bloom << std::endl;
-            std::cerr << "BASE_STAR(BLOOM(u)) = "
-                      << (V[u].bloom == nullptr ? "-" : node_to_str(base_star(V[u].bloom)))
-                      << std::endl;
-            std::cerr << "MARK(BASE_STAR(BLOOM(u))) = " 
-                      << (V[u].bloom == nullptr ? "-" : mark_to_str(V[base_star(V[u].bloom)].mark)) 
-                      << std::endl;
-            std::cerr << (V[u].bloom == B && V[u].mark == mark) 
-                      << (V[u].bloom != nullptr && V[u].bloom != B && 
-                            V[base_star(V[u].bloom)].mark == mark)
-                      << (V[u].bloom != nullptr && V[u].bloom != B && 
-                            base_star(V[u].bloom) == low)
-                    //   << (V[u].bloom != nullptr && V[u].bloom != B && V[low].bloom != nullptr && 
-                    //      base_star(V[u].bloom) == base_star(V[low].bloom))
-                      << std::endl;
-            std::cerr << "CONDITION = " 
-                      <<    (!V[u].erased && !V[u].visited && 
-                            level(u) > level(low) &&  
-                                ((V[u].bloom == B && V[u].mark == mark) || 
-                                (V[u].bloom != nullptr && V[u].bloom != B && 
-                                    (V[base_star(V[u].bloom)].mark == mark || 
-                                    base_star(V[u].bloom) == low /* || 
-                                    (V[low].bloom != nullptr && low != base_star(V[low].bloom) &&
-                                        base_star(V[u].bloom) == base_star(V[low].bloom)) */)
-                            )))
-                      << std::endl;
-            #endif
+//         if (!unvisited && u != low) {
+//             #if DEBUG_LOGGING
+//             std::cerr << "BACK TO PARENT OF " << v << " = " << V[v].parent << std::endl;
+//             #endif 
 
-            if (!V[u].erased && !V[u].visited && 
-                level(u) > level(low) &&  
-                ((V[u].bloom == B && V[u].mark == mark) || 
-                (V[u].bloom != nullptr && V[u].bloom != B && 
-                    (V[base_star(V[u].bloom)].mark == mark || 
-                    base_star(V[u].bloom) == low /* || 
-                    (V[low].bloom != nullptr && low != base_star(V[low].bloom) &&
-                        base_star(V[u].bloom) == base_star(V[low].bloom)) */)
-                ))) {
+//             // V[v].visited = false;
+//             v = V[v].parent;
+//         }  
+//     }
 
-                #if DEBUG_LOGGING
-                std::cerr << "PARENT(" << u << ") = " << v << std::endl;
-                #endif 
+//     #if DEBUG_LOGGING
+//     std::cerr << "PARENT(" << u << ") = " << v << std::endl;
+//     #endif
 
-                V[u].visited = true;
-                V[u].parent = v;
-                V[u].parent_edge = ue;
-                v = u;
+//     std::list<NetworKit::node> P;
+//     std::list<NetworKit::edgeid> EP;
+//     V[u].parent = v;
+//     V[u].parent_edge = ue;
+//     while (u != high) {
+//         #if DEBUG_LOGGING
+//         std::cerr << "APPEND " << u << " WITH PARENT " << V[u].parent << std::endl;
+//         #endif 
 
-                unvisited = true;
-                break;       
-            }
+//         P.push_back(u);
+//         EP.push_back(V[u].parent_edge);
+//         u = V[u].parent;
+//     } 
+//     P.push_back(u);
+//     std::reverse(P.begin(), P.end());
+//     std::reverse(EP.begin(), EP.end());
 
-            if (u == low) break;
-        }
+//     #if DEBUG_LOGGING
+//     std::cerr << "PREPATH:\n";
+//     print_path(P, EP);
+//     #endif 
 
-        if (!unvisited && u != low) {
-            #if DEBUG_LOGGING
-            std::cerr << "BACK TO PARENT OF " << v << " = " << V[v].parent << std::endl;
-            #endif 
+//     auto it = P.begin();
+//     auto eit = EP.begin();
+//     while (std::next(it) != P.end() && it != P.end()) {
+//         auto x = it;
+//         auto y = std::next(it);
+//         auto e = eit;
+//         if (V[*x].bloom != nullptr && V[*x].bloom != B) {
+//             #if DEBUG_LOGGING
+//             std::cerr << "OPENING " << *x << " IN " << V[*x].bloom << " NOT IN " << B << std::endl;
+//             #endif 
 
-            // V[v].visited = false;
-            v = V[v].parent;
-        }  
-    }
+//             auto [O, EO] = open(*x);
 
-    #if DEBUG_LOGGING
-    std::cerr << "PARENT(" << u << ") = " << v << std::endl;
-    #endif
+//             #if DEBUG_LOGGING
+//             std::cerr << "OPEN RESULT:\n";
+//             print_path(O, EO);
+//             #endif
 
-    std::list<NetworKit::node> P;
-    std::list<NetworKit::edgeid> EP;
-    V[u].parent = v;
-    V[u].parent_edge = ue;
-    while (u != high) {
-        #if DEBUG_LOGGING
-        std::cerr << "APPEND " << u << " WITH PARENT " << V[u].parent << std::endl;
-        #endif 
+//             P.splice(x, O);
+//             EP.splice(e, EO);
 
-        P.push_back(u);
-        EP.push_back(V[u].parent_edge);
-        u = V[u].parent;
-    } 
-    P.push_back(u);
-    std::reverse(P.begin(), P.end());
-    std::reverse(EP.begin(), EP.end());
+//             it = std::prev(x);
+//             eit = std::next(e);
 
-    #if DEBUG_LOGGING
-    std::cerr << "PREPATH:\n";
-    print_path(P, EP);
-    #endif 
+//             P.erase(x);
+//             P.erase(y);
+//             EP.erase(e);
 
-    auto it = P.begin();
-    auto eit = EP.begin();
-    while (std::next(it) != P.end() && it != P.end()) {
-        auto x = it;
-        auto y = std::next(it);
-        auto e = eit;
-        if (V[*x].bloom != nullptr && V[*x].bloom != B) {
-            #if DEBUG_LOGGING
-            std::cerr << "OPENING " << *x << " IN " << V[*x].bloom << " NOT IN " << B << std::endl;
-            #endif 
+//             #if DEBUG_LOGGING
+//             std::cerr << "PATH AFTER OPENING:\n";
+//             print_path(P, EP);
+//             std::cerr << "LOOKING AT " << *it << " AFTER " << *std::prev(it) << std::endl;
+//             #endif 
+//         } else {
+//             it = std::next(it);
+//             eit = std::next(eit);
+//         }
+//     }
 
-            auto [O, EO] = open(*x);
+//     return {P, EP};
+// }
 
-            #if DEBUG_LOGGING
-            std::cerr << "OPEN RESULT:\n";
-            print_path(O, EO);
-            #endif
+// std::list<NetworKit::node> MicaliVaziraniMatching::open(NetworKit::node x) {
+//     #if DEBUG_LOGGING
+//     std::cerr << "OPEN " << x << std::endl;
+//     #endif
 
-            P.splice(x, O);
-            EP.splice(e, EO);
+//     auto B = V[x].bloom;
+//     auto b = B->base;
+//     if (outer(x)) {
+//         #if DEBUG_LOGGING
+//         std::cerr << "OUTER" << std::endl;
+//         #endif
 
-            it = std::prev(x);
-            eit = std::next(e);
+//         return find_path(x, b, B, V[x].color);
+//     } else {
+//         auto gp = B->green_color;
+//         auto rp = B->red_peak;
+//         if (V[x].color == B->green_color) {
+//             #if DEBUG_LOGGING
+//             std::cerr << "MARKED LEFT" << std::endl;
+//             #endif      
 
-            P.erase(x);
-            P.erase(y);
-            EP.erase(e);
+//             auto P = find_path(gp, x, B, B->green_color);
+//             auto P2 = find_path(rp, b, B, B->red_color);
+//             std::reverse(P.begin(), P.end());
+//             P.splice(P.end(), P2);
+//             return P;
+//         } else if (V[x].color == B->red_color) {
+//             #if DEBUG_LOGGING
+//             std::cerr << "MARKED RIGHT" << std::endl;
+//             #endif      
 
-            #if DEBUG_LOGGING
-            std::cerr << "PATH AFTER OPENING:\n";
-            print_path(P, EP);
-            std::cerr << "LOOKING AT " << *it << " AFTER " << *std::prev(it) << std::endl;
-            #endif 
-        } else {
-            it = std::next(it);
-            eit = std::next(eit);
-        }
-    }
-
-    return {P, EP};
-}
-
-std::pair<std::list<NetworKit::node>, std::list<NetworKit::edgeid>>  
-MicaliVaziraniMatching::open(NetworKit::node x) {
-    #if DEBUG_LOGGING
-    std::cerr << "OPEN " << x << std::endl;
-    #endif
-
-    auto B = V[x].bloom;
-    auto b = B->base;
-    if (outer(x)) {
-        #if DEBUG_LOGGING
-        std::cerr << "OUTER" << std::endl;
-        #endif
-
-        return find_path(x, b, B, V[x].mark);
-    } else {
-        auto lp = B->left_peak;
-        auto rp = B->right_peak;
-        if (V[x].mark == VertexData::Mark::left) {
-            #if DEBUG_LOGGING
-            std::cerr << "MARKED LEFT" << std::endl;
-            #endif      
-
-            auto [P, EP] = find_path(lp, x, B, VertexData::Mark::left);
-            auto [P2, EP2] = find_path(rp, b, B, VertexData::Mark::right);
-            std::reverse(P.begin(), P.end());
-            std::reverse(EP.begin(), EP.end());
-            P.splice(P.end(), P2);
-            EP.push_back(B->peak_edge);
-            EP.splice(EP.end(), EP2);
-            return {P, EP};
-        } else if (V[x].mark == VertexData::Mark::right) {
-            #if DEBUG_LOGGING
-            std::cerr << "MARKED RIGHT" << std::endl;
-            #endif      
-
-            auto [P, EP] = find_path(rp, x, B, VertexData::Mark::right);
-            auto [P2, EP2] = find_path(lp, b, B, VertexData::Mark::left);
-            std::reverse(P.begin(), P.end());
-            std::reverse(EP.begin(), EP.end());
-            P.splice(P.end(), P2);
-            EP.push_back(B->peak_edge);
-            EP.splice(EP.end(), EP2);
-            return {P, EP};
-        }
-    }
-}
+//             auto P = find_path(rp, x, B, B->red_color);
+//             auto P2 = find_path(gp, b, B, B->green_color);
+//             std::reverse(P.begin(), P.end());
+//             P.splice(P.end(), P2);
+//             return P;
+//         }
+//     }
+// }
 
 NetworKit::node MicaliVaziraniMatching::base_star(Bloom* bloom) {
     return bloom_bases.find(bloom->base);
+}
+
+NetworKit::node MicaliVaziraniMatching::base_star(NetworKit::node vertex) {
+    return V[vertex].bloom == nullptr ? vertex : base_star(V[vertex].bloom);
+}
+
+NetworKit::node MicaliVaziraniMatching::base(NetworKit::node vertex) {
+    return V[vertex].bloom == nullptr ? vertex : V[vertex].bloom->base;
 }
 
 bool MicaliVaziraniMatching::exposed(NetworKit::node vertex) {
     return V[vertex].match == NetworKit::none;
 }
 
-int MicaliVaziraniMatching::level(NetworKit::node vertex) {
+void MicaliVaziraniMatching::set_level(NetworKit::node vertex, int level) {
+    if (level % 2 == 0) {
+        V[vertex].even_level = level;
+    } else {
+        V[vertex].odd_level = level;
+    }
+    candidates[level].push_back(vertex);
+}
+
+int MicaliVaziraniMatching::min_level(NetworKit::node vertex) {
     return std::min(V[vertex].odd_level, V[vertex].even_level);
 }
 
+int MicaliVaziraniMatching::max_level(NetworKit::node vertex) {
+    return std::max(V[vertex].odd_level, V[vertex].even_level);
+}
+
+int MicaliVaziraniMatching::tenacity(NetworKit::node u, NetworKit::node v) {
+    return V[u].match == v ?
+            V[u].odd_level  + V[v].odd_level  + 1 :
+            V[u].even_level + V[v].even_level + 1;
+}
+
 bool MicaliVaziraniMatching::outer(NetworKit::node vertex) {
-    return level(vertex) % 2 == 0;
+    return min_level(vertex) % 2 == 0;
 }
 
 bool MicaliVaziraniMatching::inner(NetworKit::node vertex) {
-    return level(vertex) % 2 == 1;
-}
-
-void MicaliVaziraniMatching::print_path(
-    const std::list<NetworKit::node>& P, const std::list<NetworKit::edgeid>& EP) {
-
-    auto it = P.begin();
-    auto eit = EP.begin();
-
-    while (it != P.end()) {
-        std::cerr << *it;
-        if (eit != EP.end()) {
-            if (*eit == NetworKit::none)
-                std::cerr << " ~";
-            else 
-                std::cerr << " (" << E[*eit].u << ", " << E[*eit].v << ")";
-        }
-        std::cerr << " ";
-
-        it ++;
-        if (eit != EP.end()) eit ++;
-    }
-
-    std::cerr << std::endl;
-}
-
-void MicaliVaziraniMatching::print_path(
-    const std::vector<NetworKit::node>& P, const std::vector<NetworKit::edgeid>& EP) {
-        
-    auto it = P.begin();
-    auto eit = EP.begin();
-
-    while (it != P.end()) {
-        std::cerr << *it;
-        if (eit != EP.end()) {
-            if (*eit == NetworKit::none)
-                std::cerr << " ~";
-            else
-                std::cerr << " (" << E[*eit].u << ", " << E[*eit].v << ")";
-        }
-        std::cerr << " ";
-
-        it ++;
-        if (eit != EP.end()) eit ++;
-    }
-
-    std::cerr << std::endl;
-}
-
-std::string MicaliVaziraniMatching::mark_to_str(VertexData::Mark mark) {
-    switch (mark) {
-        case VertexData::Mark::unmarked:
-            return "-";
-        case VertexData::Mark::left:
-            return "left";
-        case VertexData::Mark::right:
-            return "right";
-    }
+    return min_level(vertex) % 2 == 1;
 }
 
 void MicaliVaziraniMatching::print_state() {
@@ -847,20 +746,20 @@ void MicaliVaziraniMatching::print_state() {
         std::cerr << "   PRED        "; print_nodes(V[vertex].predecessors);
         // std::cerr << "   SUCC        "; print_nodes(V[vertex].successors);
         std::cerr << "   BLOOM       " << V[vertex].bloom << std::endl;
-        std::cerr << "   MARK        " << mark_to_str(V[vertex].mark) << std::endl;
+        std::cerr << "   COLOR       " << V[vertex].color << std::endl;
         // std::cerr << "   EDGES       ";
         // graph.forEdgesOf(vertex, [this] (NetworKit::node v, NetworKit::node u, NetworKit::edgeid id) {
             // std::cerr << u << "(" << id << ") ";
         // });
         // std::cerr << std::endl;
     });
-    for (auto B : current_blooms) {
-        std::cerr << "BLOSSOM " << B << std::endl;
-        std::cerr << "   BASE        " << B->base << std::endl;
-        std::cerr << "   LEFT PEAK   " << B->left_peak << std::endl;
-        std::cerr << "   RIGHT PEAK  " << B->right_peak << std::endl;
-        std::cerr << "   BASE STAR   " << base_star(B) << std::endl;
-    }
+    // for (auto B : current_blooms) {
+    //     std::cerr << "BLOSSOM " << B << std::endl;
+    //     std::cerr << "   BASE        " << B->base << std::endl;
+    //     std::cerr << "   LEFT PEAK   " << B->left_peak << std::endl;
+    //     std::cerr << "   RIGHT PEAK  " << B->right_peak << std::endl;
+    //     std::cerr << "   BASE STAR   " << base_star(B) << std::endl;
+    // }
 }
 
 void MicaliVaziraniMatching::check_consistency() {
@@ -873,23 +772,9 @@ void MicaliVaziraniMatching::check_consistency() {
     //     std::cerr << std::endl;
     // });
     // std::cerr << std::endl;
-    graph.forEdges([this] (NetworKit::node u, NetworKit::node v, NetworKit::edgeid id) {
-        if (E[static_cast<int>(id)].matched) {
-            if (V[u].match != v || V[v].match != u) {
-                std::cerr << "Wrong match data on edge (" << u << ", " << v << ")\n";
-            }
-            if (V[u].match_edge != id || V[v].match_edge != id) {
-                std::cerr << "Wrong matched edge for edge (" << u << ", " << v << ")\n";
-            }
-        } else {
-            if (V[u].match == v || V[v].match == u) {
-                std::cerr << "Wrong match data on unmatched edge (" << u << ", " << v << ")\n";
-            }
-            if (V[u].match_edge == id || V[v].match_edge == id) {
-                std::cerr << "Wrong matched edge for unmatched edge (" << u << ", " << v << ")\n";
-            }
-        }
-    });
+    // graph.forEdges([this] (NetworKit::node u, NetworKit::node v, NetworKit::edgeid id) {
+        
+    // });
 }
 
 } /* namespace Koala */

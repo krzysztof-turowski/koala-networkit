@@ -12,7 +12,7 @@
 
 #include <matching/PriorityQueues.hpp>
 
-#define DEBUG_LOGGING 1
+#define DEBUG_LOGGING 0
 
 namespace Koala {
 
@@ -416,13 +416,17 @@ public:
 private:
     struct Bloom {
         NetworKit::node base;
-        NetworKit::node left_peak;
-        NetworKit::node right_peak;
-        NetworKit::edgeid peak_edge;
+        int green_color;
+        int red_color;
+        NetworKit::node green_peak;
+        NetworKit::node green_root;
+        NetworKit::node red_peak;
+        NetworKit::node red_root;
     };
 
+    static constexpr int inf_level = 1e9;
+
     struct VertexData {
-        enum Mark { left, right, unmarked };
         NetworKit::node match;
         NetworKit::edgeid match_edge;
         NetworKit::node parent;
@@ -430,19 +434,23 @@ private:
         int even_level;
         int odd_level;
         Bloom* bloom;
-        std::vector<std::pair<NetworKit::node, NetworKit::edgeid>> predecessors;
+        std::vector<NetworKit::node> predecessors;
+        size_t pred_it;
         std::vector<NetworKit::node> successors;
-        std::vector<std::pair<NetworKit::node, NetworKit::edgeid>> anomalies;
+        std::vector<std::pair<NetworKit::node, NetworKit::node>> children;
         int count;
-        Mark mark;
+        int color;
         bool erased;
         bool visited;
     };
 
+    static constexpr int no_color = 0;
+    int color_counter;
+
     struct EdgeData {
+        enum Type { none, prop, bridge };
+        Type type;
         NetworKit::node u, v;
-        bool matched;
-        bool used;
         bool visited;
     };
 
@@ -457,38 +465,39 @@ private:
 
     std::vector<Bloom*> current_blooms;
     UnionFind bloom_bases;
-    std::vector<NetworKit::node> bloom_nodes;
+    std::vector<NetworKit::node> bridge_support;
+    std::vector<NetworKit::node> erase_queue;
 
     void search();
 
     void bloss_aug(NetworKit::node s, NetworKit::node t, NetworKit::edgeid id);
-    void left_dfs(
-        NetworKit::node s, NetworKit::node& v_L, NetworKit::node& v_R, 
-        NetworKit::node& dcv, NetworKit::node& barrier);
-    void right_dfs(
-        NetworKit::node& v_L, NetworKit::node& v_R, 
-        NetworKit::node& dcv, NetworKit::node& barrier);
+    void dfs_step(NetworKit::node& v_1, int color_1, NetworKit::node& v_2, int color_2, 
+                  int red_color, int r, NetworKit::node& barrier);
     
     void erase(std::vector<NetworKit::node>& Y);
     
-    std::pair<std::list<NetworKit::node>, std::list<NetworKit::edgeid>> 
-    find_path(NetworKit::node high, NetworKit::node low, Bloom* B, VertexData::Mark mark);
-
-    std::pair<std::list<NetworKit::node>, std::list<NetworKit::edgeid>>  
-    open(NetworKit::node x);
+    std::list<NetworKit::node> find_path(NetworKit::node high, NetworKit::node low, Bloom* B, int color);
+    std::list<NetworKit::node> open(NetworKit::node x);
     
     NetworKit::node base_star(Bloom* bloom);
+    NetworKit::node base_star(NetworKit::node vertex);
+    NetworKit::node base(NetworKit::node vertex);
 
+    void set_level(NetworKit::node vertex, int level);
     bool exposed(NetworKit::node vertex);
-    int level(NetworKit::node vertex);
+    int min_level(NetworKit::node vertex);
+    int max_level(NetworKit::node vertex);
+    int tenacity(NetworKit::node u, NetworKit::node v);
     bool outer(NetworKit::node vertex);
     bool inner(NetworKit::node vertex);
 
-    void print_path(const std::list<NetworKit::node>& P, const std::list<NetworKit::edgeid>& EP);
-    void print_path(const std::vector<NetworKit::node>& P, const std::vector<NetworKit::edgeid>& EP);
     void print_state();
     void check_consistency();
-    std::string mark_to_str(VertexData::Mark mark);
+
+    void flip(NetworKit::node u, NetworKit::node v);
+    void augumentPath(NetworKit::node u, NetworKit::node v, bool initial = false);
+    bool openingDfs(NetworKit::node cur, NetworKit::node bcur, NetworKit::node b);
+
 };
 
 } /* namespace Koala */
