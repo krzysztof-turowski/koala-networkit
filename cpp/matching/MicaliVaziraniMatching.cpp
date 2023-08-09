@@ -244,39 +244,26 @@ void MicaliVaziraniMatching::augumentPath(NetworKit::node u, NetworKit::node v, 
     #endif
     
     if(u == v) return;
-    if(!initial && min_level(u) == V[u].even_level) { //simply follow predecessors
-        int x = V[u].predecessors[0]; //no need to flip edge since we know it's matched
+    if(!initial && outer(u)) {
+        int x = V[u].predecessors.front();
 
         int idx = 0;
-        while(base_star(V[x].predecessors[idx]) != base_star(x)) {
-            idx++; 
-            assert(idx < (int)V[x].predecessors.size());
+        while (base_star(V[x].predecessors[idx]) != base_star(x)) {
+            idx ++; 
         }
+
         u = V[x].predecessors[idx];
         flip(x,u);
-        augumentPath(u,v);
-    }
-    else { //through bridge
-        auto B = V[u].bloom;
-        auto u3 = B->red_peak, v3 = B->green_peak, u2 = B->red_root, v2 = B->green_root;
-        
-        #if DEBUG_LOGGING
-        std::cerr << u3 << " " << v3 << " " << u2 << " " << v2 << std::endl;
-        std::cerr << V[u2].color << " " << V[u].color << " " << V[v2].color << std::endl;
-        #endif
 
-        if ((V[u2].color^1) == V[u].color || V[v2].color == V[u].color) {
-            std::swap(u2, v2);
-            std::swap(u3, v3);
-        }
+        augumentPath(u,v);
+    } else {
+        auto [u3, v3, u2, v2] = get_bridge(u);
 
         flip(u3, v3);
         bool openingDfsSucceed1 = openingDfs(u3,u2,u);
-        assert(openingDfsSucceed1);
 
-        int v4 = B->base;
+        int v4 = base(u);
         bool openingDfsSucceed2 = openingDfs(v3,v2,v4);
-        assert(openingDfsSucceed2);
         augumentPath(v4, v);
     }
 }
@@ -322,13 +309,13 @@ void MicaliVaziraniMatching::bloss_aug(NetworKit::node g, NetworKit::node r, Net
             std::cerr << "ADVANCE RED\n";
             #endif
 
-            dfs_step(v_R, red_color, v_G, green_color, red_color, r, barrier);
+            red_dfs_step(v_R, red_color, v_G, green_color, r, barrier);
         } else {
             #if DEBUG_LOGGING
             std::cerr << "ADVANCE GREEN\n";
             #endif
 
-            dfs_step(v_G, green_color, v_R, red_color, red_color, r, barrier);
+            green_dfs_step(v_G, green_color, v_R, red_color, r, barrier);
         }
     }
 
@@ -376,142 +363,196 @@ void MicaliVaziraniMatching::bloss_aug(NetworKit::node g, NetworKit::node r, Net
     augumentPath(v_R, v_G, true);
 
     erase(erase_queue);
-
-    // #if DEBUG_LOGGING
-    // std::cerr << "DFS " << v_G << " " <<  v_R << " " << " " << barrier << std::endl;
-    // std::cerr << "AUGMENT ON PATH " << v_G << " ~~ " << g << " - " << r << " ~~ " << v_R << std::endl;
-    // #endif
-
-    // augmentation_happened = true;
-    // auto P_L = find_path(g, v_G, nullptr, green_color);
-    // auto P_R = find_path(r, v_R, nullptr, red_color);
-    // std::reverse(P_L.begin(), P_L.end());
-    // std::vector<NetworKit::node> P;
-    // for (auto v : P_L) P.push_back(v);
-    // for (auto v : P_R) P.push_back(v);
-
-    // #if DEBUG_LOGGING
-    // std::cerr << "AUGMENTING ON PATH " << v_G << " ~~ " << g << " - " << r << " ~~ " << v_R << " :" << std::endl;
-    // for (auto v : P) std::cerr << v << " ";
-    // std::cerr << std::endl;
-    // #endif
-
-    // for (int i = 0; i < P.size(); i += 2) {
-    //     auto u = P[i];
-    //     auto v = P[i + 1];
-    //     V[u].match = v;
-    //     V[v].match = u;
-
-    //     #if DEBUG_LOGGING
-        
-    //     #endif
-    // }
-    // erase(P);
 }
 
-void MicaliVaziraniMatching::dfs_step(
-        NetworKit::node& v_1, int color_1, NetworKit::node& v_2, int color_2, 
-        int red_color, int r, NetworKit::node& barrier) {
+void MicaliVaziraniMatching::red_dfs_step(
+        NetworKit::node& v_R, int red_color, NetworKit::node& v_G, int green_color, 
+        NetworKit::node r, NetworKit::node& barrier) {
     
-    while (V[v_1].pred_it < V[v_1].predecessors.size()) {
-        auto u = V[v_1].predecessors[V[v_1].pred_it ++];
+    while (V[v_R].pred_it < V[v_R].predecessors.size()) {
+        auto u = V[v_R].predecessors[V[v_R].pred_it ++];
         auto x = u;
-
-        #if DEBUG_LOGGING
-        std::cerr << "LOOK AT " << u << " PRED OF " << v_1 << std::endl;;
-        #endif
 
         if (V[u].erased) continue;
 
         if (V[u].bloom != nullptr) u = base_star(V[u].bloom);
 
         if (V[u].color == no_color) {
-            V[v_1].children.push_back({x, u});
-            V[u].color = color_1;
-            V[u].parent = v_1;
+            V[v_R].children.push_back({x, u});
+            V[u].color = red_color;
+            V[u].parent = v_R;
 
-            #if DEBUG_LOGGING
-            std::cerr << "PARENT(" << u << ") = " << v_1 << std::endl;
-            std::cerr << "MARK " << u << " WITH " << color_1 << std::endl;
-            #endif
-
-            v_1 = u;
-            bridge_support.push_back(v_1);
-
-            #if DEBUG_LOGGING
-            std::cerr << "MOVE TO " << v_1 << "\n";
-            #endif
+            v_R = u;
+            bridge_support.push_back(v_R);
 
             return;
-        } else if (u == v_2) {
-            V[v_1].children.push_back({x, u});
-            if (color_1 == red_color && u != barrier) {
-                v_2 = V[v_2].parent;
+        } else if (u == v_G) {
+            V[v_R].children.push_back({x, u});
 
-                #if DEBUG_LOGGING
-                std::cerr << "BACKTRACK GREEN TO " << v_2 << "\n";
-                #endif
+            if (u != barrier) {
+                // Green dfs is not at the barrier
+                // Take over it's center and force it to backtrack
 
-                V[u].color = color_1;
-                V[u].parent = v_1;
+                v_G = V[v_G].parent;
 
-                #if DEBUG_LOGGING
-                std::cerr << "PARENT(" << u << ") = " << v_1 << std::endl;
-                std::cerr << "MARK " << u << " WITH " << color_1 << std::endl;
-                #endif
+                V[u].color = red_color;
+                V[u].parent = v_R;
+                v_R = u;
 
-                v_1 = u;
-
-                #if DEBUG_LOGGING
-                std::cerr << "TAKE OVER " << v_1 << "\n";
-                #endif
                 return;
             }
         }
     }
 
-    if (color_1 == red_color) {
-        if (v_1 ==  r) {
-            bloom_found = true;
-
-            #if DEBUG_LOGGING
-            std::cerr << "BLOOM FOUND\n";
-            #endif
-        } else {
-            v_1 = V[v_1].parent;
-
-            #if DEBUG_LOGGING
-            std::cerr << "BACKTRACK TO " << v_1 << "\n";
-            #endif
-        }
+    if (v_R ==  r) {
+        // Backtracked to root - a bottleneck was found
+        bloom_found = true;
     } else {
-        if (v_1 == barrier) {
-            barrier = v_2;
-            v_1 = v_2;
-            V[v_1].color = color_1;
-            v_2 = V[v_2].parent;
-
-            #if DEBUG_LOGGING
-            std::cerr << "GIVE OVER " << v_1 << " TO GREEN\n";
-            std::cerr << "MARK " << v_1 << " WITH " << color_1 << std::endl;
-            #endif
-        } else {
-            v_1 = V[v_1].parent;
-
-            #if DEBUG_LOGGING
-            std::cerr << "BACKTRACK TO " << v_1 << "\n";
-            #endif
-        }
+        // Backtrack to parent
+        v_R = V[v_R].parent;
     }
 }
+
+void MicaliVaziraniMatching::green_dfs_step(
+        NetworKit::node& v_G, int green_color, NetworKit::node& v_R, int red_color, 
+        NetworKit::node r, NetworKit::node& barrier) {
+    
+    while (V[v_G].pred_it < V[v_G].predecessors.size()) {
+        auto u = V[v_G].predecessors[V[v_G].pred_it ++];
+        auto x = u;
+
+        if (V[u].erased) continue;
+
+        if (V[u].bloom != nullptr) u = base_star(V[u].bloom);
+
+        if (V[u].color == no_color) {
+            V[v_G].children.push_back({x, u});
+            V[u].color = green_color;
+            V[u].parent = v_G;
+
+            v_G = u;
+            bridge_support.push_back(v_G);
+
+            return;
+        } else if (u == v_R) {
+            V[v_G].children.push_back({x, u});
+        }
+    }
+
+    if (v_G == barrier) {
+        // Backtracked to the barrier
+        // Take over the center of red dfs and force it to backtrack
+
+        barrier = v_R;
+        v_G = v_R;
+        V[v_G].color = green_color;
+
+        v_R = V[v_R].parent;
+    } else {
+        // Backtrack
+        v_G = V[v_G].parent;
+    }
+}
+
+// void MicaliVaziraniMatching::dfs_step(
+//         NetworKit::node& v_1, int color_1, NetworKit::node& v_2, int color_2, 
+//         int red_color, int r, NetworKit::node& barrier) {
+    
+//     while (V[v_1].pred_it < V[v_1].predecessors.size()) {
+//         auto u = V[v_1].predecessors[V[v_1].pred_it ++];
+//         auto x = u;
+
+//         #if DEBUG_LOGGING
+//         std::cerr << "LOOK AT " << u << " PRED OF " << v_1 << std::endl;;
+//         #endif
+
+//         if (V[u].erased) continue;
+
+//         if (V[u].bloom != nullptr) u = base_star(V[u].bloom);
+
+//         if (V[u].color == no_color) {
+//             V[v_1].children.push_back({x, u});
+//             V[u].color = color_1;
+//             V[u].parent = v_1;
+
+//             #if DEBUG_LOGGING
+//             std::cerr << "PARENT(" << u << ") = " << v_1 << std::endl;
+//             std::cerr << "MARK " << u << " WITH " << color_1 << std::endl;
+//             #endif
+
+//             v_1 = u;
+//             bridge_support.push_back(v_1);
+
+//             #if DEBUG_LOGGING
+//             std::cerr << "MOVE TO " << v_1 << "\n";
+//             #endif
+
+//             return;
+//         } else if (u == v_2) {
+//             V[v_1].children.push_back({x, u});
+//             if (color_1 == red_color && u != barrier) {
+//                 v_2 = V[v_2].parent;
+
+//                 #if DEBUG_LOGGING
+//                 std::cerr << "BACKTRACK GREEN TO " << v_2 << "\n";
+//                 #endif
+
+//                 V[u].color = color_1;
+//                 V[u].parent = v_1;
+
+//                 #if DEBUG_LOGGING
+//                 std::cerr << "PARENT(" << u << ") = " << v_1 << std::endl;
+//                 std::cerr << "MARK " << u << " WITH " << color_1 << std::endl;
+//                 #endif
+
+//                 v_1 = u;
+
+//                 #if DEBUG_LOGGING
+//                 std::cerr << "TAKE OVER " << v_1 << "\n";
+//                 #endif
+//                 return;
+//             }
+//         }
+//     }
+
+//     if (color_1 == red_color) {
+//         if (v_1 ==  r) {
+//             bloom_found = true;
+
+//             #if DEBUG_LOGGING
+//             std::cerr << "BLOOM FOUND\n";
+//             #endif
+//         } else {
+//             v_1 = V[v_1].parent;
+
+//             #if DEBUG_LOGGING
+//             std::cerr << "BACKTRACK TO " << v_1 << "\n";
+//             #endif
+//         }
+//     } else {
+//         if (v_1 == barrier) {
+//             barrier = v_2;
+//             v_1 = v_2;
+//             V[v_1].color = color_1;
+//             v_2 = V[v_2].parent;
+
+//             #if DEBUG_LOGGING
+//             std::cerr << "GIVE OVER " << v_1 << " TO GREEN\n";
+//             std::cerr << "MARK " << v_1 << " WITH " << color_1 << std::endl;
+//             #endif
+//         } else {
+//             v_1 = V[v_1].parent;
+
+//             #if DEBUG_LOGGING
+//             std::cerr << "BACKTRACK TO " << v_1 << "\n";
+//             #endif
+//         }
+//     }
+// }
 
 void MicaliVaziraniMatching::erase(std::vector<NetworKit::node>& Y) {
     for (int i = 0; i < Y.size(); ++ i) {
         auto y = Y[i];
-
-        #if DEBUG_LOGGING
-        std::cerr << "ERASE " << y << std::endl;
-        #endif
 
         for (auto z : V[y].successors) {
             if (V[z].erased) continue;
@@ -732,6 +773,15 @@ bool MicaliVaziraniMatching::outer(NetworKit::node vertex) {
 
 bool MicaliVaziraniMatching::inner(NetworKit::node vertex) {
     return min_level(vertex) % 2 == 1;
+}
+
+std::tuple<NetworKit::node, NetworKit::node, NetworKit::node, NetworKit::node> 
+MicaliVaziraniMatching::get_bridge(NetworKit::node vertex) {
+    auto B = V[vertex].bloom;
+    auto u3 = B->red_peak, v3 = B->green_peak, u2 = B->red_root, v2 = B->green_root;
+    return V[vertex].color == B->red_color ?
+        std::make_tuple(B->red_peak, B->green_peak, B->red_root, B->green_root) :
+        std::make_tuple(B->green_peak, B->red_peak, B->green_root, B->red_root);
 }
 
 void MicaliVaziraniMatching::print_state() {

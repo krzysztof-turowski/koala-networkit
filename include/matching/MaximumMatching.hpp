@@ -471,8 +471,11 @@ private:
     void search();
 
     void bloss_aug(NetworKit::node s, NetworKit::node t, NetworKit::edgeid id);
-    void dfs_step(NetworKit::node& v_1, int color_1, NetworKit::node& v_2, int color_2, 
-                  int red_color, int r, NetworKit::node& barrier);
+    void red_dfs_step(NetworKit::node& v_R, int red_color, NetworKit::node& v_G, int green_color, 
+                  NetworKit::node r, NetworKit::node& barrier);
+    void green_dfs_step(NetworKit::node& v_G, int green_color, NetworKit::node& v_R, int red_color, 
+                  NetworKit::node r, NetworKit::node& barrier);
+
     
     void erase(std::vector<NetworKit::node>& Y);
     
@@ -490,6 +493,9 @@ private:
     int tenacity(NetworKit::node u, NetworKit::node v);
     bool outer(NetworKit::node vertex);
     bool inner(NetworKit::node vertex);
+
+    std::tuple<NetworKit::node, NetworKit::node, NetworKit::node, NetworKit::node> 
+    get_bridge(NetworKit::node vertex);
 
     void print_state();
     void check_consistency();
