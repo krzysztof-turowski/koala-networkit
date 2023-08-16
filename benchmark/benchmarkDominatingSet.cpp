@@ -17,7 +17,8 @@ int run_algorithm(NetworKit::Graph &G, bool print = false) {
 }
 
 std::map<std::string, int> ALGORITHM = {
-  { "all", 0 }, { "FKW", 1 }, { "Schiermeyer", 2 }, { "Grandoni", 3 }, { "FGK", 4 }, { "Rooij", 5 }
+    { "exact", 0 },
+    { "FKW", 1 }, { "Schiermeyer", 2 }, { "Grandoni", 3 }, { "FGK", 4 }, { "Rooij", 5 }
 };
 
 int main(int argc, char **argv) {
@@ -33,9 +34,9 @@ int main(int argc, char **argv) {
         }
         NetworKit::Graph G = Koala::G6GraphReader().readline(line);
         std::set<int> D;
+        std::cout << line << " " << std::flush;
         switch (ALGORITHM[std::string(argv[1])]) {
         case 0:
-            std::cout << line << " ";
             D.insert(run_algorithm<Koala::FominKratschWoegingerDominatingSet>(G));
             D.insert(run_algorithm<Koala::SchiermeyerDominatingSet>(G));
             D.insert(run_algorithm<
