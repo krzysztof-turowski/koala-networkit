@@ -71,7 +71,7 @@ At the most basic level, they presented generic versions of the algorithms, but 
 </p>
 
 <p align="justify">
-Moreover, they set up an online graph editor <a href="http://web.archive.org/web/20200721190618/http://koala.os.niwa.gda.pl/zgred">Zgred</a>, written in JavaScript. It allows to create, edit and visualize graphs. Furthermore, it is capable of running several algorithms from the library.
+Moreover, they set up an online graph editor <a href="https://stos.eti.pg.gda.pl/~kmocet/zgred/1.1.22/zgred.html">Zgred</a>, written in JavaScript. It allows to create, edit and visualize graphs. Furthermore, it is capable of running several algorithms from the library.
 </p>
 
 ### <a name="algorithms"></a>List of algorithms
@@ -83,8 +83,10 @@ Moreover, they set up an online graph editor <a href="http://web.archive.org/web
     1. [Maximum flow](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/flow/MaximumFlow.hpp): King-Rao-Tarjan
 5. [Vertex coloring](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/coloring/)
     1. [Greedy heuristics](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/coloring/GreedyVertexColoring.hpp): RandomSequential, LargestFirst, SmallestLast, SaturatedLargestFirst, GreedyIndependentSet
-    2. [Grötschel-Lovász-Schrijver algorithm for perfect graphs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/coloring/PerfectGraphVertexColoring.hpp)
+    2. [Exact exponential-time algorithms](https://github.com/krzysztof-turowski/koala-networkit/blob/master/include/coloring/ExactVertexColoring.hpp): Brown, Christofides, Brélaz, Korman
+    3. [Grötschel-Lovász-Schrijver algorithm for perfect graphs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/coloring/PerfectGraphVertexColoring.hpp)
 6. [Minimum dominating set](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/dominating_set/): Grandoni, Fomin-Grandoni-Kratsch, van Rooij-Bodlaender, Fomin-Kratsch-Woeginger, Schiermeyer
+7. Minimum set cover: [exact branch and reduce](https://github.com/krzysztof-turowski/koala-networkit/blob/master/include/set_cover/BranchAndReduceMSC.hpp)
 
 
 For further planned changes, see the [Issues](https://github.com/krzysztof-turowski/koala-networkit/issues/) section.

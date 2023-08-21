@@ -1,5 +1,6 @@
 #include <cstring>
 #include <fstream>
+#include <list>
 #include <random>
 #include <string>
 
