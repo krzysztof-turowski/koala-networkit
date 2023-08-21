@@ -223,7 +223,7 @@ INSTANTIATE_TEST_SUITE_P(
 
 TEST_P(BrownEnumerationVertexColoringTest, test) {
     VertexColoringParameters const& parameters = GetParam();
-    NetworKit::Graph G = build_graph(parameters.N, parameters.E);
+    NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
     auto algorithm = Koala::BrownEnumerationVertexColoring(G);
     algorithm.run();
     check(parameters, algorithm.getColoring());

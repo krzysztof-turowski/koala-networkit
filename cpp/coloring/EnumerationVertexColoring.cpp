@@ -88,8 +88,7 @@ std::vector<NetworKit::node> BrownEnumerationVertexColoring::greedy_largest_firs
     std::unordered_set<NetworKit::node> already_ordered;
     std::vector<NetworKit::node> ordering;
     std::map<NetworKit::node, int> number_of_neighbours_in_ordering;
-    auto compare = [](const std::tuple<int, int, NetworKit::node>& a,
-                   const std::tuple<int, int, NetworKit::node>& b) {
+    auto compare = [](const auto& a, const auto& b) {
         if (std::get<0>(a) == std::get<0>(b)) {
             if (std::get<1>(a) == std::get<1>(b)) {
                 return std::get<2>(a) < std::get<2>(b);

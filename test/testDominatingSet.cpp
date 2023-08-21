@@ -47,7 +47,7 @@ auto parameter_set = DominatingSetParameters{
 
 TEST_P(GrandoniTest, test) {
     DominatingSetParameters const& parameters = GetParam();
-    NetworKit::Graph G = build_graph(parameters.N, parameters.E);
+    NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
     auto algorithm = Koala::BranchAndReduceDominatingSet<Koala::GrandoniSetCover>(G);
     algorithm.run();
     algorithm.check();
@@ -57,8 +57,8 @@ TEST_P(GrandoniTest, test) {
 INSTANTIATE_TEST_SUITE_P(test_example, GrandoniTest, testing::Values(parameter_set));
 
 TEST_P(FominGrandoniKratschTest, test) {
-    MinimumDominatingSetParameters const& parameters = GetParam();
-    NetworKit::Graph G = build_graph(parameters.N, parameters.E);
+    DominatingSetParameters const& parameters = GetParam();
+    NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
     auto algorithm = Koala::BranchAndReduceDominatingSet<Koala::FominGrandoniKratschSetCover>(G);
     algorithm.run();
     algorithm.check();
@@ -68,8 +68,8 @@ TEST_P(FominGrandoniKratschTest, test) {
 INSTANTIATE_TEST_SUITE_P(test_example, FominGrandoniKratschTest, testing::Values(parameter_set));
 
 TEST_P(RooijBodlaenderTest, test) {
-    MinimumDominatingSetParameters const& parameters = GetParam();
-    NetworKit::Graph G = build_graph(parameters.N, parameters.E);
+    DominatingSetParameters const& parameters = GetParam();
+    NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
     auto algorithm = Koala::BranchAndReduceDominatingSet<Koala::RooijBodlaenderSetCover>(G);
     algorithm.run();
     algorithm.check();
@@ -79,8 +79,8 @@ TEST_P(RooijBodlaenderTest, test) {
 INSTANTIATE_TEST_SUITE_P(test_example, RooijBodlaenderTest, testing::Values(parameter_set));
 
 TEST_P(FominKratschWoegingerTest, test) {
-    MinimumDominatingSetParameters const& parameters = GetParam();
-    NetworKit::Graph G = build_graph(parameters.N, parameters.E);
+    DominatingSetParameters const& parameters = GetParam();
+    NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
     auto algorithm = Koala::FominKratschWoegingerDominatingSet(G);
     algorithm.run();
     algorithm.check();
@@ -90,8 +90,8 @@ TEST_P(FominKratschWoegingerTest, test) {
 INSTANTIATE_TEST_SUITE_P(test_example, FominKratschWoegingerTest, testing::Values(parameter_set));
 
 TEST_P(SchiermeyerTest, test) {
-    MinimumDominatingSetParameters const& parameters = GetParam();
-    NetworKit::Graph G = build_graph(parameters.N, parameters.E);
+    DominatingSetParameters const& parameters = GetParam();
+    NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
     auto algorithm = Koala::SchiermeyerDominatingSet(G);
     algorithm.run();
     algorithm.check();
