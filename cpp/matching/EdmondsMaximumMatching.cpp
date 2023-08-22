@@ -36,12 +36,9 @@ void EdmondsMaximumMatching::finish_stage() {
 }
 
 void EdmondsMaximumMatching::initialize_substage() {
-    // for (auto b : blossoms) { b->short_print(); std::cerr << std::endl; }
-
     useful_edges = {};
 
     graph.forEdges([this] (NetworKit::node u, NetworKit::node v, NetworKit::edgeid id) {
-        // std::cerr << u << " " << v << " " << is_useful(u, v, id) << " " << is_useful(v, u, id) << std::endl;
         if (is_useful(u, v, id)) {
             useful_edges.push({u, v, id});
         } else if (is_useful(v, u, id)) {
@@ -239,34 +236,6 @@ void EdmondsMaximumMatching::check_consistency() {
         auto [u, v, w] = graph_edges[id];
         std::cerr << "(" << u << ", " << v << ") : " << edge_dual_variable(id) << std::endl; 
     }
-    // graph.forEdges([this] (NetworKit::node u, NetworKit::node v, NetworKit::edgeid id) {
-    //     std::cerr << u << " " << v << " " << edge_dual_variable(id) << std::endl;
-    //     if (this->is_in_matching[id]) {
-    //         if (this->matched_vertex[u] != v || this->matched_vertex[v] != u) {
-    //             std::cerr << "Inconsistent matching\n";
-    //             exit(1);
-    //         }
-    //     }
-    // });
-    // for (auto b : blossoms) {
-    //     b->check_consistency();
-    //     if (b->backtrack_edge.id == NetworKit::none) continue;
-    //     NetworKit::node u = b->backtrack_edge.u;
-    //     NetworKit::node v = b->backtrack_edge.v;
-    //     Blossom* u_blossom = get_blossom(u);
-    //     Blossom* v_blossom = get_blossom(v);
-
-    //     if (u_blossom == b) {
-    //         std::cerr << "Backtrack edge originates in blossom\n";
-    //         b->short_print(); std::cerr << std::endl;
-    //         exit(1);
-    //     }
-    //     if (v_blossom != b) {
-    //         std::cerr << "Backtrack edge not ends in blossom\n";
-    //         b->short_print(); std::cerr << std::endl;
-    //         exit(1);
-    //     }
-    // }
 }
 
 } /* namespace Koala */

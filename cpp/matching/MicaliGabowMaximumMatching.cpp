@@ -13,10 +13,11 @@ MicaliGabowMaximumMatching::MicaliGabowMaximumMatching(NetworKit::Graph &graph) 
         even_edges(graph.upperEdgeIdBound() + graph.upperNodeIdBound()) { 
 
     NetworKit::edgeweight max_weight = std::numeric_limits<NetworKit::edgeweight>::min();
-    graph.forEdges([&max_weight] 
-            (NetworKit::node u, NetworKit::node v, NetworKit::edgeweight weight) { 
-        max_weight = std::max(weight, max_weight);
-    });
+    graph.forEdges(
+        [&max_weight] (NetworKit::node u, NetworKit::node v, NetworKit::edgeweight weight) { 
+            max_weight = std::max(weight, max_weight);
+        }
+    );
     Ufree = std::vector<NetworKit::edgeweight>(graph.upperNodeIdBound(), max_weight / 2.);
 
     for (auto b : trivial_blossom) {
@@ -32,35 +33,13 @@ MicaliGabowMaximumMatching::get_data(Blossom* b) {
 }
 
 void MicaliGabowMaximumMatching::initialize_stage() {
-    #if DEBUG_LOGGING
-    std::cerr << "Current blossoms:\n";
-    for (auto blossom : blossoms) {
-        get_data(blossom)->nodes.check_consistency();
-        if (blossom->is_trivial()) continue;
-        blossom->short_print(); std::cerr << std::endl;
-        get_data(blossom)->nodes.for_each([this, blossom] (NetworKit::node v, NetworKit::node _) {
-            std::cerr << v << " ";
-            if (get_blossom(v) != blossom) {
-                std::cerr << "get_blossom(" << v << ") has wrong value\n";
-                exit(1);
-            }
-        });
-        std::cerr << std::endl;
-    }
-    graph.forNodes([this] (NetworKit::node v) {
-        std::cerr << v << ": ";
-        get_blossom(v)->short_print();
-        std::cerr << std::endl;
-    });
-    #endif
-
-
     edge_queue = {};
     Uodd.clear();
     Ueven.clear();
     good_edges.clear();
     Zeven.clear();
     Zodd.clear();
+
     for (auto blossom : blossoms) {
         blossom->label = is_exposed(blossom) ? even : free;
         blossom->backtrack_edge = no_edge;
@@ -75,17 +54,13 @@ void MicaliGabowMaximumMatching::initialize_stage() {
         if (blossom->label == even) {
             if (!blossom->is_trivial()) {
                 Zeven.insert(blossom->initial_base, blossom->z);
-
-                #if DEBUG_LOGGING
-                std::cerr << "Storing dual weight " << blossom->z << " for even blossom "; 
-                blossom->nodes_print(); std::cerr << " at index " << blossom->initial_base << std::endl;
-                #endif
             }
             blossom->for_nodes([this] (NetworKit::node u) {
                 Ueven.insert(u, Ufree[u]);
             });
         }
     }
+
     for (auto blossom : blossoms) {
         if (blossom->label == even) {
             scan_edges(blossom);
@@ -107,23 +82,12 @@ void MicaliGabowMaximumMatching::finish_stage() {
     Zeven.for_elements([this, &to_expand] (NetworKit::node base, NetworKit::edgeweight dual_weight) {
         Blossom* b = get_blossom(base);
         b->z = dual_weight;
-
-        #if DEBUG_LOGGING
-        std::cerr << "Saving dual weight " << dual_weight << " for even blossom "; 
-        b->nodes_print(); std::cerr << " from index " << base << std::endl;
-        #endif
-        
         if (dual_weight == 0)
             to_expand.push_back(b);
     });
     Zodd.for_elements([this] (NetworKit::node base, NetworKit::edgeweight dual_weight) {
         Blossom* b = get_blossom(base);
         b->z = dual_weight;
-
-        #if DEBUG_LOGGING
-        std::cerr << "Saving dual weight " << dual_weight << " for odd blossom "; 
-        b->nodes_print(); std::cerr << " from index " << base << std::endl;
-        #endif
     });
     Ueven.for_elements([this] (NetworKit::node v, NetworKit::edgeweight dual) {
         Ufree[v] = dual;
@@ -144,34 +108,18 @@ bool MicaliGabowMaximumMatching::has_useful_edges() {
 }
 
 MicaliGabowMaximumMatching::EdgeInfo MicaliGabowMaximumMatching::get_useful_edge() {
-    #if DEBUG_LOGGING
-    std::cerr << "Finding useful edges from even blossoms to free blossoms:\n";
-    #endif
-
     if (!good_edges.empty() && good_edges.find_min().second == 0) {
         auto id = good_edges.find_min().first;
         auto [u, v, w] = graph_edges[id];
         good_edges.remove_min();
 
-        #if DEBUG_LOGGING
-        std::cerr << "(" << u << ", " << v << ")\n";
-        #endif
-
         return {u, v, id};
     }
-
-    #if DEBUG_LOGGING
-    std::cerr << "Finding useful edges between even blossoms (good edges):\n";
-    #endif
 
     if (even_edges.has_active_elements() && even_edges.find_min().second == 0) {
         auto id = even_edges.find_min().first;
         auto [u, v, w] = graph_edges[id];
         even_edges.remove(id);
-
-        #if DEBUG_LOGGING
-        std::cerr << "(" << u << ", " << v << ")\n";
-        #endif
 
         return {u, v, id};
     }
@@ -185,11 +133,6 @@ void MicaliGabowMaximumMatching::label_odd(Blossom* b) {
     });
     if (!b->is_trivial()) { 
         Zodd.insert(b->initial_base, b->z);
-
-        #if DEBUG_LOGGING
-        std::cerr << "Storing dual weight " << b->z << " for odd blossom "; 
-        b->nodes_print(); std::cerr << " at index " << b->initial_base << std::endl;
-        #endif
     }
     even_edges.change_status(get_data(b)->even_edges, false);
 }
@@ -200,11 +143,6 @@ void MicaliGabowMaximumMatching::label_even(Blossom* b) {
     });
     if (!b->is_trivial()) {
         Zeven.insert(b->initial_base, b->z);
-
-        #if DEBUG_LOGGING
-        std::cerr << "Storing dual weight " << b->z << " for even blossom "; 
-        b->nodes_print(); std::cerr << " at index " << b->initial_base << std::endl;
-        #endif
     }
     even_edges.delete_group(get_data(b)->even_edges);
     get_data(b)->even_edges = nullptr;
@@ -217,22 +155,9 @@ void MicaliGabowMaximumMatching::scan_edges(Blossom* b) {
             auto v_blossom = get_blossom(v);
             if (v_blossom == b) return;
             auto slack = edge_slack(id);
-            // if (slack == 0) {
-            //     #if DEBUG_LOGGING
-            //     // std::cerr << "useful edge from " << u << " to " << v << std::endl;
-            //     #endif
-
-            //     edge_queue.push({u, v, id});
-            // } else 
             if (v_blossom->label == even) {
                 good_edges.insert(id, slack/2);
             } else {
-                #if DEBUG_LOGGING
-                std::cerr << "even edge " << u << " " << v << " in ";
-                v_blossom->nodes_print();
-                std::cerr << std::endl;
-                #endif
-
                 even_edges.insert_before(
                     id, slack, dummy_edge_id(v), get_data(v_blossom)->even_edges);
             }
@@ -262,21 +187,10 @@ void MicaliGabowMaximumMatching::handle_new_blossom(Blossom* new_blossom) {
         if (b->label == even && !b->is_trivial()) {
             b->z = Zeven.current_priority(b->initial_base);
             Zeven.remove(b->initial_base);
-
-            #if DEBUG_LOGGING
-            std::cerr << "Saving dual weight " << b->z << " for even blossom "; 
-            b->nodes_print(); std::cerr << " from index " << b->initial_base << std::endl;
-            #endif
-
         } else if (b->label == odd) {
             if (!b->is_trivial()) {
                 b->z = Zodd.current_priority(b->initial_base);
                 Zodd.remove(b->initial_base);
-
-                #if DEBUG_LOGGING
-                std::cerr << "Saving dual weight " << b->z << " for odd blossom "; 
-                b->nodes_print(); std::cerr << " from index " << b->initial_base << std::endl;
-                #endif
             }
             b->for_nodes([this] (NetworKit::node v) {
                 auto u = Uodd.current_priority(v);
@@ -294,21 +208,9 @@ void MicaliGabowMaximumMatching::handle_new_blossom(Blossom* new_blossom) {
     }
     new_blossom->data = new MicaliGabowBlossomData(std::move(nodes), nullptr);
     Zeven.insert(new_blossom->initial_base, 0);
-
-    #if DEBUG_LOGGING
-    std::cerr << "Creaing dual weight 0 for new even blossom "; 
-    new_blossom->nodes_print(); std::cerr << " at index " << new_blossom->initial_base << std::endl;
-    #endif
 }
 
-void MicaliGabowMaximumMatching::handle_subblossom_shift(Blossom* blossom, Blossom* subblossom) {
-    #if DEBUG_LOGGING
-    std::cerr << "subblossom shift in "; blossom->nodes_print();
-    std::cerr << " to "; subblossom->nodes_print(); std::cerr << std::endl;
-    get_data(blossom)->nodes.print_elements();
-    get_data(subblossom)->nodes.print_elements();
-    #endif
-    
+void MicaliGabowMaximumMatching::handle_subblossom_shift(Blossom* blossom, Blossom* subblossom) {    
     auto data = get_data(blossom);
 
     auto nodes = std::move(data->nodes);
@@ -321,23 +223,11 @@ void MicaliGabowMaximumMatching::handle_subblossom_shift(Blossom* blossom, Bloss
     if (data->even_edges != nullptr) {
         even_edges.shift_group(data->even_edges, dummy_edge_id(subblossom->last_node));
     }
-
-    #if DEBUG_LOGGING
-    std::cerr << "shifted to ";
-    get_data(blossom)->nodes.print_elements();
-    #endif
 }
 
 void MicaliGabowMaximumMatching::handle_odd_blossom_expansion(Blossom* blossom) {
     auto remaining_nodes = &get_data(blossom)->nodes;
     auto remaining_edges = get_data(blossom)->even_edges;
-
-    #if DEBUG_LOGGING
-    std::cerr << "Handling the expansion of "; blossom->nodes_print(); std::cerr << std::endl;
-    for (auto [b, e] : blossom->sub_blossoms) {
-        std::cerr << b->last_node << " "; b->nodes_print(); std::cerr << std::endl;
-    }
-    #endif
 
     Zodd.remove(blossom->initial_base);
 
@@ -371,19 +261,9 @@ void MicaliGabowMaximumMatching::handle_odd_blossom_expansion(Blossom* blossom) 
 
         if (b->label == even && !b->is_trivial()) {
             Zeven.insert(b->initial_base, b->z);
-
-            #if DEBUG_LOGGING
-            // std::cerr << "Storing dual weight " << b->z << " for even blossom "; 
-            // b->nodes_print(); std::cerr << " at index " << b->initial_base << std::endl;
-            #endif
         }
         if (b->label == odd && !b->is_trivial()) {
             Zodd.insert(b->initial_base, b->z);
-
-            #if DEBUG_LOGGING
-            // std::cerr << "Storing dual weight " << b->z << " for odd blossom "; 
-            // b->nodes_print(); std::cerr << " at index " << b->initial_base << std::endl;
-            #endif
         }
     }
 
@@ -396,14 +276,6 @@ void MicaliGabowMaximumMatching::handle_odd_blossom_expansion(Blossom* blossom) 
 
 void MicaliGabowMaximumMatching::handle_even_blossom_expansion(Blossom* blossom) {
     if (blossom->is_trivial()) return;
-
-    #if DEBUG_LOGGING
-    std::cerr << "even blossom expansion on " << blossom->last_node << " ";
-    blossom->nodes_print(); std::cerr << std::endl;
-    for (auto [b, e] : blossom->sub_blossoms) {
-        std::cerr << b->last_node << " "; b->nodes_print(); std::cerr << std::endl;
-    }
-    #endif
 
     auto remaining_nodes = &get_data(blossom)->nodes;
     
@@ -455,19 +327,10 @@ void MicaliGabowMaximumMatching::find_delta2_useful_edges() {}
 void MicaliGabowMaximumMatching::find_delta3_useful_edges() {}
 
 std::vector<MicaliGabowMaximumMatching::Blossom*> 
-MicaliGabowMaximumMatching::get_odd_blossoms_to_expand() {
-    #if DEBUG_LOGGING
-    std::cerr << "Finding odd blossoms to expand\n";
-    #endif
-    
+MicaliGabowMaximumMatching::get_odd_blossoms_to_expand() {    
     std::vector<Blossom*> to_expand;
     Zodd.for_elements_until([this, &to_expand] (NetworKit::node base, NetworKit::edgeweight dual) {
         if (dual == 0) {
-            #if DEBUG_LOGGING
-            std::cerr << "Scheduling expansion of "; get_blossom(base)->nodes_print(); 
-            std::cerr << std::endl; 
-            #endif
-
             to_expand.push_back(get_blossom(base));
             return false;
         }
@@ -576,10 +439,6 @@ NetworKit::edgeweight MicaliGabowMaximumMatching::edge_slack(NetworKit::edgeid e
 }
 
 NetworKit::edgeweight MicaliGabowMaximumMatching::blossom_dual(Blossom* b) {
-    #if DEBUG_LOGGING
-    if (b->is_trivial()) { }
-    #endif
-
     switch (b->label) {
         case free: return b->z;
         case even: return Zeven.current_priority(b->initial_base);

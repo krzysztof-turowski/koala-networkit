@@ -234,7 +234,6 @@ GabowMaximumMatching::Blossom* GabowMaximumMatching::get_blossom(NetworKit::node
 }
 
 void GabowMaximumMatching::calc_best_edges(Blossom* b) {
-    // std::cerr << "Calc best edges for "; b->short_print(); std::cerr << std::endl;
     auto data = get_data(b);
 
     data->best_edges.clear();
@@ -247,11 +246,8 @@ void GabowMaximumMatching::calc_best_edges(Blossom* b) {
             auto v_blossom = get_blossom(v);
             auto slack = edge_slack(id);
 
-            // std::cerr << "Looking at edge (" << u << ", " << v << ") : " << slack << std::endl;
-
             if (v_blossom == b) return;
             if (v_blossom->label == even) {
-                // std::cerr << "Considering for best_edges" << (data->best_edges.find(v_blossom) == data->best_edges.end()) << "\n";
                 if (data->best_edges.find(v_blossom) == data->best_edges.end() 
                     || slack < edge_slack(data->best_edges[v_blossom].id)) {
                     data->best_edges[v_blossom] = {u, v, id};
@@ -261,18 +257,12 @@ void GabowMaximumMatching::calc_best_edges(Blossom* b) {
                     }
                 }
             } else {
-                // std::cerr << "Considering for best_edge[" << v << "]\n";
                 if (slack < edge_slack(best_edge[v].id)) {
                     best_edge[v] = {u, v, id};
                 }
             }
         });
     });
-    // std::cerr << "Results: \n";
-    // for (auto [c, e] : get_data(b)->best_edges) {
-    //     c->short_print(); 
-    //     std::cerr << " : (" << e.u << ", " << e.v << ") : " << edge_slack(e.id) << std::endl;
-    // }
 }
 
 NetworKit::edgeweight GabowMaximumMatching::edge_slack(NetworKit::edgeid edge) {

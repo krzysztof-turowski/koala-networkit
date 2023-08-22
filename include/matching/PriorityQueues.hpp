@@ -1329,46 +1329,238 @@ private:
 //     }
 // };
 
+template <typename I, typename R>
 class UnionFind {
 public:
-    UnionFind(int size): size(size), root(size), parent(size), rank(size) {
-        reset();
+    UnionFind(I size): size(size), root(size), parent(size), rank(size) {}
+
+    void reset(I i, R r) {
+        parent[i] = i;
+        root[i] = r;
+        rank[i] = 0;
     }
 
-    void reset() {
-        for (int i = 0; i < size; ++ i) {
-            root[i] = parent[i] = i;
-            rank[i] = 0;
-        }
-    }
-
-    void link(int x, int y) {
-        int rx = find_root(x);
-        int ry = find_root(y);
+    void link(I x, I y, R r) {
+        I rx = find_root(x);
+        I ry = find_root(y);
 
         if (rank[rx] < rank[ry]) {
             parent[rx] = ry;
-            root[ry] = root[rx];
+            root[ry] = r;
         } else {
             parent[ry] = rx;
+            root[rx] = r;
             if (rank[rx] == rank[ry]) {
                 rank[rx] ++;
             }
         } 
     }
 
-    int find(int x) {
+    R find(I x) {
         return root[find_root(x)];
     }
 
 private:
-    int size;
-    std::vector<int> root;
-    std::vector<int> parent;
+    I size;
+    std::vector<R> root;
+    std::vector<I> parent;
     std::vector<int> rank;
 
-    int find_root(int x) {
+    I find_root(I x) {
         return parent[x] == x ? x : (parent[x] = find_root(parent[x]));
+    }
+};
+
+
+template<typename T, typename H, typename K, typename V>
+class SplitFindMin {
+    // Temporary naive implementation
+public: 
+    struct List {
+        std::list<NetworKit::node> nodes;
+        K min_key;
+        V min_val;
+        H head;
+    };
+
+    SplitFindMin(T size, K infinity, V empty_val) :
+        size(size), 
+        infinity(infinity), 
+        empty_val(empty_val),
+        element_list(size, nullptr), 
+        key(size, infinity),
+        val(size) {}
+
+    List* init(const std::list<T>& nodes, H head) {
+        // #if QUEUE_DEBUG
+        // std::cerr << "INIT " << head << " ";
+        // for (auto v : nodes) std::cerr << v << " ";
+        // std::cerr << std::endl;
+        // #endif
+
+        List* L = new List { nodes, infinity, empty_val, head };
+
+        for (auto n : nodes) {
+            element_list[n] = L;
+            key[n] = infinity;
+            val[n] = empty_val;
+        }
+
+        return L;
+    }
+
+    List* list(T u) {
+        return element_list[u];
+    }
+
+    std::pair<List*, List*> split(T u, H h1, H h2) {
+        List* L = element_list[u];
+
+        // #if QUEUE_DEBUG
+        // std::cerr << "SPLIT " << L << " {";
+        // for (auto v : L->nodes) std::cerr << v << ", ";
+        // std::cerr << "} ON " << u << std::endl;
+        // #endif
+
+        auto it = std::next(std::find(L->nodes.begin(), L->nodes.end(), u));
+        std::list<NetworKit::node> nodes1;
+        std::list<NetworKit::node> nodes2;
+        nodes1.splice(nodes1.end(), L->nodes, L->nodes.begin(), it);
+        nodes2.splice(nodes2.end(), L->nodes, it, L->nodes.end());
+        
+        List* L1 = new List { nodes1, infinity, empty_val, h1 };
+        List* L2 = new List { nodes2, infinity, empty_val, h2 };
+
+        // #if QUEUE_DEBUG
+        // std::cerr << L1 << " {";
+        // for (auto v : L1->nodes) std::cerr << v << ", ";
+        // std::cerr << "} ON " << u << std::endl;
+        // std::cerr << L2 << " {";
+        // for (auto v : L2->nodes) std::cerr << v << ", ";
+        // std::cerr << "} ON " << u << std::endl;
+        // #endif
+
+        for (auto n : L1->nodes) {
+            element_list[n] = L1;
+            if (key[n] < L1->min_key) {
+                L1->min_key = key[n];
+                L1->min_val = val[n];
+            }
+        }
+
+        for (auto n : L2->nodes) {
+            element_list[n] = L2;
+            if (key[n] < L2->min_key) {
+                L2->min_key = key[n];
+                L2->min_val = val[n];
+            }
+        }
+
+        delete L;
+
+        return {L1, L2};
+    }
+
+    void decreaseKey(T u, K x, V v) {
+        #if QUEUE_DEBUG
+        std::cerr << "DECREASEKEY " << u << " TO " << x << " WITH " << v << std::endl;
+        #endif
+
+        if (x < key[u]) {
+            key[u] = x;
+            val[u] = v;
+        }
+        
+        if (x < element_list[u]->min_key) {
+            element_list[u]->min_key = x;
+            element_list[u]->min_val = v;
+        }
+    }
+
+    std::pair<K, V> findMin(List* L) {
+        return {L->min_key, L->min_val};
+    }
+
+    std::pair<K, V> currentKey(T u) {
+        return {key[u], val[u]};
+    }
+
+    // void reset() {
+    //     std::vector<List*> to_delete;
+
+    //     for (T i = 0; i < size; ++ i) {
+    //         if (element_list[i] != nullptr && i == *element_list[i]->nodes().fron()) {
+    //             to_delete.push_back(element_list[i]);
+    //         }
+    //         element_list[i] = nullptr;
+    //         key[i] = infinity;
+    //     }
+
+    //     for (auto L : to_delete) delete L;
+    // }
+
+    void deleteList(List* L) {
+        // #if QUEUE_DEBUG
+        // std::cerr << "DELETE LIST " << L << std::endl;
+        // #endif
+
+        delete L;
+    }
+
+private:
+    T size;
+    K infinity;
+    V empty_val;
+    std::vector<List*> element_list;
+    std::vector<K> key;
+    std::vector<V> val;
+};
+
+
+template<typename T>
+struct ArrayPriorityQueue {
+public:
+    ArrayPriorityQueue() { reset(); }
+
+    void scheduleEvent(int time, T event) {
+        #if QUEUE_DEBUG
+        std::cerr << "SCHEDULE " << event << " AT " << time << std::endl;
+        #endif
+
+        if (time >= event_queue.size())
+            event_queue.resize(time * 2);
+        event_queue[time].push_back(event);
+    }
+
+    T getEvent() {
+        advanceToNext();
+        return event_queue[time][it];
+    }
+
+    int timeNow() { return time; }
+
+    void reset() {
+        event_queue.clear();
+        event_queue.resize(4);
+        it = -1;
+        time = 0;
+
+        #if QUEUE_DEBUG
+        std::cerr << "RESET QUEUE" << std::endl;
+        #endif
+    }
+
+private:
+    int time;
+    size_t it;
+    std::vector<std::vector<T>> event_queue;
+
+    void advanceToNext() {
+        it ++;
+        while (it >= event_queue[time].size()) {
+            time ++;
+            it = 0;
+        }
     }
 };
 

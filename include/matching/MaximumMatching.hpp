@@ -106,6 +106,7 @@ protected:
     std::vector<bool> is_in_matching;
     std::set<Blossom*> blossoms;
     std::vector<NetworKit::node> matched_vertex;
+    std::vector<NetworKit::edgeid> matched_edge;
     std::vector<Blossom*> trivial_blossom;
 
     void run_stage();
@@ -408,6 +409,8 @@ class MicaliVaziraniMatching final : public MaximumCardinalityMatching {
 
 public:
     MicaliVaziraniMatching(NetworKit::Graph &graph);
+    MicaliVaziraniMatching(
+        NetworKit::Graph &graph, const std::vector<NetworKit::node>& initial_matching);
 
     /**
      * Execute the Micali Vazirani maximum cardinality matching algorithm.
@@ -461,7 +464,7 @@ private:
     int iter, max_iter;
 
     std::vector<Bloom*> current_blooms;
-    UnionFind bloom_bases;
+    UnionFind<NetworKit::node, NetworKit::node> bloom_bases;
     std::vector<NetworKit::node> bridge_support;
     std::vector<NetworKit::node> erase_queue;
 
@@ -496,8 +499,232 @@ private:
 
     std::tuple<NetworKit::node, NetworKit::node, NetworKit::node, NetworKit::node> 
     get_bridge(NetworKit::node vertex);
+};
 
-    // void print_state();
+
+class GabowScalingMatching : public MaximumMatching {
+public:
+    GabowScalingMatching(NetworKit::Graph &graph);
+
+    /**
+     * Execute the Gabow scaling maximum matching algorithm.
+     */
+    void run();
+
+private:
+    struct EdgeInfo { 
+        NetworKit::node u, v; 
+        NetworKit::edgeid id; 
+
+        bool operator==(const EdgeInfo& other) const;
+        bool operator!=(const EdgeInfo& other) const;
+        bool operator<(const EdgeInfo& other) const;
+    };
+
+    friend std::ostream& operator<<(std::ostream &out, const EdgeInfo& edge);
+    static constexpr EdgeInfo no_edge {NetworKit::none, NetworKit::none,NetworKit::none};
+
+    enum BlossomLabel { even, odd, free };
+
+    struct Blossom {
+        NetworKit::node base, initial_base;
+        int z0, t_root, t_odd, t_even, Delta;
+        Blossom* parent;
+        std::list<std::pair<Blossom*, EdgeInfo>> subblossoms;
+        BlossomLabel label;
+        EdgeInfo backtrack_edge;
+        bool visited;
+        std::list<Blossom*>::iterator shell_blossoms_it;
+        SplitFindMin<NetworKit::node, Blossom*, int, EdgeInfo>::List* list;
+
+        bool is_trivial();
+        void for_nodes(const std::function<void(NetworKit::node)>& handle);
+        std::list<NetworKit::node> node_list();
+        
+        void short_print();
+        void nodes_print();
+
+        // ~Blossom() { std::cerr << "delete " << this << std::endl; }
+    };
+
+    struct OldBlossom {
+        int size;
+        int z;
+        int t_active;
+        int t_inner;
+        std::list<OldBlossom*> subblossoms;
+        std::list<NetworKit::node> nodes;
+        OldBlossom* heavy_path_parent;
+        OldBlossom* heavy_child;
+        std::list<Blossom*> shell_blossoms;
+        bool dissolved;
+        bool searched;
+        int shell_index;
+
+        bool is_heavy_path_root();
+        void for_nodes(const std::function<void(NetworKit::node)>& handle);
+        void for_blossoms(const std::function<void(OldBlossom*)>& handle);
+        void short_print();
+    };
+
+    NetworKit::Graph reducedGraph;
+    std::vector<std::pair<NetworKit::node, NetworKit::node>> graph_edges; 
+
+    std::tuple<std::vector<NetworKit::node>, std::vector<int>, OldBlossom*>
+    scale(const std::vector<int>& w);
+
+    void match(OldBlossom* T);
+
+    std::vector<int> current_w;
+    std::vector<int> current_y;
+    std::vector<Blossom*> trivial_blossom;
+    std::vector<NetworKit::node> matched_vertex;
+    std::vector<NetworKit::edgeid> matched_edge;
+    std::vector<bool> edge_in_matching;
+    int edges_in_matching;
+
+    void delete_blossom(Blossom* B, OldBlossom* S);
+    void add_blossom(Blossom* B, OldBlossom* S);
+    void expand_blossom(Blossom* B, OldBlossom* S);
+    void swap_edge_in_matching(NetworKit::edgeid edge);
+    void set_edge_in_matching(NetworKit::edgeid edge);
+    void remove_edge_from_matching(NetworKit::edgeid edge);
+    void check_edge_in_matching(NetworKit::edgeid edge);
+
+    void create_trivial_blossoms(OldBlossom* T);
+    OldBlossom* turn_current_blossoms_into_old(const std::list<Blossom*>& subblossoms);
+    void heavy_path_decomposition(OldBlossom* T, int outer_dual);
+    void change_blossom_base(Blossom* B, NetworKit::node new_base, EdgeInfo edge);
+    void swap_edges_on_even_path(
+        Blossom* B, NetworKit::node u, NetworKit::node v);
+    void swap_edges_on_even_path(
+        Blossom* B, NetworKit::node out_vertex, std::list<Blossom*>&& out_blossoms);
+    
+    void path(OldBlossom* B, int outer_dual);
+
+    int free_nodes_in_shell(OldBlossom* B);
+    void enumerate_shells();
+    void augmentPaths();
+    int current_slack(EdgeInfo e);
+    
+    std::vector<NetworKit::node> actual_to_contracted;
+
+    struct Event {
+        enum Type { grow, blossom, dissolve, dissolveShell };
+        Type type;
+        union {
+            struct { NetworKit::node v; EdgeInfo e; };
+            EdgeInfo uv;
+            Blossom* B;
+            OldBlossom* S;
+        } args;
+
+        static Event make_grow(NetworKit::node v, EdgeInfo e) { 
+            Event event;
+            event.type = grow;
+            event.args.v = v; event.args.e = e; 
+            return event;
+        }
+
+        static Event make_blossom(EdgeInfo uv) { 
+            Event event;
+            event.type = blossom;
+            event.args.uv = uv; 
+            return event;
+        }
+
+        static Event make_dissolve(Blossom* B) { 
+            Event event;
+            event.type = dissolve;
+            event.args.B = B;
+            return event;
+        }
+
+        static Event make_dissolveShell(OldBlossom* S) { 
+            Event event;
+            event.type = dissolveShell;
+            event.args.S = S; 
+            return event;
+        }
+    };
+
+    friend std::ostream& operator<<(std::ostream &out, const Event& event);
+
+    void shell_search(OldBlossom* B);
+    void init_shell_search();
+    
+    void finish_shell_search();
+    void delete_lists(Blossom* B);
+
+    bool search_done;
+    int t_undissolvable;
+    int shell_Delta;
+    int outer_blossom_dual;
+    int active_shell_initial_dual;
+    OldBlossom* old_root;
+    OldBlossom* path_root;
+    OldBlossom* highest_undissolved;
+    OldBlossom* active_shell;
+    OldBlossom* starting_shell;
+    std::vector<std::pair<int, OldBlossom*>> shells;
+    std::vector<OldBlossom*> vertex_path;
+    std::vector<int> current_shell_duals;
+    std::vector<int> shell_distribution;
+    std::vector<int> y0;
+    std::vector<int> t_shell;
+    std::vector<int> Delta;
+    std::vector<Blossom*> current_blossom;
+    std::vector<OldBlossom*> current_shell;
+    std::vector<OldBlossom*> search_shell;
+    ArrayPriorityQueue<Event> event_queue;
+    UnionFind<NetworKit::node, Blossom*> union_find;
+    SplitFindMin<NetworKit::node, Blossom*, int, EdgeInfo> split_find_min;
+
+    void grow(NetworKit::node v, EdgeInfo e);
+    void schedule(NetworKit::node v);
+    void dissolve(Blossom* B);
+    void blossom(EdgeInfo edge);
+    void dissolveShell(OldBlossom* S);
+
+    struct BacktrackInfo { 
+        Blossom* blossom;  
+        EdgeInfo edge; 
+    };
+
+    bool backtrack(Blossom* u, Blossom* v, EdgeInfo edge);
+    bool backtrack_step(Blossom*& iter, std::vector<BacktrackInfo>& path);
+    
+    void create_new_blossom(Blossom* u, Blossom* v, EdgeInfo edge,
+            std::vector<BacktrackInfo>& u_path, std::vector<BacktrackInfo>& v_path);
+    
+    std::list<Blossom*> blossoms_containing(NetworKit::node u, Blossom* until);
+    void cut_path_at(std::vector<BacktrackInfo>& path, Blossom* cut, Blossom* cut_2);
+
+    std::pair<std::list<std::pair<Blossom*, EdgeInfo>>, std::list<std::pair<Blossom*, EdgeInfo>>>
+    split_subblossoms(std::list<std::pair<Blossom*, EdgeInfo>> sub_blossoms, Blossom* blossom);
+
+    int y(NetworKit::node v);
+    int z(Blossom* B);
+    int shell_z();
+    int slack(EdgeInfo e);
+    bool is_exposed(Blossom* b);
+    bool is_even(NetworKit::node v);
+    bool is_odd(NetworKit::node v);
+    Blossom* get_blossom(NetworKit::node v);
+    int distribution_so_far(int shell_index);
+    bool matching_is_perfect();
+
+    void print_current_state();
+    void print_search_state();
+    void print_vertex_state(NetworKit::node v);
+    void check_consistency();
+    void check_consistency(Blossom* B);
+
+    static std::string label_to_str(BlossomLabel label);
+    static EdgeInfo reverse(const EdgeInfo& edge);
+    static void print_backtrack(
+            Blossom* u, Blossom* v, EdgeInfo edge,
+            std::vector<BacktrackInfo>& u_path, std::vector<BacktrackInfo>& v_path);
 };
 
 } /* namespace Koala */

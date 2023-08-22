@@ -15,7 +15,24 @@ MicaliVaziraniMatching::MicaliVaziraniMatching(NetworKit::Graph &graph):
         E(graph.upperEdgeIdBound()),
         candidates(graph.numberOfNodes()),
         bridges(2 * graph.numberOfNodes() + 1),
-        bloom_bases(graph.upperNodeIdBound()) { }
+        bloom_bases(graph.upperNodeIdBound()) { 
+            graph.forNodes([this] (NetworKit::node vertex) {
+                V[vertex].match = NetworKit::none;
+            });
+        }
+
+MicaliVaziraniMatching::MicaliVaziraniMatching(
+    NetworKit::Graph &graph, const std::vector<NetworKit::node>& initial_matching):
+        MaximumCardinalityMatching(graph),
+        V(graph.upperNodeIdBound()),
+        E(graph.upperEdgeIdBound()),
+        candidates(graph.numberOfNodes()),
+        bridges(2 * graph.numberOfNodes() + 1),
+        bloom_bases(graph.upperNodeIdBound()) { 
+            graph.forNodes([this, &initial_matching] (NetworKit::node vertex) {
+                V[vertex].match = initial_matching[vertex];
+            });
+        }
 
 void MicaliVaziraniMatching::reset() {
     augmentation_happened = false;
@@ -39,12 +56,12 @@ void MicaliVaziraniMatching::reset() {
         E[e].type = EdgeData::Type::none;
     });
 
-    for (int i = 0; i < graph.numberOfNodes(); ++ i) {
+    for (NetworKit::index i = 0; i < graph.numberOfNodes(); ++ i) {
         candidates[i].clear();
         bridges[2 * i + 1].clear();
+        bloom_bases.reset(i, i);
     }
 
-    bloom_bases.reset();
     erase_queue.clear();
 }
 
@@ -57,10 +74,6 @@ void MicaliVaziraniMatching::run() {
     graph.forEdges([this] (NetworKit::node u, NetworKit::node v, NetworKit::edgeid e) {
         E[e].u = u;
         E[e].v = v;
-    });
-
-    graph.forNodes([this] (NetworKit::node vertex) {
-        V[vertex].match = NetworKit::none;
     });
 
     do {
@@ -227,7 +240,7 @@ void MicaliVaziraniMatching::bloss_aug(NetworKit::node g, NetworKit::node r) {
 
             // Assign to bloom
             V[y].bloom = B;
-            bloom_bases.link(B->base, y);
+            bloom_bases.link(B->base, y, B->base);
 
             // Assign other level
             set_level(y, 2 * iter + 1 - min_level(y));
@@ -418,31 +431,5 @@ MicaliVaziraniMatching::get_bridge(NetworKit::node vertex) {
         std::make_tuple(B->red_peak, B->green_peak, B->red_root, B->green_root) :
         std::make_tuple(B->green_peak, B->red_peak, B->green_root, B->red_root);
 }
-
-// template<class C>
-// void print_nodes(const C& P) {
-//     for (auto v : P) std::cerr << v << " ";
-//     std::cerr << std::endl;
-// }
-
-// std::string level_to_str(int level) {
-//     return level == 1e9 ? "inf" : std::to_string(level);
-// }
-
-// std::string node_to_str(NetworKit::node vertex) {
-//     return vertex == NetworKit::none ? "-" : std::to_string(vertex);
-// }
-
-// void MicaliVaziraniMatching::print_state() {
-//     graph.forNodes([this] (NetworKit::node vertex) {
-//         std::cerr << "VERTEX " << vertex << ": " << std::endl;
-//         std::cerr << "   MATCH       " << node_to_str(V[vertex].match) << std::endl;
-//         std::cerr << "   EVEN LEVEL  " << level_to_str(V[vertex].even_level) << std::endl;
-//         std::cerr << "   ODD LEVEL   " << level_to_str(V[vertex].odd_level) << std::endl;
-//         std::cerr << "   PRED        "; print_nodes(V[vertex].predecessors);
-//         std::cerr << "   BLOOM       " << V[vertex].bloom << std::endl;
-//         std::cerr << "   COLOR       " << V[vertex].color << std::endl;
-//     });
-// }
 
 } /* namespace Koala */

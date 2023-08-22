@@ -4,4 +4,5 @@ koala_add_module(matching
     GabowMaximumMatching.cpp
     MicaliGabowMaximumMatching.cpp
     MicaliVaziraniMatching.cpp
+    GabowScalingMatching.cpp
 )
