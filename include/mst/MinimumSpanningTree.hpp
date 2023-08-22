@@ -11,6 +11,7 @@
 
 #include <networkit/base/Algorithm.hpp>
 #include <networkit/graph/Graph.hpp>
+#include <networkit/structures/UnionFind.hpp>
 
 namespace Koala {
 
@@ -26,7 +27,7 @@ class MinimumSpanningTree : public NetworKit::Algorithm {
      *
      * @param graph The input graph.
      */
-    MinimumSpanningTree(NetworKit::Graph &graph);
+    explicit MinimumSpanningTree(NetworKit::Graph &graph);
 
     /**
      * Return the spanning tree found by the algorithm.
@@ -71,7 +72,7 @@ class PrimMinimumSpanningTree final : public MinimumSpanningTree {
  * @ingroup mst
  * The class for the Boruvka minimum spanning tree algorithm
  */
-class BoruvkaMinimumSpanningTree final : public MinimumSpanningTree {
+class BoruvkaMinimumSpanningTree : public MinimumSpanningTree {
  public:
     using MinimumSpanningTree::MinimumSpanningTree;
 
@@ -79,20 +80,30 @@ class BoruvkaMinimumSpanningTree final : public MinimumSpanningTree {
      * Execute the Boruvka minimum spanning tree algorithm.
      */
     void run();
+
+ protected:
+    static void iterate(
+        NetworKit::Graph &G, NetworKit::Graph &F, NetworKit::UnionFind &union_find,
+        NetworKit::count steps);
 };
 
 /**
  * @ingroup mst
  * The class for the Karger-Klein-Tarjan randomized minimum spanning tree algorithm
  */
-class KargerKleinTarjanMinimumSpanningTree final : public MinimumSpanningTree {
+class KargerKleinTarjanMinimumSpanningTree final : public BoruvkaMinimumSpanningTree {
  public:
-    using MinimumSpanningTree::MinimumSpanningTree;
+    using BoruvkaMinimumSpanningTree::BoruvkaMinimumSpanningTree;
 
     /**
      * Execute the Karger-Klein-Tarjan randomized minimum spanning tree algorithm.
      */
     void run();
+
+ protected:
+    static void recurse(NetworKit::Graph &G, NetworKit::Graph &F);
+    static void discard_random_edges(NetworKit::Graph &G, NetworKit::Graph &subgraph);
+    static void remove_heavy_edges(NetworKit::Graph &G, NetworKit::Graph &subgraph);
 };
 
 } /* namespace Koala */
