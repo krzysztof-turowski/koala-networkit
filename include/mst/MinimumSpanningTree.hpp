@@ -55,6 +55,20 @@ class KruskalMinimumSpanningTree final : public MinimumSpanningTree {
 
 /**
  * @ingroup mst
+ * The class for the Prim minimum spanning tree algorithm
+ */
+class PrimMinimumSpanningTree final : public MinimumSpanningTree {
+ public:
+    using MinimumSpanningTree::MinimumSpanningTree;
+
+    /**
+     * Execute the Prim minimum spanning tree algorithm.
+     */
+    void run();
+};
+
+/**
+ * @ingroup mst
  * The class for the Boruvka minimum spanning tree algorithm
  */
 class BoruvkaMinimumSpanningTree final : public MinimumSpanningTree {

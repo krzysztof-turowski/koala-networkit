@@ -7,6 +7,8 @@
 
 #include <mst/MinimumSpanningTree.hpp>
 
+#include <queue>
+
 #include <networkit/auxiliary/Parallel.hpp>
 #include <networkit/graph/GraphTools.hpp>
 #include <networkit/structures/UnionFind.hpp>
@@ -36,6 +38,33 @@ void KruskalMinimumSpanningTree::run() {
             tree->addEdge(e.u, e.v, e.weight);
             union_find.merge(e.u, e.v);
         }
+    }
+}
+
+void PrimMinimumSpanningTree::run() {
+    hasRun = true;
+    tree = std::make_optional(NetworKit::GraphTools::copyNodes(*graph));
+    std::priority_queue<std::pair<NetworKit::edgeweight, NetworKit::node>> queue;
+    queue.push(std::make_pair(0, *(graph->nodeRange().begin())));
+    std::unordered_map<NetworKit::node, NetworKit::WeightedEdge> previous;
+    while (!queue.empty()) {
+        auto v = queue.top().second;
+        queue.pop();
+        if (!tree->isIsolated(v)) {
+            continue;
+        }
+        const auto &e = previous.find(v);
+        if (e != previous.end()) {
+            tree->addEdge(e->second.u, e->second.v, e->second.weight);
+        }
+        graph->forNeighborsOf(v, [&](NetworKit::node u, NetworKit::edgeweight weight) {
+            if (tree->isIsolated(u)) {
+                queue.push(std::make_pair(-weight, u));
+                if (!previous.count(u) || previous[u].weight > weight) {
+                    previous[u] = NetworKit::WeightedEdge(u, v, weight);
+                }
+            }
+        });
     }
 }
 
