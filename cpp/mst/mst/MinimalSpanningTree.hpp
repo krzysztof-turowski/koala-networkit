@@ -27,6 +27,11 @@ namespace MST {
             if (!G.isWeighted()) {
                 throw std::invalid_argument("MinimalSpanningTree requires weighted graph.");
             }
+            NetworKit::ConnectedComponents ccs(G);
+            ccs.run();
+            if (ccs.numberOfComponents() > 1) {
+                throw std::invalid_argument("MinimalSpanningTree requires a graph with at most 1 connected component.");
+            }
         }
 
         [[nodiscard]]

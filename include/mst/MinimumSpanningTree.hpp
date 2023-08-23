@@ -102,8 +102,15 @@ class KargerKleinTarjanMinimumSpanningTree final : public BoruvkaMinimumSpanning
 
  protected:
     static void recurse(NetworKit::Graph &G, NetworKit::Graph &F);
-    static void discard_random_edges(NetworKit::Graph &G, NetworKit::Graph &subgraph);
+    static void discard_random_edges(
+        NetworKit::Graph &G, NetworKit::UnionFind &union_find, NetworKit::Graph &subgraph);
     static void remove_heavy_edges(NetworKit::Graph &G, NetworKit::Graph &subgraph);
+};
+
+class KargerKleinTarjanMinimumSpanningTreeOriginal final : public MinimumSpanningTree {
+ public:
+    using MinimumSpanningTree::MinimumSpanningTree;
+    void run();
 };
 
 } /* namespace Koala */
