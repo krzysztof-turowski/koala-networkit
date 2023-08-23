@@ -77,11 +77,12 @@ protected:
         NetworKit::node base;
         NetworKit::node last_node;
         std::list<Blossom*> base_blossoms;
-        std::list<std::pair<Blossom*, EdgeInfo>> sub_blossoms;
+        std::list<std::pair<Blossom*, EdgeInfo>> subblossoms;
         BlossomLabel label;
         EdgeInfo backtrack_edge;
         bool visited;
         NetworKit::edgeweight z;
+        std::list<Blossom*>::iterator list_it;
         BlossomData* data;
 
         bool is_trivial();
@@ -104,7 +105,7 @@ protected:
 
     std::vector<std::tuple<NetworKit::node, NetworKit::node, NetworKit::edgeweight>> graph_edges;
     std::vector<bool> is_in_matching;
-    std::set<Blossom*> blossoms;
+    std::list<Blossom*> blossoms;
     std::vector<NetworKit::node> matched_vertex;
     std::vector<NetworKit::edgeid> matched_edge;
     std::vector<Blossom*> trivial_blossom;
@@ -127,6 +128,8 @@ protected:
     bool backtrack(Blossom* u, Blossom* v, EdgeInfo edge);
     bool backtrack_step(Blossom*& iter, std::vector<BacktrackInfo>& path);
     
+    void add_blossom(Blossom* b);
+    void remove_blossom(Blossom* b);
     void create_new_blossom(Blossom* u, Blossom* v, EdgeInfo edge,
             std::vector<BacktrackInfo>& u_path, std::vector<BacktrackInfo>& v_path);
     void cut_path_at(std::vector<BacktrackInfo>& path, Blossom* cut, Blossom* cut_2);
@@ -141,7 +144,7 @@ protected:
     void lazy_augment_path_in_blossom(Blossom* blossom);
 
     std::pair<std::list<std::pair<Blossom*, EdgeInfo>>,std::list<std::pair<Blossom*, EdgeInfo>>>
-    split_subblossoms(std::list<std::pair<Blossom*, EdgeInfo>> sub_blossoms, Blossom* blossom);
+    split_subblossoms(std::list<std::pair<Blossom*, EdgeInfo>> subblossoms, Blossom* blossom);
     void swap_edge_in_matching(NetworKit::edgeid edge);
     void check_edge_in_matching(NetworKit::edgeid edge);
     std::list<Blossom*> blossoms_containing(NetworKit::node u, Blossom* until);
@@ -699,7 +702,7 @@ private:
     void cut_path_at(std::vector<BacktrackInfo>& path, Blossom* cut, Blossom* cut_2);
 
     std::pair<std::list<std::pair<Blossom*, EdgeInfo>>, std::list<std::pair<Blossom*, EdgeInfo>>>
-    split_subblossoms(std::list<std::pair<Blossom*, EdgeInfo>> sub_blossoms, Blossom* blossom);
+    split_subblossoms(std::list<std::pair<Blossom*, EdgeInfo>> subblossoms, Blossom* blossom);
 
     int y(NetworKit::node v);
     int z(Blossom* B);

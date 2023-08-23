@@ -181,7 +181,7 @@ bool MicaliGabowMaximumMatching::is_good(NetworKit::edgeid edge) {
 
 void MicaliGabowMaximumMatching::handle_new_blossom(Blossom* new_blossom) {
     ConcatenableQueue<Blossom*, NetworKit::node, NetworKit::node> nodes(new_blossom);
-    for (auto [b, e] : new_blossom->sub_blossoms) {
+    for (auto [b, e] : new_blossom->subblossoms) {
         nodes.concat(std::move(get_data(b)->nodes), new_blossom);
 
         if (b->label == even && !b->is_trivial()) {
@@ -199,7 +199,7 @@ void MicaliGabowMaximumMatching::handle_new_blossom(Blossom* new_blossom) {
             });
         }
     }
-    for (auto [b, e] : new_blossom->sub_blossoms) {
+    for (auto [b, e] : new_blossom->subblossoms) {
         if (b->label == odd) {
             even_edges.delete_group(get_data(b)->even_edges);
             get_data(b)->even_edges = nullptr;
@@ -231,7 +231,7 @@ void MicaliGabowMaximumMatching::handle_odd_blossom_expansion(Blossom* blossom) 
 
     Zodd.remove(blossom->initial_base);
 
-    for (auto [b, e] : blossom->sub_blossoms) {
+    for (auto [b, e] : blossom->subblossoms) {
         auto [nodes_b, nodes_rest] = remaining_nodes->split(nodes_refs[b->last_node], b, blossom);
         remaining_nodes = nodes_rest;
         get_data(b)->nodes = std::move(*nodes_b); delete nodes_b;
@@ -267,7 +267,7 @@ void MicaliGabowMaximumMatching::handle_odd_blossom_expansion(Blossom* blossom) 
         }
     }
 
-    for (auto [b, e] : blossom->sub_blossoms) {
+    for (auto [b, e] : blossom->subblossoms) {
         if (b->label == even) {
             scan_edges(b);
         }
@@ -279,7 +279,7 @@ void MicaliGabowMaximumMatching::handle_even_blossom_expansion(Blossom* blossom)
 
     auto remaining_nodes = &get_data(blossom)->nodes;
     
-    for (auto [b, e] : blossom->sub_blossoms) {
+    for (auto [b, e] : blossom->subblossoms) {
         auto [nodes_b, nodes_rest] = remaining_nodes->split(nodes_refs[b->last_node], b, blossom);
         remaining_nodes = nodes_rest;
         get_data(b)->nodes = std::move(*nodes_b); delete nodes_b;

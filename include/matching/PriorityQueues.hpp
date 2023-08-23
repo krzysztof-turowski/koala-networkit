@@ -1371,10 +1371,9 @@ private:
     }
 };
 
-
+// Temporary naive implementation
 template<typename T, typename H, typename K, typename V>
 class SplitFindMin {
-    // Temporary naive implementation
 public: 
     struct List {
         std::list<NetworKit::node> nodes;
@@ -1392,12 +1391,6 @@ public:
         val(size) {}
 
     List* init(const std::list<T>& nodes, H head) {
-        // #if QUEUE_DEBUG
-        // std::cerr << "INIT " << head << " ";
-        // for (auto v : nodes) std::cerr << v << " ";
-        // std::cerr << std::endl;
-        // #endif
-
         List* L = new List { nodes, infinity, empty_val, head };
 
         for (auto n : nodes) {
@@ -1416,12 +1409,6 @@ public:
     std::pair<List*, List*> split(T u, H h1, H h2) {
         List* L = element_list[u];
 
-        // #if QUEUE_DEBUG
-        // std::cerr << "SPLIT " << L << " {";
-        // for (auto v : L->nodes) std::cerr << v << ", ";
-        // std::cerr << "} ON " << u << std::endl;
-        // #endif
-
         auto it = std::next(std::find(L->nodes.begin(), L->nodes.end(), u));
         std::list<NetworKit::node> nodes1;
         std::list<NetworKit::node> nodes2;
@@ -1430,15 +1417,6 @@ public:
         
         List* L1 = new List { nodes1, infinity, empty_val, h1 };
         List* L2 = new List { nodes2, infinity, empty_val, h2 };
-
-        // #if QUEUE_DEBUG
-        // std::cerr << L1 << " {";
-        // for (auto v : L1->nodes) std::cerr << v << ", ";
-        // std::cerr << "} ON " << u << std::endl;
-        // std::cerr << L2 << " {";
-        // for (auto v : L2->nodes) std::cerr << v << ", ";
-        // std::cerr << "} ON " << u << std::endl;
-        // #endif
 
         for (auto n : L1->nodes) {
             element_list[n] = L1;
@@ -1485,25 +1463,7 @@ public:
         return {key[u], val[u]};
     }
 
-    // void reset() {
-    //     std::vector<List*> to_delete;
-
-    //     for (T i = 0; i < size; ++ i) {
-    //         if (element_list[i] != nullptr && i == *element_list[i]->nodes().fron()) {
-    //             to_delete.push_back(element_list[i]);
-    //         }
-    //         element_list[i] = nullptr;
-    //         key[i] = infinity;
-    //     }
-
-    //     for (auto L : to_delete) delete L;
-    // }
-
     void deleteList(List* L) {
-        // #if QUEUE_DEBUG
-        // std::cerr << "DELETE LIST " << L << std::endl;
-        // #endif
-
         delete L;
     }
 
@@ -1515,6 +1475,65 @@ private:
     std::vector<K> key;
     std::vector<V> val;
 };
+
+
+// template<typename T, typename H, typename K, typename V>
+// class SplitFindMin2 {
+// public: 
+//     struct List {
+//         // TODO
+//     };
+
+//     SplitFindMin(T size, K infinity, V empty_val):
+//         size(size), 
+//         infinity(infinity), 
+//         empty_val(empty_val) {}
+
+//     List* init(const std::list<T>& nodes, H head) {
+//         // TODO
+
+//         return nullptr;
+//     }
+
+//     List* list(T u) {
+//         // TODO
+
+//         return nullptr;
+//     }
+
+//     std::pair<List*, List*> split(T u, H h1, H h2) {
+//         // TODO
+
+//         return {nullptr, nullptr};
+//     }
+
+//     void decreaseKey(T u, K x, V v) {
+//         // TODO
+//     }
+
+//     std::pair<K, V> findMin(List* L) {
+//         // TODO
+
+//         return {infinity, empty_val};
+//     }
+
+//     std::pair<K, V> currentKey(T u) {
+//         // TODO
+
+//         return {infinity, empty_val};
+//     }
+
+//     void deleteList(List* L) {
+//         // TODO
+//     }
+
+// private:
+//     T size;
+//     K infinity;
+//     V empty_val;
+//     std::vector<K> key;
+//     std::vector<V> val;
+// };
 
 
 template<typename T>
@@ -1567,7 +1586,6 @@ private:
 
 class FenwickTree {
 public:
-
     int sum(int index) {
         index ++;
         int res = 0;

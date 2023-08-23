@@ -80,7 +80,7 @@ void GabowMaximumMatching::label_even(Blossom* b) {
 }
 
 void GabowMaximumMatching::handle_new_blossom(Blossom* new_blossom) {
-    for (auto [b, edge] : new_blossom->sub_blossoms) { 
+    for (auto [b, edge] : new_blossom->subblossoms) { 
         b->for_nodes([this, new_blossom] (NetworKit::node v) {
             this->current_blossom[v] = new_blossom;
         });
@@ -88,7 +88,7 @@ void GabowMaximumMatching::handle_new_blossom(Blossom* new_blossom) {
     GabowBlossomData* data = new GabowBlossomData();
     new_blossom->data = data;
     auto best_slack = edge_slack(data->best_edge.id);
-    for (auto [b, edge] : new_blossom->sub_blossoms) {
+    for (auto [b, edge] : new_blossom->subblossoms) {
         calc_best_edges(b);
         auto b_data = get_data(b);
         for (auto [v_blossom, edge] : b_data->best_edges) {
@@ -112,13 +112,13 @@ void GabowMaximumMatching::handle_new_blossom(Blossom* new_blossom) {
 void GabowMaximumMatching::handle_subblossom_shift(Blossom* blossom, Blossom* subblossom) {}
 
 void GabowMaximumMatching::handle_odd_blossom_expansion(Blossom* blossom) {
-    for (auto [b, e] : blossom->sub_blossoms) {
+    for (auto [b, e] : blossom->subblossoms) {
         Blossom* _b = b;
         b->for_nodes([this, _b] (NetworKit::node v) {
             current_blossom[v] = _b;
         });
     }
-    for (auto [b, e] : blossom->sub_blossoms) {
+    for (auto [b, e] : blossom->subblossoms) {
         if (b->label == even) {
             calc_best_edges(b);
         }
@@ -126,7 +126,7 @@ void GabowMaximumMatching::handle_odd_blossom_expansion(Blossom* blossom) {
 }
 
 void GabowMaximumMatching::handle_even_blossom_expansion(Blossom* blossom) {
-    for (auto [b, e] : blossom->sub_blossoms) {
+    for (auto [b, e] : blossom->subblossoms) {
         Blossom* _b = b;
         b->for_nodes([this, _b] (NetworKit::node v) {
             current_blossom[v] = _b;

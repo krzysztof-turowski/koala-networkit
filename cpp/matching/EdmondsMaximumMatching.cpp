@@ -69,7 +69,7 @@ void EdmondsMaximumMatching::label_even(Blossom* b) {
 }
 
 void EdmondsMaximumMatching::handle_new_blossom(Blossom* new_blossom) {
-    for (auto [b, edge] : new_blossom->sub_blossoms) { 
+    for (auto [b, edge] : new_blossom->subblossoms) { 
         b->for_nodes([this, new_blossom] (NetworKit::node v) {
             this->current_blossom[v] = new_blossom;
         });
@@ -82,7 +82,7 @@ void EdmondsMaximumMatching::handle_new_blossom(Blossom* new_blossom) {
 void EdmondsMaximumMatching::handle_subblossom_shift(Blossom* blossom, Blossom* subblossom) {}
 
 void EdmondsMaximumMatching::handle_odd_blossom_expansion(Blossom* blossom) {
-    for (auto [b, e] : blossom->sub_blossoms) {
+    for (auto [b, e] : blossom->subblossoms) {
         Blossom* _b = b;
         b->for_nodes([this, _b] (NetworKit::node v) {
             current_blossom[v] = _b;
@@ -94,7 +94,7 @@ void EdmondsMaximumMatching::handle_odd_blossom_expansion(Blossom* blossom) {
 }
 
 void EdmondsMaximumMatching::handle_even_blossom_expansion(Blossom* blossom) {
-    for (auto [b, e] : blossom->sub_blossoms) {
+    for (auto [b, e] : blossom->subblossoms) {
         Blossom* _b = b;
         b->for_nodes([this, _b] (NetworKit::node v) {
             current_blossom[v] = _b;
