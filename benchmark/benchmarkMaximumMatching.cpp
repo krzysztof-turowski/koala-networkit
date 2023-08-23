@@ -33,11 +33,11 @@ int main(int argc, char **argv) {
     }
     maximum_matching->run();
     auto matching = maximum_matching->getMatching();
-    NetworKit::edgeweight weight = 0.0;
+    int weight = 0;
     for (auto [u, v] : matching) {
         std::cout << u << " " << v << std::endl;
         if (v != NetworKit::none)
-            weight += G.weight(u, v);
+            weight += static_cast<int>(G.weight(u, v));
     }
     std::cout << weight / 2 << std::endl;
 

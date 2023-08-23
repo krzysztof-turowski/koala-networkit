@@ -471,8 +471,8 @@ void GabowScalingMatching::enumerate_shells() {
     #endif
 
     shells.clear();
-    shell_distribution.clear();
     current_shell_duals.clear();
+    // shell_distribution.clear();
 
     for (auto shell = highest_undissolved; shell != nullptr; shell = shell->heavy_child) {
         #if DEBUG_LOGGING
@@ -507,8 +507,10 @@ void GabowScalingMatching::enumerate_shells() {
 
         shells.push_back({0, shell});
         current_shell_duals.push_back(shell->z);
-        shell_distribution.push_back(0);
+        // shell_distribution.push_back(0);
     }
+
+    shell_distribution.reset(shells.size());
 
     for (int i = 0; i < shells.size(); ++ i)  {
         shells[i].second->shell_index = i;
@@ -849,7 +851,7 @@ void GabowScalingMatching::finish_shell_search() {
     if (!active_shell->dissolved && active_shell != old_root) {
         auto distributed = event_queue.timeNow() - active_shell->t_active;
         active_shell->z -= 2 * distributed;
-        shell_distribution[active_shell->shell_index] += distributed;
+        add_distribution(active_shell, distributed);
 
         #if DEBUG_LOGGING
         std::cerr << "z(" << active_shell << ") -= " << 2 * distributed << " = " << active_shell->z << std::endl;
@@ -859,7 +861,7 @@ void GabowScalingMatching::finish_shell_search() {
     if (inner_blossom != nullptr) {
         auto distributed = event_queue.timeNow() - inner_blossom->t_inner;
         inner_blossom->z -= 2 * distributed;
-        shell_distribution[inner_blossom->shell_index] += distributed;
+        add_distribution(inner_blossom, distributed);
 
         #if DEBUG_LOGGING
         std::cerr << "z(" << inner_blossom << ") -= " << 2 * distributed << " = " << inner_blossom->z << std::endl;
@@ -870,7 +872,7 @@ void GabowScalingMatching::finish_shell_search() {
 
     #if DEBUG_LOGGING
     std::cerr << "shell_distributions: ";
-    for (int i = 0; i < shell_distribution.size(); ++ i) std::cerr << shell_distribution[i] << " ";
+    for (int i = 0; i < shells.size(); ++ i) std::cerr << distribution_so_far(i + 1) << " ";
     std::cerr << std::endl;
     #endif
 }
@@ -1151,7 +1153,7 @@ void GabowScalingMatching::dissolveShell(OldBlossom* S) {
     auto distributed = event_queue.timeNow() - active_shell->t_active;
     active_shell->z -= 2 * distributed;
     active_shell_initial_dual -= 2 * distributed;
-    shell_distribution[active_shell->shell_index] += distributed;
+    add_distribution(active_shell, distributed);
     active_shell->t_active = event_queue.timeNow();
     
     if (S == active_shell) {
@@ -1241,7 +1243,7 @@ void GabowScalingMatching::dissolveShell(OldBlossom* S) {
         std::cerr << "DISSOLVING INNER SHELL\n";
         #endif
 
-        shell_distribution[S->shell_index] += event_queue.timeNow() - S->t_inner;
+        add_distribution(S, event_queue.timeNow() - S->t_inner);
 
         std::vector<EdgeInfo> edges_to_check;
 
@@ -1504,20 +1506,18 @@ bool GabowScalingMatching::is_odd(NetworKit::node v) {
     return split_find_min.list(v)->head->label == odd;
 }
 
+void GabowScalingMatching::add_distribution(OldBlossom* S, int distribution) {
+    // shell_distribution[S->shell_index] += distribution;
+    shell_distribution.add(S->shell_index, distribution);
+}
+
 int GabowScalingMatching::distribution_so_far(int shell_index) {
-    // TODO make it faster
-    int res = 0;
-    for (int i = 0; i < shell_index && i < shell_distribution.size(); ++ i) {
-        res += shell_distribution[i];
-    }
-
-    // #if DEBUG_LOGGING
-    // std::cerr << "DISTRIBUTIONS UNTIL " << shell_index << " -> " << res << std::endl;
-    // for (int i = 0; i < shell_distribution.size(); ++ i) std::cerr << shell_distribution[i] << " ";
-    // std::cerr << std::endl;
-    // #endif
-
-    return res;
+    // int res = 0;
+    // for (int i = 0; i < shell_index && i < shell_distribution.size(); ++ i) {
+    //     res += shell_distribution[i];
+    // }
+    // return res;
+    return shell_distribution.sum(shell_index - 1);
 }
 
 GabowScalingMatching::Blossom* GabowScalingMatching::get_blossom(NetworKit::node v) {
@@ -1701,8 +1701,6 @@ void GabowScalingMatching::print_search_state() {
     std::cerr << "\nlabel ";
     for (auto v : active_shell->nodes) std::cerr << " \t" << label_to_str(get_blossom(v)->label);
     std::cerr << std::endl;
-    // print_vertex_state(4);
-    // print_vertex_state(19);
     std::cerr << "nontrivial blossoms:\n";
     for (auto b : active_shell->shell_blossoms) {
         if (b->is_trivial()) continue;
@@ -1719,29 +1717,16 @@ void GabowScalingMatching::print_search_state() {
     reducedGraph.forEdges([this] (NetworKit::node u, NetworKit::node v, NetworKit::edgeid e) {
         if (search_shell[u] == starting_shell && search_shell[v] == starting_shell) {
             auto s = slack({u, v, e});
-            // assert(s % 2 == 0);
             std::cerr << "\t" << s;
         }
     });
     std::cerr << std::endl;
     std::cerr << "shell_distributions: ";
-    for (int i = 0; i < shell_distribution.size(); ++ i) std::cerr << shell_distribution[i] << " ";
+    for (int i = 0; i < shells.size(); ++ i) std::cerr << distribution_so_far(i + 1) << " ";
     std::cerr << std::endl;
     for (auto it = active_shell->shell_blossoms.begin(); it != active_shell->shell_blossoms.end(); it ++) {
-        // std::cerr << "CHECK " << *it << " "; 
-        // (*it)->short_print(); 
-        // std::cerr << " " << (*it)->z0 << std::endl;
         assert((*it)->shell_blossoms_it == it);
     }
-    // std::cerr << "lists:\n";
-    // for (auto v : active_shell->nodes)
-    //     std::cerr << v << " : " << split_find_min.list(v)->head << std::endl;;
-    // std::cerr << "\nslack: ";
-    // reducedGraph.forEdges([this] (NetworKit::node u, NetworKit::node v, NetworKit::edgeid e) {
-    //     if (search_shell[u] == starting_shell && search_shell[v] == starting_shell) {
-    //         std::cerr << "\t" << slack({u, v, e});// << "\t";
-    //     }
-    // });
 }
 
 void GabowScalingMatching::print_current_state() {
@@ -1764,16 +1749,12 @@ void GabowScalingMatching::print_current_state() {
     reducedGraph.forEdges([this] (NetworKit::node u, NetworKit::node v, NetworKit::edgeid e) {
         if (vertex_path[u] == path_root && vertex_path[v] == path_root) {
             auto s = current_slack({u, v, e});
-            // assert(s % 2 == 0);
             std::cerr << "\t" << s;
         }
     });
     std::cerr << std::endl;
     for (auto [_, shell] : shells) {
         for (auto it = shell->shell_blossoms.begin(); it != shell->shell_blossoms.end(); it ++) {
-            // std::cerr << "CHECK " << *it << " "; 
-            // (*it)->short_print(); 
-            // std::cerr << " " << (*it)->z0 << std::endl;
             assert((*it)->shell_blossoms_it == it);
         }
     }
@@ -1788,12 +1769,6 @@ void GabowScalingMatching::print_current_state() {
     });
     std::cerr << odd_free << " " << even_free << std::endl;
     assert(odd_free == 0 || even_free == 0);
-    // std::cerr << "\nslack: ";
-    // reducedGraph.forEdges([this] (NetworKit::node u, NetworKit::node v, NetworKit::edgeid e) {
-    //     if (vertex_path[u] == path_root && vertex_path[v] == path_root) {
-    //         std::cerr << "\t" << current_slack({u, v, e});// << "\t";
-    //     }
-    // });
 }
 
 void GabowScalingMatching::print_vertex_state(NetworKit::node v) {

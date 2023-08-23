@@ -292,8 +292,8 @@ void BlossomMaximumMatching::swap_edge_in_matching(NetworKit::edgeid edge) {
         #endif
 
         is_in_matching[edge] = false;
-        if (matched_vertex[u] == v) matched_vertex[u] = NetworKit::none;
-        if (matched_vertex[v] == u) matched_vertex[v] = NetworKit::none;
+        if (matched_vertex[u] == v) matched_vertex[u] = matched_edge[u] = NetworKit::none;
+        if (matched_vertex[v] == u) matched_vertex[v] = matched_edge[v] = NetworKit::none;
     } else {
         #if DEBUG_LOGGING
         std::cerr << "Add edge (" << u << ", " << v << ")" << std::endl;
@@ -316,6 +316,7 @@ void BlossomMaximumMatching::check_edge_in_matching(NetworKit::edgeid edge) {
 
         matched_vertex[u] = v;
         matched_vertex[v] = u;
+        matched_edge[u] = matched_edge[v] = edge;
     }
 }
 

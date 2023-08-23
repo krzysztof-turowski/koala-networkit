@@ -543,8 +543,6 @@ private:
         
         void short_print();
         void nodes_print();
-
-        // ~Blossom() { std::cerr << "delete " << this << std::endl; }
     };
 
     struct OldBlossom {
@@ -669,10 +667,10 @@ private:
     std::vector<std::pair<int, OldBlossom*>> shells;
     std::vector<OldBlossom*> vertex_path;
     std::vector<int> current_shell_duals;
-    std::vector<int> shell_distribution;
     std::vector<int> y0;
     std::vector<int> t_shell;
     std::vector<int> Delta;
+    FenwickTree shell_distribution;
     std::vector<Blossom*> current_blossom;
     std::vector<OldBlossom*> current_shell;
     std::vector<OldBlossom*> search_shell;
@@ -711,6 +709,7 @@ private:
     bool is_even(NetworKit::node v);
     bool is_odd(NetworKit::node v);
     Blossom* get_blossom(NetworKit::node v);
+    void add_distribution(OldBlossom* S, int distribution);
     int distribution_so_far(int shell_index);
     bool matching_is_perfect();
 
