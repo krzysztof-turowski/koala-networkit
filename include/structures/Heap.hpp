@@ -9,12 +9,13 @@
 
 #include <queue>
 
-// #include <structures/heap/BinomialHeap.hpp>
-// #include <structures/heap/FibonacciHeap.hpp>
+#include <structures/heap/BinomialHeap.hpp>
+#include <structures/heap/FibonacciHeap.hpp>
+#include <structures/heap/PairingHeap.hpp>
 
 namespace Koala {
 
 template<class T>
-using Heap = std::priority_queue<T>;
+using Heap = FibonacciHeap<T>;
 
 }  // namespace Koala

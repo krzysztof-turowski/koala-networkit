@@ -51,7 +51,7 @@ void KruskalMinimumSpanningTree::run() {
 
 void PrimMinimumSpanningTree::run() {
     hasRun = true;
-    std::priority_queue<std::pair<NetworKit::edgeweight, NetworKit::node>> queue;
+    Heap<std::pair<NetworKit::edgeweight, NetworKit::node>> queue;
     queue.push(std::make_pair(0, *(graph->nodeRange().begin())));
     std::unordered_map<NetworKit::node, NetworKit::WeightedEdge> previous;
     while (!queue.empty()) {
