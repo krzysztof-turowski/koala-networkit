@@ -86,15 +86,35 @@ TYPED_TEST_P(SimpleGraphs, FruchtGraph) {
     this->verify(parameters);
 }
 
-REGISTER_TYPED_TEST_CASE_P(SimpleGraphs, WheelGraphW_8, UtilityGraphK_3_3, PetersenGraph, FruchtGraph);
+TYPED_TEST_P(SimpleGraphs, TwoK5) {
+    IndependentSetParameters parameters =
+    {10, {
+        {0,1}, {0,2}, {0,3}, {0,4}, {1,2}, {1,3}, {1,4}, {2,3}, {2,4}, {3,4},
+        {5,6}, {5,7}, {5,8}, {5,9}, {6,7}, {6,8}, {6,9}, {7,8}, {7,9}, {8,9},
+    },
+    2};
+    this->verify(parameters);
+}
+
+TYPED_TEST_P(SimpleGraphs, TestingGraph) {
+    IndependentSetParameters parameters =
+    {6, {
+        {1,2}, {0,3}, {1,3}, {2,3}, {0,4}, {2,4}, {0,5}, {1,5},
+    },
+    3};
+    this->verify(parameters);
+}
+REGISTER_TYPED_TEST_CASE_P(SimpleGraphs, WheelGraphW_8, UtilityGraphK_3_3, PetersenGraph, FruchtGraph, TwoK5, TestingGraph);
 
 typedef testing::Types<
     Koala::BruteForceIndependentSet,
     Koala::Mis1IndependentSet,
-    //Koala::Mis2IndependentSet, // TODO: this is bugged
+    Koala::Mis2IndependentSet,
     Koala::Mis3IndependentSet,
     Koala::Mis4IndependentSet,
-    Koala::Mis5IndependentSet> Algorithms;
+    Koala::Mis5IndependentSet,
+    Koala::MeasureAndConquerIndependentSet
+    >Algorithms;
 INSTANTIATE_TYPED_TEST_CASE_P(IndependentSet, SimpleGraphs, Algorithms);
 
 
@@ -117,6 +137,10 @@ std::optional<int> runAndValidate(NetworKit::Graph G, std::list<std::pair<int, i
         bool neighbors = independentSet[u] && independentSet[v];
         EXPECT_FALSE(neighbors);
         if (neighbors) {
+            for (auto e : edges) {
+                std::cout << "{" << e.first << "," << e.second << "}, ";
+            } 
+            std::cout << std::endl;
             return std::nullopt;
         }
     }
@@ -175,44 +199,63 @@ private:
 
 TEST(CompareAlgorithmResults, test) {
     constexpr int maximumGraphSize = 6;
-
     for (int numberOfVertices = 1; numberOfVertices <= maximumGraphSize; ++numberOfVertices) {
         AdjacencyMatrix adj(numberOfVertices);
         while(true) {
             std::list<std::pair<int, int>> edges = adj.getNiceEdges();
             NetworKit::Graph G = build_graph(numberOfVertices, edges);
 
-            std::vector<std::optional<int>> algorithmSetSizes {
-                runAndValidate<Koala::BruteForceIndependentSet>(G, edges),
-                runAndValidate<Koala::Mis1IndependentSet>(G, edges),
-                //runAndValidate<Koala::Mis2IndependentSet>(G, edges), // TODO: this is bugged
-                runAndValidate<Koala::Mis3IndependentSet>(G, edges),
-                runAndValidate<Koala::Mis4IndependentSet>(G, edges),
-                runAndValidate<Koala::Mis5IndependentSet>(G, edges),
-            };
+            try
+            {            
+                std::vector<std::optional<int>> algorithmSetSizes {
+                    runAndValidate<Koala::BruteForceIndependentSet>(G, edges),
+                    runAndValidate<Koala::Mis1IndependentSet>(G, edges),
+                    runAndValidate<Koala::Mis2IndependentSet>(G, edges),
+                    runAndValidate<Koala::Mis3IndependentSet>(G, edges),
+                    runAndValidate<Koala::Mis4IndependentSet>(G, edges),
+                    runAndValidate<Koala::Mis5IndependentSet>(G, edges),
+                    runAndValidate<Koala::MeasureAndConquerIndependentSet>(G, edges),
+                };
 
-            int bestAchievedSize = 0;
-            for (auto size : algorithmSetSizes) {
-                if (size.has_value()) {
-                    bestAchievedSize = std::max(bestAchievedSize, *size);
+                int bestAchievedSize = 0;
+                for (auto size : algorithmSetSizes) {
+                    if (size.has_value()) {
+                        bestAchievedSize = std::max(bestAchievedSize, *size);
+                    }
+                    else {
+                        return;
+                    }
                 }
-                else {
-                    return;
+
+                for (int i = 0; i < algorithmSetSizes.size(); ++i) {
+                    EXPECT_TRUE(algorithmSetSizes[i].has_value());
+                    if (algorithmSetSizes[i].has_value()) {
+                        EXPECT_EQ(algorithmSetSizes[i], bestAchievedSize);
+                        if (algorithmSetSizes[i] != bestAchievedSize) {
+                            for (auto e : edges) {
+                                std::cout << "{" << e.first << "," << e.second << "}, ";
+                            } 
+                            std::cout << std::endl;
+                            return;
+                        }
+                    }
                 }
-            }
 
-            for (int i = 0; i < algorithmSetSizes.size(); ++i) {
-                EXPECT_TRUE(algorithmSetSizes[i].has_value());
-                if (algorithmSetSizes[i].has_value()) {
-                    EXPECT_EQ(algorithmSetSizes[i], bestAchievedSize);
+                if (!adj.hasNext()) {
+
+                    break;
                 }
-            }
+                adj.goNext();
 
-            if (!adj.hasNext()) {
-
-                break;
             }
-            adj.goNext();
+            catch (std::exception& e)
+            {
+                std::cerr << "Exception caught : " << e.what() << std::endl;
+                for (auto e : edges) {
+                    std::cout << "{" << e.first << "," << e.second << "}, ";
+                } 
+                std::cout << std::endl;
+            }
         }
     }
 }

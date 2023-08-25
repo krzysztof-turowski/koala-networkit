@@ -47,8 +47,12 @@ protected:
     std::vector<NetworKit::node> getNeighborsPlus(NetworKit::node v) const;
     std::set<NetworKit::node> getNeighbors2(NetworKit::node v) const;
     std::set<NetworKit::node> getNeighbors2Plus(NetworKit::node v) const;
-    EdgeSet getConnectedEdges(std::vector<NetworKit::node>& nodes);
+    EdgeSet getConnectedEdges(std::vector<NetworKit::node>& nodes) const;
+    EdgeSet getInducedEdges(std::vector<NetworKit::node>& nodes) const;
+    EdgeSet getAllEdges() const;
+    std::vector<NetworKit::node> getAllNodes() const;
     std::vector<NetworKit::node> getMirrors(NetworKit::node v) const;
+    void dfs(NetworKit::node v, std::vector<bool>& visited);
 
     NetworKit::count getGraphsMaximumDegree() const;
     NetworKit::node getMinimumDegreeNode() const;
@@ -86,7 +90,7 @@ class Mis1IndependentSet final : public SimpleIndependentSet {
 
 public:
     using SimpleIndependentSet::SimpleIndependentSet;
-    
+
     /**
      * Execute the mis1 algorithm.
      */
@@ -163,5 +167,23 @@ public:
 private:
     std::vector<NetworKit::node> recursive();
 };
+
+/**
+ * @ingroup independentSet
+ * The class for the Measue and Conquer Simple O(2^0.288n) algorithm.
+ */
+class MeasureAndConquerIndependentSet final : public SimpleIndependentSet {
+
+public:
+    using SimpleIndependentSet::SimpleIndependentSet;
+
+    /**
+     * Execute the mis5 algorithm.
+     */
+    void run();
+private:
+    std::vector<NetworKit::node> recursive();
+};
+
 
 } /* namespace Koala */

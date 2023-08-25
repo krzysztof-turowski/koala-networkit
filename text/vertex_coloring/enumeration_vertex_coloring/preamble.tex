@@ -1,0 +1,143 @@
+
+% \usepackage[T1]{fontenc}
+\usepackage{appendix}
+\usepackage{todonotes}
+\usepackage{wrapfig}
+\usepackage{intcalc}
+\usepackage{amsthm, amsfonts, thmtools, amsmath,amssymb}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\usepackage{floatflt}
+\usepackage{pgfplots}
+\usepackage{enumerate}
+\usepackage{expl3}
+\usepackage{xparse}
+\usepackage{blindtext}
+\usepackage{multirow}
+\pgfplotsset{compat=1.18}
+
+\usepackage[utf8]{inputenc}
+\usepackage[backend=biber, style=alphabetic,]{biblatex}
+
+\addbibresource{bibliography.bib}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{defn}{Definition}[chapter]
+\newtheorem{defnTwo}{Definition}[chapter]
+\newtheorem{observation}{Observation}[section]
+\newtheorem{corollaryobs}{Corollary}[observation]
+\renewcommand{\listtheoremname}{List of definitions}
+\newtheoremstyle{break}
+{\topsep}{\topsep}%
+{\itshape}{}%
+{\bfseries}{}%
+{\newline}{}%
+\theoremstyle{break}
+\newtheorem{alg}{Algorithm}[section]
+\newcommand*{\myproofname}{Begin}
+\newenvironment{algtext2}[1][\myproofname]{\begin{proof}[#1] $ $\newline \renewcommand*{\qedsymbol}{\(End\)}}{\end{proof}}
+
+\newcommand{\TODO}{\todo[inline]}
+% \newcommandLovász{Lovász}
+\newcommand\T{\mathcal{T}}
+\crefname{lemma}{Lemma}{Lemmas}
+
+\definecolor{c1}{RGB}{55,126,184}
+\definecolor{c2}{RGB}{255,127,0}
+\definecolor{c3}{RGB}{77,175,74}
+
+
+%For the appendix
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{placeins}
+\usepackage{amsmath}
+\usepackage{tikz}
+
+\usepackage{xcolor}
+\newcommand\crule[3][black]{\textcolor{#1}{\rule{#2}{#3}}}
+% \usepackage{hyperref} 
+\usetikzlibrary{arrows}
+\usepackage[linesnumbered,vlined,algosection]{algorithm2e}
+
+\newcommand{\mysemi}{\;}
+\let\mysemisemi\;
+% \newenvironment{mynameforalgorithm}{%
+%   \begin{algorithm}%
+%     }{%
+%   \end{algorithm}%
+%   \ignorespacesafterend%
+% }
+\let\mynameforalgorithm\algorithm
+\let\endmynameforalgorithm\endalgorithm
+\let\listofalgorithms\mynameforlistofalgorithms
+
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+\let\myWhile\While
+\let\EndmyWhile\EndWhile
+\makeatletter
+% This is the vertical rule that is inserted
+\def\therule{\makebox[\algorithmicindent][l]{\hspace*{.5em}\vrule height .75\baselineskip depth .25\baselineskip}}%
+
+\newtoks\therules% Contains rules
+\therules={}% Start with empty token list
+\def\appendto#1#2{\expandafter#1\expandafter{\the#1#2}}% Append to token list
+\def\gobblefirst#1{% Remove (first) from token list
+  #1\expandafter\expandafter\expandafter{\expandafter\@gobble\the#1}}%
+\def\LState{\State\unskip\the\therules}% New line-state
+\def\ls{\State\unskip\the\therules}% New line-state
+\def\lsx{\Statex\unskip\the\therules~~}% New line-state
+\def\pushindent{\appendto\therules\therule}%
+\def\popindent{\gobblefirst\therules}%
+\def\printindent{\unskip\the\therules}%
+\def\printandpush{\printindent\pushindent}%
+\def\popandprint{\popindent\printindent}%
+\algdef{SE}[MYWHILE]{mWhile}{mEndWhile}[1]
+{\printandpush\algorithmicwhile\ #1\ \algorithmicdo}
+{\popandprint\algorithmicend\ \algorithmicwhile}%
+
+\algdef{SE}[FOR]{mFor}{mEndFor}[1]
+{\printandpush\algorithmicfor\ #1\ \algorithmicdo}
+{\popandprint\algorithmicend\ \algorithmicfor}%
+
+\algnewcommand\algorithmicforeach{\textbf{for each}}
+\algdef{SE}[FOR]{mForEach}{mEndFor}[1]
+{\printandpush\algorithmicforeach\ #1\ \algorithmicdo}
+{\popandprint\algorithmicend\ \algorithmicfor}%
+
+\algdef{SE}[PROCEDURE]{mProcedure}{mEndProcedure}[2]
+{\printandpush\algorithmicprocedure\ \textproc{#1}\ifthenelse{\equal{#2}{}}{}{(#2)}}%
+{\popandprint\algorithmicend\ \algorithmicprocedure}%
+\algdef{C}[IF]{IF}{mElsIf}[1]
+{\popandprint\pushindent\algorithmicelse\ \algorithmicif\ #1\ \algorithmicthen}%
+\algdef{Ce}[ELSE]{IF}{mElse}{mEndIf}
+{\popandprint\pushindent\algorithmicelse}%
+\algdef{SE}[IF]{mIf}{mEndIf}[1]
+{\printandpush\algorithmicif\ #1\ \algorithmicthen}
+{\popandprint\algorithmicend\ \algorithmicif}%
+
+\algnewcommand{\algorithmicand}{\textbf{ and }}
+\algnewcommand{\algorithmicor}{\textbf{ or }}
+\algnewcommand{\OR}{\algorithmicor}
+\algnewcommand{\AND}{\algorithmicand}
+\algnewcommand{\TRUE}{\textbf{true}}
+\algnewcommand{\BREAK}{\textbf{break}~}
+\algnewcommand{\FALSE}{\textbf{false}}
+\algnewcommand{\UND}{\textsc{undefined}}
+\algnewcommand{\RETURN}{\textbf{return}~}
+\algrenewcommand\algorithmiccomment[1]{\hfill \textsc{\textbackslash\textbackslash} #1}
+
+\newcommand\fs@nobottomruled{\def\@fs@cfont{\bfseries}\let\@fs@capt\floatc@ruled
+  \def\@fs@pre{height.8pt depth0pt \kern2pt}%
+  \def\@fs@post{}% Formerly \def\@fs@post{\kern2pt\hrule\relax}%
+  \def\@fs@mid{\kern2pt\kern2pt}%
+  \let\@fs@iftopcapt\iftrue}
+
+\floatstyle{nobottomruled}
+\restylefloat{algorithm}
+
+\makeatother

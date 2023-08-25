@@ -21,6 +21,6 @@ bool NextPathInplace(
         const NetworKit::Graph &graph, NetworKit::count length, std::vector<NetworKit::node> &path,
         PathInplaceMode mode);
 
-} // namespace Traversal
+}  // namespace Traversal
 
-} // namespace Koala
+}  // namespace Koala

@@ -20,8 +20,7 @@ namespace Koala {
  *
  */
 class DimacsGraphReader final : public NetworKit::GraphReader {
-
-public:
+ public:
     DimacsGraphReader() = default;
 
     /**
@@ -31,6 +30,15 @@ public:
      * @param[out]  the graph read from file
      */
     NetworKit::Graph read(const std::string &path) override;
+
+    /**
+     * Given the path of an input file, read the graph.
+     *
+     * @param[in]  path  input file path
+     * @param[out]  the graph read from file, together with source and target nodes
+     */
+    std::tuple<NetworKit::Graph, NetworKit::node, NetworKit::node> read_all(
+        const std::string &path);
 };
 
 } /* namespace Koala */

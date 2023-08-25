@@ -20,8 +20,7 @@ namespace Koala {
  *
  */
 class S6GraphWriter final : public NetworKit::GraphWriter {
-
-public:
+ public:
     S6GraphWriter() = default;
 
     /**

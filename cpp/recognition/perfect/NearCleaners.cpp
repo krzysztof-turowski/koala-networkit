@@ -163,7 +163,7 @@ auto get_possible_near_cleaners(const NetworKit::Graph &graph) {
     return out;
 }
 
-bool PerfectGraphRecognition::containsNearCleanerOddHole(const NetworKit::Graph &graph) {
+bool PerfectGraphRecognition::contains_near_cleaner_odd_hole(const NetworKit::Graph &graph) {
     auto triplePaths = get_all_paths(graph, 3);
     for (const auto &X : get_possible_near_cleaners(graph)) {
         if (check_odd_hole_with_near_cleaner(graph, X, triplePaths)) {

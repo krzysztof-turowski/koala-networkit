@@ -1,3 +1,3 @@
-text/* linguist-documentation
-input/* text eol=lf
+text/**/* linguist-documentation
+input/**/* text eol=lf
 *.sh text eol=lf
