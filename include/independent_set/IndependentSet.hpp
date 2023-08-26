@@ -39,12 +39,11 @@ public:
      */
     const std::map<NetworKit::node, bool>& getIndependentSet() const;
 
-
     virtual void run() = 0;
 
 protected:
-    std::function<bool(NetworKit::Edge a, NetworKit::Edge b)> edgeComparator;
-    using EdgeSet = std::set<NetworKit::Edge, decltype(edgeComparator)>;
+    static bool edgeComparator(const NetworKit::Edge& a, const NetworKit::Edge& b);
+    using EdgeSet = std::set<NetworKit::Edge, decltype(&edgeComparator)>;
 
     std::vector<NetworKit::node> getNeighbors(NetworKit::node v) const;
     std::vector<NetworKit::node> getNeighborsPlus(NetworKit::node v) const;
@@ -57,7 +56,6 @@ protected:
     std::vector<NetworKit::node> getMirrors(NetworKit::node v) const;
     void dfs(NetworKit::node v, std::vector<bool>& visited);
 
-    NetworKit::count getGraphsMaximumDegree() const;
     NetworKit::node getMinimumDegreeNode() const;
     NetworKit::node getMaximumDegreeNode() const;
     void removeElements(std::vector<NetworKit::node> nodes);

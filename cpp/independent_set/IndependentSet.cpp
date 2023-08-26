@@ -146,15 +146,6 @@ void IndependentSet::dfs(NetworKit::node v, std::vector<bool>& visited) {
     }
 }
 
-NetworKit::count IndependentSet::getGraphsMaximumDegree() const {
-    assert(!graph->isEmpty());
-    NetworKit::count maximumDegree = 0;
-    graph->forNodes([&](NetworKit::node v) {
-        maximumDegree = std::max(maximumDegree, graph->degree(v));
-    });
-    return maximumDegree;
-}
-
 NetworKit::node IndependentSet::getMinimumDegreeNode() const {
     assert(!graph->isEmpty());
     NetworKit::count minDegree = std::numeric_limits<NetworKit::count>::max();
@@ -248,10 +239,11 @@ std::vector<NetworKit::node> IndependentSet::runIndependentSetDegree2() const {
 }
 
 IndependentSet::IndependentSet(const NetworKit::Graph &graph) 
-    : graph(std::make_optional(graph))
-    , edgeComparator([](NetworKit::Edge a, NetworKit::Edge b) {
-        return a.u < b.u || (a.u == b.u && a.v < b.v);
-    }) { }
+    : graph(std::make_optional(graph)) { }
+
+bool IndependentSet::edgeComparator(const NetworKit::Edge& a, const NetworKit::Edge& b) {
+    return a.u < b.u || (a.u == b.u && a.v < b.v);
+}
 
 const std::map<NetworKit::node, bool>& IndependentSet::getIndependentSet() const {
     assureFinished();
@@ -314,7 +306,6 @@ maybe make function for remove, recursion, restore
 maybe optimize neighbors2 functions
 mis2 has duplicated code for branching with v and without v and mirrors
 branching through connected components doesn't improve polynomial complexity because of how NetworKit::Graph is implemented
-max/small degree graph function exists in the library => use it
 add NodeSet besides EdgeSet
 use erase_if (vector)
 add dodyxgen docs

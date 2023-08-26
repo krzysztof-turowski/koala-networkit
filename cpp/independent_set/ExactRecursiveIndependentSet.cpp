@@ -397,8 +397,9 @@ std::vector<NetworKit::node> Mis3IndependentSet::recursive() {
         restoreElements(neighborsPlus, connectedEdges);        
         return independentSet;
     }
-
-    if (getGraphsMaximumDegree() >= 3) {
+    
+    NetworKit::node v = getMaximumDegreeNode();
+    if (graph->degree(v) >= 3) {
         NetworKit::node v = getMaximumDegreeNode();
         std::vector<NetworKit::node> neighborsPlus = getNeighborsPlus(v);
         EdgeSet connectedEdges = getConnectedEdges(neighborsPlus);        
@@ -425,8 +426,8 @@ std::vector<NetworKit::node> Mis4IndependentSet::recursive() {
         return {};
     }
 
-    if (getGraphsMaximumDegree() >= 3) {
-        NetworKit::node v;
+    NetworKit::node v = getMaximumDegreeNode();
+    if (graph->degree(v) >= 3) {
         graph->forNodes([&](NetworKit::node u) {
             if (graph->degree(u) >= 3) {
                 v = u;
@@ -458,9 +459,8 @@ std::vector<NetworKit::node> Mis5IndependentSet::recursive() {
         return {};
     }
 
-    if (getGraphsMaximumDegree() >= 3) {
-        NetworKit::node v = getMaximumDegreeNode();
-
+    NetworKit::node v = getMaximumDegreeNode();
+    if (graph->degree(v) >= 3) {
         std::vector<NetworKit::node> neighborsPlus = getNeighborsPlus(v);
         EdgeSet connectedEdges = getConnectedEdges(neighborsPlus);
         removeElements(neighborsPlus);
