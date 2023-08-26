@@ -11,7 +11,6 @@
 #include <networkit/graph/GraphTools.hpp>
 
 #include <limits>
-#include <set>
 
 namespace Koala {
 
