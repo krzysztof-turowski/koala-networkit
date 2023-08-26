@@ -1,3 +1,4 @@
 koala_add_module(independentSet
-    SimpleIndependentSet.cpp
+    IndependentSet.cpp
+    ExactRecursiveIndependentSet.cpp
 )

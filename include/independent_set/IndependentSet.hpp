@@ -1,5 +1,5 @@
 /*
- * SimpleIndependentSet.hpp
+ * IndependentSet.hpp
  *
  *  Created on: 30.12.2022
  *      Author: Artur Salawa
@@ -22,7 +22,7 @@ namespace Koala {
  * The base class for the independent set problem algorithms.
  *
  */
-class SimpleIndependentSet : public NetworKit::Algorithm {
+class IndependentSet : public NetworKit::Algorithm {
 
 public:
     /**
@@ -30,7 +30,7 @@ public:
      *
      * @param graph The input graph.
      */
-    SimpleIndependentSet(const NetworKit::Graph &graph);
+    IndependentSet(const NetworKit::Graph &graph);
 
     /**
      * Return the independent set found by the algorithm.
@@ -38,6 +38,9 @@ public:
      * @return a map from nodes to (true <=> belongs to the independent set).
      */
     const std::map<NetworKit::node, bool>& getIndependentSet() const;
+
+
+    virtual void run() = 0;
 
 protected:
     std::function<bool(NetworKit::Edge a, NetworKit::Edge b)> edgeComparator;
@@ -71,10 +74,10 @@ protected:
  * @ingroup independentSet
  * The class for the brute force algorithm.
  */
-class BruteForceIndependentSet final : public SimpleIndependentSet {
+class BruteForceIndependentSet final : public IndependentSet {
 
 public:
-    using SimpleIndependentSet::SimpleIndependentSet;
+    using IndependentSet::IndependentSet;
 
     /**
      * Execute the brute force algorithm.
@@ -84,19 +87,37 @@ public:
 
 /**
  * @ingroup independentSet
- * The class for the mis1 algorithm.
+ * An abstract class for recursive algorithms
  */
-class Mis1IndependentSet final : public SimpleIndependentSet {
+class RecursiveIndependentSet : public IndependentSet {
 
 public:
-    using SimpleIndependentSet::SimpleIndependentSet;
+    using IndependentSet::IndependentSet;
 
+    /**
+     * Start recursive calls and extract result
+     */
+    virtual void run();
+
+    /**
+     * Actual recursive function
+     */
+    virtual std::vector<NetworKit::node> recursive() = 0;
+};
+
+/**
+ * @ingroup independentSet
+ * The class for the mis1 algorithm.
+ */
+class Mis1IndependentSet final : public RecursiveIndependentSet {
+
+public:
+    using RecursiveIndependentSet::RecursiveIndependentSet;
+
+private:
     /**
      * Execute the mis1 algorithm.
      */
-    void run();
-
-private:
     std::vector<NetworKit::node> recursive();
 };
 
@@ -104,16 +125,15 @@ private:
  * @ingroup independentSet
  * The class for the mis2 algorithm.
  */
-class Mis2IndependentSet final : public SimpleIndependentSet {
+class Mis2IndependentSet final : public RecursiveIndependentSet {
 
 public:
-    using SimpleIndependentSet::SimpleIndependentSet;
+    using RecursiveIndependentSet::RecursiveIndependentSet;
 
+private:
     /**
      * Execute the mis2 algorithm.
      */
-    void run();
-private:
     std::vector<NetworKit::node> recursive();
 };
 
@@ -121,16 +141,15 @@ private:
  * @ingroup independentSet
  * The class for the mis3 algorithm.
  */
-class Mis3IndependentSet final : public SimpleIndependentSet {
+class Mis3IndependentSet final : public RecursiveIndependentSet {
 
 public:
-    using SimpleIndependentSet::SimpleIndependentSet;
+    using RecursiveIndependentSet::RecursiveIndependentSet;
 
+private:
     /**
      * Execute the mis3 algorithm.
      */
-    void run();
-private:
     std::vector<NetworKit::node> recursive();
 };
 
@@ -138,16 +157,15 @@ private:
  * @ingroup independentSet
  * The class for the mis4 algorithm.
  */
-class Mis4IndependentSet final : public SimpleIndependentSet {
+class Mis4IndependentSet final : public RecursiveIndependentSet {
 
 public:
-    using SimpleIndependentSet::SimpleIndependentSet;
+    using RecursiveIndependentSet::RecursiveIndependentSet;
 
+private:
     /**
      * Execute the mis4 algorithm.
      */
-    void run();
-private:
     std::vector<NetworKit::node> recursive();
 };
 
@@ -155,16 +173,15 @@ private:
  * @ingroup independentSet
  * The class for the mis5 algorithm.
  */
-class Mis5IndependentSet final : public SimpleIndependentSet {
+class Mis5IndependentSet final : public RecursiveIndependentSet {
 
 public:
-    using SimpleIndependentSet::SimpleIndependentSet;
+    using RecursiveIndependentSet::RecursiveIndependentSet;
 
+private:
     /**
      * Execute the mis5 algorithm.
      */
-    void run();
-private:
     std::vector<NetworKit::node> recursive();
 };
 
@@ -172,16 +189,15 @@ private:
  * @ingroup independentSet
  * The class for the Measue and Conquer Simple O(2^0.288n) algorithm.
  */
-class MeasureAndConquerIndependentSet final : public SimpleIndependentSet {
+class MeasureAndConquerIndependentSet final : public RecursiveIndependentSet {
 
 public:
-    using SimpleIndependentSet::SimpleIndependentSet;
+    using RecursiveIndependentSet::RecursiveIndependentSet;
 
-    /**
-     * Execute the mis5 algorithm.
-     */
-    void run();
 private:
+    /**
+     * Execute the Measue and Conquer Simple algorithm.
+     */
     std::vector<NetworKit::node> recursive();
 };
 

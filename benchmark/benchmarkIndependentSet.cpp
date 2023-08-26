@@ -3,7 +3,7 @@
 #include <map>
 
 #include <io/G6GraphReader.hpp>
-#include <independent_set/SimpleIndependentSet.hpp>
+#include <independent_set/IndependentSet.hpp>
 
 template <typename T>
 void benchmark() {
