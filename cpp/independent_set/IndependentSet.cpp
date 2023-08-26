@@ -12,6 +12,7 @@
 
 #include <limits>
 #include <set>
+#include <bitset>
 
 namespace Koala {
 
@@ -27,30 +28,22 @@ void printGraph(const NetworKit::Graph* graph) { // TODO: its just debug
 }
 
 std::vector<NetworKit::node> IndependentSet::getNeighbors(NetworKit::node v) const {
-    std::vector<NetworKit::node> neighborsPlus;
+    std::vector<NetworKit::node> neighbors;
     graph->forNeighborsOf(v, [&](NetworKit::node u) {
-        neighborsPlus.push_back(u);
+        neighbors.push_back(u);
     });
-    return neighborsPlus;
+    return neighbors;
 }
 
 std::vector<NetworKit::node> IndependentSet::getNeighborsPlus(NetworKit::node v) const {
-    std::vector<NetworKit::node> neighborsPlus;
+    std::vector<NetworKit::node> neighborsPlus = getNeighbors(v);
     neighborsPlus.push_back(v);
-    graph->forNeighborsOf(v, [&](NetworKit::node u) {
-        neighborsPlus.push_back(u);
-    });
     return neighborsPlus;
 }
 
 std::set<NetworKit::node> IndependentSet::getNeighbors2(NetworKit::node v) const {
-    std::set<NetworKit::node> neighbors2;
+    std::set<NetworKit::node> neighbors2 = getNeighbors2Plus(v);
     std::vector<NetworKit::node> neighborsPlus = getNeighborsPlus(v);
-    for (auto x : neighborsPlus) {
-        graph->forEdgesOf(x, [&](NetworKit::node u, NetworKit::node v) {
-            neighbors2.insert(v);
-        });
-    }
     for (auto x : neighborsPlus) {
         neighbors2.erase(x);
     }
@@ -59,10 +52,10 @@ std::set<NetworKit::node> IndependentSet::getNeighbors2(NetworKit::node v) const
 
 std::set<NetworKit::node> IndependentSet::getNeighbors2Plus(NetworKit::node v) const {
     std::set<NetworKit::node> neighbors2Plus;
-    std::vector<NetworKit::node> neighborsPlus = getNeighborsPlus(v);        
-    for (auto x : neighborsPlus) {
-        graph->forEdgesOf(x, [&](NetworKit::node u, NetworKit::node v) {
-            neighbors2Plus.insert(v);
+    std::vector<NetworKit::node> neighbors = getNeighbors(v);        
+    for (auto n : neighbors) {
+        graph->forNeighborsOf(n, [&](NetworKit::node n2) {
+            neighbors2Plus.insert(n2);
         });
     }
     return neighbors2Plus;
@@ -238,8 +231,8 @@ std::vector<NetworKit::node> IndependentSet::runIndependentSetDegree2() const {
     return independentSet;
 }
 
-IndependentSet::IndependentSet(const NetworKit::Graph &graph) 
-    : graph(std::make_optional(graph)) { }
+IndependentSet::IndependentSet(const NetworKit::Graph &graph) : 
+        graph(std::make_optional(graph)) { }
 
 bool IndependentSet::edgeComparator(const NetworKit::Edge& a, const NetworKit::Edge& b) {
     return a.u < b.u || (a.u == b.u && a.v < b.v);
@@ -266,44 +259,36 @@ void BruteForceIndependentSet::run() {
     max <<= graph->numberOfNodes();
 
     for (unsigned long long binary = 1; binary != max; ++binary) {
-        unsigned long long tmp = binary;
-        int testSetSize = 0;
-        for (int i = 0; i < testSet.size(); ++i) {
-            testSet[i] = (tmp % 2);
-            testSetSize += (tmp % 2);
-            tmp >>= 1;
-        }
-
+        std::bitset<8 * sizeof(unsigned long long)> testSet(binary);
+        size_t testSetSize = testSet.count();
         if (testSetSize <= best) {
             continue;
         }
 
-        bool bad = false;
+        bool illegalEdge = false;
         graph->forEdges([&](NetworKit::node u, NetworKit::node v) {
             if(testSet[u] && testSet[v]) {
-                bad = true;
+                illegalEdge = true;
                 return;
             }
         });
 
-        if (!bad) {
+        if (!illegalEdge) {
             for (int i = 0; i < testSet.size(); ++i) {
                 independentSet[i] = testSet[i];
                 best = testSetSize;
             }
         }
     }
+
     hasRun = true;
 }
-
-
 
 } /* namespace Koala */
 
 /*
 TODO:
-maybe make function for remove, recursion, restore 
-maybe optimize neighbors2 functions
+make better functions for standard and mirror branching
 mis2 has duplicated code for branching with v and without v and mirrors
 branching through connected components doesn't improve polynomial complexity because of how NetworKit::Graph is implemented
 add NodeSet besides EdgeSet

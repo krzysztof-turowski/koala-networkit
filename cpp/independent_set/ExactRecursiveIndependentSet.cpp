@@ -397,7 +397,7 @@ std::vector<NetworKit::node> Mis3IndependentSet::recursive() {
         restoreElements(neighborsPlus, connectedEdges);        
         return independentSet;
     }
-    
+
     NetworKit::node v = getMaximumDegreeNode();
     if (graph->degree(v) >= 3) {
         NetworKit::node v = getMaximumDegreeNode();

@@ -7,7 +7,6 @@
 
 #pragma once
 
-#include <functional>
 #include <map>
 #include <optional>
 #include <set>
@@ -42,13 +41,32 @@ public:
     virtual void run() = 0;
 
 protected:
+    /**
+     * Comparator for EdgeSet type
+     */
     static bool edgeComparator(const NetworKit::Edge& a, const NetworKit::Edge& b);
     using EdgeSet = std::set<NetworKit::Edge, decltype(&edgeComparator)>;
 
+    /**
+     * @return N(v) - neigbors of vertex v
+    */
     std::vector<NetworKit::node> getNeighbors(NetworKit::node v) const;
+
+    /**
+     * @return N[v] - neigbors of vertex v and v
+    */
     std::vector<NetworKit::node> getNeighborsPlus(NetworKit::node v) const;
+
+    /**
+     * @return N^2(v) - neigbors in a distance 2 of v
+    */
     std::set<NetworKit::node> getNeighbors2(NetworKit::node v) const;
+
+    /**
+     * @return N^2[v] - every vertex in a distance <=2 of v
+    */
     std::set<NetworKit::node> getNeighbors2Plus(NetworKit::node v) const;
+    
     EdgeSet getConnectedEdges(std::vector<NetworKit::node>& nodes) const;
     EdgeSet getInducedEdges(std::vector<NetworKit::node>& nodes) const;
     EdgeSet getAllEdges() const;
@@ -198,6 +216,5 @@ private:
      */
     std::vector<NetworKit::node> recursive();
 };
-
 
 } /* namespace Koala */
