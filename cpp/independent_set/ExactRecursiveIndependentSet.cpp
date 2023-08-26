@@ -85,7 +85,7 @@ std::vector<NetworKit::node> Mis2IndependentSet::recursive() {
             return independentSet;
         }
         else {
-            std::set<NetworKit::node> neighbors2 = getNeighbors2(v);
+            std::vector<NetworKit::node> neighbors2 = getNeighbors2(v);
             if (neighbors2.size() == 1) { // TODO: book adds second branch but in my opinion it is obsolete ?
                 NetworKit::node w = *neighbors2.begin();
                 std::vector<NetworKit::node> nodesToBeRemoved{v, u1, u2, w};
@@ -580,7 +580,7 @@ std::vector<NetworKit::node> MeasureAndConquerIndependentSet::recursive() {
                     NetworKit::node u1 = vNeighbors[0];
                     NetworKit::node u2 = vNeighbors[1];
                     NetworKit::node u12 = u1;                    
-                    std::set<NetworKit::node> vNeighbors2 = getNeighbors2(v);
+                    std::vector<NetworKit::node> vNeighbors2 = getNeighbors2(v);
 
                     std::vector<NetworKit::node> neighborsPlus = getNeighborsPlus(v);
                     EdgeSet connectedEdges = getConnectedEdges(neighborsPlus);

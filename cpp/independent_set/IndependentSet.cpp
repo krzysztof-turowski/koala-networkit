@@ -41,24 +41,29 @@ std::vector<NetworKit::node> IndependentSet::getNeighborsPlus(NetworKit::node v)
     return neighborsPlus;
 }
 
-std::set<NetworKit::node> IndependentSet::getNeighbors2(NetworKit::node v) const {
-    std::set<NetworKit::node> neighbors2 = getNeighbors2Plus(v);
-    std::vector<NetworKit::node> neighborsPlus = getNeighborsPlus(v);
-    for (auto x : neighborsPlus) {
-        neighbors2.erase(x);
-    }
-    return neighbors2;
-}
-
-std::set<NetworKit::node> IndependentSet::getNeighbors2Plus(NetworKit::node v) const {
-    std::set<NetworKit::node> neighbors2Plus;
-    std::vector<NetworKit::node> neighbors = getNeighbors(v);        
+std::vector<NetworKit::node> IndependentSet::getNeighbors2(NetworKit::node v) const {    
+    std::vector<NetworKit::node> neighbors = getNeighbors(v);
+    std::vector<NetworKit::node> visitedNodes;    
     for (auto n : neighbors) {
         graph->forNeighborsOf(n, [&](NetworKit::node n2) {
-            neighbors2Plus.insert(n2);
+            visitedNodes.push_back(n2);
         });
     }
-    return neighbors2Plus;
+
+    std::vector<bool> visitedOnGraph(graph->numberOfNodes());
+    visitedOnGraph[v] = true;
+    for (auto x : neighbors) {
+        visitedOnGraph[x] = true;
+    }
+
+    std::vector<NetworKit::node> neighbors2;
+    for (auto x : visitedNodes) {
+        if (!visitedOnGraph[x]) {
+            visitedOnGraph[x] = true;
+            neighbors2.push_back(x);
+        }
+    }
+    return neighbors2;
 }
 
 IndependentSet::EdgeSet IndependentSet::getConnectedEdges(std::vector<NetworKit::node>& nodes) const {
@@ -103,7 +108,7 @@ std::vector<NetworKit::node> IndependentSet::getAllNodes() const {
 
 std::vector<NetworKit::node> IndependentSet::getMirrors(NetworKit::node v) const {
     std::vector<NetworKit::node> mirrors;
-    std::set<NetworKit::node> neighbors2 = getNeighbors2(v);
+    std::vector<NetworKit::node> neighbors2 = getNeighbors2(v);
     std::vector<NetworKit::node> neighborsV = getNeighbors(v);
 
     for (auto w : neighbors2) {

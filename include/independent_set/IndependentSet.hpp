@@ -60,13 +60,8 @@ protected:
     /**
      * @return N^2(v) - neigbors in a distance 2 of v
     */
-    std::set<NetworKit::node> getNeighbors2(NetworKit::node v) const;
+    std::vector<NetworKit::node> getNeighbors2(NetworKit::node v) const;
 
-    /**
-     * @return N^2[v] - every vertex in a distance <=2 of v
-    */
-    std::set<NetworKit::node> getNeighbors2Plus(NetworKit::node v) const;
-    
     EdgeSet getConnectedEdges(std::vector<NetworKit::node>& nodes) const;
     EdgeSet getInducedEdges(std::vector<NetworKit::node>& nodes) const;
     EdgeSet getAllEdges() const;
