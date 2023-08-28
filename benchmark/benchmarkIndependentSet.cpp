@@ -27,6 +27,7 @@ std::map<std::string, int> ALGORITHM = {
 
 void run_g6_tests(const std::string &path, const std::string &algorithm) {
     std::fstream file(path, std::fstream::in);
+    std::map<int, int> classification;
     while (true) {
         std::string line;
         file >> line;
@@ -46,6 +47,7 @@ void run_g6_tests(const std::string &path, const std::string &algorithm) {
             I.insert(run_algorithm<Koala::Mis5IndependentSet>(G));
             I.insert(run_algorithm<Koala::MeasureAndConquerIndependentSet>(G));
             assert(I.size() == 1);
+            classification[*I.begin()]++;
             break;
         case 1:
             run_algorithm<Koala::BruteForceIndependentSet>(G);
@@ -70,6 +72,10 @@ void run_g6_tests(const std::string &path, const std::string &algorithm) {
             break;
         }
         std::cout << std::endl;
+    }
+    std::cout << "List of graphs counted by solution size:" << std::endl;
+    for (const auto &[k, v] : classification) {
+        std::cout << k << ": " << v << std::endl;
     }
 }
 
