@@ -37,7 +37,9 @@ class BinomialHeap {
     NetworKit::index root, minimum;
     Compare function;
 
-    void insert_node(NetworKit::index, NetworKit::index);
+    inline void insert_node(NetworKit::index, NetworKit::index);
+    inline void set_minimum();
+    inline NetworKit::index find_previous(NetworKit::index);
     inline NetworKit::index join(NetworKit::index, NetworKit::index);
     inline NetworKit::index reverse(NetworKit::index);
 
@@ -78,6 +80,31 @@ inline void BinomialHeap<Key, Compare>::insert_node(NetworKit::index a, NetworKi
 }
 
 template <class Key, class Compare>
+inline void BinomialHeap<Key, Compare>::set_minimum() {
+    minimum = root;
+    if (minimum == NetworKit::none) {
+        return;
+    }
+    for (auto a = nodes[root].next; a != NetworKit::none; a = nodes[a].next) {
+        if (!function(nodes[a].key, nodes[minimum].key)) {
+            minimum = a;
+        }
+    }
+}
+
+template <class Key, class Compare>
+inline NetworKit::index BinomialHeap<Key, Compare>::find_previous(NetworKit::index a) {
+    auto b = nodes[a].parent != NetworKit::none ? nodes[nodes[a].parent].child : root;
+    if (b == a) {
+        return NetworKit::none;
+    }
+    while (nodes[b].next != a) {
+        b = nodes[b].next;
+    }
+    return b;
+}
+
+template <class Key, class Compare>
 inline NetworKit::index BinomialHeap<Key, Compare>::join(NetworKit::index a, NetworKit::index b) {
     if (nodes[a].degree < nodes[b].degree) {
         std::swap(a, b);
@@ -94,7 +121,6 @@ inline NetworKit::index BinomialHeap<Key, Compare>::join(NetworKit::index a, Net
     start = reverse(start);
     a = NetworKit::none, b = start, c = nodes[b].next;
     while (c != NetworKit::none) {
-        assert(a == NetworKit::none || nodes[a].next == b);
         if (nodes[b].degree != nodes[c].degree || (nodes[c].next != NetworKit::none
                 && nodes[c].degree == nodes[nodes[c].next].degree)) {
             a = b, b = c;
@@ -147,8 +173,6 @@ typename BinomialHeap<Key, Compare>::iterator BinomialHeap<Key, Compare>::push(
         root = minimum = a;
         return iterator(root);
     }
-    assert(root != NetworKit::none);
-    assert(a != NetworKit::none);
     root = join(root, a);
     if (!function(nodes[a].key, nodes[minimum].key)) {
         minimum = a;
@@ -161,10 +185,7 @@ void BinomialHeap<Key, Compare>::pop() {
     if (root == minimum) {
         root = nodes[root].next;
     } else {
-        auto a = root;
-        while (nodes[a].next != minimum) {
-            a = nodes[a].next;
-        }
+        auto a = find_previous(minimum);
         nodes[a].next = nodes[minimum].next;
     }
     if (size() == 1) {
@@ -176,17 +197,10 @@ void BinomialHeap<Key, Compare>::pop() {
         for (auto a = child; a != NetworKit::none; a = nodes[a].next) {
             nodes[a].parent = NetworKit::none;
         }
-        assert(child != NetworKit::none);
         root = root == NetworKit::none ? child : join(root, child);
     }
-    reserved.push_back(minimum), minimum = root;
-    if (minimum != NetworKit::none) {
-        for (auto a = nodes[root].next; a != NetworKit::none; a = nodes[a].next) {
-            if (!function(nodes[a].key, nodes[minimum].key)) {
-                minimum = a;
-            }
-        }
-    }
+    reserved.push_back(minimum);
+    set_minimum();
 }
 
 template <class Key, class Compare>
@@ -200,96 +214,56 @@ void BinomialHeap<Key, Compare>::update(
         const typename BinomialHeap<Key, Compare>::value_type &key) {
     auto a = *it;
     assert(!function(key, nodes[a].key));
+    erase(it), reserved.pop_back();
     nodes[a].key = key;
-    if (!function(key, nodes[minimum].key)) {
-        minimum = a;
-    }
-
-    if (nodes[a].parent == NetworKit::none
-            || !function(nodes[nodes[a].parent].key, nodes[a].key)) {
+    if (root == NetworKit::none) {
+        root = minimum = a;
         return;
     }
-
-    auto start = NetworKit::none, previous = NetworKit::none, b = a, c = nodes[a].parent;
-    while (c != NetworKit::none) {
-        auto d = nodes[c].child;
-        nodes[c].child = nodes[b].next;
-        if (b == d) {
-            d = c, --nodes[c].degree;
-        } else {
-            auto e = d;
-            while (b != nodes[e].next) {
-                e = nodes[e].next, --nodes[c].degree;
-            }
-            c = nodes[e].next, nodes[c].degree -= 2;
-        }
-        nodes[b].next = start, b = c, c = nodes[c].parent, start = previous, previous = d;
+    root = join(root, a);
+    if (!function(nodes[a].key, nodes[minimum].key)) {
+        minimum = a;
     }
-    if (b != root) {
-        root = nodes[root].next;
-    } else {
-        c = root;
-        while (b != nodes[c].next) {
-            c = nodes[c].next;
-        }
-        nodes[c].next = nodes[b].next;
-    }
-    nodes[b].next = start, start = previous;
-    if (start != NetworKit::none) {
-        for (b = start; b != NetworKit::none; b = nodes[b].next) {
-            nodes[b].parent = NetworKit::none;
-        }
-        root = root ? join(root, start) : start;
-    }
-    nodes[a].parent = nodes[a].next = NetworKit::none;
-    root = root != NetworKit::none ? join(root, a) : a;
 }
 
 template <class Key, class Compare>
 void BinomialHeap<Key, Compare>::erase(typename BinomialHeap<Key, Compare>::iterator it) {
     auto a = *it;
-    if (a == root) {
-        pop();
-        return;
-    }
-    auto start = nodes[a].child, previous = nodes[a].child, b = a, c = nodes[a].parent;
-    while (c != NetworKit::none) {
-        auto next = nodes[c].child;
-        nodes[c].child = nodes[b].next;
-        if (b == next) {
-            next = c, --nodes[c].degree;
-        } else {
-          auto d = next;
-          while (b != nodes[d].next) {
-              d = nodes[d].next, --nodes[c].degree;
-          }
-          nodes[d].next = c, nodes[c].degree -= 2;
+    auto start = nodes[a].child;
+    for (auto b = nodes[a].parent; b != NetworKit::none; b = nodes[b].parent) {
+        std::pair<NetworKit::index, NetworKit::index> c{NetworKit::none, find_previous(a)};
+        if (c.second != NetworKit::none) {
+            c.first = nodes[b].child;
+            nodes[b].child = a, nodes[b].degree = nodes[c.second].degree;
         }
-        nodes[b].next = start, b = c, c = nodes[c].parent, start = previous, previous = next;
+        auto d = find_previous(b);
+        if (d != NetworKit::none) {
+            nodes[d].next = a;
+        } else if (nodes[b].parent != NetworKit::none) {
+            nodes[nodes[b].parent].child = a;
+        } else {
+            root = a;
+        }
+        --nodes[b].degree, nodes[b].child = nodes[a].next;
+        nodes[a].parent = nodes[b].parent, nodes[a].next = nodes[b].next;
+        nodes[b].next = start, start = b;
+        if (c.second != NetworKit::none) {
+            nodes[c.second].next = start, start = c.first;
+        }
     }
-    if (b == root) {
+    if (root == a) {
         root = nodes[root].next;
     } else {
-        c = root;
-        while (b != nodes[c].next) {
-            c = nodes[c].next;
-        }
-        nodes[c].next = nodes[b].next;
+        nodes[find_previous(a)].next = nodes[a].next;
     }
-    nodes[b].next = start, start = previous;
+    for (auto b = start; b != NetworKit::none; b = nodes[b].next) {
+        nodes[b].parent = NetworKit::none;
+    }
     if (start != NetworKit::none) {
-        for (b = start; b != NetworKit::none; b = nodes[b].next) {
-            nodes[b].parent = NetworKit::none;
-        }
+        root = root != NetworKit::none ? join(root, start) : start;
     }
-    root = root != NetworKit::none ? join(root, start) : start;
-    if (minimum == a) {
-        for (minimum = root, b = nodes[root].next; b != NetworKit::none; b = nodes[b].next) {
-            if (!function(nodes[b].key, nodes[minimum].key)) {
-                minimum = b;
-            }
-        }
-    }
+    set_minimum();
+    nodes[a].parent = nodes[a].child = nodes[a].next = NetworKit::none, nodes[a].degree = 0;
     reserved.push_back(a);
 }
 
@@ -319,7 +293,13 @@ void BinomialHeap<Key, Compare>::check() const {
         auto a = Q.front();
         Q.pop(), ++total;
         if (nodes[a].next != NetworKit::none) {
-            assert(nodes[a].degree > nodes[nodes[a].next].degree);
+            if (nodes[a].parent == NetworKit::none) {
+                assert(nodes[a].degree > nodes[nodes[a].next].degree);
+            } else {
+                assert(nodes[a].degree == nodes[nodes[a].next].degree + 1);
+            }
+        } else if (nodes[a].parent != NetworKit::none) {
+            assert(nodes[a].degree == 0);
         }
         auto child = nodes[a].child;
         NetworKit::count degree = 0;

@@ -34,8 +34,8 @@ class PairingHeap {
     NetworKit::index root;
     Compare function;
 
-    void insert_node(NetworKit::index, NetworKit::index);
-    void remove_node(NetworKit::index);
+    inline void insert_node(NetworKit::index, NetworKit::index);
+    inline void remove_node(NetworKit::index);
 
  public:
     typedef Key value_type;
@@ -211,6 +211,9 @@ void PairingHeap<Key, Compare>::check() const {
     }
     std::queue<NetworKit::index> Q;
     Q.push(root);
+    assert(nodes[root].previous == NetworKit::none);
+    assert(nodes[root].next == NetworKit::none);
+    assert(nodes[root].parent == NetworKit::none);
     NetworKit::count total = 0;
     while (!Q.empty()) {
         auto a = Q.front();
