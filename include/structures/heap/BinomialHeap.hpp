@@ -10,13 +10,15 @@
 #include <iterator>
 #include <list>
 
+#include <networkit/graph/Graph.hpp>
+
 namespace Koala {
 
 /**
  * @ingroup heap
  * Heap structure from Vuillemin "A Data Structure for Manipulating Priority Queues" (1978).
  */
-template <class Key, class Compare = std::greater<Key> >
+template <class Key, class Compare = std::less<Key>>
 class BinomialHeap {
  private:
     class node {
@@ -96,7 +98,7 @@ inline NetworKit::index BinomialHeap<Key, Compare>::join(NetworKit::index a, Net
         if (nodes[b].degree != nodes[c].degree || (nodes[c].next != NetworKit::none
                 && nodes[c].degree == nodes[nodes[c].next].degree)) {
             a = b, b = c;
-        } else if (function(nodes[b].key, nodes[c].key)) {
+        } else if (!function(nodes[b].key, nodes[c].key)) {
             nodes[b].next = nodes[c].next, insert_node(b, c);
         } else {
             if (a != NetworKit::none) {
@@ -148,7 +150,7 @@ typename BinomialHeap<Key, Compare>::iterator BinomialHeap<Key, Compare>::push(
     assert(root != NetworKit::none);
     assert(a != NetworKit::none);
     root = join(root, a);
-    if (function(nodes[a].key, nodes[minimum].key)) {
+    if (!function(nodes[a].key, nodes[minimum].key)) {
         minimum = a;
     }
     return iterator(a);
@@ -180,7 +182,7 @@ void BinomialHeap<Key, Compare>::pop() {
     reserved.push_back(minimum), minimum = root;
     if (minimum != NetworKit::none) {
         for (auto a = nodes[root].next; a != NetworKit::none; a = nodes[a].next) {
-            if (function(nodes[a].key, nodes[minimum].key)) {
+            if (!function(nodes[a].key, nodes[minimum].key)) {
                 minimum = a;
             }
         }
@@ -197,14 +199,14 @@ void BinomialHeap<Key, Compare>::update(
         typename BinomialHeap<Key, Compare>::iterator it,
         const typename BinomialHeap<Key, Compare>::value_type &key) {
     auto a = *it;
-    assert(function(key, nodes[a].key));
+    assert(!function(key, nodes[a].key));
     nodes[a].key = key;
-    if (function(key, nodes[minimum].key)) {
+    if (!function(key, nodes[minimum].key)) {
         minimum = a;
     }
 
     if (nodes[a].parent == NetworKit::none
-            || function(nodes[nodes[a].parent].key, nodes[a].key)) {
+            || !function(nodes[nodes[a].parent].key, nodes[a].key)) {
         return;
     }
 
@@ -283,7 +285,7 @@ void BinomialHeap<Key, Compare>::erase(typename BinomialHeap<Key, Compare>::iter
     root = root != NetworKit::none ? join(root, start) : start;
     if (minimum == a) {
         for (minimum = root, b = nodes[root].next; b != NetworKit::none; b = nodes[b].next) {
-            if (function(nodes[b].key, nodes[minimum].key)) {
+            if (!function(nodes[b].key, nodes[minimum].key)) {
                 minimum = b;
             }
         }
@@ -323,7 +325,7 @@ void BinomialHeap<Key, Compare>::check() const {
         NetworKit::count degree = 0;
         while (child != NetworKit::none) {
             assert(nodes[child].parent == a);
-            assert(!function(nodes[child].key, nodes[a].key));
+            assert(!function(nodes[a].key, nodes[child].key));
             Q.push(child), child = nodes[child].next, ++degree;
         }
         assert(degree == nodes[a].degree);

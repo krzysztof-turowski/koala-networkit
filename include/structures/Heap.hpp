@@ -16,6 +16,6 @@
 namespace Koala {
 
 template<class T>
-using Heap = FibonacciHeap<T>;
+using Heap = std::priority_queue<T>;
 
 }  // namespace Koala

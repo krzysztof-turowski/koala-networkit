@@ -11,56 +11,60 @@
 
 namespace Koala {
 
+/**
+ * @ingroup heap
+ * Heap structure from Fredman et al. "The Pairing Heap: A New Form of Self-Adjusting Heap" (1986).
+ */
 template <class Key, class Compare = std::less<Key>>
 class PairingHeap {
  private:
-		class node2 {
+    class node {
      public:
         NetworKit::index parent, child, previous, next;
         NetworKit::count degree;
         Key key;
 
-        inline node2(const Key &key)
+        explicit inline node(const Key &key)
             : parent(NetworKit::none), child(NetworKit::none), previous(NetworKit::none),
                 next(NetworKit::none), degree(0), key(key) { }
     };
 
-    std::vector<node2> nodes;
+    std::vector<node> nodes;
     std::list<NetworKit::index> reserved;
     NetworKit::index root;
-		Compare function;
-    
+    Compare function;
+
     void insert_node(NetworKit::index, NetworKit::index);
     void remove_node(NetworKit::index);
- public:
-		typedef Key value_type;
 
-		class iterator : public std::iterator<std::input_iterator_tag, NetworKit::index> {
-        friend class PairingHeap<Key, Compare>;
+ public:
+    typedef Key value_type;
+
+    class iterator : public std::iterator<std::input_iterator_tag, NetworKit::index> {
         NetworKit::index data;
-		 public:
-        iterator(NetworKit::index data = NetworKit::none) : data(data) { }
+     public:
+        explicit iterator(NetworKit::index data = NetworKit::none) : data(data) { }
         iterator(const iterator &other) : data(other.data) { }
         bool operator==(const iterator &other) { return data == other.data; }
         bool operator!=(const iterator &other) { return !(*this == other); }
         NetworKit::index operator*() const { return data; }
         NetworKit::index* operator->() const { return &**this; }
-		};
+    };
 
-		inline PairingHeap(const Compare& = Compare());
+    explicit PairingHeap(const Compare& = Compare());
 
-		const value_type& top() const;
-		iterator push(const value_type&);
-		void pop();
-		void clear();
+    const value_type& top() const;
+    iterator push(const value_type&);
+    void pop();
+    void clear();
 
-		void update(iterator, const value_type&);
-		void erase(iterator);
+    void update(iterator, const value_type&);
+    void erase(iterator);
 
-		NetworKit::count size() const;
-		bool empty() const;
+    NetworKit::count size() const;
+    bool empty() const;
 
-		void check() const;
+    void check() const;
 };
 
 template <class Key, class Compare>
@@ -101,20 +105,19 @@ typename PairingHeap<Key, Compare>::iterator PairingHeap<Key, Compare>::push(
     NetworKit::index a = nodes.size();
     if (!reserved.empty()) {
         a = reserved.front(), reserved.pop_front();
-        nodes[a] = node2(key);
+        nodes[a] = node(key);
     } else {
-        nodes.push_back(node2(key));
+        nodes.push_back(node(key));
     }
-
-		if (root == NetworKit::none) {
+    if (root == NetworKit::none) {
         root = a;
         return iterator(root);
     }
-		if (!function(nodes[a].key, nodes[root].key)) {
+    if (!function(nodes[a].key, nodes[root].key)) {
         insert_node(a, root), root = a;
     } else {
         insert_node(root, a);
-		}
+    }
     return iterator(a);
 }
 
@@ -123,11 +126,11 @@ void PairingHeap<Key, Compare>::pop() {
     if (size() == 1) {
         reserved.push_back(root), root = NetworKit::none;
         return;
-		}
+    }
 
     auto a = nodes[root].child, b = a;
     reserved.push_back(root), root = a;
-		while (a != NetworKit::none) {
+    while (a != NetworKit::none) {
         b = nodes[a].next;
         if (b == NetworKit::none) {
             nodes[a].parent = NetworKit::none, b = a;
@@ -146,22 +149,22 @@ void PairingHeap<Key, Compare>::pop() {
             nodes[b].previous = nodes[a].previous, nodes[b].parent = NetworKit::none;
             insert_node(b, a), a = nodes[b].next;
         }
-		}
+    }
 
     root = b, a = nodes[b].previous;
-		while (a != NetworKit::none) {
+    while (a != NetworKit::none) {
         if (!function(nodes[a].key, nodes[root].key)) {
             insert_node(a, root), nodes[a].next = NetworKit::none, root = a;
         } else {
             nodes[root].previous = nodes[a].previous, insert_node(root, a);
         }
         a = nodes[root].previous;
-		}
+    }
 }
 
 template <class Key, class Compare>
 void PairingHeap<Key, Compare>::clear() {
-		root = NetworKit::none, nodes.clear(), reserved.clear();
+    root = NetworKit::none, nodes.clear(), reserved.clear();
 }
 
 template <class Key, class Compare>
@@ -185,10 +188,10 @@ void PairingHeap<Key, Compare>::update(
 template <class Key, class Compare>
 void PairingHeap<Key, Compare>::erase(iterator it) {
     NetworKit::index a = *it;
-    if (nodes[a].parent == NetworKit::none) {
+    if (nodes[a].parent != NetworKit::none) {
         remove_node(a), insert_node(a, root), root = a;
     }
-		pop();
+    pop();
 }
 
 template <class Key, class Compare>
@@ -203,7 +206,7 @@ bool PairingHeap<Key, Compare>::empty() const {
 
 template <class Key, class Compare>
 void PairingHeap<Key, Compare>::check() const {
-    if (root == NetworKit::none) {
+    if (empty()) {
         return;
     }
     std::queue<NetworKit::index> Q;
@@ -219,6 +222,7 @@ void PairingHeap<Key, Compare>::check() const {
         NetworKit::count degree = 0;
         while (child != NetworKit::none) {
             assert(nodes[child].parent == a);
+            assert(!function(nodes[a].key, nodes[child].key));
             Q.push(child), child = nodes[child].next, ++degree;
         }
         assert(degree == nodes[a].degree);
