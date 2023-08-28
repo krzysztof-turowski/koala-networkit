@@ -3,55 +3,111 @@
 #include <map>
 
 #include <io/G6GraphReader.hpp>
+#include <io/DimacsGraphReader.hpp>
 #include <independent_set/IndependentSet.hpp>
 
-template <typename T>
-void benchmark() {
-    std::map<int, int> classification;
+#define PRINT 1
 
+template <typename T>
+int run_algorithm(NetworKit::Graph &G) {
+    auto algorithm = T(G);
+    algorithm.run();
+    auto &independent_set = algorithm.getIndependentSet();
+    int total = 0;
+    for (auto [_, b] : independent_set) { total += b; }
+    std::cout << total << " " << std::flush;
+    return total;
+}
+
+std::map<std::string, int> ALGORITHM = {
+    { "exact", 0 },
+    { "bruteforce", 1 }, { "MIS1", 2 }, { "MIS2", 3 }, { "MIS3", 4 }, { "MIS4", 5 },
+    { "MIS5", 6 }, { "MeasureAndConquer", 7 }
+};
+
+void run_g6_tests(const std::string &path, const std::string &algorithm) {
+    std::fstream file(path, std::fstream::in);
     while (true) {
         std::string line;
-        std::cin >> line;
-        if (!std::cin.good()) {
+        file >> line;
+        if (!file.good()) {
             break;
         }
         NetworKit::Graph G = Koala::G6GraphReader().readline(line);
-        auto recognize = T(G);
-        recognize.run();
-        int count = 0;
-        for (const auto &[_, belongs] : recognize.getIndependentSet()) {
-            count += belongs;
+        std::set<int> I;
+        std::cout << line << " " << std::flush;
+        switch (ALGORITHM[algorithm]) {
+        case 0:
+            I.insert(run_algorithm<Koala::BruteForceIndependentSet>(G));
+            I.insert(run_algorithm<Koala::Mis1IndependentSet>(G));
+            I.insert(run_algorithm<Koala::Mis2IndependentSet>(G));
+            I.insert(run_algorithm<Koala::Mis3IndependentSet>(G));
+            I.insert(run_algorithm<Koala::Mis4IndependentSet>(G));
+            I.insert(run_algorithm<Koala::Mis5IndependentSet>(G));
+            I.insert(run_algorithm<Koala::MeasureAndConquerIndependentSet>(G));
+            assert(I.size() == 1);
+            break;
+        case 1:
+            run_algorithm<Koala::BruteForceIndependentSet>(G);
+            break;
+        case 2:
+            run_algorithm<Koala::Mis1IndependentSet>(G);
+            break;
+        case 3:
+            run_algorithm<Koala::Mis2IndependentSet>(G);
+            break;
+        case 4:
+            run_algorithm<Koala::Mis3IndependentSet>(G);
+            break;
+        case 5:
+            run_algorithm<Koala::Mis4IndependentSet>(G);
+            break;
+        case 6:
+            run_algorithm<Koala::Mis5IndependentSet>(G);
+            break;
+        case 7:
+            run_algorithm<Koala::MeasureAndConquerIndependentSet>(G);
+            break;
         }
-        classification[count]++;
-    }
-    for (const auto &[k, v] : classification) {
-        std::cout << "SIZE " << k << ": " << v << std::endl;
+        std::cout << std::endl;
     }
 }
 
+void run_dimacs_tests(const std::string &path, const std::string &algorithm) {
+    auto G_directed = Koala::DimacsGraphReader().read(path);
+    NetworKit::Graph G = NetworKit::Graph(G_directed.numberOfNodes(), true, false);
+    G_directed.forEdges([&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight w) {
+        if (!G.hasEdge(u, v) && !G.hasEdge(v, u) && w > 0) {
+            G.addEdge(u, v);
+        }
+    });
+    std::cout << path << " " << std::flush;
+    std::set<int> I;
+    I.insert(run_algorithm<Koala::BruteForceIndependentSet>(G));
+    I.insert(run_algorithm<Koala::Mis1IndependentSet>(G));
+    I.insert(run_algorithm<Koala::Mis2IndependentSet>(G));
+    I.insert(run_algorithm<Koala::Mis3IndependentSet>(G));
+    I.insert(run_algorithm<Koala::Mis4IndependentSet>(G));
+    I.insert(run_algorithm<Koala::Mis5IndependentSet>(G));
+    I.insert(run_algorithm<Koala::MeasureAndConquerIndependentSet>(G));
+    assert(I.size() == 1);
+    std::cout << std::endl;
+    return;
+}
+
 int main(int argc, const char *argv[]) {
-    switch (std::stoi(argv[1])) {
-        case 0:
-            benchmark<Koala::BruteForceIndependentSet>();
-            break;
-        case 1:
-            benchmark<Koala::Mis1IndependentSet>();
-            break;
-        case 2:
-            benchmark<Koala::Mis2IndependentSet>();
-            break;
-        case 3:
-            benchmark<Koala::Mis3IndependentSet>();
-            break;
-        case 4:
-            benchmark<Koala::Mis4IndependentSet>();
-            break;
-        case 5:
-            benchmark<Koala::Mis5IndependentSet>();
-            break;
-        case 6:
-            benchmark<Koala::MeasureAndConquerIndependentSet>();
-            break;
+    if (argc != 3) {
+        std::cerr << "Usage: " << argv[0] << " <algorithm> <file>" << std::endl;
+        return 1;
+    }
+    std::string path(argv[2]);
+    auto position = path.find_last_of(".");
+    if (path.substr(position + 1) == "g6") {
+        run_g6_tests(path, std::string(argv[1]));
+    } else if (path.substr(position + 1) == "gr") {
+        run_dimacs_tests(path, std::string(argv[1]));
+    } else {
+        std::cerr << "File type not supported: " << path << std::endl;
     }
     return 0;
 }
