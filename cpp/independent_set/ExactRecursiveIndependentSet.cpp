@@ -8,6 +8,7 @@
 #include <independent_set/IndependentSet.hpp>
 
 #include <networkit/graph/GraphTools.hpp>
+#include <traversal/DFS.hpp>
 
 #include <limits>
 
@@ -78,7 +79,7 @@ std::vector<NetworKit::node> Mis2IndependentSet::recursive() {
         }
         else {
             std::vector<NetworKit::node> neighbors2 = getNeighbors2(v);
-            if (neighbors2.size() == 1) { // TODO: book adds second branch but in my opinion it is obsolete ?
+            if (neighbors2.size() == 1) { // book adds second branch but in my opinion it is obsolete
                 NetworKit::node w = *neighbors2.begin();
                 std::vector<NetworKit::node> nodesToBeRemoved{v, u1, u2, w};
                 EdgeSet connectedEdges = getConnectedEdges(nodesToBeRemoved);
@@ -89,7 +90,7 @@ std::vector<NetworKit::node> Mis2IndependentSet::recursive() {
                 restoreElements(nodesToBeRemoved, connectedEdges);
                 return independentSet;
             }
-            else { // TODO: book doesn't say about +1 in the first case ?
+            else {
                 std::vector<NetworKit::node> neighborsPlus = getNeighborsPlus(v);
                 EdgeSet connectedEdges = getConnectedEdges(neighborsPlus);
                 removeElements(neighborsPlus);
@@ -242,7 +243,9 @@ std::vector<NetworKit::node> Mis2IndependentSet::recursive() {
         lastIndex = u;
     });
     std::vector<bool> visited(lastIndex + 1, false);
-    dfs(v, visited);
+    Koala::Traversal::DFSFrom(*graph, *graph->nodeRange().begin(),
+                             [&](auto v) { visited[v] = true; },
+                             [&](auto v) { return true; });
 
     std::vector<NetworKit::node> component;
     std::vector<NetworKit::node> theRest;
@@ -472,7 +475,9 @@ std::vector<NetworKit::node> MeasureAndConquerIndependentSet::recursive() {
         lastIndex = u;
     });
     std::vector<bool> visited(lastIndex + 1, false);
-    dfs(lastIndex, visited);
+    Koala::Traversal::DFSFrom(*graph, *graph->nodeRange().begin(),
+                             [&](auto v) { visited[v] = true; },
+                             [&](auto v) { return true; });
 
     std::vector<NetworKit::node> component;
     std::vector<NetworKit::node> theRest;
@@ -554,7 +559,7 @@ std::vector<NetworKit::node> MeasureAndConquerIndependentSet::recursive() {
                 break;
             }
             case 2: {
-                //shallFold = true; break; // TODO also works
+                //shallFold = true; break; // this also works
                 if (inducedEdges.empty()) {
                     auto u1 = vNeighbors[0];
                     auto u2 = vNeighbors[1];
@@ -614,11 +619,9 @@ std::vector<NetworKit::node> MeasureAndConquerIndependentSet::recursive() {
                 }
 
                 if (inducedEdges.size() >= 4) { // no triangle possible with 4 edges
-                    std::cout << "induced size >= 4 case reached" << std::endl; // TODO: tests never reach this
                     shallFold = true;
                 }
                 else if (inducedEdges.size() == 3) {
-                    std::cout << "induced size == 3 case reached" << std::endl; // TODO: tests never reach this
                     // FOLD <=> no induced vertex has degree 3
                     bool hasDegree3 = false;
                     std::map<NetworKit::node, int> counter;

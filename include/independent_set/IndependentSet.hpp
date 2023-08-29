@@ -73,7 +73,6 @@ protected:
     EdgeSet getConnectedEdges(std::vector<NetworKit::node>& nodes) const;
     EdgeSet getInducedEdges(std::vector<NetworKit::node>& nodes) const;
     std::vector<NetworKit::node> getMirrors(NetworKit::node v) const;
-    void dfs(NetworKit::node v, std::vector<bool>& visited);
 
     NetworKit::node getMinimumDegreeNode() const;
     NetworKit::node getMaximumDegreeNode() const;
@@ -220,7 +219,8 @@ private:
 };
 
 template <typename T>
-void IndependentSet::restoreElements(std::vector<NetworKit::node>& nodes, T& edges) {
+void IndependentSet::restoreElements(
+    std::vector<NetworKit::node>& nodes, T& edges) {
     for (auto v : nodes) {
         graph->restoreNode(v);
     }

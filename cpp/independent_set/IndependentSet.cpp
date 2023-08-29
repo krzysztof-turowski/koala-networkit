@@ -117,17 +117,6 @@ std::vector<NetworKit::node> IndependentSet::getMirrors(NetworKit::node v) const
     return mirrors;
 }
 
-void IndependentSet::dfs(NetworKit::node v, std::vector<bool>& visited) {
-    if (visited[v]) {
-        return;
-    }
-    visited[v] = true;
-    std::vector<NetworKit::node> neighbors = getNeighbors(v);
-    for (auto n : neighbors) {
-       dfs(n, visited);
-    }
-}
-
 NetworKit::node IndependentSet::getMinimumDegreeNode() const {
     assert(!graph->isEmpty());
     return *std::min_element(graph->nodeRange().begin(), graph->nodeRange().end(),
@@ -237,30 +226,3 @@ void BruteForceIndependentSet::run() {
 }
 
 } /* namespace Koala */
-
-/*
-TODO:
-branching through connected components doesn't improve polynomial complexity because of how NetworKit::Graph is implemented
-add NodeSet besides EdgeSet
-use erase_if (vector)
-add dodyxgen docs
-check for more reserve()
-lastIndex -> add some function to just get any index
-
-expected output:
-time ./build/benchmark/benchmark_independent_set 2 < ~/Downloads/graph9.g6
-SIZE 1: 1
-SIZE 2: 1896
-SIZE 3: 101267
-SIZE 4: 142276
-SIZE 5: 27107
-SIZE 6: 1995
-SIZE 7: 117
-SIZE 8: 8
-SIZE 9: 1
-
-real	0m2,069s
-user	0m2,069s
-sys	0m0,000s
-
-*/
