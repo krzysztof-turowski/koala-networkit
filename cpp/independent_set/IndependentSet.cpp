@@ -11,7 +11,7 @@
 
 namespace Koala {
 
-IndependentSet::IndependentSet(const NetworKit::Graph &graph) : 
+IndependentSet::IndependentSet(const NetworKit::Graph &graph) :
         graph(std::make_optional(graph)) { }
 
 bool IndependentSet::edgeComparator(const NetworKit::Edge& a, const NetworKit::Edge& b) {
@@ -41,9 +41,9 @@ std::vector<NetworKit::node> IndependentSet::getNeighborsPlus(NetworKit::node v)
     return neighborsPlus;
 }
 
-std::vector<NetworKit::node> IndependentSet::getNeighbors2(NetworKit::node v) const {    
+std::vector<NetworKit::node> IndependentSet::getNeighbors2(NetworKit::node v) const {
     std::vector<NetworKit::node> neighbors = getNeighbors(v);
-    std::vector<NetworKit::node> visitedNodes;    
+    std::vector<NetworKit::node> visitedNodes;
     for (auto n : neighbors) {
         graph->forNeighborsOf(n, [&](NetworKit::node n2) {
             visitedNodes.push_back(n2);
@@ -77,7 +77,7 @@ IndependentSet::EdgeSet IndependentSet::getConnectedEdges(std::vector<NetworKit:
 }
 
 IndependentSet::EdgeSet IndependentSet::getInducedEdges(std::vector<NetworKit::node>& nodes) const {
-    EdgeSet connectedEdges(edgeComparator); 
+    EdgeSet connectedEdges(edgeComparator);
     std::set<NetworKit::node> nodeSet(nodes.begin(), nodes.end());
 
     for (auto u : nodes) {
@@ -130,13 +130,13 @@ void IndependentSet::dfs(NetworKit::node v, std::vector<bool>& visited) {
 
 NetworKit::node IndependentSet::getMinimumDegreeNode() const {
     assert(!graph->isEmpty());
-    return *std::min_element(graph->nodeRange().begin(), graph->nodeRange().end(), 
+    return *std::min_element(graph->nodeRange().begin(), graph->nodeRange().end(),
         [&](NetworKit::node v, NetworKit::node u) {return graph->degree(v) < graph->degree(u);});
 }
 
 NetworKit::node IndependentSet::getMaximumDegreeNode() const {
     assert(!graph->isEmpty());
-    return *std::max_element(graph->nodeRange().begin(), graph->nodeRange().end(), 
+    return *std::max_element(graph->nodeRange().begin(), graph->nodeRange().end(),
         [&](NetworKit::node v, NetworKit::node u) {return graph->degree(v) < graph->degree(u);});
 }
 
@@ -189,7 +189,7 @@ std::vector<NetworKit::node> IndependentSet::runIndependentSetDegree2() const {
             }
             else {
                 graphDeg2.removeNode(v);
-            }            
+            }
         }
     });
     return independentSet;

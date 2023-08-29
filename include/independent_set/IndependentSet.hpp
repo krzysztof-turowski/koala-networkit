@@ -80,7 +80,7 @@ protected:
     void removeElements(std::vector<NetworKit::node> nodes);
     template <typename T>
     void restoreElements(
-        std::vector<NetworKit::node>& nodes, 
+        std::vector<NetworKit::node>& nodes,
         T& edges);
     std::vector<NetworKit::node> runIndependentSetDegree2() const;
 
