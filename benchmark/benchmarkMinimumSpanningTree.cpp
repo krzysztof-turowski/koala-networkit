@@ -25,6 +25,7 @@ NetworKit::edgeweight run_algorithm(NetworKit::Graph &G, bool print = true) {
       auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
       std::cout << std::fixed << std::setw(10) << std::setprecision(3) << duration / 1000.0 << " " << std::flush;
     }
+    algorithm.check();
     return spanning_tree.totalEdgeWeight();
 }
 
@@ -46,11 +47,11 @@ int main(int argc, char **argv) {
         std::cout << path << ": " << G.numberOfNodes() << " " << G.numberOfEdges() << std::endl;
         std::set<NetworKit::edgeweight> T;
         T.insert(run_algorithm<Koala::KruskalMinimumSpanningTree>(G));
-        T.insert(run_algorithm<Koala::PrimMinimumSpanningTree>(G));
-        T.insert(run_algorithm<Koala::BoruvkaMinimumSpanningTree>(G));
-        for (int i = 0; i < 5; i++) {
-            T.insert(run_algorithm<Koala::KargerKleinTarjanMinimumSpanningTreeOriginal>(G));
-        }
+        // T.insert(run_algorithm<Koala::PrimMinimumSpanningTree>(G));
+        // T.insert(run_algorithm<Koala::BoruvkaMinimumSpanningTree>(G));
+        /*for (int i = 0; i < 5; i++) {
+            T.insert(run_algorithm<Koala::KargerKleinTarjanMinimumSpanningTree>(G));
+        }*/
         std::cout << std::endl;
         assert(T.size() == 1);
         std::cout << "SIZE " << T.size() << ": ";

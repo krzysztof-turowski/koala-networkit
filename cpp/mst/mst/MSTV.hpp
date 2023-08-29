@@ -9,6 +9,7 @@ namespace MST {
      * Torben Hagerup, 2010: "An Even Simpler Linear-Time Algorithm for Verifying Minimum Spanning Trees"
      */
     bool HagerupMSTV(const MinimalSpanningTree& mst);
+    bool HagerupMSTV(const Graph &mst, const Graph &G);
 
     /*
      * Similar to HagerupMSTV.
@@ -16,6 +17,7 @@ namespace MST {
      * For each edge e=(u,v) in G and a path P=<u, ..., v> in F, this function removes e if w(e) > w(e') for e' in P.
      */
     void removeF_HeavyEdges(Graph& G, const Graph& F);
+    void removeF_HeavyEdges(Graph& G, const Graph& F, Graph& G2, const Graph& F2, const std::vector<node> &S_invert);
 }
 
 #include <structures/LCA.hpp>
@@ -44,7 +46,8 @@ void checkMediansCorrectness(const std::vector<MST::count>& medians) {
 namespace MST {
     using h_set = uint64_t; // bitset of depths. ith bit corresponds to ith depth.
 
-    edgeweight edgeWeightToParent(node u, const FullBranchingTree& fbt) {
+    template <typename FBT>
+    edgeweight edgeWeightToParent(node u, const FBT& fbt) {
         // value for root not explained in the paper.
         if (u == fbt.getRoot()) return 0;
         auto w = fbt.getTree().weight(fbt.getParent(u).value(), u);
@@ -52,9 +55,9 @@ namespace MST {
         return w;
     };
 
-
-    std::vector<node> treePathMaxima(const FullBranchingTree& fbt,
-                                     const std::vector<node>& upper, const std::vector<node>& lower) {
+    template <typename FBT>
+    std::vector<node> treePathMaxima(
+        FBT& fbt, const std::vector<node>& upper, const std::vector<node>& lower) {
 
         /// This code is derived from the paper which has an implementation in D.
         /// It resembles the original D code as much as possible - including multiple lambdas instead of
@@ -186,8 +189,35 @@ namespace MST {
         return answer;
     } // end tree_path_maxima
 
+    bool HagerupMSTV(const Graph &mst, const Graph &G) {
+        std::cout << "CHECK" << std::endl;
+        // Boruvka runs in linear time on trees.
+        BoruvkaMST fbtOnMst(mst, true, true);
 
-    bool HagerupMSTV(const MinimalSpanningTree& mst) {
+        std::vector<std::tuple<NetworKit::node, NetworKit::node, NetworKit::edgeweight>> G_minus_M;
+        G.forEdges([&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight w) {
+             if (!mst.hasEdge(u, v)) {
+                G_minus_M.push_back({u, v, w});
+             }
+        });
+        Koala::LCA<FullBranchingTree> lca(fbtOnMst.fullBranchingTree.value());
+        std::vector<node> upper, lower;
+        for (auto [u, v, w] : G_minus_M) {
+            auto lowestCommonAncestor = lca.query(u, v);
+            upper.push_back(lowestCommonAncestor), upper.push_back(lowestCommonAncestor);
+            lower.push_back(u), lower.push_back(v);
+        }
+
+        auto answers = treePathMaxima(fbtOnMst.fullBranchingTree.value(), upper, lower);
+        for (index i = 0; i < answers.size(); i++) {
+            if (edgeWeightToParent(answers[i], fbtOnMst.fullBranchingTree.value()) > std::get<2>(G_minus_M[i / 2])) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    bool HagerupMSTV(const MinimalSpanningTree& mst, Graph &G) {
         if (!mst.getOriginalGraph().has_value()) {
             throw std::invalid_argument("Minimal Spanning Tree verification needs access to the original graph!");
         }
@@ -238,6 +268,32 @@ namespace MST {
             edgeweight maxOnThe2ndHalf = edgeWeightToParent(answers[i+1], FbtOnF.fullBranchingTree.value());
             if (w > maxOnThe1stHalf && w > maxOnThe2ndHalf) {
                 G.removeEdge(u, v);
+            }
+        }
+    }
+
+    void removeF_HeavyEdges(Graph& G, const Graph& F, Graph& G2, const Graph& F2, const std::vector<node> &S_invert) {
+        /// This algorithm is very similar to HagerupMSTV. However, HagerupMSTV terminates whenever it finds an
+        /// F_heavy edge - hence we cannot reuse it.
+        BoruvkaMST FbtOnF(F, true, true);
+        Koala::LCA<FullBranchingTree> lca(FbtOnF.fullBranchingTree.value());
+        std::vector<node> upper, lower;
+        std::vector<std::pair<NodePair, edgeweight>>  edges;
+        G.forEdges([&](const node u, const node v, edgeweight ew) {
+           node lowestCommonAncestor = lca.query(u, v);
+           upper.push_back(lowestCommonAncestor), upper.push_back(lowestCommonAncestor);
+           lower.push_back(u), lower.push_back(v);
+           edges.push_back({{u, v}, ew});
+        });
+        auto answers = treePathMaxima(FbtOnF.fullBranchingTree.value(), upper, lower);
+        for (index i = 0; i < answers.size(); i+=2) {
+            auto [u, v] = edges[i/2].first;
+            edgeweight w = edges[i / 2].second;
+            edgeweight maxOnThe1stHalf = edgeWeightToParent(answers[i], FbtOnF.fullBranchingTree.value());
+            edgeweight maxOnThe2ndHalf = edgeWeightToParent(answers[i+1], FbtOnF.fullBranchingTree.value());
+            if (w > maxOnThe1stHalf && w > maxOnThe2ndHalf) {
+                G.removeEdge(u, v);
+                G2.removeEdge(S_invert[u], S_invert[v]);
             }
         }
     }

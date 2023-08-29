@@ -36,6 +36,11 @@ class MinimumSpanningTree : public NetworKit::Algorithm {
      */
     const NetworKit::Graph& getForest() const;
 
+    /**
+     * Verify the result found by the algorithm.
+     */
+    void check() const;
+
  protected:
     std::optional<NetworKit::Graph> graph, tree;
 };
@@ -73,6 +78,7 @@ class PrimMinimumSpanningTree final : public MinimumSpanningTree {
  * The class for the Boruvka minimum spanning tree algorithm
  */
 class BoruvkaMinimumSpanningTree : public MinimumSpanningTree {
+    friend class MinimumSpanningTree;
  public:
     using MinimumSpanningTree::MinimumSpanningTree;
 
@@ -82,9 +88,9 @@ class BoruvkaMinimumSpanningTree : public MinimumSpanningTree {
     void run();
 
  protected:
-    static void iterate(
-        NetworKit::Graph &G, NetworKit::Graph &F, NetworKit::UnionFind &union_find,
-        NetworKit::count steps);
+    static std::optional<NetworKit::Graph> iterate(
+        NetworKit::Graph &G, NetworKit::Graph &F, NetworKit::UnionFind&, NetworKit::count steps,
+        bool get_branching_tree = false);
 };
 
 /**

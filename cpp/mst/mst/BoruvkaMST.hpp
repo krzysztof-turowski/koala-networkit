@@ -11,21 +11,8 @@ namespace MST {
     class Bookkeeping;
 
     class FullBranchingTree {
-        /**
-         * Definition:
-         *
-         * Implementation:
-         * Directed tree, where edges are directed top->down.
-         * (Root has no incoming edges, leaves have no outgoing ones).
-         * Created only by BoruvkaMST.
-         * If Interested only in FullBranchingTree, then call `auto fbt = BoruvkaMST(G, ,true).fullBranchingTree->get()`
-         **/
-
-
         friend class BoruvkaMST;
-
         friend class Bookkeeping;
-
         Graph tree;
 
         explicit FullBranchingTree(const Graph& G);
@@ -36,9 +23,6 @@ namespace MST {
 
         [[nodiscard]]
         node getRoot() const;
-
-        // [0, leaves) nodes are leaves.
-        const count leaves;
 
         [[nodiscard]]
         std::optional<node> getParent(node u) const;
@@ -71,8 +55,7 @@ namespace MST {
 
     // Note that this constructor merely begins to initialize FullBranchingTree. It will be fully constructed
     // only after BoruvkaMST() returns.
-    FullBranchingTree::FullBranchingTree(const Graph& G) : leaves(G.upperNodeIdBound()),
-                                                           tree(G.upperNodeIdBound(), true, true) {}
+    FullBranchingTree::FullBranchingTree(const Graph& G) : tree(G.upperNodeIdBound(), true, true) {}
 
     node FullBranchingTree::getRoot() const { return tree.upperNodeIdBound() - 1; }
 
@@ -134,13 +117,16 @@ namespace MST {
         void updateFullBranchingTree(const std::vector<std::vector<node>>& connectedComponents,
                                      const std::vector<WeightedUndirectedEdgeDecoupled::type>& edgesForMst) {
             std::vector<node> V_i_plus_1ToFullBranchingTreeNode;
+            int count = 0;
             for (const auto& cc: connectedComponents) {
                 auto parentNode = fullBranchingTree->tree.addNode();
                 for (auto u: cc) {
+                    ++count;
                     fullBranchingTree->tree.addEdge(parentNode, V_iToFullBranchingTreeNode[u], edgesForMst[u].second);
                 }
                 V_i_plus_1ToFullBranchingTreeNode.push_back(parentNode);
             }
+            std::cout << "Y-ADDED " << connectedComponents.size() << " " << count << std::endl;
             V_iToFullBranchingTreeNode = std::move(V_i_plus_1ToFullBranchingTreeNode);
         }
 
