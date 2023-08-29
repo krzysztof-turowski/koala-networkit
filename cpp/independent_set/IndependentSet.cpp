@@ -7,10 +7,6 @@
 
 #include <independent_set/IndependentSet.hpp>
 
-#include <networkit/auxiliary/BucketPQ.hpp>
-#include <networkit/graph/GraphTools.hpp>
-
-#include <limits>
 #include <bitset>
 
 namespace Koala {
@@ -134,28 +130,14 @@ void IndependentSet::dfs(NetworKit::node v, std::vector<bool>& visited) {
 
 NetworKit::node IndependentSet::getMinimumDegreeNode() const {
     assert(!graph->isEmpty());
-    NetworKit::count minDegree = std::numeric_limits<NetworKit::count>::max();
-    NetworKit::node index;
-    graph->forNodes([&](NetworKit::node v) {
-        if (minDegree > graph->degree(v)) {
-            minDegree = graph->degree(v);
-            index = v;
-        }
-    });
-    return index;
+    return *std::min_element(graph->nodeRange().begin(), graph->nodeRange().end(), 
+        [&](NetworKit::node v, NetworKit::node u) {return graph->degree(v) < graph->degree(u);});
 }
 
 NetworKit::node IndependentSet::getMaximumDegreeNode() const {
     assert(!graph->isEmpty());
-    NetworKit::count maxDegree = 0;
-    NetworKit::node index = -1;
-    graph->forNodes([&](NetworKit::node v) {
-        if (maxDegree <= graph->degree(v)) {
-            maxDegree = graph->degree(v);
-            index = v;
-        }
-    });
-    return index;
+    return *std::max_element(graph->nodeRange().begin(), graph->nodeRange().end(), 
+        [&](NetworKit::node v, NetworKit::node u) {return graph->degree(v) < graph->degree(u);});
 }
 
 void IndependentSet::removeElements(std::vector<NetworKit::node> nodes) {
@@ -177,11 +159,11 @@ std::vector<NetworKit::node> IndependentSet::runIndependentSetDegree2() const {
             }
 
             independentSet.push_back(u);
-            NetworKit::node v = graphDeg2.getIthNeighbor(u, 0);
+            auto v = graphDeg2.getIthNeighbor(u, 0);
             graphDeg2.removeNode(u);
 
             if (graphDeg2.degree(v) == 1) {
-                NetworKit::node w = graphDeg2.getIthNeighbor(v, 0);
+                auto w = graphDeg2.getIthNeighbor(v, 0);
                 u = w;
             }
             graphDeg2.removeNode(v);
@@ -195,13 +177,13 @@ std::vector<NetworKit::node> IndependentSet::runIndependentSetDegree2() const {
     graphDeg2.forNodes([&](NetworKit::node u) { // t <- u -> v -> w
         if (graphDeg2.degree(u) == 2) {
             independentSet.push_back(u);
-            NetworKit::node t = graphDeg2.getIthNeighbor(u, 0);
+            auto t = graphDeg2.getIthNeighbor(u, 0);
             graphDeg2.removeNode(t);
-            NetworKit::node v = graphDeg2.getIthNeighbor(u, 0);
+            auto v = graphDeg2.getIthNeighbor(u, 0);
             graphDeg2.removeNode(u);
 
             if (graphDeg2.degree(v) > 0) {
-                NetworKit::node w = graphDeg2.getIthNeighbor(v, 0);
+                auto w = graphDeg2.getIthNeighbor(v, 0);
                 graphDeg2.removeNode(v);
                 solvePath(w);
             }
@@ -263,6 +245,7 @@ add NodeSet besides EdgeSet
 use erase_if (vector)
 add dodyxgen docs
 check for more reserve()
+lastIndex -> add some function to just get any index
 
 expected output:
 time ./build/benchmark/benchmark_independent_set 2 < ~/Downloads/graph9.g6
