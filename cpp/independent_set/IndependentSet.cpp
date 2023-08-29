@@ -27,31 +27,16 @@ const std::set<NetworKit::node>& IndependentSet::getIndependentSet() const {
     return independentSet;
 }
 
-void IndependentSet::check() const { // TODO: add std::all_of as in the DominatingSet.cpp
+void IndependentSet::check() const {
     assureFinished();
     graph->forEdges([&](NetworKit::node u, NetworKit::node v) {
         assert(!(independentSet.contains(u) && independentSet.contains(v)));
     });
 }
 
-void printGraph(const NetworKit::Graph* graph) { // TODO: its just debug
-    graph->forNodes([&](NetworKit::node v) {
-        std::cout << v << " ";
-    });
-    std::cout << std::endl;
-    graph->forEdges([&](NetworKit::node u, NetworKit::node v) {
-        std::cout << "{" << u << "," << v << "}, ";
-    });
-    std::cout << std::endl;
-}
-
 std::vector<NetworKit::node> IndependentSet::getNeighbors(NetworKit::node v) const {
-    std::vector<NetworKit::node> neighbors;
-    neighbors.reserve(graph->numberOfNodes());
-    graph->forNeighborsOf(v, [&](NetworKit::node u) {
-        neighbors.push_back(u);
-    });
-    return neighbors;
+    return std::vector<NetworKit::node>(
+        graph->neighborRange(v).begin(), graph->neighborRange(v).end());
 }
 
 std::vector<NetworKit::node> IndependentSet::getNeighborsPlus(NetworKit::node v) const {
@@ -107,22 +92,6 @@ IndependentSet::EdgeSet IndependentSet::getInducedEdges(std::vector<NetworKit::n
         });
     }
     return connectedEdges;
-}
-
-IndependentSet::EdgeSet IndependentSet::getAllEdges() const {
-    EdgeSet edges(edgeComparator);
-    graph->forEdges([&](NetworKit::node u, NetworKit::node v) {
-        edges.insert(NetworKit::Edge(u, v, true));
-    });
-    return edges;
-}
-
-std::vector<NetworKit::node> IndependentSet::getAllNodes() const {
-    std::vector<NetworKit::node> nodes;
-    graph->forNodes([&](NetworKit::node v) {
-        nodes.push_back(v);
-    });
-    return nodes;
 }
 
 std::vector<NetworKit::node> IndependentSet::getMirrors(NetworKit::node v) const {
@@ -192,17 +161,6 @@ NetworKit::node IndependentSet::getMaximumDegreeNode() const {
 void IndependentSet::removeElements(std::vector<NetworKit::node> nodes) {
     for (auto v : nodes) {
         graph->removeNode(v);
-    }
-}
-
-void IndependentSet::restoreElements(
-        std::vector<NetworKit::node>& nodes, 
-        EdgeSet& edges) {
-    for (auto v : nodes) {
-        graph->restoreNode(v);
-    }
-    for (auto e : edges) {
-        graph->addEdge(e.u, e.v);
     }
 }
 
@@ -276,12 +234,12 @@ void BruteForceIndependentSet::run() {
         }
 
         bool illegalEdge = false;
-        graph->forEdges([&](NetworKit::node u, NetworKit::node v) {
+        for (const auto& [u,v] : graph->edgeRange()) {
             if(testSet[u] && testSet[v]) {
                 illegalEdge = true;
-                return;
+                break;
             }
-        });
+        }
 
         if (!illegalEdge) {
             independentSet.clear();
@@ -293,7 +251,6 @@ void BruteForceIndependentSet::run() {
             best = testSetSize;
         }
     }
-
     hasRun = true;
 }
 
@@ -301,8 +258,6 @@ void BruteForceIndependentSet::run() {
 
 /*
 TODO:
-make better functions for standard and mirror branching
-mis2 has duplicated code for branching with v and without v and mirrors
 branching through connected components doesn't improve polynomial complexity because of how NetworKit::Graph is implemented
 add NodeSet besides EdgeSet
 use erase_if (vector)

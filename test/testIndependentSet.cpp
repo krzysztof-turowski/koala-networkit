@@ -101,13 +101,12 @@ TYPED_TEST_P(SimpleGraphs, TestingGraph) {
 }
 REGISTER_TYPED_TEST_CASE_P(SimpleGraphs, WheelGraphW_8, UtilityGraphK_3_3, PetersenGraph, FruchtGraph, TwoK5, TestingGraph);
 
-typedef testing::Types<
+using Algorithms = testing::Types<
     Koala::BruteForceIndependentSet,
     Koala::Mis1IndependentSet,
     Koala::Mis2IndependentSet,
     Koala::Mis3IndependentSet,
     Koala::Mis4IndependentSet,
     Koala::Mis5IndependentSet,
-    Koala::MeasureAndConquerIndependentSet
-    >Algorithms;
+    Koala::MeasureAndConquerIndependentSet>;
 INSTANTIATE_TYPED_TEST_CASE_P(IndependentSet, SimpleGraphs, Algorithms);

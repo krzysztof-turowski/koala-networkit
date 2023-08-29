@@ -72,20 +72,19 @@ protected:
 
     EdgeSet getConnectedEdges(std::vector<NetworKit::node>& nodes) const;
     EdgeSet getInducedEdges(std::vector<NetworKit::node>& nodes) const;
-    EdgeSet getAllEdges() const;
-    std::vector<NetworKit::node> getAllNodes() const;
     std::vector<NetworKit::node> getMirrors(NetworKit::node v) const;
     void dfs(NetworKit::node v, std::vector<bool>& visited);
 
     NetworKit::node getMinimumDegreeNode() const;
     NetworKit::node getMaximumDegreeNode() const;
     void removeElements(std::vector<NetworKit::node> nodes);
+    template <typename T>
     void restoreElements(
         std::vector<NetworKit::node>& nodes, 
-        EdgeSet& edges);
+        T& edges);
     std::vector<NetworKit::node> runIndependentSetDegree2() const;
 
-    const std::optional<NetworKit::Graph> graph;
+    std::optional<NetworKit::Graph> graph;
     std::set<NetworKit::node> independentSet;
 };
 
@@ -219,5 +218,15 @@ private:
      */
     std::vector<NetworKit::node> recursive();
 };
+
+template <typename T>
+void IndependentSet::restoreElements(std::vector<NetworKit::node>& nodes, T& edges) {
+    for (auto v : nodes) {
+        graph->restoreNode(v);
+    }
+    for (auto e : edges) {
+        graph->addEdge(e.u, e.v);
+    }
+}
 
 } /* namespace Koala */

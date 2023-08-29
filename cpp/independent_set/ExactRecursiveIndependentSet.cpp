@@ -259,7 +259,7 @@ std::vector<NetworKit::node> Mis2IndependentSet::recursive() {
     });
 
     if (component.size() != allVertices.size()) {
-        EdgeSet allEdges = getAllEdges();
+        std::vector<NetworKit::Edge> allEdges(graph->edgeRange().begin(), graph->edgeRange().end());
 
         removeElements(theRest);
         std::vector<NetworKit::node> setComponent = recursive();
@@ -500,7 +500,7 @@ std::vector<NetworKit::node> MeasureAndConquerIndependentSet::recursive() {
     });
 
     if (component.size() != allVertices.size()) {
-        EdgeSet allEdges = getAllEdges();
+        std::vector<NetworKit::Edge> allEdges(graph->edgeRange().begin(), graph->edgeRange().end());
 
         removeElements(theRest);
         std::vector<NetworKit::node> setComponent = recursive();
@@ -546,9 +546,7 @@ std::vector<NetworKit::node> MeasureAndConquerIndependentSet::recursive() {
     // If none of the conditions above holds, and (3) there is a foldable node v of degree
     // d(v) <= 3, or a foldable node of degree d(v) = 4 with at most three anti-edges in
     // N(v), the algorithm selects one such node v of minimum degree and folds it
-    std::vector<NetworKit::node> allNodes = getAllNodes();
-
-    for (auto v : allNodes) {
+    for (auto v : graph->nodeRange()) {
         if (graph->degree(v) <= 4) {
             std::vector<NetworKit::node> vNeighbors = getNeighbors(v);
             EdgeSet inducedEdges = getInducedEdges(vNeighbors);
