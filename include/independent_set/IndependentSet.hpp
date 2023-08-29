@@ -38,7 +38,15 @@ public:
      */
     const std::map<NetworKit::node, bool>& getIndependentSet() const;
 
+    /**
+     * Execute the maximum independent set finding procedure.
+     */
     virtual void run() = 0;
+
+    /**
+     * Verify the result found by the algorithm.
+     */
+    void check() const;
 
 protected:
     /**

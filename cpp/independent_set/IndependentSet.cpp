@@ -15,6 +15,27 @@
 
 namespace Koala {
 
+IndependentSet::IndependentSet(const NetworKit::Graph &graph) : 
+        graph(std::make_optional(graph)) { }
+
+bool IndependentSet::edgeComparator(const NetworKit::Edge& a, const NetworKit::Edge& b) {
+    return a.u < b.u || (a.u == b.u && a.v < b.v);
+}
+
+const std::map<NetworKit::node, bool>& IndependentSet::getIndependentSet() const {
+    assureFinished();
+
+
+    return independentSet;
+}
+
+void IndependentSet::check() const {
+    assureFinished();
+    graph->forEdges([&](NetworKit::node u, NetworKit::node v) {
+        assert(!(independentSet[u] && independentSet[v]));
+    });
+}
+
 void printGraph(const NetworKit::Graph* graph) { // TODO: its just debug
     graph->forNodes([&](NetworKit::node v) {
         std::cout << v << " ";
@@ -28,6 +49,7 @@ void printGraph(const NetworKit::Graph* graph) { // TODO: its just debug
 
 std::vector<NetworKit::node> IndependentSet::getNeighbors(NetworKit::node v) const {
     std::vector<NetworKit::node> neighbors;
+    neighbors.reserve(graph->numberOfNodes());
     graph->forNeighborsOf(v, [&](NetworKit::node u) {
         neighbors.push_back(u);
     });
@@ -169,7 +191,7 @@ NetworKit::node IndependentSet::getMaximumDegreeNode() const {
     return index;
 }
 
-void IndependentSet::removeElements(std::vector<NetworKit::node> nodes)  {
+void IndependentSet::removeElements(std::vector<NetworKit::node> nodes) {
     for (auto v : nodes) {
         graph->removeNode(v);
     }
@@ -235,18 +257,6 @@ std::vector<NetworKit::node> IndependentSet::runIndependentSetDegree2() const {
     return independentSet;
 }
 
-IndependentSet::IndependentSet(const NetworKit::Graph &graph) : 
-        graph(std::make_optional(graph)) { }
-
-bool IndependentSet::edgeComparator(const NetworKit::Edge& a, const NetworKit::Edge& b) {
-    return a.u < b.u || (a.u == b.u && a.v < b.v);
-}
-
-const std::map<NetworKit::node, bool>& IndependentSet::getIndependentSet() const {
-    assureFinished();
-    return independentSet;
-}
-
 void BruteForceIndependentSet::run() {
     if (graph->isEmpty()) {
         return;
@@ -259,8 +269,7 @@ void BruteForceIndependentSet::run() {
     });
 
     int best = 0;
-    unsigned long long max = 1;
-    max <<= graph->numberOfNodes();
+    unsigned long long max = 1 << graph->numberOfNodes();
 
     for (unsigned long long binary = 1; binary != max; ++binary) {
         std::bitset<8 * sizeof(unsigned long long)> testSet(binary);
@@ -298,6 +307,7 @@ branching through connected components doesn't improve polynomial complexity bec
 add NodeSet besides EdgeSet
 use erase_if (vector)
 add dodyxgen docs
+check for more reserve()
 
 expected output:
 time ./build/benchmark/benchmark_independent_set 2 < ~/Downloads/graph9.g6

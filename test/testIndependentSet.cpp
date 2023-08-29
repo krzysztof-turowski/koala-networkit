@@ -116,38 +116,3 @@ typedef testing::Types<
     Koala::MeasureAndConquerIndependentSet
     >Algorithms;
 INSTANTIATE_TYPED_TEST_CASE_P(IndependentSet, SimpleGraphs, Algorithms);
-
-
-class CompareAlgorithmResults : public testing::Test {
-public:
-    virtual void SetUp() {
-    }
-
-protected:
-
-};
-
-template <typename Algorithm>
-std::optional<int> runAndValidate(NetworKit::Graph G, std::list<std::pair<int, int>>& edges) {
-    auto algorithm = Algorithm(G);
-    algorithm.run();
-
-    auto independentSet = algorithm.getIndependentSet();
-    for (const auto &[u, v] : edges) {
-        bool neighbors = independentSet[u] && independentSet[v];
-        EXPECT_FALSE(neighbors);
-        if (neighbors) {
-            for (auto e : edges) {
-                std::cout << "{" << e.first << "," << e.second << "}, ";
-            } 
-            std::cout << std::endl;
-            return std::nullopt;
-        }
-    }
-
-    int setSize = 0;
-    for (const auto &[v, belongs] : independentSet) {
-        setSize += (belongs);
-    }
-    return setSize;
-}

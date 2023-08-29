@@ -30,11 +30,10 @@ std::vector<NetworKit::node> Mis1IndependentSet::recursive() {
         return {};
     }
     NetworKit::node v = getMinimumDegreeNode();
-    std::vector<NetworKit::node> selectOneOf = getNeighborsPlus(v);
 
     int selectedToSet;
     std::vector<NetworKit::node> largestSet;
-    for (auto u : selectOneOf) {
+    for (auto u : getNeighborsPlus(v)) {
         std::vector<NetworKit::node> neighborsPlus = getNeighborsPlus(u);
         EdgeSet connectedEdges = getConnectedEdges(neighborsPlus);
 
@@ -322,7 +321,7 @@ std::vector<NetworKit::node> Mis2IndependentSet::recursive() {
                 v = b;
                 w = a;
             }
-        }        
+        }
     });
 
     std::vector<NetworKit::node> vNeighborsPlus = getNeighborsPlus(v); // for case 1
