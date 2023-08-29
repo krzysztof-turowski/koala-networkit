@@ -22,17 +22,15 @@ bool IndependentSet::edgeComparator(const NetworKit::Edge& a, const NetworKit::E
     return a.u < b.u || (a.u == b.u && a.v < b.v);
 }
 
-const std::map<NetworKit::node, bool>& IndependentSet::getIndependentSet() const {
+const std::set<NetworKit::node>& IndependentSet::getIndependentSet() const {
     assureFinished();
-
-
     return independentSet;
 }
 
-void IndependentSet::check() const {
+void IndependentSet::check() const { // TODO: add std::all_of as in the DominatingSet.cpp
     assureFinished();
     graph->forEdges([&](NetworKit::node u, NetworKit::node v) {
-        assert(!(independentSet[u] && independentSet[v]));
+        assert(!(independentSet.contains(u) && independentSet.contains(v)));
     });
 }
 
@@ -265,7 +263,6 @@ void BruteForceIndependentSet::run() {
     std::vector<bool> testSet;
     graph->forNodes([&](NetworKit::node v) {
         testSet.push_back(false);
-        independentSet[v] = false;
     });
 
     int best = 0;
@@ -287,10 +284,13 @@ void BruteForceIndependentSet::run() {
         });
 
         if (!illegalEdge) {
+            independentSet.clear();
             for (int i = 0; i < testSet.size(); ++i) {
-                independentSet[i] = testSet[i];
-                best = testSetSize;
+                if (testSet[i]) {
+                    independentSet.insert(i);
+                }
             }
+            best = testSetSize;
         }
     }
 

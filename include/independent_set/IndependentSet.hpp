@@ -34,9 +34,9 @@ public:
     /**
      * Return the independent set found by the algorithm.
      *
-     * @return a map from nodes to (true <=> belongs to the independent set).
+     * @return a set of nodes that form an independent set.
      */
-    const std::map<NetworKit::node, bool>& getIndependentSet() const;
+    const std::set<NetworKit::node>& getIndependentSet() const;
 
     /**
      * Execute the maximum independent set finding procedure.
@@ -86,7 +86,7 @@ protected:
     std::vector<NetworKit::node> runIndependentSetDegree2() const;
 
     const std::optional<NetworKit::Graph> graph;
-    std::map<NetworKit::node, bool> independentSet;
+    std::set<NetworKit::node> independentSet;
 };
 
 /**

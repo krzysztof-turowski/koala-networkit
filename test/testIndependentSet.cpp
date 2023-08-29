@@ -26,14 +26,9 @@ protected:
 
         auto independentSet = algorithm.getIndependentSet();
         for (const auto &[u, v] : parameters.E) {
-            EXPECT_FALSE(independentSet[u] && independentSet[v]);
+            EXPECT_FALSE(independentSet.contains(u) && independentSet.contains(v));
         }
-
-        int setSize = 0;
-        for (const auto &[v, belongs] : independentSet) {
-            setSize += (belongs);
-        }
-        EXPECT_EQ(setSize, parameters.expectedSetSize);
+        EXPECT_EQ(independentSet.size(), parameters.expectedSetSize);
     }
 };
 

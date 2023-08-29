@@ -13,10 +13,8 @@ int run_algorithm(NetworKit::Graph &G) {
     auto algorithm = T(G);
     algorithm.run();
     auto &independent_set = algorithm.getIndependentSet();
-    int total = 0;
-    for (auto [_, b] : independent_set) { total += b; }
-    std::cout << total << " " << std::flush;
-    return total;
+    std::cout << independent_set.size() << " " << std::flush;
+    return independent_set.size();
 }
 
 std::map<std::string, int> ALGORITHM = {

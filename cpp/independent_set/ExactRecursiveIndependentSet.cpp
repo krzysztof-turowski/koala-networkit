@@ -16,12 +16,7 @@ namespace Koala {
 
 void RecursiveIndependentSet::run() {
     std::vector<NetworKit::node> result = recursive();
-    graph->forNodes([&](NetworKit::node v) {
-        independentSet[v] = false;
-    });
-    for (auto node : result) {
-        independentSet[node] = true;
-    }   
+    independentSet = std::set(result.begin(), result.end());
     hasRun = true;
 }
 
