@@ -1,9 +1,11 @@
 #pragma once
 
 #include <set>
+#include <list>
 #include <vector>
 #include <functional>
 #include <iostream>
+
 namespace Koala {
 
 #define QUEUE_DEBUG 0
@@ -1265,70 +1267,6 @@ private:
 //     }
 // };
 
-
-// template<typename E, typename P>
-// class SplittingList {
-// public:
-//     void insert(E val, P priority) {
-//         nodes.push_back({ val, priority });
-//     }
-
-//     P find_min() {
-
-//     }
-
-//     void delete_min() {
-//         if (min_node == nodes.end()) return;
-//         nodes.splice(nodes.end(), min_node->children);
-//         nodes.erase(min_node);
-//         consolidaate();
-//     }
-
-//     void decrease_cost(E val, P priority) {
-
-//     }
-
-//     void merge(FHeap& other) {
-//         nodes.splice(nodes.end(), other.nodes);
-//         min_node = min_node->priority < other.min_node->priority ? 
-//             min_node : other.min_node;
-//     }
-
-// private:
-//     struct Node {
-//         Node(): value(0), priority(0) {}
-//         Node(E val, P priority): value(val), priority(priority) {}
-
-//         E value;
-//         P priority;
-//         std::list<Node> children;
-
-//         int degree() { return children.size(); }
-//     };
-
-//     std::list<Node> nodes;
-//     std::list<Node>::iterator min_node;
-
-//     int max_degree() {
-//         int res = 0;
-//         for (auto n : nodes)
-//     }
-
-//     void consolidate() {
-//         int D = max_degree();
-//         Node nodes[D + 1];
-
-//         for (auto node : nodes) {
-//             Node new_node = node;
-//             int deg = new_node.degree();
-
-//             while (nodes[])
-//         }
-
-//         nodes.clear();
-//     }
-// };
-
 template <typename I, typename R>
 class UnionFind {
 public:
@@ -1373,16 +1311,16 @@ private:
 
 // Temporary naive implementation
 template<typename T, typename H, typename K, typename V>
-class SplitFindMin {
+class SplitFindMinNaive {
 public: 
     struct List {
-        std::list<NetworKit::node> nodes;
+        std::list<T> nodes;
         K min_key;
         V min_val;
-        H head;
+        H id;
     };
 
-    SplitFindMin(T size, K infinity, V empty_val) :
+    SplitFindMinNaive(T size, K infinity, V empty_val) :
         size(size), 
         infinity(infinity), 
         empty_val(empty_val),
@@ -1390,8 +1328,8 @@ public:
         key(size, infinity),
         val(size) {}
 
-    List* init(const std::list<T>& nodes, H head) {
-        List* L = new List { nodes, infinity, empty_val, head };
+    List* init(const std::list<T>& nodes, H id) {
+        List* L = new List { nodes, infinity, empty_val, id };
 
         for (auto n : nodes) {
             element_list[n] = L;
@@ -1410,8 +1348,8 @@ public:
         List* L = element_list[u];
 
         auto it = std::next(std::find(L->nodes.begin(), L->nodes.end(), u));
-        std::list<NetworKit::node> nodes1;
-        std::list<NetworKit::node> nodes2;
+        std::list<T> nodes1;
+        std::list<T> nodes2;
         nodes1.splice(nodes1.end(), L->nodes, L->nodes.begin(), it);
         nodes2.splice(nodes2.end(), L->nodes, it, L->nodes.end());
         
@@ -1477,63 +1415,612 @@ private:
 };
 
 
-// template<typename T, typename H, typename K, typename V>
-// class SplitFindMin2 {
-// public: 
-//     struct List {
-//         // TODO
-//     };
+template<typename T, typename H, typename K, typename V>
+class SplitFindMin {
+public: 
+    class List;
 
-//     SplitFindMin(T size, K infinity, V empty_val):
-//         size(size), 
-//         infinity(infinity), 
-//         empty_val(empty_val) {}
+    SplitFindMin(T size, K infinity, V empty_val, int level):
+        max_i(level),
+        size(size), 
+        infinity(infinity), 
+        empty_val(empty_val),
+        e(level + 1),
+        key(level + 1),
+        val(level + 1),
+        element_list(level + 1),
+        list_it(level + 1),
+        superelement_nodes(level + 1) {
+            for (int i = 0; i <= level; ++ i) {
+                e[i] = std::vector<T>(size);
+                element_list[i] = std::vector<List*>(size, nullptr);
+                key[i] = std::vector<K>(size, infinity),
+                val[i] = std::vector<V>(size, empty_val),
+                list_it[i] = std::vector<typename std::list<T>::iterator>(size);
+                superelement_nodes[i] = std::vector<std::list<T>>(size);
+            }
+        }
 
-//     List* init(const std::list<T>& nodes, H head) {
-//         // TODO
+    List* init(const std::list<T>& nodes, H id) {
+        List* L = new List;
+        L->id = id;
+        L->i = max_i;
+        L->sublist = nullptr;
+        L->min_key = infinity;
+        L->min_val = empty_val;
 
-//         return nullptr;
-//     }
+        initialize_head(L, nodes, id, max_i);
 
-//     List* list(T u) {
-//         // TODO
+        return L;
+    }
 
-//         return nullptr;
-//     }
+    List* list(T u) {
+        return find_list(u, max_i);
+    }
 
-//     std::pair<List*, List*> split(T u, H h1, H h2) {
-//         // TODO
+    std::pair<List*, List*> split(T u, H id1, H id2) {
+        return split(u, id1, id2, max_i);
+    }
 
-//         return {nullptr, nullptr};
-//     }
+    void decreaseKey(T u, K x, V v) {
+        decrease_key(u, x, v, max_i);
+    }
 
-//     void decreaseKey(T u, K x, V v) {
-//         // TODO
-//     }
+    std::pair<K, V> findMin(List* L) {
+        return {L->min_key, L->min_val};
+    }
 
-//     std::pair<K, V> findMin(List* L) {
-//         // TODO
+    std::pair<K, V> currentKey(T u) {
+        return {key[max_i][u], val[max_i][u]};
+    }
 
-//         return {infinity, empty_val};
-//     }
+    void deleteList(List* L) {
+        reset_keys(L);
+        delete L;
+    }
 
-//     std::pair<K, V> currentKey(T u) {
-//         // TODO
+    static constexpr int inf_size = 1000000000;
+    static constexpr int A2[4] = {2, 4, 16, 65536};
 
-//         return {infinity, empty_val};
-//     }
+    static int A(int i, int j) {
+        if (j == 0) return 2;
+        if (i == 1) return j < 30 ? (1 << j) : inf_size;
+        if (i == 2) return j < 4 ? A2[j] : inf_size;
+        if (i == 3) return j == 1 ? 16 : inf_size;
+        return inf_size;
+    }
 
-//     void deleteList(List* L) {
-//         // TODO
-//     }
+    static int a(int i, int n) {
+        int j = -1;
+        while (2 * A(i, j + 1) <= n) j ++;
+        return j;
+    }
 
-// private:
-//     T size;
-//     K infinity;
-//     V empty_val;
-//     std::vector<K> key;
-//     std::vector<V> val;
-// };
+    static int alpha(int m, int n) {
+        int i = 1;
+        while (A(i, m / n) < n) i ++;
+        return i;
+    }
+
+    struct Sublist;
+
+    struct List {
+        H id;
+        int i;
+        K min_key;
+        V min_val;
+        std::list<T> nodes;
+        std::list<Sublist*> head, tail;
+        std::list<T> head_singletons, tail_singletons;
+        Sublist* sublist;
+
+        void clear() {
+            head_singletons.clear();
+            for (auto s : head) delete s;
+            head.clear();
+            for (auto s : tail) delete s;
+            tail.clear();
+            tail_singletons.clear();
+            nodes.clear();
+        }
+
+        ~List() {
+            for (auto s : head) delete s;
+            for (auto s : tail) delete s;
+        }
+    };
+
+    struct Sublist {
+        int level;
+        bool head;
+        List* list;
+        List* elements;
+        std::list<Sublist*>::iterator sublist_it;
+
+        ~Sublist() { delete elements; }
+    };
+
+    void print(List* L) {
+        std::cerr << "{(";
+        for (auto n : L->nodes) std::cerr << n << ",";
+        std::cerr << ")";
+        for (auto hs : L->head_singletons) std::cerr << "[" << hs << ":" << key[L->i][hs] << "]";
+        for (auto s : L->head) print(s->elements);
+        std::cerr << "||";
+        for (auto s : L->tail) print(s->elements);
+        for (auto ts : L->tail_singletons) std::cerr << "[" << ts << ":" << key[L->i][ts] << "]";
+        std::cerr << ":" << L->min_key << "}";
+    }
+
+private:
+    int max_i;
+    T size;
+    K infinity;
+    V empty_val;
+    std::vector<std::vector<T>> e;
+    std::vector<std::vector<K>> key;
+    std::vector<std::vector<V>> val;
+    std::vector<std::vector<List*>> element_list;
+    std::vector<std::vector<typename std::list<T>::iterator>> list_it;
+    std::vector<std::vector<std::list<T>>> superelement_nodes;
+
+    void initialize_head(List* L, const std::list<T>& nodes, H id, int i) {
+        #if QUEUE_DEBUG
+        std::cerr << "INIT HEAD ";
+        for (auto n : nodes) std::cerr << n << ", ";
+        std::cerr << " AT LEVEL " << i << std::endl;
+        #endif
+
+        auto nodes_cpy = nodes;
+        for (auto it = nodes_cpy.begin(); it != nodes_cpy.end(); ++ it)
+            list_it[i][*it] = it;
+        L->nodes.splice(L->nodes.begin(), std::move(nodes_cpy));
+
+        int j = a(i, nodes.size()) + 1;
+        int remaining = nodes.size();
+        auto it = nodes.rbegin();
+        Sublist* sublist = nullptr;
+        std::list<T> sublist_elements;
+
+        do {
+            int prev_j = j;
+            while (j >= 0 && 2 * A(i, j) > remaining) -- j;
+
+            if (j != prev_j) {
+                if (sublist != nullptr) {
+                    sublist->elements = new List;
+                    sublist->elements->sublist = sublist;
+                    sublist->elements->i = i - 1;
+                    sublist->elements->min_key = infinity;
+                    sublist->elements->min_val = empty_val;
+
+                    initialize_head(sublist->elements, sublist_elements, id, i - 1);
+                    sublist_elements.clear();
+                    
+                    L->head.push_front(sublist);
+                    sublist->sublist_it = L->head.begin();
+                }
+                if (j == -1) {
+                    sublist = nullptr;
+                } else {
+                    sublist = new Sublist;
+                    sublist->list = L;
+                    sublist->level = j;
+                    sublist->head = true;
+                }
+            }    
+
+            if (j == -1) {
+                T singleton = *it;
+                e[i][singleton] = -1;
+                element_list[i][singleton] = L;
+                L->head_singletons.push_front(singleton);
+                it ++;
+            } else {
+                int size = 2 * A(i, j);
+                T superelement = *it;
+                sublist_elements.push_front(superelement);
+                key[i-1][superelement] = infinity;
+                val[i-1][superelement] = empty_val;
+
+                std::list<T> se_nodes;
+                for (int j = 0; j < size; ++ j) {
+                    se_nodes.push_front(*it);
+                    it ++;
+                }
+
+                for (auto n : se_nodes) {
+                    e[i][n] = superelement;
+                    update_key_at_level(superelement, i - 1, key[i][n], val[i][n]);
+                }
+
+                superelement_nodes[i][superelement] = std::move(se_nodes);
+
+                remaining -= size;
+            }
+        } while (it != nodes.rend());
+
+        if (sublist != nullptr) {
+            sublist->elements = new List;
+            sublist->elements->sublist = sublist;
+            sublist->elements->i = i - 1;
+            sublist->elements->min_key = infinity;
+            sublist->elements->min_val = empty_val;
+
+            initialize_head(sublist->elements, sublist_elements, id, i - 1);
+            
+            L->head.push_front(sublist);
+            sublist->sublist_it = L->head.begin();
+        }
+
+        for (auto n : nodes) update_key(L, key[i][n], val[i][n]);
+    }
+
+    void initialize_tail(List* L, const std::list<T>& nodes, H id, int i) {
+        #if QUEUE_DEBUG
+        std::cerr << "INIT TAIL ";
+        for (auto n : nodes) std::cerr << n << ", ";
+        std::cerr << " AT LEVEL " << i << std::endl;
+        #endif
+
+        auto nodes_cpy = nodes;
+        for (auto it = nodes_cpy.begin(); it != nodes_cpy.end(); ++ it)
+            list_it[i][*it] = it;
+        L->nodes.splice(L->nodes.end(), std::move(nodes_cpy));
+
+        int j = a(i, nodes.size()) + 1;
+        int remaining = nodes.size();
+        auto it = nodes.begin();
+        Sublist* sublist = nullptr;
+        std::list<T> sublist_elements;
+
+        do {
+            int prev_j = j;
+            while (j >= 0 && 2 * A(i, j) > remaining) -- j;
+
+            if (j != prev_j) {
+                if (sublist != nullptr) {
+                    sublist->elements = new List;
+                    sublist->elements->sublist = sublist;
+                    sublist->elements->i = i - 1;
+                    sublist->elements->min_key = infinity;
+                    sublist->elements->min_val = empty_val;
+
+                    initialize_tail(sublist->elements, sublist_elements, id, i - 1);
+                    sublist_elements.clear();
+                    
+                    L->tail.push_back(sublist);
+                    sublist->sublist_it = std::prev(L->tail.end());
+                }
+                if (j == -1) {
+                    sublist = nullptr;
+                } else {
+                    sublist = new Sublist;
+                    sublist->list = L;
+                    sublist->level = j;
+                    sublist->head = false;
+                }
+            }    
+
+            if (j == -1) {
+                T singleton = *it;
+                e[i][singleton] = -1;
+                element_list[i][singleton] = L;
+                L->tail_singletons.push_back(singleton);
+                it ++;
+            } else {
+                int size = 2 * A(i, j);
+
+                std::list<T> se_nodes;
+                for (int j = 0; j < size; ++ j) {
+                    se_nodes.push_back(*it);
+                    it ++;
+                }
+
+                T superelement = se_nodes.back();
+                sublist_elements.push_back(superelement);
+                key[i-1][superelement] = infinity;
+                val[i-1][superelement] = empty_val;
+
+                for (auto n : se_nodes) {
+                    e[i][n] = superelement;
+                    update_key_at_level(superelement, i - 1, key[i][n], val[i][n]);
+                }
+
+                superelement_nodes[i][superelement] = std::move(se_nodes);
+
+                remaining -= size;
+            }
+        } while (it != nodes.end());
+
+        if (sublist != nullptr) {
+            sublist->elements = new List;
+            sublist->elements->sublist = sublist;
+            sublist->elements->i = i - 1;
+            sublist->elements->min_key = infinity;
+            sublist->elements->min_val = empty_val;
+
+            initialize_tail(sublist->elements, sublist_elements, id, i - 1);
+            
+            L->tail.push_back(sublist);
+            sublist->sublist_it = std::prev(L->tail.end());
+        }
+
+        for (auto n : nodes) update_key(L, key[i][n], val[i][n]);
+    }
+
+    List* find_list(T u, int i) {
+        if (is_singleton(u, i)) {
+            return element_list[i][u];
+        } else {
+            auto L = find_list(e[i][u], i - 1);
+            return L->sublist->list;
+        }
+    }
+
+    List* decrease_key(T u, K x, V v, int i) {
+        #if QUEUE_DEBUG
+        std::cerr << "DECREASE KEY " << u << " " << x << " " << v << " AT LEVEL " << i << std::endl; 
+        #endif
+
+        update_key(key[i][u], val[i][u], x, v);
+        if (is_singleton(u, i)) {
+            auto L = element_list[i][u];
+            update_key(L, x, v);
+            return L;
+        } else {
+            auto eL = decrease_key(e[i][u], x, v, i - 1);
+            auto L = eL->sublist->list;
+            update_key(L, x, v);
+            return L;
+        }
+    }
+
+    std::pair<List*, List*> split(T x, H id1, H id2, int i) {
+        #if QUEUE_DEBUG
+        std::cerr << "split " << x << " at level " << i << std::endl; 
+        std::cerr << "in list ";
+        print(find_list(x, i));
+        std::cerr << std::endl;
+        #endif
+
+        if (is_singleton(x, i)) {
+            List* L1 = element_list[i][x];
+            L1->id = id1;
+            List* L2 = new List;
+            L2->id = id2;
+            L2->i = i;
+            L2->min_key = infinity;
+            L2->min_val = empty_val;
+            L2->nodes.splice(L2->nodes.begin(), L1->nodes, std::next(list_it[i][x]), L1->nodes.end());
+
+            auto hit = std::find(L1->head_singletons.begin(), L1->head_singletons.end(), x);
+            auto tit = std::find(L1->tail_singletons.begin(), L1->tail_singletons.end(), x);
+
+            if (hit != L1->head_singletons.end()) {
+                L2->head_singletons.splice(L2->head_singletons.end(), L1->head_singletons,
+                                           std::next(hit), L1->head_singletons.end());
+                L2->head = std::move(L1->head);
+                L2->tail = std::move(L1->tail);
+                L2->tail_singletons = std::move(L1->tail_singletons);
+            } else {
+                assert(tit != L1->tail_singletons.end());
+
+                L2->tail_singletons.splice(L2->tail_singletons.end(), L1->tail_singletons, 
+                                           std::next(tit), L1->tail_singletons.end());
+            }
+
+            set_list_pointers(L2, i);
+
+            calculate_min(L1, i);
+            calculate_min(L2, i);
+
+            #if QUEUE_DEBUG
+            // std::cerr << "split " << x << " at level " << i << " =\n";
+            // print(L1); std::cerr << std::endl;
+            // print(L2); std::cerr << std::endl;
+            check_list_consistency(L1);
+            check_list_consistency(L2);
+            #endif
+
+            return {L1, L2};
+        } else {
+            T superelement = e[i][x];
+            auto [S1, S2] = split(superelement, id1, id2, i - 1);
+
+            if (superelement == S1->nodes.front()) {
+                S1->clear();
+                calculate_min(S1, i - 1);
+            } else {
+                auto [S1p, S] = split(*std::prev(list_it[i-1][superelement]), id1, id2, i - 1);
+
+                assert(S->nodes.size() == 1 && S->nodes.front() == superelement);
+                assert(S1p == S1);
+
+                delete S;
+            }
+
+            Sublist* S2sublist = new Sublist;
+            S2sublist->elements = S2;
+            S2->sublist = S2sublist;
+            S2sublist->level = S1->sublist->level;
+            S2sublist->head = S1->sublist->head;
+
+            auto xit = std::find(superelement_nodes[i][superelement].begin(), 
+                                 superelement_nodes[i][superelement].end(), x);
+            std::list<T> nodes1(superelement_nodes[i][superelement].begin(), std::next(xit));
+            std::list<T> nodes2(std::next(xit), superelement_nodes[i][superelement].end());
+
+            auto L1 = S1->sublist->list;
+            L1->id = id1;
+            assert(L1->i == i);
+            auto L2 = new List;
+            L2->id = id2;
+            L2->i = i;
+            L2->min_key = infinity;
+            L2->min_val = empty_val;
+
+            L2->nodes.splice(L2->nodes.begin(), L1->nodes, 
+                             std::next(list_it[i][superelement_nodes[i][superelement].back()]),
+                             L1->nodes.end());
+            
+            L1->nodes.erase(list_it[i][superelement_nodes[i][superelement].front()], 
+                            L1->nodes.end());
+
+            #if QUEUE_DEBUG
+            std::cerr << "continue split " << x << " at level " << i << std::endl; 
+            std::cerr << "nodes1 : "; for (auto n : nodes1) std::cerr << n << " "; std::cerr << std::endl;
+            std::cerr << "nodes2 : "; for (auto n : nodes2) std::cerr << n << " "; std::cerr << std::endl;
+            std::cerr << "L1 : "; for (auto n : L1->nodes)  std::cerr << n << " "; std::cerr << std::endl;
+            std::cerr << "L2 : "; for (auto n : L2->nodes)  std::cerr << n << " "; std::cerr << std::endl;
+            // std::cerr << "L1 sublists: ";
+            // for (auto s : L1->head) std::cerr << s << " ";
+            // std::cerr << "|| ";
+            // for (auto s : L1->tail) std::cerr << s << " ";
+            // std::cerr << "\n";
+            // std::cerr << "L2 sublists: ";
+            // for (auto s : L2->head) std::cerr << s << " ";
+            // std::cerr << "|| ";
+            // for (auto s : L2->tail) std::cerr << s << " ";
+            // std::cerr << "\n";
+            // std::cerr << "S1->sublist: " << S1->sublist << " " << S1->sublist->head << std::endl;
+
+            check_list_consistency(L1);
+            #endif
+
+            if (S1->sublist->head) {
+                auto split_it = S1->sublist->sublist_it;
+                L2->head.splice(L2->head.end(), L1->head, std::next(split_it), L1->head.end());
+                L2->head.push_front(S2sublist);
+                S2sublist->sublist_it = L2->head.begin();
+                S2sublist->head = true;
+                L2->tail = std::move(L1->tail);
+                L2->tail_singletons = std::move(L1->tail_singletons);
+            } else {
+                auto split_it = S1->sublist->sublist_it;
+                L2->tail.splice(L2->tail.end(), L1->tail, std::next(split_it), L1->tail.end());
+                L2->tail.push_front(S2sublist);
+                S2sublist->sublist_it = L2->tail.begin();
+                S2sublist->head = false;
+                L2->tail_singletons = std::move(L1->tail_singletons);
+            }
+
+            #if QUEUE_DEBUG
+            // std::cerr << "L1 sublists: ";
+            // for (auto s : L1->head) std::cerr << s << " ";
+            // std::cerr << "|| ";
+            // for (auto s : L1->tail) std::cerr << s << " ";
+            // std::cerr << "\n";
+            // std::cerr << "L2 sublists: ";
+            // for (auto s : L2->head) std::cerr << s << " ";
+            // std::cerr << "|| ";
+            // for (auto s : L2->tail) std::cerr << s << " ";
+            // std::cerr << "\n";
+            // std::cerr << "S1->sublist: " << S1->sublist << " " << S1->sublist->head << std::endl;
+            // std::cerr << "S2sublist: " << S2sublist << " " << S2sublist->head << std::endl;
+            #endif
+
+            set_list_pointers(L2, i);
+
+            calculate_min(L1, i);
+            calculate_min(L2, i);
+
+            initialize_tail(L1, nodes1, id1, i);
+            if (nodes2.size() > 0)
+                initialize_head(L2, nodes2, id2, i);
+
+            #if QUEUE_DEBUG
+            std::cerr << "split " << x << " at level " << i << " =\n";
+            print(L1); std::cerr << std::endl;
+            print(L2); std::cerr << std::endl;
+            check_list_consistency(L1);
+            check_list_consistency(L2);
+            #endif
+
+            return {L1, L2};
+        }
+    }
+
+    void calculate_min(List* L, int i) {
+        L->min_key = infinity;
+        L->min_val = empty_val;
+
+        for (auto hs : L->head_singletons) update_key(L, key[i][hs], val[i][hs]);
+        for (auto sl : L->head) update_key(L, sl->elements->min_key, sl->elements->min_val);
+        for (auto sl : L->tail) update_key(L, sl->elements->min_key, sl->elements->min_val);
+        for (auto ts : L->tail_singletons) update_key(L, key[i][ts], val[i][ts]);
+
+        #if QUEUE_DEBUG
+        std::cerr << "CALCULATE MIN FOR ";
+        print(L);
+        std::cerr << " AT LEVEL " << i << " = " << L->min_key << " " << L->min_val << std::endl;
+        #endif
+    }
+
+    void set_list_pointers(List* L, int i) {
+        for (auto hs : L->head_singletons) element_list[i][hs] = L;
+        for (auto sl : L->head) sl->list = L;
+        for (auto sl : L->tail) sl->list = L;
+        for (auto ts : L->tail_singletons) element_list[i][ts] = L;
+    }
+
+    bool is_singleton(T u, int i) {
+        return e[i][u] == -1;
+    }
+
+    void update_key_at_level(T u, int i, K k, V v) {
+        update_key(key[i][u], val[i][u], k, v);
+
+        #if QUEUE_DEBUG
+        if (k == infinity) return;
+        std::cerr << "UPDATE " << u << " AT LEVEL " << i;
+        std::cerr << " " << k << " " << v << " -> " << key[i][u] << " " << val[i][u] << std::endl;
+        #endif
+    }
+
+    void update_key(List* L, K key, V val) {
+        update_key(L->min_key, L->min_val, key, val);
+
+        #if QUEUE_DEBUG
+        if (key == infinity) return;
+        std::cerr << "UPDATE ";
+        print(L);
+        std::cerr << " " << key << " " << val << " -> " << L->min_key << " " << L->min_val << std::endl;
+        #endif
+    }
+
+    void update_key(K& old_key, V& old_val, K key, V val) {
+        // std::cerr << "update " << old_key << "," << old_val << " " << key << "," << val << std::endl;
+        if (key < old_key) {
+            old_key = key;
+            old_val = val;
+        }
+    }
+
+    void reset_keys(List* L) {
+        for (auto n : L->nodes) {
+            key[L->i][n] = infinity;
+            val[L->i][n] = empty_val;
+        }
+        for (auto s : L->head) reset_keys(s->elmenets);
+        for (auto s : L->tail) reset_keys(s->elmenets);
+    }
+
+    void check_list_consistency(List* L) {
+        for (auto it = L->head.begin(); it != L->head.end(); ++ it) {
+            assert(it == (*it)->sublist_it);
+            assert((*it)->head);
+            assert((*it)->list == L);
+            check_list_consistency((*it)->elements);
+        }
+        for (auto it = L->tail.begin(); it != L->tail.end(); ++ it) {
+            assert(it == (*it)->sublist_it);
+            assert(!(*it)->head);
+            assert((*it)->list == L);
+            check_list_consistency((*it)->elements);
+        }
+    }
+};
 
 
 template<typename T>

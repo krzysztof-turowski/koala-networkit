@@ -27,3 +27,8 @@ koala_make_benchmark(
     benchmark_mv
     benchmarkMicaliVazirani.cpp
     benchmarkMicaliVazirani.sh)
+
+koala_make_benchmark(
+    benchmark_sfm
+    benchmarkSplitFindMin.cpp
+    benchmarkSplitFindMin.sh)

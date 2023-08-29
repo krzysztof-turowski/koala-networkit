@@ -47,11 +47,11 @@ GabowScalingMatching::GabowScalingMatching(NetworKit::Graph &graph):
     }
 
 void GabowScalingMatching::run() {
-    std::vector<int> w(reducedGraph.upperEdgeIdBound());
+    std::vector<MaximumMatching::intedgeweight> w(reducedGraph.upperEdgeIdBound());
     
     reducedGraph.forEdges(
         [&w] (NetworKit::node u, NetworKit::node v, NetworKit::edgeweight ew, NetworKit::edgeid e) {
-            w[e] = 2 * static_cast<int>(ew);
+            w[e] = 2 * static_cast<MaximumMatching::intedgeweight>(ew);
         }
     );
 
@@ -352,7 +352,7 @@ GabowScalingMatching::turn_current_blossoms_into_old(const std::list<Blossom*>& 
     return T;
 }
 
-void GabowScalingMatching::heavy_path_decomposition(OldBlossom* T, int outer_dual) {
+void GabowScalingMatching::heavy_path_decomposition(OldBlossom* T, MaximumMatching::intedgeweight outer_dual) {
     for (auto child : T->subblossoms) {
         if (2 * child->size > T->size) {
             T->heavy_child = child;
@@ -376,7 +376,7 @@ void GabowScalingMatching::heavy_path_decomposition(OldBlossom* T, int outer_dua
     }
 }
 
-void GabowScalingMatching::path(OldBlossom* B, int outer_dual) {
+void GabowScalingMatching::path(OldBlossom* B, MaximumMatching::intedgeweight outer_dual) {
     #if DEBUG_LOGGING
     std::cerr << "::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::\n";
     std::cerr << "PATH ";
@@ -729,7 +729,7 @@ void GabowScalingMatching::augmentPaths() {
     #endif
 }
 
-int GabowScalingMatching::current_slack(EdgeInfo edge) {
+MaximumMatching::intedgeweight GabowScalingMatching::current_slack(EdgeInfo edge) {
     auto [u, v, id] = edge;
 
     // #if DEBUG_LOGGING
@@ -898,7 +898,7 @@ void GabowScalingMatching::delete_lists(Blossom* B) {
 void GabowScalingMatching::grow(NetworKit::node v, EdgeInfo e) {
     // if (e != no_edge) union_find.addegde(e.u, e.v)
 
-    auto B = split_find_min.list(v)->head;
+    auto B = split_find_min.list(v)->id;
     if (B->label != free) return;
     B->backtrack_edge = e;
 
@@ -956,7 +956,7 @@ void GabowScalingMatching::schedule(NetworKit::node u) {
 
         auto v = matched_vertex[u];
         auto e = matched_edge[u];
-        auto v_blossom = split_find_min.list(v)->head;
+        auto v_blossom = split_find_min.list(v)->id;
 
         assert(slack({u, v, e}) == 0);
 
@@ -983,7 +983,7 @@ void GabowScalingMatching::schedule(NetworKit::node u) {
             // #endif
 
             auto edge_slack = slack({u, v, id});
-            auto v_blossom = split_find_min.list(v)->head;
+            auto v_blossom = split_find_min.list(v)->id;
 
             if (v_blossom->label == even) {
                 // assert(edge_slack % 2 == 0);
@@ -1202,7 +1202,7 @@ void GabowScalingMatching::dissolveShell(OldBlossom* S) {
                         [this, &edges_to_check] (NetworKit::node v, NetworKit::node u, NetworKit::edgeid id) {
                             if (vertex_path[u] != path_root ||
                                 search_shell[u] != starting_shell) return;
-                            if (split_find_min.list(u)->head->label == even) {
+                            if (split_find_min.list(u)->id->label == even) {
                                 edges_to_check.push_back({u, v, id});
                             }
                         }
@@ -1271,7 +1271,7 @@ void GabowScalingMatching::dissolveShell(OldBlossom* S) {
                     [this, &edges_to_check] (NetworKit::node v, NetworKit::node u, NetworKit::edgeid id) {
                         if (vertex_path[u] != path_root ||
                             search_shell[u] != starting_shell) return;
-                        if (split_find_min.list(u)->head->label == even) {
+                        if (split_find_min.list(u)->id->label == even) {
                             edges_to_check.push_back({u, v, id});
                         }
                     }
@@ -1448,17 +1448,11 @@ void GabowScalingMatching::cut_path_at(
     if (index != -1) path.resize(index + 1);
 }
 
-int GabowScalingMatching::y(NetworKit::node v) {
-    int basic = y0[v] + Delta[v] + 
+MaximumMatching::intedgeweight GabowScalingMatching::y(NetworKit::node v) {
+    MaximumMatching::intedgeweight basic = y0[v] + Delta[v] + 
             std::max(0, std::min(event_queue.timeNow(), t_undissolvable) - t_shell[v]);
-    auto B = split_find_min.list(v)->head;
+    auto B = split_find_min.list(v)->id;
 
-    // #if DEBUG_LOGGING 
-    // if (v == 0) {
-    // std::cerr << "{Y(" << v << ") " << y0[v] << " " << Delta[v] << " " << t_shell[v] << " ";
-    // std::cerr << basic << " " << label_to_str(B->label) << " " << B->Delta << " " << B->t_odd << " " << basic + B->Delta + event_queue.timeNow() - B->t_odd << "}\n";
-    // }
-    // #endif 
     if (B->label == odd) {
         return basic + B->Delta + event_queue.timeNow() - B->t_odd;
     } else if (B->label == even) {
@@ -1467,27 +1461,22 @@ int GabowScalingMatching::y(NetworKit::node v) {
     return basic + B->Delta;
 }
 
-int GabowScalingMatching::z(Blossom* B) {
-    // #if DEBUG_LOGGING
-    // std::cerr << "z("; b->short_print(); std::cerr << ") = ";
-    // std::cerr << 
-    // #endif
-
+MaximumMatching::intedgeweight GabowScalingMatching::z(Blossom* B) {
     if (B->label == odd) {
-        return B->z0 /* - 2 * B->Delta  */- 2 * (event_queue.timeNow() - B->t_odd);
+        return B->z0 - 2 * (event_queue.timeNow() - B->t_odd);
     } else if (B->label == even) {
-        return B->z0 /* - 2 * B->Delta  */+ 2 * (event_queue.timeNow() - B->t_even);
+        return B->z0 + 2 * (event_queue.timeNow() - B->t_even);
     } else {
         return B->z0;
     }
 }
 
-int GabowScalingMatching::shell_z() {
+MaximumMatching::intedgeweight GabowScalingMatching::shell_z() {
     return active_shell == old_root ? 0 :
         (active_shell_initial_dual - 2 * (event_queue.timeNow() - active_shell->t_active));
 }
 
-int GabowScalingMatching::slack(EdgeInfo e) {
+MaximumMatching::intedgeweight GabowScalingMatching::slack(EdgeInfo e) {
     auto [u, v, id] = e;
     auto u_B = get_blossom(u);
     auto v_B = get_blossom(v); 
@@ -1499,29 +1488,23 @@ bool GabowScalingMatching::is_exposed(Blossom *b) {
 }
 
 bool GabowScalingMatching::is_even(NetworKit::node v) {
-    return split_find_min.list(v)->head->label == even;
+    return split_find_min.list(v)->id->label == even;
 }
 
 bool GabowScalingMatching::is_odd(NetworKit::node v) {
-    return split_find_min.list(v)->head->label == odd;
+    return split_find_min.list(v)->id->label == odd;
 }
 
-void GabowScalingMatching::add_distribution(OldBlossom* S, int distribution) {
-    // shell_distribution[S->shell_index] += distribution;
+void GabowScalingMatching::add_distribution(OldBlossom* S, MaximumMatching::intedgeweight distribution) {
     shell_distribution.add(S->shell_index, distribution);
 }
 
-int GabowScalingMatching::distribution_so_far(int shell_index) {
-    // int res = 0;
-    // for (int i = 0; i < shell_index && i < shell_distribution.size(); ++ i) {
-    //     res += shell_distribution[i];
-    // }
-    // return res;
+MaximumMatching::intedgeweight GabowScalingMatching::distribution_so_far(int shell_index) {
     return shell_distribution.sum(shell_index - 1);
 }
 
 GabowScalingMatching::Blossom* GabowScalingMatching::get_blossom(NetworKit::node v) {
-    auto B = split_find_min.list(v)->head;
+    auto B = split_find_min.list(v)->id;
     if (B->label == even) {
         return union_find.find(B->base);
     } else {
@@ -1774,11 +1757,11 @@ void GabowScalingMatching::print_current_state() {
 void GabowScalingMatching::print_vertex_state(NetworKit::node v) {
     if (search_shell[v] != starting_shell) return;
 
-    int basic = y0[v] + Delta[v] + 
+    MaximumMatching::intedgeweight basic = y0[v] + Delta[v] + 
             std::max(0, std::min(event_queue.timeNow(), t_undissolvable) - t_shell[v]);
-    auto B = split_find_min.list(v)->head;
+    auto B = split_find_min.list(v)->id;
     
-    int y;
+    MaximumMatching::intedgeweight y;
     
     if (B->label == odd) {
         y = basic + B->Delta + event_queue.timeNow() - B->t_odd;

@@ -12,14 +12,10 @@ MicaliGabowMaximumMatching::MicaliGabowMaximumMatching(NetworKit::Graph &graph) 
         good_edges(graph.upperEdgeIdBound()),
         even_edges(graph.upperEdgeIdBound() + graph.upperNodeIdBound()) { 
 
-    NetworKit::edgeweight max_weight = std::numeric_limits<NetworKit::edgeweight>::min();
-    graph.forEdges(
-        [&max_weight] (NetworKit::node u, NetworKit::node v, NetworKit::edgeweight weight) { 
-            max_weight = std::max(weight, max_weight);
-        }
-    );
-    Ufree = std::vector<NetworKit::edgeweight>(graph.upperNodeIdBound(), max_weight / 2.);
-
+    MaximumMatching::edgeweight  max_weight = std::numeric_limits<MaximumMatching::edgeweight>::min();
+    for (auto [u, v, w] : graph_edges) 
+        max_weight = std::max(w, max_weight);
+    Ufree = std::vector<MaximumMatching::edgeweight>(graph.upperNodeIdBound(), max_weight);
     for (auto b : trivial_blossom) {
         ConcatenableQueue<Blossom*, NetworKit::node, NetworKit::node> nodes(b);
         nodes_refs[b->base] = nodes.append(b->base, 0);
@@ -79,20 +75,20 @@ void MicaliGabowMaximumMatching::finish_stage() {
         }
     }
 
-    Zeven.for_elements([this, &to_expand] (NetworKit::node base, NetworKit::edgeweight dual_weight) {
+    Zeven.for_elements([this, &to_expand] (NetworKit::node base, MaximumMatching::edgeweight  dual_weight) {
         Blossom* b = get_blossom(base);
         b->z = dual_weight;
         if (dual_weight == 0)
             to_expand.push_back(b);
     });
-    Zodd.for_elements([this] (NetworKit::node base, NetworKit::edgeweight dual_weight) {
+    Zodd.for_elements([this] (NetworKit::node base, MaximumMatching::edgeweight  dual_weight) {
         Blossom* b = get_blossom(base);
         b->z = dual_weight;
     });
-    Ueven.for_elements([this] (NetworKit::node v, NetworKit::edgeweight dual) {
+    Ueven.for_elements([this] (NetworKit::node v, MaximumMatching::edgeweight  dual) {
         Ufree[v] = dual;
     });
-    Uodd.for_elements([this] (NetworKit::node v, NetworKit::edgeweight dual) {
+    Uodd.for_elements([this] (NetworKit::node v, MaximumMatching::edgeweight  dual) {
         Ufree[v] = dual;
     });
     
@@ -156,7 +152,7 @@ void MicaliGabowMaximumMatching::scan_edges(Blossom* b) {
             if (v_blossom == b) return;
             auto slack = edge_slack(id);
             if (v_blossom->label == even) {
-                good_edges.insert(id, slack/2);
+                good_edges.insert(id, slack);
             } else {
                 even_edges.insert_before(
                     id, slack, dummy_edge_id(v), get_data(v_blossom)->even_edges);
@@ -286,40 +282,40 @@ void MicaliGabowMaximumMatching::handle_even_blossom_expansion(Blossom* blossom)
     }
 }
 
-void MicaliGabowMaximumMatching::adjust_by_delta(NetworKit::edgeweight delta) {
+void MicaliGabowMaximumMatching::adjust_by_delta(MaximumMatching::edgeweight delta) {
     Ueven.decrease_all_priorities(delta);
     Uodd.decrease_all_priorities(-delta);
-    good_edges.decrease_all_priorities(delta);
-    Zeven.decrease_all_priorities(-2*delta);
-    Zodd.decrease_all_priorities(2*delta);
+    good_edges.decrease_all_priorities(2 * delta);
+    Zeven.decrease_all_priorities(-2 * delta);
+    Zodd.decrease_all_priorities(2 * delta);
     even_edges.decrease_all_priorities(delta);
 }
 
-NetworKit::edgeweight MicaliGabowMaximumMatching::calc_delta1() {
+MaximumMatching::edgeweight  MicaliGabowMaximumMatching::calc_delta1() {
     // min u_i : i - even vertex
-    return Ueven.empty() ? std::numeric_limits<NetworKit::edgeweight>::max()
+    return Ueven.empty() ? std::numeric_limits<MaximumMatching::edgeweight >::max()
         : Ueven.find_min().second;
 }
 
-NetworKit::edgeweight MicaliGabowMaximumMatching::calc_delta2() {
+MaximumMatching::edgeweight  MicaliGabowMaximumMatching::calc_delta2() {
     // min pi_ij : i - even vertex, j - free vertex
 
     return even_edges.has_active_elements() ? even_edges.find_min().second
-        : std::numeric_limits<NetworKit::edgeweight>::max();
+        : std::numeric_limits<MaximumMatching::edgeweight >::max();
 }
 
-NetworKit::edgeweight MicaliGabowMaximumMatching::calc_delta3() {
+MaximumMatching::edgeweight  MicaliGabowMaximumMatching::calc_delta3() {
     // min pi_ij / 2 : i,j - even vertices in different blossoms
     
     clear_not_good_edges();
-    return good_edges.empty() ? std::numeric_limits<NetworKit::edgeweight>::max()
-        : good_edges.find_min().second;
+    return good_edges.empty() ? std::numeric_limits<MaximumMatching::edgeweight>::max()
+        : good_edges.find_min().second / 2;
 }
 
-NetworKit::edgeweight MicaliGabowMaximumMatching::calc_delta4() {
+MaximumMatching::edgeweight  MicaliGabowMaximumMatching::calc_delta4() {
     // min z_k / 2 : B_k - odd blossom 
-    return Zodd.empty() ? std::numeric_limits<NetworKit::edgeweight>::max()
-        : (Zodd.find_min().second / 2);
+    return Zodd.empty() ? std::numeric_limits<MaximumMatching::edgeweight>::max()
+        : Zodd.find_min().second / 2;
 }
 
 void MicaliGabowMaximumMatching::find_delta2_useful_edges() {}
@@ -329,7 +325,7 @@ void MicaliGabowMaximumMatching::find_delta3_useful_edges() {}
 std::vector<MicaliGabowMaximumMatching::Blossom*> 
 MicaliGabowMaximumMatching::get_odd_blossoms_to_expand() {    
     std::vector<Blossom*> to_expand;
-    Zodd.for_elements_until([this, &to_expand] (NetworKit::node base, NetworKit::edgeweight dual) {
+    Zodd.for_elements_until([this, &to_expand] (NetworKit::node base, MaximumMatching::edgeweight  dual) {
         if (dual == 0) {
             to_expand.push_back(get_blossom(base));
             return false;
@@ -343,6 +339,36 @@ MicaliGabowMaximumMatching::get_odd_blossoms_to_expand() {
 MicaliGabowMaximumMatching::Blossom* 
 MicaliGabowMaximumMatching::get_blossom(NetworKit::node vertex) {
     return nodes_refs[vertex]->find_queue()->head;
+}
+
+MaximumMatching::edgeweight  MicaliGabowMaximumMatching::U(NetworKit::node v) {
+    auto b = get_blossom(v);
+    switch (b->label) {
+        case free: return Ufree[v];
+        case even: return Ueven.current_priority(v);
+        case odd:  return Uodd.current_priority(v);
+    }
+    return 0;
+}
+
+MaximumMatching::edgeweight  MicaliGabowMaximumMatching::edge_slack(NetworKit::edgeid edge) {
+    auto [u, v, w] = graph_edges[edge];
+    auto u_blossom = get_blossom(u);
+    auto v_blossom = get_blossom(v);
+    return U(u) + U(v) - w + (u_blossom == v_blossom ? blossom_dual(u_blossom) : 0);
+}
+
+MaximumMatching::edgeweight  MicaliGabowMaximumMatching::blossom_dual(Blossom* b) {
+    switch (b->label) {
+        case free: return b->z;
+        case even: return Zeven.current_priority(b->initial_base);
+        case odd:  return Zodd.current_priority(b->initial_base);
+    }
+    return 0;
+}
+
+NetworKit::edgeid MicaliGabowMaximumMatching::dummy_edge_id(NetworKit::node node) {
+    return graph.upperEdgeIdBound() + node;
 }
 
 void MicaliGabowMaximumMatching::check_consistency() {
@@ -375,15 +401,15 @@ void MicaliGabowMaximumMatching::check_consistency() {
         std::cerr << v << ": " << U(v) << std::endl;
     });
     std::cerr << "Zeven:\n";
-    Zeven.for_elements([this] (NetworKit::node base, NetworKit::edgeweight dual_weight) {
+    Zeven.for_elements([this] (NetworKit::node base, MaximumMatching::edgeweight dual_weight) {
         std::cerr << base << " : " << dual_weight << std::endl;
     });
     std::cerr << "Zodd:\n";
-    Zodd.for_elements([this] (NetworKit::node base, NetworKit::edgeweight dual_weight) {
+    Zodd.for_elements([this] (NetworKit::node base, MaximumMatching::edgeweight dual_weight) {
         std::cerr << base << " : " << dual_weight << std::endl;
     });
     std::cerr << "Good edges:\n";
-    good_edges.for_elements([this] (NetworKit::edgeid id, NetworKit::edgeweight var) {
+    good_edges.for_elements([this] (NetworKit::edgeid id, MaximumMatching::edgeweight var) {
         auto [u, v, w] = graph_edges[id];
         std::cerr << "(" << u << ", " << v << ") : " << var << std::endl;
     });
@@ -401,7 +427,7 @@ void MicaliGabowMaximumMatching::check_consistency() {
                 std::cerr << "min : (" << u << ", " << v << ") : " << pi << std::endl;        
         }
         even_edges.for_each_in_group(group, 
-            [this] (NetworKit::edgeid id, NetworKit::edgeweight pi) {
+            [this] (NetworKit::edgeid id, MaximumMatching::edgeweight pi) {
             if (id < graph.upperEdgeIdBound()) {
                 auto [u, v, w] = graph_edges[id];
                 std::cerr << "(" << u << ", " << v << ") : " << pi << std::endl;        
@@ -411,7 +437,7 @@ void MicaliGabowMaximumMatching::check_consistency() {
         });
     }
     std::cerr << "Active minima:\n";
-    even_edges.for_group_minima([this] (NetworKit::edgeid id, NetworKit::edgeweight pi) {
+    even_edges.for_group_minima([this] (NetworKit::edgeid id, MaximumMatching::edgeweight pi) {
         if (id < graph.upperEdgeIdBound()) {
             auto [u, v, w] = graph_edges[id];
             std::cerr << "(" << u << ", " << v << ") : " << pi << std::endl;        
@@ -419,36 +445,6 @@ void MicaliGabowMaximumMatching::check_consistency() {
             // std::cerr << "dummy " << id - graph.upperEdgeIdBound() << std::endl;
         }
     });
-}
-
-NetworKit::edgeweight MicaliGabowMaximumMatching::U(NetworKit::node v) {
-    auto b = get_blossom(v);
-    switch (b->label) {
-        case free: return Ufree[v];
-        case even: return Ueven.current_priority(v);
-        case odd:  return Uodd.current_priority(v);
-    }
-    return 0;
-}
-
-NetworKit::edgeweight MicaliGabowMaximumMatching::edge_slack(NetworKit::edgeid edge) {
-    auto [u, v, w] = graph_edges[edge];
-    auto u_blossom = get_blossom(u);
-    auto v_blossom = get_blossom(v);
-    return U(u) + U(v) - w + (u_blossom == v_blossom ? blossom_dual(u_blossom) : 0);
-}
-
-NetworKit::edgeweight MicaliGabowMaximumMatching::blossom_dual(Blossom* b) {
-    switch (b->label) {
-        case free: return b->z;
-        case even: return Zeven.current_priority(b->initial_base);
-        case odd:  return Zodd.current_priority(b->initial_base);
-    }
-    return 0;
-}
-
-NetworKit::edgeid MicaliGabowMaximumMatching::dummy_edge_id(NetworKit::node node) {
-    return graph.upperEdgeIdBound() + node;
 }
 
 } /* namespace Koala */

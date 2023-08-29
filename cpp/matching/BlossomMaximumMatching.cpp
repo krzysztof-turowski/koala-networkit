@@ -11,7 +11,7 @@ const std::map<NetworKit::node, NetworKit::node>& MaximumMatching::getMatching()
 
 BlossomMaximumMatching::BlossomMaximumMatching(NetworKit::Graph &graph):
         MaximumMatching(graph),
-        graph_edges(graph.upperEdgeIdBound(), {NetworKit::none, NetworKit::none, 0.0}),
+        graph_edges(graph.upperEdgeIdBound(), {NetworKit::none, NetworKit::none, 0}),
         is_in_matching(graph.upperEdgeIdBound(), false),
         matched_vertex(graph.upperNodeIdBound(), NetworKit::none),
         matched_edge(graph.upperNodeIdBound(), NetworKit::none),
@@ -20,7 +20,7 @@ BlossomMaximumMatching::BlossomMaximumMatching(NetworKit::Graph &graph):
     graph.forEdges([this] (
             NetworKit::node u, NetworKit::node v,
             NetworKit::edgeweight weight, NetworKit::edgeid id) {
-        graph_edges[id] = {u, v, weight};
+        graph_edges[id] = {u, v, 2 * static_cast<MaximumMatching::edgeweight>(weight)};
     });
 
     graph.forNodes([this] (NetworKit::node vertex) {

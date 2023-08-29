@@ -9,12 +9,12 @@ GabowMaximumMatching::GabowMaximumMatching(NetworKit::Graph &graph) :
         best_edge(graph.upperNodeIdBound(), no_edge) { 
     
     graph.sortEdges();
-    NetworKit::edgeweight max_weight = std::numeric_limits<NetworKit::edgeweight>::min();
+    MaximumMatching::edgeweight max_weight = std::numeric_limits<MaximumMatching::edgeweight>::min();
     graph.forEdges([&max_weight] 
-            (NetworKit::node u, NetworKit::node v, NetworKit::edgeweight weight) { 
-        max_weight = std::max(weight, max_weight);
+            (NetworKit::node u, NetworKit::node v, NetworKit::edgeweight w) { 
+        max_weight = std::max(static_cast<MaximumMatching::edgeweight>(w), max_weight);
     });
-    U = std::vector<NetworKit::edgeweight>(graph.upperNodeIdBound(), max_weight / 2.);
+    U = std::vector<MaximumMatching::edgeweight>(graph.upperNodeIdBound(), max_weight / 2);
     graph.forNodes([this] (NetworKit::node vertex) {
         this->current_blossom[vertex] = this->trivial_blossom[vertex];
     });
@@ -70,9 +70,7 @@ GabowMaximumMatching::EdgeInfo GabowMaximumMatching::get_useful_edge() {
     return edge;
 }
 
-void GabowMaximumMatching::label_odd(Blossom* b) {
-    // TODO
-}
+void GabowMaximumMatching::label_odd(Blossom* b) {}
 
 void GabowMaximumMatching::label_even(Blossom* b) {
     // Check for new useful edges
@@ -134,7 +132,7 @@ void GabowMaximumMatching::handle_even_blossom_expansion(Blossom* blossom) {
     }
 }
 
-void GabowMaximumMatching::adjust_by_delta(NetworKit::edgeweight delta) {
+void GabowMaximumMatching::adjust_by_delta(MaximumMatching::edgeweight delta) {
     graph.forNodes([this, delta] (NetworKit::node v) {
         Blossom* v_blossom = this->get_blossom(v);
         if (v_blossom->label == even) {
@@ -153,10 +151,10 @@ void GabowMaximumMatching::adjust_by_delta(NetworKit::edgeweight delta) {
     }
 }
 
-NetworKit::edgeweight GabowMaximumMatching::calc_delta1() {
+MaximumMatching::edgeweight GabowMaximumMatching::calc_delta1() {
     // min u_i : i - even vertex
 
-    NetworKit::edgeweight res = std::numeric_limits<NetworKit::edgeweight>::max();
+    MaximumMatching::edgeweight res = std::numeric_limits<MaximumMatching::edgeweight>::max();
     graph.forNodes([this, &res] (NetworKit::node v) {
         if (this->get_blossom(v)->label == even) {
             res = std::min(res, this->U[v]);
@@ -165,10 +163,10 @@ NetworKit::edgeweight GabowMaximumMatching::calc_delta1() {
     return res;
 }
 
-NetworKit::edgeweight GabowMaximumMatching::calc_delta2() {
+MaximumMatching::edgeweight GabowMaximumMatching::calc_delta2() {
     // min pi_ij : i - even vertex, j - free vertex
 
-    NetworKit::edgeweight res = std::numeric_limits<NetworKit::edgeweight>::max();
+    MaximumMatching::edgeweight res = std::numeric_limits<MaximumMatching::edgeweight>::max();
     graph.forNodes([this, &res] (NetworKit::node v) {
         if (get_blossom(v)->label != free) return;
         auto slack = edge_slack(best_edge[v].id);
@@ -177,10 +175,10 @@ NetworKit::edgeweight GabowMaximumMatching::calc_delta2() {
     return res;
 }
 
-NetworKit::edgeweight GabowMaximumMatching::calc_delta3() {
+MaximumMatching::edgeweight GabowMaximumMatching::calc_delta3() {
     // min pi_ij / 2 : i,j - even vertices in different blossoms
 
-    NetworKit::edgeweight res = std::numeric_limits<NetworKit::edgeweight>::max();
+    MaximumMatching::edgeweight res = std::numeric_limits<MaximumMatching::edgeweight>::max();
     for (auto b : blossoms) {
         if (b->label != even) continue;
         auto slack = edge_slack(get_data(b)->best_edge.id);
@@ -189,13 +187,13 @@ NetworKit::edgeweight GabowMaximumMatching::calc_delta3() {
     return res;
 }
 
-NetworKit::edgeweight GabowMaximumMatching::calc_delta4() {
+MaximumMatching::edgeweight GabowMaximumMatching::calc_delta4() {
     // min z_k / 2 : B_k - odd blossom 
 
-    NetworKit::edgeweight res = std::numeric_limits<NetworKit::edgeweight>::max();
+    MaximumMatching::edgeweight res = std::numeric_limits<MaximumMatching::edgeweight>::max();
     for (Blossom* b : blossoms) {
         if (b->label == odd && !b->is_trivial()) {
-            res = std::min(res, b->z / 2.0);
+            res = std::min(res, b->z / 2);
         }
     }
 
@@ -265,8 +263,8 @@ void GabowMaximumMatching::calc_best_edges(Blossom* b) {
     });
 }
 
-NetworKit::edgeweight GabowMaximumMatching::edge_slack(NetworKit::edgeid edge) {
-    if (edge == NetworKit::none) return std::numeric_limits<NetworKit::edgeweight>::max();
+MaximumMatching::edgeweight GabowMaximumMatching::edge_slack(NetworKit::edgeid edge) {
+    if (edge == NetworKit::none) return std::numeric_limits<MaximumMatching::edgeweight>::max();
     auto [u, v, w] = graph_edges[edge];
     auto u_blossom = get_blossom(u);
     auto v_blossom = get_blossom(v);

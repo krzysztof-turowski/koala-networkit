@@ -24,6 +24,9 @@ namespace Koala {
 class MaximumMatching : public NetworKit::Algorithm {
 
 public:
+    using edgeweight = NetworKit::edgeweight;
+    using intedgeweight = int;
+
     /**
      * Given an input graph, set up the maximum matching algorithm.
      *
@@ -81,7 +84,7 @@ protected:
         BlossomLabel label;
         EdgeInfo backtrack_edge;
         bool visited;
-        NetworKit::edgeweight z;
+        MaximumMatching::edgeweight z;
         std::list<Blossom*>::iterator list_it;
         BlossomData* data;
 
@@ -103,7 +106,7 @@ protected:
         EdgeInfo edge; 
     };
 
-    std::vector<std::tuple<NetworKit::node, NetworKit::node, NetworKit::edgeweight>> graph_edges;
+    std::vector<std::tuple<NetworKit::node, NetworKit::node, MaximumMatching::edgeweight>> graph_edges;
     std::vector<bool> is_in_matching;
     std::list<Blossom*> blossoms;
     std::vector<NetworKit::node> matched_vertex;
@@ -153,12 +156,12 @@ protected:
 
     void adjust_dual_variables();
     
-    virtual NetworKit::edgeweight calc_delta1() = 0;
-    virtual NetworKit::edgeweight calc_delta2() = 0;
-    virtual NetworKit::edgeweight calc_delta3() = 0;
-    virtual NetworKit::edgeweight calc_delta4() = 0;
+    virtual MaximumMatching::edgeweight calc_delta1() = 0;
+    virtual MaximumMatching::edgeweight calc_delta2() = 0;
+    virtual MaximumMatching::edgeweight calc_delta3() = 0;
+    virtual MaximumMatching::edgeweight calc_delta4() = 0;
     
-    virtual void adjust_by_delta(NetworKit::edgeweight delta) = 0;
+    virtual void adjust_by_delta(MaximumMatching::edgeweight delta) = 0;
     virtual void find_delta2_useful_edges() = 0;
     virtual void find_delta3_useful_edges() = 0;
     virtual std::vector<Blossom*> get_odd_blossoms_to_expand() = 0;
@@ -193,7 +196,7 @@ public:
 private:
 
     std::vector<Blossom*> current_blossom;
-    std::vector<NetworKit::edgeweight> U;
+    std::vector<MaximumMatching::edgeweight> U;
     std::queue<EdgeInfo> useful_edges;
 
     void initialize_stage() override;
@@ -212,11 +215,11 @@ private:
     void handle_odd_blossom_expansion(Blossom* blossom) override;
     void handle_even_blossom_expansion(Blossom* blossom) override;
     
-    NetworKit::edgeweight calc_delta1() override;
-    NetworKit::edgeweight calc_delta2() override;
-    NetworKit::edgeweight calc_delta3() override;
-    NetworKit::edgeweight calc_delta4() override;
-    void adjust_by_delta(NetworKit::edgeweight delta) override;
+    MaximumMatching::edgeweight calc_delta1() override;
+    MaximumMatching::edgeweight calc_delta2() override;
+    MaximumMatching::edgeweight calc_delta3() override;
+    MaximumMatching::edgeweight calc_delta4() override;
+    void adjust_by_delta(MaximumMatching::edgeweight delta) override;
 
     void find_delta2_useful_edges() override;
     void find_delta3_useful_edges() override;
@@ -226,7 +229,7 @@ private:
 
     void check_consistency() override;
 
-    NetworKit::edgeweight edge_dual_variable(NetworKit::edgeid edge);
+    MaximumMatching::edgeweight edge_dual_variable(NetworKit::edgeid edge);
     bool is_useful(NetworKit::node u, NetworKit::node v, NetworKit::edgeid edge);
 };
 
@@ -249,7 +252,7 @@ private:
     GabowBlossomData* get_data(Blossom* b);
     
     std::queue<EdgeInfo> edge_queue;
-    std::vector<NetworKit::edgeweight> U;
+    std::vector<MaximumMatching::edgeweight> U;
     std::vector<Blossom*> current_blossom;
     std::vector<EdgeInfo> best_edge;
 
@@ -269,11 +272,11 @@ private:
     void handle_odd_blossom_expansion(Blossom* blossom) override;
     void handle_even_blossom_expansion(Blossom* blossom) override;
 
-    NetworKit::edgeweight calc_delta1() override;
-    NetworKit::edgeweight calc_delta2() override;
-    NetworKit::edgeweight calc_delta3() override;
-    NetworKit::edgeweight calc_delta4() override;
-    void adjust_by_delta(NetworKit::edgeweight delta) override;
+    MaximumMatching::edgeweight calc_delta1() override;
+    MaximumMatching::edgeweight calc_delta2() override;
+    MaximumMatching::edgeweight calc_delta3() override;
+    MaximumMatching::edgeweight calc_delta4() override;
+    void adjust_by_delta(MaximumMatching::edgeweight delta) override;
 
     void find_delta2_useful_edges() override;
     void find_delta3_useful_edges() override;
@@ -285,7 +288,7 @@ private:
 
     void calc_best_edges(Blossom* b);
 
-    NetworKit::edgeweight edge_slack(NetworKit::edgeid edge);
+    MaximumMatching::edgeweight edge_slack(NetworKit::edgeid edge);
 };
 
 /**
@@ -299,7 +302,7 @@ public:
 
 private:
     using BlossomNodeList = ConcatenableQueue<Blossom*, NetworKit::node, NetworKit::node>;
-    using EvenEdgeGroup = PriorityQueue2<NetworKit::edgeid, NetworKit::edgeweight>::Group*;
+    using EvenEdgeGroup = PriorityQueue2<NetworKit::edgeid, MaximumMatching::edgeweight>::Group*;
     class MicaliGabowBlossomData : public Blossom::BlossomData {
     public:
         // Contains all nodes in blossom order
@@ -318,28 +321,28 @@ private:
     std::queue<EdgeInfo> edge_queue;
 
     // Used to maintain dual variables for vertices
-    PriorityQueue1<NetworKit::node, NetworKit::edgeweight> Ueven;
-    PriorityQueue1<NetworKit::node, NetworKit::edgeweight> Uodd;
-    std::vector<NetworKit::edgeweight> Ufree;
-    NetworKit::edgeweight U(NetworKit::node v);
+    PriorityQueue1<NetworKit::node, MaximumMatching::edgeweight> Ueven;
+    PriorityQueue1<NetworKit::node, MaximumMatching::edgeweight> Uodd;
+    std::vector<MaximumMatching::edgeweight> Ufree;
+    MaximumMatching::edgeweight U(NetworKit::node v);
 
     // Used to maintain dual variables for blossoms
-    PriorityQueue1<NetworKit::node, NetworKit::edgeweight> Zeven;
-    PriorityQueue1<NetworKit::node, NetworKit::edgeweight> Zodd;
-    NetworKit::edgeweight blossom_dual(Blossom* b);
+    PriorityQueue1<NetworKit::node, MaximumMatching::edgeweight> Zeven;
+    PriorityQueue1<NetworKit::node, MaximumMatching::edgeweight> Zodd;
+    MaximumMatching::edgeweight blossom_dual(Blossom* b);
 
     // Used to maintain slack of edges between S-vertices
     // Needed to calculate delta_3
     // Maintains pi_ij / 2
-    PriorityQueue1<NetworKit::edgeid, NetworKit::edgeweight> good_edges;
+    PriorityQueue1<NetworKit::edgeid, MaximumMatching::edgeweight> good_edges;
     void clear_not_good_edges();
     bool is_good(NetworKit::edgeid edge);
-    NetworKit::edgeweight edge_slack(NetworKit::edgeid edge);
+    MaximumMatching::edgeweight edge_slack(NetworKit::edgeid edge);
 
     // Used to maintain edges from S-vertices to T/free-vertices
     // Neede to calculate delta_2
     // Maintains pi_ij for 
-    PriorityQueue2<NetworKit::edgeid, NetworKit::edgeweight> even_edges;
+    PriorityQueue2<NetworKit::edgeid, MaximumMatching::edgeweight> even_edges;
     NetworKit::edgeid dummy_edge_id(NetworKit::node node);
 
     // Scan all edges from newly even blossom and update good_edges and even_edges
@@ -361,11 +364,11 @@ private:
     void handle_odd_blossom_expansion(Blossom* blossom) override;
     void handle_even_blossom_expansion(Blossom* blossom) override;
     
-    NetworKit::edgeweight calc_delta1() override;
-    NetworKit::edgeweight calc_delta2() override;
-    NetworKit::edgeweight calc_delta3() override;
-    NetworKit::edgeweight calc_delta4() override;
-    void adjust_by_delta(NetworKit::edgeweight delta) override;
+    MaximumMatching::edgeweight calc_delta1() override;
+    MaximumMatching::edgeweight calc_delta2() override;
+    MaximumMatching::edgeweight calc_delta3() override;
+    MaximumMatching::edgeweight calc_delta4() override;
+    void adjust_by_delta(MaximumMatching::edgeweight delta) override;
 
     void find_delta2_useful_edges() override;
     void find_delta3_useful_edges() override;
@@ -538,7 +541,7 @@ private:
         EdgeInfo backtrack_edge;
         bool visited;
         std::list<Blossom*>::iterator shell_blossoms_it;
-        SplitFindMin<NetworKit::node, Blossom*, int, EdgeInfo>::List* list;
+        SplitFindMinNaive<NetworKit::node, Blossom*, int, EdgeInfo>::List* list;
 
         bool is_trivial();
         void for_nodes(const std::function<void(NetworKit::node)>& handle);
@@ -659,27 +662,27 @@ private:
 
     bool search_done;
     int t_undissolvable;
-    int shell_Delta;
-    int outer_blossom_dual;
-    int active_shell_initial_dual;
+    MaximumMatching::intedgeweight shell_Delta;
+    MaximumMatching::intedgeweight outer_blossom_dual;
+    MaximumMatching::intedgeweight active_shell_initial_dual;
     OldBlossom* old_root;
     OldBlossom* path_root;
     OldBlossom* highest_undissolved;
     OldBlossom* active_shell;
     OldBlossom* starting_shell;
-    std::vector<std::pair<int, OldBlossom*>> shells;
+    std::vector<std::pair<MaximumMatching::intedgeweight, OldBlossom*>> shells;
     std::vector<OldBlossom*> vertex_path;
-    std::vector<int> current_shell_duals;
-    std::vector<int> y0;
-    std::vector<int> t_shell;
-    std::vector<int> Delta;
-    FenwickTree shell_distribution;
+    std::vector<MaximumMatching::intedgeweight> current_shell_duals;
+    std::vector<MaximumMatching::intedgeweight> y0;
+    std::vector<MaximumMatching::intedgeweight> t_shell;
+    std::vector<MaximumMatching::intedgeweight> Delta;
     std::vector<Blossom*> current_blossom;
     std::vector<OldBlossom*> current_shell;
     std::vector<OldBlossom*> search_shell;
+    FenwickTree shell_distribution;
     ArrayPriorityQueue<Event> event_queue;
     UnionFind<NetworKit::node, Blossom*> union_find;
-    SplitFindMin<NetworKit::node, Blossom*, int, EdgeInfo> split_find_min;
+    SplitFindMinNaive<NetworKit::node, Blossom*, MaximumMatching::intedgeweight, EdgeInfo> split_find_min;
 
     void grow(NetworKit::node v, EdgeInfo e);
     void schedule(NetworKit::node v);
@@ -704,16 +707,16 @@ private:
     std::pair<std::list<std::pair<Blossom*, EdgeInfo>>, std::list<std::pair<Blossom*, EdgeInfo>>>
     split_subblossoms(std::list<std::pair<Blossom*, EdgeInfo>> subblossoms, Blossom* blossom);
 
-    int y(NetworKit::node v);
-    int z(Blossom* B);
-    int shell_z();
-    int slack(EdgeInfo e);
+    MaximumMatching::intedgeweight y(NetworKit::node v);
+    MaximumMatching::intedgeweight z(Blossom* B);
+    MaximumMatching::intedgeweight shell_z();
+    MaximumMatching::intedgeweight slack(EdgeInfo e);
     bool is_exposed(Blossom* b);
     bool is_even(NetworKit::node v);
     bool is_odd(NetworKit::node v);
     Blossom* get_blossom(NetworKit::node v);
-    void add_distribution(OldBlossom* S, int distribution);
-    int distribution_so_far(int shell_index);
+    void add_distribution(OldBlossom* S, MaximumMatching::intedgeweight distribution);
+    MaximumMatching::intedgeweight distribution_so_far(int shell_index);
     bool matching_is_perfect();
 
     void print_current_state();
