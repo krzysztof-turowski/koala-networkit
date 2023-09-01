@@ -37,11 +37,14 @@ class MinimumSpanningTree : public NetworKit::Algorithm {
     const NetworKit::Graph& getForest() const;
 
     /**
-     * Verify the result found by the algorithm.
+     * Verify the result found by the algorithm using O(n + m) MST verification algorithm
+     * from Hagerup, An Even Simpler Linear-Time Algorithm for Verifying Minimum Spanning Trees.
      */
     void check() const;
 
  protected:
+    using NodePair = std::pair<NetworKit::node, NetworKit::node>;
+
     std::optional<NetworKit::Graph> graph, tree;
 };
 
@@ -89,8 +92,9 @@ class BoruvkaMinimumSpanningTree : public MinimumSpanningTree {
 
  protected:
     static std::optional<NetworKit::Graph> iterate(
-        NetworKit::Graph &G, NetworKit::Graph &F, NetworKit::UnionFind&, NetworKit::count steps,
-        bool get_branching_tree = false);
+        NetworKit::Graph &G, NetworKit::Graph &F,
+        NetworKit::UnionFind &union_find, std::map<NodePair, NodePair> &E,
+        NetworKit::count steps, bool get_branching_tree = false);
 };
 
 /**
@@ -108,15 +112,8 @@ class KargerKleinTarjanMinimumSpanningTree final : public BoruvkaMinimumSpanning
 
  protected:
     static void recurse(NetworKit::Graph &G, NetworKit::Graph &F);
-    static void discard_random_edges(
-        NetworKit::Graph &G, NetworKit::UnionFind &union_find, NetworKit::Graph &subgraph);
+    static void discard_random_edges(NetworKit::Graph &G, NetworKit::Graph &subgraph);
     static void remove_heavy_edges(NetworKit::Graph &G, NetworKit::Graph &subgraph);
 };
 
-class KargerKleinTarjanMinimumSpanningTreeOriginal final : public MinimumSpanningTree {
- public:
-    using MinimumSpanningTree::MinimumSpanningTree;
-    void run();
-};
-
-} /* namespace Koala */
+}  /* namespace Koala */
