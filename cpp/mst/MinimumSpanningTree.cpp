@@ -21,157 +21,40 @@ std::random_device device;
 std::default_random_engine generator{device()};
 std::uniform_int_distribution<int> distribution(0, 1);
 
-namespace Koala {
-
-MinimumSpanningTree::MinimumSpanningTree(
-        NetworKit::Graph &graph) : graph(std::make_optional(graph)) {
-    tree = std::make_optional(NetworKit::GraphTools::copyNodes(graph));
-}
-
-const NetworKit::Graph& MinimumSpanningTree::getForest() const {
-    assureFinished();
-    return *tree;
-}
-
-void KruskalMinimumSpanningTree::run() {
-    hasRun = true;
-    std::vector<NetworKit::WeightedEdge> sorted_edges(
-        graph->edgeWeightRange().begin(), graph->edgeWeightRange().end());
-    Aux::Parallel::sort(sorted_edges.begin(), sorted_edges.end());
-    NetworKit::UnionFind union_find(graph->upperNodeIdBound());
-    for (const auto &e : sorted_edges) {
-        if (union_find.find(e.u) != union_find.find(e.v)) {
-            tree->addEdge(e.u, e.v, e.weight);
-            union_find.merge(e.u, e.v);
-        }
-    }
-}
-
-void PrimMinimumSpanningTree::run() {
-    hasRun = true;
-    Heap<std::pair<NetworKit::edgeweight, NetworKit::node>> queue;
-    queue.push(std::make_pair(0, *(graph->nodeRange().begin())));
-    std::unordered_map<NetworKit::node, NetworKit::WeightedEdge> previous;
-    while (!queue.empty()) {
-        auto v = queue.top().second;
-        queue.pop();
-        if (!tree->isIsolated(v)) {
-            continue;
-        }
-        const auto &e = previous.find(v);
-        if (e != previous.end()) {
-            tree->addEdge(e->second.u, e->second.v, e->second.weight);
-        }
-        graph->forNeighborsOf(v, [&](NetworKit::node u, NetworKit::edgeweight weight) {
-            if (tree->isIsolated(u)) {
-                queue.push(std::make_pair(-weight, u));
-                if (!previous.count(u) || previous[u].weight > weight) {
-                    previous[u] = NetworKit::WeightedEdge(u, v, weight);
-                }
-            }
-        });
-    }
-}
-
-void BoruvkaMinimumSpanningTree::run() {
-    hasRun = true;
-    NetworKit::UnionFind union_find(graph->upperNodeIdBound());
-    NetworKit::Graph G(*graph);
-    std::map<NodePair, NodePair> E;
-    G.forEdges([&](NetworKit::node u, NetworKit::node v) {
-        E.insert({std::minmax(u, v), {u, v}});
-    });
-    iterate(G, *tree, union_find, E, std::numeric_limits<NetworKit::count>::max(), true);
-}
-
-void initialize_branching_tree(
-        NetworKit::Graph &B, std::unordered_map<NetworKit::node, NetworKit::node> &V_B,
-        const NetworKit::Graph &G) {
-    B = NetworKit::Graph(G.upperNodeIdBound(), true, true);
-    for (const auto &v : G.nodeRange()) {
-        V_B[v] = v;
-    }
-}
-
-std::optional<NetworKit::Graph> BoruvkaMinimumSpanningTree::iterate(
-        NetworKit::Graph &G, NetworKit::Graph &F,
-        NetworKit::UnionFind &union_find, std::map<NodePair, NodePair> &E,
-        NetworKit::count steps, bool get_branching_tree) {
+class BranchingTree {
+ private:
     NetworKit::Graph B;
     std::unordered_map<NetworKit::node, NetworKit::node> V_B;
-    if (get_branching_tree) {
-        initialize_branching_tree(B, V_B, G);
-    }
-    while (G.numberOfNodes() > 1 && G.numberOfEdges() > 0 && steps-- > 0) {
-        std::unordered_map<NetworKit::node, NetworKit::edgeweight> B_edges;
-        G.forNodes([&](NetworKit::node x) {
-            const auto &[y, w] = *std::min_element(
-                G.weightNeighborRange(x).begin(), G.weightNeighborRange(x).end(),
-                [](const auto &e1, const auto &e2) { return e1.second < e2.second; });
-            if (get_branching_tree) {
-                B_edges[x] = w;
-            }
-            NetworKit::node u_prim = union_find.find(x), v_prim = union_find.find(y);
-            if (u_prim == v_prim) {
-                return;
-            }
-            union_find.merge(u_prim, v_prim);
-            const auto &[u, v] = E[std::minmax(x, y)];
-            F.addEdge(u, v, w);
-        });
-        std::map<NetworKit::node, std::vector<NetworKit::WeightedEdge>> first_pass;
-        for (auto e : G.edgeWeightRange()) {
-            const NetworKit::node &u_prim = union_find.find(e.u), &v_prim = union_find.find(e.v);
-            if (u_prim < v_prim) {
-                first_pass[v_prim].emplace_back(std::move(e));
-            } else if (u_prim > v_prim) {
-                std::swap(e.u, e.v);
-                first_pass[u_prim].emplace_back(std::move(e));
-            }
-        }
-        std::map<NetworKit::node, std::vector<NetworKit::WeightedEdge>> second_pass;
-        for (const auto &[v_prim, E_v] : (first_pass | std::views::reverse)) {
-            for (const auto &e : E_v) {
-                second_pass[union_find.find(e.u)].emplace_back(std::move(e));
-            }
-        }
-        auto G_prim = NetworKit::GraphTools::copyNodes(G);
+    std::unordered_map<NetworKit::node, NetworKit::edgeweight> B_edges;
+
+ public:
+    void initialize(const NetworKit::Graph &G) {
+        B = NetworKit::Graph(G.upperNodeIdBound(), true, true);
         for (const auto &v : G.nodeRange()) {
-            if (union_find.find(v) != v) {
-                G_prim.removeNode(v);
-            }
+            V_B[v] = v;
         }
-        if (get_branching_tree) {
-            std::unordered_map<NetworKit::node, NetworKit::node> V_B_next;
-            for (const auto &v : G_prim.nodeRange()) {
-                V_B_next[v] = B.addNode();
-            }
-            for (const auto &[v, w] : B_edges) {
-                B.addEdge(V_B_next[union_find.find(v)], V_B[v], w);
-            }
-            std::swap(V_B, V_B_next);
-        }
-        for (const auto &[u_prim, E_u] : second_pass) {
-            auto left = E_u.begin();
-            while (left != E_u.end()) {
-                const auto &v_prim = union_find.find(left->v);
-                auto right = std::find_if(
-                    left + 1, E_u.end(),
-                    [&](const auto &e) { return union_find.find(e.v) != v_prim; });
-                const auto &e = *std::min_element(
-                    left, right,
-                    [](const auto &e1, const auto &e2) { return e1.weight < e2.weight; });
-                assert(G_prim.hasNode(u_prim) && G_prim.hasNode(v_prim));
-                G_prim.addEdge(u_prim, v_prim, e.weight);
-                assert(u_prim == union_find.find(e.u) && v_prim == union_find.find(e.v));
-                E[{u_prim, v_prim}] = E[std::minmax(e.u, e.v)];
-                left = right;
-            }
-        }
-        std::swap(G, G_prim);
     }
-    return get_branching_tree ? std::make_optional(B) : std::nullopt;
-}
+
+    inline void addEdge(NetworKit::node v, NetworKit::edgeweight w) {
+        B_edges[v] = w;
+    }
+
+    void update(const NetworKit::Graph &G, const NetworKit::UnionFind &union_find) {
+        std::unordered_map<NetworKit::node, NetworKit::node> V_B_next;
+        for (const auto &v : G.nodeRange()) {
+            V_B_next[v] = B.addNode();
+        }
+        for (const auto &[v, w] : B_edges) {
+            B.addEdge(V_B_next[union_find.find(v)], V_B[v], w);
+        }
+        std::swap(V_B, V_B_next);
+        B_edges.clear();
+    }
+
+    NetworKit::Graph getTree() {
+        return B;
+    }
+};
 
 class AugmentedGraph {
     using h_set = uint64_t;  // bitset of depths. i-th bit corresponds to i-th depth.
@@ -347,6 +230,142 @@ class AugmentedGraph {
     }
 };
 
+namespace Koala {
+
+MinimumSpanningTree::MinimumSpanningTree(
+        NetworKit::Graph &graph) : graph(std::make_optional(graph)) {
+    tree = std::make_optional(NetworKit::GraphTools::copyNodes(graph));
+}
+
+const NetworKit::Graph& MinimumSpanningTree::getForest() const {
+    assureFinished();
+    return *tree;
+}
+
+void KruskalMinimumSpanningTree::run() {
+    hasRun = true;
+    std::vector<NetworKit::WeightedEdge> sorted_edges(
+        graph->edgeWeightRange().begin(), graph->edgeWeightRange().end());
+    Aux::Parallel::sort(sorted_edges.begin(), sorted_edges.end());
+    NetworKit::UnionFind union_find(graph->upperNodeIdBound());
+    for (const auto &e : sorted_edges) {
+        if (union_find.find(e.u) != union_find.find(e.v)) {
+            tree->addEdge(e.u, e.v, e.weight);
+            union_find.merge(e.u, e.v);
+        }
+    }
+}
+
+void PrimMinimumSpanningTree::run() {
+    hasRun = true;
+    Heap<std::pair<NetworKit::edgeweight, NetworKit::node>> queue;
+    queue.push(std::make_pair(0, *(graph->nodeRange().begin())));
+    std::unordered_map<NetworKit::node, NetworKit::WeightedEdge> previous;
+    while (!queue.empty()) {
+        auto v = queue.top().second;
+        queue.pop();
+        if (!tree->isIsolated(v)) {
+            continue;
+        }
+        const auto &e = previous.find(v);
+        if (e != previous.end()) {
+            tree->addEdge(e->second.u, e->second.v, e->second.weight);
+        }
+        graph->forNeighborsOf(v, [&](NetworKit::node u, NetworKit::edgeweight weight) {
+            if (tree->isIsolated(u)) {
+                queue.push(std::make_pair(-weight, u));
+                if (!previous.count(u) || previous[u].weight > weight) {
+                    previous[u] = NetworKit::WeightedEdge(u, v, weight);
+                }
+            }
+        });
+    }
+}
+
+void BoruvkaMinimumSpanningTree::run() {
+    hasRun = true;
+    NetworKit::UnionFind union_find(graph->upperNodeIdBound());
+    NetworKit::Graph G(*graph);
+    std::map<NodePair, NodePair> E;
+    G.forEdges([&](NetworKit::node u, NetworKit::node v) {
+        E.insert({std::minmax(u, v), {u, v}});
+    });
+    iterate(G, *tree, union_find, E, std::numeric_limits<NetworKit::count>::max(), false);
+}
+
+std::optional<NetworKit::Graph> BoruvkaMinimumSpanningTree::iterate(
+        NetworKit::Graph &G, NetworKit::Graph &F,
+        NetworKit::UnionFind &union_find, std::map<NodePair, NodePair> &E,
+        NetworKit::count steps, bool get_branching_tree) {
+    BranchingTree B;
+    std::unordered_map<NetworKit::node, NetworKit::node> V_B;
+    if (get_branching_tree) {
+        B.initialize(G);
+    }
+    while (G.numberOfNodes() > 1 && G.numberOfEdges() > 0 && steps-- > 0) {
+        std::unordered_map<NetworKit::node, NetworKit::edgeweight> B_edges;
+        G.forNodes([&](NetworKit::node x) {
+            const auto &[y, w] = *std::min_element(
+                G.weightNeighborRange(x).begin(), G.weightNeighborRange(x).end(),
+                [](const auto &e1, const auto &e2) { return e1.second < e2.second; });
+            if (get_branching_tree) {
+                B.addEdge(x, w);
+            }
+            NetworKit::node u_prim = union_find.find(x), v_prim = union_find.find(y);
+            if (u_prim == v_prim) {
+                return;
+            }
+            union_find.merge(u_prim, v_prim);
+            const auto &[u, v] = E[std::minmax(x, y)];
+            F.addEdge(u, v, w);
+        });
+        std::map<NetworKit::node, std::vector<NetworKit::WeightedEdge>> first_pass;
+        for (auto e : G.edgeWeightRange()) {
+            const NetworKit::node &u_prim = union_find.find(e.u), &v_prim = union_find.find(e.v);
+            if (u_prim < v_prim) {
+                first_pass[v_prim].emplace_back(std::move(e));
+            } else if (u_prim > v_prim) {
+                std::swap(e.u, e.v);
+                first_pass[u_prim].emplace_back(std::move(e));
+            }
+        }
+        std::map<NetworKit::node, std::vector<NetworKit::WeightedEdge>> second_pass;
+        for (const auto &[v_prim, E_v] : (first_pass | std::views::reverse)) {
+            for (const auto &e : E_v) {
+                second_pass[union_find.find(e.u)].emplace_back(std::move(e));
+            }
+        }
+        auto G_prim = NetworKit::GraphTools::copyNodes(G);
+        for (const auto &v : G.nodeRange()) {
+            if (union_find.find(v) != v) {
+                G_prim.removeNode(v);
+            }
+        }
+        if (get_branching_tree) {
+            B.update(G_prim, union_find);
+        }
+        for (const auto &[u_prim, E_u] : second_pass) {
+            auto left = E_u.begin();
+            while (left != E_u.end()) {
+                const auto &v_prim = union_find.find(left->v);
+                auto right = std::find_if(
+                    left + 1, E_u.end(),
+                    [&](const auto &e) { return union_find.find(e.v) != v_prim; });
+                const auto &e = *std::min_element(
+                    left, right,
+                    [](const auto &e1, const auto &e2) { return e1.weight < e2.weight; });
+                assert(G_prim.hasNode(u_prim) && G_prim.hasNode(v_prim));
+                G_prim.addEdge(u_prim, v_prim, e.weight);
+                assert(u_prim == union_find.find(e.u) && v_prim == union_find.find(e.v));
+                E[{u_prim, v_prim}] = E[std::minmax(e.u, e.v)];
+                left = right;
+            }
+        }
+        std::swap(G, G_prim);
+    }
+    return get_branching_tree ? std::make_optional(std::move(B.getTree())) : std::nullopt;
+}
+
 void KargerKleinTarjanMinimumSpanningTree::run() {
     hasRun = true;
     NetworKit::Graph G(*graph);
@@ -360,7 +379,7 @@ void KargerKleinTarjanMinimumSpanningTree::recurse(NetworKit::Graph &G, NetworKi
         E.insert({std::minmax(u, v), {u, v}});
     });
     while (true) {
-        iterate(G, F, union_find, E, 2);
+        iterate(G, F, union_find, E, 2, false);
         if (G.numberOfEdges() == 0) {
             return;
         }
@@ -399,7 +418,6 @@ void KargerKleinTarjanMinimumSpanningTree::remove_heavy_edges(
         subforest, subforest, union_find, E, std::numeric_limits<NetworKit::count>::max(), true);
     auto branching_tree_augmented = AugmentedGraph(branching_tree);
     Koala::LCA<AugmentedGraph> lca(branching_tree_augmented);
-
     std::vector<NetworKit::node> upper, lower;
     std::vector<std::tuple<NetworKit::node, NetworKit::node, NetworKit::edgeweight>> edges;
     G.forEdges([&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight w) {

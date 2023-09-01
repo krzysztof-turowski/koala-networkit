@@ -94,7 +94,7 @@ class BoruvkaMinimumSpanningTree : public MinimumSpanningTree {
     static std::optional<NetworKit::Graph> iterate(
         NetworKit::Graph &G, NetworKit::Graph &F,
         NetworKit::UnionFind &union_find, std::map<NodePair, NodePair> &E,
-        NetworKit::count steps, bool get_branching_tree = false);
+        NetworKit::count steps, bool get_branching_tree);
 };
 
 /**
