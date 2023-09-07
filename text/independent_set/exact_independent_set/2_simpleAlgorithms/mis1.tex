@@ -1,0 +1,85 @@
+\section{Mis1}
+
+Let us start with a disclaimer that all algorithms presented below, bar the one presented in \Cref{sec:misfolding} are slower than the one published by Tarjan and Trojanowski. Despite that, they are interesting not only from the educational point of view but also as easy-to-implement points of reference for practical measurements -- as it is often the case that in practice simple algorithms may outperform the more convoluted ones with better worst-case guarantees.
+
+Let us start with a definition of neighborhood.
+
+\begin{defn}[neighborhood]
+The set of all neighbors of a vertex $v$ of $G = (V, E)$, denoted by $N(v)$, is called the (open) \emph{neighborhood} of $v$.
+
+By $N[v]$ we denote a closed neighborhood that additionally contains a vertex $v$. In mathematical terms, it is $N[v]=N(v) \cup \{v\}$.
+\end{defn}
+More generally, by $N^d(v)$ we denote the set of nodes at a distance $d$ from $v$. In particular, $N^1(v) = N(v)$.
+
+\begin{lemma}
+For any vertex $v\in G$, at least one vertex of $N(v)$ must belong to the maximum independent set of $G$.
+\end{lemma}
+\begin{proof}
+    The proof is very straightforward. Let us assume otherwise that the set $I$ is a maximal independent set of $G$ and in $G$ exists $v$ such that no $N[v]$ belongs to $I$. We can add the vertex $v$ to $I$ and create a larger set than $I$ and also maximum. Hence, a contradiction.
+\end{proof}
+
+So, for any vertex $v$ we know that one of the $N[v]$ belongs to the solution. Using that observation, we can create a \textsc{Mis1} algorithm that will hopefully have a better computational complexity than $O^*(2^n)$. 
+
+\begin{algorithm}
+\caption{\textsc{Mis1}}\label{mis1}
+\begin{algorithmic}[1]
+\Require a graph $G=(V,E)$
+\Ensure the maximum independent set of $G$
+\Procedure{Mis1}{graph $G$}
+    \If{$|V| = 0$}
+        \State \Return $\varnothing$
+    \EndIf
+    \State choose arbitrary vertex $v$ of minimum degree in $G$
+    \State $S \gets \{ \Call{Mis1}{G \setminus N[y]}\cup \{y\} \colon y \in N[v]\}$
+    \State \Return any element of $S$ with the most elements    
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Correctness}
+
+The algorithm chooses a vertex $v$ and creates $N[v]$ subproblems. Each subproblem is another maximum independent set problem that will have to be solved. We know that some verticle $y$ of $N[v]$ has to be chosen to the independent set, and therefore, one of the subproblems plus the chosen vertex $y$ will give an optimal solution. Eventually, subproblems will be reduced to the size of $0$, and for them in fact, the empty set is the maximal independent set. After recursion finishes, it is going to return some maximal independent set.
+
+Generally, we branch over some cases, reduce the original problem to new subproblems and then analyze them exactly as the original problem. This approach is known as \emph{Branch and Reduce}. 
+
+\subsection{Computational complexity}
+
+For \textsc{Mis1} algorithm, just once, we will do a full analysis of the complexity, including solving a recurrence. 
+
+Let each node of the execution tree represent one call of the recursive function. We will be counting the number of nodes. Let $n$ be a number of vertices of graph $G$ and $T(k)$ be a function counting the maximum size of a branching tree for a graph $G$ consisting of $k$ vertices. We can obtain the following recurrence relation for each node:
+
+$$
+T(n) \leq 1 + \sum_{y\in N[v]} T(n - d(y) - 1)
+$$
+
+The first $1$ in the equation stands for one call before branching. The sum is over $N[v]$ because we branch over the neighbors of chosen $v$. And finally, $n - d(y) - 1$ is the size of the reduced subproblem. From the above recursive relation, we shall bound running time in $O^*$ terms.
+
+From the choice of $v$ (we are choosing minimum degree vertex) we have $n-d(y)-1 \leq n - d(v) -1$ and from the monotonic property of $T$ we get the following:
+
+\begin{equation*}
+\begin{split}
+T(n) & \leq 1 + \sum_{y\in N[v]} T(n - d(y) - 1) \\
+ & \leq  1 + \sum_{y\in N[v]} T(n - d(v) - 1) \\
+ & = 1 + T(n - d(v) - 1) \sum_{y\in N[v]} 1 \\
+ & = 1 + T(n - d(v) - 1)(d(v) + 1)
+\end{split}
+\end{equation*}
+
+Let $s = d(v) + 1$. We obtain the following.
+
+$$
+T(n) \leq 1 + s T(n - s)
+$$
+
+We can expand $T(n-s)$, and then use $T(0)=1$ and properties of geometric series
+\begin{equation*}
+\begin{split}
+T(n) & \leq 1 + s T(n - s) \\
+ & \leq 1 + s + s^2T(n - 2s) \\
+ & \leq 1 + s + s^2 + \ldots + s^{n/s - 1} + s^{n/s} T(0) \\
+ & = \frac{1-s^{n/s+1}}{1-s} \\
+ & = O^*\left(s^{n/s}\right)
+\end{split}
+\end{equation*}
+
+Since $s^{n/s} = (s^{1/s})^n$, it is enough to find the maximum of $f(s) = s^{1/s}$ for $s \in \mathbb{N}$. Indeed, $f$ will take the maximum value for $s=3$ which consequently leads to $O^*(3^{n/s}) \approx O^*(2^{0.5283n}) \approx O^*(1.4422^n)$ running time of our algorithm. This is certainly better than \textsc{NaiveMis}'s $O^*(2^n)$.

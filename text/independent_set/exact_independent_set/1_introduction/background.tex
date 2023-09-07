@@ -1,0 +1,35 @@
+\section{Background}
+
+The maximum independent set was first solved only for special cases. For the general problem, for some time only the obvious naive solution $O^*(2^n)$ was known. More about special cases later.
+
+% related problems and general case
+
+The maximum independent set is closely related to the minimum vertex cover problem. If $I$ is a maximum independent set of $G$ then $G \setminus I$ is a Minimum Vertex Cover. The maximum independent set problem is also related to the clique problem. The maximum independent set of $G$ in a complement graph of $G$ will be a maximum clique. These problems and their solutions can be easily reduced to each other. In 1972 \citeauthor{tarjan1972finding} the first to find a solution $O^*(1.286^n)$ for the maximum clique problem.
+
+Few years later, the same author was the first one to tackle the general maximum independent set problem and published his work in 1977 \cite{tarjan1977finding}. The computational complexity of this algorithm is $O^*(3^{n/3}) = O^*(1.2599^n)$. Unfortunately, the algorithm in pseudocode form takes $5$ pages and has $35$ cases. This would make an implementation challenging, and we decided against it. As a side note in 1965 it was proved that every graph contains at most $3^{n/3}$ maximal independent sets \cite{moon1965cliques}.
+
+Later in 1986 Jian \cite{jian19862} improved the complexity to $O^*(1.2346^n)$ and in the same year Robson \cite{robson1986algorithms} obtained an even better result with $1.2278^n$. We didn't mention it, but so far all algorithms use only polynomial memory. Robson also introduces a second algorithm that uses exponential memory and achieves a time of $O^*(1.2109^n)$. Algorithms of this kind are not very popular because in real life memory is quite an expensive resource.
+
+Another breakthrough happened in 2006 \cite{grandoni2006measure}. The authors used a new technique called folding and even with a simple algorithm they reached the result of $O^*(1.2202^n)$. This was a considerable shift towards simplicity compared to a series of previous publications that focused on several branching cases and still performed worse.
+
+There were a few more recent publications. In 2009 \cite{kneis2009fine} a new concept of satellites was introduced to reach a time of $1.2132^n$. Article \cite{bourgeois2010bottom} from 2010 further proposes another solution that improves to bound to $O^*(1.2114^n)$.
+
+Finally, the latest result \cite{xiao2017exact} from 2017 breaks the barrier of $1.2^n$ and reaches the time $O^*(1.1996^n)$.
+
+
+% special cases
+The maximum independent set problem is a special case of the maximum weight independent set problem where each weight is equal to 1. Some graph classes have solutions for that generalized version (and, by implication, also for the original, unweighted problem). That is: chordal graphs \cite{gavril1972algorithms}, \cite{frank1976some}; perfect graphs \cite{grotschel1988stable}; claw-free graphs \cite{minty1980maximal}, \cite{nakamura2001revision};  graphs of bounded clique-width \cite{courcelle2000linear} and $P_5$-free graphs \cite{lokshantov2014independent}.
+
+% NP-hardness
+Maximum independent set problem is NP-hard \cite{garey1979computers} in general case but also with strong restrictions. For example: planar graphs with a maximum vertex degree at most $3$ \cite{garey1977rectilinear}, triangle-free graphs \cite{murphy1992computing} are still NP-hard. The maximum independent set problem is NP-complete for: planar graphs of maximum degree $6$ \cite{garey1974some}, $3$-regular planar graphs \cite{mohar2001face}, unit disk graph \cite{clark1990unit}, \cite{das2015approximation}.  Maximum independent set problem is W[1]-hard in the class of graphs without induced $4$-cycle \cite{husic2019independent}.
+
+
+% PTAS
+Polynomial time approximation schemes (PTAS) algorithms for maximum independent set problem exist for: planar graphs \cite{baker1994approximation}, \cite{williamson2011design}; unit disk graphs \cite{nieberg2005robust,das2015approximation}, disk graphs with disk representation\cite{erlebach2005polynomial}; pseudo-disks \cite{chan2009approximation}.
+
+
+% FPT
+Fixed parameter tractable (FPT) algorithms parameterized by the solution size exist for even-hole-free graphs \cite{husic2019independent}, dart-free graphs, cricket-free graphs and some others \cite{bonnet2019maximum}. The maximum independent set problem also has a $2$-approximation algorithm for the unit disk graph.
+
+The maximum independent set is $O(n^c)$-inapproximable unless P = NP for some positive constant $c$ \cite{berman1992complexity}.
+It was improved later in \cite{zuckerman1996unapproximable} which stated that: there exist some $\epsilon > 0$ such that if NP $\neq$ ZPP, then there does not exist Las Vegas $O(n^\epsilon)$ algorithm that works in expected polynomial time.

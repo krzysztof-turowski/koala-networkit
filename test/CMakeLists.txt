@@ -1,6 +1,7 @@
 koala_make_test(test_graph_io testGraphIO.cpp)
 koala_make_test(test_heap testHeap.cpp)
 koala_make_test(test_vertex_coloring testVertexColoring.cpp)
+koala_make_test(test_independent_set testIndependentSet.cpp)
 koala_make_test(test_graph_recognition testGraphRecognition.cpp)
 koala_make_test(test_maximum_flow testMaximumFlow.cpp)
 koala_make_test(test_minimum_spanning_tree testMinimumSpanningTree.cpp)

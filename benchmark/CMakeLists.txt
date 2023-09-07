@@ -22,3 +22,8 @@ koala_make_benchmark(
     benchmark_vertex_coloring
     benchmarkVertexColoring.cpp
     benchmarkVertexColoring.sh)
+
+koala_make_benchmark(
+    benchmark_independent_set
+    benchmarkIndependentSet.cpp
+    benchmarkIndependentSet.sh)
