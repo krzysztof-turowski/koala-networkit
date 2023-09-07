@@ -11,8 +11,8 @@
 
 namespace Koala {
 
-IndependentSet::IndependentSet(const NetworKit::Graph &graph) :
-        graph(std::make_optional(graph)) { }
+IndependentSet::IndependentSet(const NetworKit::Graph &graph)
+    : graph(std::make_optional(graph)) { }
 
 bool IndependentSet::edgeComparator(const NetworKit::Edge& a, const NetworKit::Edge& b) {
     return a.u < b.u || (a.u == b.u && a.v < b.v);
@@ -42,20 +42,17 @@ std::vector<NetworKit::node> IndependentSet::getNeighborsPlus(NetworKit::node v)
 }
 
 std::vector<NetworKit::node> IndependentSet::getNeighbors2(NetworKit::node v) const {
-    std::vector<NetworKit::node> neighbors = getNeighbors(v);
-    std::vector<NetworKit::node> visitedNodes;
+    std::vector<NetworKit::node> neighbors = getNeighbors(v), visitedNodes;
     for (auto n : neighbors) {
         graph->forNeighborsOf(n, [&](NetworKit::node n2) {
             visitedNodes.push_back(n2);
         });
     }
-
     std::vector<bool> visitedOnGraph(graph->numberOfNodes());
     visitedOnGraph[v] = true;
     for (auto x : neighbors) {
         visitedOnGraph[x] = true;
     }
-
     std::vector<NetworKit::node> neighbors2;
     for (auto x : visitedNodes) {
         if (!visitedOnGraph[x]) {
@@ -66,22 +63,23 @@ std::vector<NetworKit::node> IndependentSet::getNeighbors2(NetworKit::node v) co
     return neighbors2;
 }
 
-IndependentSet::EdgeSet IndependentSet::getConnectedEdges(std::vector<NetworKit::node>& nodes) const {
+IndependentSet::EdgeSet IndependentSet::getConnectedEdges(
+        std::vector<NetworKit::node>& nodes) const {
     EdgeSet connectedEdges(edgeComparator);
-    for (auto x : nodes) {
-        graph->forEdgesOf(x, [&](NetworKit::node u, NetworKit::node v) {
+    for (auto u : nodes) {
+        graph->forNeighborsOf(u, [&](NetworKit::node v) {
             connectedEdges.insert(NetworKit::Edge(u, v, true));
         });
     }
     return connectedEdges;
 }
 
-IndependentSet::EdgeSet IndependentSet::getInducedEdges(std::vector<NetworKit::node>& nodes) const {
+IndependentSet::EdgeSet IndependentSet::getInducedEdges(
+        std::vector<NetworKit::node>& nodes) const {
     EdgeSet connectedEdges(edgeComparator);
     std::set<NetworKit::node> nodeSet(nodes.begin(), nodes.end());
-
     for (auto u : nodes) {
-        graph->forEdgesOf(u, [&](NetworKit::node u, NetworKit::node v) {
+        graph->forNeighborsOf(u, [&](NetworKit::node v) {
             if (nodeSet.contains(v)) {
                 connectedEdges.insert(NetworKit::Edge(u, v, true));
             }
@@ -91,17 +89,13 @@ IndependentSet::EdgeSet IndependentSet::getInducedEdges(std::vector<NetworKit::n
 }
 
 std::vector<NetworKit::node> IndependentSet::getMirrors(NetworKit::node v) const {
-    std::vector<NetworKit::node> mirrors;
-    std::vector<NetworKit::node> neighbors2 = getNeighbors2(v);
-    std::vector<NetworKit::node> neighborsV = getNeighbors(v);
-
-    for (auto w : neighbors2) {
+    std::vector<NetworKit::node> mirrors, neighborsV = getNeighbors(v);
+    for (auto w : getNeighbors2(v)) {
         std::vector<NetworKit::node> neighborsW = getNeighbors(w);
         std::set<NetworKit::node> potentialClique(neighborsV.begin(), neighborsV.end());
         for (auto node : neighborsW) {
             potentialClique.erase(node);
         }
-
         bool clique = true;
         for (auto a : potentialClique) {
             for (auto b : potentialClique) {
@@ -138,19 +132,16 @@ void IndependentSet::removeElements(std::vector<NetworKit::node> nodes) {
 std::vector<NetworKit::node> IndependentSet::runIndependentSetDegree2() const {
     NetworKit::Graph graphDeg2(*graph);
     std::vector<NetworKit::node> independentSet;
-
-    auto solvePath = [&] (NetworKit::node u) { // u -> v -> w
+    auto solvePath = [&](NetworKit::node u) {  // u -> v -> w
         while (graphDeg2.hasNode(u) && graphDeg2.degree(u) <= 1) {
             if (graphDeg2.degree(u) == 0) {
                 independentSet.push_back(u);
                 graphDeg2.removeNode(u);
                 break;
             }
-
             independentSet.push_back(u);
             auto v = graphDeg2.getIthNeighbor(u, 0);
             graphDeg2.removeNode(u);
-
             if (graphDeg2.degree(v) == 1) {
                 auto w = graphDeg2.getIthNeighbor(v, 0);
                 u = w;
@@ -158,25 +149,21 @@ std::vector<NetworKit::node> IndependentSet::runIndependentSetDegree2() const {
             graphDeg2.removeNode(v);
         }
     };
-
     graphDeg2.forNodes([&](NetworKit::node u) {
         solvePath(u);
     });
-
-    graphDeg2.forNodes([&](NetworKit::node u) { // t <- u -> v -> w
+    graphDeg2.forNodes([&](NetworKit::node u) {  // t <- u -> v -> w
         if (graphDeg2.degree(u) == 2) {
             independentSet.push_back(u);
             auto t = graphDeg2.getIthNeighbor(u, 0);
             graphDeg2.removeNode(t);
             auto v = graphDeg2.getIthNeighbor(u, 0);
             graphDeg2.removeNode(u);
-
             if (graphDeg2.degree(v) > 0) {
                 auto w = graphDeg2.getIthNeighbor(v, 0);
                 graphDeg2.removeNode(v);
                 solvePath(w);
-            }
-            else {
+            } else {
                 graphDeg2.removeNode(v);
             }
         }
@@ -188,30 +175,25 @@ void BruteForceIndependentSet::run() {
     if (graph->isEmpty()) {
         return;
     }
-
     std::vector<bool> testSet;
     graph->forNodes([&](NetworKit::node v) {
         testSet.push_back(false);
     });
-
     int best = 0;
-    unsigned long long max = 1 << graph->numberOfNodes();
-
+    uint64_t max = (1 << graph->numberOfNodes());
     for (unsigned long long binary = 1; binary != max; ++binary) {
-        std::bitset<8 * sizeof(unsigned long long)> testSet(binary);
+        std::bitset<8 * sizeof(uint64_t)> testSet(binary);
         size_t testSetSize = testSet.count();
         if (testSetSize <= best) {
             continue;
         }
-
         bool illegalEdge = false;
-        for (const auto& [u,v] : graph->edgeRange()) {
-            if(testSet[u] && testSet[v]) {
+        for (const auto& [u, v] : graph->edgeRange()) {
+            if (testSet[u] && testSet[v]) {
                 illegalEdge = true;
                 break;
             }
         }
-
         if (!illegalEdge) {
             independentSet.clear();
             for (int i = 0; i < testSet.size(); ++i) {
@@ -225,4 +207,4 @@ void BruteForceIndependentSet::run() {
     hasRun = true;
 }
 
-} /* namespace Koala */
+}  /* namespace Koala */

@@ -14,11 +14,7 @@ struct IndependentSetParameters {
 
 template <typename Algorithm>
 class SimpleGraphs : public testing::Test {
-public:
-    virtual void SetUp() {
-    }
-
-protected:
+ protected:
     void verify(IndependentSetParameters& parameters) {
         NetworKit::Graph G = build_graph(parameters.N, parameters.E);
         auto algorithm = Algorithm(G);
@@ -84,8 +80,8 @@ TYPED_TEST_P(SimpleGraphs, FruchtGraph) {
 TYPED_TEST_P(SimpleGraphs, TwoK5) {
     IndependentSetParameters parameters =
     {10, {
-        {0,1}, {0,2}, {0,3}, {0,4}, {1,2}, {1,3}, {1,4}, {2,3}, {2,4}, {3,4},
-        {5,6}, {5,7}, {5,8}, {5,9}, {6,7}, {6,8}, {6,9}, {7,8}, {7,9}, {8,9},
+        {0, 1}, {0, 2}, {0, 3}, {0, 4}, {1, 2}, {1, 3}, {1, 4}, {2, 3}, {2, 4}, {3, 4},
+        {5, 6}, {5, 7}, {5, 8}, {5, 9}, {6, 7}, {6, 8}, {6, 9}, {7, 8}, {7, 9}, {8, 9},
     },
     2};
     this->verify(parameters);
@@ -94,12 +90,14 @@ TYPED_TEST_P(SimpleGraphs, TwoK5) {
 TYPED_TEST_P(SimpleGraphs, TestingGraph) {
     IndependentSetParameters parameters =
     {6, {
-        {1,2}, {0,3}, {1,3}, {2,3}, {0,4}, {2,4}, {0,5}, {1,5},
+        {1, 2}, {0, 3}, {1, 3}, {2, 3}, {0, 4}, {2, 4}, {0, 5}, {1, 5},
     },
     3};
     this->verify(parameters);
 }
-REGISTER_TYPED_TEST_CASE_P(SimpleGraphs, WheelGraphW_8, UtilityGraphK_3_3, PetersenGraph, FruchtGraph, TwoK5, TestingGraph);
+REGISTER_TYPED_TEST_CASE_P(
+    SimpleGraphs, WheelGraphW_8, UtilityGraphK_3_3, PetersenGraph, FruchtGraph,
+    TwoK5, TestingGraph);
 
 using Algorithms = testing::Types<
     Koala::BruteForceIndependentSet,
@@ -109,4 +107,5 @@ using Algorithms = testing::Types<
     Koala::Mis4IndependentSet,
     Koala::Mis5IndependentSet,
     Koala::MeasureAndConquerIndependentSet>;
+
 INSTANTIATE_TYPED_TEST_CASE_P(IndependentSet, SimpleGraphs, Algorithms);

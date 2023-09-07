@@ -13,7 +13,7 @@ int run_algorithm(NetworKit::Graph &G) {
     auto algorithm = T(G);
     algorithm.run();
     auto &independent_set = algorithm.getIndependentSet();
-    //std::cout << independent_set.size() << " " << std::flush;
+    std::cout << independent_set.size() << " " << std::flush;
     return independent_set.size();
 }
 
@@ -34,7 +34,7 @@ void run_g6_tests(const std::string &path, const std::string &algorithm) {
         }
         NetworKit::Graph G = Koala::G6GraphReader().readline(line);
         std::set<int> I;
-        //std::cout << line << " " << std::flush;
+        std::cout << line << " " << std::flush;
         switch (ALGORITHM[algorithm]) {
         case 0:
             I.insert(run_algorithm<Koala::BruteForceIndependentSet>(G));
@@ -69,7 +69,7 @@ void run_g6_tests(const std::string &path, const std::string &algorithm) {
             run_algorithm<Koala::MeasureAndConquerIndependentSet>(G);
             break;
         }
-        //std::cout << std::endl;
+        std::cout << std::endl;
     }
     std::cout << "List of graphs counted by solution size:" << std::endl;
     for (const auto &[k, v] : classification) {

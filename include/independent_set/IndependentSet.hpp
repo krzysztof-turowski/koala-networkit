@@ -22,14 +22,13 @@ namespace Koala {
  *
  */
 class IndependentSet : public NetworKit::Algorithm {
-
-public:
+ public:
     /**
      * Given an input graph, set up the independent set problem procedure.
      *
      * @param graph The input graph.
      */
-    IndependentSet(const NetworKit::Graph &graph);
+    explicit IndependentSet(const NetworKit::Graph &graph);
 
     /**
      * Return the independent set found by the algorithm.
@@ -48,7 +47,7 @@ public:
      */
     void check() const;
 
-protected:
+ protected:
     /**
      * Comparator for EdgeSet type
      */
@@ -78,9 +77,7 @@ protected:
     NetworKit::node getMaximumDegreeNode() const;
     void removeElements(std::vector<NetworKit::node> nodes);
     template <typename T>
-    void restoreElements(
-        std::vector<NetworKit::node>& nodes,
-        T& edges);
+    void restoreElements(std::vector<NetworKit::node>& nodes, T& edges);
     std::vector<NetworKit::node> runIndependentSetDegree2() const;
 
     std::optional<NetworKit::Graph> graph;
@@ -92,8 +89,7 @@ protected:
  * The class for the brute force algorithm.
  */
 class BruteForceIndependentSet final : public IndependentSet {
-
-public:
+ public:
     using IndependentSet::IndependentSet;
 
     /**
@@ -107,8 +103,7 @@ public:
  * An abstract class for recursive algorithms
  */
 class RecursiveIndependentSet : public IndependentSet {
-
-public:
+ public:
     using IndependentSet::IndependentSet;
 
     /**
@@ -127,11 +122,10 @@ public:
  * The class for the mis1 algorithm.
  */
 class Mis1IndependentSet final : public RecursiveIndependentSet {
-
-public:
+ public:
     using RecursiveIndependentSet::RecursiveIndependentSet;
 
-private:
+ private:
     /**
      * Execute the mis1 algorithm.
      */
@@ -143,11 +137,10 @@ private:
  * The class for the mis2 algorithm.
  */
 class Mis2IndependentSet final : public RecursiveIndependentSet {
-
-public:
+ public:
     using RecursiveIndependentSet::RecursiveIndependentSet;
 
-private:
+ private:
     /**
      * Execute the mis2 algorithm.
      */
@@ -159,11 +152,10 @@ private:
  * The class for the mis3 algorithm.
  */
 class Mis3IndependentSet final : public RecursiveIndependentSet {
-
-public:
+ public:
     using RecursiveIndependentSet::RecursiveIndependentSet;
 
-private:
+ private:
     /**
      * Execute the mis3 algorithm.
      */
@@ -175,11 +167,10 @@ private:
  * The class for the mis4 algorithm.
  */
 class Mis4IndependentSet final : public RecursiveIndependentSet {
-
-public:
+ public:
     using RecursiveIndependentSet::RecursiveIndependentSet;
 
-private:
+ private:
     /**
      * Execute the mis4 algorithm.
      */
@@ -191,11 +182,10 @@ private:
  * The class for the mis5 algorithm.
  */
 class Mis5IndependentSet final : public RecursiveIndependentSet {
-
-public:
+ public:
     using RecursiveIndependentSet::RecursiveIndependentSet;
 
-private:
+ private:
     /**
      * Execute the mis5 algorithm.
      */
@@ -207,11 +197,10 @@ private:
  * The class for the Measue and Conquer Simple O(2^0.288n) algorithm.
  */
 class MeasureAndConquerIndependentSet final : public RecursiveIndependentSet {
-
-public:
+ public:
     using RecursiveIndependentSet::RecursiveIndependentSet;
 
-private:
+ private:
     /**
      * Execute the Measue and Conquer Simple algorithm.
      */
