@@ -1,5 +1,6 @@
 koala_add_module(independent_set
     IndependentSet.cpp
+    ExactRecursiveIndependentSet.cpp
     PlanarGraphIndependentSet.cpp
     baker/baker-k-outer-planar.hpp
     baker/bakers_technique.hpp
@@ -9,4 +10,3 @@ koala_add_module(independent_set
     baker/name_levels.hpp
     baker/problems.hpp
     baker/visitors.hpp
-)

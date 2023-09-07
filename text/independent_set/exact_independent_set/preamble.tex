@@ -1,0 +1,65 @@
+% \usepackage[T1]{fontenc}
+\usepackage{appendix}
+\usepackage{todonotes}
+\usepackage{wrapfig}
+\usepackage{intcalc}
+\usepackage{amsthm, amsfonts, thmtools, amsmath,amssymb}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\usepackage{floatflt}
+\usepackage{pgfplots}
+\usepackage{enumerate}
+\pgfplotsset{compat=1.18}
+\usepackage{subcaption}
+\usepackage{expl3}
+\usepackage{xparse}
+\usepackage{blindtext}
+
+\usepackage{multirow}
+\usepackage{makecell}
+\usepackage{float}
+
+\usepackage{tikz}
+\tikzset{
+  simplegraph/.style={every node/.style={draw,circle, inner sep=0pt, minimum size=6mm}},
+}
+%\usetikzlibrary{snakes}
+\usetikzlibrary{shapes.geometric}
+\usetikzlibrary{positioning, fit, calc}
+\usetikzlibrary{arrows.meta}
+\usepackage{tkz-graph}
+
+\usepackage[
+  style=numeric,
+  maxbibnames=5
+]{biblatex}
+\addbibresource{bbl.bib}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{defn}{Definition}[chapter]
+
+\newtheoremstyle{break}
+{\topsep}{\topsep}%
+{\itshape}{}%
+{\bfseries}{}%
+{\newline}{}%
+\theoremstyle{break}
+\newtheorem{alg}{Algorithm}[section]
+\newcommand*{\myproofname}{Begin}
+\newenvironment{algtext2}[1][\myproofname]{\begin{proof}[#1] $ $\newline \renewcommand*{\qedsymbol}{\(End\)}}{\end{proof}}
+
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\algnewcommand\algorithmicforeach{\textbf{for each}}
+\algdef{S}[FOR]{ForEach}[1]{\algorithmicforeach\ #1\ \algorithmicdo}
+\renewcommand{\algorithmicrequire}{\textbf{input:}}
+\renewcommand{\algorithmicensure}{\textbf{output:}}
+
+\renewcommand\eminnershape{\bfseries}
+
+\usepackage{indentfirst}
+
+\usepackage{xcolor}
+\usepackage{enumitem}

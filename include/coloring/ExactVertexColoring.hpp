@@ -38,14 +38,10 @@ class EnumerationVertexColoring : public NetworKit::Algorithm {
     const std::optional<NetworKit::Graph> graph;
     std::vector<NetworKit::node> ordering;
     std::unordered_map<NetworKit::node, int> position;
-    std::vector<int> current_solution;
-    std::vector<int> best_solution;
+    std::vector<int> current_solution, best_solution;
     std::vector<std::set<int>> feasible_colors;
     std::set<int, std::greater<int>> current_predecessors;
-    int lower_bound;
-    int upper_bound;
-    int ub;
-    int n;
+    int lower_bound, upper_bound, current_bound;
     int r;
 
     void forwards();
@@ -54,7 +50,7 @@ class EnumerationVertexColoring : public NetworKit::Algorithm {
     virtual void determine_current_predecessors(int r) = 0;
 };
 
-class BrownsOrdinaryEnumerationVertexColoring : public EnumerationVertexColoring {
+class BrownEnumerationVertexColoring : public EnumerationVertexColoring {
  public:
     using EnumerationVertexColoring::EnumerationVertexColoring;
 
@@ -62,12 +58,12 @@ class BrownsOrdinaryEnumerationVertexColoring : public EnumerationVertexColoring
 
  protected:
     std::vector<NetworKit::node> greedy_largest_first_ordering();
-    void determine_current_predecessors(int r) override;
+    void determine_current_predecessors(int r);
 };
 
-class ChristofidesEnumerationVertexColoring : public BrownsOrdinaryEnumerationVertexColoring {
+class ChristofidesEnumerationVertexColoring : public BrownEnumerationVertexColoring {
  public:
-    using BrownsOrdinaryEnumerationVertexColoring::BrownsOrdinaryEnumerationVertexColoring;
+    using BrownEnumerationVertexColoring::BrownEnumerationVertexColoring;
 
     void run();
     const std::vector<std::vector<bool>>& getTransitiveClosure() const;
@@ -76,7 +72,7 @@ class ChristofidesEnumerationVertexColoring : public BrownsOrdinaryEnumerationVe
     std::vector<std::vector<bool>> transitive_closure;
 
     void calculate_transitive_closure();
-    void determine_current_predecessors(int r) override;
+    void determine_current_predecessors(int r);
 };
 
 class BrelazEnumerationVertexColoring : public EnumerationVertexColoring {
@@ -87,21 +83,19 @@ class BrelazEnumerationVertexColoring : public EnumerationVertexColoring {
 
  protected:
     std::vector<NetworKit::node> saturation_largest_first_with_interchange();
-    bool is_interchangeable(std::vector<int>& K,
-    NetworKit::node new_node,
-    std::map<NetworKit::node, int>& solution);
-    std::vector<NetworKit::node> interchange_component(std::vector<NetworKit::node>& subgraph,
-    std::map<NetworKit::node, int>& solution,
-    NetworKit::node new_node,
-    int alpha);
+    bool is_interchangeable(
+        std::vector<int>& K, NetworKit::node new_node, std::map<NetworKit::node, int>& solution);
+    std::vector<NetworKit::node> interchange_component(
+        std::vector<NetworKit::node>& subgraph, std::map<NetworKit::node, int>& solution,
+        NetworKit::node new_node, int alpha);
     std::vector<int> get_representatives_of_adjacent_predecessors(int i);
-    void determine_current_predecessors(int r) override;
+    void determine_current_predecessors(int r);
     void backwards();
 };
 
-class KormanEnumerationVertexColoring : public BrownsOrdinaryEnumerationVertexColoring {
+class KormanEnumerationVertexColoring : public BrownEnumerationVertexColoring {
  public:
-    using BrownsOrdinaryEnumerationVertexColoring::BrownsOrdinaryEnumerationVertexColoring;
+    using BrownEnumerationVertexColoring::BrownEnumerationVertexColoring;
 
     void run();
 
@@ -113,4 +107,5 @@ class KormanEnumerationVertexColoring : public BrownsOrdinaryEnumerationVertexCo
     void backwards();
     void determine_feasible_colors(int i, std::unordered_set<int> blocked_colors);
 };
+
 } /* namespace Koala */

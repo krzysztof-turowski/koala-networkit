@@ -13,14 +13,14 @@
 namespace Koala {
 
 EnumerationVertexColoring::EnumerationVertexColoring(const NetworKit::Graph& graph)
-: graph(std::make_optional(graph)) {
+    : graph(std::make_optional(graph)) {
 }
 
 const std::map<NetworKit::node, int> EnumerationVertexColoring::getColoring() const {
     assureFinished();
     std::map<NetworKit::node, int> final_coloring;
     if (final_coloring.empty()) {
-        for (int i = 0; i < n; ++i) {
+        for (int i = 0; i < graph->numberOfNodes(); ++i) {
             final_coloring[ordering[i]] = best_solution[i];
         }
     }
@@ -28,29 +28,25 @@ const std::map<NetworKit::node, int> EnumerationVertexColoring::getColoring() co
 }
 
 void EnumerationVertexColoring::forwards() {
-    for (int i = r; i < n; ++i) {
-        if (r == 0 || i >= r + 1)
+    for (int i = r; i < graph->numberOfNodes(); ++i) {
+        if (r == 0 || i >= r + 1) {
             determine_feasible_colors(i);
+        }
         if (feasible_colors[i].empty()) {
             r = i;
             return;
         }
-        int color = *(feasible_colors[i]).begin();
-        current_solution[i] = color;
+        current_solution[i] = *(feasible_colors[i]).begin();
     }
     best_solution = current_solution;
+    NetworKit::node maximal_color_index = NetworKit::none;
     int maximal_color = 0;
-    int maximal_color_index = -1;
-
-    for (int i = 0; i < n; ++i) {
-        if (current_solution[i] > maximal_color) {
-            maximal_color = current_solution[i];
-            maximal_color_index = i;
+    for (int i = 0; i < graph->numberOfNodes(); ++i) {
+        if (current_solution[i] > maximal_color) {            
+            maximal_color_index = i, maximal_color = current_solution[i];
         }
     }
-
-    ub = maximal_color;
-    r = maximal_color_index;
+    r = maximal_color_index, current_bound = maximal_color;
 }
 
 void EnumerationVertexColoring::backwards() {
@@ -59,7 +55,7 @@ void EnumerationVertexColoring::backwards() {
         int i = *current_predecessors.begin();
         current_predecessors.erase(i);
         feasible_colors[i].erase(current_solution[i]);
-        if (!feasible_colors[i].empty() && *(feasible_colors[i]).begin() < ub) {
+        if (!feasible_colors[i].empty() && *(feasible_colors[i]).begin() < current_bound) {
             r = i;
             return;
         }
@@ -75,13 +71,11 @@ void EnumerationVertexColoring::determine_feasible_colors(int i) {
             current_maximal_color = current_solution[j];
         }
     }
-
     for (int j = 1; j <= current_maximal_color + 1; ++j) {
-        if (j >= ub)
+        if (j >= current_bound)
             break;
         feasible_colors_for_node.insert(j);
     }
-
     for (int j = 0; j < i; ++j) {
         if (graph->hasEdge(ordering[i], ordering[j])) {
             feasible_colors_for_node.erase(current_solution[j]);
@@ -90,13 +84,11 @@ void EnumerationVertexColoring::determine_feasible_colors(int i) {
     feasible_colors[i] = feasible_colors_for_node;
 }
 
-std::vector<NetworKit::node>
-BrownsOrdinaryEnumerationVertexColoring::greedy_largest_first_ordering() {
+std::vector<NetworKit::node> BrownEnumerationVertexColoring::greedy_largest_first_ordering() {
     std::unordered_set<NetworKit::node> already_ordered;
     std::vector<NetworKit::node> ordering;
     std::map<NetworKit::node, int> number_of_neighbours_in_ordering;
-    auto compare = [](const std::tuple<int, int, NetworKit::node>& a,
-                   const std::tuple<int, int, NetworKit::node>& b) {
+    auto compare = [](const auto& a, const auto& b) {
         if (std::get<0>(a) == std::get<0>(b)) {
             if (std::get<1>(a) == std::get<1>(b)) {
                 return std::get<2>(a) < std::get<2>(b);
@@ -105,14 +97,10 @@ BrownsOrdinaryEnumerationVertexColoring::greedy_largest_first_ordering() {
         }
         return std::get<0>(a) > std::get<0>(b);
     };
-    std::set<std::tuple<int, int, NetworKit::node>, decltype(compare)>
-    number_of_neighbours_in_ordering_queue;
+    std::set<std::tuple<int, int, NetworKit::node>, decltype(compare)> number_of_neighbours_in_ordering_queue;
     NetworKit::node current_node;
 
-    NetworKit::node max_degree_node = 0;
-    unsigned int max_degree = 0;
-
-    std::tie(max_degree_node, max_degree) = [](const NetworKit::Graph& graph) {
+    NetworKit::node max_degree_node = [](const NetworKit::Graph& graph) {
         NetworKit::node max_degree_node = 0;
         unsigned int max_degree = 0;
         graph.forNodes([&](NetworKit::node u) {
@@ -121,7 +109,7 @@ BrownsOrdinaryEnumerationVertexColoring::greedy_largest_first_ordering() {
                 max_degree_node = u;
             }
         });
-        return std::make_pair(max_degree_node, max_degree);
+        return max_degree_node;
     }(*graph);
 
     ordering.push_back(max_degree_node);
@@ -156,27 +144,25 @@ BrownsOrdinaryEnumerationVertexColoring::greedy_largest_first_ordering() {
     return ordering;
 }
 
-void BrownsOrdinaryEnumerationVertexColoring::determine_current_predecessors(int r) {
+void BrownEnumerationVertexColoring::determine_current_predecessors(int r) {
     current_predecessors = std::set<int, std::greater<int>>();
     for (int i = 0; i < r; ++i) {
         current_predecessors.insert(i);
     }
 }
 
-void BrownsOrdinaryEnumerationVertexColoring::run() {
+void BrownEnumerationVertexColoring::run() {
     ordering = greedy_largest_first_ordering();
-    lower_bound = 1;
-    upper_bound = graph->numberOfNodes();
-    n = graph->numberOfNodes();
+    lower_bound = 1, upper_bound = graph->numberOfNodes();
     r = 0;
-    ub = upper_bound + 1;
-    feasible_colors.resize(n);
+    current_bound = upper_bound + 1;
+    feasible_colors.resize(graph->numberOfNodes());
     feasible_colors[0].insert(1);
-    current_solution.resize(n);
+    current_solution.resize(graph->numberOfNodes());
 
     while (true) {
         forwards();
-        if (ub == lower_bound) {
+        if (current_bound == lower_bound) {
             break;
         }
         backwards();
@@ -188,21 +174,22 @@ void BrownsOrdinaryEnumerationVertexColoring::run() {
 }
 
 void ChristofidesEnumerationVertexColoring::calculate_transitive_closure() {
-    transitive_closure.resize(n);
-    for (int u = 0; u < n; ++u) {
-        transitive_closure[u].resize(n);
+    // use APSP
+    transitive_closure.resize(graph->numberOfNodes());
+    for (int u = 0; u < graph->numberOfNodes(); ++u) {
+        transitive_closure[u].resize(graph->numberOfNodes());
     }
-    for (int u = 0; u < n; ++u) {
-        for (int v = 0; v < n; ++v) {
+    for (int u = 0; u < graph->numberOfNodes(); ++u) {
+        for (int v = 0; v < graph->numberOfNodes(); ++v) {
             if (graph->hasEdge(ordering[u], ordering[v]) && u < v) {
                 transitive_closure[u][v] = true;
             }
         }
     }
-    for (int u = 0; u < n; ++u) {
-        for (int v = 0; v < n; ++v) {
+    for (int u = 0; u < graph->numberOfNodes(); ++u) {
+        for (int v = 0; v < graph->numberOfNodes(); ++v) {
             if (transitive_closure[u][v]) {
-                for (int w = 0; w < n; ++w) {
+                for (int w = 0; w < graph->numberOfNodes(); ++w) {
                     if (transitive_closure[v][w]) {
                         transitive_closure[u][w] = true;
                     }
@@ -213,7 +200,7 @@ void ChristofidesEnumerationVertexColoring::calculate_transitive_closure() {
 }
 
 void ChristofidesEnumerationVertexColoring::determine_current_predecessors(int r) {
-    for (int u = 0; u < n; ++u) {
+    for (int u = 0; u < graph->numberOfNodes(); ++u) {
         if (transitive_closure[u][r]) {
             current_predecessors.insert(u);
         }
@@ -228,21 +215,19 @@ ChristofidesEnumerationVertexColoring::getTransitiveClosure() const {
 
 void ChristofidesEnumerationVertexColoring::run() {
     ordering = greedy_largest_first_ordering();
-    lower_bound = 1;
-    upper_bound = graph->numberOfNodes();
-    n = graph->numberOfNodes();
+    lower_bound = 1, upper_bound = graph->numberOfNodes();
     r = 0;
-    ub = upper_bound + 1;
+    current_bound = upper_bound + 1;
 
     calculate_transitive_closure();
 
-    feasible_colors.resize(n);
+    feasible_colors.resize(graph->numberOfNodes());
     feasible_colors[0].insert(1);
-    current_solution.resize(n);
+    current_solution.resize(graph->numberOfNodes());
 
     while (true) {
         forwards();
-        if (ub == lower_bound) {
+        if (current_bound == lower_bound) {
             break;
         }
         backwards();
@@ -255,13 +240,13 @@ void ChristofidesEnumerationVertexColoring::run() {
 }
 
 std::vector<NetworKit::node> BrelazEnumerationVertexColoring::interchange_component(
-std::vector<NetworKit::node>& subgraph,
+std::vector<NetworKit::node>& scurrent_boundgraph,
 std::map<NetworKit::node, int>& solution,
 NetworKit::node new_node,
 int alpha) {
     std::unordered_set<NetworKit::node> visited;
     std::vector<NetworKit::node> verticesToRecolor;
-    for (NetworKit::node u : subgraph) {
+    for (NetworKit::node u : scurrent_boundgraph) {
         if (visited.find(u) == visited.end()) {
             std::vector<NetworKit::node> component;
             std::queue<NetworKit::node> queue;
@@ -279,7 +264,7 @@ int alpha) {
                     }
                 }
                 component.push_back(v);
-                for (NetworKit::node w : subgraph) {
+                for (NetworKit::node w : scurrent_boundgraph) {
                     if (graph->hasEdge(v, w) && visited.find(w) == visited.end()) {
                         queue.push(w);
                         visited.insert(w);
@@ -295,21 +280,21 @@ int alpha) {
     return verticesToRecolor;
 }
 
-bool BrelazEnumerationVertexColoring::is_interchangeable(std::vector<int>& K,
-NetworKit::node new_node,
-std::map<NetworKit::node, int>& solution) {
+bool BrelazEnumerationVertexColoring::is_interchangeable(
+        std::vector<int>& K, NetworKit::node new_node, std::map<NetworKit::node, int>& solution) {
     for (int alpha : K) {
         for (int beta : K) {
-            if (alpha == beta)
+            if (alpha == beta) {
                 break;
-            std::vector<NetworKit::node> subgraph;
+            }
+            std::vector<NetworKit::node> scurrent_boundgraph;
             for (const auto& [node, color] : solution) {
                 if (color == alpha || color == beta) {
-                    subgraph.push_back(node);
+                    scurrent_boundgraph.push_back(node);
                 }
             }
             auto interchangeable_component =
-            interchange_component(subgraph, solution, new_node, alpha);
+                interchange_component(scurrent_boundgraph, solution, new_node, alpha);
             if (interchangeable_component.size() > 0) {
                 for (NetworKit::node v : interchangeable_component) {
                     solution[v] = (alpha == solution[v]) ? beta : alpha;
@@ -322,8 +307,7 @@ std::map<NetworKit::node, int>& solution) {
     return false;
 }
 
-std::vector<NetworKit::node>
-BrelazEnumerationVertexColoring::saturation_largest_first_with_interchange() {
+std::vector<NetworKit::node> BrelazEnumerationVertexColoring::saturation_largest_first_with_interchange() {
     std::map<NetworKit::node, int> solution;
     std::vector<NetworKit::node> ordering;
     NetworKit::node max_degree_node = 0;
@@ -339,8 +323,7 @@ BrelazEnumerationVertexColoring::saturation_largest_first_with_interchange() {
     solution.insert(std::make_pair(max_degree_node, 1));
     ordering.push_back(max_degree_node);
 
-    auto satur_comp = [&](std::tuple<int, int, NetworKit::node> a,
-                      std::tuple<int, int, NetworKit::node> b) {
+    auto satur_comp = [&](const auto &a, const auto &b) {
         if (std::get<0>(a) == std::get<0>(b)) {
             if (std::get<1>(a) == std::get<1>(b)) {
                 return std::get<2>(a) < std::get<2>(b);
@@ -351,10 +334,9 @@ BrelazEnumerationVertexColoring::saturation_largest_first_with_interchange() {
     };
 
     auto saturation =
-    std::set<std::tuple<int, int, NetworKit::node>, decltype(satur_comp)>(satur_comp);
+        std::set<std::tuple<int, int, NetworKit::node>, decltype(satur_comp)>(satur_comp);
 
     std::unordered_map<NetworKit::node, std::unordered_set<int>> neighbours_colors;
-
     graph->forNodes([&](NetworKit::node u) {
         if (u != max_degree_node) {
             if (graph->hasEdge(max_degree_node, u)) {
@@ -366,11 +348,8 @@ BrelazEnumerationVertexColoring::saturation_largest_first_with_interchange() {
         }
     });
 
-    int max_color = 1;
-    int max_clique_size = 0;
-    unsigned int number_of_vertices = graph->numberOfNodes();
-
-    while (solution.size() < number_of_vertices) {
+    int max_color = 1, max_clique_size = 0;
+    while (solution.size() < graph->numberOfNodes()) {
         auto max_saturation = saturation.begin();
         NetworKit::node u = std::get<2>(*max_saturation);
         saturation.erase(max_saturation);
@@ -426,24 +405,20 @@ BrelazEnumerationVertexColoring::saturation_largest_first_with_interchange() {
             saturation.insert(std::make_tuple(neighbours_colors[node].size(), degree - 1, node));
         }
     }
+    lower_bound = max_clique_size, upper_bound = max_color;
 
-    upper_bound = max_color;
-    lower_bound = max_clique_size;
-
-    for (int i = 0; i < n; ++i) {
+    for (int i = 0; i < graph->numberOfNodes(); ++i) {
         current_solution[i] = solution[ordering[i]];
     }
-
     best_solution = current_solution;
-
     return ordering;
 }
 
 std::vector<int> BrelazEnumerationVertexColoring::get_representatives_of_adjacent_predecessors(
-int i) {
-    std::vector<int> representatives(ub, INT_MAX);
+        int i) {
+    std::vector<int> representatives(current_bound, INT_MAX);
     for (int j = 0; j < i; ++j) {
-        if (graph->hasEdge(ordering[j], ordering[i]) && current_solution[j] < ub) {
+        if (graph->hasEdge(ordering[j], ordering[i]) && current_solution[j] < current_bound) {
             if (representatives[current_solution[j]] > j) {
                 representatives[current_solution[j]] = j;
             }
@@ -477,22 +452,21 @@ void BrelazEnumerationVertexColoring::backwards() {
 }
 
 void BrelazEnumerationVertexColoring::run() {
-    n = graph->numberOfNodes();
-    current_solution.resize(n);
-    best_solution.resize(n);
+    current_solution.resize(graph->numberOfNodes());
+    best_solution.resize(graph->numberOfNodes());
 
     ordering = saturation_largest_first_with_interchange();
 
     if (lower_bound != upper_bound) {
         r = 0;
-        ub = upper_bound;
+        current_bound = upper_bound;
 
-        feasible_colors.resize(n);
+        feasible_colors.resize(graph->numberOfNodes());
         feasible_colors[0].insert(1);
 
         while (true) {
             forwards();
-            if (ub == lower_bound) {
+            if (current_bound == lower_bound) {
                 break;
             }
             backwards();
@@ -505,9 +479,9 @@ void BrelazEnumerationVertexColoring::run() {
 }
 
 void KormanEnumerationVertexColoring::forwards() {
-    std::vector<bool> is_colored(n, false);
-    std::vector<std::unordered_set<int>> neighbour_colors(n);
-    Aux::BucketPQ queue(n, -n+1, 0);
+    std::vector<bool> is_colored(graph->numberOfNodes(), false);
+    std::vector<std::unordered_set<int>> neighbour_colors(graph->numberOfNodes());
+    Aux::BucketPQ queue(graph->numberOfNodes(), -graph->numberOfNodes() + 1, 0);
 
     for (int i : new_ordering) {
         is_colored[i] = true;
@@ -552,13 +526,13 @@ void KormanEnumerationVertexColoring::forwards() {
     best_solution = current_solution;
     int maximal_color = 0;
     int maximal_color_index = -1;
-    for (int i = 0; i < n; ++i) {
+    for (int i = 0; i < graph->numberOfNodes(); ++i) {
         if (best_solution[new_ordering[i]] > maximal_color) {
             maximal_color = best_solution[new_ordering[i]];
             maximal_color_index = i;
         }
     }
-    ub = maximal_color;
+    current_bound = maximal_color;
     r = maximal_color_index;
 }
 
@@ -566,7 +540,7 @@ void KormanEnumerationVertexColoring::backwards() {
     for (auto i = r - 1; i >= 0; i--) {
         feasible_colors[new_ordering[i]].erase(current_solution[new_ordering[i]]);
         if (!feasible_colors[new_ordering[i]].empty()) {
-            if (*feasible_colors[new_ordering[i]].begin() < ub) {
+            if (*feasible_colors[new_ordering[i]].begin() < current_bound) {
                 current_solution[new_ordering[i]] = *feasible_colors[new_ordering[i]].begin();
                 while (new_ordering.size() > i + 1)
                     new_ordering.pop_back();
@@ -590,7 +564,7 @@ std::unordered_set<int> blocked_colors) {
     }
 
     for (int j = 1; j <= current_maximal_color + 1; ++j) {
-        if (j >= ub)
+        if (j >= current_bound)
             break;
         if (blocked_colors.find(j) == blocked_colors.end()) {
             feasible_colors_for_node.insert(j);
@@ -604,25 +578,24 @@ void KormanEnumerationVertexColoring::run() {
     ordering = greedy_largest_first_ordering();
     lower_bound = 1;
     upper_bound = graph->numberOfNodes();
-    n = graph->numberOfNodes();
-    current_solution.resize(n);
-    best_solution.resize(n);
+    current_solution.resize(graph->numberOfNodes());
+    best_solution.resize(graph->numberOfNodes());
 
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i < graph->numberOfNodes(); i++) {
         position[ordering[i]] = i;
     }
 
     r = 0;
-    ub = upper_bound + 1;
+    current_bound = upper_bound + 1;
 
     new_ordering.push_back(0);
-    feasible_colors.resize(n);
+    feasible_colors.resize(graph->numberOfNodes());
     feasible_colors[0].insert(1);
     current_solution[0] = 1;
 
     while (true) {
         forwards();
-        if (ub == lower_bound) {
+        if (current_bound == lower_bound) {
             break;
         }
         backwards();
@@ -632,4 +605,5 @@ void KormanEnumerationVertexColoring::run() {
     }
     hasRun = true;
 }
+
 } /* namespace Koala */
