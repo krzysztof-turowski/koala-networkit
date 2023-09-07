@@ -1,0 +1,40 @@
+\documentclass{report}
+\usepackage{import}
+
+\import{.}{preamble.tex}
+
+%\author{Artur Salawa}
+%\date{\today{}}
+\begin{document}
+
+\include{titlepage}
+\pagebreak
+
+%\begin{abstract}
+%Maximum Independent Set problem also known as \textbf{MIS} has been studied for almost half a century. The first article on Maximum independent set was published in 1977 by Tarjan and Trojanowski \cite{tarjan1977finding} and reached running time of $O^*(2^{n/3}) = O^*(1.2599^n)$. However, earlier than that one can find publications on the counting the Maximal independent sets and similar problems that had solutions faster than $O(2^n)$. Using ideas from these algorithms it is quite easy to derive an algorithm for MIS but it seems like the MIS was not a subject of study yet. Currently the fastest solution was published in 2017 by Mingyu Xiao and Hiroshi Nagamochi running in $O^*(2^{0.2626n})=O^*(1.1996^n)$ \cite{xiao2017exact}.
+
+%In chapter 1 we start with basic definitions. In chapter 2 we introduce naive approach and other simple algorithms. Chapter 3 discusses more advanced algorithms. In the last chapter 4 we present practical running times of the implemented algorithms in an open source Koala NetworKit library.
+
+%\end{abstract}
+
+\tableofcontents
+
+\pagebreak
+
+\chapter{Introduction}
+\input{1_introduction/1_main.tex}
+
+\chapter{Simple algorithms}
+\input{2_simpleAlgorithms/2_main.tex}
+
+\chapter{Advanced algorithms}
+\input{3_advancedAlgorithms/3_main.tex}
+
+\chapter {Implementation and benchmark}
+\input{4_benchmark/4_main}
+
+\addappheadtotoc
+
+\printbibliography
+
+\end{document}

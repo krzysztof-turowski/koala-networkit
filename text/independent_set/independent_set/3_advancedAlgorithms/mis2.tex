@@ -1,0 +1,355 @@
+\section{Mis2}
+
+In previous chapter we observed that even seemingly more sophisticated algorithms that \textsc{Mis1} did not achieve better computational complexity. In this chapter we introduce even more rules but most importantly we improve the only branching rule we so far know -- standard branching. In the worst case it could generate a branching vector $(1,4)$. Algorithms here are going to improve this bound, but first, we need to establish more theory.
+
+\subsection{New definitions and lemmas}
+
+\begin{lemma}
+\label{lem:lem1}
+If no maximum independent set of $G$ contains vertex $v$ then every maximum independent set of $G$ contains at least two vertices of $N(v)$.
+\end{lemma}
+\begin{proof}
+We assume that no maximum independent set $I$ of $G$ contains vertex $v$. As a result at least one of the vertices of $N(v)$ must belong to the every $I$. We well show that actually even two vertices must belong to $N(v)$. Let us assume that only one vertex $w$ of $N(v)$ belongs to $I$. Since no other $N(v)$ vertices are in the independent set we can safely shift the selection of vertex added to the independent set from $v$ to $w$. Cardinality of the independent set stays the same so it also must be maximal. However, lemma assumed that no maximum independent set of $G$ contains $v$ hence, a contradiction.
+\end{proof}
+
+\begin{defn}[clique]
+A \emph{clique} is a graph in which every two vertices are adjacent. It is frequently an induced subgraph with the mentioned property.
+\end{defn}
+
+\begin{defn}[vertex's mirror]
+\label{def:mirror}
+A vertex $w \in N^2(v)$ is called a \emph{mirror} of $v$ if $N(v) \setminus N(w)$ is a clique. 
+\end{defn}
+We denote the set of vertex mirrors of $v$ by $M(v)$.
+
+\begin{lemma}
+\label{lem:mirror_branching}
+Let $\alpha$ be an algorithm finding the maximum independent set. Then
+$$\alpha(G) = \max\{\alpha(G\setminus \{v\} \setminus M(v)),1+\alpha(G\setminus N[v])\}$$
+\end{lemma}
+
+\begin{proof}
+If $G$ has a maximum independent set containing v then $\alpha(G) = 1 + \alpha(G \setminus N[v])$ and the lemma is true. Otherwise suppose that no maximum independent set of $G$ contains $v$. From \Cref{lem:lem1} we know that if no maximum independent set contains $v$ then every maximum independent set contains at least $2$ vertices in $N(v)$. From \Cref{def:mirror} we also know that $N(v) \setminus N(u)$ is a clique and therefore at most one vertex from it can be selected to the independent set.
+\begin{figure}[h]
+    \centering\begin{tikzpicture}[scale=.8, simplegraph]
+        \node(v) at (3, 1) {$v$};
+        \node(w_1) at (0, 0) {};
+        \node(w_2) at (2, 0) {};
+        \node(w_3) at (4, 0) {};
+        \node(w_4) at (6, 0) [minimum size=1.7cm]{ clique $C$ };
+        \node(u) at (3, -1) {$u$};
+
+        \draw(v) to (w_1);
+        \draw(v) to (w_2);
+        \draw(v) to (w_3);
+        \draw(v) to (w_4);
+        
+        \draw(u) to (w_1);
+        \draw(u) to (w_2);
+        \draw(u) to (w_3);
+    \end{tikzpicture}
+    \caption{}
+    \label{with clique}
+\end{figure}
+
+The remaining vertex to be selected to the maximum independent set must be in $N(v) \setminus (N(v) \setminus N(u)) = N(v) \cap N(u)$. It will be a neighbor of $w$, and hence, if $v$ is not selected to the independent set, neither is $w$.
+\end{proof}
+
+This procedure we will later call simply \emph{mirror branching}.
+
+\subsection{Algorithm}
+
+
+\textsc{Mis2} algorithm is quite long as it has multiple cases. Many branching rules allow for attaining better computational complexities. The most important thing, however, is to optimize the currently slowest branching rule.
+
+We split the \textsc{Mis2} algorithm into $3$ parts:  
+\begin{itemize} [noitemsep]
+    \item part $1$ contains cases for vertices with degrees of $0$, $1$ and $2$,
+    \item part $2$ solely focuses on vertices with degree $3$,
+    \item part $3$ solves remaining cases for vertices with degrees higher than $3$.
+\end{itemize}
+
+Additionally, there are $\triangleright$'s throughout the code that indicate comments. We will use them during the description of the algorithm to differentiate cases. Also in contrast to the previous chapters, we will be discussing both correctness and computational complexity at the same time.
+
+\begin{algorithm} [H]
+\caption{\textsc{Mis2}}\label{mis2:1}
+\begin{algorithmic}[1]
+\Require a graph $G=(V,E)$
+\Ensure the maximum independent set of $G$
+\Procedure{Mis2}{graph $G$}
+    \If{$|V| = 0$}
+        \State \Return $\varnothing$ \Comment{Case A}
+    \EndIf
+    \State
+    \If{$\exists v \in V \colon \deg (v) \leq 1$} 
+         \State \Return $\Call{Mis2}{G\setminus N[v]} \cup \{v\}$  \Comment{Case B}
+    \EndIf
+    \State
+    \If{$\exists v \in V \colon \deg (v) = 2$}
+        \State $\{u_1, u_2\} \gets N(v)$        
+        \If{$\{u_1, u_2\} \in E$}
+            \State \Return $\Call{Mis2}{G\setminus N[v]} \cup \{v\}$  \Comment{Case C}
+        \Else
+            \If{$|N^2(v)|=1$}
+                \State \Return $\Call{Mis2}{G\setminus N[v]} \cup \{u_1\, u_2\}$  \Comment{Case D}
+            \Else
+                \State $A \gets \Call{Mis2}{G\setminus N[v]} \cup \{v\}$
+                \State $B \gets \Call{Mis2}{G\setminus \{v\} \setminus M(v)}$
+                \State \Return the largest of the sets: $A, B$ \Comment {Case E}
+            \EndIf
+        \EndIf        
+    \EndIf    
+\algstore{myalg}    
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Case A and Case B}
+The first two cases are reduction rules. Case A solves the empty problem. Case B deals with vertex $v$ when its degree is $1$. As we discussed earlier, such vertices always can be added to the solution. Both of these cases have only a polynomial impact on the total complexity.
+
+\subsection{Case C}
+\begin{figure}[ht]
+    \centering\begin{tikzpicture}[scale=.8, simplegraph]
+        \node(v) at (1, 1) {$v$};
+        \node(u_1) at (0, 0) {$u_1$};
+        \node(u_2) at (2, 0) {$u_2$};
+        
+        \node(i1) at (-0.5,-2) [draw=none] {};
+        \node(i2) at (0.5,-2) [draw=none] {};
+        \node(i3) at (1.5,-2)[draw=none] {};
+        \node(i4) at (2.5,-2)[draw=none] {};
+
+        \draw(v) to (u_1);
+        \draw(v) to (u_2);
+        \draw(u_1) to (u_2);
+
+        \draw(u_1) to (i1) [dashed];
+        \draw(u_1) to (i2) [dashed];
+        \draw(u_2) to (i3) [dashed];
+        \draw(u_2) to (i4) [dashed];        
+    \end{tikzpicture}
+    \caption{Case C example. Only vertices $u_1, u_2$ can have more edges to $V\setminus \{v,u_1,u_2\}$}
+    \label{case c}
+\end{figure}
+
+In case C we are dealing with induced triangle. Since we are past Case A and B we know for a fact that vertex $v$ has the lowest degree in a graph. Also, both $u_1$ and $u_2$ will have degrees at least $2$. Picking vertex $v$ to the independent set is at least as good as $u_1$ or $u_2$ because choosing any of these three consequently prevents all others from being added to the solution. Then we recursively solve subproblem $G\setminus N[v]$.
+
+This is another reduction rule because we were not creating additional instances.
+
+\subsection{Case D}
+\begin{figure}[ht]
+    \centering\begin{tikzpicture}[scale=.8, simplegraph]
+        \node(v) at (0, 1) {$v$};
+        \node(u_1) at (1, 0) {$u_1$};
+        \node(u_2) at (-1, 0) {$u_2$};
+        \node(w) at (0, -1) {$w$};
+        \node(i1) at (-1,-3) [draw=none] {};
+        \node(i2) at (0,-3) [draw=none] {};
+        \node(i3) at (1,-3)[draw=none] {};
+        
+        \draw(v) to (u_1);
+        \draw(v) to (u_2);
+        \draw(u_1) to (w);
+        \draw(u_2) to (w);
+
+        \draw(w) to (i1) [dashed];
+        \draw(w) to (i2) [dashed];
+        \draw(w) to (i3) [dashed];
+
+    \end{tikzpicture}
+    \caption{Case D example. Only vertex $w$ can have more edges with $V\setminus \{v,u_1,u_2\}$}
+    \label{case d}
+\end{figure}
+
+Here we have a cycle  $\{v,u_1,u_2,w \}$ and only $w$ can be connected with the rest of a graph. From these vertices, we have $3$ options on how to select them to the independent set but only one of the options is optimal:
+\begin{enumerate}
+    \item choose $v$ and $w$. This choice adds two vertices to the independent set and blocks $N[w] \cup \{v\}$ from being chosen down the line in the recursion tree,
+    \item choose only $v$ and something from $N^3(v)$. Let this vertex from $N^3(v)$ be $x$. This choice adds two vertices to the independent set and blocks $N[x] \cup \{v, u_1, u_2\}$ from being chosen later,
+    \item choose $u_1$ and $u_2$. This choice also adds two vertices to the independent set and blocks $\{v, u_1, u_2, w\}$ from being chosen later.
+\end{enumerate}
+The common part of these approaches is that we always add two vertices to the independent set and always remove all four vertices from $G$. However, in options $1$ and $2$ we also remove additional vertices from graph $G$. From that, we can see that the optimal solution for that case is adding $u_1$ and $u_2$ to the independent set and calling a recursive function for an obtained graph.
+
+This was another reduction rule and thus is not interesting in the sense of computational complexity.
+
+\subsection{Case E}
+
+Earlier with \Cref{lem:mirror_branching} we proved that when discarding  $v$ from the graph it is also safe to discard $M(v)$. Using this rule an algorithm either selects $v$ to the maximum independent set or discards both $v$ and $M(v)$ depending on which attempt gives better results. 
+
+If the algorithm selects $v$ to the independent set then with $N(v)$ it removes $3$ vertices from a graph. Otherwise, it will remove $v$ and $M(v)$. Fortunately, $M(v) = N^2(v)$. Let us take any vertex $w\in N^2(v)$. It must be a neighbor to either $u_1,u_2$ or both. Then $N(v) \setminus N(w)$ will be $\{u_1\}, \{u_2\}$ or $\emptyset$. In any case, it is a clique so $w\in M(v)$.
+
+After discarding $\{v\} \cup M(v)$ vertices $u_1,u_2$ will have no neighbors and will be immediately selected to the maximum independent set by reduction rule of the \textsc{Mis2} for vertices with degree $0$. $N^2(v)$ has size at least $2$ so it that case algorithm will remove at least $5$ vertices from graph. Altogether we get a branching vector $(5,3)$ and complexity $1.1939^n$.
+
+\begin{algorithm}[H]
+\caption{\textsc{Mis2}}\label{mis2:2}
+\begin{algorithmic}[1]
+\algrestore{myalg}
+
+    \If{\textbf{there exists} $v \in V$ \textbf{such that} $\deg (v) = 3$}
+        \State $\{u_1, u_2, u_3\} \gets N(v)$
+
+            \If{$G[N(v)]$ has no edge}
+                \If {$v$ has a mirror}
+                    \State $A \gets \Call{Mis2}{G\setminus N[v]} \cup \{v\}$
+                    \State $B \gets \Call{Mis2}{G\setminus \{v\} \setminus M(v)}$
+                    \State \Return the largest of the sets: $A, B$ \Comment {Case F}
+                \Else
+                    \State $A \gets \Call{Mis2}{G\setminus N[v]} \cup \{v\}$
+                    \State $B \gets \Call{Mis2}{G\setminus N[u_1] \setminus N[u_2]} \cup \{u_1, u_2\}$
+                    \State $C \gets \Call{Mis2}{G\setminus N[u_1]  \setminus N[u_3]  \setminus \{u_2\} } \cup \{u_1, u_3\}$
+                    \State $D \gets \Call{Mis2}{G\setminus N[u_2]  \setminus N[u_3]  \setminus \{u_1\} } \cup \{u_2, u_3\}$
+
+                    \State \Return the largest of the sets: $A, B, C, D$ \Comment {Case G}
+                \EndIf           
+            \ElsIf{$G[N(v)]$ has one or two edges}
+                \State $A \gets \Call{Mis2}{G\setminus N[v]} \cup \{v\}$
+                \State $B \gets \Call{Mis2}{G\setminus \{v\} \setminus M(v)}$
+                \State \Return the largest of the sets: $A, B$ \Comment {Case H}
+            \Else %\ElsIf{$G[N(v)]$ has three edges}
+                \State \Return $\Call{Mis2}{G\setminus N[v]} \cup \{v\}$ \Comment {Case I}
+            \EndIf            
+    \EndIf
+\algstore{myalg}
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Case F}
+We have a vertex with a degree $3$ and set $N(v)$ has no edges and $v$ has a mirror. Since $v$ has a mirror, we just perform another mirror branching. In this case, the branching vector is equal to $(4,2)$ because in the case of vertex $v$ being selected to the independent set we can discard exactly $4$ vertices from the $V(G)$. On the other hand, if $v$ is not selected then we discard $v$ and $M(v)$. It can be shown that $\tau(4,2) < 1.2721$.
+
+\subsection{Case G}
+We have a vertex with a degree $3$ and set $N(v)$ has no edges but $v$ does not have a mirror. We consider all the cases. 
+The algorithm can:
+\begin{itemize}
+    \item select $v$ -- subproblem has $4$ vertices less,
+    \item discard $v$, select $u_1$, discard $u_2$, select $u_3$ -- subproblem has at least $8$ vertices less, because we reduce the problem by $\{v, u_1, u_2, u_3\} \cup N(u_1) \cup N(u_2)$. We are using an assumption that there are no more vertices with degrees 0,1 or 2 left,
+    \item discard $v$, discard $u_1$, select $u_2$, select $u_3$ -- the same as above,
+    \item discard $v$, select $u_1$, select $u_2$ -- similarly as above but without removing $u_3$,
+    Here it might be surprising that we don't discard vertex $u3$ like in previous cases. However, here we allow for both selecting and discarding $u_3$ further down the recursion tree.
+\end{itemize}
+This leaves us with $(4,7,8,8)$ branching vector and $\tau(4,7,8,8) < 1.2406$.
+
+\subsection{Case H}
+A case with degree $3$ and one or two edges between $N(v)$. Here is another example where we use mirror branching. Complexity analysis, however, splits this case into two:
+\begin{itemize}
+    \item $d(v)=3$ and there is one edge between $N(v)$\\
+    Let this edge be $\{u_1, u_2\}$ then vertex $u_3$ will have at least two neighbors in $N^2(v)$ and they will be mirrors of $v$ since $\{u_1, u_2\}$ forms a clique. Not selecting $v$ also guarantees not selecting these two,
+    \item $d(v)=3$ and there are two edges between $N(v)$\\
+    Let them be $\{u_1, u_2\},\{u_1, u_3\}$. As proven in the lemmas, discarding $v$ will leave $u_1$ and $u_3$ to be selected. That removes at least $5$ vertices in total.
+\end{itemize}
+In both cases selecting vertex $v$ to an independent set simplifies the problem by removing $N[v]$ - that is $4$ vertices. This leads to branching vectors $(4,3)$ and $(4,5)$. Both of them are worse than the $(4,2)$ that we encountered before.
+
+\subsection{Case I}
+$N(v)$ forms a clique. Here we can simply select vertex $v$ since selecting either one of $u_1, u_2, u_3$ would yield a worse result. It was a reduction rule.
+
+\begin{defn}[graph $k$-regular]
+A graph is $\boldsymbol{k}$\emph{-regular} when all of its vertices have degree $k$.
+\end{defn}
+
+\begin{algorithm} [H]
+\caption{\textsc{Mis2}}\label{mis2:3}
+\begin{algorithmic}[1]
+\algrestore{myalg}
+    \State
+    \If{$\Delta(G) \geq 6$} 
+        \State choose arbitrary vertex $v$ of maximum degree in $G$
+        \State $A \gets \Call{Mis2}{G\setminus N[v]} \cup \{v\}$
+        \State $B \gets \Call{Mis2}{G\setminus \{v\}}$
+        \State \Return the largest of the sets: $A, B$ \Comment {Case J}
+    \EndIf
+    \State
+    \If{$G$ has multiple components} 
+        \State choose arbitrary component $C$ of $G$
+        \State \Return $\Call{Mis2}{G[C]} \cup \Call{Mis2}{G\setminus C}$ \Comment {Case K}
+    \EndIf
+    \State
+    \If{$G$ is $4$-regular or $5$-regular}
+        \State choose arbitrary vertex $v$ of $G$
+        \State $A \gets \Call{Mis2}{G\setminus N[v]} \cup \{v\}$
+        \State $B \gets \Call{Mis2}{G\setminus \{v\} \setminus M(v)}$
+        \State \Return the largest of the sets: $A, B$ \Comment {Case L}
+    \EndIf
+    \State
+    \State choose arbitrary adjacent vertices $v$ and $w$ with $\deg(v) = 5$ and $\deg(w) = 4$ in $G$
+    \State $A \gets \Call{Mis2}{G\setminus N[v]} \cup \{v\}$
+    \State $B \gets \Call{Mis2}{G\setminus \{v\}  \setminus M(v)}$
+    \State \Return the largest of the sets: $A, B$ \Comment {Case M}
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Case J}
+This case is pretty simple and similar to what we saw before in the other algorithms. Because this algorithm has many cases we can save up on the complexity by considering vertices of degree at least $6$. The algorithm splits the problem into subproblems where either $v$ is included in the solution or not. This gives branching a vector $(7,1)$ and $\tau(7,1) < 1.2554$. 
+
+\subsection{Case K}
+This case focuses on splitting disconnected graphs into subproblems solving single components. Let's say we have a graph with $n$ vertices and it contains connected components containing $c\geq 1$ (actually $c\geq 4$ but it does not matter) vertices. Then we will get the following recurrence relation:
+$$
+T(n) \leq T(n-c) + T(c)
+$$
+
+Since the recurrence gives only a polynomial bound, this has no impact on the overall complexity.
+
+\subsection{Case L}
+
+In case L we either encounter a $4$-regular graph or a $5$-regular graph. 
+
+We will prove the following lemma:
+\begin{lemma}
+On its execution path for any graph $G$, \Cref{mis2:3} encounters at most one r-regular graph for each $r$.
+\end{lemma}
+
+\begin{proof}
+Let us say an algorithm, reached a point where it sees $r$-regular graph $R_1$. It must be a connected component since it is guaranteed after the previous Case. Assume that we remove some vertices from this graph and we get another $r$-regular graph $R_2$. Again, it has to be a connected component. It is also must be an induced subgraph of the original $r$-regular graph. Number of edges for each vertex is fixed and equal to $r$. It means that there can't be any edges between graphs $R_1$ and $R_2 \setminus R_1$. But $R_2$ is a subgraph of $R_1$ which means that $R_1$ and $R_2 \setminus R_1$ are separate components. Hence, a contradiction.
+\end{proof}
+
+Thus, we have just proved that we can only reach this case once for a $4$-regular graph and once for a $5$-regular graph. It means that this case can be ignored in the complexity discussion as it has at most a polynomial impact.
+
+\subsection{Case M}
+
+We are at the end. We are left with a graph in which must exist at least one vertex with degree $4$ and at least one vertex with degree $5$. We also know that the graph is a connected component so there must be a pair $(v,w)$ such that $\deg(v)=5$ and $\deg(w)=4$ and $w \in N(v)$ ($v,w$ have different degrees and are neighbors). With this setting an algorithm performs mirror branching on $v$. This leads to a branching vector of $(1,6)$. It can be calculated that $\tau(1,6)<1.2852$.
+
+This is the worst estimation encountered so far but fortunately, we can improve it. We want to optimize a branch case where $v$ is discarded. We need to look deeper down the recursion tree to see what happens. After $v$ is discarded vertex $w$ loses one neighbor and reduces its degree to $3$. This can potentially lead to any of the cases for a degree of $3$. Cases F, G, H, and I have respective branching vectors: $(4,2),\ (4,3)\ (4,5), (4,7,8,8)$. As the algorithm also passes through original node that was giving $(1,6)$ it consequently corresponds to one of these branching vectors: $(4+1,2+1,6)=(5,3,6),\ (4+1,3+1,6)=(5,4,6),\ (4+1,5+1,6)=(5,6,6),\ (4+1,7+1,8+1,8+1, 6)=(5,8,9,9,6)$. The slowest of is a branching vector $(5,8,9,9,6)$ and $\tau(5,8,9,9,6)$ gives $1.2786$. Interestingly, the algorithm did not change but more careful analysis led to a better result. Indeed, the complexity of the algorithm is only as good as we can prove it.
+
+\subsection{Overview}
+Here is an overview of all cases of \textsc{Mis2} algorithm and their complexities. The bold value represents the worst-case branching scenario and therefore overall complexity.
+\begin{center}
+\begin{tabular}{ |c|c|c|c|c| } 
+\hline
+general case & specific case & \makecell{branching \\ vector} & \makecell{branching \\ factor} \\ % \thead
+
+\hline
+\multirow{2}{5em}{}
+& $\deg(v)=0$ & --- &  1 \\
+\cline{2-4}
+& $\deg(v)=1$ & --- & 1 \\
+
+\hline
+\multirow{3}{5em}{$\deg(v)=2$}
+& $N(v)$ connected & --- & 1 \\  
+\cline{2-4}
+& $|E[N(v)]|=0 \land |N^2(v)| = 1$ & --- & 1 \\ 
+\cline{2-4}
+& $|E[N(v)]|=0 \land |N^2(v)| \neq 1$ & (5,3) & 1.1939 \\ 
+\hline
+
+\multirow{4}{5em}{$\deg(v)=3$}
+& $N(v)$ no edge $\land\ v $ has mirror & (4,2) & 1.2721 \\ 
+\cline{2-4}
+& $N(v)$ no edge $\land\ v $ no mirror & (4,7,8,8)  & 1.2406 \\ 
+\cline{2-4}
+& $N(v)$ one or two edges & (4,3) & $<1.2721$ \\ 
+\cline{2-4}
+&  $N(v)$ three edges & --- & 1 \\ 
+\hline
+
+\multirow{4}{5em}{}
+& $\Delta(G)\geq 6$ & (7,1) & 1.2554 \\
+\cline{2-4}
+& $G$ has multiple components & --- & 1 \\
+\cline{2-4}
+& $G$ is $4$ or $5$ regular & --- & 1 \\
+\cline{2-4}
+& $G$ has 4/5 degree vertices & (5,8,9,9,6) & \textbf{1.2786} \\
+
+
+\hline
+
+\end{tabular}
+\end{center}

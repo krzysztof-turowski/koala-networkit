@@ -1,0 +1,64 @@
+\section{Important notions}
+
+Before we begin we should establish common set of rules and definitions that we are going to use throughout the article. We only consider undirected graphs without loops or multiple edges. Most of the definitions are taken from \cite{blue_book} but also from \cite{bollobas1998modern}, \cite{butenko2003maximum}, \cite{cormen2022introduction} and \cite{wiki}. Some definitions are refined to fit to our specific needs. For now, we only introduce the most important concepts. The remaining ones will be added later in respective places.
+
+\begin{defn}[graph]
+A \emph{graph} $G = (V, E)$ consists of $V$, a nonempty set of \emph{vertices} (or \emph{nodes}) and $E$, a set of \emph{edges}. Each edge has two vertices associated with it, called its \emph{endpoints}. An edge is said to \emph{connect} its endpoints. 
+\end{defn}
+This type of graph is also called \emph{undirected graph}.
+
+\begin{defn}[adjacent nodes]
+Two vertices $u,v\in V$ in an undirected graph $G=(V,E)$ are called \emph{adjacent} (or \emph{neighbors}) in $G$ if $u$ and $v$ are endpoints of an edge $e\in E$ of $G$. 
+
+Such an edge $e$ is called \emph{incident} with the vertices $u$ and $v$.
+\end{defn}
+
+\begin{defn}[degree of a vertex]
+The \emph{degree of a vertex} in an undirected graph is the number of edges incident with it. The degree of the vertex $v$ is denoted by $\deg(v)$.
+\end{defn}
+
+Frequently, we need to take a closer look on what is exactly happening in a small part of a graph. We also have definitions for that:
+
+\begin{defn}[subgraph]
+A subgraph of a graph $G$ is another graph formed from a subset of the vertices and edges of $G$.
+\end{defn}
+
+\begin{defn}[induced subgraph]
+An induced subgraph of a graph is a subgraph formed from a subset of vertices and from all of the edges that have both endpoints in the subset. Induced subgraph formed from vertices $V'$ of graph $G(V,E)$ we denote by $G[V']$.
+\end{defn}
+
+We are finally ready to define the main object of this study, the independent set.
+
+\begin{defn}[independent set, stable set]
+A subset $I\subset V$ is called an \emph{independent set} (in some literature also called a \emph{stable set}) if there is no edge in the subgraph induced by $I$.
+\end{defn}
+
+\begin{defn}[maximum independent set]
+An independent set is \emph{maximum} if there are no larger independent sets in a graph in terms of cardinality.
+\end{defn}
+
+\begin{defn}[Maximum Independent Set (MIS) problem]
+In the \emph{Maximum Independent Set (MIS) problem}, we are given an undirected graph $G = (V,E)$. The task is to find an independent set $I$ such that $G[I]=(V',E')$ and $E=\emptyset$ and $V'$ have maximum cardinality.
+\end{defn}
+
+\begin{figure}[h]
+  \centering\begin{tikzpicture}[scale=.8, simplegraph]
+    \node(v_1) at (0, 0) {$v_1$};
+    \node(v_2) at (2, 0) {$v_2$};
+    \node(v_3) at (4, 0) {$v_3$};
+    \node(v_4) at (6, 0) {$v_4$};
+    \node(v_5) at (0, 2) {$v_5$};
+    \node(v_6) at (2, 2) {$v_6$};
+    \node(v_7) at (4, 2) {$v_7$};
+    \draw(v_1) to (v_2);
+    \draw(v_2) to (v_3);
+    \draw(v_2) to (v_5);
+    \draw(v_1) to (v_5);
+    \draw(v_1) to (v_5);
+    \draw(v_6) to (v_7);
+  \end{tikzpicture}
+  \caption{An example graph $G_0$}
+  \label{fig:mis_defn}
+\end{figure}
+
+For example, the maximum independent set presented in \Cref{fig:mis_defn}, is equal to $4$. Independent sets of that cardinality are: $\{v_4, v_6, v_3, v_1\}$, $\{v_4, v_6, v_3, v_5\}$, $\{v_4, v_7, v_3, v_1\}$, $\{v_4, v_7, v_3, v_5\}$.
