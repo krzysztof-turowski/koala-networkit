@@ -36,6 +36,7 @@ NetworKit::Graph create_graph(const std::string &format) {
             graph = NetworKit::Graph(0, false, false);
             break;
         case Format::max:
+        case Format::sp:
             graph = NetworKit::Graph(0, true, true);
             break;
         default:
@@ -53,6 +54,7 @@ void read_edge(std::ifstream &graphFile, NetworKit::Graph &graph, const std::str
             graph.addEdge(u - 1, v - 1);
             break;
         case Format::max:
+        case Format::sp:
             graphFile >> u >> v >> w;
             graph.increaseWeight(u - 1, v - 1, w);
             graph.increaseWeight(v - 1, u - 1, 0);

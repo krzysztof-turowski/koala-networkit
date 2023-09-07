@@ -19,7 +19,7 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     set(KOALA_LINKER_FLAGS "${KOALA_LINKER_FLAGS} -fopenmp")
 endif()
 
-set(CMAKE_CXX_CPPLINT cpplint --linelength=100 --extensions=cpp,hpp --filter=-legal/copyright,-build/c++20,-build/include,-build/namespaces,-build/header_guard,-runtime/references,-runtime/string --recursive --exclude=${CMAKE_SOURCE_DIR}/backup/* --exclude=${CMAKE_SOURCE_DIR}/build/* --exclude=${CMAKE_SOURCE_DIR}/input/* --exclude=${CMAKE_SOURCE_DIR}/lib/* --exclude=${CMAKE_SOURCE_DIR}/cpp/flow/maximum_flow/dynamic_tree/*)
+set(CMAKE_CXX_CPPLINT cpplint --linelength=100 --extensions=cpp,hpp --filter=-legal/copyright,-build/c++20,-build/include,-build/namespaces,-build/header_guard,-runtime/references,-runtime/string --recursive --exclude=${CMAKE_SOURCE_DIR}/backup --exclude=${CMAKE_SOURCE_DIR}/build --exclude=${CMAKE_SOURCE_DIR}/input --exclude=${CMAKE_SOURCE_DIR}/lib --exclude=${CMAKE_SOURCE_DIR}/cpp/flow/maximum_flow/dynamic_tree/*)
 
 include(FetchContent)
 

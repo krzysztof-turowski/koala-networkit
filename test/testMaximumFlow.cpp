@@ -18,7 +18,7 @@ class KingRaoTarjanMaximumFlowTest
 
 TEST_P(KingRaoTarjanMaximumFlowTest, test) {
     MaximumFlowParameters const& parameters = GetParam();
-    NetworKit::Graph G = build_graph(parameters.N, parameters.EW);
+    NetworKit::Graph G = build_graph(parameters.N, parameters.EW, true);
     auto algorithm = Koala::KingRaoTarjanMaximumFlow(G, parameters.s, parameters.t);
     algorithm.run();
     EXPECT_EQ(algorithm.getFlowSize(), parameters.flowSize);

@@ -17,7 +17,7 @@ class PerfectGraphRecognitionTest
 
 TEST_P(PerfectGraphRecognitionTest, test) {
     GraphRecognitionParameters const& parameters = GetParam();
-    NetworKit::Graph G = build_graph(parameters.N, parameters.E);
+    NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
     auto algorithm = Koala::PerfectGraphRecognition(G);
     algorithm.run();
 

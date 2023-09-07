@@ -45,64 +45,57 @@ auto parameter_set = DominatingSetParameters{
         {27, 29}, {27, 31}, {28, 29}, {28, 30}, {29, 30}, {29, 31}, {30, 31}},
     5};
 
-void check(const auto &parameters, const auto &dominating_set) {
-    EXPECT_EQ(
-        std::count(dominating_set.begin(), dominating_set.end(), true),
-        parameters.minimumDominatingSetSize);
-}
-
 TEST_P(GrandoniTest, test) {
     DominatingSetParameters const& parameters = GetParam();
-    NetworKit::Graph G = build_graph(parameters.N, parameters.E);
+    NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
     auto algorithm = Koala::BranchAndReduceDominatingSet<Koala::GrandoniSetCover>(G);
     algorithm.run();
     algorithm.check();
-    check(parameters, algorithm.getDominatingSet());
+    EXPECT_EQ(parameters.minimumDominatingSetSize, algorithm.getDominatingSet().size());
 }
 
 INSTANTIATE_TEST_SUITE_P(test_example, GrandoniTest, testing::Values(parameter_set));
 
 TEST_P(FominGrandoniKratschTest, test) {
-    DominatingSetParameters const&
-    parameters = GetParam();
-    NetworKit::Graph G = build_graph(parameters.N, parameters.E);
+    DominatingSetParameters const& parameters = GetParam();
+    NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
     auto algorithm = Koala::BranchAndReduceDominatingSet<Koala::FominGrandoniKratschSetCover>(G);
     algorithm.run();
     algorithm.check();
-    check(parameters, algorithm.getDominatingSet());
+    EXPECT_EQ(parameters.minimumDominatingSetSize, algorithm.getDominatingSet().size());
 }
 
 INSTANTIATE_TEST_SUITE_P(test_example, FominGrandoniKratschTest, testing::Values(parameter_set));
 
 TEST_P(RooijBodlaenderTest, test) {
     DominatingSetParameters const& parameters = GetParam();
-    NetworKit::Graph G = build_graph(parameters.N, parameters.E);
+    NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
     auto algorithm = Koala::BranchAndReduceDominatingSet<Koala::RooijBodlaenderSetCover>(G);
     algorithm.run();
     algorithm.check();
-    check(parameters, algorithm.getDominatingSet());
+    EXPECT_EQ(parameters.minimumDominatingSetSize, algorithm.getDominatingSet().size());
 }
 
 INSTANTIATE_TEST_SUITE_P(test_example, RooijBodlaenderTest, testing::Values(parameter_set));
 
 TEST_P(FominKratschWoegingerTest, test) {
     DominatingSetParameters const& parameters = GetParam();
-    NetworKit::Graph G = build_graph(parameters.N, parameters.E);
+    NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
     auto algorithm = Koala::FominKratschWoegingerDominatingSet(G);
     algorithm.run();
     algorithm.check();
-    check(parameters, algorithm.getDominatingSet());
+    EXPECT_EQ(parameters.minimumDominatingSetSize, algorithm.getDominatingSet().size());
 }
 
 INSTANTIATE_TEST_SUITE_P(test_example, FominKratschWoegingerTest, testing::Values(parameter_set));
 
 TEST_P(SchiermeyerTest, test) {
     DominatingSetParameters const& parameters = GetParam();
-    NetworKit::Graph G = build_graph(parameters.N, parameters.E);
+    NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
     auto algorithm = Koala::SchiermeyerDominatingSet(G);
     algorithm.run();
     algorithm.check();
-    check(parameters, algorithm.getDominatingSet());
+    EXPECT_EQ(parameters.minimumDominatingSetSize, algorithm.getDominatingSet().size());
 }
 
 INSTANTIATE_TEST_SUITE_P(test_example, SchiermeyerTest, testing::Values(parameter_set));
