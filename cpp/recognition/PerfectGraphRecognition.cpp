@@ -9,8 +9,6 @@
 #include <list>
 #include <set>
 
-#include <iostream>
-
 #include <graph/GraphTools.hpp>
 #include <recognition/PerfectGraphRecognition.hpp>
 

@@ -1,0 +1,125 @@
+\section{MisFolding}
+\label{sec:misfolding}
+This algorithm solves the maximum independent set problem asymptotically faster and is much shorter than \textsc{Mis2}. It utilizes new technique called vertex folding. Additionally, it is designed around improving the complexity of the slowest part of the algorithm and all unnecessary cases are not included. \textsc{Mis2} could similarly be stripped from some cases and computational complexity would not change. Real world computation time however, would likely increase because simple cases can be frequently solved quickly. 
+
+In this section, we will be discussing the vertex folding technique and algorithm correctness. Curious readers can read complexity analysis from \cite{grandoni2006measure}. 
+
+Let us start with some additional definitions:
+
+\begin{defn}[anti-edge]
+An \emph{anti-edge} is a pair of vertices that belong to the graph but are not adjacent. Anti-edges exist for every pair of vertices that are not connected by an edge.
+\end{defn}
+
+\begin{defn}[anti-clique]
+A \emph{anti-clique} is a graph in which every two vertices are not adjacent. It is frequently an induced subgraph with the mentioned property. \emph{Anti-triangle} is the anti-clique on $3$ vertices.
+\end{defn}
+
+\begin{defn}[foldable vertex]
+A vertex $v$ is \emph {foldable} if $N(v)=\{u_1,u_2, \ldots,\allowbreak u_{\deg(v)}\}$ contains no anti-triangles.
+\end{defn}
+
+\begin{defn}[An procedure for folding a vertex]
+Folding of a given vertex $v$ of $G$ is the process of transforming $G$ into a new graph $\tilde{G} = \tilde{G}(v)$ by following these steps: 
+\begin{enumerate}
+    \item adding a new vertex $u_{i,j}$ for each anti-edge $\{u_i,u_j\} \in N(v)$
+    \item adding edges between each $u_{i,j}$ and the vertices in $N(u_i) \cup N(u_j)$
+    \item adding edges between new vertices to make a clique
+    \item remove $N[v]$ (old vertices)
+\end{enumerate}
+\end{defn}
+Note that when we fold a vertex $v$ of degree either zero or one, we simply remove $N[v]$ from the graph.
+
+\begin{figure}[h]
+    \centering\begin{tikzpicture}[scale=.8, simplegraph]
+        \node(v) at (0, 1) {$v$};
+        
+        \node(u1) at (-1, 0) {$u_1$};
+        \node(u2) at (0, 0) {$u_2$};
+        \node(u3) at (1, 0) {$u_3$};
+        
+        \node(w4a) at (-1.5, -1) {$w_4$};
+        \node(w5a) at (-0.5, -1) {$w_5$};
+        \node(w6a) at (0.5, -1) {$w_6$};
+        \node(w7a) at (1.5, -1) {$w_7$};
+
+        \node(u12) at (6, 0.5) {$u_{12}$};
+        \node(u13) at (7, 0.5) {$u_{13}$};
+        
+        \node(w4b) at (5, -1) {$w_4$};
+        \node(w5b) at (6, -1) {$w_5$};
+        \node(w6b) at (7, -1) {$w_6$};
+        \node(w7b) at (8, -1) {$w_7$};
+
+        \draw(v) to (u1);
+        \draw(v) to (u2);
+        \draw(v) to (u3);
+        \draw(u1) to (w4a);
+        \draw(u2) to (u3);  
+        \draw(u2) to (w5a);
+        \draw(u2) to (w6a);
+        \draw(u3) to (w7a);
+
+        \draw(u12) to (u13);
+        \draw(u12) to (w4b);
+        \draw(u12) to (w5b);
+        \draw(u12) to (w6b);        
+        \draw(u13) to (w4b);
+        \draw(u13) to (w7b);
+
+    \end{tikzpicture}
+    \caption{An example of folding vertex $v$}
+    \label{img:misfolding}
+\end{figure}
+
+It is also worth noting that in our modified algorithm it is necessary to also remember how exactly new folded vertices were formed.  Selecting a folded vertex to a maximum independent set actually selects two vertices after a reverse operation of unfolding them. Folded vertices were originally not connected, so we have a guarantee that we can select them both.
+
+Now let us take a look at the algorithm \Cref{alg:misfolding}
+
+\begin{algorithm}[H]
+\caption{\textsc{MisFolding}}\label{alg:misfolding}
+\begin{algorithmic}[1]
+\Require a graph $G=(V,E)$
+\Ensure the maximum independent set of $G$
+\Procedure{Mis5}{graph $G$}
+   \If{$|V| = 0$}
+        \State \Return $\varnothing$
+    \EndIf
+    \If{$G$ has multiple components} 
+         \State choose arbitrary component $C$ of $G$
+         \State \Return $\Call{MisFolding}{G[C]} \cup \Call{MisFolding}{G\setminus C}$
+    \EndIf
+    \If{\textbf{exist} $v, w \in V$ \textbf{such that} $N[w] \subset N[v]$} 
+         \State \Return $\Call{MisFolding}{G\setminus \{v\}}$
+    \EndIf
+    \If{$\exists $ a foldable vertex $v: \deg(v) \leq 4 $ and $N(v)$ contains at most 3 anti-edges} 
+        \State choose one such vertex $v$ of minimum degree
+        \State create graph $\tilde{G}$ by folding vertex $v$ in graph $G$
+        \State $F \gets \Call{MisFolding}{\tilde{G}}$
+        \If{$F$ contains $u$, one of the newly folded vertices}
+            \State \Return $F \setminus \{u\} \cup\{$two vertices from $G$ for which $u$ was added $\}$
+        \Else
+            \State \Return $F \cup \{v\}$
+        \EndIf
+    \EndIf
+    \State choose arbitrary maximum degree vertex $v$ of $G$
+    \State $A \gets \Call{MisFolding}{G\setminus N[v]} \cup \{v\}$
+    \State $B \gets \Call{MisFolding}{G\setminus \{v\} \setminus M(v)}$
+    \State \Return \Call{MostNumerous}{A,B}
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+There are just a few cases:
+
+\begin{itemize}
+    \item \textit{(line 2)} graph is empty. It simply solves an empty case. We have seen this before.
+    \item \textit{(line 5)} algorithm splits graph into multiple components. We have also seen this in Mis2.
+    \item \textit{(line 8)} we have two vertices $u,w$ with a property $N[w] \subset N[v]$. This is a generalized Case C from the \textsc{Mis2} discussion. We need to prove that it is always safe to discard $v$ and leave $w$ to be selected or not. $v$ and $w$ are neighbors so both can't be selected to the independent set. If $v$ belonged to the maximum independent $I$ set then we have a  guarantee that no other vertex from $N[v]\{v\}$ belongs to $I$. But we know that $N[w] \subset N[v]$ so also no other vertex from $N[w]\{v\}$ belongs to $I$. Since that is the case, we can always shift our selection of vertex to the maximum independent set from $v$ to $w$ and so $v$ can be discarded.
+    
+    \item \textit{(line 12)} the first and also the last interesting case. An algorithm picks a minimum degree vertex $v$. Then it performs folding according to the algorithm discussed in this section.
+\end{itemize} 
+
+\textsc{MisFolding} procedure is called recursively on the modified graph. After an algorithm returns, the returned set is investigated. If it contains one of the recently folded vertex it means that we have to replace it with the corresponding original vertices from the original graph. Then we return an obtained set. Otherwise, select $v$ to the independent set and return.
+Folding a vertex is a general procedure but in this algorithm, authors perform it on very specific cases. This selection of vertices to be folded provides the lowest complexity.     
+
+\textit{(line 22--25)} an algorithm is performing mirror branching on one of the remaining vertices.    
