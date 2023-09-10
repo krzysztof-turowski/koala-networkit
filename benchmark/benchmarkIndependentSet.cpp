@@ -4,9 +4,8 @@
 
 #include <io/G6GraphReader.hpp>
 #include <io/DimacsGraphReader.hpp>
-#include <independent_set/IndependentSet.hpp>
-
-#define PRINT 1
+#include <independent_set/ExactIndependentSet.hpp>
+#include <independent_set/PlanarGraphIndependentSet.hpp>
 
 template <typename T>
 int run_algorithm(NetworKit::Graph &G) {
@@ -17,11 +16,23 @@ int run_algorithm(NetworKit::Graph &G) {
     return independent_set.size();
 }
 
-std::map<std::string, int> ALGORITHM = {
+template <typename T>
+int run_algorithm(NetworKit::Graph &G, double epsilon) {
+    auto algorithm = T(G, epsilon);
+    algorithm.run();
+    auto &independent_set = algorithm.getIndependentSet();
+    std::cout << independent_set.size() << " " << std::flush;
+    return independent_set.size();
+}
+
+const std::map<std::string, int> ALGORITHM = {
     { "exact", 0 },
-    { "bruteforce", 1 }, { "MIS1", 2 }, { "MIS2", 3 }, { "MIS3", 4 }, { "MIS4", 5 },
-    { "MIS5", 6 }, { "MeasureAndConquer", 7 }
+    { "MIS1", 1 }, { "MIS2", 2 }, { "MIS3", 3 }, { "MIS4", 4 }, { "MIS5", 5 },
+    { "MeasureAndConquer", 6 },
+    { "baker", 10 }, { "bodlaender", 11 }
 };
+
+const double epsilon = 0.5;
 
 void run_g6_tests(const std::string &path, const std::string &algorithm) {
     std::fstream file(path, std::fstream::in);
@@ -37,36 +48,40 @@ void run_g6_tests(const std::string &path, const std::string &algorithm) {
         std::cout << line << " " << std::flush;
         switch (ALGORITHM[algorithm]) {
         case 0:
-            I.insert(run_algorithm<Koala::BruteForceIndependentSet>(G));
             I.insert(run_algorithm<Koala::Mis1IndependentSet>(G));
             I.insert(run_algorithm<Koala::Mis2IndependentSet>(G));
             I.insert(run_algorithm<Koala::Mis3IndependentSet>(G));
             I.insert(run_algorithm<Koala::Mis4IndependentSet>(G));
             I.insert(run_algorithm<Koala::Mis5IndependentSet>(G));
             I.insert(run_algorithm<Koala::MeasureAndConquerIndependentSet>(G));
+            I.insert(run_algorithm<Koala::BakerPlanarGraphIndependentSet>(G, epsilon));
+            I.insert(run_algorithm<Koala::BodlaenderPlanarGraphIndependentSet>(G, epsilon));
             assert(I.size() == 1);
             classification[*I.begin()]++;
             break;
         case 1:
-            run_algorithm<Koala::BruteForceIndependentSet>(G);
-            break;
-        case 2:
             run_algorithm<Koala::Mis1IndependentSet>(G);
             break;
-        case 3:
+        case 2:
             run_algorithm<Koala::Mis2IndependentSet>(G);
             break;
-        case 4:
+        case 3:
             run_algorithm<Koala::Mis3IndependentSet>(G);
             break;
-        case 5:
+        case 4:
             run_algorithm<Koala::Mis4IndependentSet>(G);
             break;
-        case 6:
+        case 5:
             run_algorithm<Koala::Mis5IndependentSet>(G);
             break;
-        case 7:
+        case 6:
             run_algorithm<Koala::MeasureAndConquerIndependentSet>(G);
+            break;
+        case 10:
+            run_algorithm<Koala::BakerPlanarGraphIndependentSet>(G, epsilon);
+            break;
+        case 11:
+            run_algorithm<Koala::BodlaenderPlanarGraphIndependentSet>(G, epsilon);
             break;
         }
         std::cout << std::endl;
@@ -87,14 +102,15 @@ void run_dimacs_tests(const std::string &path, const std::string &algorithm) {
     });
     std::cout << path << " " << std::flush;
     std::set<int> I;
-    I.insert(run_algorithm<Koala::BruteForceIndependentSet>(G));
-    I.insert(run_algorithm<Koala::Mis1IndependentSet>(G));
-    I.insert(run_algorithm<Koala::Mis2IndependentSet>(G));
-    I.insert(run_algorithm<Koala::Mis3IndependentSet>(G));
-    I.insert(run_algorithm<Koala::Mis4IndependentSet>(G));
-    I.insert(run_algorithm<Koala::Mis5IndependentSet>(G));
-    I.insert(run_algorithm<Koala::MeasureAndConquerIndependentSet>(G));
-    assert(I.size() == 1);
+    // I.insert(run_algorithm<Koala::Mis1IndependentSet>(G));
+    // I.insert(run_algorithm<Koala::Mis2IndependentSet>(G));
+    // I.insert(run_algorithm<Koala::Mis3IndependentSet>(G));
+    // I.insert(run_algorithm<Koala::Mis4IndependentSet>(G));
+    // I.insert(run_algorithm<Koala::Mis5IndependentSet>(G));
+    // I.insert(run_algorithm<Koala::MeasureAndConquerIndependentSet>(G));
+    I.insert(run_algorithm<Koala::BakerPlanarGraphIndependentSet>(G, epsilon));
+    I.insert(run_algorithm<Koala::BodlaenderPlanarGraphIndependentSet>(G, epsilon));
+    // assert(I.size() == 1);
     std::cout << std::endl;
     return;
 }

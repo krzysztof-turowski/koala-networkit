@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "IndependentSet.hpp"
+#include <independent_set/IndependentSet.hpp>
 
 namespace Koala {
 
@@ -23,7 +23,7 @@ class PlanarGraphIndependentSet : public IndependentSet {
 
 /**
  * @ingroup independent_set
- * The class for the perfect graph independent set algorithm using Baker technique.
+ * The class for the planar graph independent set PTAS using Baker technique.
  *
  */
 class BakerPlanarGraphIndependentSet : public PlanarGraphIndependentSet {
@@ -31,7 +31,25 @@ class BakerPlanarGraphIndependentSet : public PlanarGraphIndependentSet {
     BakerPlanarGraphIndependentSet(NetworKit::Graph &graph, double epsilon);
 
     /**
-     * Execute the Baker planar graph approximation independent set PTAS.
+     * Execute the Baker planar graph independent set PTAS.
+     */
+    void run();
+
+ private:
+    double epsilon;
+};
+
+/**
+ * @ingroup independent_set
+ * The class for the planar graph independent set PTAS using Bodlaender technique.
+ *
+ */
+class BodlaenderPlanarGraphIndependentSet : public PlanarGraphIndependentSet {
+ public:
+    BodlaenderPlanarGraphIndependentSet(NetworKit::Graph &graph, double epsilon);
+
+    /**
+     * Execute the Bodlaender planar graph independent set PTAS.
      */
     void run();
 

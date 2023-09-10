@@ -5,7 +5,7 @@
  *      Author: Artur Salawa
  */
 
-#include <independent_set/IndependentSet.hpp>
+#include <independent_set/ExactIndependentSet.hpp>
 
 #include <networkit/graph/GraphTools.hpp>
 #include <traversal/DFS.hpp>

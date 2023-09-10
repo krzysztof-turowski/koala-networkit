@@ -1,72 +1,28 @@
-//
-// Created by mikolajtwarog on 2021-04-29.
-//
-
-
-#ifndef TECHNIKA_BAKER_BAKERS_TECHNIQUE_HPP
-#define TECHNIKA_BAKER_BAKERS_TECHNIQUE_HPP
+#pragma once
 
 #include <boost/graph/connected_components.hpp>
-#include "baker-k-outer-planar.hpp"
-#include "../bodlaender/bodlaender_impl.hpp"
 
-enum Algorithm {Baker, Bodlaender};
+#include <techniques/baker/BakerKOuterplanar.hpp>
+#include <techniques/baker/Bodlaender.hpp>
 
-int bakers_technique(Graph& g, PlanarEmbedding& embedding, std::vector<int>& outer_face, int k, Algorithm alg, Problem p) {
-    int res = p == is ? 0 : INT16_MAX;
-    for (int r = 0; r <= k; r++) {
-        if (p != is && r == k) {
-            break;
-        }
-        std::vector<int> vertex_level(num_vertices(g));
-        std::vector<std::vector<Edge> > outer_edges;
+template <typename Problem, template<typename T> typename Algorithm>
+int bakers_technique(Graph& g, NetworKit::Graph &G, PlanarEmbedding& embedding, std::vector<int>& outer_face, int k) {
+    int res = Problem::getInitial();
+    for (int r = 0; r <= Problem::getLimit(k); r++) {
+        std::vector<int> vertex_level(num_vertices(g), -1);
+        std::vector<std::vector<Edge>> outer_edges;
         int max_level = name_levels(embedding, outer_face, vertex_level, outer_edges);
-        int num_of_graphs;
+        int num_of_graphs = Problem::getNumberOfGraphs(k, max_level);
 
-        if (p == is) {
-            num_of_graphs = ((max_level - 1) / (k + 1)) + 1;
-        } else {
-            num_of_graphs = ((max_level - 1) / k) + 2;
-        }
-
-        std::vector<std::vector<int> > levels(num_of_graphs);
-
-        if (p == is) {
-            for (int i = 0; i < vertex_level.size(); i++) {
-                int level = vertex_level[i] - 1;
-                if (level % (k + 1) == r) {
-                    continue;
-                }
-                if (level < r) {
-                    levels[0].push_back(i);
-                } else {
-                    levels[(level - r) / (k + 1)].push_back(i);
-                }
-            }
-        } else {
-            for (int i = 0; i < vertex_level.size(); i++) {
-                int level = vertex_level[i] - 1;
-                if (level < r) {
-                    levels[0].push_back(i);
-                    continue;
-                }
-                if (level % k == r) {
-                    levels[(level - r) / k].push_back(i);
-                }
-                levels[((level - r) / k) + 1].push_back(i);
-            }
-        }
-
-        std::vector<std::vector<int> > level_vertices(num_vertices(g));
-
+        std::vector<std::vector<int>> levels(num_of_graphs);
+        Problem::getLevels(vertex_level, r, k, levels);
+        std::vector<std::vector<int>> level_vertices(num_vertices(g));
         for (int i = 0; i < levels.size(); i++) {
-            for (int j = 0; j < levels[i].size(); j++) {
-                level_vertices[levels[i][j]].push_back(i);
+            for (int v : levels[i]) {
+                level_vertices[v].push_back(i);
             }
         }
-
-        std::vector<std::map<int, int> > global_to_local(num_of_graphs);
-
+        std::vector<std::map<int, int>> global_to_local(num_of_graphs);
         for (int i = 0; i < levels.size(); i++) {
             for (int j = 0; j < levels[i].size(); j++) {
                 global_to_local[i][levels[i][j]] = j;
@@ -78,8 +34,7 @@ int bakers_technique(Graph& g, PlanarEmbedding& embedding, std::vector<int>& out
             level_embeddings[i].resize(levels[i].size());
         }
         std::vector<Graph> level_graphs(num_of_graphs);
-        std::vector<std::map<std::pair<int, int>, Edge> > added_edges(num_of_graphs);
-
+        std::vector<std::map<std::pair<int, int>, Edge>> added_edges(num_of_graphs);
         for (int v = 0; v < embedding.size(); v++) {
             if (level_vertices[v].empty()) {
                 continue;
@@ -199,32 +154,11 @@ int bakers_technique(Graph& g, PlanarEmbedding& embedding, std::vector<int>& out
                             break;
                         }
                     }
-
-                    if (alg == Baker) {
-                        switch (p) {
-                            case is :
-                                temp_res += baker<independent_set>(graph, emb, out_face);
-                                break;
-                            case vc :
-                                temp_res += baker<vertex_cover>(graph, emb, out_face);
-                                break;
-                            default :
-                                temp_res += baker<dominating_set>(graph, emb, out_face);
-                        }
-                    } else {
-                        temp_res += bodlaender(graph, emb, out_face, p);
-                    }
+                    temp_res += Algorithm<Problem>(graph, G, emb, out_face);
                 }
             }
         }
-        if (p == is) {
-            res = std::max(res, temp_res);
-        } else {
-            res = std::min(res, temp_res);
-        }
+        res = Problem::getBest(res, temp_res);
     }
     return res;
 }
-
-
-#endif //TECHNIKA_BAKER_BAKERS_TECHNIQUE_HPP

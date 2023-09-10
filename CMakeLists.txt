@@ -98,7 +98,7 @@ if(KOALA_BUILD_SHARED)
 else()
     add_library(${PROJECT_NAME} STATIC cpp/koala.cpp)
 endif()
-target_link_libraries(${PROJECT_NAME} networkit boost_dynamic_bitset boost_graph csdp_lib lapack blas gfortran quadmath)
+target_link_libraries(${PROJECT_NAME} networkit boost_dynamic_bitset boost_graph boost_multiprecision csdp_lib lapack blas gfortran quadmath)
 set_target_properties(${PROJECT_NAME} PROPERTIES
     COMPILE_FLAGS ${KOALA_CXX_FLAGS}
     LINK_FLAGS ${KOALA_LINKER_FLAGS})

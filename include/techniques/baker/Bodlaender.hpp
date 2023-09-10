@@ -1,16 +1,21 @@
-//
-// Created by mikolajtwarog on 2021-05-24.
-//
+/*
+ * Bodlaender.hpp
+ *
+ *  Created on: 24.05.2021
+ *      Author: Mikołaj Twaróg
+ *      Ported by: Krzysztof Turowski (krzysztof.szymon.turowski@gmail.com)
+ */
 
-#ifndef TECHNIKA_BAKER_BODLAENDER_IMPL_HPP
-#define TECHNIKA_BAKER_BODLAENDER_IMPL_HPP
+#pragma once
 
+#include <algorithm>
 #include <vector>
 #include <list>
 #include <queue>
 #include <set>
 #include <map>
 #include <iostream>
+
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/properties.hpp>
 #include <boost/graph/graph_traits.hpp>
@@ -25,17 +30,17 @@
 #include <boost/graph/subgraph.hpp>
 #include <boost/dynamic_bitset.hpp>
 #include <boost/multiprecision/cpp_int.hpp>
-#include <algorithm>
-#include "../baker/create_tree_decomposition.hpp"
+
+#include <techniques/baker/create_tree_decomposition.hpp>
 
 using namespace boost;
 namespace mp = multiprecision;
 
-enum Problem {vc, is, ds_ecc, ds_lcc};
-
+template <typename Problem>
 class bodlaender_impl {
+    NetworKit::Graph G;
 
-    struct tr_node{
+    struct tr_node {
         dynamic_bitset<> f;
         std::vector<int> f2;
         std::vector<int> r_values;
@@ -48,13 +53,12 @@ class bodlaender_impl {
     tree_decomposition tr;
     Graph graph;
     PlanarEmbedding embedding;
-    std::vector< std::vector<tr_node> > tables;
+    std::vector<std::vector<tr_node>> tables;
     int n;
-    Problem problem;
     bool minimum;
 
 
-    std::vector< std::set<int> > incidence;
+    std::vector<std::set<int>> incidence;
 
     void calculate_table(int v, int p) {
         std::vector<int>& children = tr.tree[v];
@@ -71,7 +75,7 @@ class bodlaender_impl {
         vertices = std::set<int>(tr.nodes[v].begin(), tr.nodes[v].end());
         Graph &sub_g = graph.create_subgraph(vertices.begin(), vertices.end());
 
-        if (problem == ds_ecc) {
+/*        if (problem == ds_ecc) {
 //            for (int g_v : vertices) {
 //                int l_g_v = sub_g.global_to_local(g_v);
 //                typename graph_traits<Graph>::out_edge_iterator ei, ei_end;
@@ -115,7 +119,7 @@ class bodlaender_impl {
                 temp.back().r_values.push_back(r_1 & r_2 & r_3);
                 temp.back().r_values.push_back(res);
             }
-        } else {
+        } else {*/
             int num = 1 << vertices.size();
             for (int x = 0; x < num; x++) {
                 temp.emplace_back(n);
@@ -128,7 +132,7 @@ class bodlaender_impl {
                     x_temp >>= 1;
                 }
 
-                if (problem == ds_lcc) {
+                /*if (problem == ds_lcc) {
                     int r_val = 1;
                     for (int g_v : vertices) {
                         int r = f[g_v];
@@ -144,7 +148,7 @@ class bodlaender_impl {
                         r_val &= (r > 0);
                     }
                     temp.back().r_values.push_back(r_val);
-                } else {
+                } else {*/
                     int r_val = 1;
                     for (int g_v : vertices) {
                         int l_g_v = sub_g.global_to_local(g_v);
@@ -161,12 +165,12 @@ class bodlaender_impl {
                         }
                     }
                     temp.back().r_values.push_back(r_val);
-                }
+                //}
 
                 temp.back().r_values.push_back(f.count());
                 temp.back().x = x;
             }
-        }
+        //}
 
         for (int child : children) {
             if (child != p) {
@@ -176,11 +180,12 @@ class bodlaender_impl {
         tables[v] = temp;
     }
 
-    std::vector<tr_node> calculate_temp (int v, int child, std::vector<tr_node>& temp) {
+    std::vector<tr_node> calculate_temp(int v, int child, std::vector<tr_node>& temp) {
         std::vector<tr_node> new_temp;
         std::vector<int> intersection;
-        std::set_intersection(tr.nodes[v].begin(), tr.nodes[v].end(), tr.nodes[child].begin(),
-                              tr.nodes[child].end(), std::back_inserter(intersection));
+        std::set_intersection(
+            tr.nodes[v].begin(), tr.nodes[v].end(),
+            tr.nodes[child].begin(), tr.nodes[child].end(), std::back_inserter(intersection));
 
         for (auto& f1 : temp) {
             for (auto& f2 : tables[child]) {
@@ -201,7 +206,7 @@ class bodlaender_impl {
                     s_values.push_back(f1.r_values[i] & f2.r_values[i]);
                 }
 
-                if (problem == ds_ecc) {
+                /*if (problem == ds_ecc) {
                     int r_m = 0;
                     for (int i = 0; i < n ; i++) {
                         if (f1.f2[i] == i && f2.f2[i] == i) {
@@ -209,10 +214,10 @@ class bodlaender_impl {
                         }
                     }
                     s_values.push_back(f1.r_values.back() + f2.r_values.back() - r_m);
-                } else {
+                } else {*/
                     auto f3 = f1.f & f2.f;
                     s_values.push_back(f1.r_values.back() + f2.r_values.back() - f3.count());
-                }
+                //}
 
                 int f_it = -1;
                 for (int i = 0; i < new_temp.size(); i++) {
@@ -224,7 +229,8 @@ class bodlaender_impl {
                         }
                     }
 
-                    if (good && f1.f == new_temp[i].f && (problem != ds_ecc || f1.f2 == new_temp[i].f2)) {
+                    //if (good && f1.f == new_temp[i].f && (problem != ds_ecc || f1.f2 == new_temp[i].f2)) {
+                    if (good && f1.f == new_temp[i].f && f1.f2 == new_temp[i].f2) {
                         f_it = i;
                         break;
                     }
@@ -233,19 +239,19 @@ class bodlaender_impl {
                 if (f_it == -1) {
                     new_temp.emplace_back(n);
                     new_temp.back().f = f1.f;
-                    if (problem == ds_ecc) {
+                    /*if (problem == ds_ecc) {
                         new_temp.back().f2 = f1.f2;
-                    }
+                    }*/
                     new_temp.back().r_values = s_values;
                     new_temp.back().x = f1.x | f2.x;
                 } else {
                     if ((minimum && new_temp[f_it].r_values.back() > s_values.back())
-                    || (!minimum && new_temp[f_it].r_values.back() < s_values.back())) {
+                            || (!minimum && new_temp[f_it].r_values.back() < s_values.back())) {
                         new_temp[f_it].r_values.back() = s_values.back();
                         new_temp[f_it].f = f1.f;
-                        if (problem == ds_ecc) {
+                        /*if (problem == ds_ecc) {
                             new_temp[f_it].f2 = f1.f2;
-                        }
+                        }*/
                         new_temp[f_it].x = f1.x | f2.x;
                     }
                 }
@@ -256,13 +262,11 @@ class bodlaender_impl {
     }
 
 public:
-    bodlaender_impl(Graph g, PlanarEmbedding emb, std::vector<int> outer_face, Problem pr):
-    graph(g), embedding(emb), n(num_vertices(g)), problem(pr) {
-        minimum = pr == vc || pr == ds_ecc || pr == ds_lcc;
+    bodlaender_impl(Graph g, NetworKit::Graph &G, PlanarEmbedding emb, std::vector<int> outer_face)
+            : G(G), graph(g), embedding(emb), n(num_vertices(g)) {
         get_tree_decomposition(g, emb, outer_face, tr);
         tables.resize(tr.tree.size());
-
-        if (problem == ds_ecc) {
+        /*if (problem == ds_ecc) {
             for (int v = 0; v < embedding.size(); v++) {
                 incidence.emplace_back();
 
@@ -287,19 +291,12 @@ public:
                     node.insert(v);
                 }
             }
-        }
-
+        }*/
         calculate_table(0, -1);
     }
 
     int get_result() {
-        int result;
-        if (minimum) {
-            result = INT16_MAX;
-        } else {
-            result = -1;
-        }
-
+        int result = Problem::getInitial();
         for (auto& node : tables[0]) {
             int good = true;
             for (int r = 0; r < node.r_values.size() - 1; r++) {
@@ -308,44 +305,16 @@ public:
                     break;
                 }
             }
-
             if (good) {
-                if (minimum) {
-                    result = std::min(result, node.r_values.back());
-                } else {
-                    result = std::max(result, node.r_values.back());
-                }
+                result = Problem::getBest(result, node.r_values.back());
             }
         }
-
         return result;
     }
 };
 
-int bodlaender_vertex_cover(Graph& g, PlanarEmbedding& emb, std::vector<int>& outer_face) {
-    bodlaender_impl bd(g, emb, outer_face, vc);
+template <typename Problem>
+int bodlaender(Graph& g, NetworKit::Graph &graph, PlanarEmbedding& emb, std::vector<int>& outer_face) {
+    bodlaender_impl<Problem> bd(g, graph, emb, outer_face);
     return bd.get_result();
 }
-
-int bodlaender_independent_set(Graph& g, PlanarEmbedding& emb, std::vector<int>& outer_face) {
-    bodlaender_impl bd(g, emb, outer_face, is);
-    return bd.get_result();
-}
-
-int bodlaender_dominating_set_lcc(Graph& g, PlanarEmbedding& emb, std::vector<int>& outer_face) {
-    bodlaender_impl bd(g, emb, outer_face, ds_lcc);
-    return bd.get_result();
-}
-
-int bodlaender_dominating_set_ecc(Graph& g, PlanarEmbedding& emb, std::vector<int>& outer_face) {
-    bodlaender_impl bd(g, emb, outer_face, ds_ecc);
-    return bd.get_result();
-}
-
-int bodlaender(Graph& g, PlanarEmbedding& emb, std::vector<int>& outer_face, Problem p) {
-    bodlaender_impl bd(g, emb, outer_face, p);
-    return bd.get_result();
-}
-
-
-#endif //TECHNIKA_BAKER_BODLAENDER_IMPL_HPP

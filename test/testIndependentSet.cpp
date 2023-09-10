@@ -2,7 +2,7 @@
 
 #include <list>
 
-#include <independent_set/IndependentSet.hpp>
+#include <independent_set/ExactIndependentSet.hpp>
 
 #include "helpers.hpp"
 
@@ -100,7 +100,6 @@ REGISTER_TYPED_TEST_CASE_P(
     TwoK5, TestingGraph);
 
 using Algorithms = testing::Types<
-    Koala::BruteForceIndependentSet,
     Koala::Mis1IndependentSet,
     Koala::Mis2IndependentSet,
     Koala::Mis3IndependentSet,

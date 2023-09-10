@@ -62,7 +62,6 @@ Its main part consists of an implementation of a broad set of procedures in the 
 - graph recognition for graph families: empty graphs, cliques, paths, caterpillar, trees, forests, cycles, connected, complete $k$-partite, regular, subcubic, block, bipartite, chordal, comparability, interval, split, cographs,
 - graph generation for several graph families (cliques, paths, cycles, fans, wheels, caterpillars, complete $k$-partite, regular trees) and random graphs models (Erdős–Rényi, Barabási–Albert, Watts–Strogatz),
 - operation on graphs: closures (reflexive, symmetric, transitive), line graphs, products of graphs (Cartesian, tensor, lexicographic, strong).
-- dominating set: exact exponential-time
 
 <p align="justify">
 The library was built on a custom, versatile, object-oriented templated graph structure, capable of handling edges of multiple types (undirected, directed, loops) at the same time.
@@ -85,11 +84,15 @@ Moreover, they set up an online graph editor <a href="https://stos.eti.pg.gda.pl
     1. [Maximum flow](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/flow/MaximumFlow.hpp): King-Rao-Tarjan
 1. [Vertex coloring](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/coloring/)
     1. [Greedy heuristics](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/coloring/GreedyVertexColoring.hpp): RandomSequential, LargestFirst, SmallestLast, SaturatedLargestFirst, GreedyIndependentSet
-    1. [Exact exponential-time algorithms](https://github.com/krzysztof-turowski/koala-networkit/blob/master/include/coloring/ExactVertexColoring.hpp): Brown, Christofides, Brélaz, Korman
-    1. [Grötschel-Lovász-Schrijver algorithm for perfect graphs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/coloring/PerfectGraphVertexColoring.hpp)
+    1. [Exact exponential-time algorithms](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/coloring/ExactVertexColoring.hpp): Brown, Christofides, Brélaz, Korman
+    1. [Exact algorithm for perfect graphs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/coloring/PerfectGraphVertexColoring.hpp): Grötschel-Lovász-Schrijver algorithm
 1. [Maximum independent set](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/independent_set/)
-1. [Minimum dominating set](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/dominating_set/): Grandoni, Fomin-Grandoni-Kratsch, van Rooij-Bodlaender, Fomin-Kratsch-Woeginger, Schiermeyer
-1. Minimum set cover: [exact branch and reduce](https://github.com/krzysztof-turowski/koala-networkit/blob/master/include/set_cover/BranchAndReduceSetCover.hpp)
+    1. [Exact exponential-time algorithms](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/independent_set/ExactIndependentSet.hpp)
+    1. [PTAS for planar graphs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/independent_set/PlanarIndependentSet.hpp): Baker technique, Bodlaender technique
+1. [Minimum dominating set](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/dominating_set/)
+    1. [Exact exponential-time algorithms](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/dominating_set/ExactDominatingSet.hpp) Grandoni, Fomin-Grandoni-Kratsch, van Rooij-Bodlaender, Fomin-Kratsch-Woeginger, Schiermeyer
+    1. [PTAS for planar graphs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/dominating_set/PlanarIndependentSet.hpp): Baker technique, Bodlaender technique
+1. Minimum set cover: [exact branch and reduce](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/set_cover/BranchAndReduceSetCover.hpp)
 
 For further planned changes, see the [Issues](https://github.com/krzysztof-turowski/koala-networkit/issues/) section.
 
