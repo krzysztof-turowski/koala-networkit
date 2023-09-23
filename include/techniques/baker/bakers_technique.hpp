@@ -10,8 +10,7 @@ int bakers_technique(Graph& g, NetworKit::Graph &G, PlanarEmbedding& embedding, 
     int res = Problem::getInitial();
     for (int r = 0; r <= Problem::getLimit(k); r++) {
         std::vector<int> vertex_level(num_vertices(g), -1);
-        std::vector<std::vector<Edge>> outer_edges;
-        int max_level = name_levels(embedding, outer_face, vertex_level, outer_edges);
+        auto [max_level, _] = name_levels(embedding, outer_face, vertex_level);
         int num_of_graphs = Problem::getNumberOfGraphs(k, max_level);
 
         std::vector<std::vector<int>> levels(num_of_graphs);

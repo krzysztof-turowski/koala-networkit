@@ -30,8 +30,7 @@ class baker_impl {
  public:
     baker_impl(const Graph& arg_g, const NetworKit::Graph &graph, PlanarEmbedding &emb, const std::vector<int> &out_face)
             : g(arg_g), graph(std::make_optional(graph)), embedding(emb), outer_face(out_face), vertex_level(num_vertices(arg_g)) {
-        std::vector<std::vector<Edge>> outer_edges;
-        int k = name_levels(embedding, outer_face, vertex_level, outer_edges);
+        auto [k, _] = name_levels(embedding, outer_face, vertex_level);
         int v = std::find_if(
             vertex_level.begin(), vertex_level.end(),
             [](int level) { return level == 1; }) - vertex_level.begin();
@@ -99,14 +98,10 @@ class baker_impl {
         int comp = 0;
         while (comp < component.size() || face_vis.size() < face.size()) {
             bool res = false;
-            int comp_curr = component[comp_it];
-            int face_curr = face[face_it];
-            int last = -1;
+            int comp_curr = component[comp_it], face_curr = face[face_it], last = -1;
 
             face_vis.insert(face_curr);
-
             int first_e = get_edge_it(comp_curr, component[(comp_it - 1 + component.size()) % component.size()], embedding);
-
             int second_e = get_edge_it(comp_curr, component[(comp_it + 1) % component.size()], embedding);
 
             for (int i = (first_e + 1) % embedding[comp_curr].size(); i != second_e;
@@ -321,29 +316,24 @@ class baker_impl {
             std::vector<std::vector<int>>& components, std::map<int, int>& vis,
             std::vector<std::pair<int, int>>& v_in_c) {
         if (vertex_level[v_in_c[0].first] == 1) {
-            for (int v : outer_face) {
-                components[0].push_back(v);
-            }
+            components[0].insert(components[0].end(), outer_face.begin(), outer_face.end());
             return;
         }
         for (int c = 0, comp_num = 0; c < v_in_c.size(); c++) {
             if (vis.find(v_in_c[c].first) != vis.end()) {
                 continue;
             }
-            components.emplace_back();
-
-            int v = v_in_c[c].first;
-            int level = vertex_level[v];
-            int starting_v = v;
-            int connecting_e_it = get_edge_it(v, v_in_c[c].second, embedding);
+            int starting_v = v_in_c[c].first;
+            int level = vertex_level[starting_v];
+            int connecting_e_it = get_edge_it(starting_v, v_in_c[c].second, embedding);
 
             vis[starting_v] = comp_num;
+            components.emplace_back();
             components.back().push_back(starting_v);
 
             Edge current_e;
             int current_v;
             bool res = false;
-
             auto &edges = embedding[starting_v];
             for (int i = (connecting_e_it + 1) % edges.size(); i != connecting_e_it; i = (i + 1) % edges.size()) {
                 Edge e = edges[i];
@@ -778,20 +768,15 @@ class baker_impl {
             }
             t[v].create(p, g, added_edges);
             t[v].adjust(g, added_edges);
-            int j = p - 1;
-            while (j >= t[v].left) {
+            for (int j = p - 1; j >= t[v].left; j--) {
                 table(*t.enclosing_tree, t.get_enclosing_face().children[j]);
                 Problem second = t.get_enclosing_face().get_child(j).extend(t[v].label.first, g, added_edges);
                 t[v].merge(second.val, t[v].val);
-                j--;
             }
-            j = p;
-
-            while (j < t[v].right) {
+            for (int j = p; j < t[v].right; j++) {
                 table(*t.enclosing_tree, t.get_enclosing_face().children[j]);
                 Problem second = t.get_enclosing_face().get_child(j).extend(t[v].label.second, g, added_edges);
                 t[v].merge(t[v].val, second.val);
-                j++;
             }
         }
     }

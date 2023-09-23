@@ -8,34 +8,22 @@
 
 #pragma once
 
-int name_levels(
-        PlanarEmbedding& embedding, std::vector<int>& outer_face, std::vector<int>& vertex_level,
-        std::vector<std::vector<Edge>>& outer_edges) {
-    assert(outer_edges.size() == 0);
-    std::vector<std::vector<NetworKit::Edge>> outer_edges2(1);
-    std::cout << "OUTER EDGES BEFORE" << std::endl;
-    for (auto E : outer_edges) {
-        for (auto e : E) {
-            std::cout << "(" << e.m_source << ", " << e.m_target << ") ";
-        }
-        std::cout << std::endl;
-    }
+auto name_levels(
+        PlanarEmbedding& embedding, std::vector<int>& outer_face, std::vector<int>& vertex_level) {
     for (int &v : vertex_level) {
         v = -1;
     }
     for (int v : outer_face) {
         vertex_level[v] = 1;
     }
-
-    std::queue<Edge> next_level_edges;
-    outer_edges.resize(2);
+    std::vector<std::vector<NetworKit::Edge>> outer_edges(2);
+    std::queue<NetworKit::Edge> next_level_edges;
     for (int i = 0; i < outer_face.size(); i++) {
         int v = outer_face[i], w = outer_face[(i + 1) % outer_face.size()];
-        outer_edges[1].push_back(Edge(v, w, nullptr));
-        outer_edges2[0].emplace_back(v, w);
+        outer_edges[1].emplace_back(v, w);
         for (Edge e : embedding[v]) {
             if (vertex_level[e.m_source] == -1 || vertex_level[e.m_target] == -1) {
-                next_level_edges.push(e);
+                next_level_edges.emplace(e.m_source, e.m_target);
             }
             if (e.m_source == w) {
                 std::swap(e.m_source, e.m_target);
@@ -47,15 +35,15 @@ int name_levels(
     int level = 1;
     while (!next_level_edges.empty()) {
         std::vector<int> current_level;
-        Edge next_level_edge = next_level_edges.front();
+        auto [u, v] = next_level_edges.front();
         next_level_edges.pop();
-        if (vertex_level[next_level_edge.m_source] > -1 && vertex_level[next_level_edge.m_target] > -1) {
+        if (vertex_level[u] > -1 && vertex_level[v] > -1) {
             continue;
         }
-        level = std::max(vertex_level[next_level_edge.m_target], vertex_level[next_level_edge.m_source]) + 1;
-        int starting_v = vertex_level[next_level_edge.m_source] == -1 ? next_level_edge.m_source : next_level_edge.m_target;
+        level = std::max(vertex_level[v], vertex_level[u]) + 1;
+        int starting_v = vertex_level[u] == -1 ? u : v;
         current_level.push_back(starting_v);
-        int current_edge_it = get_edge_it(next_level_edge, starting_v, embedding);
+        int current_edge_it = get_edge_it(starting_v, starting_v == u ? v : u, embedding);
         vertex_level[starting_v] = level;
         std::optional<Edge> current_edge = std::nullopt;
         for (int j = current_edge_it + 1; j < current_edge_it + embedding[starting_v].size(); j++) {
@@ -77,7 +65,7 @@ int name_levels(
             outer_edges.emplace_back();
         }
         while (true) {
-            outer_edges[level].push_back(*current_edge);
+            outer_edges[level].emplace_back(current_edge->m_source, current_edge->m_target);
             int temp_v = current_v;
             for (int j = current_edge_it + 1; j < current_edge_it + embedding[current_v].size(); j++) {
                 Edge e_j = embedding[current_v][j];
@@ -102,7 +90,7 @@ int name_levels(
             int v = current_level[i], w = current_level[(i + 1) % current_level.size()];
             for (Edge& e : embedding[v]) {
                 if (vertex_level[e.m_source] == -1 || vertex_level[e.m_target] == -1) {
-                    next_level_edges.push(e);
+                    next_level_edges.emplace(e.m_source, e.m_target);
                 }
                 if (e.m_source == w) {
                     std::swap(e.m_source, e.m_target);
@@ -112,12 +100,5 @@ int name_levels(
             }
         }
     }
-    std::cout << "OUTER EDGES AFTER" << std::endl;
-    for (auto E : outer_edges) {
-        for (auto e : E) {
-            std::cout << "(" << e.m_source << ", " << e.m_target << ") ";
-        }
-        std::cout << std::endl;
-    }
-    return level;
+    return std::make_tuple(level, outer_edges);
 }
