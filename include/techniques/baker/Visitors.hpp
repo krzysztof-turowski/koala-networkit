@@ -8,7 +8,20 @@
 
 #pragma once
 
-template <typename Edge>
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/properties.hpp>
+#include <boost/graph/graph_traits.hpp>
+#include <boost/graph/planar_face_traversal.hpp>
+#include <boost/graph/subgraph.hpp>
+
+#include <structures/CyclicVector.hpp>
+#include <techniques/baker/PlanarTree.hpp>
+
+typedef boost::subgraph<boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, boost::property<boost::vertex_index_t, int>, boost::property<boost::edge_index_t, int>>> Graph;
+typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
+typedef boost::graph_traits<Graph>::edge_descriptor Edge;
+typedef std::vector<cyclic_vector<Edge>> PlanarEmbedding;
+
 struct face_getter : public boost::planar_face_traversal_visitor {
     std::map<std::pair<int, int>, std::vector<int>> &faces;
     std::vector<std::vector<int>> &vertices_in_face;
@@ -25,17 +38,20 @@ struct face_getter : public boost::planar_face_traversal_visitor {
         current_face++;
     }
 
+    void next_edge(NetworKit::Edge e) {
+        faces[std::minmax(e.u, e.v)].push_back(current_face);
+    }
+
     void next_edge(Edge e) {
         faces[std::minmax(e.m_source, e.m_target)].push_back(current_face);
     }
 
-    template <typename Vertex>
     void next_vertex(Vertex v) {
         vertices_in_face[current_face].push_back(v);
     }
 };
 
-template <typename Edge, typename Problem, typename PlanarEmbedding>
+template <typename Problem>
 struct tree_builder : public boost::planar_face_traversal_visitor {
     std::map<std::pair<int, int>, std::vector<int>> &faces;
     PlanarTree<Problem> &tree;
@@ -50,10 +66,26 @@ struct tree_builder : public boost::planar_face_traversal_visitor {
         current_face++;
     }
 
-    template <typename Vertex>
     void next_vertex(Vertex v) {
         tree[current_face].face.push_back(graph.local_to_global(v));
         last_vertex = graph.local_to_global(v);
+    }
+
+    void next_edge(NetworKit::Edge e) {
+        if(current_face != tree.outer_face) {
+            auto key = std::minmax(e.u, e.v);
+            int neighbor = faces[key][0] == current_face ? faces[key][1] : faces[key][0];
+            if (neighbor == tree.outer_face) {
+                int last = tree.size();
+                tree.emplace_back();
+                tree[current_face].children.push_back(last);
+                tree[last].parent = current_face;
+                tree[last].label.second = last_vertex;
+                tree[last].label.first = last_vertex == e.u ? e.v : e.u;
+            } else {
+                tree[current_face].children.push_back(neighbor);
+            }
+        }
     }
 
     void next_edge(Edge e) {

@@ -12,13 +12,9 @@
 #include <set>
 #include <map>
 
-#include <boost/graph/graph_traits.hpp>
-#include <boost/ref.hpp>
+#include <boost/graph/boyer_myrvold_planar_test.hpp>
 
-typedef boost::subgraph<boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, boost::property<boost::vertex_index_t, int>, boost::property<boost::edge_index_t, int>>> Graph;
-typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
-typedef boost::graph_traits<Graph>::edge_descriptor Edge;
-typedef std::vector<cyclic_vector<Edge>> PlanarEmbedding;
+#include <techniques/baker/Visitors.hpp>
 
 template <typename Graph, typename Visitor, typename Container>
 inline void level_face_traversal(Container& embedding, Visitor& visitor) {
@@ -33,7 +29,7 @@ inline void level_face_traversal(Container& embedding, Visitor& visitor) {
         for (int i = 0; i < edges.size(); i++) {
             Edge e = edges[i];
             edges_cache.push_back(e);
-            next_edge[e][v] = edges[(i + 1)%edges.size()];
+            next_edge[e][v] = edges[(i + 1) % edges.size()];
         }
     }
 
@@ -90,4 +86,31 @@ int get_edge_it(int v, int w, PlanarEmbedding& embedding) {
 int get_edge_it(Edge e, int v, PlanarEmbedding& embedding) {
     int w = e.m_source == v ? e.m_target : e.m_source;
     return get_edge_it(v, w, embedding);
+}
+
+auto get_embedding(const NetworKit::Graph &graph) {
+    Graph g(graph.numberOfNodes());
+    graph.forEdges([&](NetworKit::node u, NetworKit::node v) {
+        boost::add_edge(u, v, g);
+    });
+    std::vector<cyclic_vector<Edge>> embedding(boost::num_vertices(g));
+    boost::property_map<Graph, boost::edge_index_t>::type e_index = get(boost::edge_index, g);
+    boost::graph_traits<Graph>::edges_size_type edge_count = 0;
+    boost::graph_traits<Graph>::edge_iterator ei, ei_end;
+    for (boost::tie(ei, ei_end) = edges(g); ei != ei_end; ++ei) {
+        put(e_index, *ei, edge_count++);
+    }
+    boost::boyer_myrvold_planarity_test(g, &embedding[0]);
+    std::map<std::pair<int, int>, std::vector<int>> faces;
+    std::vector<std::vector<int>> vertices_in_face;
+    face_getter visitor(faces, vertices_in_face);
+    level_face_traversal<Graph>(embedding, visitor);
+    /*PlanarEmbedding out_embedding(boost::num_vertices(g));
+    for (int i = 0; i < embedding.size(); i++) {
+        out_embedding.reserve(embedding[i].size());
+        for (auto e : embedding[i]) {
+            out_embedding.emplace(e.m_source, e.m_target);
+        }
+    }*/
+    return std::make_tuple(g, embedding, vertices_in_face[0]);
 }
