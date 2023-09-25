@@ -128,10 +128,10 @@ int bakers_technique(Graph& g, NetworKit::Graph &G, PlanarEmbedding& embedding, 
                 if (num_vertices(graph) <= 1) {
                     temp_res++;
                 } else {
-                    std::map<boost::graph_traits<Graph>::edge_descriptor, std::vector<int>> faces;
-                    std::vector<std::vector<int>> vertices_in_face;
-                    face_getter visitor(faces, vertices_in_face);
-                    level_face_traversal<Graph>(emb, visitor);
+                    std::map<graph_traits<Graph>::edge_descriptor, std::vector<int> > faces;
+                    std::vector<std::vector<int> > vertices_in_face;
+                    face_getter<Edge> my_vis(&faces, vertices_in_face);
+                    level_face_traversal<Graph>(emb, my_vis);
 
                     int min_level = INT16_MAX;
                     for (int v : components[c]) {

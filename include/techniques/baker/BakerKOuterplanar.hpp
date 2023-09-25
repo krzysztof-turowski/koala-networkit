@@ -13,7 +13,11 @@
 #include <climits>
 #include <queue>
 
-#include <boost/graph/biconnected_components.hpp>
+#include <boost/graph/subgraph.hpp>
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/graph_traits.hpp>
+#include <boost/graph/planar_face_traversal.hpp>
+#include <boost/ref.hpp>
 
 #include <structures/CyclicVector.hpp>
 #include <techniques/baker/LevelFaceTraversal.hpp>
@@ -55,7 +59,7 @@ class baker_impl {
             embedding[c].clear();
             for (int i = 0; i < face.size(); i++) {
                 int v = face[i];
-                embedding[c].emplace_back(v, c, nullptr);
+                embedding[c].emplace_back(v, c, &c);
                 if (!edge(v, c, g).second) {
                     Edge new_e = add_edge(c, v, g).first;
                     int next = face[(i + 1) % face.size()];
@@ -460,9 +464,9 @@ class baker_impl {
         int level = vertex_level[component[0]];
         std::map<std::pair<int, int>, std::vector<int>> faces;
         std::vector<std::vector<int>> vertices_in_face;
-        face_getter visitor(faces, vertices_in_face);
-        level_face_traversal<Graph>(embedding, visitor);
-        PlanarTree<Problem> t(visitor.current_face, level);
+        face_getter<Edge> my_vis(faces, vertices_in_face);
+        level_face_traversal<Graph>(embedding, my_vis);
+        PlanarTree<Problem> t(my_vis.current_face, level);
 
         int outer = 0;
         for (; outer < vertices_in_face.size(); outer++) {
@@ -478,7 +482,7 @@ class baker_impl {
             }
         }
         t.outer_face = outer;
-        auto tree_b = tree_builder<Problem>(faces, t, g);
+        auto tree_b = tree_builder<Edge, Problem, std::map<int, std::vector<Edge>>>(faces, t, g);
         level_face_traversal<Graph>(embedding, tree_b);
         t.remove_outer_face();
 

@@ -14,6 +14,12 @@
 #include <set>
 #include <vector>
 
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/properties.hpp>
+#include <boost/graph/graph_traits.hpp>
+#include <boost/graph/subgraph.hpp>
+
+#include <structures/CyclicVector.hpp>
 #include <techniques/baker/LevelFaceTraversal.hpp>
 #include <techniques/baker/NameLevels.hpp>
 #include <techniques/baker/Visitors.hpp>
@@ -33,10 +39,6 @@ struct tree_decomposition {
         return nodes[edge_it[e]];
     }
 
-    std::set<int>& operator[](NetworKit::Edge e) {
-        return nodes[edge_it[std::minmax(e.u, e.v)]];
-    }
-
     std::set<int>& operator[](Edge e) {
         return nodes[edge_it[std::minmax(e.m_source, e.m_target)]];
     }
@@ -45,7 +47,6 @@ struct tree_decomposition {
 class create_tree_decomposition {
     Graph graph;
     std::vector<cyclic_vector<Edge>> embedding;
-    std::vector<cyclic_vector<NetworKit::Edge>> embedding2;
     std::vector<int> outer_face;
     tree_decomposition tr;
     std::vector<int> vertex_level;
@@ -231,7 +232,7 @@ class create_tree_decomposition {
     void expand_vertices() {
         std::map<std::pair<int, int>, std::vector<int>> faces;
         std::vector<std::vector<int>> vertices_in_face;
-        face_getter visitor(faces, vertices_in_face);
+        face_getter<Edge> visitor(faces, vertices_in_face);
         level_face_traversal<Graph>(embedding, visitor);
 
         std::vector<int> temp_outer_face = outer_face;
@@ -241,7 +242,8 @@ class create_tree_decomposition {
 
         for (outer_face_it = 0; outer_face_it < vertices_in_face.size(); outer_face_it++) {
             auto& face = vertices_in_face[outer_face_it];
-            if (std::search(temp_outer_face.begin(), temp_outer_face.end(), face.begin(), face.end()) != temp_outer_face.end()) {
+            if (std::search(temp_outer_face.begin(), temp_outer_face.end(), face.begin(), face.end())
+            != temp_outer_face.end()) {
                 break;
             }
         }
@@ -354,8 +356,8 @@ class create_tree_decomposition {
 
         graph = new_graph;
         vertices_in_face.clear();
-        face_getter new_visitor(faces, vertices_in_face);
-        level_face_traversal<Graph>(embedding, new_visitor);
+        face_getter<Edge> my_new_vis(faces, vertices_in_face);
+        level_face_traversal<Graph>(embedding, my_new_vis);
 
         bool found_outer = false;
         for (outer_face_it = 0; outer_face_it < vertices_in_face.size(); outer_face_it++) {
@@ -471,7 +473,8 @@ class create_tree_decomposition {
                             if (w != cycle[i - 1] && w != cycle[i + 1]) {
                                 int x = cycle[-1];
                                 edges_to_add.emplace_back(v, w);
-                                vertex_in_tree[v] = vertex_in_tree[w] = true;
+                                vertex_in_tree[v] = true;
+                                vertex_in_tree[w] = true;
                             }
                         }
                         starting_alpha_it = i;
@@ -489,6 +492,7 @@ class create_tree_decomposition {
                 }
 
                 std::set<int> leaves;
+
                 if (starting_alpha_it == -1) {
                     starting_alpha_it = 0;
                     get_leaves(cycle[0], -1, level, leaves);
@@ -508,24 +512,37 @@ class create_tree_decomposition {
                     }
 
                     edges_to_add.emplace_back(v, prev_v);
-                    vertex_in_tree[v] = vertex_in_tree[prev_v] = true;
+                    vertex_in_tree[v] = true;
+                    vertex_in_tree[prev_v] = true;
                     prev_v = v;
                 }
 
-                for (auto &[u, v] : edges_to_add) {
-                    if (!check_for_edge(u, v, spanning_forest)) {
-                        spanning_forest[u].push_back(v), spanning_forest[v].push_back(u);
+                for (auto& e : edges_to_add) {
+                    if (!check_for_edge(e.first, e.second, spanning_forest)) {
+                        spanning_forest[e.first].push_back(e.second);
+                        spanning_forest[e.second].push_back(e.first);
                     }
                 }
 
                 if (check_for_edge(cycle[starting_alpha_it], cycle[starting_alpha_it - 1], spanning_forest)) {
-                    int v = cycle[starting_alpha_it], w = cycle[starting_alpha_it - 1];
-                    spanning_forest[v].erase(
-                        std::remove(spanning_forest[v].begin(), spanning_forest[v].end(), w),
-                        spanning_forest[v].end());
-                    spanning_forest[w].erase(
-                        std::remove(spanning_forest[w].begin(), spanning_forest[w].end(), v),
-                        spanning_forest[w].end());
+                    int v = cycle[starting_alpha_it];
+                    int w = cycle[starting_alpha_it - 1];
+                    for(auto it = spanning_forest[v].begin(); it != spanning_forest[v].end(); ) {
+                        if(*it == w) {
+                            it = spanning_forest[v].erase(it);
+                            break;
+                        } else {
+                            ++it;
+                        }
+                    }
+                    for(auto it = spanning_forest[w].begin(); it != spanning_forest[w].end(); ) {
+                        if(*it == v) {
+                            it = spanning_forest[w].erase(it);
+                            break;
+                        } else {
+                            ++it;
+                        }
+                    }
                 }
             }
         }
@@ -576,7 +593,7 @@ class create_tree_decomposition {
         }
         std::map<std::pair<int, int>, std::vector<int>> faces;
         std::vector<std::vector<int>> vertices_in_face;
-        face_getter visitor(faces, vertices_in_face);
+        face_getter<Edge> visitor(faces, vertices_in_face);
         level_face_traversal<Graph>(embedding, visitor);
         std::vector<node> face_tree(vertices_in_face.size());
         for (int face = 0; face < vertices_in_face.size(); face++) {
