@@ -232,8 +232,9 @@ class create_tree_decomposition {
     void expand_vertices() {
         std::map<std::pair<int, int>, std::vector<int>> faces;
         std::vector<std::vector<int>> vertices_in_face;
-        face_getter<Edge> visitor(faces, vertices_in_face);
-        level_face_traversal<Graph>(embedding, visitor);
+        face_getter visitor(faces, vertices_in_face);
+        PlanarEmbedding2 embedding2(convert(embedding));
+        level_face_traversal(embedding2, visitor);
 
         std::vector<int> temp_outer_face = outer_face;
         for (int v : outer_face) {
@@ -356,8 +357,9 @@ class create_tree_decomposition {
 
         graph = new_graph;
         vertices_in_face.clear();
-        face_getter<Edge> my_new_vis(faces, vertices_in_face);
-        level_face_traversal<Graph>(embedding, my_new_vis);
+        face_getter my_new_vis(faces, vertices_in_face);
+        embedding2 = convert(embedding);
+        level_face_traversal(embedding2, my_new_vis);
 
         bool found_outer = false;
         for (outer_face_it = 0; outer_face_it < vertices_in_face.size(); outer_face_it++) {
@@ -593,8 +595,9 @@ class create_tree_decomposition {
         }
         std::map<std::pair<int, int>, std::vector<int>> faces;
         std::vector<std::vector<int>> vertices_in_face;
-        face_getter<Edge> visitor(faces, vertices_in_face);
-        level_face_traversal<Graph>(embedding, visitor);
+        face_getter visitor(faces, vertices_in_face);
+        PlanarEmbedding2 embedding2(convert(embedding));
+        level_face_traversal(embedding2, visitor);
         std::vector<node> face_tree(vertices_in_face.size());
         for (int face = 0; face < vertices_in_face.size(); face++) {
             int prev_v = vertices_in_face[face].back();

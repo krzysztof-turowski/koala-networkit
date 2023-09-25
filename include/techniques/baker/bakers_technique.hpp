@@ -102,8 +102,7 @@ int bakers_technique(Graph& g, NetworKit::Graph &G, PlanarEmbedding& embedding, 
             added_edges.resize(num);
 
             for (int v = 0; v < level_embeddings[i].size(); v++) {
-                auto &edges = level_embeddings[i][v];
-                for (auto &e : edges) {
+                for (auto &e : level_embeddings[i][v]) {
                     if (v_comp[e.m_source] == v_comp[e.m_target]) {
                         int comp = v_comp[e.m_source];
                         int local_source = global_to_local[comp][e.m_source];
@@ -128,10 +127,11 @@ int bakers_technique(Graph& g, NetworKit::Graph &G, PlanarEmbedding& embedding, 
                 if (num_vertices(graph) <= 1) {
                     temp_res++;
                 } else {
-                    std::map<graph_traits<Graph>::edge_descriptor, std::vector<int> > faces;
-                    std::vector<std::vector<int> > vertices_in_face;
-                    face_getter<Edge> my_vis(&faces, vertices_in_face);
-                    level_face_traversal<Graph>(emb, my_vis);
+                    std::map<std::pair<int, int>, std::vector<int>> faces;
+                    std::vector<std::vector<int>> vertices_in_face;
+                    face_getter visitor(faces, vertices_in_face);
+                    PlanarEmbedding2 embedding2(convert(embedding));
+                    level_face_traversal(embedding2, visitor);
 
                     int min_level = INT16_MAX;
                     for (int v : components[c]) {
@@ -153,7 +153,7 @@ int bakers_technique(Graph& g, NetworKit::Graph &G, PlanarEmbedding& embedding, 
                             break;
                         }
                     }
-                    temp_res += Algorithm<Problem>(graph, G, emb, out_face);
+                    temp_res += Algorithm<Problem>(graph, G, embedding, out_face);
                 }
             }
         }

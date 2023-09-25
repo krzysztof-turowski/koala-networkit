@@ -22,7 +22,7 @@
 
 auto get_embedding(Graph& g) {
     PlanarEmbedding embedding(boost::num_vertices(g));
-    boost::property_map<Graph, edge_index_t>::type e_index = get(edge_index, g);
+    boost::property_map<Graph, boost::edge_index_t>::type e_index = get(boost::edge_index, g);
     boost::graph_traits<Graph>::edges_size_type edge_count = 0;
     boost::graph_traits<Graph>::edge_iterator ei, ei_end;
     for (boost::tie(ei, ei_end) = edges(g); ei != ei_end; ++ei) {
@@ -31,8 +31,8 @@ auto get_embedding(Graph& g) {
     boost::boyer_myrvold_planarity_test(g, &embedding[0]);
     std::map<std::pair<int, int>, std::vector<int>> faces;
     std::vector<std::vector<int>> vertices_in_face;
-    face_getter<Edge> visitor(faces, vertices_in_face);
-    level_face_traversal<Graph>(embedding, visitor);
+    face_getter visitor(faces, vertices_in_face);
+    level_face_traversal2(embedding, visitor);
     return std::make_pair(embedding, vertices_in_face[0]);
 }
 

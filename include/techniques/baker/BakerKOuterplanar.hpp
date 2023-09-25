@@ -13,11 +13,7 @@
 #include <climits>
 #include <queue>
 
-#include <boost/graph/subgraph.hpp>
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/graph_traits.hpp>
-#include <boost/graph/planar_face_traversal.hpp>
-#include <boost/ref.hpp>
+#include <boost/graph/biconnected_components.hpp>
 
 #include <structures/CyclicVector.hpp>
 #include <techniques/baker/LevelFaceTraversal.hpp>
@@ -29,7 +25,7 @@ template<typename Problem>
 class baker_impl {
  public:
     baker_impl(const Graph& arg_g, const NetworKit::Graph &graph, PlanarEmbedding &emb, const std::vector<int> &out_face)
-            : g(arg_g), graph(std::make_optional(graph)), embedding(emb), outer_face(out_face), vertex_level(num_vertices(arg_g)) {
+            : graph(std::make_optional(graph)), g(arg_g), embedding(emb), outer_face(out_face), vertex_level(boost::num_vertices(arg_g)) {
         auto [k, _] = name_levels(embedding, outer_face, vertex_level);
         int v = std::find_if(
             vertex_level.begin(), vertex_level.end(),
@@ -48,9 +44,8 @@ class baker_impl {
 
     Graph g;
     PlanarEmbedding embedding;
-    std::vector<int> outer_face;
+    std::vector<int> outer_face, vertex_level;
     PlanarTree<Problem> tree;
-    std::vector<int> vertex_level;
     std::set<std::pair<int, int>> added_edges;
 
     void triangulate(std::vector<int> &face, std::vector<int> &component, int turn) {
@@ -72,8 +67,7 @@ class baker_impl {
         }
 
         int level = vertex_level[face[0]];
-        Edge connecting_e;
-        int starting_v_it = -1;
+        std::optional<Edge> connecting_e;
         for (int i = 0; i < face.size(); i++) {
             int v = face[i];
             for (Edge e : embedding[v]) {
@@ -83,17 +77,16 @@ class baker_impl {
                     connecting_e = e;
                     std::rotate(face.begin(), face.begin() + i, face.end());
                     std::rotate(component.begin(), element, component.end());
-                    starting_v_it = 1;
                     break;
                 }
             }
-            if (starting_v_it > -1) {
+            if (connecting_e) {
                 break;
             }
         }
         int face_it = 0, comp_it = 0;
-        int curr_e_it_face = get_edge_it(connecting_e, face.front(), embedding);
-        int curr_e_it_comp = get_edge_it(connecting_e, component.front(), embedding);
+        int curr_e_it_face = get_edge_it(*connecting_e, face.front(), embedding);
+        int curr_e_it_comp = get_edge_it(*connecting_e, component.front(), embedding);
         std::set<int> comp_vis, face_vis;
         int comp = 0;
         while (comp < component.size() || face_vis.size() < face.size()) {
@@ -398,7 +391,7 @@ class baker_impl {
             if (vis[curr] == vis[next] || edge(curr, next, g).second || connected[vis[next]]) {
                 continue;
             }
-            added_edges.insert(std::make_pair(curr, next));
+            added_edges.emplace(curr, next);
             Edge new_e = add_edge(curr, next, g).first;
             embedding[curr].insert(embedding[curr].begin() + get_edge_it(curr, curr_con, embedding) + 1, new_e);
             embedding[next].insert(embedding[next].begin() + get_edge_it(next, next_con, embedding), new_e);
@@ -460,13 +453,13 @@ class baker_impl {
         t[node].label.first = t[node].label.second = root;
     }
 
-    PlanarTree<Problem> build_tree(std::vector<int> component, std::map<int, std::vector<Edge>> &embedding) {
+    PlanarTree<Problem> build_tree(std::vector<int> component, PlanarEmbedding2 &embedding) {
         int level = vertex_level[component[0]];
         std::map<std::pair<int, int>, std::vector<int>> faces;
         std::vector<std::vector<int>> vertices_in_face;
-        face_getter<Edge> my_vis(faces, vertices_in_face);
-        level_face_traversal<Graph>(embedding, my_vis);
-        PlanarTree<Problem> t(my_vis.current_face, level);
+        face_getter visitor(faces, vertices_in_face);
+        level_face_traversal(embedding, visitor);
+        PlanarTree<Problem> t(visitor.current_face, level);
 
         int outer = 0;
         for (; outer < vertices_in_face.size(); outer++) {
@@ -482,8 +475,8 @@ class baker_impl {
             }
         }
         t.outer_face = outer;
-        auto tree_b = tree_builder<Edge, Problem, std::map<int, std::vector<Edge>>>(faces, t, g);
-        level_face_traversal<Graph>(embedding, tree_b);
+        auto tree_b = tree_builder<Problem>(faces, t, g);
+        level_face_traversal(embedding, tree_b);
         t.remove_outer_face();
 
         for (auto &node : t.t) {
@@ -509,38 +502,41 @@ class baker_impl {
         int bi_num = biconnected_components(g_temp, bicomp);
         std::vector<PlanarTree<Problem>> trees(bi_num);
         std::vector<std::set<int>> v_in_bicomps(bi_num);
-        std::map<std::pair<int, int>, int> bi_map;
+        std::unordered_map<NetworKit::Edge, int> bi_map;
         boost::graph_traits<Graph>::edge_iterator ei, ei_end;
         for(boost::tie(ei, ei_end) = edges(g_temp); ei != ei_end; ++ei) {
             int global_source = g_temp.local_to_global(ei->m_source);
             int global_target = g_temp.local_to_global(ei->m_target);
             v_in_bicomps[bicomp[*ei]].insert(global_source);
             v_in_bicomps[bicomp[*ei]].insert(global_target);
-            bi_map[std::make_pair(global_source, global_target)] = bicomp[*ei];
-            bi_map[std::make_pair(global_target, global_source)] = bicomp[*ei];
+            bi_map[NetworKit::Edge(global_source, global_target)] = bicomp[*ei];
+            bi_map[NetworKit::Edge(global_target, global_source)] = bicomp[*ei];
         }
 
         std::vector<std::vector<int>> bicomps(bi_num);
         for (int i = 0; i < component.size(); i++) {
             int curr = component[i], next = component[(i + 1) % component.size()];
-            bicomps[bi_map[std::make_pair(curr, next)]].push_back(curr);
+            bicomps[bi_map[NetworKit::Edge(curr, next)]].push_back(curr);
         }
         for (auto &bic : bicomps) {
             if (bic.size() == 2) {
-                Edge e = add_edge(bic[0], bic[1], g).first;
-                embedding[bic[0]].insert(
-                    embedding[bic[0]].begin() + get_edge_it(e, bic[0], embedding), e);
-                embedding[bic[1]].insert(
-                    embedding[bic[1]].begin() + get_edge_it(e, bic[1], embedding), e);
+                auto e = add_edge(bic[0], bic[1], g).first;
+                for (auto v : {bic[0], bic[1]}) {
+                    auto pos = get_edge_it(e, v, embedding);
+                    if (embedding[v][pos].m_source == e.m_source) {
+                        std::swap(e.m_source, e.m_target);
+                    }
+                    embedding[v].insert(embedding[v].begin() + pos, e);
+                }
             }
         }
 
+        PlanarEmbedding2 embedding2(convert(embedding));
         for (int i = 0; i < bi_num; i++) {
-            std::map<int, std::vector<Edge>> emb;
+            PlanarEmbedding2 emb(graph->numberOfNodes());
             for (int v : v_in_bicomps[i]) {
-                for (Edge e : embedding[v]) {
-                    if (bi_map[std::make_pair(e.m_source, e.m_target)] == i &&
-                    vertex_level[e.m_source] == level && vertex_level[e.m_target] == level) {
+                for (const auto &e : embedding2[v]) {
+                    if (bi_map[e] == i && vertex_level[e.u] == level && vertex_level[e.v] == level) {
                         emb[v].push_back(e);
                     }
                 }

@@ -33,15 +33,12 @@
 
 #include <techniques/baker/create_tree_decomposition.hpp>
 
-using namespace boost;
-namespace mp = multiprecision;
-
 template <typename Problem>
 class bodlaender_impl {
     NetworKit::Graph G;
 
     struct tr_node {
-        dynamic_bitset<> f;
+        boost::dynamic_bitset<> f;
         std::vector<int> f2;
         std::vector<int> r_values;
         int x;
@@ -85,12 +82,12 @@ class bodlaender_impl {
 //                }
 //            }
 
-            mp::cpp_int num = mp::pow(mp::cpp_int(n), vertices.size());
+            boost::multiprecision::cpp_int num = boost::multiprecision::pow(boost::multiprecision::cpp_int(n), vertices.size());
 
-            for (mp::cpp_int x = 0; x < num; x++) {
+            for (boost::multiprecision::cpp_int x = 0; x < num; x++) {
                 temp.emplace_back(n);
                 auto &f = temp.back().f2;
-                mp::cpp_int x_temp = x;
+                boost::multiprecision::cpp_int x_temp = x;
                 int res = 0;
                 for (int g_v : vertices) {
                     if (int(x_temp % n) == g_v) {
@@ -152,7 +149,7 @@ class bodlaender_impl {
                     int r_val = 1;
                     for (int g_v : vertices) {
                         int l_g_v = sub_g.global_to_local(g_v);
-                        typename graph_traits<Graph>::out_edge_iterator ei, ei_end;
+                        typename boost::graph_traits<Graph>::out_edge_iterator ei, ei_end;
                         for (boost::tie(ei, ei_end) = out_edges(l_g_v, sub_g); ei != ei_end; ++ei) {
                             int nei = sub_g.local_to_global(l_g_v == ei->m_source ? ei->m_target : ei->m_source);
                             if (vertices.find(nei) != vertices.end()) {
