@@ -652,7 +652,7 @@ class create_tree_decomposition {
 public:
     create_tree_decomposition(Graph& g, std::vector<cyclic_vector<Edge>>& emb, std::vector<int> out_face)
             : graph(g), embedding(emb), outer_face(out_face), expanded_vertices(embedding.size(), -1), vertex_level(embedding.size()) {
-        auto [k_prim, _] = name_levels(embedding, out_face, vertex_level);
+        auto [k_prim, _] = name_levels(convert(embedding), out_face, vertex_level);
         this->k = k_prim;
 //        if (k == 1) {
 //            outerplanar();
@@ -661,7 +661,7 @@ public:
         expand_vertices();
         vertex_level.resize(embedding.size());
         spanning_forest.resize(embedding.size());
-        auto [k_bis, outer_edges] = name_levels(embedding, outer_face, vertex_level);
+        auto [k_bis, outer_edges] = name_levels(convert(embedding), outer_face, vertex_level);
         this->k = k_bis;
         outer_edges.emplace_back();
         level_graphs = std::vector<std::vector<cyclic_vector<int>>>(k + 1, std::vector<cyclic_vector<int>>(embedding.size()));

@@ -44,8 +44,7 @@ PlanarEmbedding convert(const PlanarEmbedding2 &emb2) {
 }
 
 auto name_levels(
-        const PlanarEmbedding& embedding2, std::vector<int>& outer_face, std::vector<int>& vertex_level) {
-    auto embedding = convert(embedding2);
+        const PlanarEmbedding2& embedding, std::vector<int>& outer_face, std::vector<int>& vertex_level) {
     for (int &v : vertex_level) {
         v = -1;
     }
