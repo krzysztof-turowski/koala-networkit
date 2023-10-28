@@ -94,12 +94,13 @@ class CoTree{
 //Parameters_of_one_iteration_of_algorithm param;
 CoTree T;
 NetworKit::Graph G;
-void unmark(queue<CoNode> &marked_with_d_equal_to_md){
-    CoNode R = T.getRoot();
+void unmark(queue<CoNode> &marked_with_d_equal_to_md, int &mark_count){
     CoNode u = marked_with_d_equal_to_md.front();
     marked_with_d_equal_to_md.pop();
+    u.unmark();
+    mark_count--;
     u.set_md(0);
-    if(u != R){
+    if(u != T.getRoot()){
         w = u.getParent();
         w.inc_md();
         if(w.get_md() == w.get_d()){
@@ -117,30 +118,29 @@ void unmark(queue<CoNode> &marked_with_d_equal_to_md){
     }
 }
 void Mark( NetworKit::node &x){
-    CoNode R = T.getRoot();
     queue<CoNode> marked_with_d_equal_to_md;
+    int mark_count = 0;
     for(auto u : G.outEdges){//
         u.mark();
+        mark_count++;
         marked_with_d_equal_to_md.push(u);
     }
     while(!marked_with_d_equal_to_md.empty()){
-        unmark( marked_with_d_equal_to_md);
+        unmark( marked_with_d_equal_to_md, mark_count);
     }
-    auto nodes = NodeRange(G);
-    for(auto u : nodes){
-        if(Marked[u]){
-            if(d[R] == 1){
-                Marked[R] = 1;
+        if(mark_count){
+            if(T.getRoot().d == 1){
+                T.getRoot().mark();
             }
-            break;
         }
-    }
+
 }
-void Find_Lowest( NetworKit::node &R){
+void Find_Lowest( ){
 
 }
 void Cograph_Recognition(NetworKit::Graph &graph){
     G = graph;
+
     /*for(auto u : NodeRange(graph)){
         Mark( u,R);
     }*/
