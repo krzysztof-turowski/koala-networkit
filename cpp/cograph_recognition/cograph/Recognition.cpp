@@ -4,23 +4,6 @@
 
 #include <graph/GraphTools.hpp>
 namespace Koala {
-/*class Parameters_of_one_iteration_of_algorithm{
-    private:
-    vector<bool>Marked;
-    vector<int> md, d;
-    vector<vector<NetworKit::node>> marked_and_unmarked;
-    int size;
-    queue<int> marked_with_d_equal_to_md;
-    public:
-    Parameters_of_one_iteration_of_algorithm(int n): size(n){
-        Marked.resize(n);
-        md.resize(n);
-        d.resize(n);
-        marked_and_unmarked.resize(n);
-        marked_with_d_equal_to_md.clean();
-    }
-
-};*/
 enum class Type{
 ZEROONE,
 VERTEX
@@ -96,6 +79,7 @@ class CoNode{
     }
     void unmark_for_new_iteration(){
     marked = Marked::UNMARKED;
+    md = 0;
     }
     void mark(){
     marked = Marked::MARKED;}
@@ -117,7 +101,6 @@ class CoTree{
     }
 
 };
-//Parameters_of_one_iteration_of_algorithm param;
 CoTree T;
 NetworKit::Graph G;
 int mark_count = 0;
@@ -168,11 +151,20 @@ void Mark( CoNode &x){
         }
 
 }
+
+void Reset_All_CoNodes(CoNode *x){
+    x -> unmark_for_new_iteration();
+    auto y = x -> head_of_list_of_children;
+    while(y != nullptr){
+        Reset_All_CoNodes(y);
+        y = y -> next;
+    }
+}
 CoNode Find_Lowest( ){
 
 }
-void Reset_All_CoNodes(CoNode *x){
-
+void Insert_x_to_CoTree(CoNode *u, CoNode *x){
+    if(u -> )
 }
 void Cograph_Recognition(NetworKit::Graph &graph){
     G = graph;
@@ -232,7 +224,7 @@ void Cograph_Recognition(NetworKit::Graph &graph){
             }
         } else{
             CoNode u = Find_Lowest();
-
+            Insert_x_to_CoTree(&u, &covertex[i]);
         }
     }
 }
