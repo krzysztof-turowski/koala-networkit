@@ -1,10 +1,4 @@
-/*
- * CographRecognition.hpp
- *
- *  Created on: 24.10.2023
- *      Author: Milana Kananovich
- *      Ported by: Krzysztof Turowski (krzysztof.szymon.turowski@gmail.com)
- */
+
 
 #pragma once
 
@@ -32,6 +26,7 @@ class CoraphRecognition : public NetworKit::Algorithm {
             COND_5,
             COND_6
          };
+
     /**
      * Given an input graph, set up the cograph recognition.
      *

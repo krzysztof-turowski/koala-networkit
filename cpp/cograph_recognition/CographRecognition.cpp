@@ -1,10 +1,4 @@
-/*
- * CographRecognition.cpp
- *
- *  Created on: 24.10.2021
- *      Author: Milana Kananovich
- *      Ported by: Krzysztof Turowski (krzysztof.szymon.turowski@gmail.com)
- */
+
 
 #include <list>
 #include <set>
@@ -15,7 +9,11 @@
 namespace Koala {
 
 CographRecognition::CographRecognition(NetworKit::Graph &graph)
-    : graph(std::make_optional(graph)), is_complement_reducible(State::UNKNOWN) { }
+    : graph(std::make_optional(graph)), is_complement_reducible(State::UNKNOWN) {
+     Marked.resize(graph.n);
+     md.resize(graph.n);
+
+     }
 
 bool CographRecognition::isComplementReducible() const {
     assureFinished();
