@@ -12,7 +12,6 @@ CographRecognition::CographRecognition(NetworKit::Graph &graph)
     : graph(graph), is_complement_reducible(State::UNKNOWN) {
 
      }
-
 bool CographRecognition::isComplementReducible() const {
     assureFinished();
     return is_complement_reducible == State::COMPLEMENT_REDUCIBLE;
@@ -46,7 +45,9 @@ void CographRecognition::run() {
     is_complement_reducible = State::COMPLEMENT_REDUCIBLE;
 }
 
+    void CographRecognition::check() const {
+        assureFinished();
 
-
+    }
 
 }  // namespace Koala
