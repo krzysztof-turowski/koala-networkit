@@ -47,7 +47,20 @@ void CographRecognition::run() {
 
     void CographRecognition::check() const {
         assureFinished();
-
+        bool iscograph = true;
+        for(auto e1 : graph.edgeRange()){
+            for(auto e2 : graph.edgeRange()){
+                auto x = e1.u;
+                auto y = e1.v;
+                auto u = e2.u;
+                auto v = e2.v;
+                if(graph.hasEdge(y, u) && !graph.hasEdge(x, u) && !graph.hasEdge(x, v) && !graph.hasEdge(y, v)) {
+                    iscograph = false;//not cograph
+                    break;
+                }
+            }
+        }
+        assert(iscograph);
     }
 
 }  // namespace Koala
