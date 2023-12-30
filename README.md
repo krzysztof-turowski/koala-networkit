@@ -107,6 +107,8 @@ cmake --build build --parallel 4
 ```
 > Note: it may take a while to download and compile dependencies (e.g. googletest, networkit, and boost).
 
+Additionally, users need to install beforehand the following packages (or their equivalents): <tt>g++/clang</tt>, <tt>cpplint</tt>, <tt>gfortran</tt>, <tt>libblas-dev</tt>, <tt>liblapack-dev</tt>, <tt>libgtest-dev</tt>, <tt>libboost-all-dev</tt>.
+
 ## <a name="usage"></a>Usage
 
 ## <a name="references"></a>References
