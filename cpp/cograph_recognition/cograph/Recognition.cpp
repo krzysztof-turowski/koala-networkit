@@ -20,6 +20,7 @@ namespace Koala {
         int number;
         Marked marked;
         int md, d;
+
         //md is the current number of children, which have been both "marked" and "unmarked"
         //d is the current number of children
 
@@ -62,14 +63,15 @@ namespace Koala {
         void addchild(CoNode *x){
             if(head_of_list_of_children == nullptr){
                 head_of_list_of_children = x;
-                x -> prev = x -> next = nullptr;
+                x ->setprev(nullptr);
+                x ->setnext(nullptr);
             } else{
-                head_of_list_of_children -> prev = x;
-                x -> next = head_of_list_of_children;
-                x -> prev = nullptr;
+                head_of_list_of_children ->setprev(x);
+                x->setnext(head_of_list_of_children);
+                x->setprev(nullptr);
                 head_of_list_of_children = x;
             }
-            x -> parent = this;
+            x->setParent(this);
             d++;
         }
         void setoutEdges(vector<CoNode>outEdges){
