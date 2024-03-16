@@ -157,6 +157,7 @@ namespace Koala {
         if(u != T -> getRoot()){
             auto w = u -> getParent();
             w -> inc_md();
+            w -> mark();//?
             if(w -> get_md() == w -> get_d()){
                 marked_with_d_equal_to_md.push(w);
                 auto l = u -> getnext();
@@ -220,12 +221,13 @@ namespace Koala {
             error = 3;
             return y;
         }
-        if(T -> getRoot() -> get_md() != T -> getRoot() -> get_d() - 1){
-            y = T -> getRoot();
+        if(T -> getRoot() -> get_md() != T -> getRoot() -> get_d() - 1) {
+            y = T->getRoot();
+        }
             T -> getRoot() -> unmark();
             T -> getRoot() ->set_md(0);
-            u = w = T -> getRoot();
-        }
+            w = T -> getRoot();
+            u = w;
         queue<CoNode*>q;
         Made_Queue_Of_Marked(T -> getRoot(), q);
         while(!q.empty()){
@@ -245,7 +247,6 @@ namespace Koala {
                     }
 
                 } else{
-
                 }
             } else{
                 y = u;
@@ -259,7 +260,7 @@ namespace Koala {
                     return y;
                 }
                 if(t -> Marked_or_not() != Marked::MARKED){//3 or 5 or 6
-                    error = 3;
+                    error = 3;//!
                     return y;
                 }
                 if(t -> get_md() != t -> get_d() - 1){//2
@@ -276,6 +277,7 @@ namespace Koala {
             }
             w = u;
         }
+        return w;
     }
 
 
