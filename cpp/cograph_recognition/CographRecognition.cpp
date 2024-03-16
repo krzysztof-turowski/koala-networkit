@@ -31,6 +31,7 @@ CographRecognition::State CographRecognition::getState() const {
             else if(x == 5)return CographRecognition::State::COND_5;
             else if(x == 6)return CographRecognition::State::COND_6;
         }
+        return CographRecognition::State::UNKNOWN;
     }
 void CographRecognition::run() {
     hasRun = true;

@@ -62,16 +62,24 @@ namespace Koala {
         }
         void addchild(CoNode *x){
             if(head_of_list_of_children == nullptr){
+                cout<<"65"<<endl;
                 head_of_list_of_children = x;
+                cout<<"67"<<endl;
                 x ->setprev(nullptr);
+                cout<<"69"<<endl;
                 x ->setnext(nullptr);
+                cout<<"71"<<endl;
             } else{
+                cout<<"70"<<endl;
                 head_of_list_of_children ->setprev(x);
                 x->setnext(head_of_list_of_children);
                 x->setprev(nullptr);
                 head_of_list_of_children = x;
             }
+            cout<<"79 "<<x<<endl;
+            //if(x == nullptr)cout<<"smth"<<endl;
             x->setParent(this);
+            cout<<"81"<<endl;
             d++;
         }
         void setoutEdges(vector<CoNode>outEdges){
@@ -83,7 +91,7 @@ namespace Koala {
         CoNode* getParent(){
             return parent;
         }
-        CoNode* setParent(CoNode *parent){
+        void setParent(CoNode *parent){
             this->parent = parent;
         }
         void set_md(int md){
@@ -148,15 +156,20 @@ namespace Koala {
     int mark_and_unmarked_count = 0;
     int mark_ever_count = 0;
     void unmark(queue<CoNode*> &marked_with_d_equal_to_md){
+        cout<<159<<endl;
         CoNode* u = marked_with_d_equal_to_md.front();
         marked_with_d_equal_to_md.pop();
         u -> unmark();
         mark_count--;
         mark_and_unmarked_count++;
         u -> set_md(0);
+        cout<<166<<endl;
         if(u != T -> getRoot()){
+            cout<<168<<endl;
             auto w = u -> getParent();
+            cout<<w<<" "<<u<<" "<<T->getRoot()<<endl;
             w -> inc_md();
+            cout<<170<<endl;
             if(w -> get_md() == w -> get_d()){
                 marked_with_d_equal_to_md.push(w);
                 auto l = u -> getnext();
@@ -172,6 +185,7 @@ namespace Koala {
         }
     }
     void Mark( CoNode &x){
+        cout<<"183"<<endl;
         queue<CoNode*> marked_with_d_equal_to_md;
         mark_count = 0;
         mark_and_unmarked_count = 0;
@@ -182,9 +196,12 @@ namespace Koala {
             mark_count++;
             marked_with_d_equal_to_md.push(&u);
         }
+        cout<<194<<endl;
         while(!marked_with_d_equal_to_md.empty()){
+            cout<<196<<endl;
             unmark( marked_with_d_equal_to_md);
         }
+        cout<<198<<endl;
         if(mark_count){
             if(T -> getRoot() -> get_d() == 1){
                 T -> getRoot() -> mark();
@@ -281,6 +298,7 @@ namespace Koala {
 
 
     vector<CoNode *> get_were_marked(CoNode *u){
+        std::cout<<"aaa"<<std::endl;
         auto x = u -> get_head_of_list_of_children();
         vector<CoNode *> a;
         while(x != nullptr && x->Marked_or_not() != Marked::UNMARKED){
@@ -350,19 +368,24 @@ namespace Koala {
         vector<CoNode>covertex;
         map<NetworKit::node, int> pos;
         int cnt = 0;
+        std::cout<<"a"<<std::endl;
         for(auto i : G.nodeRange()){
+            std::cout<<"e"<<i<<std::endl;
             vertex.push_back(i);
             pos[i] = cnt++;
             CoNode C = CoNode(Type::VERTEX,i);
             covertex.push_back(C);
         }
+        std::cout<<"b"<<std::endl;
         for(auto i : G.nodeRange()){
+            std::cout<<"c"<<i<<std::endl;
             vector<CoNode> vec;
             for(auto u : G.neighborRange(i)){
                 vec.push_back(covertex[pos[u]]);
             }
             covertex[pos[i]].setoutEdges(vec);
         }
+        std::cout<<"d"<<std::endl;
         CoNode R(Type::ZEROONE, 1);
         CoTree Tp(&R);
         T = &Tp;
@@ -373,21 +396,33 @@ namespace Koala {
             R.addchild(&covertex[0]);
             return 0;
         }
+        std::cout<<"382"<<vertex.size()<<" "<<covertex.size()<<std::endl;
         if(G.hasEdge(vertex[0], vertex[1])){
+            std::cout<<"384"<<std::endl;
             R.addchild(&covertex[0]);
+            std::cout<<"386"<<std::endl;
             R.addchild(&covertex[1]);
+            cout<<"mm"<<covertex[1].getParent()<<" "<<covertex[0].getParent()<<endl;
+            cout<<&R<<endl;
         } else{
+            std::cout<<"388"<<std::endl;
             CoNode N(Type::ZEROONE, 0);
             R.addchild(&N);
             N.addchild(&covertex[0]);
             N.addchild(&covertex[1]);
         }
+        std::cout<<"392"<<std::endl;
         for(int i = 2; i < cnt; i++){
+            std::cout<<"394 "<<i<<std::endl;
             Reset_All_CoNodes(&R);
+            cout<<"407"<<endl;
             Mark(covertex[i]);
+            cout<<"409"<<endl;
             if(R.Marked_or_not() == Marked::MARKED_AND_UNMARKED){//all nodes of T were marked and unmarked <=> R is marked and unmarked
+               cout<<"411"<<endl;
                 R.addchild(&covertex[i]);
             } else if(mark_ever_count == 0){
+                cout<<"411"<<endl;
                 if(R.get_d() == 1){
                     (R.get_head_of_list_of_children()) -> addchild(&covertex[i]);
                 } else{
@@ -398,6 +433,7 @@ namespace Koala {
                     R2.addchild(&covertex[i]);
                 }
             } else{
+                cout<<"425"<<endl;
                 int error = 0;
                 CoNode* u = Find_Lowest(error);
                 if(error)return error;
