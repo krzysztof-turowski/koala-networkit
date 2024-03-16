@@ -14,6 +14,7 @@ namespace Koala {
         MARKED,
         MARKED_AND_UNMARKED
     };
+
     class CoNode{
     private:
         Type type;
@@ -132,14 +133,15 @@ namespace Koala {
     class CoTree{
     private:
         CoNode* root;
+        vector<CoNode>save;
     public:
         CoTree(CoNode* root):root(root){
         }
         CoNode* getRoot(){
             return root;
         }
-        void setRoot(CoNode* R){
-            root = R;
+        void add(CoNode& x){
+            save.push_back(x);
         }
     };
     CoTree* T;
@@ -216,6 +218,7 @@ namespace Koala {
 
     CoNode *Find_Lowest( int & error){
         CoNode z(Type::ZEROONE, 2);
+        T -> add(z);
         CoNode *y = &z, *u, *w, *t;
         if(T -> getRoot() -> Marked_or_not() == Marked::UNMARKED){
             error = 3;
@@ -318,6 +321,7 @@ namespace Koala {
         if(a.size() == 1){
             if(a[0] -> gettype() == Type::VERTEX){
                 CoNode y(Type::ZEROONE, u_number ^ 1);
+                T -> add(y);
                 u->remove_were_marked();
                 u->addchild(&y);
                 y.addchild(x);
@@ -328,6 +332,7 @@ namespace Koala {
         } else{
             auto vec = u -> remove_were_marked();
             CoNode y(Type::ZEROONE, u_number);
+            T -> add(y);
             for(auto v : vec){
                 y.addchild(v);
             }
@@ -336,11 +341,13 @@ namespace Koala {
                 if(u -> getnext() != nullptr)u -> getnext() -> setprev(&y);
                 y.setParent(u -> getParent());
                 CoNode z(Type::ZEROONE, 0);
+                T -> add(z);
                 y.addchild(&z);
                 z.addchild(x);
                 z.addchild(u);
             } else{
                 CoNode z(Type::ZEROONE, 1);
+                T -> add(z);
                 u ->addchild(&z);
                 z.addchild(x);
                 z.addchild(&y);
@@ -358,6 +365,7 @@ namespace Koala {
             vertex.push_back(i);
             pos[i] = cnt++;
             CoNode C = CoNode(Type::VERTEX,i);
+            T -> add(C);
             covertex.push_back(C);
         }
         for(auto i : G.nodeRange()){
@@ -368,6 +376,7 @@ namespace Koala {
             covertex[pos[i]].setoutEdges(vec);
         }
         CoNode R(Type::ZEROONE, 1);
+        T -> add(R);
         CoTree Tp(&R);
         T = &Tp;
         if(cnt == 0){
@@ -382,6 +391,7 @@ namespace Koala {
             R.addchild(&covertex[1]);
         } else{
             CoNode N(Type::ZEROONE, 0);
+            T -> add(N);
             R.addchild(&N);
             N.addchild(&covertex[0]);
             N.addchild(&covertex[1]);
@@ -397,6 +407,8 @@ namespace Koala {
                 } else{
                     CoNode R1(Type::ZEROONE, 1);
                     CoNode R2(Type::ZEROONE, 0);
+                    T -> add(R1);
+                    T -> add(R2);
                     R1.addchild(&R2);
                     R2.addchild(&R);
                     R2.addchild(&covertex[i]);
