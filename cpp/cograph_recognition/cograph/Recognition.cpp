@@ -247,6 +247,8 @@ namespace Koala {
                     }
 
                 } else{
+                    //????/
+                    t = u -> getParent() -> getParent();
                 }
             } else{
                 y = u;
