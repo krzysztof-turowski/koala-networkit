@@ -169,8 +169,6 @@ namespace Koala {
         u -> set_md(0);
         if(u != T -> getRoot()){
             auto w = u -> getParent();
-
-            //cout<<u<<" "<<u->getnumber()<<" "<<w<<endl;
             w -> inc_md();
             w -> mark();//?
             if(w -> get_md() == w -> get_d()){
@@ -327,7 +325,6 @@ namespace Koala {
     void Insert_x_to_CoTree(CoNode *u, CoNode *x){
         vector<CoNode*>a;
         int u_number = u -> getnumber();
-        cout<<"number"<<u_number<<endl;
         if(u_number == 0){
             a = get_were_marked(T -> getRoot());
         } else{
@@ -415,7 +412,6 @@ namespace Koala {
             N.addchild(&covertex[1]);
         }
         for(int i = 2; i < cnt; i++){
-            cout<<"here"<<i<<endl;
             Reset_All_CoNodes(&R);
             Mark(covertex[i]);
             if(R.Marked_or_not() == Marked::MARKED_AND_UNMARKED){//all nodes of T were marked and unmarked <=> R is marked and unmarked
