@@ -21,6 +21,7 @@ namespace Koala {
         int number;
         Marked marked;
         int md, d;
+        bool in_graph;
 
         //md is the current number of children, which have been both "marked" and "unmarked"
         //d is the current number of children
@@ -31,7 +32,7 @@ namespace Koala {
         vector<CoNode*>outEdges;//neighbours of cur vertex in G
     public:
         CoNode(Type type, int number): type(type), number(number),marked(Marked::UNMARKED),md(0),d(0),head_of_list_of_children(nullptr),
-                                       next(nullptr),prev(nullptr), parent(nullptr){
+                                       next(nullptr),prev(nullptr), parent(nullptr),in_graph(false){
 
         }
         int getnumber(){
@@ -91,7 +92,11 @@ namespace Koala {
             this->md = md;
         }
         void inc_md(){
-            this->md++;
+            cout<<"aaa"<<endl;
+            cout<<this<<endl;
+            if(this == nullptr)cout<<"????"<<endl;
+            if(this == NULL)cout<<"kruto!"<<endl;
+            this->md = this -> md + 1;
         }
         int get_md(){
             return md;
@@ -129,6 +134,12 @@ namespace Koala {
             }
             return vec;
         }
+        bool is_in_graph(){
+            return in_graph;
+        }
+        void add_to_graph(){
+            in_graph = true;
+        }
     };
     class CoTree{
     private:
@@ -158,6 +169,8 @@ namespace Koala {
         u -> set_md(0);
         if(u != T -> getRoot()){
             auto w = u -> getParent();
+
+            //cout<<u<<" "<<u->getnumber()<<" "<<w<<endl;
             w -> inc_md();
             w -> mark();//?
             if(w -> get_md() == w -> get_d()){
@@ -179,7 +192,8 @@ namespace Koala {
         mark_count = 0;
         mark_and_unmarked_count = 0;
         mark_ever_count = 0;
-        for(auto u : x.getoutEdges()){
+        for(auto u : x.getoutEdges()){//!!only neigbours which are already in graph
+        if(!(u -> is_in_graph()))continue;
             u -> mark();
             mark_ever_count++;
             mark_count++;
@@ -313,6 +327,7 @@ namespace Koala {
     void Insert_x_to_CoTree(CoNode *u, CoNode *x){
         vector<CoNode*>a;
         int u_number = u -> getnumber();
+        cout<<"number"<<u_number<<endl;
         if(u_number == 0){
             a = get_were_marked(T -> getRoot());
         } else{
@@ -356,6 +371,9 @@ namespace Koala {
     }
 
     int CographRecognition::Cograph_Recognition(NetworKit::Graph &graph){
+        CoNode R(Type::ZEROONE, 1);
+        CoTree Tp(&R);
+        T = &Tp;
         G = graph;
         vector<NetworKit::node>vertex;
         vector<CoNode>covertex;
@@ -375,10 +393,10 @@ namespace Koala {
             }
             covertex[pos[i]].setoutEdges(vec);
         }
-        CoNode R(Type::ZEROONE, 1);
+
         T -> add(R);
-        CoTree Tp(&R);
-        T = &Tp;
+
+
         if(cnt == 0){
             return 0;
         }
@@ -397,6 +415,7 @@ namespace Koala {
             N.addchild(&covertex[1]);
         }
         for(int i = 2; i < cnt; i++){
+            cout<<"here"<<i<<endl;
             Reset_All_CoNodes(&R);
             Mark(covertex[i]);
             if(R.Marked_or_not() == Marked::MARKED_AND_UNMARKED){//all nodes of T were marked and unmarked <=> R is marked and unmarked
@@ -419,6 +438,7 @@ namespace Koala {
                 if(error)return error;
                 Insert_x_to_CoTree(u, &covertex[i]);
             }
+            covertex[i].add_to_graph();
         }
         return 0;
     }
