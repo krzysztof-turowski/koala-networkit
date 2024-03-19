@@ -98,7 +98,8 @@ if(KOALA_BUILD_SHARED)
     add_library(${PROJECT_NAME} SHARED cpp/koala.cpp)
 else()
     add_library(${PROJECT_NAME} STATIC cpp/koala.cpp
-            test/testCographRecognition.cpp)
+            benchmark/benchmarkCographs.cpp
+            benchmark/benchmarkCographs.cpp)
 endif()
 target_link_libraries(${PROJECT_NAME} networkit boost_dynamic_bitset boost_graph csdp_lib lapack blas gfortran quadmath)
 set_target_properties(${PROJECT_NAME} PROPERTIES
