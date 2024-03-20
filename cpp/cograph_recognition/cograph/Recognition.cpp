@@ -92,10 +92,6 @@ namespace Koala {
             this->md = md;
         }
         void inc_md(){
-            cout<<"aaa"<<endl;
-            cout<<this<<endl;
-            if(this == nullptr)cout<<"????"<<endl;
-            if(this == NULL)cout<<"kruto!"<<endl;
             this->md = this -> md + 1;
         }
         int get_md(){
