@@ -248,8 +248,13 @@ namespace Koala {
        // if(x -> gettype() == Type::ZEROONE)cout<<"zeroone"<<endl;
        // else cout<<"normal"<<endl;}
         x -> unmark_for_new_iteration();
-        auto y = x -> get_head_of_list_of_children();
-
+        CoNode* y = x -> get_head_of_list_of_children();
+     //   cout<<"yyy"<<y<<endl;
+       // int ff = 0;
+       // for(auto u : G.nodeRange()) {
+     //       ff=u;
+     //   }
+   //     cout<<ff<<endl;
         while(y != nullptr){
             Reset_All_CoNodes(y,level+1);
             y = y -> getnext();
@@ -301,7 +306,7 @@ namespace Koala {
             q.pop();
             if(u -> Marked_or_not() != Marked::MARKED)continue;
             if(y -> getnumber() != 2){//1 or 2
-                error = 1;
+                error = 1;//here
                 return y;
             }
             if(u -> getnumber() == 1){
@@ -416,10 +421,13 @@ namespace Koala {
                 y -> addchild(v);
             }
             if(u_number == 1){
-                if(u -> getprev() != nullptr)u -> getprev() ->setnext(y);
-                if(u -> getnext() != nullptr)u -> getnext() -> setprev(y);
-                //y.setParent(u -> getParent());
-                if(u -> getParent() != nullptr)u -> getParent() ->addchild(y);
+                auto nxt = u -> getnext();
+                auto prv = u -> getprev();
+                if(prv != nullptr)prv ->setnext(y);
+                if(nxt != nullptr)nxt -> setprev(y);
+                //if(u -> getParent() != nullptr)u -> getParent() ->addchild(y);
+                ///CHANGE
+                if(u -> getParent() != nullptr)y -> setParent(u -> getParent());
                 else{
                     T ->setRoot(y);
                 }
