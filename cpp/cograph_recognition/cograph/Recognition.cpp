@@ -191,11 +191,13 @@ namespace Koala {
         mark_ever_count = 0;
         for(auto u : x.getoutEdges()){//!!only neigbours which are already in graph
         if(!(u -> is_in_graph()))continue;
+        cout<<"tut"<<u->getnumber()<<endl;
             u -> mark();
             mark_ever_count++;
             mark_count++;
             marked_with_d_equal_to_md.push(u);
         }
+        cout<<"mmmm"<<x.getnumber()<<endl;
         while(!marked_with_d_equal_to_md.empty()){
             unmark( marked_with_d_equal_to_md);
         }
@@ -420,6 +422,8 @@ namespace Koala {
             N.addchild(&covertex[0]);
             N.addchild(&covertex[1]);
         }
+        covertex[0].add_to_graph();
+        covertex[1].add_to_graph();
         CoNode* root = &R;
         for(int i = 2; i < cnt; i++){
             Reset_All_CoNodes(root);
@@ -428,6 +432,7 @@ namespace Koala {
 
                 root -> addchild(&covertex[i]);
             } else if(root -> Marked_or_not() == Marked::UNMARKED){//mark_ever_count == 0
+                cout<<"lala"<<i<<endl;
                 if(root -> get_d() == 1){
                     (root -> get_head_of_list_of_children()) -> addchild(&covertex[i]);
                 } else{
@@ -449,7 +454,7 @@ namespace Koala {
                 Insert_x_to_CoTree(u, &covertex[i]);
             }
             covertex[i].add_to_graph();
-           // if(i == 3)rec(root);
+            if(i == 3)rec(root);
         }
         return 0;
     }
