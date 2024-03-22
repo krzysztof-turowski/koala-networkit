@@ -140,12 +140,13 @@ namespace Koala {
                 u = u -> getnext();
             }
             while(u != nullptr){
+                d--;
                 auto save = u;
                 auto nxt = u -> getnext();
-                if(u -> getnext() != nullptr)u -> getnext() ->setprev(u -> getprev());
-                d--;
-                if(u -> getprev() != nullptr)u -> getprev() ->setnext(nxt);
-                u = u -> getnext();
+                auto prv = u -> getprev();
+                if(nxt != nullptr)nxt ->setprev(prv);
+                if(prv != nullptr)prv ->setnext(nxt);
+                u = nxt;
                 save ->setprev(nullptr);
                 save->setprev(nullptr);
             }
@@ -203,12 +204,17 @@ namespace Koala {
 
 
             }
-            auto l = u -> getnext();
-            if(u -> getprev() != nullptr){
-                (u -> getprev()) -> setnext(l);
+            auto nxt = u -> getnext();
+            auto prv = u -> getprev();
+            auto head = w -> get_head_of_list_of_children();
+            if(prv != nullptr){
+                prv -> setnext(nxt);
+                if(nxt != nullptr)nxt ->setprev(prv);
                 u -> setprev(nullptr);
-                u -> setnext(w -> get_head_of_list_of_children());
-                w -> get_head_of_list_of_children() -> setprev (u);
+                u -> setnext(head);
+               // if(w == T -> getRoot())cout<<"mmmm"<<endl;
+              //  cout<<"here"<<endl;
+                head -> setprev (u);
                 w -> set_head_of_list_of_children(u);
             }//else u is head
         }
