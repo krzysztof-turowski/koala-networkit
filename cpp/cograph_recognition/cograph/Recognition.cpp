@@ -150,6 +150,9 @@ namespace Koala {
         void add(CoNode& x){
             save.push_back(x);
         }
+        void setRoot(CoNode* r){
+            root = r;
+        }
     };
     CoTree* T;
     NetworKit::Graph G;
@@ -319,6 +322,7 @@ namespace Koala {
     }
 
     void Insert_x_to_CoTree(CoNode *u, CoNode *x){
+        cout<<"mmm"<<x->getnumber()<<endl;
         vector<CoNode*>a;
         int u_number = u -> getnumber();
         if(u_number == 0){
@@ -344,7 +348,7 @@ namespace Koala {
             for(auto v : vec){
                 y.addchild(v);
             }
-            if(u_number == 0){
+            if(u_number == 1){
                 if(u -> getprev() != nullptr)u -> getprev() ->setnext(&y);
                 if(u -> getnext() != nullptr)u -> getnext() -> setprev(&y);
                 y.setParent(u -> getParent());
@@ -362,7 +366,16 @@ namespace Koala {
             }
         }
     }
-
+    void rec(CoNode* x, int level=0){
+        cout<<x->getnumber()<<" "<<level<<" ";
+        if(x -> gettype() == Type::ZEROONE)cout<<"zeroone"<<endl;
+        else cout<<"normal"<<endl;
+        auto y = x -> get_head_of_list_of_children();
+        while(y != nullptr){
+            rec(y,level+1);
+            y = y -> getnext();
+        }
+    }
     int CographRecognition::Cograph_Recognition(NetworKit::Graph &graph){
         CoNode R(Type::ZEROONE, 1);
         CoTree Tp(&R);
@@ -407,30 +420,36 @@ namespace Koala {
             N.addchild(&covertex[0]);
             N.addchild(&covertex[1]);
         }
+        CoNode* root = &R;
         for(int i = 2; i < cnt; i++){
-            Reset_All_CoNodes(&R);
+            Reset_All_CoNodes(root);
             Mark(covertex[i]);
-            if(R.Marked_or_not() == Marked::MARKED_AND_UNMARKED){//all nodes of T were marked and unmarked <=> R is marked and unmarked
-                R.addchild(&covertex[i]);
-            } else if(mark_ever_count == 0){
-                if(R.get_d() == 1){
-                    (R.get_head_of_list_of_children()) -> addchild(&covertex[i]);
+            if(root -> Marked_or_not() == Marked::MARKED_AND_UNMARKED){//all nodes of T were marked and unmarked <=> R is marked and unmarked
+
+                root -> addchild(&covertex[i]);
+            } else if(root -> Marked_or_not() == Marked::UNMARKED){//mark_ever_count == 0
+                if(root -> get_d() == 1){
+                    (root -> get_head_of_list_of_children()) -> addchild(&covertex[i]);
                 } else{
                     CoNode R1(Type::ZEROONE, 1);
                     CoNode R2(Type::ZEROONE, 0);
                     T -> add(R1);
                     T -> add(R2);
                     R1.addchild(&R2);
-                    R2.addchild(&R);
+                    R2.addchild(root);
                     R2.addchild(&covertex[i]);
+                    T ->setRoot(&R1);
+                    root = &R1;
                 }
             } else{
+
                 int error = 0;
                 CoNode* u = Find_Lowest(error);
                 if(error)return error;
                 Insert_x_to_CoTree(u, &covertex[i]);
             }
             covertex[i].add_to_graph();
+           // if(i == 3)rec(root);
         }
         return 0;
     }
