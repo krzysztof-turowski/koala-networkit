@@ -25,11 +25,11 @@ int main() {
             "COND_5",
             "COND_6"
     };
-    cout<<"why?"<<endl;
-    std::cout << "Current path is " << fs::current_path() <<" "<<fin.is_open()<<std::endl;
+    //std::cout << "Current path is " << fs::current_path() <<" "<<fin.is_open()<<std::endl;
     int cnt = 0;
-    while (cnt !=2 ) {
+    while (true) {
         cnt++;
+
         std::string line;
         fin >> line;
         if (!std::cin.good()) {
@@ -37,14 +37,12 @@ int main() {
         }
         NetworKit::Graph G = Koala::G6GraphReader().readline(line);
         auto recognize = Koala::CographRecognition(G);
-        cout<<"aaa"<<endl;
         recognize.run();
-        cout<<"bbb"<<endl;
         classification[recognize.getState()]++;
-        cout<<"ccc"<<endl;
         recognize.check();
-        cout<<"ddd"<<endl;
+        if(recognize.getState() != Koala::CographRecognition::State::COMPLEMENT_REDUCIBLE)cout<<cnt<<endl;
     }
+    cout<<cnt<<endl;
     for (const auto &[k, v] : classification) {
         std::cout << types[static_cast<int>(k)] << ": " << v << std::endl;
     }

@@ -306,6 +306,7 @@ namespace Koala {
             q.pop();
             if(u -> Marked_or_not() != Marked::MARKED)continue;
             if(y -> getnumber() != 2){//1 or 2
+                rec(T -> getRoot());
                 error = 1;//here
                 return y;
             }
@@ -395,7 +396,7 @@ namespace Koala {
         } else{
 
         }
-    //    cout<<"AAAAAAAAAAAAAAA"<<a.size()<<endl;
+  //  if(x->getnumber()==7)    cout<<"AAAAAAAAAAAAAAA"<<a.size()<<" "<<u->get_d()<<endl;
         if((a.size() == 1 && u_number == 0 )||(u -> get_d() - a.size() == 1 && u_number == 1)){
             CoNode* w = a[0];
             if(u_number == 1){
@@ -425,6 +426,9 @@ namespace Koala {
                 auto prv = u -> getprev();
                 if(prv != nullptr)prv ->setnext(y);
                 if(nxt != nullptr)nxt -> setprev(y);
+                y ->setprev(prv);
+                y ->setnext(nxt);
+                if(prv == nullptr && u -> getParent() != nullptr)u -> getParent() ->set_head_of_list_of_children(y);
                 //if(u -> getParent() != nullptr)u -> getParent() ->addchild(y);
                 ///CHANGE
                 if(u -> getParent() != nullptr)y -> setParent(u -> getParent());
@@ -467,7 +471,7 @@ namespace Koala {
         for(auto i : G.nodeRange()){
             vector<CoNode*> vec;
             for(auto u : G.neighborRange(i)){
-                //cout<<i<<" "<<u<<endl;
+               // cout<<i<<" "<<u<<endl;
                 vec.push_back(covertex[pos[u]]);
             }
             covertex[pos[i]] -> setoutEdges(vec);
@@ -506,8 +510,10 @@ namespace Koala {
             Reset_All_CoNodes(root);
             Mark(covertex[i]);
             if(root -> Marked_or_not() == Marked::MARKED_AND_UNMARKED){//all nodes of T were marked and unmarked <=> R is marked and unmarked
+             //   cout<<"1111"<<" "<<i<<endl;
                 root -> addchild(covertex[i]);
             } else if(mark_ever_count == 0){//
+              //  cout<<"2222"<<" "<<i<<endl;
                 if(root -> get_d() == 1){
                     (root -> get_head_of_list_of_children()) -> addchild(covertex[i]);
                 } else{
@@ -522,6 +528,7 @@ namespace Koala {
                     root = R1;
                 }
             } else{
+              //  cout<<"3333 "<<i<<endl;
                 int error = 0;
                 CoNode* u = Find_Lowest(error);
                 if(error){
