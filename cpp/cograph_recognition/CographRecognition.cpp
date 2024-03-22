@@ -23,7 +23,7 @@ CographRecognition::State CographRecognition::getState() const {
 }
     CographRecognition::State recognition(NetworKit::Graph &graph){
         int x = CographRecognition::Cograph_Recognition(graph);
-       // std::cout<<x<<std::endl;
+      // std::cout<<"xxx"<<x<<std::endl;
         if(x){
             if(x == 1)return CographRecognition::State::COND_1;
             else if(x == 2)return CographRecognition::State::COND_2;

@@ -267,7 +267,17 @@ namespace Koala {
             y = y -> getnext();
         }
     }
-
+    void rec(CoNode* x, int level=0){
+          cout<<x<<"   "<<x->getnumber()<<" "<<level<<" ";
+         if(x -> gettype() == Type::ZEROONE)cout<<"zeroone"<<endl;
+        else cout<<"normal"<<endl;
+        auto y = x -> get_head_of_list_of_children();
+        int cnt = 0;
+        while(y != nullptr){
+            rec(y,level+1);
+            y = y -> getnext();
+        }
+    }
 
     CoNode *Find_Lowest( int & error){
         CoNode* y = new CoNode(Type::ZEROONE, 2);
@@ -295,16 +305,17 @@ namespace Koala {
                 return y;
             }
             if(u -> getnumber() == 1){
-                if(u->get_md() != u -> get_d() - 1){
+                if(u->get_md() != u -> get_d() - 1) {
                     y = u;
-                    if(u -> getParent() -> Marked_or_not() == Marked::MARKED){//1 and 6
-                        error = 1;
-                        return y;
-                    }
 
-                } else{
+                }
+                //????????????
+                if (u->getParent()->Marked_or_not() == Marked::MARKED) {//1 and 6
+                    error = 1;
+                    return y;
+                } else {
                     //????/
-                    t = u -> getParent() -> getParent();
+                    t = u->getParent()->getParent();
                 }
             } else{
                 y = u;
@@ -426,17 +437,7 @@ namespace Koala {
             }
         }
     }
-    void rec(CoNode* x, int level=0){
-      //  cout<<x<<"   "<<x->getnumber()<<" "<<level<<" ";
-       // if(x -> gettype() == Type::ZEROONE)cout<<"zeroone"<<endl;
-       //else cout<<"normal"<<endl;
-        auto y = x -> get_head_of_list_of_children();
-        int cnt = 0;
-        while(y != nullptr){
-            rec(y,level+1);
-            y = y -> getnext();
-        }
-    }
+
 
     int CographRecognition::Cograph_Recognition(NetworKit::Graph &graph){
         CoNode *R = new CoNode(Type::ZEROONE, 1);
@@ -458,6 +459,7 @@ namespace Koala {
         for(auto i : G.nodeRange()){
             vector<CoNode*> vec;
             for(auto u : G.neighborRange(i)){
+                //cout<<i<<" "<<u<<endl;
                 vec.push_back(covertex[pos[u]]);
             }
             covertex[pos[i]] -> setoutEdges(vec);
