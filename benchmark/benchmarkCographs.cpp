@@ -23,7 +23,7 @@ int main() {
             "COND_5",
             "COND_6"
     };
-    for(int j = 3; j <= 10; j++){
+    for(int j = 3; j <= 9; j++){
         string s = "../../input/cographConnected", s1 = ".g6";
         string s2 = "";
         if(j >= 10)s2 += "1";
@@ -83,7 +83,7 @@ int main() {
         if(cnt == classification[Koala::CographRecognition::State::COMPLEMENT_REDUCIBLE] && classification1[Koala::CographRecognition::State::COMPLEMENT_REDUCIBLE] == cnt)cout<<"OK"<<endl;
         else cout<<"FAIL"<<endl;
     }
-    for(int j = 3; j <= 14; j++) {
+    for(int j = 3; j <= 15; j++) {
         string s = "../../input/cographConnected", s1 = ".g6";
         string s2 = "";
         if(j >= 10)s2 += "1";
