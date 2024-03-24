@@ -1,0 +1,1 @@
+echo "benchmarkCographs.sh $@"

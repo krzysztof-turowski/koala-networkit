@@ -2,6 +2,10 @@ koala_make_benchmark(
     benchmark_perfect_graphs
     benchmarkPerfectGraphs.cpp
     benchmarkPerfectGraphs.sh)
+koala_make_benchmark(
+        benchmark_cographs
+        benchmarkCographs.cpp
+        benchmarkCographs.sh)
 
 koala_make_benchmark(
     benchmark_minimum_spanning_tree

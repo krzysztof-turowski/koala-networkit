@@ -28,5 +28,7 @@ TEST_P(PerfectGraphRecognitionTest, test) {
 INSTANTIATE_TEST_SUITE_P(
     test_example, PerfectGraphRecognitionTest, testing::Values(
         GraphRecognitionParameters{4, {{0, 1}, {0, 2}, {1, 3}, {2, 3}}, true},
-        GraphRecognitionParameters{5, {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {4, 0}}, false}
+        GraphRecognitionParameters{5, {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {4, 0}}, false},
+        GraphRecognitionParameters{5, {{0, 1}, {0, 2}, {0, 3}, {3, 1}, {4, 3}}, true},
+        GraphRecognitionParameters{7, {{0, 1}, {1, 2}, {2, 4}, {4, 5}, {5, 6},{2,6},{2,3},{3,4},{0,2},{1,4}}, true}
 ));
