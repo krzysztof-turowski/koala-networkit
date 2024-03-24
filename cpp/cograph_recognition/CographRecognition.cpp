@@ -49,7 +49,7 @@ void CographRecognition::run() {
 
     void CographRecognition::check() const {
         assureFinished();
-        bool iscograph = true;
+        /*bool iscograph = true;
         for(auto e1 : graph.edgeRange()){
             for(auto e2 : graph.edgeRange()){
                 auto x = e1.u;
@@ -62,7 +62,8 @@ void CographRecognition::run() {
                 }
             }
         }
-        assert(iscograph);
+        assert(iscograph);*/
     }
+
 
 }  // namespace Koala

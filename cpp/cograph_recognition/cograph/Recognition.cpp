@@ -306,7 +306,7 @@ namespace Koala {
             q.pop();
             if(u -> Marked_or_not() != Marked::MARKED)continue;
             if(y -> getnumber() != 2){//1 or 2
-                rec(T -> getRoot());
+               // rec(T -> getRoot());
                 error = 1;//here
                 return y;
             }
