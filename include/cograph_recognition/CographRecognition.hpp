@@ -18,7 +18,7 @@ class CographRecognition : public NetworKit::Algorithm {
     
     enum class State {
             UNKNOWN,
-            COMPLEMENT_REDUCIBLE,
+            COGRAPH,
             COND_1,
             COND_2,
             COND_3,
