@@ -25,7 +25,7 @@ TEST_P(CographRecognitionTest, test) {
     auto algorithm = Koala::CographRecognition(G);
     algorithm.run();
 
-    auto is_perfect = algorithm.isComplementReducible();
+    auto is_perfect = algorithm.isCograph();
     EXPECT_EQ(is_perfect, parameters.is_recognized);
 }
 
