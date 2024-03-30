@@ -491,6 +491,4 @@ namespace Koala {
         T -> clear();
         return State::COGRAPH;
     }
-
-
 }
