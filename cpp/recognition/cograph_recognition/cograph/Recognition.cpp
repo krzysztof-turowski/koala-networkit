@@ -23,10 +23,10 @@ namespace Koala {
         //d is the current number of children
         //md is the current number of children, which have been both "marked" and "unmarked"
 
-        CoNode* head_of_list_of_children;
+        CoNode *head_of_list_of_children;
         CoNode *next, *prev;//in list of children of its parent
         CoNode *parent;
-        std::vector<CoNode*>out_edges;//neighbours of cur vertex in G
+        std::vector<CoNode *>out_edges;//neighbours of cur vertex in G
 
         CoNode(Type type, int number): type(type), number(number),marked(Marked::UNMARKED),md(0),d(0),in_graph(false),head_of_list_of_children(nullptr),
         next(nullptr), prev(nullptr),parent(nullptr){
@@ -58,9 +58,9 @@ namespace Koala {
         void unmark(){
             marked = Marked::MARKED_AND_UNMARKED;
         }
-        std::vector<CoNode*> RemoveWereMarked(){
+        std::vector<CoNode *> RemoveWereMarked(){
             auto u = head_of_list_of_children;
-            std::vector<CoNode*>vec;
+            std::vector<CoNode *>vec;
             while(u != nullptr){
                 vec.push_back(u);
                 d--;
@@ -100,13 +100,13 @@ namespace Koala {
     };
     class CoTree{
     private:
-        std::vector<CoNode*>save;
+        std::vector<CoNode *>save;
     public:
-        CoNode* root;
-        explicit CoTree(CoNode* root):root(root){
+        CoNode *root;
+        explicit CoTree(CoNode *root):root(root){
             save.push_back(root);
         }
-        void Add(CoNode* x){
+        void Add(CoNode *x){
             save.push_back(x);
         }
         void Clear(){
@@ -115,13 +115,13 @@ namespace Koala {
             }
         }
     };
-    CoTree* T;
+    CoTree *T;
     NetworKit::Graph G;
     int mark_count = 0;
     int mark_and_unmarked_count = 0;
     int mark_ever_count = 0;
-    void Unmark(std::queue<CoNode*> &marked_with_d_equal_to_md){
-        CoNode* u = marked_with_d_equal_to_md.front();
+    void Unmark(std::queue<CoNode *> &marked_with_d_equal_to_md){
+        CoNode *u = marked_with_d_equal_to_md.front();
         marked_with_d_equal_to_md.pop();
         u -> unmark();
         mark_count--;
@@ -152,8 +152,8 @@ namespace Koala {
             }//else u is head
         }
     }
-    void Mark( CoNode *x){
-        std::queue<CoNode*> marked_with_d_equal_to_md;
+    void Mark(CoNode *x){
+        std::queue<CoNode *> marked_with_d_equal_to_md;
         mark_count = 0;
         mark_and_unmarked_count = 0;
         mark_ever_count = 0;
@@ -179,13 +179,13 @@ namespace Koala {
 
     void ResetAllCoNodes(CoNode *x,int level=0){
         x -> UnmarkForNewIteration();
-        CoNode* y = x -> head_of_list_of_children;
+        CoNode *y = x -> head_of_list_of_children;
         while(y != nullptr){
             ResetAllCoNodes(y,level+1);
             y = y -> next;
         }
     }
-    void MadeQueueOfMarked(CoNode *x, std::queue<CoNode*>&q){
+    void MadeQueueOfMarked(CoNode *x, std::queue<CoNode *> &q){
         if(x -> marked == Marked::MARKED){
             q.push(x);
         }
@@ -195,7 +195,7 @@ namespace Koala {
             y = y -> next;
         }
     }
-    void Rec(CoNode* x, int level=0){
+    void Rec(CoNode *x, int level=0){
           std::cout << x << "   " << x -> number << " " << level << " ";
          if(x -> type == Type::ZERO_ONE){
              std::cout<<"zeroone"<<std::endl;
@@ -210,8 +210,8 @@ namespace Koala {
         }
     }
 
-    std::pair<CoNode*,CographRecognition::State>FindLowest(){
-        auto* y = new CoNode(Type::ZERO_ONE, 2);
+    std::pair<CoNode *,CographRecognition::State>FindLowest(){
+        auto *y = new CoNode(Type::ZERO_ONE, 2);
         T -> Add(y);
         CoNode *u, *w, *t;
         if(T -> root -> marked == Marked::UNMARKED){
@@ -224,7 +224,7 @@ namespace Koala {
             T -> root -> md = 0;
             w = T -> root;
             //u = w;
-        std::queue<CoNode*>q;
+        std::queue<CoNode *>q;
         MadeQueueOfMarked(T -> root, q);
         while(!q.empty()){
             u = q.front();
@@ -285,7 +285,7 @@ namespace Koala {
     }
 
 
-    CoNode* GetLastFromChildren(CoNode* u){
+    CoNode *GetLastFromChildren(CoNode *u){
         auto x = u -> head_of_list_of_children;
         while(x != nullptr && x -> marked == Marked::MARKED_AND_UNMARKED){
             x = x -> next;
@@ -294,16 +294,16 @@ namespace Koala {
     }
 
     void InsertXToCoTree(CoNode *u, CoNode *x){
-        std::vector<CoNode*>a;
+        std::vector<CoNode *>a;
         int u_number = u -> number;
         a = GetWereMarked(u);
         if((a.size() == 1 && u_number == 0) || (u -> d - a.size() == 1 && u_number == 1)){
-            CoNode* w = a[0];
+            CoNode *w = a[0];
             if(u_number == 1){
                 w = GetLastFromChildren(u);
             }
             if(w -> type == Type::VERTEX){
-                auto* y = new CoNode(Type::ZERO_ONE, u_number ^ 1);
+                auto *y = new CoNode(Type::ZERO_ONE, u_number ^ 1);
                 T -> Add(y);
                 if(u_number == 0){
                     u -> RemoveWereMarked();
@@ -344,7 +344,7 @@ namespace Koala {
                 else{
                     T -> root = y;
                 }
-                auto* z = new CoNode(Type::ZERO_ONE, 0);
+                auto *z = new CoNode(Type::ZERO_ONE, 0);
                 T -> Add(z);
                 y -> AddChild(z);
                 z -> AddChild(x);
@@ -366,7 +366,7 @@ namespace Koala {
         T = &Tp;
         G = graph;
         std::vector<NetworKit::node>vertex;
-        std::vector<CoNode*>covertex;
+        std::vector<CoNode *>covertex;
         std::map<NetworKit::node, int> pos;
         int cnt = 0;
         for(auto i : G.nodeRange()){
@@ -377,7 +377,7 @@ namespace Koala {
             covertex.push_back(C);
         }
         for(auto i : G.nodeRange()){
-            std::vector<CoNode*> vec;
+            std::vector<CoNode *> vec;
             for(auto u : G.neighborRange(i)){
                 vec.push_back(covertex[pos[u]]);
             }
@@ -405,7 +405,7 @@ namespace Koala {
         }
         covertex[0] -> in_graph = true;
         covertex[1] -> in_graph = true;
-        CoNode* root;
+        CoNode *root;
 
         for(int i = 2; i < cnt; i++){
             root = T -> root;
