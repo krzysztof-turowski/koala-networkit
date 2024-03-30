@@ -1,16 +1,11 @@
 //
 // Created by milana on 19.03.24.
 //
-#include <cassert>
 #include <iostream>
 #include <map>
-
 #include "io/G6GraphReader.hpp"
 #include "cograph_recognition/CographRecognition.hpp"
 #include <fstream>
-#include <filesystem>
-
-namespace fs = std::filesystem;
 using namespace std;
 std::string types[] = {
         "UNKNOWN",
@@ -80,7 +75,7 @@ void manual_test(){
     }
 }
 int main() {
-   ///auto_test();//to check the correctness of algorithm
+    ///auto_test();//to check the correctness of algorithm
     manual_test();
     return 0;
 }

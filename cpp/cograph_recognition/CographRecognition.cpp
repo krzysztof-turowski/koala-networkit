@@ -1,8 +1,4 @@
-
-
 #include <list>
-#include <set>
-
 #include <graph/GraphTools.hpp>
 #include <cograph_recognition/CographRecognition.hpp>
 
