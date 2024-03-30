@@ -47,8 +47,7 @@ pair<int,int> test(int j, string s, string s1){
     }
     return {cnt,classification[Koala::CographRecognition::State::COMPLEMENT_REDUCIBLE]};
 }
-int main() {
-
+void auto_test(){
     for(int j = 3; j <= 9; j++){
 
         pair<int,int> cnt = test(j, "../../input/cographConnected", ".g6");
@@ -59,5 +58,29 @@ int main() {
     for(int j = 3; j <= 15; j++) {
         test(j,"../../input/cographConnected", ".g6");
     }
+}
+void manual_test(){
+    std::map<Koala::CographRecognition::State, int> classification;
+    int cnt = 0;
+    while (true) {
+        std::string line;
+        cin >> line;
+        if (!cin.good()) {
+            break;
+        }
+        cnt++;
+        NetworKit::Graph G = Koala::G6GraphReader().readline(line);
+        auto recognize = Koala::CographRecognition(G);
+        recognize.run();
+        classification[recognize.getState()]++;
+    }
+    cout << " total: "<<cnt<< endl;
+    for (const auto &[k, v]: classification) {
+        std::cout << types[static_cast<int>(k)] << ": " << v << std::endl;
+    }
+}
+int main() {
+   ///auto_test();//to check the correctness of algorithm
+    manual_test();
     return 0;
 }
