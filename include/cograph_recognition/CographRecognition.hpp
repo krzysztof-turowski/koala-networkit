@@ -17,12 +17,12 @@ class CographRecognition : public NetworKit::Algorithm {
     enum class State {
             UNKNOWN,
             COGRAPH,
-            COND_1,
-            COND_2,
-            COND_3,
-            COND_4,
-            COND_5,
-            COND_6
+            CONTAINS_0_NODE,
+            EXISTS_1_NODE_NOT_PROPERLY_MARKED,
+            GRANDPARENT_IS_NOT_IN_SET,
+            NO_ONE_PATH,
+            WRONG_PARENT,
+            WRONG_GRANDPARENT
          };
 
     /**

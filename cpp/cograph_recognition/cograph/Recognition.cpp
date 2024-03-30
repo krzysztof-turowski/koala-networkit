@@ -268,7 +268,7 @@ namespace Koala {
         T -> add(y);
         CoNode *u, *w, *t;
         if(T -> getRoot() -> Marked_or_not() == Marked::UNMARKED){
-            error = CographRecognition::State::COND_3;
+            error = CographRecognition::State::GRANDPARENT_IS_NOT_IN_SET;
             return y;
         }
         if(T -> getRoot() -> get_md() != T -> getRoot() -> get_d() - 1) {
@@ -285,7 +285,7 @@ namespace Koala {
             q.pop();
             if(u -> Marked_or_not() != Marked::MARKED)continue;
             if(y -> getnumber() != 2){//1 or 2
-                error = CographRecognition::State::COND_1;
+                error = CographRecognition::State::CONTAINS_0_NODE;
                 return y;
             }
             if(u -> getnumber() == 1){
@@ -293,7 +293,7 @@ namespace Koala {
                     y = u;
                 }
                 if (u->getParent()->Marked_or_not() == Marked::MARKED) {//1 and 6
-                    error = CographRecognition::State::COND_1;
+                    error = CographRecognition::State::CONTAINS_0_NODE;
                     return y;
                 } else {
                     t = u->getParent()->getParent();
@@ -306,19 +306,19 @@ namespace Koala {
             u ->set_md(0);
             while(t != w){
                 if(t == T -> getRoot()){//4
-                    error = CographRecognition::State::COND_4;
+                    error = CographRecognition::State::NO_ONE_PATH;
                     return y;
                 }
                 if(t -> Marked_or_not() != Marked::MARKED){//3 or 5 or 6
-                    error = CographRecognition::State::COND_3;//!
+                    error = CographRecognition::State::GRANDPARENT_IS_NOT_IN_SET;//!
                     return y;
                 }
                 if(t -> get_md() != t -> get_d() - 1){//2
-                    error = CographRecognition::State::COND_2;
+                    error = CographRecognition::State::EXISTS_1_NODE_NOT_PROPERLY_MARKED;
                     return y;
                 }
                 if(t -> getParent() -> Marked_or_not() == Marked::MARKED){//1
-                    error = CographRecognition::State::COND_1;
+                    error = CographRecognition::State::CONTAINS_0_NODE;
                     return y;
                 }
                 t -> unmark();
