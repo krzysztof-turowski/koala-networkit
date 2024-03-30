@@ -436,12 +436,12 @@ namespace Koala {
 
         if(cnt == 0){
             T ->clear();
-            return State::COMPLEMENT_REDUCIBLE;
+            return State::COGRAPH;
         }
         if(cnt == 1){
             R ->addchild(covertex[0]);
             T -> clear();
-            return State::COMPLEMENT_REDUCIBLE;
+            return State::COGRAPH;
         }
         if(G.hasEdge(vertex[0], vertex[1])){
             R ->addchild(covertex[0]);
@@ -478,9 +478,9 @@ namespace Koala {
                     root = R1;
                 }
             } else{
-                CographRecognition::State error = State::COMPLEMENT_REDUCIBLE;
+                CographRecognition::State error = State::COGRAPH;
                 CoNode* u = Find_Lowest(error);
-                if(error != State::COMPLEMENT_REDUCIBLE){
+                if(error != State::COGRAPH){
                     T -> clear();
                     return error;
                 }
@@ -490,7 +490,7 @@ namespace Koala {
             covertex[i] -> add_to_graph();
         }
         T -> clear();
-        return State::COMPLEMENT_REDUCIBLE;
+        return State::COGRAPH;
     }
 
 

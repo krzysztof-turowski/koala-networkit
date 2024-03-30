@@ -9,7 +9,7 @@
 using namespace std;
 std::string types[] = {
         "UNKNOWN",
-        "COMPLEMENT_REDUCIBLE",
+        "COGRAPH",
         "COND_1",
         "COND_2",
         "COND_3",
@@ -40,7 +40,7 @@ pair<int,int> test(int j, string s, string s1){
     for (const auto &[k, v]: classification) {
         std::cout << types[static_cast<int>(k)] << ": " << v << std::endl;
     }
-    return {cnt,classification[Koala::CographRecognition::State::COMPLEMENT_REDUCIBLE]};
+    return {cnt,classification[Koala::CographRecognition::State::COGRAPH]};
 }
 void auto_test(){
     for(int j = 3; j <= 9; j++){

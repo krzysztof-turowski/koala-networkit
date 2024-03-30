@@ -10,7 +10,7 @@ CographRecognition::CographRecognition(NetworKit::Graph &graph)
      }
 bool CographRecognition::isComplementReducible() const {
     assureFinished();
-    return is_complement_reducible == State::COMPLEMENT_REDUCIBLE;
+    return is_complement_reducible == State::COGRAPH;
 }
 
 CographRecognition::State CographRecognition::getState() const {
@@ -30,7 +30,7 @@ void CographRecognition::run() {
             return;
     }
 
-    is_complement_reducible = State::COMPLEMENT_REDUCIBLE;
+    is_complement_reducible = State::COGRAPH;
 }
 
     void CographRecognition::check() const {
