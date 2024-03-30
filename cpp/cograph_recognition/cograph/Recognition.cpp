@@ -6,7 +6,7 @@
 using namespace std;
 namespace Koala {
     enum class Type{
-        ZEROONE,
+        ZERO_ONE,
         VERTEX
     };
     enum class Marked{
@@ -255,7 +255,7 @@ namespace Koala {
     }
     void rec(CoNode* x, int level=0){
           cout<<x<<"   "<<x->getnumber()<<" "<<level<<" ";
-         if(x -> gettype() == Type::ZEROONE)cout<<"zeroone"<<endl;
+         if(x -> gettype() == Type::ZERO_ONE)cout<<"zeroone"<<endl;
         else cout<<"normal"<<endl;
         auto y = x -> get_head_of_list_of_children();
         int cnt = 0;
@@ -266,7 +266,7 @@ namespace Koala {
     }
 
     CoNode *Find_Lowest( CographRecognition::State & error){
-        CoNode* y = new CoNode(Type::ZEROONE, 2);
+        CoNode* y = new CoNode(Type::ZERO_ONE, 2);
         T -> add(y);
         CoNode *u, *w, *t;
         if(T -> getRoot() -> Marked_or_not() == Marked::UNMARKED){
@@ -363,7 +363,7 @@ namespace Koala {
                 w = get_last_from_children(u);
             }
             if(w -> gettype() == Type::VERTEX){
-                CoNode* y = new CoNode(Type::ZEROONE, u_number ^ 1);
+                CoNode* y = new CoNode(Type::ZERO_ONE, u_number ^ 1);
                 T -> add(y);
                 if(u_number == 0)u -> remove_were_marked();
                 else u -> remove_were_not_marked();
@@ -375,7 +375,7 @@ namespace Koala {
             }
         } else{
             auto vec = u -> remove_were_marked();
-            CoNode *y = new CoNode(Type::ZEROONE, u_number);
+            CoNode *y = new CoNode(Type::ZERO_ONE, u_number);
             T -> add(y);
             for(auto v : vec){
                 y -> addchild(v);
@@ -392,13 +392,13 @@ namespace Koala {
                 else{
                     T ->setRoot(y);
                 }
-                CoNode* z = new CoNode(Type::ZEROONE, 0);
+                CoNode* z = new CoNode(Type::ZERO_ONE, 0);
                 T -> add(z);
                 y -> addchild(z);
                 z -> addchild(x);
                 z -> addchild(u);
             } else{
-                CoNode *z = new CoNode(Type::ZEROONE, 1);
+                CoNode *z = new CoNode(Type::ZERO_ONE, 1);
                 T -> add(z);
                 u ->addchild(z);
                 z ->addchild(x);
@@ -409,7 +409,7 @@ namespace Koala {
 
 
     CographRecognition::State CographRecognition::Cograph_Recognition(NetworKit::Graph &graph){
-        CoNode *R = new CoNode(Type::ZEROONE, 1);
+        CoNode *R = new CoNode(Type::ZERO_ONE, 1);
         CoTree Tp(R);
         T = &Tp;
         T -> add(R);
@@ -446,7 +446,7 @@ namespace Koala {
             R ->addchild(covertex[0]);
             R ->addchild(covertex[1]);
         } else {
-            CoNode *N = new CoNode(Type::ZEROONE, 0);
+            CoNode *N = new CoNode(Type::ZERO_ONE, 0);
             T->add(N);
             R->addchild(N);
             N->addchild(covertex[0]);
@@ -466,8 +466,8 @@ namespace Koala {
                 if(root -> get_d() == 1){
                     (root -> get_head_of_list_of_children()) -> addchild(covertex[i]);
                 } else{
-                    CoNode *R1 = new CoNode(Type::ZEROONE, 1);
-                    CoNode *R2 = new CoNode(Type::ZEROONE, 0);
+                    CoNode *R1 = new CoNode(Type::ZERO_ONE, 1);
+                    CoNode *R2 = new CoNode(Type::ZERO_ONE, 0);
                     T -> add(R1);
                     T -> add(R2);
                     R1 -> addchild(R2);
