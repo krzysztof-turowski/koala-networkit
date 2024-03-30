@@ -13,7 +13,7 @@ namespace Koala {
     };
 
     class CoNode{
-    private:
+    public:
         Type type;
         int number;
         Marked marked;
@@ -27,85 +27,27 @@ namespace Koala {
         CoNode *next, *prev;//in list of children of its parent
         CoNode *parent;
         std::vector<CoNode*>outEdges;//neighbours of cur vertex in G
-    public:
+
         CoNode(Type type, int number): type(type), number(number),marked(Marked::UNMARKED),md(0),d(0),head_of_list_of_children(nullptr),
                                        next(nullptr),prev(nullptr), parent(nullptr),in_graph(false){
 
         }
-        int getnumber(){
-            return number;
-        }
-        Type gettype(){
-            return type;
-        }
-        void setnumber(int number){
-            this -> number = number;
-        }
-        CoNode *get_head_of_list_of_children(){
-            return head_of_list_of_children;
-        }
-        void set_head_of_list_of_children(CoNode * head_of_list_of_children){
-            this -> head_of_list_of_children= head_of_list_of_children;
-        }
-        CoNode* getnext(){
-            return next;
-        }
-        void setnext(CoNode *next){
-            this -> next = next;
-        }
-        CoNode* getprev(){
-            return prev;
-        }
-        void setprev(CoNode *prev){
-            this -> prev = prev;
-        }
+
         void addchild(CoNode *x){
             if(head_of_list_of_children == nullptr){
                 head_of_list_of_children = x;
-                x ->setprev(nullptr);
-                x ->setnext(nullptr);
+                x -> prev = nullptr;
+                x -> next = nullptr;
             } else{
-                head_of_list_of_children ->setprev(x);
-                x->setnext(head_of_list_of_children);
-                x->setprev(nullptr);
+                head_of_list_of_children -> prev = x;
+                x -> next = head_of_list_of_children;
+                x -> prev = nullptr;
                 head_of_list_of_children = x;
             }
-            x->setParent(this);
+            x -> parent = this;
             d++;
         }
-        void setoutEdges(std::vector<CoNode*>outEdges){
-            this->outEdges = outEdges;
-        }
-        std::vector<CoNode*> getoutEdges(){
-            return outEdges;
-        }
-        CoNode* getParent(){
-            return parent;
-        }
-        void setParent(CoNode *parent){
-            this->parent = parent;
-        }
-        void set_md(int md){
-            this->md = md;
-        }
-        void inc_md(){
-            this->md = this -> md + 1;
-        }
-        int get_md(){
-            return md;
-        }
-        void set_d(int d){
-            this->d = d;
-        }
-        void inc_d(){
-            this->d++;
-        }
-        int get_d(){
-            return d;
-        }
-        Marked Marked_or_not(){
-            return marked;
-        }
+
         void unmark_for_new_iteration(){
             marked = Marked::UNMARKED;
             md = 0;
@@ -121,55 +63,47 @@ namespace Koala {
             while(u != nullptr){
                 vec.push_back(u);
                 d--;
-                head_of_list_of_children = u -> getnext();
+                head_of_list_of_children = u -> next;
                 if(head_of_list_of_children != nullptr)head_of_list_of_children->prev = nullptr;
-                u -> setprev(nullptr);
-                u ->setnext(nullptr);
+                u -> prev = nullptr;
+                u -> next = nullptr;
                 u = head_of_list_of_children;
-                if(u == nullptr || u -> Marked_or_not() != Marked::MARKED_AND_UNMARKED)break;
+                if(u == nullptr || u -> marked != Marked::MARKED_AND_UNMARKED)break;
             }
             return vec;
         }
         void remove_were_not_marked(){
             auto u = head_of_list_of_children;
-            while(u != nullptr && u -> Marked_or_not() == Marked::MARKED_AND_UNMARKED){
-                u = u -> getnext();
+            while(u != nullptr && u -> marked == Marked::MARKED_AND_UNMARKED){
+                u = u -> next;
             }
             while(u != nullptr){
                 d--;
                 auto save = u;
-                auto nxt = u -> getnext();
-                auto prv = u -> getprev();
-                if(nxt != nullptr)nxt ->setprev(prv);
-                if(prv != nullptr)prv ->setnext(nxt);
+                auto nxt = u -> next;
+                auto prv = u -> prev;
+                if(nxt != nullptr){
+                    nxt -> prev = prv;
+                }
+                if(prv != nullptr){
+                    prv -> next = nxt;
+                }
                 u = nxt;
-                save ->setprev(nullptr);
-                save->setprev(nullptr);
+                save -> prev = nullptr;
+                save -> prev = nullptr;
             }
-        }
-        bool is_in_graph(){
-            return in_graph;
-        }
-        void add_to_graph(){
-            in_graph = true;
         }
     };
     class CoTree{
     private:
-        CoNode* root;
         std::vector<CoNode*>save;
     public:
+        CoNode* root;
         CoTree(CoNode* root):root(root){
             save.push_back(root);
         }
-        CoNode* getRoot(){
-            return root;
-        }
         void add(CoNode* x){
             save.push_back(x);
-        }
-        void setRoot(CoNode* r){
-            root = r;
         }
         void clear(){
             for(auto u : save){
@@ -188,25 +122,25 @@ namespace Koala {
         u -> unmark();
         mark_count--;
         mark_and_unmarked_count++;
-        u -> set_md(0);
-        if(u != T -> getRoot()){
-            auto w = u -> getParent();
-            w -> inc_md();
-            if(w -> Marked_or_not() == Marked::UNMARKED)mark_count++;
+        u -> md = 0;
+        if(u != T -> root){
+            auto w = u -> parent;
+            w -> md++;
+            if(w -> marked == Marked::UNMARKED)mark_count++;
             w -> mark();
-            if(w -> get_md() == w -> get_d()){
+            if(w -> md == w -> d){
                 marked_with_d_equal_to_md.push(w);
             }
-            auto nxt = u -> getnext();
-            auto prv = u -> getprev();
-            auto head = w -> get_head_of_list_of_children();
+            auto nxt = u -> next;
+            auto prv = u -> prev;
+            auto head = w -> head_of_list_of_children;
             if(prv != nullptr){
-                prv -> setnext(nxt);
-                if(nxt != nullptr)nxt ->setprev(prv);
-                u -> setprev(nullptr);
-                u -> setnext(head);
-                head -> setprev (u);
-                w -> set_head_of_list_of_children(u);
+                prv -> next = nxt;
+                if(nxt != nullptr)nxt -> prev = prv;
+                u -> prev = nullptr;
+                u -> next = head;
+                head -> prev = u;
+                w -> head_of_list_of_children = u;
             }//else u is head
         }
     }
@@ -215,8 +149,8 @@ namespace Koala {
         mark_count = 0;
         mark_and_unmarked_count = 0;
         mark_ever_count = 0;
-        for(auto u : x -> getoutEdges()){//!!only neigbours which are already in graph
-        if(!(u -> is_in_graph()))continue;
+        for(auto u : x -> outEdges){//!!only neigbours which are already in graph
+        if(!(u -> in_graph))continue;
             u -> mark();
             mark_ever_count++;
             mark_count++;
@@ -226,8 +160,8 @@ namespace Koala {
             unmark( marked_with_d_equal_to_md);
         }
         if(mark_count){
-            if(T -> getRoot() -> get_d() == 1){
-                T -> getRoot() -> mark();
+            if(T -> root -> d == 1){
+                T -> root -> mark();
             }
         }
 
@@ -235,31 +169,31 @@ namespace Koala {
 
     void Reset_All_CoNodes(CoNode *x,int level=0){
         x -> unmark_for_new_iteration();
-        CoNode* y = x -> get_head_of_list_of_children();
+        CoNode* y = x -> head_of_list_of_children;
         while(y != nullptr){
             Reset_All_CoNodes(y,level+1);
-            y = y -> getnext();
+            y = y -> next;
         }
     }
     void Made_Queue_Of_Marked(CoNode *x, std::queue<CoNode*>&q){
-        if(x -> Marked_or_not() == Marked::MARKED){
+        if(x -> marked == Marked::MARKED){
             q.push(x);
         }
-        auto y = x -> get_head_of_list_of_children();
+        auto y = x -> head_of_list_of_children;
         while(y != nullptr){
             Made_Queue_Of_Marked(y, q);
-            y = y -> getnext();
+            y = y -> next;
         }
     }
     void rec(CoNode* x, int level=0){
-          std::cout<<x<<"   "<<x->getnumber()<<" "<<level<<" ";
-         if(x -> gettype() == Type::ZERO_ONE)std::cout<<"zeroone"<<std::endl;
+          std::cout<<x<<"   "<<x->number<<" "<<level<<" ";
+         if(x -> type == Type::ZERO_ONE)std::cout<<"zeroone"<<std::endl;
         else std::cout<<"normal"<<std::endl;
-        auto y = x -> get_head_of_list_of_children();
+        auto y = x -> head_of_list_of_children;
         int cnt = 0;
         while(y != nullptr){
             rec(y,level+1);
-            y = y -> getnext();
+            y = y -> next;
         }
     }
 
@@ -267,63 +201,63 @@ namespace Koala {
         CoNode* y = new CoNode(Type::ZERO_ONE, 2);
         T -> add(y);
         CoNode *u, *w, *t;
-        if(T -> getRoot() -> Marked_or_not() == Marked::UNMARKED){
+        if(T -> root -> marked == Marked::UNMARKED){
             error = CographRecognition::State::GRANDPARENT_IS_NOT_IN_SET;
             return y;
         }
-        if(T -> getRoot() -> get_md() != T -> getRoot() -> get_d() - 1) {
-            y = T->getRoot();
+        if(T -> root -> md != T -> root -> d - 1) {
+            y = T->root;
         }
-            T -> getRoot() -> unmark();
-            T -> getRoot() ->set_md(0);
-            w = T -> getRoot();
+            T -> root -> unmark();
+            T -> root -> md = 0;
+            w = T -> root;
             u = w;
         std::queue<CoNode*>q;
-        Made_Queue_Of_Marked(T -> getRoot(), q);
+        Made_Queue_Of_Marked(T -> root, q);
         while(!q.empty()){
             u = q.front();
             q.pop();
-            if(u -> Marked_or_not() != Marked::MARKED)continue;
-            if(y -> getnumber() != 2){//1 or 2
+            if(u -> marked != Marked::MARKED)continue;
+            if(y -> number != 2){//1 or 2
                 error = CographRecognition::State::CONTAINS_0_NODE;
                 return y;
             }
-            if(u -> getnumber() == 1){
-                if(u->get_md() != u -> get_d() - 1) {
+            if(u -> number == 1){
+                if(u->md != u -> d - 1) {
                     y = u;
                 }
-                if (u->getParent()->Marked_or_not() == Marked::MARKED) {//1 and 6
+                if (u->parent->marked == Marked::MARKED) {//1 and 6
                     error = CographRecognition::State::CONTAINS_0_NODE;
                     return y;
                 } else {
-                    t = u->getParent()->getParent();
+                    t = u->parent->parent;
                 }
             } else{
                 y = u;
-                t = u -> getParent();
+                t = u -> parent;
             }
             u -> unmark();
-            u ->set_md(0);
+            u -> md = 0;
             while(t != w){
-                if(t == T -> getRoot()){//4
+                if(t == T -> root){//4
                     error = CographRecognition::State::NO_ONE_PATH;
                     return y;
                 }
-                if(t -> Marked_or_not() != Marked::MARKED){//3 or 5 or 6
+                if(t -> marked != Marked::MARKED){//3 or 5 or 6
                     error = CographRecognition::State::GRANDPARENT_IS_NOT_IN_SET;//!
                     return y;
                 }
-                if(t -> get_md() != t -> get_d() - 1){//2
+                if(t -> md != t -> d - 1){//2
                     error = CographRecognition::State::EXISTS_1_NODE_NOT_PROPERLY_MARKED;
                     return y;
                 }
-                if(t -> getParent() -> Marked_or_not() == Marked::MARKED){//1
+                if(t -> parent -> marked == Marked::MARKED){//1
                     error = CographRecognition::State::CONTAINS_0_NODE;
                     return y;
                 }
                 t -> unmark();
-                t ->set_md(0);
-                t = t -> getParent() -> getParent();
+                t -> md = 0;
+                t = t -> parent -> parent;
             }
             w = u;
         }
@@ -333,34 +267,34 @@ namespace Koala {
 
 
     std::vector<CoNode *> get_were_marked(CoNode *u){
-        auto x = u -> get_head_of_list_of_children();
+        auto x = u -> head_of_list_of_children;
         std::vector<CoNode *> a;
-        while(x != nullptr && x->Marked_or_not() == Marked::MARKED_AND_UNMARKED){
+        while(x != nullptr && x->marked == Marked::MARKED_AND_UNMARKED){
             a.push_back(x);
-            x = x -> getnext();
+            x = x -> next;
         }
         return a;
     }
 
 
     CoNode* get_last_from_children(CoNode* u){
-        auto x = u -> get_head_of_list_of_children();
-        while(x != nullptr && x->Marked_or_not() == Marked::MARKED_AND_UNMARKED){
-            x = x -> getnext();
+        auto x = u -> head_of_list_of_children;
+        while(x != nullptr && x->marked == Marked::MARKED_AND_UNMARKED){
+            x = x -> next;
         }
         return x;
     }
 
     void Insert_x_to_CoTree(CoNode *u, CoNode *x){
         std::vector<CoNode*>a;
-        int u_number = u -> getnumber();
+        int u_number = u -> number;
         a = get_were_marked(u);
-        if((a.size() == 1 && u_number == 0 )||(u -> get_d() - a.size() == 1 && u_number == 1)){
+        if((a.size() == 1 && u_number == 0 )||(u -> d - a.size() == 1 && u_number == 1)){
             CoNode* w = a[0];
             if(u_number == 1){
                 w = get_last_from_children(u);
             }
-            if(w -> gettype() == Type::VERTEX){
+            if(w -> type == Type::VERTEX){
                 CoNode* y = new CoNode(Type::ZERO_ONE, u_number ^ 1);
                 T -> add(y);
                 if(u_number == 0)u -> remove_were_marked();
@@ -379,16 +313,16 @@ namespace Koala {
                 y -> addchild(v);
             }
             if(u_number == 1){
-                auto nxt = u -> getnext();
-                auto prv = u -> getprev();
-                if(prv != nullptr)prv ->setnext(y);
-                if(nxt != nullptr)nxt -> setprev(y);
-                y ->setprev(prv);
-                y ->setnext(nxt);
-                if(prv == nullptr && u -> getParent() != nullptr)u -> getParent() ->set_head_of_list_of_children(y);
-                if(u -> getParent() != nullptr)y -> setParent(u -> getParent());
+                auto nxt = u -> next;
+                auto prv = u -> prev;
+                if(prv != nullptr)prv -> next = y;
+                if(nxt != nullptr)nxt -> prev = y;
+                y -> prev = prv;
+                y -> next = nxt;
+                if(prv == nullptr && u -> parent != nullptr)u -> parent -> head_of_list_of_children = y;
+                if(u -> parent != nullptr)y -> parent = u -> parent;
                 else{
-                    T ->setRoot(y);
+                    T -> root = y;
                 }
                 CoNode* z = new CoNode(Type::ZERO_ONE, 0);
                 T -> add(z);
@@ -427,7 +361,7 @@ namespace Koala {
             for(auto u : G.neighborRange(i)){
                 vec.push_back(covertex[pos[u]]);
             }
-            covertex[pos[i]] -> setoutEdges(vec);
+            covertex[pos[i]] -> outEdges = vec;
         }
 
         if(cnt == 0){
@@ -449,19 +383,19 @@ namespace Koala {
             N->addchild(covertex[0]);
             N->addchild(covertex[1]);
         }
-        covertex[0] -> add_to_graph();
-        covertex[1] -> add_to_graph();
+        covertex[0] -> in_graph = true;
+        covertex[1] -> in_graph = true;
         CoNode* root = R;
 
         for(int i = 2; i < cnt; i++){
-            root = T -> getRoot();
+            root = T -> root;
             Reset_All_CoNodes(root);
             Mark(covertex[i]);
-            if(root -> Marked_or_not() == Marked::MARKED_AND_UNMARKED){//all nodes of T were marked and unmarked <=> R is marked and unmarked
+            if(root -> marked == Marked::MARKED_AND_UNMARKED){//all nodes of T were marked and unmarked <=> R is marked and unmarked
                 root -> addchild(covertex[i]);
             } else if(mark_ever_count == 0){
-                if(root -> get_d() == 1){
-                    (root -> get_head_of_list_of_children()) -> addchild(covertex[i]);
+                if(root -> d == 1){
+                    (root -> head_of_list_of_children) -> addchild(covertex[i]);
                 } else{
                     CoNode *R1 = new CoNode(Type::ZERO_ONE, 1);
                     CoNode *R2 = new CoNode(Type::ZERO_ONE, 0);
@@ -470,7 +404,7 @@ namespace Koala {
                     R1 -> addchild(R2);
                     R2 -> addchild(root);
                     R2 -> addchild(covertex[i]);
-                    T ->setRoot(R1);
+                    T -> root = R1;
                 }
             } else{
                 CographRecognition::State error = State::COGRAPH;
@@ -481,8 +415,8 @@ namespace Koala {
                 }
                 Insert_x_to_CoTree(u, covertex[i]);
             }
-            root = T -> getRoot();
-            covertex[i] -> add_to_graph();
+            root = T -> root;
+            covertex[i] -> in_graph = true;
         }
         T -> clear();
         return State::COGRAPH;
