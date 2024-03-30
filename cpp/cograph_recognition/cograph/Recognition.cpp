@@ -163,6 +163,7 @@ namespace Koala {
         vector<CoNode*>save;
     public:
         CoTree(CoNode* root):root(root){
+            save.push_back(root);
         }
         CoNode* getRoot(){
             return root;
@@ -412,7 +413,6 @@ namespace Koala {
         CoNode *R = new CoNode(Type::ZERO_ONE, 1);
         CoTree Tp(R);
         T = &Tp;
-        T -> add(R);
         G = graph;
         vector<NetworKit::node>vertex;
         vector<CoNode*>covertex;
