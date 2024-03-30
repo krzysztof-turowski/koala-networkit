@@ -64,11 +64,15 @@ namespace Koala {
                 vec.push_back(u);
                 d--;
                 head_of_list_of_children = u -> next;
-                if(head_of_list_of_children != nullptr)head_of_list_of_children->prev = nullptr;
+                if(head_of_list_of_children != nullptr){
+                    head_of_list_of_children -> prev = nullptr;
+                }
                 u -> prev = nullptr;
                 u -> next = nullptr;
                 u = head_of_list_of_children;
-                if(u == nullptr || u -> marked != Marked::MARKED_AND_UNMARKED)break;
+                if(u == nullptr || u -> marked != Marked::MARKED_AND_UNMARKED){
+                    break;
+                }
             }
             return vec;
         }
@@ -126,7 +130,9 @@ namespace Koala {
         if(u != T -> root){
             auto w = u -> parent;
             w -> md++;
-            if(w -> marked == Marked::UNMARKED)mark_count++;
+            if(w -> marked == Marked::UNMARKED){
+                mark_count++;
+            }
             w -> mark();
             if(w -> md == w -> d){
                 marked_with_d_equal_to_md.push(w);
@@ -150,7 +156,9 @@ namespace Koala {
         mark_and_unmarked_count = 0;
         mark_ever_count = 0;
         for(auto u : x -> outEdges){//!!only neigbours which are already in graph
-        if(!(u -> in_graph))continue;
+            if(!(u -> in_graph)){
+                continue;
+            }
             u -> mark();
             mark_ever_count++;
             mark_count++;
@@ -186,9 +194,13 @@ namespace Koala {
         }
     }
     void rec(CoNode* x, int level=0){
-          std::cout<<x<<"   "<<x->number<<" "<<level<<" ";
-         if(x -> type == Type::ZERO_ONE)std::cout<<"zeroone"<<std::endl;
-        else std::cout<<"normal"<<std::endl;
+          std::cout << x << "   " << x -> number << " " << level << " ";
+         if(x -> type == Type::ZERO_ONE){
+             std::cout<<"zeroone"<<std::endl;
+         }
+        else {
+            std::cout<<"normal"<<std::endl;
+        }
         auto y = x -> head_of_list_of_children;
         int cnt = 0;
         while(y != nullptr){
@@ -206,7 +218,7 @@ namespace Koala {
             return y;
         }
         if(T -> root -> md != T -> root -> d - 1) {
-            y = T->root;
+            y = T -> root;
         }
             T -> root -> unmark();
             T -> root -> md = 0;
@@ -223,14 +235,14 @@ namespace Koala {
                 return y;
             }
             if(u -> number == 1){
-                if(u->md != u -> d - 1) {
+                if(u -> md != u -> d - 1) {
                     y = u;
                 }
-                if (u->parent->marked == Marked::MARKED) {//1 and 6
+                if (u -> parent -> marked == Marked::MARKED) {//1 and 6
                     error = CographRecognition::State::CONTAINS_0_NODE;
                     return y;
                 } else {
-                    t = u->parent->parent;
+                    t = u -> parent -> parent;
                 }
             } else{
                 y = u;
@@ -269,7 +281,7 @@ namespace Koala {
     std::vector<CoNode *> get_were_marked(CoNode *u){
         auto x = u -> head_of_list_of_children;
         std::vector<CoNode *> a;
-        while(x != nullptr && x->marked == Marked::MARKED_AND_UNMARKED){
+        while(x != nullptr && x -> marked == Marked::MARKED_AND_UNMARKED){
             a.push_back(x);
             x = x -> next;
         }
@@ -279,7 +291,7 @@ namespace Koala {
 
     CoNode* get_last_from_children(CoNode* u){
         auto x = u -> head_of_list_of_children;
-        while(x != nullptr && x->marked == Marked::MARKED_AND_UNMARKED){
+        while(x != nullptr && x -> marked == Marked::MARKED_AND_UNMARKED){
             x = x -> next;
         }
         return x;
@@ -297,9 +309,13 @@ namespace Koala {
             if(w -> type == Type::VERTEX){
                 CoNode* y = new CoNode(Type::ZERO_ONE, u_number ^ 1);
                 T -> add(y);
-                if(u_number == 0)u -> remove_were_marked();
-                else u -> remove_were_not_marked();
-                u->addchild(y);
+                if(u_number == 0){
+                    u -> remove_were_marked();
+                }
+                else {
+                    u -> remove_were_not_marked();
+                }
+                u -> addchild(y);
                 y -> addchild(x);
                 y -> addchild(w);
             } else{
@@ -315,12 +331,20 @@ namespace Koala {
             if(u_number == 1){
                 auto nxt = u -> next;
                 auto prv = u -> prev;
-                if(prv != nullptr)prv -> next = y;
-                if(nxt != nullptr)nxt -> prev = y;
+                if(prv != nullptr){
+                    prv -> next = y;
+                }
+                if(nxt != nullptr){
+                    nxt -> prev = y;
+                }
                 y -> prev = prv;
                 y -> next = nxt;
-                if(prv == nullptr && u -> parent != nullptr)u -> parent -> head_of_list_of_children = y;
-                if(u -> parent != nullptr)y -> parent = u -> parent;
+                if(prv == nullptr && u -> parent != nullptr){
+                    u -> parent -> head_of_list_of_children = y;
+                }
+                if(u -> parent != nullptr){
+                    y -> parent = u -> parent;
+                }
                 else{
                     T -> root = y;
                 }
@@ -332,9 +356,9 @@ namespace Koala {
             } else{
                 CoNode *z = new CoNode(Type::ZERO_ONE, 1);
                 T -> add(z);
-                u ->addchild(z);
-                z ->addchild(x);
-                z->addchild(y);
+                u -> addchild(z);
+                z -> addchild(x);
+                z -> addchild(y);
             }
         }
     }
@@ -365,23 +389,23 @@ namespace Koala {
         }
 
         if(cnt == 0){
-            T ->clear();
+            T -> clear();
             return State::COGRAPH;
         }
         if(cnt == 1){
-            R ->addchild(covertex[0]);
+            R -> addchild(covertex[0]);
             T -> clear();
             return State::COGRAPH;
         }
         if(G.hasEdge(vertex[0], vertex[1])){
-            R ->addchild(covertex[0]);
-            R ->addchild(covertex[1]);
+            R -> addchild(covertex[0]);
+            R -> addchild(covertex[1]);
         } else {
             CoNode *N = new CoNode(Type::ZERO_ONE, 0);
-            T->add(N);
-            R->addchild(N);
-            N->addchild(covertex[0]);
-            N->addchild(covertex[1]);
+            T -> add(N);
+            R -> addchild(N);
+            N -> addchild(covertex[0]);
+            N -> addchild(covertex[1]);
         }
         covertex[0] -> in_graph = true;
         covertex[1] -> in_graph = true;
@@ -415,7 +439,6 @@ namespace Koala {
                 }
                 Insert_x_to_CoTree(u, covertex[i]);
             }
-            root = T -> root;
             covertex[i] -> in_graph = true;
         }
         T -> clear();
