@@ -44,7 +44,7 @@ class CographRecognition : public NetworKit::Algorithm {
      *
      * @return true if the graph is complement reducible, false otherwise.
      */
-    bool isComplementReducible() const;
+    bool isCograph() const;
     /**
          * Return the graph type found by the algorithm.
          *
@@ -58,7 +58,7 @@ class CographRecognition : public NetworKit::Algorithm {
     static State Cograph_Recognition(NetworKit::Graph &graph);
  private:
     NetworKit::Graph graph;
-    State is_complement_reducible;
+    State is_cograph;
 
 
 };

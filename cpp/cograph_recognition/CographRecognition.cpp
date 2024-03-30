@@ -5,32 +5,32 @@
 namespace Koala {
 
 CographRecognition::CographRecognition(NetworKit::Graph &graph)
-    : graph(graph), is_complement_reducible(State::UNKNOWN) {
+    : graph(graph), is_cograph(State::UNKNOWN) {
 
      }
-bool CographRecognition::isComplementReducible() const {
+bool CographRecognition::isCograph() const {
     assureFinished();
-    return is_complement_reducible == State::COGRAPH;
+    return is_cograph == State::COGRAPH;
 }
 
 CographRecognition::State CographRecognition::getState() const {
     assureFinished();
-    return is_complement_reducible;
+    return is_cograph;
 }
     CographRecognition::State recognition(NetworKit::Graph &graph){
         return  CographRecognition::Cograph_Recognition(graph);
     }
 void CographRecognition::run() {
     hasRun = true;
-    if (is_complement_reducible != State::UNKNOWN) {
+    if (is_cograph != State::UNKNOWN) {
         return;
     }
-    is_complement_reducible = recognition(graph);
-    if (is_complement_reducible != State::UNKNOWN) {
+    is_cograph = recognition(graph);
+    if (is_cograph != State::UNKNOWN) {
             return;
     }
 
-    is_complement_reducible = State::COGRAPH;
+    is_cograph = State::COGRAPH;
 }
 
     void CographRecognition::check() const {
