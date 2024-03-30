@@ -40,7 +40,7 @@ class CographRecognition : public NetworKit::Algorithm {
     /**
      * Return the result found by the algorithm.
      *
-     * @return true if the graph is complement reducible, false otherwise.
+     * @return true if the graph is a cograph, false otherwise.
      */
     bool isCograph() const;
     /**

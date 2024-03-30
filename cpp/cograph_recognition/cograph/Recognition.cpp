@@ -474,7 +474,6 @@ namespace Koala {
                     R2 -> addchild(root);
                     R2 -> addchild(covertex[i]);
                     T ->setRoot(R1);
-                    root = R1;
                 }
             } else{
                 CographRecognition::State error = State::COGRAPH;

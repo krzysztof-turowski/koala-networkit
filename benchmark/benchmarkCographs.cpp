@@ -6,7 +6,6 @@
 #include "io/G6GraphReader.hpp"
 #include "cograph_recognition/CographRecognition.hpp"
 #include <fstream>
-using namespace std;
 std::string types[] = {
         "UNKNOWN",
         "COGRAPH",
@@ -17,8 +16,8 @@ std::string types[] = {
         "COND_5",
         "COND_6"
 };
-pair<int,int> test(int j, string s, string s1){
-    string s2 = "";
+std::pair<int,int> test(int j, std::string s, std::string s1){
+    std::string s2 = "";
     if(j >= 10)s2 += "1";
     s2 += '0' + j % 10;
     std::ifstream fin(s + s2 + s1);
@@ -36,7 +35,7 @@ pair<int,int> test(int j, string s, string s1){
         recognize.run();
         classification[recognize.getState()]++;
     }
-    cout <<"size: "<<j<< " total: "<<cnt<< endl;
+    std::cout <<"size: "<<j<< " total: "<<cnt<< std::endl;
     for (const auto &[k, v]: classification) {
         std::cout << types[static_cast<int>(k)] << ": " << v << std::endl;
     }
@@ -45,10 +44,10 @@ pair<int,int> test(int j, string s, string s1){
 void auto_test(){
     for(int j = 3; j <= 9; j++){
 
-        pair<int,int> cnt = test(j, "../../input/cographConnected", ".g6");
-        pair<int,int> cnt1 = test(j, "../../input/graph","c.g6");
-        if(cnt.first == cnt.second && cnt1.second == cnt.first)cout<<"OK"<<endl;
-        else cout<<"FAIL"<<endl;
+        std::pair<int,int> cnt = test(j, "../../input/cographConnected", ".g6");
+        std::pair<int,int> cnt1 = test(j, "../../input/graph","c.g6");
+        if(cnt.first == cnt.second && cnt1.second == cnt.first)std::cout<<"OK"<<std::endl;
+        else std::cout<<"FAIL"<<std::endl;
     }
     for(int j = 3; j <= 15; j++) {
         test(j,"../../input/cographConnected", ".g6");
@@ -59,8 +58,8 @@ void manual_test(){
     int cnt = 0;
     while (true) {
         std::string line;
-        cin >> line;
-        if (!cin.good()) {
+        std::cin >> line;
+        if (!std::cin.good()) {
             break;
         }
         cnt++;
@@ -69,7 +68,7 @@ void manual_test(){
         recognize.run();
         classification[recognize.getState()]++;
     }
-    cout << " total: "<<cnt<< endl;
+    std::cout << " total: "<<cnt<< std::endl;
     for (const auto &[k, v]: classification) {
         std::cout << types[static_cast<int>(k)] << ": " << v << std::endl;
     }
