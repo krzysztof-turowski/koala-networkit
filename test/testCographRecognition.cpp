@@ -6,7 +6,7 @@
 
 #include <list>
 
-#include <cograph_recognition/CographRecognition.hpp>
+#include <cograph_recognition/CorneilStewartPerlCographRecognition.h>
 
 #include "helpers.hpp"
 
@@ -22,7 +22,7 @@ class CographRecognitionTest
 TEST_P(CographRecognitionTest, test) {
     GraphRecognitionParameters const& parameters = GetParam();
     NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
-    auto algorithm = Koala::CographRecognition(G);
+    auto algorithm = Koala::CorneilStewartPerlCographRecognition(G);
     algorithm.run();
 
     auto is_perfect = algorithm.isCograph();

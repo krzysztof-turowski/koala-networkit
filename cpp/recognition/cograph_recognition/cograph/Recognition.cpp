@@ -1,4 +1,4 @@
-#include <cograph_recognition/CographRecognition.hpp>
+#include <cograph_recognition/CorneilStewartPerlCographRecognition.h>
 #include <list>
 #include <graph/GraphTools.hpp>
 #include "CoTree.cpp"
@@ -98,12 +98,12 @@ namespace Koala {
         }
     }
 
-    std::pair<CoNode *,CographRecognition::State>FindLowest(){
+    std::pair<CoNode *,CorneilStewartPerlCographRecognition::State>FindLowest(){
         auto *y = new CoNode(Type::ZERO_ONE, 2);
         T -> Add(y);
         CoNode *u, *w, *t;
         if(T -> root -> marked == Marked::UNMARKED){
-            return {y, CographRecognition::State::GRANDPARENT_IS_NOT_IN_SET};
+            return {y, CorneilStewartPerlCographRecognition::State::GRANDPARENT_IS_NOT_IN_SET};
         }
         if(T -> root -> md != T -> root -> d - 1) {
             y = T -> root;
@@ -121,14 +121,14 @@ namespace Koala {
                 continue;
             }
             if(y -> number != 2){//1 or 2
-                return {y, CographRecognition::State::CONTAINS_0_NODE};
+                return {y, CorneilStewartPerlCographRecognition::State::CONTAINS_0_NODE};
             }
             if(u -> number == 1){
                 if(u -> md != u -> d - 1) {
                     y = u;
                 }
                 if (u -> parent -> marked == Marked::MARKED) {//1 and 6
-                    return {y, CographRecognition::State::CONTAINS_0_NODE};
+                    return {y, CorneilStewartPerlCographRecognition::State::CONTAINS_0_NODE};
                 } else {
                     t = u -> parent -> parent;
                 }
@@ -140,16 +140,16 @@ namespace Koala {
             u -> md = 0;
             while(t != w){
                 if(t == T -> root){//4
-                    return {y, CographRecognition::State::NO_ONE_PATH};
+                    return {y, CorneilStewartPerlCographRecognition::State::NO_ONE_PATH};
                 }
                 if(t -> marked != Marked::MARKED){//3 or 5 or 6
-                    return {y, CographRecognition::State::GRANDPARENT_IS_NOT_IN_SET};
+                    return {y, CorneilStewartPerlCographRecognition::State::GRANDPARENT_IS_NOT_IN_SET};
                 }
                 if(t -> md != t -> d - 1){//2
-                    return {y, CographRecognition::State::EXISTS_1_NODE_NOT_PROPERLY_MARKED};
+                    return {y, CorneilStewartPerlCographRecognition::State::EXISTS_1_NODE_NOT_PROPERLY_MARKED};
                 }
                 if(t -> parent -> marked == Marked::MARKED){//1
-                    return {y, CographRecognition::State::CONTAINS_0_NODE};
+                    return {y, CorneilStewartPerlCographRecognition::State::CONTAINS_0_NODE};
                 }
                 t -> unmark();
                 t -> md = 0;
@@ -157,7 +157,7 @@ namespace Koala {
             }
             w = u;
         }
-        return {w, CographRecognition::State::COGRAPH};
+        return {w, CorneilStewartPerlCographRecognition::State::COGRAPH};
     }
 
 
@@ -248,7 +248,7 @@ namespace Koala {
     }
 
 
-    CographRecognition::State CographRecognition::Cograph_Recognition(NetworKit::Graph &graph){
+    CorneilStewartPerlCographRecognition::State CorneilStewartPerlCographRecognition::Cograph_Recognition(NetworKit::Graph &graph){
         auto *R = new CoNode(Type::ZERO_ONE, 1);
         CoTree Tp(R);
         T = &Tp;

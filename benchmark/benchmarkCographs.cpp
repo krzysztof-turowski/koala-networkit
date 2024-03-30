@@ -4,7 +4,7 @@
 #include <iostream>
 #include <map>
 #include "io/G6GraphReader.hpp"
-#include "cograph_recognition/CographRecognition.hpp"
+#include "cograph_recognition/CorneilStewartPerlCographRecognition.h"
 #include <fstream>
 std::string types[] = {
         "UNKNOWN",
@@ -21,7 +21,7 @@ std::pair<int,int> test(int j, const std::string& s, const std::string& s1){
     if(j >= 10)s2 += "1";
     s2 += '0' + j % 10;
     std::ifstream fin(s + s2 + s1);
-    std::map<Koala::CographRecognition::State, int> classification;
+    std::map<Koala::CorneilStewartPerlCographRecognition::State, int> classification;
     int cnt = 0;
     while (true) {
         std::string line;
@@ -31,7 +31,7 @@ std::pair<int,int> test(int j, const std::string& s, const std::string& s1){
         }
         cnt++;
         NetworKit::Graph G = Koala::G6GraphReader().readline(line);
-        auto recognize = Koala::CographRecognition(G);
+        auto recognize = Koala::CorneilStewartPerlCographRecognition(G);
         recognize.run();
         classification[recognize.getState()]++;
     }
@@ -39,7 +39,7 @@ std::pair<int,int> test(int j, const std::string& s, const std::string& s1){
     for (const auto &[k, v]: classification) {
         std::cout << types[static_cast<int>(k)] << ": " << v << std::endl;
     }
-    return {cnt,classification[Koala::CographRecognition::State::COGRAPH]};
+    return {cnt,classification[Koala::CorneilStewartPerlCographRecognition::State::COGRAPH]};
 }
 void auto_test(){
     for(int j = 3; j <= 9; j++){
@@ -54,7 +54,7 @@ void auto_test(){
     }
 }
 void manual_test(){
-    std::map<Koala::CographRecognition::State, int> classification;
+    std::map<Koala::CorneilStewartPerlCographRecognition::State, int> classification;
     int cnt = 0;
     while (true) {
         std::string line;
@@ -64,7 +64,7 @@ void manual_test(){
         }
         cnt++;
         NetworKit::Graph G = Koala::G6GraphReader().readline(line);
-        auto recognize = Koala::CographRecognition(G);
+        auto recognize = Koala::CorneilStewartPerlCographRecognition(G);
         recognize.run();
         classification[recognize.getState()]++;
     }

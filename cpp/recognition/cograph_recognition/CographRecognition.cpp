@@ -1,26 +1,29 @@
 #include <list>
 #include <graph/GraphTools.hpp>
+#include <cograph_recognition/CorneilStewartPerlCographRecognition.h>
 #include <cograph_recognition/CographRecognition.hpp>
-
 namespace Koala {
 
-CographRecognition::CographRecognition(NetworKit::Graph &graph)
-    : graph(graph), is_cograph(State::UNKNOWN) {
+CographRecognition::CographRecognition(NetworKit::Graph &graph): graph(graph) {
 
-     }
-bool CographRecognition::isCograph() const {
+}
+     CorneilStewartPerlCographRecognition::CorneilStewartPerlCographRecognition(NetworKit::Graph &graph)
+     :  graph(graph), is_cograph(State::UNKNOWN){
+
+    }
+bool CorneilStewartPerlCographRecognition::isCograph() const {
     assureFinished();
     return is_cograph == State::COGRAPH;
 }
 
-CographRecognition::State CographRecognition::getState() const {
+    CorneilStewartPerlCographRecognition::State CorneilStewartPerlCographRecognition::getState() const {
     assureFinished();
     return is_cograph;
 }
-    CographRecognition::State recognition(NetworKit::Graph &graph){
-        return  CographRecognition::Cograph_Recognition(graph);
+    CorneilStewartPerlCographRecognition::State recognition(NetworKit::Graph &graph){
+        return  CorneilStewartPerlCographRecognition::Cograph_Recognition(graph);
     }
-void CographRecognition::run() {
+void CorneilStewartPerlCographRecognition::run() {
     hasRun = true;
     if (is_cograph != State::UNKNOWN) {
         return;
@@ -33,7 +36,7 @@ void CographRecognition::run() {
     is_cograph = State::COGRAPH;
 }
 
-    void CographRecognition::check() const {
+    void CorneilStewartPerlCographRecognition::check() const {
         assureFinished();
         bool iscograph = true;
         for(auto e1 : graph.edgeRange()){
