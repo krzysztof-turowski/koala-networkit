@@ -157,7 +157,7 @@ namespace Koala {
         mark_count = 0;
         mark_and_unmarked_count = 0;
         mark_ever_count = 0;
-        for(auto u : x -> out_edges){//!!only neigbours which are already in graph
+        for(auto u : x -> out_edges){//!!only neighbours which are already in graph
             if(!(u -> in_graph)){
                 continue;
             }
@@ -200,11 +200,10 @@ namespace Koala {
          if(x -> type == Type::ZERO_ONE){
              std::cout<<"zeroone"<<std::endl;
          }
-        else {
-            std::cout<<"normal"<<std::endl;
-        }
+         else {
+             std::cout<<"normal"<<std::endl;
+         }
         auto y = x -> head_of_list_of_children;
-        int cnt = 0;
         while(y != nullptr){
             Rec(y,level+1);
             y = y -> next;
@@ -212,7 +211,7 @@ namespace Koala {
     }
 
     CoNode *FindLowest( CographRecognition::State & error){
-        CoNode* y = new CoNode(Type::ZERO_ONE, 2);
+        auto* y = new CoNode(Type::ZERO_ONE, 2);
         T -> Add(y);
         CoNode *u, *w, *t;
         if(T -> root -> marked == Marked::UNMARKED){
@@ -225,7 +224,7 @@ namespace Koala {
             T -> root -> unmark();
             T -> root -> md = 0;
             w = T -> root;
-            u = w;
+            //u = w;
         std::queue<CoNode*>q;
         MadeQueueOfMarked(T -> root, q);
         while(!q.empty()){
@@ -311,7 +310,7 @@ namespace Koala {
                 w = GetLastFromChildren(u);
             }
             if(w -> type == Type::VERTEX){
-                CoNode* y = new CoNode(Type::ZERO_ONE, u_number ^ 1);
+                auto* y = new CoNode(Type::ZERO_ONE, u_number ^ 1);
                 T -> Add(y);
                 if(u_number == 0){
                     u -> RemoveWereMarked();
@@ -327,7 +326,7 @@ namespace Koala {
             }
         } else{
             auto vec = u -> RemoveWereMarked();
-            CoNode *y = new CoNode(Type::ZERO_ONE, u_number);
+            auto *y = new CoNode(Type::ZERO_ONE, u_number);
             T -> Add(y);
             for(auto v : vec){
                 y -> AddChild(v);
@@ -352,13 +351,13 @@ namespace Koala {
                 else{
                     T -> root = y;
                 }
-                CoNode* z = new CoNode(Type::ZERO_ONE, 0);
+                auto* z = new CoNode(Type::ZERO_ONE, 0);
                 T -> Add(z);
                 y -> AddChild(z);
                 z -> AddChild(x);
                 z -> AddChild(u);
             } else{
-                CoNode *z = new CoNode(Type::ZERO_ONE, 1);
+                auto *z = new CoNode(Type::ZERO_ONE, 1);
                 T -> Add(z);
                 u -> AddChild(z);
                 z -> AddChild(x);
@@ -369,7 +368,7 @@ namespace Koala {
 
 
     CographRecognition::State CographRecognition::Cograph_Recognition(NetworKit::Graph &graph){
-        CoNode *R = new CoNode(Type::ZERO_ONE, 1);
+        auto *R = new CoNode(Type::ZERO_ONE, 1);
         CoTree Tp(R);
         T = &Tp;
         G = graph;
@@ -380,7 +379,7 @@ namespace Koala {
         for(auto i : G.nodeRange()){
             vertex.push_back(i);
             pos[i] = cnt++;
-            CoNode *C = new CoNode(Type::VERTEX,i);
+            auto *C = new CoNode(Type::VERTEX,int(i));
             T -> Add(C);
             covertex.push_back(C);
         }
@@ -405,7 +404,7 @@ namespace Koala {
             R -> AddChild(covertex[0]);
             R -> AddChild(covertex[1]);
         } else {
-            CoNode *N = new CoNode(Type::ZERO_ONE, 0);
+            auto *N = new CoNode(Type::ZERO_ONE, 0);
             T -> Add(N);
             R -> AddChild(N);
             N -> AddChild(covertex[0]);
@@ -413,7 +412,7 @@ namespace Koala {
         }
         covertex[0] -> in_graph = true;
         covertex[1] -> in_graph = true;
-        CoNode* root = R;
+        CoNode* root;
 
         for(int i = 2; i < cnt; i++){
             root = T -> root;
@@ -425,8 +424,8 @@ namespace Koala {
                 if(root -> d == 1){
                     (root -> head_of_list_of_children) -> AddChild(covertex[i]);
                 } else{
-                    CoNode *R1 = new CoNode(Type::ZERO_ONE, 1);
-                    CoNode *R2 = new CoNode(Type::ZERO_ONE, 0);
+                    auto *R1 = new CoNode(Type::ZERO_ONE, 1);
+                    auto *R2 = new CoNode(Type::ZERO_ONE, 0);
                     T -> Add(R1);
                     T -> Add(R2);
                     R1 -> AddChild(R2);

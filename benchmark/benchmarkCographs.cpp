@@ -16,8 +16,8 @@ std::string types[] = {
         "WRONG_PARENT",
         "WRONG_GRANDPARENT"
 };
-std::pair<int,int> test(int j, std::string s, std::string s1){
-    std::string s2 = "";
+std::pair<int,int> test(int j, const std::string& s, const std::string& s1){
+    std::string s2;
     if(j >= 10)s2 += "1";
     s2 += '0' + j % 10;
     std::ifstream fin(s + s2 + s1);
