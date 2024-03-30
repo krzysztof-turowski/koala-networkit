@@ -284,12 +284,12 @@ namespace Koala {
         }
     }
 
-    CoNode *Find_Lowest( int & error){
+    CoNode *Find_Lowest( CographRecognition::State & error){
         CoNode* y = new CoNode(Type::ZEROONE, 2);
         T -> add(y);
         CoNode *u, *w, *t;
         if(T -> getRoot() -> Marked_or_not() == Marked::UNMARKED){
-            error = 3;
+            error = CographRecognition::State::COND_3;
             return y;
         }
         if(T -> getRoot() -> get_md() != T -> getRoot() -> get_d() - 1) {
@@ -307,7 +307,7 @@ namespace Koala {
             if(u -> Marked_or_not() != Marked::MARKED)continue;
             if(y -> getnumber() != 2){//1 or 2
                // rec(T -> getRoot());
-                error = 1;//here
+                error = CographRecognition::State::COND_1;//here
                 return y;
             }
             if(u -> getnumber() == 1){
@@ -317,7 +317,7 @@ namespace Koala {
                 }
                 //????????????
                 if (u->getParent()->Marked_or_not() == Marked::MARKED) {//1 and 6
-                    error = 1;
+                    error = CographRecognition::State::COND_1;
                     return y;
                 } else {
                     //????/
@@ -331,19 +331,19 @@ namespace Koala {
             u ->set_md(0);
             while(t != w){
                 if(t == T -> getRoot()){//4
-                    error = 4;
+                    error = CographRecognition::State::COND_4;
                     return y;
                 }
                 if(t -> Marked_or_not() != Marked::MARKED){//3 or 5 or 6
-                    error = 3;//!
+                    error = CographRecognition::State::COND_3;//!
                     return y;
                 }
                 if(t -> get_md() != t -> get_d() - 1){//2
-                    error = 2;
+                    error = CographRecognition::State::COND_2;
                     return y;
                 }
                 if(t -> getParent() -> Marked_or_not() == Marked::MARKED){//1
-                    error = 1;
+                    error = CographRecognition::State::COND_1;
                     return y;
                 }
                 t -> unmark();
@@ -451,7 +451,7 @@ namespace Koala {
     }
 
 
-    int CographRecognition::Cograph_Recognition(NetworKit::Graph &graph){
+    CographRecognition::State CographRecognition::Cograph_Recognition(NetworKit::Graph &graph){
         CoNode *R = new CoNode(Type::ZEROONE, 1);
         CoTree Tp(R);
         T = &Tp;
@@ -482,12 +482,12 @@ namespace Koala {
 
         if(cnt == 0){
             T ->clear();
-            return 0;
+            return State::COMPLEMENT_REDUCIBLE;
         }
         if(cnt == 1){
             R ->addchild(covertex[0]);
             T -> clear();
-            return 0;
+            return State::COMPLEMENT_REDUCIBLE;
         }
         if(G.hasEdge(vertex[0], vertex[1])){
             R ->addchild(covertex[0]);
@@ -529,9 +529,9 @@ namespace Koala {
                 }
             } else{
               //  cout<<"3333 "<<i<<endl;
-                int error = 0;
+                CographRecognition::State error = State::COMPLEMENT_REDUCIBLE;
                 CoNode* u = Find_Lowest(error);
-                if(error){
+                if(error != State::COMPLEMENT_REDUCIBLE){
                     T -> clear();
                     return error;
                 }
@@ -542,7 +542,7 @@ namespace Koala {
           //  if(i == 3)rec(root);
         }
         T -> clear();
-        return 0;
+        return State::COMPLEMENT_REDUCIBLE;
     }
 
 

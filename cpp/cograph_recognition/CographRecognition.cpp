@@ -22,17 +22,7 @@ CographRecognition::State CographRecognition::getState() const {
     return is_complement_reducible;
 }
     CographRecognition::State recognition(NetworKit::Graph &graph){
-        int x = CographRecognition::Cograph_Recognition(graph);
-      // std::cout<<"xxx"<<x<<std::endl;
-        if(x){
-            if(x == 1)return CographRecognition::State::COND_1;
-            else if(x == 2)return CographRecognition::State::COND_2;
-            else if(x == 3)return CographRecognition::State::COND_3;
-            else if(x == 4)return CographRecognition::State::COND_4;
-            else if(x == 5)return CographRecognition::State::COND_5;
-            else if(x == 6)return CographRecognition::State::COND_6;
-        }
-        return CographRecognition::State::UNKNOWN;
+        return  CographRecognition::Cograph_Recognition(graph);
     }
 void CographRecognition::run() {
     hasRun = true;

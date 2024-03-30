@@ -55,7 +55,7 @@ class CographRecognition : public NetworKit::Algorithm {
      * Verify the result found by the algorithm.
      */
     void check() const;
-    static int Cograph_Recognition(NetworKit::Graph &graph);
+    static State Cograph_Recognition(NetworKit::Graph &graph);
  private:
     NetworKit::Graph graph;
     State is_complement_reducible;
