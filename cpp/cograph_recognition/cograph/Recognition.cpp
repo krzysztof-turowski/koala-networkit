@@ -23,8 +23,8 @@ namespace Koala {
         int md, d;
         bool in_graph;
 
-        //md is the current number of children, which have been both "marked" and "unmarked"
         //d is the current number of children
+        //md is the current number of children, which have been both "marked" and "unmarked"
 
         CoNode* head_of_list_of_children;
         CoNode *next, *prev;//in list of children of its parent
