@@ -20,13 +20,13 @@ class CographRecognitionTest
         : public testing::TestWithParam<GraphRecognitionParameters> { };
 
 TEST_P(CographRecognitionTest, test) {
-GraphRecognitionParameters const& parameters = GetParam();
-NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
-auto algorithm = Koala::CographRecognition(G);
-algorithm.run();
+    GraphRecognitionParameters const& parameters = GetParam();
+    NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
+    auto algorithm = Koala::CographRecognition(G);
+    algorithm.run();
 
-auto is_perfect = algorithm.isComplementReducible();
-EXPECT_EQ(is_perfect, parameters.is_recognized);
+    auto is_perfect = algorithm.isComplementReducible();
+    EXPECT_EQ(is_perfect, parameters.is_recognized);
 }
 
 INSTANTIATE_TEST_SUITE_P(
