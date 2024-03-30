@@ -122,14 +122,13 @@ namespace Koala {
             auto u = head_of_list_of_children;
             vector<CoNode*>vec;
             while(u != nullptr){
-                auto save = u;
                 vec.push_back(u);
                 d--;
                 head_of_list_of_children = u -> getnext();
                 if(head_of_list_of_children != nullptr)head_of_list_of_children->prev = nullptr;
+                u -> setprev(nullptr);
+                u ->setnext(nullptr);
                 u = head_of_list_of_children;
-                save ->setprev(nullptr);
-                save->setprev(nullptr);
                 if(u == nullptr || u -> Marked_or_not() != Marked::MARKED_AND_UNMARKED)break;
             }
             return vec;
