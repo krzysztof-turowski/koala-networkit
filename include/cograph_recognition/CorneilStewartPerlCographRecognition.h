@@ -12,7 +12,7 @@
 namespace Koala {
 
 
-    class CorneilStewartPerlCographRecognition : public NetworKit::Algorithm {
+    class CorneilStewartPerlCographRecognition : public CographRecognition {
     public:
         //using CographRecognition::CographRecognition;
         explicit CorneilStewartPerlCographRecognition(NetworKit::Graph &graph);
@@ -35,9 +35,9 @@ namespace Koala {
              */
         State getState() const;
         static State Cograph_Recognition(NetworKit::Graph &graph);
-        void run();
-        bool isCograph() const;
-        void check() const;
+        void run() override;
+        bool isCograph() const override;
+        void check() const override;
     private:
         NetworKit::Graph graph;
         State is_cograph;

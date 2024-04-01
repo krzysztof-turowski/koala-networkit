@@ -21,24 +21,24 @@ class CographRecognition : public NetworKit::Algorithm {
      *
      * @param graph The input graph.
      */
-    explicit CographRecognition(NetworKit::Graph &graph);
+    //explicit CographRecognition(NetworKit::Graph &graph);
 
     /**
      * Execute the cograph recognition procedure.
      */
-    //virtual void run();
+    virtual void run() = 0;
 
     /**
      * Return the result found by the algorithm.
      *
      * @return true if the graph is a cograph, false otherwise.
      */
-    //virtual bool isCograph() const;
+    virtual bool isCograph() const = 0;
 
     /**
      * Verify the result found by the algorithm.
      */
-    //virtual void check() const;
+    virtual void check() const = 0;
 
 protected:
     NetworKit::Graph graph;

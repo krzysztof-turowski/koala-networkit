@@ -4,14 +4,14 @@
 #include <cograph_recognition/CographRecognition.hpp>
 namespace Koala {
 
-CographRecognition::CographRecognition(NetworKit::Graph &graph): graph(graph) {
+//CographRecognition::CographRecognition(NetworKit::Graph &graph): graph(graph) {
 
-}
+//}
      CorneilStewartPerlCographRecognition::CorneilStewartPerlCographRecognition(NetworKit::Graph &graph)
      :  graph(graph), is_cograph(State::UNKNOWN){
 
     }
-bool CorneilStewartPerlCographRecognition::isCograph() const {
+bool CorneilStewartPerlCographRecognition::isCograph() const{
     assureFinished();
     return is_cograph == State::COGRAPH;
 }
