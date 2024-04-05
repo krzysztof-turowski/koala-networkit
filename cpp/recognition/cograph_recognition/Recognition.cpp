@@ -119,13 +119,13 @@ namespace Koala {
                 if (u->parent->marked == Marked::MARKED) {//1 or 6
                     if (y->number == 0) {
                         return {y, CorneilStewartPerlCographRecognition::State::CONTAINS_0_NODE};
-                    } else{
+                    } else {
                         return {y, CorneilStewartPerlCographRecognition::State::WRONG_GRANDPARENT};
                     }
                 } else {
                     t = u->parent->parent;
                 }
-            } else{
+            } else {
                 y = u;
                 t = u->parent;
             }
@@ -199,10 +199,10 @@ namespace Koala {
                 u->AddChild(y);
                 y->AddChild(x);
                 y->AddChild(w);
-            } else{
+            } else {
                 w->AddChild(x);
             }
-        } else{
+        } else {
             auto vec = u->RemoveWereMarked();
             auto *y = new CoNode(Type::ZERO_ONE, u_number);
             T->Add(y);
@@ -226,7 +226,7 @@ namespace Koala {
                 if (u->parent != nullptr) {
                     y->parent = u->parent;
                 }
-                else{
+                else {
                     T->root = y;
                 }
                 auto *z = new CoNode(Type::ZERO_ONE, 0);
@@ -234,7 +234,7 @@ namespace Koala {
                 y->AddChild(z);
                 z->AddChild(x);
                 z->AddChild(u);
-            } else{
+            } else {
                 auto *z = new CoNode(Type::ZERO_ONE, 1);
                 T->Add(z);
                 u->AddChild(z);
@@ -301,7 +301,7 @@ namespace Koala {
             } else if (mark_ever_count == 0) {
                 if (root->d == 1) {
                     (root->head_of_list_of_children)->AddChild(covertex[i]);
-                } else{
+                } else {
                     auto *R1 = new CoNode(Type::ZERO_ONE, 1);
                     auto *R2 = new CoNode(Type::ZERO_ONE, 0);
                     T->Add(R1);
@@ -311,7 +311,7 @@ namespace Koala {
                     R2->AddChild(covertex[i]);
                     T->root = R1;
                 }
-            } else{
+            } else {
                 auto u = FindLowest();
                 if (u.second != State::COGRAPH) {
                     T->Clear();

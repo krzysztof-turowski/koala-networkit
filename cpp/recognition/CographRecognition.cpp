@@ -24,7 +24,7 @@ namespace Koala {
         }
         is_cograph = recognition(graph);
         if (is_cograph != State::UNKNOWN) {
-                return;
+            return;
         }
         is_cograph = State::COGRAPH;
     }

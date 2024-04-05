@@ -40,7 +40,7 @@ namespace Koala {
                 head_of_list_of_children = x;
                 x->prev = nullptr;
                 x->next = nullptr;
-            } else{
+            } else {
                 head_of_list_of_children->prev = x;
                 x->next = head_of_list_of_children;
                 x->prev = nullptr;
