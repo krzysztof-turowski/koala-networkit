@@ -3,18 +3,15 @@
 #include <optional>
 #include <vector>
 
-#include <networkit/base/Algorithm.hpp>
-#include <networkit/components/ConnectedComponents.hpp>
-#include <networkit/graph/Graph.hpp>
-#include <networkit/graph/GraphTools.hpp>
-#include "CographRecognition.hpp"
+#include "networkit/base/Algorithm.hpp"
+#include "networkit/components/ConnectedComponents.hpp"
+#include "networkit/graph/Graph.hpp"
+#include "networkit/graph/GraphTools.hpp"
+#include "recognition/CographRecognition.hpp"
 
 namespace Koala {
-
-
     class CorneilStewartPerlCographRecognition : public CographRecognition {
     public:
-        //using CographRecognition::CographRecognition;
         explicit CorneilStewartPerlCographRecognition(NetworKit::Graph &graph);
         enum class State {
             UNKNOWN,
@@ -29,11 +26,12 @@ namespace Koala {
 
 
         /**
-             * Return the graph type found by the algorithm.
-             *
-             * @return State of the graph.
-             */
+         * Return the graph type found by the algorithm.
+         *
+         * @return State of the graph.
+         */
         State getState() const;
+
         static State Cograph_Recognition(NetworKit::Graph &graph);
         void run() override;
         bool isCograph() const override;
@@ -41,8 +39,5 @@ namespace Koala {
     private:
         NetworKit::Graph graph;
         State is_cograph;
-
-
     };
-
 } /* namespace Koala */

@@ -6,7 +6,7 @@
 
 #include <list>
 
-#include <cograph_recognition/CorneilStewartPerlCographRecognition.h>
+#include "recognition/CorneilStewartPerlCographRecognition.h"
 
 #include "helpers.hpp"
 

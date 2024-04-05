@@ -1,9 +1,8 @@
 //
 // Created by milana on 30.03.24.
 //
-#include <cograph_recognition/CographRecognition.hpp>
 #include <list>
-#include <graph/GraphTools.hpp>
+#include "graph/GraphTools.hpp"
 namespace Koala {
     enum class Type{
         ZERO_ONE,
