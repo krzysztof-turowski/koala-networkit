@@ -94,9 +94,9 @@ namespace Koala {
         if (T->root->md != T->root->d - 1) {
             y = T->root;
         }
-            T->root->unmark();
-            T->root->md = 0;
-            w = T->root;
+        T->root->unmark();
+        T->root->md = 0;
+        w = T->root;
         std::queue<CoNode *> q;
         MadeQueueOfMarked(T->root, q);
         while(!q.empty()) {
