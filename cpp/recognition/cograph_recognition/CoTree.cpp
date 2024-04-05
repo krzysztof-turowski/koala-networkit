@@ -3,6 +3,7 @@
 //
 #include <list>
 #include "graph/GraphTools.hpp"
+
 namespace Koala {
     enum class Type {
         ZERO_ONE,
@@ -30,8 +31,9 @@ namespace Koala {
         CoNode *parent;
         std::vector<CoNode *> out_edges;//neighbours of cur vertex in G
 
-        CoNode(Type type, int number): type(type), number(number),marked(Marked::UNMARKED),md(0),d(0),in_graph(false),head_of_list_of_children(nullptr),
-                                       next(nullptr), prev(nullptr),parent(nullptr) {
+        CoNode(Type type, int number) : type(type), number(number), marked(Marked::UNMARKED), md(0), d(0),
+                                        in_graph(false), head_of_list_of_children(nullptr),
+                                        next(nullptr), prev(nullptr), parent(nullptr) {
 
         }
 
@@ -54,16 +56,19 @@ namespace Koala {
             marked = Marked::UNMARKED;
             md = 0;
         }
+
         void mark() {
             marked = Marked::MARKED;
         }
+
         void unmark() {
             marked = Marked::MARKED_AND_UNMARKED;
         }
+
         std::vector<CoNode *> RemoveWereMarked() {
             auto u = head_of_list_of_children;
             std::vector<CoNode *> vec;
-            while(u != nullptr) {
+            while (u != nullptr) {
                 vec.push_back(u);
                 d--;
                 head_of_list_of_children = u->next;
@@ -79,12 +84,13 @@ namespace Koala {
             }
             return vec;
         }
+
         void RemoveWereNotMarked() {
             auto u = head_of_list_of_children;
-            while(u != nullptr && u->marked == Marked::MARKED_AND_UNMARKED) {
+            while (u != nullptr && u->marked == Marked::MARKED_AND_UNMARKED) {
                 u = u->next;
             }
-            while(u != nullptr) {
+            while (u != nullptr) {
                 d--;
                 auto nxt = u->next;
                 auto prv = u->prev;
@@ -100,19 +106,23 @@ namespace Koala {
             }
         }
     };
-    class CoTree{
+
+    class CoTree {
     private:
         std::vector<CoNode *> save;
     public:
         CoNode *root;
-        explicit CoTree(CoNode *root):root(root) {
+
+        explicit CoTree(CoNode *root) : root(root) {
             save.push_back(root);
         }
+
         void Add(CoNode *x) {
             save.push_back(x);
         }
+
         void Clear() {
-            for (auto u : save) {
+            for (auto u: save) {
                 delete u;
             }
         }

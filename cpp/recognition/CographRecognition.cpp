@@ -1,11 +1,15 @@
 #include <list>
 #include "graph/GraphTools.hpp"
 #include "recognition/CorneilStewartPerlCographRecognition.h"
+
 namespace Koala {
-    CorneilStewartPerlCographRecognition::CorneilStewartPerlCographRecognition(NetworKit::Graph &graph):  graph(graph), is_cograph(State::UNKNOWN) {
+    CorneilStewartPerlCographRecognition::CorneilStewartPerlCographRecognition(NetworKit::Graph &graph) : graph(graph),
+                                                                                                          is_cograph(
+                                                                                                                  State::UNKNOWN) {
 
     }
-    bool CorneilStewartPerlCographRecognition::isCograph() const{
+
+    bool CorneilStewartPerlCographRecognition::isCograph() const {
         assureFinished();
         return is_cograph == State::COGRAPH;
     }
@@ -14,9 +18,11 @@ namespace Koala {
         assureFinished();
         return is_cograph;
     }
+
     CorneilStewartPerlCographRecognition::State recognition(NetworKit::Graph &graph) {
         return CorneilStewartPerlCographRecognition::Cograph_Recognition(graph);
     }
+
     void CorneilStewartPerlCographRecognition::run() {
         hasRun = true;
         if (is_cograph != State::UNKNOWN) {
@@ -32,8 +38,8 @@ namespace Koala {
     void CorneilStewartPerlCographRecognition::check() const {
         assureFinished();
         bool is_cograph = true;
-        for (auto e1 : graph.edgeRange()) {
-            for (auto e2 : graph.edgeRange()) {
+        for (auto e1: graph.edgeRange()) {
+            for (auto e2: graph.edgeRange()) {
                 auto x = e1.u;
                 auto y = e1.v;
                 auto u = e2.u;
