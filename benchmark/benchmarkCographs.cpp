@@ -9,14 +9,14 @@
 int main() {
     std::map<Koala::CorneilStewartPerlCographRecognition::State, int> classification;
     std::string types[] = {
-            "UNKNOWN",
-            "COGRAPH",
-            "CONTAINS_0_NODE",
-            "EXISTS_1_NODE_NOT_PROPERLY_MARKED",
-            "GRANDPARENT_IS_NOT_IN_SET",
-            "NO_ONE_PATH",
-            "WRONG_PARENT",
-            "WRONG_GRANDPARENT"
+        "UNKNOWN",
+        "COGRAPH",
+        "CONTAINS_0_NODE",
+        "EXISTS_1_NODE_NOT_PROPERLY_MARKED",
+        "GRANDPARENT_IS_NOT_IN_SET",
+        "NO_ONE_PATH",
+        "WRONG_PARENT",
+        "WRONG_GRANDPARENT"
     };
     while (true) {
         std::string line;
