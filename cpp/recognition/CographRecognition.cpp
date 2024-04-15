@@ -3,7 +3,9 @@
 #include "recognition/CorneilStewartPerlCographRecognition.hpp"
 
 namespace Koala {
+    CographRecognition::CographRecognition(NetworKit::Graph &graph) : graph(graph) {
 
+    }
     bool checkPath(const NetworKit::Graph &graph, NetworKit::node x, NetworKit::node y, NetworKit::node u, NetworKit::node v){
         return graph.hasEdge(y, u) && !graph.hasEdge(x, u) && !graph.hasEdge(x, v) && !graph.hasEdge(y, v);
     }

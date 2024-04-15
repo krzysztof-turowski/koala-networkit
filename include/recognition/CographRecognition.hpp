@@ -13,7 +13,7 @@ namespace Koala {
 
 class CographRecognition : public NetworKit::Algorithm {
  public:
-
+    explicit CographRecognition(NetworKit::Graph &graph);
     /**
      * Execute the cograph recognition procedure.
      */
