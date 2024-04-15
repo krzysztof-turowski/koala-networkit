@@ -29,8 +29,7 @@ namespace Koala {
          * @return State of the graph.
          */
         State getState() const;
-
-        static State Cograph_Recognition(NetworKit::Graph &graph);
+        CorneilStewartPerlCographRecognition::State Cograph_Recognition();
         void run() override;
         bool isCograph() const override;
         void check() const override;

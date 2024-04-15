@@ -17,16 +17,14 @@ namespace Koala {
         return is_cograph;
     }
 
-    CorneilStewartPerlCographRecognition::State recognition(NetworKit::Graph &graph) {
-        return CorneilStewartPerlCographRecognition::Cograph_Recognition(graph);
-    }
+
 
     void CorneilStewartPerlCographRecognition::run() {
         hasRun = true;
         if (is_cograph != State::UNKNOWN) {
             return;
         }
-        is_cograph = recognition(graph);
+        is_cograph = Cograph_Recognition();
         if (is_cograph != State::UNKNOWN) {
             return;
         }

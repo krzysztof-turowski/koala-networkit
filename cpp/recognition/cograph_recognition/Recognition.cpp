@@ -247,8 +247,7 @@ namespace Koala {
     }
 
 
-    CorneilStewartPerlCographRecognition::State
-    CorneilStewartPerlCographRecognition::Cograph_Recognition(NetworKit::Graph &graph) {
+    CorneilStewartPerlCographRecognition::State CorneilStewartPerlCographRecognition::Cograph_Recognition() {
         auto *R = new CoNode(Type::ZERO_ONE, 1);
         CoTree Tp(R);
         T = &Tp;
@@ -316,12 +315,12 @@ namespace Koala {
                     T->root = R1;
                 }
             } else {
-                auto u = FindLowest();
-                if (u.second != State::COGRAPH) {
+                auto [v, state] = FindLowest();
+                if (state != State::COGRAPH) {
                     T->Clear();
-                    return u.second;
+                    return state;
                 }
-                InsertXToCoTree(u.first, covertex[i]);
+                InsertXToCoTree(v, covertex[i]);
             }
             covertex[i]->in_graph = true;
         }
