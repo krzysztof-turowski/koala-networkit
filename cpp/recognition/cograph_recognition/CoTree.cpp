@@ -20,12 +20,10 @@ namespace Koala {
         Type type;
         int number;
         Marked marked;
-        int md, d;
-        bool in_graph;
-
         //d is the current number of children
         //md is the current number of children, which have been both "marked" and "unmarked"
-
+        int md, d;
+        bool in_graph;
         CoNode *head_of_list_of_children;
         CoNode *next, *prev;//in list of children of its parent
         CoNode *parent;
