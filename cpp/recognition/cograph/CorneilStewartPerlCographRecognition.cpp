@@ -4,7 +4,7 @@
 #include "CoTree.cpp"
 
 namespace Koala {
-    CoTree *T;
+    CoTree T;
     NetworKit::Graph G;
     int mark_count = 0;
     int mark_and_unmarked_count = 0;
@@ -17,7 +17,7 @@ namespace Koala {
         mark_count--;
         mark_and_unmarked_count++;
         u->md = 0;
-        if (u != T->root) {
+        if (u != T.root) {
             auto w = u->parent;
             w->md++;
             if (w->marked == Marked::UNMARKED) {
@@ -61,8 +61,8 @@ namespace Koala {
             Unmark(marked_with_d_equal_to_md);
         }
         if (mark_count) {
-            if (T->root->d == 1) {
-                T->root->mark();
+            if (T.root->d == 1) {
+                T.root->mark();
             }
         }
 
@@ -89,19 +89,19 @@ namespace Koala {
     }
 
     std::pair<CoNode*, CorneilStewartPerlCographRecognition::State> FindLowest() {
-        auto *y = T->Add(Type::ZERO_ONE, 2);
+        auto *y = T.Add(Type::ZERO_ONE, 2);
         CoNode *u, *w, *t;
-        if (T->root->marked == Marked::UNMARKED) {
+        if (T.root->marked == Marked::UNMARKED) {
             return {y, CorneilStewartPerlCographRecognition::State::GRANDPARENT_IS_NOT_IN_SET};
         }
-        if (T->root->md != T->root->d - 1) {
-            y = T->root;
+        if (T.root->md != T.root->d - 1) {
+            y = T.root;
         }
-        T->root->unmark();
-        T->root->md = 0;
-        w = T->root;
+        T.root->unmark();
+        T.root->md = 0;
+        w = T.root;
         std::queue<CoNode*> q;
-        MadeQueueOfMarked(T->root, q);
+        MadeQueueOfMarked(T.root, q);
         while (!q.empty()) {
             u = q.front();
             q.pop();
@@ -135,7 +135,7 @@ namespace Koala {
             u->unmark();
             u->md = 0;
             while (t != w) {
-                if (t == T->root) {//4
+                if (t == T.root) {//4
                     return {y, CorneilStewartPerlCographRecognition::State::NO_ONE_PATH};
                 }
                 if (t->marked != Marked::MARKED) {//3 or 5 or 6
@@ -191,7 +191,7 @@ namespace Koala {
                 w = GetLastFromChildren(u);
             }
             if (w->type == Type::VERTEX) {
-                auto *y = T->Add(Type::ZERO_ONE, u_number ^ 1);
+                auto *y = T.Add(Type::ZERO_ONE, u_number ^ 1);
                 if (u_number == 0) {
                     u->RemoveWereMarked();
                 } else {
@@ -205,7 +205,7 @@ namespace Koala {
             }
         } else {
             auto vec = u->RemoveWereMarked();
-            auto *y = T->Add(Type::ZERO_ONE, u_number);
+            auto *y = T.Add(Type::ZERO_ONE, u_number);
             for (auto v: vec) {
                 y->AddChild(v);
             }
@@ -226,14 +226,14 @@ namespace Koala {
                 if (u->parent != nullptr) {
                     y->parent = u->parent;
                 } else {
-                    T->root = y;
+                    T.root = y;
                 }
-                auto *z = T->Add(Type::ZERO_ONE, 0);
+                auto *z = T.Add(Type::ZERO_ONE, 0);
                 y->AddChild(z);
                 z->AddChild(x);
                 z->AddChild(u);
             } else {
-                auto *z = T->Add(Type::ZERO_ONE, 1);
+                auto *z = T.Add(Type::ZERO_ONE, 1);
                 u->AddChild(z);
                 z->AddChild(x);
                 z->AddChild(y);
@@ -243,9 +243,8 @@ namespace Koala {
 
 
     CorneilStewartPerlCographRecognition::State CorneilStewartPerlCographRecognition::Cograph_Recognition() {
-        auto *R = new CoNode(Type::ZERO_ONE, 1);
-        CoTree Tp(R);
-        T = &Tp;
+        auto *R = T.Add(Type::ZERO_ONE, 1);
+        T.root = R;
         G = graph;
         std::vector<NetworKit::node> vertex;
         std::vector<CoNode*> covertex;
@@ -254,7 +253,7 @@ namespace Koala {
         for (auto i: G.nodeRange()) {
             vertex.push_back(i);
             pos[i] = count++;
-            auto *C = T->Add(Type::VERTEX, int(i));
+            auto *C = T.Add(Type::VERTEX, int(i));
             covertex.push_back(C);
         }
         for (auto i: G.nodeRange()) {
@@ -266,19 +265,19 @@ namespace Koala {
         }
 
         if (count == 0) {
-            T->Clear();
+            T.Clear();
             return State::COGRAPH;
         }
         if (count == 1) {
             R->AddChild(covertex[0]);
-            T->Clear();
+            T.Clear();
             return State::COGRAPH;
         }
         if (G.hasEdge(vertex[0], vertex[1])) {
             R->AddChild(covertex[0]);
             R->AddChild(covertex[1]);
         } else {
-            auto *N = T->Add(Type::ZERO_ONE, 0);
+            auto *N = T.Add(Type::ZERO_ONE, 0);
             R->AddChild(N);
             N->AddChild(covertex[0]);
             N->AddChild(covertex[1]);
@@ -288,34 +287,34 @@ namespace Koala {
         CoNode *root;
 
         for (int i = 2; i < count; i++) {
-            root = T->root;
+            root = T.root;
             ResetAllCoNodes(root);
             Mark(covertex[i]);
-            if (root->marked ==
+            if (root -> marked ==
                 Marked::MARKED_AND_UNMARKED) {//all nodes of T were marked and unmarked <=> R is marked and unmarked
                 root->AddChild(covertex[i]);
             } else if (mark_ever_count == 0) {
                 if (root->d == 1) {
                     root->first_child->AddChild(covertex[i]);
                 } else {
-                    auto *R1 = T->Add(Type::ZERO_ONE, 1);
-                    auto *R2 = T->Add(Type::ZERO_ONE, 0);
+                    auto *R1 = T.Add(Type::ZERO_ONE, 1);
+                    auto *R2 = T.Add(Type::ZERO_ONE, 0);
                     R1->AddChild(R2);
                     R2->AddChild(root);
                     R2->AddChild(covertex[i]);
-                    T->root = R1;
+                    T.root = R1;
                 }
             } else {
                 auto [v, state] = FindLowest();
                 if (state != State::COGRAPH) {
-                    T->Clear();
+                    T.Clear();
                     return state;
                 }
                 InsertXToCoTree(v, covertex[i]);
             }
             covertex[i]->in_graph = true;
         }
-        T->Clear();
+        T.Clear();
         return State::COGRAPH;
     }
 

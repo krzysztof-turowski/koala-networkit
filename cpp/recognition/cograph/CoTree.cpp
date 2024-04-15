@@ -111,10 +111,6 @@ namespace Koala {
     public:
         CoNode *root;
 
-        explicit CoTree(CoNode *root) : root(root) {
-            save.push_back(root);
-        }
-
         CoNode* Add(Type type, int number) {
             CoNode *x = new CoNode(type, number);
             save.push_back(x);
@@ -125,6 +121,7 @@ namespace Koala {
             for (auto u: save) {
                 delete u;
             }
+            save.clear();
         }
     };
 }
