@@ -1,6 +1,6 @@
-#include "recognition/CorneilStewartPerlCographRecognition.hpp"
 #include <list>
-#include "graph/GraphTools.hpp"
+#include <graph/GraphTools.hpp>
+#include "recognition/CorneilStewartPerlCographRecognition.hpp"
 #include "CoTree.cpp"
 
 namespace Koala {

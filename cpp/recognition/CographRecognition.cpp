@@ -1,5 +1,5 @@
 #include <list>
-#include "graph/GraphTools.hpp"
+#include <graph/GraphTools.hpp>
 #include "recognition/CorneilStewartPerlCographRecognition.hpp"
 
 namespace Koala {
