@@ -3,9 +3,7 @@
 #include "recognition/CorneilStewartPerlCographRecognition.h"
 
 namespace Koala {
-    CorneilStewartPerlCographRecognition::CorneilStewartPerlCographRecognition(NetworKit::Graph &graph) : graph(graph),
-                                                                                                          is_cograph(
-                                                                                                                  State::UNKNOWN) {
+    CorneilStewartPerlCographRecognition::CorneilStewartPerlCographRecognition(NetworKit::Graph &graph) : graph(graph), is_cograph(State::UNKNOWN) {
 
     }
 
