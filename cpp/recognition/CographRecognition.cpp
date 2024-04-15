@@ -1,6 +1,6 @@
 #include <list>
 #include "graph/GraphTools.hpp"
-#include "recognition/CorneilStewartPerlCographRecognition.h"
+#include "recognition/CorneilStewartPerlCographRecognition.hpp"
 
 namespace Koala {
     CorneilStewartPerlCographRecognition::CorneilStewartPerlCographRecognition(NetworKit::Graph &graph) : graph(graph), is_cograph(State::UNKNOWN) {
@@ -33,7 +33,7 @@ namespace Koala {
     bool checkPath(const NetworKit::Graph &graph, NetworKit::node x, NetworKit::node y, NetworKit::node u, NetworKit::node v){
         return graph.hasEdge(y, u) && !graph.hasEdge(x, u) && !graph.hasEdge(x, v) && !graph.hasEdge(y, v);
     }
-    void CorneilStewartPerlCographRecognition::check() const {
+    void CographRecognition::check() const {
         assureFinished();
         for (const auto [x, y]: graph.edgeRange()) {
             for (const auto [u, v]: graph.edgeRange()) {

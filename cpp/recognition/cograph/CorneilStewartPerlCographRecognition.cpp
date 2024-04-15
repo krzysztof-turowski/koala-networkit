@@ -1,4 +1,4 @@
-#include "recognition/CorneilStewartPerlCographRecognition.h"
+#include "recognition/CorneilStewartPerlCographRecognition.hpp"
 #include <list>
 #include "graph/GraphTools.hpp"
 #include "CoTree.cpp"

@@ -29,7 +29,7 @@ class CographRecognition : public NetworKit::Algorithm {
     /**
      * Verify the result found by the algorithm.
      */
-    virtual void check() const = 0;
+    void check() const;
 
  protected:
     NetworKit::Graph graph;

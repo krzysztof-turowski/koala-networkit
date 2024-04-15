@@ -32,7 +32,6 @@ namespace Koala {
         CorneilStewartPerlCographRecognition::State Cograph_Recognition();
         void run() override;
         bool isCograph() const override;
-        void check() const override;
     private:
         NetworKit::Graph graph;
         State is_cograph;
