@@ -46,7 +46,7 @@ namespace Koala {
                     continue;
                 }
                 if (graph.hasEdge(y, u) && !graph.hasEdge(x, u) && !graph.hasEdge(x, v) && !graph.hasEdge(y, v)) {
-                    is_cograph = false;//not cograph
+                    is_cograph = false;
                     break;
                 }
             }
