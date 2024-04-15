@@ -3,7 +3,7 @@
 //
 #include <iostream>
 #include <map>
-#include "io/G6GraphReader.hpp"
+#include <io/G6GraphReader.hpp>
 #include "recognition/CorneilStewartPerlCographRecognition.h"
 
 int main() {
