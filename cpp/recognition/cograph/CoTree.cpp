@@ -90,17 +90,17 @@ namespace Koala {
             }
             while (u != nullptr) {
                 d--;
-                auto nxt = u->next;
-                auto prv = u->previous;
-                if (nxt != nullptr) {
-                    nxt->previous = prv;
+                auto next = u->next;
+                auto previous = u->previous;
+                if (next != nullptr) {
+                    next->previous = previous;
                 }
-                if (prv != nullptr) {
-                    prv->next = nxt;
+                if (previous != nullptr) {
+                    previous->next = next;
                 }
                 u->previous = nullptr;
                 u->next = nullptr;
-                u = nxt;
+                u = next;
             }
         }
     };
