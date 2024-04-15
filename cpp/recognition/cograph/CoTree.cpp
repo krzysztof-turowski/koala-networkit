@@ -115,8 +115,10 @@ namespace Koala {
             save.push_back(root);
         }
 
-        void Add(CoNode *x) {
+        CoNode* Add(Type type, int number) {
+            CoNode *x = new CoNode(type, number);
             save.push_back(x);
+            return x;
         }
 
         void Clear() {

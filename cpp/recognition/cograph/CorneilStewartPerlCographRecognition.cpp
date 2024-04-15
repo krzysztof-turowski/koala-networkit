@@ -89,8 +89,7 @@ namespace Koala {
     }
 
     std::pair<CoNode *, CorneilStewartPerlCographRecognition::State> FindLowest() {
-        auto *y = new CoNode(Type::ZERO_ONE, 2);
-        T->Add(y);
+        auto *y = T->Add(Type::ZERO_ONE, 2);
         CoNode *u, *w, *t;
         if (T->root->marked == Marked::UNMARKED) {
             return {y, CorneilStewartPerlCographRecognition::State::GRANDPARENT_IS_NOT_IN_SET};
@@ -192,8 +191,7 @@ namespace Koala {
                 w = GetLastFromChildren(u);
             }
             if (w->type == Type::VERTEX) {
-                auto *y = new CoNode(Type::ZERO_ONE, u_number ^ 1);
-                T->Add(y);
+                auto *y = T->Add(Type::ZERO_ONE, u_number ^ 1);
                 if (u_number == 0) {
                     u->RemoveWereMarked();
                 } else {
@@ -207,8 +205,7 @@ namespace Koala {
             }
         } else {
             auto vec = u->RemoveWereMarked();
-            auto *y = new CoNode(Type::ZERO_ONE, u_number);
-            T->Add(y);
+            auto *y = T->Add(Type::ZERO_ONE, u_number);
             for (auto v: vec) {
                 y->AddChild(v);
             }
@@ -231,14 +228,12 @@ namespace Koala {
                 } else {
                     T->root = y;
                 }
-                auto *z = new CoNode(Type::ZERO_ONE, 0);
-                T->Add(z);
+                auto *z = T->Add(Type::ZERO_ONE, 0);
                 y->AddChild(z);
                 z->AddChild(x);
                 z->AddChild(u);
             } else {
-                auto *z = new CoNode(Type::ZERO_ONE, 1);
-                T->Add(z);
+                auto *z = T->Add(Type::ZERO_ONE, 1);
                 u->AddChild(z);
                 z->AddChild(x);
                 z->AddChild(y);
@@ -259,8 +254,7 @@ namespace Koala {
         for (auto i: G.nodeRange()) {
             vertex.push_back(i);
             pos[i] = cnt++;
-            auto *C = new CoNode(Type::VERTEX, int(i));
-            T->Add(C);
+            auto *C = T->Add(Type::VERTEX, int(i));
             covertex.push_back(C);
         }
         for (auto i: G.nodeRange()) {
@@ -284,8 +278,7 @@ namespace Koala {
             R->AddChild(covertex[0]);
             R->AddChild(covertex[1]);
         } else {
-            auto *N = new CoNode(Type::ZERO_ONE, 0);
-            T->Add(N);
+            auto *N = T->Add(Type::ZERO_ONE, 0);
             R->AddChild(N);
             N->AddChild(covertex[0]);
             N->AddChild(covertex[1]);
@@ -305,10 +298,8 @@ namespace Koala {
                 if (root->d == 1) {
                     (root->head_of_list_of_children)->AddChild(covertex[i]);
                 } else {
-                    auto *R1 = new CoNode(Type::ZERO_ONE, 1);
-                    auto *R2 = new CoNode(Type::ZERO_ONE, 0);
-                    T->Add(R1);
-                    T->Add(R2);
+                    auto *R1 = T->Add(Type::ZERO_ONE, 1);
+                    auto *R2 = T->Add(Type::ZERO_ONE, 0);
                     R1->AddChild(R2);
                     R2->AddChild(root);
                     R2->AddChild(covertex[i]);
