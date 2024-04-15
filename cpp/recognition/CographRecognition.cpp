@@ -37,10 +37,8 @@ namespace Koala {
     }
     void CorneilStewartPerlCographRecognition::check() const {
         assureFinished();
-        for (auto e1: graph.edgeRange()) {
-            for (auto e2: graph.edgeRange()) {
-                auto [x, y] = e1;
-                auto [u, v] = e2;
+        for (const auto [x, y]: graph.edgeRange()) {
+            for (const auto [u, v]: graph.edgeRange()) {
                 if (x == u || x == v || y == u || y == v) {
                     continue;
                 }
