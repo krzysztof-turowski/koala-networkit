@@ -4,7 +4,7 @@
 #include <iostream>
 #include <map>
 #include <io/G6GraphReader.hpp>
-#include "recognition/CorneilStewartPerlCographRecognition.h"
+#include "recognition/CorneilStewartPerlCographRecognition.hpp"
 
 int main() {
     std::map<Koala::CorneilStewartPerlCographRecognition::State, int> classification;
