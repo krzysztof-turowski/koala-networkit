@@ -28,16 +28,16 @@ namespace Koala {
                 marked_with_d_equal_to_md.push(w);
             }
             auto nxt = u->next;
-            auto prv = u->prev;
+            auto prv = u->previous;
             auto head = w->first_child;
             if (prv != nullptr) {
                 prv->next = nxt;
                 if (nxt != nullptr) {
-                    nxt->prev = prv;
+                    nxt->previous = prv;
                 }
-                u->prev = nullptr;
+                u->previous = nullptr;
                 u->next = head;
-                head->prev = u;
+                head->previous = u;
                 w->first_child = u;
             }//else u is head
         }
@@ -211,14 +211,14 @@ namespace Koala {
             }
             if (u_number == 1) {
                 auto nxt = u->next;
-                auto prv = u->prev;
+                auto prv = u->previous;
                 if (prv != nullptr) {
                     prv->next = y;
                 }
                 if (nxt != nullptr) {
-                    nxt->prev = y;
+                    nxt->previous = y;
                 }
-                y->prev = prv;
+                y->previous = prv;
                 y->next = nxt;
                 if (prv == nullptr && u->parent != nullptr) {
                     u->parent->first_child = y;

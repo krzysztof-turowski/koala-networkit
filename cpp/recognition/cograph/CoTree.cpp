@@ -25,25 +25,25 @@ namespace Koala {
         int md, d;
         bool in_graph;
         CoNode *first_child;
-        CoNode *next, *prev;//in list of children of its parent
+        CoNode *next, *previous;//in list of children of its parent
         CoNode *parent;
         std::vector<CoNode*> out_edges;//neighbours of cur vertex in G
 
         CoNode(Type type, int number) : type(type), number(number), marked(Marked::UNMARKED), md(0), d(0),
                                         in_graph(false), first_child(nullptr),
-                                        next(nullptr), prev(nullptr), parent(nullptr) {
+                                        next(nullptr), previous(nullptr), parent(nullptr) {
 
         }
 
         void AddChild(CoNode *x) {
             if (first_child == nullptr) {
                 first_child = x;
-                x->prev = nullptr;
+                x->previous = nullptr;
                 x->next = nullptr;
             } else {
-                first_child->prev = x;
+                first_child->previous = x;
                 x->next = first_child;
-                x->prev = nullptr;
+                x->previous = nullptr;
                 first_child = x;
             }
             x->parent = this;
@@ -71,9 +71,9 @@ namespace Koala {
                 d--;
                 first_child = u->next;
                 if (first_child != nullptr) {
-                    first_child->prev = nullptr;
+                    first_child->previous = nullptr;
                 }
-                u->prev = nullptr;
+                u->previous = nullptr;
                 u->next = nullptr;
                 u = first_child;
                 if (u == nullptr || u->marked != Marked::MARKED_AND_UNMARKED) {
@@ -91,14 +91,14 @@ namespace Koala {
             while (u != nullptr) {
                 d--;
                 auto nxt = u->next;
-                auto prv = u->prev;
+                auto prv = u->previous;
                 if (nxt != nullptr) {
-                    nxt->prev = prv;
+                    nxt->previous = prv;
                 }
                 if (prv != nullptr) {
                     prv->next = nxt;
                 }
-                u->prev = nullptr;
+                u->previous = nullptr;
                 u->next = nullptr;
                 u = nxt;
             }
