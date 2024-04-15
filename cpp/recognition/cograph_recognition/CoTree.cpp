@@ -29,7 +29,7 @@ namespace Koala {
         CoNode *head_of_list_of_children;
         CoNode *next, *prev;//in list of children of its parent
         CoNode *parent;
-        std::vector<CoNode *> out_edges;//neighbours of cur vertex in G
+        std::vector<CoNode*> out_edges;//neighbours of cur vertex in G
 
         CoNode(Type type, int number) : type(type), number(number), marked(Marked::UNMARKED), md(0), d(0),
                                         in_graph(false), head_of_list_of_children(nullptr),
@@ -65,9 +65,9 @@ namespace Koala {
             marked = Marked::MARKED_AND_UNMARKED;
         }
 
-        std::vector<CoNode *> RemoveWereMarked() {
+        std::vector<CoNode*> RemoveWereMarked() {
             auto u = head_of_list_of_children;
-            std::vector<CoNode *> vec;
+            std::vector<CoNode*> vec;
             while (u != nullptr) {
                 vec.push_back(u);
                 d--;
@@ -109,7 +109,7 @@ namespace Koala {
 
     class CoTree {
     private:
-        std::vector<CoNode *> save;
+        std::vector<CoNode*> save;
     public:
         CoNode *root;
 

@@ -23,8 +23,6 @@ namespace Koala {
             WRONG_PARENT,
             WRONG_GRANDPARENT
         };
-
-
         /**
          * Return the graph type found by the algorithm.
          *

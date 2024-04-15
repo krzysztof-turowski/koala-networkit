@@ -10,7 +10,7 @@ namespace Koala {
     int mark_and_unmarked_count = 0;
     int mark_ever_count = 0;
 
-    void Unmark(std::queue<CoNode *> &marked_with_d_equal_to_md) {
+    void Unmark(std::queue<CoNode*> &marked_with_d_equal_to_md) {
         CoNode *u = marked_with_d_equal_to_md.front();
         marked_with_d_equal_to_md.pop();
         u->unmark();
@@ -44,7 +44,7 @@ namespace Koala {
     }
 
     void Mark(CoNode *x) {
-        std::queue<CoNode *> marked_with_d_equal_to_md;
+        std::queue<CoNode*> marked_with_d_equal_to_md;
         mark_count = 0;
         mark_and_unmarked_count = 0;
         mark_ever_count = 0;
@@ -77,7 +77,7 @@ namespace Koala {
         }
     }
 
-    void MadeQueueOfMarked(CoNode *x, std::queue<CoNode *> &q) {
+    void MadeQueueOfMarked(CoNode *x, std::queue<CoNode*> &q) {
         if (x->marked == Marked::MARKED) {
             q.push(x);
         }
@@ -101,7 +101,7 @@ namespace Koala {
         T->root->unmark();
         T->root->md = 0;
         w = T->root;
-        std::queue<CoNode *> q;
+        std::queue<CoNode*> q;
         MadeQueueOfMarked(T->root, q);
         while (!q.empty()) {
             u = q.front();
@@ -163,9 +163,9 @@ namespace Koala {
     }
 
 
-    std::vector<CoNode *> GetWereMarked(CoNode *u) {
+    std::vector<CoNode*> GetWereMarked(CoNode *u) {
         auto x = u->head_of_list_of_children;
-        std::vector<CoNode *> a;
+        std::vector<CoNode*> a;
         while (x != nullptr && x->marked == Marked::MARKED_AND_UNMARKED) {
             a.push_back(x);
             x = x->next;
@@ -183,7 +183,7 @@ namespace Koala {
     }
 
     void InsertXToCoTree(CoNode *u, CoNode *x) {
-        std::vector<CoNode *> a;
+        std::vector<CoNode*> a;
         int u_number = u->number;
         a = GetWereMarked(u);
         if ((a.size() == 1 && u_number == 0) || (u->d - a.size() == 1 && u_number == 1)) {
@@ -254,7 +254,7 @@ namespace Koala {
         T = &Tp;
         G = graph;
         std::vector<NetworKit::node> vertex;
-        std::vector<CoNode *> covertex;
+        std::vector<CoNode*> covertex;
         std::map<NetworKit::node, int> pos;
         int cnt = 0;
         for (auto i: G.nodeRange()) {
@@ -265,7 +265,7 @@ namespace Koala {
             covertex.push_back(C);
         }
         for (auto i: G.nodeRange()) {
-            std::vector<CoNode *> vec;
+            std::vector<CoNode*> vec;
             for (auto u: G.neighborRange(i)) {
                 vec.push_back(covertex[pos[u]]);
             }
