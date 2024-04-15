@@ -250,10 +250,10 @@ namespace Koala {
         std::vector<NetworKit::node> vertex;
         std::vector<CoNode*> covertex;
         std::map<NetworKit::node, int> pos;
-        int cnt = 0;
+        int count = 0;
         for (auto i: G.nodeRange()) {
             vertex.push_back(i);
-            pos[i] = cnt++;
+            pos[i] = count++;
             auto *C = T->Add(Type::VERTEX, int(i));
             covertex.push_back(C);
         }
@@ -265,11 +265,11 @@ namespace Koala {
             covertex[pos[i]]->out_edges = vec;
         }
 
-        if (cnt == 0) {
+        if (count == 0) {
             T->Clear();
             return State::COGRAPH;
         }
-        if (cnt == 1) {
+        if (count == 1) {
             R->AddChild(covertex[0]);
             T->Clear();
             return State::COGRAPH;
@@ -287,7 +287,7 @@ namespace Koala {
         covertex[1]->in_graph = true;
         CoNode *root;
 
-        for (int i = 2; i < cnt; i++) {
+        for (int i = 2; i < count; i++) {
             root = T->root;
             ResetAllCoNodes(root);
             Mark(covertex[i]);
