@@ -90,7 +90,6 @@ namespace Koala {
 
     std::pair<CoNode*, CorneilStewartPerlCographRecognition::State> FindLowest() {
         auto *y = T.Add(Type::ZERO_ONE, 2);
-        CoNode *u, *w, *t;
         if (T.root->marked == Marked::UNMARKED) {
             return {y, CorneilStewartPerlCographRecognition::State::GRANDPARENT_IS_NOT_IN_SET};
         }
@@ -99,11 +98,11 @@ namespace Koala {
         }
         T.root->unmark();
         T.root->md = 0;
-        w = T.root;
+        CoNode *w = T.root;
         std::queue<CoNode*> q;
         MadeQueueOfMarked(T.root, q);
         while (!q.empty()) {
-            u = q.front();
+            CoNode *u = q.front();
             q.pop();
             if (u->marked != Marked::MARKED) {
                 continue;
@@ -115,6 +114,7 @@ namespace Koala {
                     return {y, CorneilStewartPerlCographRecognition::State::EXISTS_1_NODE_NOT_PROPERLY_MARKED};
                 }
             }
+            CoNode *t = u->parent;
             if (u->number == 1) {
                 if (u->md != u->d - 1) {
                     y = u;
