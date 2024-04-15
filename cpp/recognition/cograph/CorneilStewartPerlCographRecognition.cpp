@@ -29,7 +29,7 @@ namespace Koala {
             }
             auto nxt = u->next;
             auto prv = u->prev;
-            auto head = w->head_of_list_of_children;
+            auto head = w->first_child;
             if (prv != nullptr) {
                 prv->next = nxt;
                 if (nxt != nullptr) {
@@ -38,7 +38,7 @@ namespace Koala {
                 u->prev = nullptr;
                 u->next = head;
                 head->prev = u;
-                w->head_of_list_of_children = u;
+                w->first_child = u;
             }//else u is head
         }
     }
@@ -70,7 +70,7 @@ namespace Koala {
 
     void ResetAllCoNodes(CoNode *x, int level = 0) {
         x->UnmarkForNewIteration();
-        CoNode *y = x->head_of_list_of_children;
+        CoNode *y = x->first_child;
         while (y != nullptr) {
             ResetAllCoNodes(y, level + 1);
             y = y->next;
@@ -81,7 +81,7 @@ namespace Koala {
         if (x->marked == Marked::MARKED) {
             q.push(x);
         }
-        auto y = x->head_of_list_of_children;
+        auto y = x->first_child;
         while (y != nullptr) {
             MadeQueueOfMarked(y, q);
             y = y->next;
@@ -163,7 +163,7 @@ namespace Koala {
 
 
     std::vector<CoNode*> GetWereMarked(CoNode *u) {
-        auto x = u->head_of_list_of_children;
+        auto x = u->first_child;
         std::vector<CoNode*> a;
         while (x != nullptr && x->marked == Marked::MARKED_AND_UNMARKED) {
             a.push_back(x);
@@ -174,7 +174,7 @@ namespace Koala {
 
 
     CoNode *GetLastFromChildren(CoNode *u) {
-        auto x = u->head_of_list_of_children;
+        auto x = u->first_child;
         while (x != nullptr && x->marked == Marked::MARKED_AND_UNMARKED) {
             x = x->next;
         }
@@ -221,7 +221,7 @@ namespace Koala {
                 y->prev = prv;
                 y->next = nxt;
                 if (prv == nullptr && u->parent != nullptr) {
-                    u->parent->head_of_list_of_children = y;
+                    u->parent->first_child = y;
                 }
                 if (u->parent != nullptr) {
                     y->parent = u->parent;
@@ -296,7 +296,7 @@ namespace Koala {
                 root->AddChild(covertex[i]);
             } else if (mark_ever_count == 0) {
                 if (root->d == 1) {
-                    (root->head_of_list_of_children)->AddChild(covertex[i]);
+                    root->first_child->AddChild(covertex[i]);
                 } else {
                     auto *R1 = T->Add(Type::ZERO_ONE, 1);
                     auto *R2 = T->Add(Type::ZERO_ONE, 0);

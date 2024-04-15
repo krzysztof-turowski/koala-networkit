@@ -24,27 +24,27 @@ namespace Koala {
         //md is the current number of children, which have been both "marked" and "unmarked"
         int md, d;
         bool in_graph;
-        CoNode *head_of_list_of_children;
+        CoNode *first_child;
         CoNode *next, *prev;//in list of children of its parent
         CoNode *parent;
         std::vector<CoNode*> out_edges;//neighbours of cur vertex in G
 
         CoNode(Type type, int number) : type(type), number(number), marked(Marked::UNMARKED), md(0), d(0),
-                                        in_graph(false), head_of_list_of_children(nullptr),
+                                        in_graph(false), first_child(nullptr),
                                         next(nullptr), prev(nullptr), parent(nullptr) {
 
         }
 
         void AddChild(CoNode *x) {
-            if (head_of_list_of_children == nullptr) {
-                head_of_list_of_children = x;
+            if (first_child == nullptr) {
+                first_child = x;
                 x->prev = nullptr;
                 x->next = nullptr;
             } else {
-                head_of_list_of_children->prev = x;
-                x->next = head_of_list_of_children;
+                first_child->prev = x;
+                x->next = first_child;
                 x->prev = nullptr;
-                head_of_list_of_children = x;
+                first_child = x;
             }
             x->parent = this;
             d++;
@@ -64,18 +64,18 @@ namespace Koala {
         }
 
         std::vector<CoNode*> RemoveWereMarked() {
-            auto u = head_of_list_of_children;
+            auto u = first_child;
             std::vector<CoNode*> vec;
             while (u != nullptr) {
                 vec.push_back(u);
                 d--;
-                head_of_list_of_children = u->next;
-                if (head_of_list_of_children != nullptr) {
-                    head_of_list_of_children->prev = nullptr;
+                first_child = u->next;
+                if (first_child != nullptr) {
+                    first_child->prev = nullptr;
                 }
                 u->prev = nullptr;
                 u->next = nullptr;
-                u = head_of_list_of_children;
+                u = first_child;
                 if (u == nullptr || u->marked != Marked::MARKED_AND_UNMARKED) {
                     break;
                 }
@@ -84,7 +84,7 @@ namespace Koala {
         }
 
         void RemoveWereNotMarked() {
-            auto u = head_of_list_of_children;
+            auto u = first_child;
             while (u != nullptr && u->marked == Marked::MARKED_AND_UNMARKED) {
                 u = u->next;
             }
