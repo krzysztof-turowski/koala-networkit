@@ -328,7 +328,8 @@ namespace Koala {
         return State::COGRAPH;
     }
 
-    CorneilStewartPerlCographRecognition::CorneilStewartPerlCographRecognition(NetworKit::Graph &graph) : graph(graph), is_cograph(State::UNKNOWN) {
+    CorneilStewartPerlCographRecognition::CorneilStewartPerlCographRecognition(
+        NetworKit::Graph &graph) : graph(graph), is_cograph(State::UNKNOWN) {
 
     }
 
