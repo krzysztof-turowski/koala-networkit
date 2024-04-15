@@ -3,7 +3,7 @@
 #include <list>
 #include <graph/GraphTools.hpp>
 #include "recognition/CorneilStewartPerlCographRecognition.hpp"
-#include "CoTree.cpp"
+#include "recognition/CoTree.hpp"
 
 namespace Koala {
     CoTree T;
