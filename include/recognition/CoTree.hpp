@@ -2,9 +2,10 @@
 // Created by milana on 15.04.24.
 // Copyright 2024 milana
 //
+#ifndef INCLUDE_RECOGNITION_COTREE_HPP_
+#define INCLUDE_RECOGNITION_COTREE_HPP_
 
-#ifndef KOALA_NETWORKIT_COTREE_H
-#define KOALA_NETWORKIT_COTREE_H
+#include <vector>
 
 namespace Koala {
     enum class Type {
@@ -16,8 +17,8 @@ namespace Koala {
         MARKED,
         MARKED_AND_UNMARKED
     };
-    class CoNode{
-    public:
+class CoNode{
+ public:
         Type type;
         int number;
         Marked marked;
@@ -38,17 +39,17 @@ namespace Koala {
         void unmark();
         std::vector<CoNode*> RemoveWereMarked();
         void RemoveWereNotMarked();
-    };
+};
 
-    class CoTree {
-    private:
+class CoTree {
+ private:
         std::vector<CoNode*> save;
-    public:
+ public:
         CoNode *root;
 
         CoNode* Add(Type type, int number);
         void Clear();
-    };
+};
 }  // namespace Koala
 
-#endif //KOALA_NETWORKIT_COTREE_H
+#endif  // INCLUDE_RECOGNITION_COTREE_HPP_
