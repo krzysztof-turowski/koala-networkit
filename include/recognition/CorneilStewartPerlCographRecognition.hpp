@@ -1,3 +1,5 @@
+// Copyright 2024 milana
+
 #pragma once
 
 #include <optional>
@@ -10,8 +12,8 @@
 #include "recognition/CographRecognition.hpp"
 
 namespace Koala {
-    class CorneilStewartPerlCographRecognition : public CographRecognition {
-    public:
+class CorneilStewartPerlCographRecognition : public CographRecognition {
+ public:
         using CographRecognition::CographRecognition;
         enum class State {
             UNKNOWN,
@@ -32,7 +34,7 @@ namespace Koala {
         CorneilStewartPerlCographRecognition::State Cograph_Recognition();
         void run() override;
         bool isCograph() const override;
-    private:
+ private:
         State is_cograph = State::UNKNOWN;
-    };
+};
 } /* namespace Koala */

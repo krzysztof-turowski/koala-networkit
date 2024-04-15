@@ -1,3 +1,5 @@
+// Copyright 2024 milana
+
 #pragma once
 
 #include <optional>
@@ -13,7 +15,7 @@ namespace Koala {
 
 class CographRecognition : public NetworKit::Algorithm {
  public:
-    explicit CographRecognition(NetworKit::Graph &graph);
+    explicit CographRecognition(const NetworKit::Graph &graph);
     /**
      * Execute the cograph recognition procedure.
      */
