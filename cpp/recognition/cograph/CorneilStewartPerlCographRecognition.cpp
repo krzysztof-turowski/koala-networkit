@@ -284,23 +284,21 @@ namespace Koala {
         }
         covertex[0]->in_graph = true;
         covertex[1]->in_graph = true;
-        CoNode *root;
 
         for (int i = 2; i < count; i++) {
-            root = T.root;
-            ResetAllCoNodes(root);
+            ResetAllCoNodes(T.root);
             Mark(covertex[i]);
-            if (root -> marked ==
+            if (T.root->marked ==
                 Marked::MARKED_AND_UNMARKED) {//all nodes of T were marked and unmarked <=> R is marked and unmarked
-                root->AddChild(covertex[i]);
+                T.root->AddChild(covertex[i]);
             } else if (mark_ever_count == 0) {
-                if (root->d == 1) {
-                    root->first_child->AddChild(covertex[i]);
+                if (T.root->d == 1) {
+                    T.root->first_child->AddChild(covertex[i]);
                 } else {
                     auto *R1 = T.Add(Type::ZERO_ONE, 1);
                     auto *R2 = T.Add(Type::ZERO_ONE, 0);
                     R1->AddChild(R2);
-                    R2->AddChild(root);
+                    R2->AddChild(T.root);
                     R2->AddChild(covertex[i]);
                     T.root = R1;
                 }
