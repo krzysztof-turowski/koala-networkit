@@ -63,10 +63,8 @@ namespace Koala {
         while (!marked_with_d_equal_to_md.empty()) {
             Unmark(marked_with_d_equal_to_md);
         }
-        if (mark_count) {
-            if (T.root->d == 1) {
-                T.root->mark();
-            }
+        if (mark_count && T.root->d == 1) {
+            T.root->mark();
         }
     }
 

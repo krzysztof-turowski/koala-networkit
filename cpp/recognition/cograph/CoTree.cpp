@@ -83,7 +83,7 @@ namespace Koala {
     }
 
     CoNode* CoTree::Add(Type type, int number) {
-        CoNode *x = new CoNode(type, number);
+        auto *x = new CoNode(type, number);
         save.push_back(x);
         return x;
     }
