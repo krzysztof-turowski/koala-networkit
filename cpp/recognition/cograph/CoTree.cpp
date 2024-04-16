@@ -10,6 +10,7 @@
 #include "recognition/CoTree.hpp"
 
 namespace Koala {
+
     CoNode::CoNode(Type type, int number) : type(type), number(number),
     marked(Marked::UNMARKED), md(0), d(0), in_graph(false),
     first_child(nullptr), next(nullptr), previous(nullptr),

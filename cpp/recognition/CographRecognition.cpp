@@ -11,6 +11,7 @@
 #include "recognition/CorneilStewartPerlCographRecognition.hpp"
 
 namespace Koala {
+
     CographRecognition::CographRecognition(const NetworKit::Graph &graph)
     : graph(graph) {}
 

@@ -19,6 +19,7 @@
 #include "recognition/CoTree.hpp"
 
 namespace Koala {
+
 class CorneilStewartPerlCographRecognition : public CographRecognition {
  public:
         using CographRecognition::CographRecognition;

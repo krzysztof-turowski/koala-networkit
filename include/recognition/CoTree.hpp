@@ -11,6 +11,7 @@
 #include <vector>
 
 namespace Koala {
+
     enum class Type {
         ZERO_ONE,
         VERTEX

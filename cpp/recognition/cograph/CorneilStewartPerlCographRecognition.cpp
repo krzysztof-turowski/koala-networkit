@@ -11,6 +11,7 @@
 #include "recognition/CoTree.hpp"
 
 namespace Koala {
+
     void CorneilStewartPerlCographRecognition::
     Unmark() {
         CoNode *u = marked_with_d_equal_to_md.front();
