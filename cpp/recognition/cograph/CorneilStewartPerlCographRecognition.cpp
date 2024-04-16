@@ -78,14 +78,7 @@ namespace Koala {
     }
 
     void MadeQueueOfMarked(CoNode *x, std::queue<CoNode*> &q) {
-        if (x->marked == Marked::MARKED) {
-            q.push(x);
-        }
-        auto y = x->first_child;
-        while (y != nullptr) {
-            MadeQueueOfMarked(y, q);
-            y = y->next;
-        }
+
     }
 
     std::pair<CoNode*, CorneilStewartPerlCographRecognition::State>
@@ -102,7 +95,20 @@ namespace Koala {
         T.root->md = 0;
         CoNode *w = T.root;
         std::queue<CoNode*> q;
-        MadeQueueOfMarked(T.root, q);
+        std::stack<CoNode*> s;
+        s.push(T.root);
+        while(!s.empty()) {
+            auto x = s.top();
+            s.pop();
+            if (x->marked == Marked::MARKED) {
+                q.push(x);
+            }
+            auto z = x->first_child;
+            while (z != nullptr) {
+                s.push(z);
+                z = z->next;
+            }
+        }
         while (!q.empty()) {
             CoNode *u = q.front();
             q.pop();
