@@ -16,11 +16,13 @@ namespace Koala {
         ZERO_ONE,
         VERTEX
     };
+
     enum class Marked {
         UNMARKED,
         MARKED,
         MARKED_AND_UNMARKED
     };
+
 class CoNode{
  public:
         Type type;
@@ -54,4 +56,5 @@ class CoTree {
         CoNode* Add(Type type, int number);
         void Clear();
 };
+
 }  // namespace Koala

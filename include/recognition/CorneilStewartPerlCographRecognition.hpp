@@ -56,4 +56,5 @@ class CorneilStewartPerlCographRecognition : public CographRecognition {
         int mark_ever_count = 0;
         std::queue<CoNode*> marked_with_d_equal_to_md;  // TODO: get rid of this
 };
+
 } /* namespace Koala */

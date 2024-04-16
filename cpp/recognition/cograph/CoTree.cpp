@@ -98,4 +98,5 @@ namespace Koala {
         }
         save.clear();
     }
+
 }  // namespace Koala

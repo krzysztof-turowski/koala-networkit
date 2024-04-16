@@ -174,7 +174,6 @@ namespace Koala {
         return {w, CorneilStewartPerlCographRecognition::State::COGRAPH};
     }
 
-
     std::vector<CoNode*> GetWereMarked(CoNode *u) {
         auto x = u->first_child;
         std::vector<CoNode*> a;
@@ -184,7 +183,6 @@ namespace Koala {
         }
         return a;
     }
-
 
     CoNode* GetLastFromChildren(CoNode *u) {
         auto x = u->first_child;
@@ -255,7 +253,6 @@ namespace Koala {
             }
         }
     }
-
 
     CorneilStewartPerlCographRecognition::State
     CorneilStewartPerlCographRecognition::Recognition() {
@@ -333,8 +330,6 @@ namespace Koala {
         T.Clear();
         return State::COGRAPH;
     }
-
-
 
     bool CorneilStewartPerlCographRecognition::isCograph() const {
         assureFinished();
