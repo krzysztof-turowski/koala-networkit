@@ -1,3 +1,9 @@
+/*
+ * CographRecognition.cpp
+ *
+ *  Created on: 2024
+ *      Author: fixikmila
+ */
 // Copyright 2024 milana
 
 #include <list>

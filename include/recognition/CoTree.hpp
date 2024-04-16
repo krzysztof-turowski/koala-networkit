@@ -1,9 +1,12 @@
-//
-// Created by milana on 15.04.24.
+/*
+ * CoTree.hpp
+ *
+ *  Created on: 2024
+ *      Author: fixikmila
+ */
 // Copyright 2024 milana
-//
-#ifndef INCLUDE_RECOGNITION_COTREE_HPP_
-#define INCLUDE_RECOGNITION_COTREE_HPP_
+
+#pragma once
 
 #include <vector>
 
@@ -51,5 +54,3 @@ class CoTree {
         void Clear();
 };
 }  // namespace Koala
-
-#endif  // INCLUDE_RECOGNITION_COTREE_HPP_

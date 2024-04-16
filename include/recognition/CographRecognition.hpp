@@ -1,3 +1,9 @@
+/*
+ * CographRecognition.hpp
+ *
+ *  Created on: 2024
+ *      Author: fixikmila
+ */
 // Copyright 2024 milana
 
 #pragma once

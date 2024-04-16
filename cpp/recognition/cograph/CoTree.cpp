@@ -1,8 +1,11 @@
-//
-// Created by milana on 30.03.24.
+/*
+ * CoTree.cpp
+ *
+ *  Created on: 2024
+ *      Author: fixikmila
+ */
 // Copyright 2024 milana
-//
-#include <list>
+
 #include <graph/GraphTools.hpp>
 #include "recognition/CoTree.hpp"
 
