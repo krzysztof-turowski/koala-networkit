@@ -7,7 +7,7 @@
 // Copyright 2024 milana
 
 #include <graph/GraphTools.hpp>
-#include "recognition/CorneilStewartPerlCographRecognition.hpp"
+#include "recognition/CographRecognition.hpp"
 #include "recognition/CoTree.hpp"
 
 namespace Koala {
