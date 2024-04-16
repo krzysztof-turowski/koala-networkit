@@ -20,6 +20,7 @@ int main() {
     };
 
     while (true) {
+        std::ifstream fin("../../input/");
         std::string line;
         std::cin >> line;
         if (!std::cin.good()) {
