@@ -6,13 +6,10 @@
 #include "recognition/CoTree.hpp"
 
 namespace Koala {
-    CoTree T;
-    NetworKit::Graph G;
-    int mark_count = 0;
-    int mark_and_unmarked_count = 0;
-    int mark_ever_count = 0;
 
-    void Unmark(std::queue<CoNode*> &marked_with_d_equal_to_md) {
+
+    void CorneilStewartPerlCographRecognition::
+    Unmark(std::queue<CoNode*> &marked_with_d_equal_to_md) {
         CoNode *u = marked_with_d_equal_to_md.front();
         marked_with_d_equal_to_md.pop();
         u->unmark();
@@ -45,7 +42,7 @@ namespace Koala {
         }
     }
 
-    void Mark(CoNode *x) {
+    void CorneilStewartPerlCographRecognition::Mark(CoNode *x) {
         std::queue<CoNode*> marked_with_d_equal_to_md;
         mark_count = 0;
         mark_and_unmarked_count = 0;
@@ -77,12 +74,8 @@ namespace Koala {
         }
     }
 
-    void MadeQueueOfMarked(CoNode *x, std::queue<CoNode*> &q) {
-
-    }
-
     std::pair<CoNode*, CorneilStewartPerlCographRecognition::State>
-    FindLowest() {
+    CorneilStewartPerlCographRecognition::FindLowest() {
         auto *y = T.Add(Type::ZERO_ONE, 2);
         if (T.root->marked == Marked::UNMARKED) {
             return {y, CorneilStewartPerlCographRecognition::State::
@@ -198,7 +191,8 @@ namespace Koala {
         return x;
     }
 
-    void InsertXToCoTree(CoNode *u, CoNode *x) {
+    void CorneilStewartPerlCographRecognition::
+    InsertXToCoTree(CoNode *u, CoNode *x) {
         std::vector<CoNode*> a;
         int u_number = u->number;
         a = GetWereMarked(u);

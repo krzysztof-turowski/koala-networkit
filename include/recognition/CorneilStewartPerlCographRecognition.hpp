@@ -10,6 +10,7 @@
 #include "networkit/graph/Graph.hpp"
 #include "networkit/graph/GraphTools.hpp"
 #include "recognition/CographRecognition.hpp"
+#include "recognition/CoTree.hpp"
 
 namespace Koala {
 class CorneilStewartPerlCographRecognition : public CographRecognition {
@@ -34,7 +35,17 @@ class CorneilStewartPerlCographRecognition : public CographRecognition {
         CorneilStewartPerlCographRecognition::State Cograph_Recognition();
         void run() override;
         bool isCograph() const override;
+        void Unmark(std::queue<CoNode*> &marked_with_d_equal_to_md);
+        void Mark(CoNode *x);
+        std::pair<CoNode*, CorneilStewartPerlCographRecognition::State>FindLowest();
+        void InsertXToCoTree(CoNode *u, CoNode *x);
+
  private:
         State is_cograph = State::UNKNOWN;
+        CoTree T;
+        NetworKit::Graph G;
+        int mark_count = 0;
+        int mark_and_unmarked_count = 0;
+        int mark_ever_count = 0;
 };
 } /* namespace Koala */
