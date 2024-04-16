@@ -89,7 +89,7 @@ namespace Koala {
         std::queue<CoNode*> q;
         std::stack<CoNode*> s;
         s.push(T.root);
-        while(!s.empty()) {
+        while (!s.empty()) {
             auto x = s.top();
             s.pop();
             if (x->marked == Marked::MARKED) {
