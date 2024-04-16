@@ -9,7 +9,7 @@ namespace Koala {
 
 
     void CorneilStewartPerlCographRecognition::
-    Unmark(std::queue<CoNode*> &marked_with_d_equal_to_md) {
+    Unmark() {
         CoNode *u = marked_with_d_equal_to_md.front();
         marked_with_d_equal_to_md.pop();
         u->unmark();
@@ -43,7 +43,6 @@ namespace Koala {
     }
 
     void CorneilStewartPerlCographRecognition::Mark(CoNode *x) {
-        std::queue<CoNode*> marked_with_d_equal_to_md;
         mark_count = 0;
         mark_and_unmarked_count = 0;
         mark_ever_count = 0;
@@ -58,7 +57,7 @@ namespace Koala {
             marked_with_d_equal_to_md.push(u);
         }
         while (!marked_with_d_equal_to_md.empty()) {
-            Unmark(marked_with_d_equal_to_md);
+            Unmark();
         }
         if (mark_count && T.root->d == 1) {
             T.root->mark();

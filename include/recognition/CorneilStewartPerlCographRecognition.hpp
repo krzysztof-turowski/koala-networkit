@@ -35,7 +35,7 @@ class CorneilStewartPerlCographRecognition : public CographRecognition {
         CorneilStewartPerlCographRecognition::State Cograph_Recognition();
         void run() override;
         bool isCograph() const override;
-        void Unmark(std::queue<CoNode*> &marked_with_d_equal_to_md);
+        void Unmark();
         void Mark(CoNode *x);
         std::pair<CoNode*, CorneilStewartPerlCographRecognition::State>FindLowest();
         void InsertXToCoTree(CoNode *u, CoNode *x);
@@ -47,5 +47,6 @@ class CorneilStewartPerlCographRecognition : public CographRecognition {
         int mark_count = 0;
         int mark_and_unmarked_count = 0;
         int mark_ever_count = 0;
+        std::queue<CoNode*> marked_with_d_equal_to_md;  // TODO: get rid of this
 };
 } /* namespace Koala */
