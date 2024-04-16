@@ -39,7 +39,7 @@ class CorneilStewartPerlCographRecognition : public CographRecognition {
          * @return State of the graph.
          */
         State getState() const;
-        CorneilStewartPerlCographRecognition::State Cograph_Recognition();
+        CorneilStewartPerlCographRecognition::State Recognition();
         void run() override;
         bool isCograph() const override;
         void Unmark();

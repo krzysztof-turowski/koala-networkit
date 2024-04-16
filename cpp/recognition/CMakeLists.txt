@@ -6,8 +6,8 @@ koala_add_module(recognition
    perfect/NearCleaners.cpp
 )
 koala_add_module(cograph
-   cograph/CorneilStewartPerlCographRecognition.cpp
    CographRecognition.cpp
+   cograph/CorneilStewartPerlCographRecognition.cpp
    cograph/CoTree.cpp
 )
 

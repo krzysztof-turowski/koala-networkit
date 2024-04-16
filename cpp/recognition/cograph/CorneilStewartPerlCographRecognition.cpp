@@ -258,7 +258,7 @@ namespace Koala {
 
 
     CorneilStewartPerlCographRecognition::State
-    CorneilStewartPerlCographRecognition::Cograph_Recognition() {
+    CorneilStewartPerlCographRecognition::Recognition() {
         auto *R = T.Add(Type::ZERO_ONE, 1);
         T.root = R;
         G = graph;
@@ -349,7 +349,7 @@ namespace Koala {
 
     void CorneilStewartPerlCographRecognition::run() {
         hasRun = true;
-        is_cograph = Cograph_Recognition();
+        is_cograph = Recognition();
         return;
     }
 
