@@ -7,6 +7,7 @@
 // Copyright 2024 milana
 
 #include <graph/GraphTools.hpp>
+
 #include "recognition/CoTree.hpp"
 
 namespace Koala {

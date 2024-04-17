@@ -8,13 +8,14 @@
 
 #pragma once
 
-#include <optional>
-#include <vector>
-
 #include "networkit/base/Algorithm.hpp"
 #include "networkit/components/ConnectedComponents.hpp"
 #include "networkit/graph/Graph.hpp"
 #include "networkit/graph/GraphTools.hpp"
+
+#include <optional>
+#include <vector>
+
 #include "recognition/CoTree.hpp"
 
 namespace Koala {
