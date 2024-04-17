@@ -49,10 +49,10 @@ class CoNode{
 
 class CoTree {
  private:
-        std::vector<CoNode*> save;
+        std::vector<CoNode> save;
  public:
         CoNode *root;
-
+        void ReserveSpace(int n);
         CoNode* Add(Type type, int number);
         void Clear();
 };

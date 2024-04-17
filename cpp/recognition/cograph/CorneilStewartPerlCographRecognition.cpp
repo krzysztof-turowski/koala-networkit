@@ -246,6 +246,11 @@ void CorneilStewartPerlCographRecognition::InsertXToCoTree(CoNode *u, CoNode *x)
 }
 
 CorneilStewartPerlCographRecognition::State CorneilStewartPerlCographRecognition::Recognition() {
+    int number = 0;
+    for(auto i : graph.nodeRange()){
+        number++;
+    }
+    T.ReserveSpace(4 * number);
     auto *R = T.Add(Type::ZERO_ONE, 1);
     T.root = R;
     std::vector<NetworKit::node> vertex;

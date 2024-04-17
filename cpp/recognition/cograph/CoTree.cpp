@@ -86,16 +86,15 @@ void CoNode::RemoveWereNotMarked() {
 }
 
 CoNode* CoTree::Add(Type type, int number) {
-    auto *x = new CoNode(type, number);
-    save.push_back(x);
-    return x;
+    return &save.emplace_back(type, number);
 }
 
 void CoTree::Clear() {
-    for (auto u : save) {
-        delete u;
-    }
     save.clear();
+}
+
+void CoTree::ReserveSpace(int n){
+    save.reserve(n);
 }
 
 }  // namespace Koala
