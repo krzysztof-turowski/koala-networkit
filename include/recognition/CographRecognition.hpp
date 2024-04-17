@@ -74,7 +74,7 @@ class CorneilStewartPerlCographRecognition : public CographRecognition {
     bool isCograph() const override;
     void Unmark();
     void Mark(CoNode *x);
-    std::pair<CoNode*, CorneilStewartPerlCographRecognition::State>FindLowest();
+    std::pair<CoNode*, CorneilStewartPerlCographRecognition::State>FindLowest() const;
     void InsertXToCoTree(CoNode *u, CoNode *x);
 
  private:

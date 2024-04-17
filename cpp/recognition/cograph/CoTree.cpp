@@ -93,7 +93,7 @@ void CoTree::Clear() {
     save.clear();
 }
 
-void CoTree::ReserveSpace(int n){
+void CoTree::ReserveSpace(int n) {
     save.reserve(n);
 }
 

@@ -78,8 +78,8 @@ void ResetAllCoNodes(CoNode *x, int level = 0) {
 }
 
 std::pair<CoNode*, CorneilStewartPerlCographRecognition::State>
-CorneilStewartPerlCographRecognition::FindLowest() {
-    auto *y = T.Add(Type::ZERO_ONE, 2);
+CorneilStewartPerlCographRecognition::FindLowest() const {
+    CoNode *y = nullptr;
     if (T.root->marked == Marked::UNMARKED) {
         return {y, CorneilStewartPerlCographRecognition::State::GRANDPARENT_IS_NOT_IN_SET};
     }
@@ -110,7 +110,7 @@ CorneilStewartPerlCographRecognition::FindLowest() {
         if (u->marked != Marked::MARKED) {
             continue;
         }
-        if (y->number != 2) {  // 1 or 2
+        if (y != nullptr) {  // 1 or 2
             if (y->number == 0) {
                 return {y, CorneilStewartPerlCographRecognition::State::CONTAINS_0_NODE};
             } else {
@@ -124,7 +124,7 @@ CorneilStewartPerlCographRecognition::FindLowest() {
                 y = u;
             }
             if (u->parent->marked == Marked::MARKED) {  // 1 or 6
-                if (y->number == 0) {
+                if (y == nullptr || y->number == 0) {
                     return {y, CorneilStewartPerlCographRecognition::State::CONTAINS_0_NODE};
                 } else {
                     return {y, CorneilStewartPerlCographRecognition::State::WRONG_GRANDPARENT};
@@ -143,7 +143,7 @@ CorneilStewartPerlCographRecognition::FindLowest() {
                 return {y, CorneilStewartPerlCographRecognition::State::NO_ONE_PATH};
             }
             if (t->marked != Marked::MARKED) {  // 3 or 5 or 6
-                if (y->number == 0) {
+                if (y == nullptr || y->number == 0) {
                     return {y, CorneilStewartPerlCographRecognition::State::WRONG_PARENT};
                 } else {
                     return {y, CorneilStewartPerlCographRecognition::State::WRONG_GRANDPARENT};
@@ -246,11 +246,7 @@ void CorneilStewartPerlCographRecognition::InsertXToCoTree(CoNode *u, CoNode *x)
 }
 
 CorneilStewartPerlCographRecognition::State CorneilStewartPerlCographRecognition::Recognition() {
-    int number = 0;
-    for(auto i : graph.nodeRange()){
-        number++;
-    }
-    T.ReserveSpace(4 * number);
+    T.ReserveSpace(3 * graph.numberOfNodes());
     auto *R = T.Add(Type::ZERO_ONE, 1);
     T.root = R;
     std::vector<NetworKit::node> vertex;
@@ -260,7 +256,7 @@ CorneilStewartPerlCographRecognition::State CorneilStewartPerlCographRecognition
     for (auto i : graph.nodeRange()) {
         vertex.push_back(i);
         pos[i] = count++;
-        auto *C = T.Add(Type::VERTEX, static_cast<int>(i));
+        auto *C = T.Add(Type::VERTEX, static_cast<int> (i));
         covertex.push_back(C);
     }
     for (auto i : graph.nodeRange()) {
