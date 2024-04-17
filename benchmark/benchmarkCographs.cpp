@@ -1,9 +1,11 @@
 //
 // Created by milana on 19.03.24.
 //
+#include <io/G6GraphReader.hpp>
+
 #include <iostream>
 #include <map>
-#include <io/G6GraphReader.hpp>
+
 #include "recognition/CographRecognition.hpp"
 
 int main() {
