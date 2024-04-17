@@ -78,11 +78,10 @@ void ResetAllCoNodes(CoNode *x, int level = 0) {
 }
 
 std::pair<CoNode*, CorneilStewartPerlCographRecognition::State>
-        CorneilStewartPerlCographRecognition::FindLowest() {
+CorneilStewartPerlCographRecognition::FindLowest() {
     auto *y = T.Add(Type::ZERO_ONE, 2);
     if (T.root->marked == Marked::UNMARKED) {
-        return {y, CorneilStewartPerlCographRecognition::State::
-        GRANDPARENT_IS_NOT_IN_SET};
+        return {y, CorneilStewartPerlCographRecognition::State::GRANDPARENT_IS_NOT_IN_SET};
     }
     if (T.root->md != T.root->d - 1) {
         y = T.root;
@@ -113,8 +112,7 @@ std::pair<CoNode*, CorneilStewartPerlCographRecognition::State>
         }
         if (y->number != 2) {  // 1 or 2
             if (y->number == 0) {
-                return {y, CorneilStewartPerlCographRecognition::State::
-                CONTAINS_0_NODE};
+                return {y, CorneilStewartPerlCographRecognition::State::CONTAINS_0_NODE};
             } else {
                 return {y, CorneilStewartPerlCographRecognition::State::
                 EXISTS_1_NODE_NOT_PROPERLY_MARKED};
@@ -127,11 +125,9 @@ std::pair<CoNode*, CorneilStewartPerlCographRecognition::State>
             }
             if (u->parent->marked == Marked::MARKED) {  // 1 or 6
                 if (y->number == 0) {
-                    return {y, CorneilStewartPerlCographRecognition::State::
-                    CONTAINS_0_NODE};
+                    return {y, CorneilStewartPerlCographRecognition::State::CONTAINS_0_NODE};
                 } else {
-                    return {y, CorneilStewartPerlCographRecognition::State::
-                    WRONG_GRANDPARENT};
+                    return {y, CorneilStewartPerlCographRecognition::State::WRONG_GRANDPARENT};
                 }
             } else {
                 t = u->parent->parent;
@@ -144,16 +140,13 @@ std::pair<CoNode*, CorneilStewartPerlCographRecognition::State>
         u->md = 0;
         while (t != w) {
             if (t == T.root) {  // 4
-                return {y, CorneilStewartPerlCographRecognition::State::
-                NO_ONE_PATH};
+                return {y, CorneilStewartPerlCographRecognition::State::NO_ONE_PATH};
             }
             if (t->marked != Marked::MARKED) {  // 3 or 5 or 6
                 if (y->number == 0) {
-                    return {y, CorneilStewartPerlCographRecognition::State::
-                    WRONG_PARENT};
+                    return {y, CorneilStewartPerlCographRecognition::State::WRONG_PARENT};
                 } else {
-                    return {y, CorneilStewartPerlCographRecognition::State::
-                            WRONG_GRANDPARENT};
+                    return {y, CorneilStewartPerlCographRecognition::State::WRONG_GRANDPARENT};
                     // if y is alpha, else grandparent not in set
                 }
             }
@@ -162,8 +155,7 @@ std::pair<CoNode*, CorneilStewartPerlCographRecognition::State>
                 EXISTS_1_NODE_NOT_PROPERLY_MARKED};
             }
             if (t->parent->marked == Marked::MARKED) {  // 1
-                return {y, CorneilStewartPerlCographRecognition::State::
-                CONTAINS_0_NODE};
+                return {y, CorneilStewartPerlCographRecognition::State::CONTAINS_0_NODE};
             }
             t->unmark();
             t->md = 0;
@@ -256,20 +248,19 @@ void CorneilStewartPerlCographRecognition::InsertXToCoTree(CoNode *u, CoNode *x)
 CorneilStewartPerlCographRecognition::State CorneilStewartPerlCographRecognition::Recognition() {
     auto *R = T.Add(Type::ZERO_ONE, 1);
     T.root = R;
-    G = graph;
     std::vector<NetworKit::node> vertex;
     std::vector<CoNode*> covertex;
     std::map<NetworKit::node, int> pos;
     int count = 0;
-    for (auto i : G.nodeRange()) {
+    for (auto i : graph.nodeRange()) {
         vertex.push_back(i);
         pos[i] = count++;
-        auto *C = T.Add(Type::VERTEX, i);
+        auto *C = T.Add(Type::VERTEX, static_cast<int>(i));
         covertex.push_back(C);
     }
-    for (auto i : G.nodeRange()) {
+    for (auto i : graph.nodeRange()) {
         std::vector<CoNode*> vec;
-        for (auto u : G.neighborRange(i)) {
+        for (auto u : graph.neighborRange(i)) {
             vec.push_back(covertex[pos[u]]);
         }
         covertex[pos[i]]->out_edges = vec;
@@ -284,7 +275,7 @@ CorneilStewartPerlCographRecognition::State CorneilStewartPerlCographRecognition
         T.Clear();
         return State::COGRAPH;
     }
-    if (G.hasEdge(vertex[0], vertex[1])) {
+    if (graph.hasEdge(vertex[0], vertex[1])) {
         R->AddChild(covertex[0]);
         R->AddChild(covertex[1]);
     } else {
@@ -299,8 +290,7 @@ CorneilStewartPerlCographRecognition::State CorneilStewartPerlCographRecognition
     for (int i = 2; i < count; i++) {
         ResetAllCoNodes(T.root);
         Mark(covertex[i]);
-        if (T.root->marked ==
-            Marked::MARKED_AND_UNMARKED) {
+        if (T.root->marked == Marked::MARKED_AND_UNMARKED) {
             // all nodes of T were marked and unmarked <=>
             // R is marked and unmarked
             T.root->AddChild(covertex[i]);
@@ -343,7 +333,6 @@ CorneilStewartPerlCographRecognition::getState() const {
 void CorneilStewartPerlCographRecognition::run() {
     hasRun = true;
     is_cograph = Recognition();
-    return;
 }
 
 }  // namespace Koala

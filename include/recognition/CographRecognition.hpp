@@ -80,11 +80,10 @@ class CorneilStewartPerlCographRecognition : public CographRecognition {
  private:
     State is_cograph = State::UNKNOWN;
     CoTree T;
-    NetworKit::Graph G;
     int mark_count = 0;
     int mark_and_unmarked_count = 0;
     int mark_ever_count = 0;
-    std::queue<CoNode*> marked_with_d_equal_to_md;  // TODO: get rid of this
+    std::queue<CoNode*> marked_with_d_equal_to_md;  // TODO(fixikmila): get rid of this
 };
 
 } /* namespace Koala */
