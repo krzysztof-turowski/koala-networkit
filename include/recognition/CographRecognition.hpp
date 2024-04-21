@@ -47,6 +47,24 @@ class CographRecognition : public NetworKit::Algorithm {
 /**
  * @ingroup recognition
  * The class for recognition of cographs procedure from
+ * Bretscher, Corneil, Habib, Paul, "A Simple Linear Time LexBFS Cograph Recognition Algorithm".
+ *
+ */
+class BretscherCorneilHabibPaulCographRecognition : public CographRecognition {
+ public:
+    using CographRecognition::CographRecognition;
+    std::vector<NetworKit::node> LexBfs();
+    std::vector<NetworKit::node> LexBfsMinus(NetworKit::Graph G, std::vector<NetworKit::node> a);
+    bool NeighbourhoodSubsetProperty(std::vector<NetworKit::node> a, std::vector<NetworKit::node> b);
+    void run() override;
+    bool isCograph() const override;
+ private:
+    bool is_cograph = false;
+};
+
+/**
+ * @ingroup recognition
+ * The class for recognition of cographs procedure from
  * Corneil, Stewart, Perl, "A linear recognition algorithm for cographs".
  *
  */
