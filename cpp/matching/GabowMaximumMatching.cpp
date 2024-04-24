@@ -144,9 +144,9 @@ void GabowMaximumMatching::adjust_by_delta(MaximumMatching::edgeweight delta) {
 
     for (Blossom* blossom : blossoms) {
         if (blossom->label == even) {
-            blossom->z += 2.0 * delta;
+            blossom->z += 2 * delta;
         } else if (blossom->label == odd) {
-            blossom->z -= 2.0 * delta;
+            blossom->z -= 2 * delta;
         }
     }
 }
@@ -242,9 +242,9 @@ void GabowMaximumMatching::calc_best_edges(Blossom* b) {
         graph.forEdgesOf(u, [this, b, data, &best_slack] 
                 (NetworKit::node u, NetworKit::node v, NetworKit::node id) {
             auto v_blossom = get_blossom(v);
-            auto slack = edge_slack(id);
-
             if (v_blossom == b) return;
+
+            auto slack = edge_slack(id);
             if (v_blossom->label == even) {
                 if (data->best_edges.find(v_blossom) == data->best_edges.end() 
                     || slack < edge_slack(data->best_edges[v_blossom].id)) {

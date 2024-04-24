@@ -541,7 +541,7 @@ private:
         EdgeInfo backtrack_edge;
         bool visited;
         std::list<Blossom*>::iterator shell_blossoms_it;
-        SplitFindMinNaive<NetworKit::node, Blossom*, int, EdgeInfo>::List* list;
+        SplitFindMin<NetworKit::node, Blossom*, int, EdgeInfo>::List* list;
 
         bool is_trivial();
         void for_nodes(const std::function<void(NetworKit::node)>& handle);
@@ -682,7 +682,7 @@ private:
     FenwickTree shell_distribution;
     ArrayPriorityQueue<Event> event_queue;
     UnionFind<NetworKit::node, Blossom*> union_find;
-    SplitFindMinNaive<NetworKit::node, Blossom*, MaximumMatching::intedgeweight, EdgeInfo> split_find_min;
+    SplitFindMin<NetworKit::node, Blossom*, MaximumMatching::intedgeweight, EdgeInfo> split_find_min;
 
     void grow(NetworKit::node v, EdgeInfo e);
     void schedule(NetworKit::node v);

@@ -372,79 +372,79 @@ NetworKit::edgeid MicaliGabowMaximumMatching::dummy_edge_id(NetworKit::node node
 }
 
 void MicaliGabowMaximumMatching::check_consistency() {
-    std::cerr << "Current blossoms:\n";
-    for (auto blossom : blossoms) {
-        get_data(blossom)->nodes.check_consistency();
-        if (blossom->is_trivial()) continue;
-        blossom->short_print(); std::cerr << std::endl;
-        get_data(blossom)->nodes.for_each([this, blossom] (NetworKit::node v, NetworKit::node _) {
-            std::cerr << v << " ";
-            if (get_blossom(v) != blossom) {
-                std::cerr << "get_blossom(" << v << ") has wrong value\n";
-                exit(1);
-            }
-        });
-        std::cerr << std::endl;
-    }
-    graph.forNodes([this] (NetworKit::node v) {
-        std::cerr << v << ": ";
-        get_blossom(v)->nodes_print();
-        std::cerr << std::endl;
-    });
-    std::cerr << "Current weights:\n";
-    for (auto blossom : blossoms) {
-        if (blossom->is_trivial()) continue;
-        blossom->nodes_print();
-        std::cerr << ": " << blossom_dual(blossom) << std::endl;
-    }
-    graph.forNodes([this] (NetworKit::node v) {
-        std::cerr << v << ": " << U(v) << std::endl;
-    });
-    std::cerr << "Zeven:\n";
-    Zeven.for_elements([this] (NetworKit::node base, MaximumMatching::edgeweight dual_weight) {
-        std::cerr << base << " : " << dual_weight << std::endl;
-    });
-    std::cerr << "Zodd:\n";
-    Zodd.for_elements([this] (NetworKit::node base, MaximumMatching::edgeweight dual_weight) {
-        std::cerr << base << " : " << dual_weight << std::endl;
-    });
-    std::cerr << "Good edges:\n";
-    good_edges.for_elements([this] (NetworKit::edgeid id, MaximumMatching::edgeweight var) {
-        auto [u, v, w] = graph_edges[id];
-        std::cerr << "(" << u << ", " << v << ") : " << var << std::endl;
-    });
-    std::cerr << "Even edges:\n";
-    for (auto blossom : blossoms) {
-        if (blossom->label == even) continue;        
-        blossom->nodes_print(); std::cerr << std::endl;
-        EvenEdgeGroup group = get_data(blossom)->even_edges;
-        std::cerr << (group->active ? "active" : "non-active") << std::endl;
-        if (group->empty()) {
-            std::cerr << "Empty\n";
-        } else {
-            auto [id, pi] = group->find_min();
-            auto [u, v, w] = graph_edges[id];
-                std::cerr << "min : (" << u << ", " << v << ") : " << pi << std::endl;        
-        }
-        even_edges.for_each_in_group(group, 
-            [this] (NetworKit::edgeid id, MaximumMatching::edgeweight pi) {
-            if (id < graph.upperEdgeIdBound()) {
-                auto [u, v, w] = graph_edges[id];
-                std::cerr << "(" << u << ", " << v << ") : " << pi << std::endl;        
-            } else {
-                // std::cerr << "dummy " << id - graph.upperEdgeIdBound() << std::endl;
-            }
-        });
-    }
-    std::cerr << "Active minima:\n";
-    even_edges.for_group_minima([this] (NetworKit::edgeid id, MaximumMatching::edgeweight pi) {
-        if (id < graph.upperEdgeIdBound()) {
-            auto [u, v, w] = graph_edges[id];
-            std::cerr << "(" << u << ", " << v << ") : " << pi << std::endl;        
-        } else {
-            // std::cerr << "dummy " << id - graph.upperEdgeIdBound() << std::endl;
-        }
-    });
+    // std::cerr << "Current blossoms:\n";
+    // for (auto blossom : blossoms) {
+    //     get_data(blossom)->nodes.check_consistency();
+    //     if (blossom->is_trivial()) continue;
+    //     blossom->short_print(); std::cerr << std::endl;
+    //     get_data(blossom)->nodes.for_each([this, blossom] (NetworKit::node v, NetworKit::node _) {
+    //         std::cerr << v << " ";
+    //         if (get_blossom(v) != blossom) {
+    //             std::cerr << "get_blossom(" << v << ") has wrong value\n";
+    //             exit(1);
+    //         }
+    //     });
+    //     std::cerr << std::endl;
+    // }
+    // graph.forNodes([this] (NetworKit::node v) {
+    //     std::cerr << v << ": ";
+    //     get_blossom(v)->nodes_print();
+    //     std::cerr << std::endl;
+    // });
+    // std::cerr << "Current weights:\n";
+    // for (auto blossom : blossoms) {
+    //     if (blossom->is_trivial()) continue;
+    //     blossom->nodes_print();
+    //     std::cerr << ": " << blossom_dual(blossom) << std::endl;
+    // }
+    // graph.forNodes([this] (NetworKit::node v) {
+    //     std::cerr << v << ": " << U(v) << std::endl;
+    // });
+    // std::cerr << "Zeven:\n";
+    // Zeven.for_elements([this] (NetworKit::node base, MaximumMatching::edgeweight dual_weight) {
+    //     std::cerr << base << " : " << dual_weight << std::endl;
+    // });
+    // std::cerr << "Zodd:\n";
+    // Zodd.for_elements([this] (NetworKit::node base, MaximumMatching::edgeweight dual_weight) {
+    //     std::cerr << base << " : " << dual_weight << std::endl;
+    // });
+    // std::cerr << "Good edges:\n";
+    // good_edges.for_elements([this] (NetworKit::edgeid id, MaximumMatching::edgeweight var) {
+    //     auto [u, v, w] = graph_edges[id];
+    //     std::cerr << "(" << u << ", " << v << ") : " << var << std::endl;
+    // });
+    // std::cerr << "Even edges:\n";
+    // for (auto blossom : blossoms) {
+    //     if (blossom->label == even) continue;        
+    //     blossom->nodes_print(); std::cerr << std::endl;
+    //     EvenEdgeGroup group = get_data(blossom)->even_edges;
+    //     std::cerr << (group->active ? "active" : "non-active") << std::endl;
+    //     if (group->empty()) {
+    //         std::cerr << "Empty\n";
+    //     } else {
+    //         auto [id, pi] = group->find_min();
+    //         auto [u, v, w] = graph_edges[id];
+    //             std::cerr << "min : (" << u << ", " << v << ") : " << pi << std::endl;        
+    //     }
+    //     even_edges.for_each_in_group(group, 
+    //         [this] (NetworKit::edgeid id, MaximumMatching::edgeweight pi) {
+    //         if (id < graph.upperEdgeIdBound()) {
+    //             auto [u, v, w] = graph_edges[id];
+    //             std::cerr << "(" << u << ", " << v << ") : " << pi << std::endl;        
+    //         } else {
+    //             // std::cerr << "dummy " << id - graph.upperEdgeIdBound() << std::endl;
+    //         }
+    //     });
+    // }
+    // std::cerr << "Active minima:\n";
+    // even_edges.for_group_minima([this] (NetworKit::edgeid id, MaximumMatching::edgeweight pi) {
+    //     if (id < graph.upperEdgeIdBound()) {
+    //         auto [u, v, w] = graph_edges[id];
+    //         std::cerr << "(" << u << ", " << v << ") : " << pi << std::endl;        
+    //     } else {
+    //         // std::cerr << "dummy " << id - graph.upperEdgeIdBound() << std::endl;
+    //     }
+    // });
 }
 
 } /* namespace Koala */

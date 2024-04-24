@@ -1432,7 +1432,7 @@ public:
         list_it(level + 1),
         superelement_nodes(level + 1) {
             for (int i = 0; i <= level; ++ i) {
-                e[i] = std::vector<T>(size);
+                e[i] = std::vector<T>(size, -1);
                 element_list[i] = std::vector<List*>(size, nullptr);
                 key[i] = std::vector<K>(size, infinity),
                 val[i] = std::vector<V>(size, empty_val),
@@ -1540,18 +1540,6 @@ public:
         ~Sublist() { delete elements; }
     };
 
-    void print(List* L) {
-        std::cerr << "{(";
-        for (auto n : L->nodes) std::cerr << n << ",";
-        std::cerr << ")";
-        for (auto hs : L->head_singletons) std::cerr << "[" << hs << ":" << key[L->i][hs] << "]";
-        for (auto s : L->head) print(s->elements);
-        std::cerr << "||";
-        for (auto s : L->tail) print(s->elements);
-        for (auto ts : L->tail_singletons) std::cerr << "[" << ts << ":" << key[L->i][ts] << "]";
-        std::cerr << ":" << L->min_key << "}";
-    }
-
 private:
     int max_i;
     T size;
@@ -1565,12 +1553,6 @@ private:
     std::vector<std::vector<std::list<T>>> superelement_nodes;
 
     void initialize_head(List* L, const std::list<T>& nodes, H id, int i) {
-        #if QUEUE_DEBUG
-        std::cerr << "INIT HEAD ";
-        for (auto n : nodes) std::cerr << n << ", ";
-        std::cerr << " AT LEVEL " << i << std::endl;
-        #endif
-
         auto nodes_cpy = nodes;
         for (auto it = nodes_cpy.begin(); it != nodes_cpy.end(); ++ it)
             list_it[i][*it] = it;
@@ -1591,6 +1573,7 @@ private:
                     sublist->elements = new List;
                     sublist->elements->sublist = sublist;
                     sublist->elements->i = i - 1;
+                    sublist->elements->id = id;
                     sublist->elements->min_key = infinity;
                     sublist->elements->min_val = empty_val;
 
@@ -1614,6 +1597,7 @@ private:
                 T singleton = *it;
                 e[i][singleton] = -1;
                 element_list[i][singleton] = L;
+
                 L->head_singletons.push_front(singleton);
                 it ++;
             } else {
@@ -1644,6 +1628,7 @@ private:
             sublist->elements = new List;
             sublist->elements->sublist = sublist;
             sublist->elements->i = i - 1;
+            sublist->elements->id = id;
             sublist->elements->min_key = infinity;
             sublist->elements->min_val = empty_val;
 
@@ -1657,12 +1642,6 @@ private:
     }
 
     void initialize_tail(List* L, const std::list<T>& nodes, H id, int i) {
-        #if QUEUE_DEBUG
-        std::cerr << "INIT TAIL ";
-        for (auto n : nodes) std::cerr << n << ", ";
-        std::cerr << " AT LEVEL " << i << std::endl;
-        #endif
-
         auto nodes_cpy = nodes;
         for (auto it = nodes_cpy.begin(); it != nodes_cpy.end(); ++ it)
             list_it[i][*it] = it;
@@ -1682,6 +1661,7 @@ private:
                 if (sublist != nullptr) {
                     sublist->elements = new List;
                     sublist->elements->sublist = sublist;
+                    sublist->elements->id = id;
                     sublist->elements->i = i - 1;
                     sublist->elements->min_key = infinity;
                     sublist->elements->min_val = empty_val;
@@ -1737,6 +1717,7 @@ private:
             sublist->elements = new List;
             sublist->elements->sublist = sublist;
             sublist->elements->i = i - 1;
+            sublist->elements->id = id;
             sublist->elements->min_key = infinity;
             sublist->elements->min_val = empty_val;
 
@@ -1759,10 +1740,6 @@ private:
     }
 
     List* decrease_key(T u, K x, V v, int i) {
-        #if QUEUE_DEBUG
-        std::cerr << "DECREASE KEY " << u << " " << x << " " << v << " AT LEVEL " << i << std::endl; 
-        #endif
-
         update_key(key[i][u], val[i][u], x, v);
         if (is_singleton(u, i)) {
             auto L = element_list[i][u];
@@ -1777,13 +1754,6 @@ private:
     }
 
     std::pair<List*, List*> split(T x, H id1, H id2, int i) {
-        #if QUEUE_DEBUG
-        std::cerr << "split " << x << " at level " << i << std::endl; 
-        std::cerr << "in list ";
-        print(find_list(x, i));
-        std::cerr << std::endl;
-        #endif
-
         if (is_singleton(x, i)) {
             List* L1 = element_list[i][x];
             L1->id = id1;
@@ -1814,14 +1784,6 @@ private:
 
             calculate_min(L1, i);
             calculate_min(L2, i);
-
-            #if QUEUE_DEBUG
-            // std::cerr << "split " << x << " at level " << i << " =\n";
-            // print(L1); std::cerr << std::endl;
-            // print(L2); std::cerr << std::endl;
-            check_list_consistency(L1);
-            check_list_consistency(L2);
-            #endif
 
             return {L1, L2};
         } else {
@@ -1867,27 +1829,6 @@ private:
             L1->nodes.erase(list_it[i][superelement_nodes[i][superelement].front()], 
                             L1->nodes.end());
 
-            #if QUEUE_DEBUG
-            std::cerr << "continue split " << x << " at level " << i << std::endl; 
-            std::cerr << "nodes1 : "; for (auto n : nodes1) std::cerr << n << " "; std::cerr << std::endl;
-            std::cerr << "nodes2 : "; for (auto n : nodes2) std::cerr << n << " "; std::cerr << std::endl;
-            std::cerr << "L1 : "; for (auto n : L1->nodes)  std::cerr << n << " "; std::cerr << std::endl;
-            std::cerr << "L2 : "; for (auto n : L2->nodes)  std::cerr << n << " "; std::cerr << std::endl;
-            // std::cerr << "L1 sublists: ";
-            // for (auto s : L1->head) std::cerr << s << " ";
-            // std::cerr << "|| ";
-            // for (auto s : L1->tail) std::cerr << s << " ";
-            // std::cerr << "\n";
-            // std::cerr << "L2 sublists: ";
-            // for (auto s : L2->head) std::cerr << s << " ";
-            // std::cerr << "|| ";
-            // for (auto s : L2->tail) std::cerr << s << " ";
-            // std::cerr << "\n";
-            // std::cerr << "S1->sublist: " << S1->sublist << " " << S1->sublist->head << std::endl;
-
-            check_list_consistency(L1);
-            #endif
-
             if (S1->sublist->head) {
                 auto split_it = S1->sublist->sublist_it;
                 L2->head.splice(L2->head.end(), L1->head, std::next(split_it), L1->head.end());
@@ -1905,21 +1846,6 @@ private:
                 L2->tail_singletons = std::move(L1->tail_singletons);
             }
 
-            #if QUEUE_DEBUG
-            // std::cerr << "L1 sublists: ";
-            // for (auto s : L1->head) std::cerr << s << " ";
-            // std::cerr << "|| ";
-            // for (auto s : L1->tail) std::cerr << s << " ";
-            // std::cerr << "\n";
-            // std::cerr << "L2 sublists: ";
-            // for (auto s : L2->head) std::cerr << s << " ";
-            // std::cerr << "|| ";
-            // for (auto s : L2->tail) std::cerr << s << " ";
-            // std::cerr << "\n";
-            // std::cerr << "S1->sublist: " << S1->sublist << " " << S1->sublist->head << std::endl;
-            // std::cerr << "S2sublist: " << S2sublist << " " << S2sublist->head << std::endl;
-            #endif
-
             set_list_pointers(L2, i);
 
             calculate_min(L1, i);
@@ -1928,14 +1854,6 @@ private:
             initialize_tail(L1, nodes1, id1, i);
             if (nodes2.size() > 0)
                 initialize_head(L2, nodes2, id2, i);
-
-            #if QUEUE_DEBUG
-            std::cerr << "split " << x << " at level " << i << " =\n";
-            print(L1); std::cerr << std::endl;
-            print(L2); std::cerr << std::endl;
-            check_list_consistency(L1);
-            check_list_consistency(L2);
-            #endif
 
             return {L1, L2};
         }
@@ -1949,12 +1867,6 @@ private:
         for (auto sl : L->head) update_key(L, sl->elements->min_key, sl->elements->min_val);
         for (auto sl : L->tail) update_key(L, sl->elements->min_key, sl->elements->min_val);
         for (auto ts : L->tail_singletons) update_key(L, key[i][ts], val[i][ts]);
-
-        #if QUEUE_DEBUG
-        std::cerr << "CALCULATE MIN FOR ";
-        print(L);
-        std::cerr << " AT LEVEL " << i << " = " << L->min_key << " " << L->min_val << std::endl;
-        #endif
     }
 
     void set_list_pointers(List* L, int i) {
@@ -1970,27 +1882,13 @@ private:
 
     void update_key_at_level(T u, int i, K k, V v) {
         update_key(key[i][u], val[i][u], k, v);
-
-        #if QUEUE_DEBUG
-        if (k == infinity) return;
-        std::cerr << "UPDATE " << u << " AT LEVEL " << i;
-        std::cerr << " " << k << " " << v << " -> " << key[i][u] << " " << val[i][u] << std::endl;
-        #endif
     }
 
     void update_key(List* L, K key, V val) {
         update_key(L->min_key, L->min_val, key, val);
-
-        #if QUEUE_DEBUG
-        if (key == infinity) return;
-        std::cerr << "UPDATE ";
-        print(L);
-        std::cerr << " " << key << " " << val << " -> " << L->min_key << " " << L->min_val << std::endl;
-        #endif
     }
 
     void update_key(K& old_key, V& old_val, K key, V val) {
-        // std::cerr << "update " << old_key << "," << old_val << " " << key << "," << val << std::endl;
         if (key < old_key) {
             old_key = key;
             old_val = val;
@@ -2002,23 +1900,8 @@ private:
             key[L->i][n] = infinity;
             val[L->i][n] = empty_val;
         }
-        for (auto s : L->head) reset_keys(s->elmenets);
-        for (auto s : L->tail) reset_keys(s->elmenets);
-    }
-
-    void check_list_consistency(List* L) {
-        for (auto it = L->head.begin(); it != L->head.end(); ++ it) {
-            assert(it == (*it)->sublist_it);
-            assert((*it)->head);
-            assert((*it)->list == L);
-            check_list_consistency((*it)->elements);
-        }
-        for (auto it = L->tail.begin(); it != L->tail.end(); ++ it) {
-            assert(it == (*it)->sublist_it);
-            assert(!(*it)->head);
-            assert((*it)->list == L);
-            check_list_consistency((*it)->elements);
-        }
+        for (auto s : L->head) reset_keys(s->elements);
+        for (auto s : L->tail) reset_keys(s->elements);
     }
 };
 
@@ -2029,10 +1912,6 @@ public:
     ArrayPriorityQueue() { reset(); }
 
     void scheduleEvent(int time, T event) {
-        #if QUEUE_DEBUG
-        std::cerr << "SCHEDULE " << event << " AT " << time << std::endl;
-        #endif
-
         if (time >= event_queue.size())
             event_queue.resize(time * 2);
         event_queue[time].push_back(event);
@@ -2050,10 +1929,6 @@ public:
         event_queue.resize(4);
         it = -1;
         time = 0;
-
-        #if QUEUE_DEBUG
-        std::cerr << "RESET QUEUE" << std::endl;
-        #endif
     }
 
 private:
