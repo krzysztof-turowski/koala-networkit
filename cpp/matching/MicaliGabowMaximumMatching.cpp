@@ -123,26 +123,24 @@ MicaliGabowMaximumMatching::EdgeInfo MicaliGabowMaximumMatching::get_useful_edge
     return no_edge;
 }
 
-void MicaliGabowMaximumMatching::label_odd(Blossom* b) {
-    b->for_nodes([this] (NetworKit::node v) {
+void MicaliGabowMaximumMatching::handle_grow(Blossom* odd_blossom, Blossom* even_blossom) {
+    odd_blossom->for_nodes([this] (NetworKit::node v) {
         Uodd.insert(v, Ufree[v]);
     });
-    if (!b->is_trivial()) { 
-        Zodd.insert(b->initial_base, b->z);
+    if (!odd_blossom->is_trivial()) { 
+        Zodd.insert(odd_blossom->initial_base, odd_blossom->z);
     }
-    even_edges.change_status(get_data(b)->even_edges, false);
-}
+    even_edges.change_status(get_data(odd_blossom)->even_edges, false);
 
-void MicaliGabowMaximumMatching::label_even(Blossom* b) {
-    b->for_nodes([this, b] (NetworKit::node u) {
+    even_blossom->for_nodes([this, even_blossom] (NetworKit::node u) {
         Ueven.insert(u, Ufree[u]);
     });
-    if (!b->is_trivial()) {
-        Zeven.insert(b->initial_base, b->z);
+    if (!even_blossom->is_trivial()) {
+        Zeven.insert(even_blossom->initial_base, even_blossom->z);
     }
-    even_edges.delete_group(get_data(b)->even_edges);
-    get_data(b)->even_edges = nullptr;
-    scan_edges(b);
+    even_edges.delete_group(get_data(even_blossom)->even_edges);
+    get_data(even_blossom)->even_edges = nullptr;
+    scan_edges(even_blossom);
 }
 
 void MicaliGabowMaximumMatching::scan_edges(Blossom* b) {

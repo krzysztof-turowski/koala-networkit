@@ -1764,20 +1764,20 @@ private:
             L2->min_val = empty_val;
             L2->nodes.splice(L2->nodes.begin(), L1->nodes, std::next(list_it[i][x]), L1->nodes.end());
 
-            auto hit = std::find(L1->head_singletons.begin(), L1->head_singletons.end(), x);
-            auto tit = std::find(L1->tail_singletons.begin(), L1->tail_singletons.end(), x);
+            auto head_it = std::find(L1->head_singletons.begin(), L1->head_singletons.end(), x);
+            auto tail_it = std::find(L1->tail_singletons.begin(), L1->tail_singletons.end(), x);
 
-            if (hit != L1->head_singletons.end()) {
+            if (head_it != L1->head_singletons.end()) {
                 L2->head_singletons.splice(L2->head_singletons.end(), L1->head_singletons,
-                                           std::next(hit), L1->head_singletons.end());
+                                           std::next(head_it), L1->head_singletons.end());
                 L2->head = std::move(L1->head);
                 L2->tail = std::move(L1->tail);
                 L2->tail_singletons = std::move(L1->tail_singletons);
             } else {
-                assert(tit != L1->tail_singletons.end());
+                assert(tail_it != L1->tail_singletons.end());
 
                 L2->tail_singletons.splice(L2->tail_singletons.end(), L1->tail_singletons, 
-                                           std::next(tit), L1->tail_singletons.end());
+                                           std::next(tail_it), L1->tail_singletons.end());
             }
 
             set_list_pointers(L2, i);
@@ -1912,6 +1912,7 @@ public:
     ArrayPriorityQueue() { reset(); }
 
     void scheduleEvent(int time, T event) {
+        if (time < 0) return;
         if (time >= event_queue.size())
             event_queue.resize(time * 2);
         event_queue[time].push_back(event);

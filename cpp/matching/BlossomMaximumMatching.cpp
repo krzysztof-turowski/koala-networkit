@@ -24,7 +24,7 @@ BlossomMaximumMatching::BlossomMaximumMatching(NetworKit::Graph &graph):
     });
 
     graph.forNodes([this] (NetworKit::node vertex) {
-            Blossom* blossom = new Blossom {
+        Blossom* blossom = new Blossom {
             nullptr, vertex, vertex, vertex, {}, {}, 
             free, no_edge, false,
             0, {}, nullptr
@@ -42,6 +42,13 @@ BlossomMaximumMatching::~BlossomMaximumMatching() {
 }
 
 void BlossomMaximumMatching::run() {
+    #if DEBUG_LOGGING
+    graph.forEdges([] (NetworKit::node u, NetworKit::node v, 
+                    NetworKit::edgeweight w, NetworKit::edgeid id) {
+        std::cerr << u << " " << v << " " << w << " : " << id << std::endl;
+    });
+    #endif
+
     while (!hasRun) {
         run_stage();
     }
@@ -126,7 +133,7 @@ bool BlossomMaximumMatching::consider_edge(EdgeInfo edge) {
     }
 
     #if DEBUG_LOGGING
-    std::cerr << ">>> Consider edge (" << u << ", " << v << ")\n";
+    std::cerr << "> Consider edge (" << u << ", " << v << ")\n";
     #endif
 
     if (v_blossom->label == free) {
@@ -140,21 +147,18 @@ bool BlossomMaximumMatching::consider_edge(EdgeInfo edge) {
 
         v_blossom->label = odd;
         v_blossom->backtrack_edge = { u, v, id };
-        label_odd(v_blossom);
 
         c_blossom->label = even;
-        // TODO store edgeid of matched edges to do this in O(1)
         c_blossom->backtrack_edge = { b, c, matched_edge[b] }; 
 
-        label_even(c_blossom);
+        handle_grow(v_blossom, c_blossom);
 
         #if DEBUG_LOGGING
-        std::cerr << "Grow "; v_blossom->nodes_print();
+        std::cerr << "STEP GROW\n";
+        v_blossom->nodes_print();
         std::cerr << ", "; c_blossom->nodes_print();
         std::cerr << std::endl;
         #endif
-
-        // TODO move label_odd/even to one function handle_grow
 
     } else if (v_blossom->label == even) {
         // Useful edge between two even vertices
@@ -253,7 +257,7 @@ void BlossomMaximumMatching::create_new_blossom(
     if (u_path.size() > 0 && u_path.back().blossom == v) v_path.clear();
 
     #if DEBUG_LOGGING
-    std::cerr << "Creating new blossom" << std::endl;
+    std::cerr << "STEP BLOSSOM" << std::endl;
     print_backtrack(u, v, edge, u_path, v_path);
     #endif
 
@@ -348,7 +352,7 @@ void BlossomMaximumMatching::augment_path(
         Blossom* u, Blossom* v, EdgeInfo edge,
         std::vector<BacktrackInfo>& u_path, std::vector<BacktrackInfo>& v_path) {
     #if DEBUG_LOGGING
-    std::cerr << "Augmenting the matching on path:" << std::endl;
+    std::cerr << "STEP AUGMENT" << std::endl;
     print_backtrack(u, v, edge, u_path, v_path);
     #endif
     
@@ -472,7 +476,7 @@ bool BlossomMaximumMatching::is_exposed(BlossomMaximumMatching::Blossom* b) {
 
 void BlossomMaximumMatching::adjust_dual_variables() {
     #if DEBUG_LOGGING
-    std::cerr << "Adjusting dual variables \n";
+    std::cerr << "STEP DUAL ADJUSTMENT\n";
     check_consistency();
     #endif
 
@@ -484,6 +488,7 @@ void BlossomMaximumMatching::adjust_dual_variables() {
     auto delta = std::min(delta1, std::min(delta2, std::min(delta3, delta4)));
 
     #if DEBUG_LOGGING
+    std::cerr << "-------- CALCULATING BEST DELTA --------\n";
     std::cerr << "delta_1 = " << delta1 << std::endl;
     std::cerr << "delta_2 = " << delta2 << std::endl;
     std::cerr << "delta_3 = " << delta3 << std::endl;
@@ -681,7 +686,7 @@ void BlossomMaximumMatching::Blossom::short_print() {
         if (backtrack_edge.id != NetworKit::none) {
             std::cerr << "(" << backtrack_edge.u << ", " << backtrack_edge.v << ") ";
         }
-        std::cerr << "," << initial_base << "/" << base;
+        // std::cerr << "," << initial_base << "/" << base;
     }
     std::cerr << "}";
 }
@@ -694,7 +699,8 @@ void BlossomMaximumMatching::Blossom::nodes_print() {
         for (auto sb : subblossoms) sb.first->nodes_print();
     }
     if (parent == nullptr) {
-        std::cerr << "," << initial_base << "/" << base;
+        std::cerr << "|" << (label == even ? "S" : label == odd ? "T" : "-") 
+                  << "|" << base;
     }
     std::cerr << ")";
 }

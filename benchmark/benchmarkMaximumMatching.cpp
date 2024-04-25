@@ -36,8 +36,13 @@ int main(int argc, char **argv) {
     int weight = 0;
     for (auto [u, v] : matching) {
         std::cout << u << " " << v << std::endl;
-        if (v != NetworKit::none)
+        if (v != NetworKit::none) {
+            assert(matching[v] == u);
+            assert(G.hasEdge(u, v));
+
             weight += static_cast<int>(G.weight(u, v));
+        }
+            
     }
     std::cout << weight / 2 << std::endl;
 

@@ -309,7 +309,6 @@ void GabowScalingMatching::path(OldBlossom* B, MaximumMatching::intedgeweight ou
             }
         }
 
-
         if (highest_undissolved != nullptr) {
             highest_undissolved->for_nodes([this] (NetworKit::node v) {                
                 current_y[v] += distribution_so_far(current_shell[v]->shell_index + 1) - Delta[v];

@@ -55,10 +55,11 @@ EdmondsMaximumMatching::EdgeInfo EdmondsMaximumMatching::get_useful_edge() {
     return edge;
 }
 
-void EdmondsMaximumMatching::label_odd(Blossom* b) {}
+void EdmondsMaximumMatching::handle_grow(Blossom* odd_blossom, Blossom* even_blossom) {
+    check_for_useful_edges(even_blossom);
+}
 
-void EdmondsMaximumMatching::label_even(Blossom* b) {
-    // Check for new useful edges
+void EdmondsMaximumMatching::check_for_useful_edges(Blossom* b) {
     b->for_nodes([this] (NetworKit::node vertex) {
         graph.forEdgesOf(vertex, [this] (NetworKit::node u, NetworKit::node v, NetworKit::edgeid id) {
             if (is_useful(u, v, id)) 
@@ -73,7 +74,7 @@ void EdmondsMaximumMatching::handle_new_blossom(Blossom* new_blossom) {
             current_blossom[v] = new_blossom;
         });
         if (b->label == odd) {
-            label_even(b);
+            check_for_useful_edges(b);
         }
     }
 }
@@ -87,7 +88,7 @@ void EdmondsMaximumMatching::handle_odd_blossom_expansion(Blossom* blossom) {
             current_blossom[v] = _b;
         });
         if (b->label == even) {
-            label_even(b);
+            check_for_useful_edges(b);
         }
     }
 }
@@ -209,8 +210,10 @@ bool EdmondsMaximumMatching::is_useful(NetworKit::node u, NetworKit::node v, Net
 void EdmondsMaximumMatching::check_consistency() {
     std::cerr << "Current vertices: \n";
     graph.forNodes([this] (NetworKit::node v) {
-        std::cerr << v << ": ";
-        get_blossom(v)->short_print(); 
+        if (this->matched_vertex[v] != NetworKit::none)
+            std::cerr << v << " " << this->matched_vertex[v] << " : ";
+        else std::cerr << v << " - : ";
+        get_blossom(v)->nodes_print(); 
         std::cerr << std::endl;
     });
     std::cerr << "Current weights: \n";
@@ -219,21 +222,20 @@ void EdmondsMaximumMatching::check_consistency() {
     }
     for (auto b : blossoms) {
         if (!b->is_trivial()) {
-            std::cerr << b->z << " "; 
             b->short_print(); 
-            std::cerr << std::endl; 
+            std::cerr << " : " << b->z << std::endl; 
         }
     }
     std::cerr << "Edge queue:\n";
     std::queue<EdgeInfo> q = useful_edges;
     while (!q.empty()) {
-        auto [u, v, id] = q.front(); q.pop();
-        std::cerr << "(" << u << ", " << v << ")\n";
+        std::cerr << edge_to_string(q.front()) << std::endl;
+        q.pop();
     }
     std::cerr << "Edges:\n";
-    for (int id = 0; id < graph.upperEdgeIdBound(); ++ id) {
+    for (NetworKit::edgeid id = 0; id < graph.upperEdgeIdBound(); ++ id) {
         auto [u, v, w] = graph_edges[id];
-        std::cerr << "(" << u << ", " << v << ") : " << edge_dual_variable(id) << std::endl; 
+        std::cerr << edge_to_string({u, v, id}) << " : " << edge_dual_variable(id) << std::endl; 
     }
 }
 

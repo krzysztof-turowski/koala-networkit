@@ -4,6 +4,7 @@
 #include <set>
 #include <list>
 #include <deque>
+#include <string>
 #include <optional>
 #include <functional>
 
@@ -66,9 +67,17 @@ protected:
     struct EdgeInfo { 
         NetworKit::node u, v; 
         NetworKit::edgeid id; 
+
+        bool operator==(const EdgeInfo& other) const { return other.id == id; }
     };
 
-    static constexpr EdgeInfo no_edge {NetworKit::none, NetworKit::none,NetworKit::none};
+    static constexpr EdgeInfo no_edge { NetworKit::none, NetworKit::none, NetworKit::none };
+
+    std::string edge_to_string(const EdgeInfo& e) { 
+        return (e == no_edge) ? 
+            "none" : 
+            "(" + std::to_string(e.u) + ", " + std::to_string(e.v) + ")"; 
+    }
 
     enum BlossomLabel { odd, even, free };
 
@@ -126,8 +135,9 @@ protected:
     virtual EdgeInfo get_useful_edge() = 0;
 
     bool consider_edge(EdgeInfo edge);
-    virtual void label_odd(Blossom* b) = 0;
-    virtual void label_even(Blossom* b) = 0;
+
+    virtual void handle_grow(Blossom* odd_blossom, Blossom* even_blossom) = 0;
+
     bool backtrack(Blossom* u, Blossom* v, EdgeInfo edge);
     bool backtrack_step(Blossom*& iter, std::vector<BacktrackInfo>& path);
     
@@ -199,6 +209,10 @@ private:
     std::vector<MaximumMatching::edgeweight> U;
     std::queue<EdgeInfo> useful_edges;
 
+    MaximumMatching::edgeweight edge_dual_variable(NetworKit::edgeid edge);
+
+    bool is_useful(NetworKit::node u, NetworKit::node v, NetworKit::edgeid edge);
+
     void initialize_stage() override;
     void finish_stage() override;
     void initialize_substage() override;
@@ -206,8 +220,8 @@ private:
     bool has_useful_edges() override;
     EdgeInfo get_useful_edge() override;
 
-    void label_odd(Blossom* b) override;
-    void label_even(Blossom* b) override;
+    void handle_grow(Blossom* odd_blossom, Blossom* even_blossom) override;
+    void check_for_useful_edges(Blossom* b);
 
     void handle_new_blossom(Blossom* b) override;
 
@@ -228,9 +242,6 @@ private:
     Blossom* get_blossom(NetworKit::node vertex) override;
 
     void check_consistency() override;
-
-    MaximumMatching::edgeweight edge_dual_variable(NetworKit::edgeid edge);
-    bool is_useful(NetworKit::node u, NetworKit::node v, NetworKit::edgeid edge);
 };
 
 /**
@@ -246,7 +257,7 @@ private:
     class GabowBlossomData : public Blossom::BlossomData {
     public:
         GabowBlossomData(): best_edges(), best_edge(no_edge) {}
-        std::unordered_map<Blossom*, EdgeInfo> best_edges;
+        std::list<EdgeInfo> best_edges;
         EdgeInfo best_edge;
     };
     GabowBlossomData* get_data(Blossom* b);
@@ -255,6 +266,11 @@ private:
     std::vector<MaximumMatching::edgeweight> U;
     std::vector<Blossom*> current_blossom;
     std::vector<EdgeInfo> best_edge;
+    std::vector<std::vector<std::pair<NetworKit::node, NetworKit::edgeid>>> sorted_neighbours;
+
+    void calc_best_edges(Blossom* b);
+
+    MaximumMatching::edgeweight edge_slack(NetworKit::edgeid edge);
 
     void initialize_stage() override;
     void finish_stage() override;
@@ -263,8 +279,7 @@ private:
     bool has_useful_edges() override;
     EdgeInfo get_useful_edge() override;
 
-    void label_odd(Blossom* b) override;
-    void label_even(Blossom* b) override;
+    void handle_grow(Blossom* odd_blossom, Blossom* even_blossom) override;
 
     void handle_new_blossom(Blossom* b) override;
     
@@ -285,10 +300,6 @@ private:
     Blossom* get_blossom(NetworKit::node vertex) override;
 
     void check_consistency() override;
-
-    void calc_best_edges(Blossom* b);
-
-    MaximumMatching::edgeweight edge_slack(NetworKit::edgeid edge);
 };
 
 /**
@@ -337,16 +348,17 @@ private:
     PriorityQueue1<NetworKit::edgeid, MaximumMatching::edgeweight> good_edges;
     void clear_not_good_edges();
     bool is_good(NetworKit::edgeid edge);
-    MaximumMatching::edgeweight edge_slack(NetworKit::edgeid edge);
 
     // Used to maintain edges from S-vertices to T/free-vertices
-    // Neede to calculate delta_2
+    // Needed to calculate delta_2
     // Maintains pi_ij for 
     PriorityQueue2<NetworKit::edgeid, MaximumMatching::edgeweight> even_edges;
     NetworKit::edgeid dummy_edge_id(NetworKit::node node);
 
     // Scan all edges from newly even blossom and update good_edges and even_edges
     void scan_edges(Blossom* b);
+
+    MaximumMatching::edgeweight edge_slack(NetworKit::edgeid edge);
 
     void initialize_stage() override;
     void finish_stage() override;
@@ -355,8 +367,7 @@ private:
     bool has_useful_edges() override;
     EdgeInfo get_useful_edge() override;
 
-    void label_odd(Blossom* b) override;
-    void label_even(Blossom* b) override;
+    void handle_grow(Blossom* odd_blossom, Blossom* even_blossom) override;
 
     void handle_new_blossom(Blossom* b) override;
 
@@ -379,135 +390,10 @@ private:
     void check_consistency() override;
 };
 
-
 /**
  * @ingroup matching
- * The base class for the maximum cardinality matching algorithms.
- *
+ * The class for Gabow's scaling maximum matching algorithm.
  */
-class MaximumCardinalityMatching : public NetworKit::Algorithm {
-
-public:
-    /**
-     * Given an input graph, set up the maximum matching algorithm.
-     *
-     * @param graph The input graph.
-     */
-    MaximumCardinalityMatching(NetworKit::Graph &graph);
-
-    /**
-     * Return the matching found by the algorithm.
-     *
-     * @return a matching between nodes.
-     */
-    const std::map<NetworKit::node, NetworKit::node>& getMatching() const;
-
-protected:
-    NetworKit::Graph graph;
-    std::map<NetworKit::node, NetworKit::node> matching;
-};
-
-/**
- * @ingroup matching
- * The class for the Edmonds maximum matching algorithm.
- */
-class MicaliVaziraniMatching final : public MaximumCardinalityMatching {
-
-public:
-    MicaliVaziraniMatching(NetworKit::Graph &graph);
-    MicaliVaziraniMatching(
-        NetworKit::Graph &graph, const std::vector<NetworKit::node>& initial_matching);
-
-    /**
-     * Execute the Micali Vazirani maximum cardinality matching algorithm.
-     */
-    void run();
-
-private:
-    struct Bloom {
-        NetworKit::node base;
-        int green_color;
-        int red_color;
-        NetworKit::node green_peak;
-        NetworKit::node green_root;
-        NetworKit::node red_peak;
-        NetworKit::node red_root;
-    };
-
-    static constexpr int inf_level = 1e9;
-
-    struct VertexData {
-        NetworKit::node match;
-        NetworKit::node parent;
-        int even_level;
-        int odd_level;
-        Bloom* bloom;
-        int color;
-        std::vector<NetworKit::node> predecessors;
-        size_t pred_it;
-        int pred_count;
-        std::vector<NetworKit::node> successors;
-        std::vector<std::pair<NetworKit::node, NetworKit::node>> children;
-        bool erased;
-    };
-
-    static constexpr int no_color = 0;
-    int color_counter;
-
-    struct EdgeData {
-        enum Type { none, prop, bridge };
-        NetworKit::node u, v;
-        Type type;
-    };
-
-    std::vector<VertexData> V;
-    std::vector<EdgeData> E;
-    std::vector<std::vector<NetworKit::node>> candidates;
-    std::vector<std::vector<NetworKit::edgeid>> bridges;
-
-    bool augmentation_happened;
-    bool bloom_found;
-    int iter, max_iter;
-
-    std::vector<Bloom*> current_blooms;
-    UnionFind<NetworKit::node, NetworKit::node> bloom_bases;
-    std::vector<NetworKit::node> bridge_support;
-    std::vector<NetworKit::node> erase_queue;
-
-    void reset();
-    void search();
-    void clear_blooms();
-
-    void bloss_aug(NetworKit::node s, NetworKit::node t);
-    void red_dfs_step(NetworKit::node& v_R, int red_color, NetworKit::node& v_G, 
-                  NetworKit::node r, NetworKit::node& barrier);
-    void green_dfs_step(NetworKit::node& v_G, int green_color, NetworKit::node& v_R, 
-                  NetworKit::node& barrier);
-
-    
-    void erase(std::vector<NetworKit::node>& Y);
-    
-    void find_path(NetworKit::node x, NetworKit::node y);
-    bool open(NetworKit::node cur, NetworKit::node bcur, NetworKit::node b);
-    
-    NetworKit::node base_star(Bloom* bloom);
-    NetworKit::node base_star(NetworKit::node vertex);
-    NetworKit::node base(NetworKit::node vertex);
-
-    void flip_edge(NetworKit::node u, NetworKit::node v);
-    void set_level(NetworKit::node vertex, int level);
-    bool exposed(NetworKit::node vertex);
-    int min_level(NetworKit::node vertex);
-    int max_level(NetworKit::node vertex);
-    int tenacity(NetworKit::node u, NetworKit::node v);
-    bool outer(NetworKit::node vertex);
-    bool inner(NetworKit::node vertex);
-
-    std::tuple<NetworKit::node, NetworKit::node, NetworKit::node, NetworKit::node> 
-    get_bridge(NetworKit::node vertex);
-};
-
-
 class GabowScalingMatching : public MaximumMatching {
 public:
     GabowScalingMatching(NetworKit::Graph &graph);
@@ -730,6 +616,132 @@ private:
     static void print_backtrack(
             Blossom* u, Blossom* v, EdgeInfo edge,
             std::vector<BacktrackInfo>& u_path, std::vector<BacktrackInfo>& v_path);
+};
+
+/**
+ * @ingroup matching
+ * The base class for the maximum cardinality matching algorithms.
+ *
+ */
+class MaximumCardinalityMatching : public NetworKit::Algorithm {
+
+public:
+    /**
+     * Given an input graph, set up the maximum matching algorithm.
+     *
+     * @param graph The input graph.
+     */
+    MaximumCardinalityMatching(NetworKit::Graph &graph);
+
+    /**
+     * Return the matching found by the algorithm.
+     *
+     * @return a matching between nodes.
+     */
+    const std::map<NetworKit::node, NetworKit::node>& getMatching() const;
+
+protected:
+    NetworKit::Graph graph;
+    std::map<NetworKit::node, NetworKit::node> matching;
+};
+
+/**
+ * @ingroup matching
+ * The class for the Edmonds maximum matching algorithm.
+ */
+class MicaliVaziraniMatching final : public MaximumCardinalityMatching {
+
+public:
+    MicaliVaziraniMatching(NetworKit::Graph &graph);
+    MicaliVaziraniMatching(
+        NetworKit::Graph &graph, const std::vector<NetworKit::node>& initial_matching);
+
+    /**
+     * Execute the Micali Vazirani maximum cardinality matching algorithm.
+     */
+    void run();
+
+private:
+    struct Bloom {
+        NetworKit::node base;
+        int green_color;
+        int red_color;
+        NetworKit::node green_peak;
+        NetworKit::node green_root;
+        NetworKit::node red_peak;
+        NetworKit::node red_root;
+    };
+
+    static constexpr int inf_level = 1e9;
+
+    struct VertexData {
+        NetworKit::node match;
+        NetworKit::node parent;
+        int even_level;
+        int odd_level;
+        Bloom* bloom;
+        int color;
+        std::vector<NetworKit::node> predecessors;
+        size_t pred_it;
+        int pred_count;
+        std::vector<NetworKit::node> successors;
+        std::vector<std::pair<NetworKit::node, NetworKit::node>> children;
+        bool erased;
+    };
+
+    static constexpr int no_color = 0;
+    int color_counter;
+
+    struct EdgeData {
+        enum Type { none, prop, bridge };
+        NetworKit::node u, v;
+        Type type;
+    };
+
+    std::vector<VertexData> V;
+    std::vector<EdgeData> E;
+    std::vector<std::vector<NetworKit::node>> candidates;
+    std::vector<std::vector<NetworKit::edgeid>> bridges;
+
+    bool augmentation_happened;
+    bool bloom_found;
+    int iter, max_iter;
+
+    std::vector<Bloom*> current_blooms;
+    UnionFind<NetworKit::node, NetworKit::node> bloom_bases;
+    std::vector<NetworKit::node> bridge_support;
+    std::vector<NetworKit::node> erase_queue;
+
+    void reset();
+    void search();
+    void clear_blooms();
+
+    void bloss_aug(NetworKit::node s, NetworKit::node t);
+    void red_dfs_step(NetworKit::node& v_R, int red_color, NetworKit::node& v_G, 
+                  NetworKit::node r, NetworKit::node& barrier);
+    void green_dfs_step(NetworKit::node& v_G, int green_color, NetworKit::node& v_R, 
+                  NetworKit::node& barrier);
+
+    void erase(std::vector<NetworKit::node>& Y);
+    
+    void find_path(NetworKit::node x, NetworKit::node y);
+    bool open(NetworKit::node cur, NetworKit::node bcur, NetworKit::node b);
+    
+    NetworKit::node base_star(Bloom* bloom);
+    NetworKit::node base_star(NetworKit::node vertex);
+    NetworKit::node base(NetworKit::node vertex);
+
+    void flip_edge(NetworKit::node u, NetworKit::node v);
+    void set_level(NetworKit::node vertex, int level);
+    bool exposed(NetworKit::node vertex);
+    int min_level(NetworKit::node vertex);
+    int max_level(NetworKit::node vertex);
+    int tenacity(NetworKit::node u, NetworKit::node v);
+    bool outer(NetworKit::node vertex);
+    bool inner(NetworKit::node vertex);
+
+    std::tuple<NetworKit::node, NetworKit::node, NetworKit::node, NetworKit::node> 
+    get_bridge(NetworKit::node vertex);
 };
 
 } /* namespace Koala */
