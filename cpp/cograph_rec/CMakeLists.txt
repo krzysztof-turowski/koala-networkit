@@ -1,0 +1,9 @@
+koala_add_module(cograph_rec
+   CographAlg.cpp
+   cograph/Cotree.cpp
+   cograph/FactorizingPermutation.cpp
+   cograph/IndependentSet.cpp
+   cograph/MaxClique.cpp
+   cograph/Pathwidth.cpp
+   cograph/Twins.cpp
+)
