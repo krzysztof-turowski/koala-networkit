@@ -15,6 +15,15 @@ EdmondsMaximumMatching::EdmondsMaximumMatching(NetworKit::Graph &graph) :
     });
 }
 
+void EdmondsMaximumMatching::scan_edges(Blossom* b) {
+    b->for_nodes([this] (NetworKit::node vertex) {
+        graph.forEdgesOf(vertex, [this] (NetworKit::node u, NetworKit::node v, NetworKit::edgeid id) {
+            if (is_tight(u, v, id)) 
+                edge_queue.push({u, v, id});
+        });
+    });
+}
+
 void EdmondsMaximumMatching::initialize_stage() {
     // Start search in all exposed blossoms 
     for (auto blossom : blossoms) {
@@ -35,37 +44,28 @@ void EdmondsMaximumMatching::finish_stage() {
 }
 
 void EdmondsMaximumMatching::initialize_substage() {
-    useful_edges = {};
+    edge_queue = {};
 
     graph.forEdges([this] (NetworKit::node u, NetworKit::node v, NetworKit::edgeid id) {
-        if (is_useful(u, v, id)) {
-            useful_edges.push({u, v, id});
-        } else if (is_useful(v, u, id)) {
-            useful_edges.push({v, u, id});
+        if (is_tight(u, v, id)) {
+            edge_queue.push({u, v, id});
+        } else if (is_tight(v, u, id)) {
+            edge_queue.push({v, u, id});
         }
     });
 }
 
 bool EdmondsMaximumMatching::has_useful_edges() {
-    return !useful_edges.empty();
+    return !edge_queue.empty();
 }
 
 EdmondsMaximumMatching::EdgeInfo EdmondsMaximumMatching::get_useful_edge() {
-    auto edge = useful_edges.front(); useful_edges.pop();
+    auto edge = edge_queue.front(); edge_queue.pop();
     return edge;
 }
 
 void EdmondsMaximumMatching::handle_grow(Blossom* odd_blossom, Blossom* even_blossom) {
-    check_for_useful_edges(even_blossom);
-}
-
-void EdmondsMaximumMatching::check_for_useful_edges(Blossom* b) {
-    b->for_nodes([this] (NetworKit::node vertex) {
-        graph.forEdgesOf(vertex, [this] (NetworKit::node u, NetworKit::node v, NetworKit::edgeid id) {
-            if (is_useful(u, v, id)) 
-                useful_edges.push({u, v, id});
-        });
-    });
+    scan_edges(even_blossom);
 }
 
 void EdmondsMaximumMatching::handle_new_blossom(Blossom* new_blossom) {
@@ -74,7 +74,7 @@ void EdmondsMaximumMatching::handle_new_blossom(Blossom* new_blossom) {
             current_blossom[v] = new_blossom;
         });
         if (b->label == odd) {
-            check_for_useful_edges(b);
+            scan_edges(b);
         }
     }
 }
@@ -88,7 +88,7 @@ void EdmondsMaximumMatching::handle_odd_blossom_expansion(Blossom* blossom) {
             current_blossom[v] = _b;
         });
         if (b->label == even) {
-            check_for_useful_edges(b);
+            scan_edges(b);
         }
     }
 }
@@ -142,7 +142,7 @@ MaximumMatching::edgeweight  EdmondsMaximumMatching::calc_delta2() {
         Blossom* v_blossom = get_blossom(v);
         if ((u_blossom->label == even && v_blossom->label == free) || 
             (u_blossom->label == free && v_blossom->label == even)) {
-            res = std::min(res, edge_dual_variable(id));
+            res = std::min(res, slack(id));
         }
     });
     return res;
@@ -156,7 +156,7 @@ MaximumMatching::edgeweight  EdmondsMaximumMatching::calc_delta3() {
         Blossom* u_blossom = get_blossom(u);
         Blossom* v_blossom = get_blossom(v);
         if (u_blossom != v_blossom && u_blossom->label == even && v_blossom->label == even) {
-            res = std::min(res, edge_dual_variable(id) / 2);
+            res = std::min(res, slack(id) / 2);
         }
     });
     return res;
@@ -192,17 +192,17 @@ EdmondsMaximumMatching::Blossom* EdmondsMaximumMatching::get_blossom(NetworKit::
     return current_blossom[vertex];
 }
 
-MaximumMatching::edgeweight  EdmondsMaximumMatching::edge_dual_variable(NetworKit::edgeid edge) {
+MaximumMatching::edgeweight  EdmondsMaximumMatching::slack(NetworKit::edgeid edge) {
     auto [u, v, w] = graph_edges[edge];
     Blossom* u_blossom = get_blossom(u);
     Blossom* v_blossom = get_blossom(v);
     return U[u] + U[v] - w + (u_blossom == v_blossom ? u_blossom->z : 0);
 }
 
-bool EdmondsMaximumMatching::is_useful(NetworKit::node u, NetworKit::node v, NetworKit::edgeid edge) {
+bool EdmondsMaximumMatching::is_tight(NetworKit::node u, NetworKit::node v, NetworKit::edgeid edge) {
     auto u_blossom = get_blossom(u);
     auto v_blossom = get_blossom(v);
-    return !is_in_matching[edge] && edge_dual_variable(edge) == 0 && 
+    return !is_in_matching[edge] && slack(edge) == 0 && 
             u_blossom->label == even && 
             ((v_blossom->label == even && u_blossom != v_blossom) || v_blossom->label == free);
 }
@@ -227,7 +227,7 @@ void EdmondsMaximumMatching::check_consistency() {
         }
     }
     std::cerr << "Edge queue:\n";
-    std::queue<EdgeInfo> q = useful_edges;
+    std::queue<EdgeInfo> q = edge_queue;
     while (!q.empty()) {
         std::cerr << edge_to_string(q.front()) << std::endl;
         q.pop();
@@ -235,7 +235,7 @@ void EdmondsMaximumMatching::check_consistency() {
     std::cerr << "Edges:\n";
     for (NetworKit::edgeid id = 0; id < graph.upperEdgeIdBound(); ++ id) {
         auto [u, v, w] = graph_edges[id];
-        std::cerr << edge_to_string({u, v, id}) << " : " << edge_dual_variable(id) << std::endl; 
+        std::cerr << edge_to_string({u, v, id}) << " : " << slack(id) << std::endl; 
     }
 }
 

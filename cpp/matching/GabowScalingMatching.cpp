@@ -81,6 +81,9 @@ std::vector<NetworKit::node> defaultMatching(const NetworKit::Graph& original_gr
 std::tuple<std::vector<NetworKit::node>, std::vector<int>, GabowScalingMatching::OldBlossom*>
 GabowScalingMatching::scale(const std::vector<int>& w) {
     if (allWeightsZero(w)) {
+        // Base case - all weights are zero
+        // Return only an outer blossom and a zero weight for all vertices
+        // The perfect matching consists of edges joining corresponding vertices in the reduced graph
         OldBlossom* T = new OldBlossom;
         T->size = reducedGraph.numberOfNodes();
         T->z = 0;
@@ -97,26 +100,35 @@ GabowScalingMatching::scale(const std::vector<int>& w) {
         );
     }
 
+    // Scale down weights
     std::vector<int> w1(w.size());
-    for (int i = 0; i < w.size(); ++ i) w1[i] = 2 * (w[i] / 4);
+    for (int i = 0; i < w.size(); ++ i) 
+        w1[i] = 2 * (w[i] / 4); // Keep all weights even
 
+    // Recursive call to scale for reduced weights
     auto [_, y1, T] = scale(w1);
 
     current_w = w;
-    T->for_blossoms([this] (OldBlossom* B) { B->z = 2 * B->z; });
+    old_root = T;
+    T->for_blossoms([this] (OldBlossom* B) { 
+        // Use weights from recursive call
+        B->z = 2 * B->z; 
+    });
     reducedGraph.forNodes([this, &y1] (NetworKit::node v) {
         current_y[v] = 2 * y1[v] + 1;
         matched_vertex[v] = NetworKit::none;
         matched_edge[v] = NetworKit::none;
     });
+    // Reset matching
     reducedGraph.forEdges([this] (NetworKit::node u, NetworKit::node v, NetworKit::edgeid e) {
         edge_in_matching[e] = false;
     });
     edges_in_matching = 0;
-    old_root = T;
     
+    // Find matching by dissolving old blossoms
     match(T);
 
+    // Convert found blossoms into the representation for old blossoms
     auto new_T = turn_current_blossoms_into_old(T->shell_blossoms);
 
     return std::make_tuple(matched_vertex, current_y, new_T);

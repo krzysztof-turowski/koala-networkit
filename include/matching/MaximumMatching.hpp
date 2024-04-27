@@ -72,6 +72,8 @@ protected:
     };
 
     static constexpr EdgeInfo no_edge { NetworKit::none, NetworKit::none, NetworKit::none };
+    
+    static EdgeInfo reverse(const EdgeInfo& edge);
 
     std::string edge_to_string(const EdgeInfo& e) { 
         return (e == no_edge) ? 
@@ -85,16 +87,36 @@ protected:
     public:
         class BlossomData {};
         Blossom* parent;
+        
+        // Base of the blossom at the moment of creation
         NetworKit::node initial_base;
+        
+        // Current base of the blossom
         NetworKit::node base;
+        
+        // Last node in the blossom order
         NetworKit::node last_node;
+        
         std::list<Blossom*> base_blossoms;
+        
+        // Subblossoms of the blossom
         std::list<std::pair<Blossom*, EdgeInfo>> subblossoms;
+        
+        // Label and backtrack edge set during a search
         BlossomLabel label;
         EdgeInfo backtrack_edge;
+        
+        // Visited flag used during backtracking
         bool visited;
+        
+        // Dual weight corresponding to the blossom
+        // To be used by the specific algorithms, might not be correct depending on implementation
         MaximumMatching::edgeweight z;
+
+        // Iterator pointing to the blossom in the 
         std::list<Blossom*>::iterator list_it;
+
+        // Pointer to algorithm-specific data corresponding to a blossom
         BlossomData* data;
 
         bool is_trivial();
@@ -115,11 +137,20 @@ protected:
         EdgeInfo edge; 
     };
 
+    // Store all graph edges so they can be accessed using the id
     std::vector<std::tuple<NetworKit::node, NetworKit::node, MaximumMatching::edgeweight>> graph_edges;
-    std::vector<bool> is_in_matching;
+    
+    // Store a list of all proper blossoms
     std::list<Blossom*> blossoms;
+    
+    // For each edge store wether it's in the current matching
+    std::vector<bool> is_in_matching;
+    
+    // For each vertex store the vertex it's matched to and the id of the edge by which they're matched
     std::vector<NetworKit::node> matched_vertex;
     std::vector<NetworKit::edgeid> matched_edge;
+
+    // For each vertex store it's corresponding trivial blossom
     std::vector<Blossom*> trivial_blossom;
 
     void run_stage();
@@ -185,12 +216,10 @@ protected:
     bool is_exposed(Blossom* b);
     
     virtual Blossom* get_blossom(NetworKit::node vertex) = 0;
-
-    static EdgeInfo reverse(const EdgeInfo& edge);
+    
     static void print_backtrack(
             Blossom* u, Blossom* v, EdgeInfo edge,
             std::vector<BacktrackInfo>& u_path, std::vector<BacktrackInfo>& v_path);
-
     virtual void check_consistency() = 0;
 };
 
@@ -205,13 +234,17 @@ public:
 
 private:
 
+    // For each vertex store it's current blossom and the value of corresponding dual variable
     std::vector<Blossom*> current_blossom;
     std::vector<MaximumMatching::edgeweight> U;
-    std::queue<EdgeInfo> useful_edges;
+    
+    // Queue of tight edges
+    std::queue<EdgeInfo> edge_queue;
 
-    MaximumMatching::edgeweight edge_dual_variable(NetworKit::edgeid edge);
+    void scan_edges(Blossom* b);
 
-    bool is_useful(NetworKit::node u, NetworKit::node v, NetworKit::edgeid edge);
+    MaximumMatching::edgeweight slack(NetworKit::edgeid edge);
+    bool is_tight(NetworKit::node u, NetworKit::node v, NetworKit::edgeid edge);
 
     void initialize_stage() override;
     void finish_stage() override;
@@ -221,7 +254,6 @@ private:
     EdgeInfo get_useful_edge() override;
 
     void handle_grow(Blossom* odd_blossom, Blossom* even_blossom) override;
-    void check_for_useful_edges(Blossom* b);
 
     void handle_new_blossom(Blossom* b) override;
 
@@ -257,18 +289,34 @@ private:
     class GabowBlossomData : public Blossom::BlossomData {
     public:
         GabowBlossomData(): best_edges(), best_edge(no_edge) {}
+
+        // For an even blossom store a list of edges (x_i, y_i) such that
+        //    1. y_1 < y_2 < ... < y_n
+        //    2. x_i belongs to the blossom
+        //    3. y_i belongs to a different even blossom
+        //    4. x_i became even after y_i
         std::list<EdgeInfo> best_edges;
+
+        // Edge in the best_edges list with smallest slack
         EdgeInfo best_edge;
     };
     GabowBlossomData* get_data(Blossom* b);
-    
-    std::queue<EdgeInfo> edge_queue;
-    std::vector<MaximumMatching::edgeweight> U;
-    std::vector<Blossom*> current_blossom;
-    std::vector<EdgeInfo> best_edge;
-    std::vector<std::vector<std::pair<NetworKit::node, NetworKit::edgeid>>> sorted_neighbours;
 
-    void calc_best_edges(Blossom* b);
+    // For each vertex store a sorted list of it's neighbours
+    // This is needed to efficiently create lists of best edges
+    std::vector<std::vector<std::pair<NetworKit::node, NetworKit::edgeid>>> sorted_neighbours;
+    
+    // Queue of tight edges
+    std::queue<EdgeInfo> edge_queue;
+
+    // For each vertex store it's current blossom and the value of it's corresponding dual variable
+    std::vector<Blossom*> current_blossom;
+    std::vector<MaximumMatching::edgeweight> U;
+
+    // For each non even vertex store an edge connecting it to an even vertex with minimum slack
+    std::vector<EdgeInfo> best_edge;
+
+    void scan_edges(Blossom* b);
 
     MaximumMatching::edgeweight edge_slack(NetworKit::edgeid edge);
 
