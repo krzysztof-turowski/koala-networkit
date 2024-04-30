@@ -1,10 +1,7 @@
-
 #pragma once
 
 #include <optional>
 #include <vector>
-#include <list>
-#include <set>
 #include <networkit/base/Algorithm.hpp>
 #include <networkit/components/ConnectedComponents.hpp>
 #include <networkit/graph/Graph.hpp>
