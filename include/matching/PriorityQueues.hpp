@@ -10,6 +10,8 @@ namespace Koala {
 
 #define QUEUE_DEBUG 0
 
+// TODO split these structures to different files / rename the file
+
 /**
  * Implementation of pq1 from the paper 'An O(EV log V) algorithm for finding a maximal 
  * weighted mathcing in general graphs' by Galil, Micali, Gabow. 
@@ -747,7 +749,6 @@ private:
     }
 };
 
-
 /**
  * Implementation of pq2 from the paper 'An O(EV log V) algorithm for finding a maximal 
  * weighted mathcing in general graphs' by Galil, Micali, Gabow. 
@@ -1017,99 +1018,74 @@ private:
     P Delta = 0;
 };
 
-
-// template<typename E, typename P>
-// class FHeap {
-// public:
-//     void insert(E val, P priority) {
-//         nodes.push_back({ val, priority });
-//     }
-
-//     P find_min() {
-
-//     }
-
-//     void delete_min() {
-//         if (min_node == nodes.end()) return;
-//         nodes.splice(nodes.end(), min_node->children);
-//         nodes.erase(min_node);
-//         consolidaate();
-//     }
-
-//     void decrease_cost(E val, P priority) {
-
-//     }
-
-//     void merge(FHeap& other) {
-//         nodes.splice(nodes.end(), other.nodes);
-//         min_node = min_node->priority < other.min_node->priority ? 
-//             min_node : other.min_node;
-//     }
-
-// private:
-//     struct Node {
-//         Node(): value(0), priority(0) {}
-//         Node(E val, P priority): value(val), priority(priority) {}
-
-//         E value;
-//         P priority;
-//         std::list<Node> children;
-
-//         int degree() { return children.size(); }
-//     };
-
-//     std::list<Node> nodes;
-//     std::list<Node>::iterator min_node;
-
-//     int max_degree() {
-//         int res = 0;
-//         for (auto n : nodes)
-//     }
-
-//     void consolidate() {
-//         int D = max_degree();
-//         Node nodes[D + 1];
-
-//         for (auto node : nodes) {
-//             Node new_node = node;
-//             int deg = new_node.degree();
-
-//             while (nodes[])
-//         }
-
-//         nodes.clear();
-//     }
-// };
-
+/**
+ * Implementation of the union-find data structure operating on elements from a provided 
+ * interval. Allows for linking sets of two provided elements.
+ * Each set is associated with a value that can be set when linking two sets and that is returned
+ * when calling the find method.
+ * 
+ * @tparam I type of elmenents
+ * @tparam R type of the value assigned to each set
+*/
 template <typename I, typename R>
 class UnionFind {
 public:
+    
+    /**
+     * Creates a union-find data structure for storing elements between 0 and size - 1
+     * 
+     * @param size upper bound on the elements that can be stored
+    */
     UnionFind(I size): size(size), root(size), parent(size), rank(size) {}
 
-    void reset(I i, R r) {
-        parent[i] = i;
-        root[i] = r;
-        rank[i] = 0;
+    /**
+     * Resets the data structure for a provided element. After calling the method the element
+     * is in a set associated with a provided value. This is set might contain more than the 
+     * provided element. In order for the data structure to represent only singletons the method 
+     * has to be called for all elements that have been previously linked.
+     * 
+     * This is done individually so that operations can be done on an arbitrary subset of elements
+     * between 0 and size - 1 without having to reset all size values.
+     * 
+     * @param element value of the element to be reset
+     * @param value value that is to be associated with the element's new set
+    */
+    void reset(I element, R value) {
+        parent[element] = element;
+        root[element] = value;
+        rank[element] = 0;
     }
 
-    void link(I x, I y, R r) {
+    /**
+     * Links sets of two provided elements.
+     * 
+     * @param x first element
+     * @param y second element
+     * @param value the value that is to associated with the created set
+    */
+    void link(I x, I y, R value) {
         I rx = find_root(x);
         I ry = find_root(y);
 
         if (rank[rx] < rank[ry]) {
             parent[rx] = ry;
-            root[ry] = r;
+            root[ry] = value;
         } else {
             parent[ry] = rx;
-            root[rx] = r;
+            root[rx] = value;
             if (rank[rx] == rank[ry]) {
                 rank[rx] ++;
             }
         } 
     }
 
-    R find(I x) {
-        return root[find_root(x)];
+    /**
+     * Returns the value associated with the set that the provided element belongs to.
+     * 
+     * @param element value of the element
+    */
+    R find(I element) {
+        return root[find_root(element)];
     }
 
 private:
@@ -1123,108 +1099,17 @@ private:
     }
 };
 
-// Temporary naive implementation
-template<typename T, typename H, typename K, typename V>
-class SplitFindMinNaive {
-public: 
-    struct List {
-        std::list<T> nodes;
-        K min_key;
-        V min_val;
-        H id;
-    };
-
-    SplitFindMinNaive(T size, K infinity, V empty_val) :
-        size(size), 
-        infinity(infinity), 
-        empty_val(empty_val),
-        element_list(size, nullptr), 
-        key(size, infinity),
-        val(size) {}
-
-    List* init(const std::list<T>& nodes, H id) {
-        List* L = new List { nodes, infinity, empty_val, id };
-
-        for (auto n : nodes) {
-            element_list[n] = L;
-            key[n] = infinity;
-            val[n] = empty_val;
-        }
-
-        return L;
-    }
-
-    List* list(T u) {
-        return element_list[u];
-    }
-
-    std::pair<List*, List*> split(T u, H h1, H h2) {
-        List* L = element_list[u];
-
-        auto it = std::next(std::find(L->nodes.begin(), L->nodes.end(), u));
-        std::list<T> nodes1;
-        std::list<T> nodes2;
-        nodes1.splice(nodes1.end(), L->nodes, L->nodes.begin(), it);
-        nodes2.splice(nodes2.end(), L->nodes, it, L->nodes.end());
-        
-        List* L1 = new List { nodes1, infinity, empty_val, h1 };
-        List* L2 = new List { nodes2, infinity, empty_val, h2 };
-
-        for (auto n : L1->nodes) {
-            element_list[n] = L1;
-            if (key[n] < L1->min_key) {
-                L1->min_key = key[n];
-                L1->min_val = val[n];
-            }
-        }
-
-        for (auto n : L2->nodes) {
-            element_list[n] = L2;
-            if (key[n] < L2->min_key) {
-                L2->min_key = key[n];
-                L2->min_val = val[n];
-            }
-        }
-
-        delete L;
-
-        return {L1, L2};
-    }
-
-    void decreaseKey(T u, K x, V v) {
-        if (x < key[u]) {
-            key[u] = x;
-            val[u] = v;
-        }
-        
-        if (x < element_list[u]->min_key) {
-            element_list[u]->min_key = x;
-            element_list[u]->min_val = v;
-        }
-    }
-
-    std::pair<K, V> findMin(List* L) {
-        return {L->min_key, L->min_val};
-    }
-
-    std::pair<K, V> currentKey(T u) {
-        return {key[u], val[u]};
-    }
-
-    void deleteList(List* L) {
-        delete L;
-    }
-
-private:
-    T size;
-    K infinity;
-    V empty_val;
-    std::vector<List*> element_list;
-    std::vector<K> key;
-    std::vector<V> val;
-};
-
-
+/**
+ * Implementation of the split-findmin data structure based on the list splitting algorithm
+ * as described in the paper 'A Scaling Algorithm for Weighted Matching on General Graphs'
+ * by Harold N. Gabow.
+ * 
+ * The data structure deals with elements between 0 and n. Every element is in a list and has an
+ * associated cost. The cost of a list is the smallest cost of any of it's elements.
+ * The structure allows for decreasing a cost a specific element to a given value, splitting
+ * lists on provided element and finding the costs of lists and the elements that achieve the
+ * minimum cost.
+*/
 template<typename T, typename H, typename K, typename V>
 class SplitFindMin {
 public: 

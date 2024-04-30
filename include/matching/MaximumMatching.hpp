@@ -462,20 +462,20 @@ private:
     };
 
     friend std::ostream& operator<<(std::ostream &out, const EdgeInfo& edge);
-    static constexpr EdgeInfo no_edge {NetworKit::none, NetworKit::none,NetworKit::none};
+    static constexpr EdgeInfo no_edge {NetworKit::none, NetworKit::none, NetworKit::none};
 
     enum BlossomLabel { even, odd, free };
 
     struct Blossom {
-        NetworKit::node base, initial_base;
-        int z0, t_root, t_odd, t_even, Delta;
+        NetworKit::node base;
+        MaximumMatching::intedgeweight z0, t_root, t_odd, t_even, Delta;
         Blossom* parent;
         std::list<std::pair<Blossom*, EdgeInfo>> subblossoms;
         BlossomLabel label;
         EdgeInfo backtrack_edge;
         bool visited;
         std::list<Blossom*>::iterator shell_blossoms_it;
-        SplitFindMin<NetworKit::node, Blossom*, int, EdgeInfo>::List* list;
+        SplitFindMin<NetworKit::node, Blossom*, MaximumMatching::intedgeweight, EdgeInfo>::List* list;
 
         bool is_trivial();
         void for_nodes(const std::function<void(NetworKit::node)>& handle);
@@ -485,62 +485,79 @@ private:
         void nodes_print();
     };
 
-    struct OldBlossom {
+    struct Shell {
+        // The number of all nodes in the shell
         int size;
-        int z;
-        int t_active;
-        int t_inner;
-        std::list<OldBlossom*> subblossoms;
+
+        // Dual weight of the shell
+        MaximumMatching::intedgeweight z;
+
+        // TODO - check if these can be moved outside
+        
+        // Time the shell has become the active shell in the search
+        MaximumMatching::intedgeweight t_active;
+
+        // Time the shell has become the inner shell in the search
+        MaximumMatching::intedgeweight t_inner;
+
+        std::list<Shell*> children;
+
+        // List of nodes solely in this shell
         std::list<NetworKit::node> nodes;
-        OldBlossom* heavy_path_parent;
-        OldBlossom* heavy_child;
+
+        // Parent and child in heavy path decomposition
+        Shell* heavy_path_parent;
+        Shell* heavy_child;
+
+        // Blossoms contained in the shell
         std::list<Blossom*> shell_blossoms;
-        bool dissolved;
-        bool searched;
+
+        // Status of the shell - wether it has been searched or dissolved
+        bool dissolved, searched;
+
+        // Index of the shell in the path
         int shell_index;
 
         bool is_heavy_path_root();
         void for_nodes(const std::function<void(NetworKit::node)>& handle);
-        void for_blossoms(const std::function<void(OldBlossom*)>& handle);
+        void for_blossoms(const std::function<void(Shell*)>& handle);
         void short_print();
     };
 
     NetworKit::Graph reducedGraph;
     std::vector<std::pair<NetworKit::node, NetworKit::node>> graph_edges; 
 
-    std::tuple<std::vector<NetworKit::node>, std::vector<int>, OldBlossom*>
-    scale(const std::vector<int>& w);
+    std::tuple<std::vector<NetworKit::node>, std::vector<MaximumMatching::intedgeweight>, Shell*>
+    scale(const std::vector<MaximumMatching::intedgeweight>& w);
 
-    void match(OldBlossom* T);
+    void match(Shell* T);
 
-    std::vector<int> current_w;
-    std::vector<int> current_y;
+    std::vector<MaximumMatching::intedgeweight> current_w;
+    std::vector<MaximumMatching::intedgeweight> current_y;
     std::vector<Blossom*> trivial_blossom;
     std::vector<NetworKit::node> matched_vertex;
     std::vector<NetworKit::edgeid> matched_edge;
     std::vector<bool> edge_in_matching;
     int edges_in_matching;
 
-    void delete_blossom(Blossom* B, OldBlossom* S);
-    void add_blossom(Blossom* B, OldBlossom* S);
-    void expand_blossom(Blossom* B, OldBlossom* S);
+    void delete_blossom(Blossom* B, Shell* S);
+    void add_blossom(Blossom* B, Shell* S);
+    void expand_blossom(Blossom* B, Shell* S);
     void swap_edge_in_matching(NetworKit::edgeid edge);
     void set_edge_in_matching(NetworKit::edgeid edge);
     void remove_edge_from_matching(NetworKit::edgeid edge);
     void check_edge_in_matching(NetworKit::edgeid edge);
 
-    void create_trivial_blossoms(OldBlossom* T);
-    OldBlossom* turn_current_blossoms_into_old(const std::list<Blossom*>& subblossoms);
-    void heavy_path_decomposition(OldBlossom* T, int outer_dual);
+    void create_trivial_blossoms(Shell* T);
+    Shell* turn_current_blossoms_into_old(const std::list<Blossom*>& subblossoms);
+    void heavy_path_decomposition(Shell* T, MaximumMatching::intedgeweight outer_dual);
     void change_blossom_base(Blossom* B, NetworKit::node new_base, EdgeInfo edge);
-    void swap_edges_on_even_path(
-        Blossom* B, NetworKit::node u, NetworKit::node v);
-    void swap_edges_on_even_path(
-        Blossom* B, NetworKit::node out_vertex, std::list<Blossom*>&& out_blossoms);
+    void swap_edges_on_even_path(Blossom* B, NetworKit::node u, NetworKit::node v);
+    void swap_edges_on_even_path(Blossom* B, NetworKit::node out_vertex, std::list<Blossom*>&& out_blossoms);
     
-    void path(OldBlossom* B, int outer_dual);
+    void path(Shell* B, MaximumMatching::intedgeweight outer_dual);
 
-    int free_nodes_in_shell(OldBlossom* B);
+    int free_nodes_in_shell(Shell* B);
     void enumerate_shells();
     void augmentPaths();
     int current_slack(EdgeInfo e);
@@ -554,7 +571,7 @@ private:
             struct { NetworKit::node v; EdgeInfo e; };
             EdgeInfo uv;
             Blossom* B;
-            OldBlossom* S;
+            Shell* S;
         } args;
 
         static Event make_grow(NetworKit::node v, EdgeInfo e) { 
@@ -578,7 +595,7 @@ private:
             return event;
         }
 
-        static Event make_dissolveShell(OldBlossom* S) { 
+        static Event make_dissolveShell(Shell* S) { 
             Event event;
             event.type = dissolveShell;
             event.args.S = S; 
@@ -588,31 +605,31 @@ private:
 
     friend std::ostream& operator<<(std::ostream &out, const Event& event);
 
-    void shell_search(OldBlossom* B);
+    void shell_search(Shell* B);
     void init_shell_search();
     
     void finish_shell_search();
     void delete_lists(Blossom* B);
 
     bool search_done;
-    int t_undissolvable;
+    MaximumMatching::intedgeweight t_undissolvable;
     MaximumMatching::intedgeweight shell_Delta;
     MaximumMatching::intedgeweight outer_blossom_dual;
     MaximumMatching::intedgeweight active_shell_initial_dual;
-    OldBlossom* old_root;
-    OldBlossom* path_root;
-    OldBlossom* highest_undissolved;
-    OldBlossom* active_shell;
-    OldBlossom* starting_shell;
-    std::vector<std::pair<MaximumMatching::intedgeweight, OldBlossom*>> shells;
-    std::vector<OldBlossom*> vertex_path;
+    Shell* old_root;
+    Shell* path_root;
+    Shell* highest_undissolved;
+    Shell* active_shell;
+    Shell* starting_shell;
+    std::vector<std::pair<MaximumMatching::intedgeweight, Shell*>> shells;
+    std::vector<Shell*> vertex_path;
     std::vector<MaximumMatching::intedgeweight> current_shell_duals;
     std::vector<MaximumMatching::intedgeweight> y0;
     std::vector<MaximumMatching::intedgeweight> t_shell;
     std::vector<MaximumMatching::intedgeweight> Delta;
     std::vector<Blossom*> current_blossom;
-    std::vector<OldBlossom*> current_shell;
-    std::vector<OldBlossom*> search_shell;
+    std::vector<Shell*> current_shell;
+    std::vector<Shell*> search_shell;
     FenwickTree shell_distribution;
     ArrayPriorityQueue<Event> event_queue;
     UnionFind<NetworKit::node, Blossom*> union_find;
@@ -622,7 +639,7 @@ private:
     void schedule(NetworKit::node v);
     void dissolve(Blossom* B);
     void blossom(EdgeInfo edge);
-    void dissolveShell(OldBlossom* S);
+    void dissolveShell(Shell* S);
 
     struct BacktrackInfo { 
         Blossom* blossom;  
@@ -649,7 +666,7 @@ private:
     bool is_even(NetworKit::node v);
     bool is_odd(NetworKit::node v);
     Blossom* get_blossom(NetworKit::node v);
-    void add_distribution(OldBlossom* S, MaximumMatching::intedgeweight distribution);
+    void add_distribution(Shell* S, MaximumMatching::intedgeweight distribution);
     MaximumMatching::intedgeweight distribution_so_far(int shell_index);
     bool matching_is_perfect();
 

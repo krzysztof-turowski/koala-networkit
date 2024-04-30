@@ -145,6 +145,7 @@ void MicaliGabowMaximumMatching::handle_grow(Blossom* odd_blossom, Blossom* even
         // Track dual weight for the newly odd blossom
         Zodd.insert(odd_blossom->initial_base, odd_blossom->z);
     }
+    
     // Even edges from the odd blossom are no longer affected by dual adjustments
     // Deactivate the corresponding group
     even_edges.change_status(get_data(odd_blossom)->even_edges, false);
