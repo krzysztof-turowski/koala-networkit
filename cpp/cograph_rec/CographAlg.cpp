@@ -35,7 +35,6 @@ namespace Koala {
         unused_parts.clear();
     }
 
-
     void CographRecognition::run() {
         Clear();
         num_of_nodes = graph->numberOfNodes();
@@ -174,7 +173,6 @@ namespace Koala {
                     }
                 }
             }
-
         }
 
         part *X_0 = new part(), *X_N = new part(), *Z;
@@ -228,4 +226,4 @@ namespace Koala {
     }
 
 
-}  // namespace Koala
+}

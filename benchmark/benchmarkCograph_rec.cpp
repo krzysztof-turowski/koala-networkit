@@ -11,8 +11,8 @@ int main() {
         "COGRAPH",
         "IS_NOT_COGRAPH"
     };
-    //std::ifstream fin("../../input/cographConnected9.g6");
-    std::ifstream fin("../../input/graph8c.g6");
+    std::ifstream fin("../../input/cographConnected11.g6");
+    //std::ifstream fin("../../input/graph8c.g6");
 
     while (true)
     {
@@ -36,6 +36,16 @@ int main() {
         {
             std::cout<<"error2"<<std::endl;
         }
+
+        if(recognize.GetState()==Koala::CographRecognition::State::COGRAPH )
+        {
+            recognize.cotree->Coloring();
+            if(!recognize.cotree->СheckColoring())
+            {
+                std::cout<<"error3"<<std::endl;
+            }
+        }
+
         classification[recognize.GetState()]++;
     }
 

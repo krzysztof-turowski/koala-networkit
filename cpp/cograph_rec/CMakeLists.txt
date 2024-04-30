@@ -6,4 +6,5 @@ koala_add_module(cograph_rec
    cograph/MaxClique.cpp
    cograph/Pathwidth.cpp
    cograph/Twins.cpp
+   cograph/Coloring.cpp
 )

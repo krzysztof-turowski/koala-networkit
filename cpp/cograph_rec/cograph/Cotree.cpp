@@ -13,7 +13,7 @@ namespace Koala {
         long long n = graph->numberOfNodes();
         long long i;
 
-        for (i = 0; i < 2 * n; i++) {
+        for (i = 0; i <= 2 * n; i++) {
             left_son.push_back(0);
             right_son.push_back(0);
             parent.push_back(0);
@@ -35,7 +35,7 @@ namespace Koala {
             left_son[order[i].first.first] = -1;
             right_son[order[i].first.first] = -1;
             type[order[i].first.first] = 2;
-            parent[order[i].first.first] = n + i; //&
+            parent[order[i].first.first] = n + i;
 
             long long p = parent[order[i].first.second];
             if (left_son[p] == order[i].first.second) {
@@ -47,7 +47,7 @@ namespace Koala {
             parent[order[i].first.second] = n + i;
 
             left_son[n + i] = order[i].first.first;
-            right_son[n + i] = order[i].first.first;
+            right_son[n + i] = order[i].first.second;
             parent[n + i] = p;
             type[n + i] = order[i].second;
         }

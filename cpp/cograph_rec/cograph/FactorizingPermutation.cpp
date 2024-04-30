@@ -27,7 +27,6 @@ namespace Koala {
         while (l->previous != nullptr && (l->first == l->last || l->first == nullptr)) {
             l = l->previous;
         }
-
     }
 
     void FactorizingPermutation::Rcheck() {
@@ -78,7 +77,6 @@ namespace Koala {
         if (v->my_part->pivot == v) {
             v->my_part->pivot = nullptr;
         }
-
     }
 
     void FactorizingPermutation::AddPart(part *x, part *y) {
