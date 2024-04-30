@@ -1,14 +1,7 @@
-#include <list>
-#include <set>
-#include <unordered_map>
-#include <map>
-
 #include "cograph_rec/CographAlg.hpp"
 #include "cograph/Twins.cpp"
 
-
 namespace Koala {
-
     CographRecognition::CographRecognition(NetworKit::Graph &Graph) {
         original_graph = &Graph;
         graph = new NetworKit::Graph(Graph);
@@ -203,6 +196,7 @@ namespace Koala {
         StartTest(num_of_nodes);
         while (Z != permutation->last_part) {
             int twin = Twins(Z->first->num, Z->previous->first->num, graph, twins_counter);
+            twins_counter += 4;
             if (twin < 2) {
                 order.push_back({{Z->previous->first->num, Z->first->num}, twin});
                 graph->removeNode(Z->previous->first->num);
@@ -210,6 +204,7 @@ namespace Koala {
                 flag++;
             } else {
                 twin = Twins(Z->first->num, Z->previous->first->num, graph, twins_counter);
+                twins_counter += 4;
                 if (twin < 2) {
                     Z = Z->next;
                     order.push_back({{Z->previous->first->num, Z->first->num}, twin});
