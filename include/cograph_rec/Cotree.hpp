@@ -1,13 +1,4 @@
-//
-// Created by scales on 25.04.24.
-//
 #pragma once
-
-#include <list>
-#include <set>
-
-#include <unordered_map>
-#include <map>
 
 #include <graph/GraphTools.hpp>
 

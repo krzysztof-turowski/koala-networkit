@@ -1,25 +1,14 @@
-//
-// Created by scales on 25.04.24.
-//
-#include <list>
-#include <set>
-#include <unordered_map>
-#include <map>
 #include <graph/GraphTools.hpp>
 
 #include "cograph_rec/Cotree.hpp"
 
 namespace Koala {
-
     Cotree::Cotree(NetworKit::Graph &Graph) {
         graph = &Graph;
         prepared = false;
     }
 
-
-
     void Cotree::BuildTree() {
-
         reverse(order.begin(), order.end());
         long long n = graph->numberOfNodes();
         long long i;

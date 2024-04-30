@@ -1,17 +1,8 @@
-
-//
-// Created by scales on 16.04.24.
-//
-#include <list>
-#include <set>
-#include <unordered_map>
-#include <map>
 #include <graph/GraphTools.hpp>
 
 #include "cograph_rec/Cotree.hpp"
 
 namespace Koala {
-
     long long Cotree::MaxIndependetSetSize(long long n, long long v) {
         long long i;
         if (type[v] == 2) {

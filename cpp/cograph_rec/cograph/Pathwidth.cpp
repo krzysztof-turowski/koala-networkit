@@ -1,17 +1,6 @@
-
-//
-// Created by scales on 16.04.24.
-//
-#include <list>
-#include <set>
-#include <unordered_map>
-#include <map>
-#include <graph/GraphTools.hpp>
-
 #include "cograph_rec/Cotree.hpp"
 
 namespace Koala {
-
     long long Cotree::SubtreeSize(long long n, long long v) {
         if (type[v] == 2) {
             size[v] = 1;
@@ -35,7 +24,6 @@ namespace Koala {
             return 1;
         } else {
             long long l = 0, r = 0;
-
             if (left_son[v] != -1) {
                 l = pathwidth(n, left_son[v]);
             }
@@ -59,7 +47,6 @@ namespace Koala {
             }
         }
     }
-
 
     long long Cotree::GetCographPathwidth() {
         long long n = graph->numberOfNodes();

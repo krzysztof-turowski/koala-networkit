@@ -1,24 +1,14 @@
-
-//
-// Created by scales on 16.04.24.
-//
-#include <list>
-#include <set>
-#include <unordered_map>
-#include <map>
 #include <graph/GraphTools.hpp>
 
 #include "cograph_rec/Cotree.hpp"
 
 namespace Koala {
-
     long long Cotree::MaxCliqueSize(long long n, long long v) {
         long long i;
         if (type[v] == 2) {
             return 1;
         } else {
             long long l = 0, r = 0;
-
             if (left_son[v] != -1) {
                 l = MaxCliqueSize(n, left_son[v]);
             }

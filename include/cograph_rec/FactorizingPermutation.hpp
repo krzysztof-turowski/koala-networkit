@@ -1,14 +1,7 @@
-//
-// Created by scales on 25.04.24.
-//
 #pragma once
 
 #include <list>
-#include <set>
-#include <unordered_map>
-#include <map>
 #include <graph/GraphTools.hpp>
-
 
 #include "cograph_rec/Part.hpp"
 
@@ -18,7 +11,6 @@ namespace Koala {
         part *l, *r, *first_part, *last_part;
         element *origin;
         std::vector<element *> E;
-        std::list<part *> garbage;
 
         FactorizingPermutation();
 

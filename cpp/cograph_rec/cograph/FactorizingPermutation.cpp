@@ -1,14 +1,8 @@
-
-#include <list>
-#include <set>
-#include <unordered_map>
-#include <map>
 #include <graph/GraphTools.hpp>
 
 #include "cograph_rec/FactorizingPermutation.hpp"
 
 namespace Koala {
-
     FactorizingPermutation::FactorizingPermutation() {
         l = nullptr;
         r = nullptr;
@@ -18,15 +12,9 @@ namespace Koala {
     }
 
     FactorizingPermutation::~FactorizingPermutation() {
-        for (auto v: garbage) {
-            delete v;
-        }
-
         for (auto v: E) {
             delete v;
         }
-
-        garbage.clear();
         E.clear();
     }
 
@@ -36,7 +24,6 @@ namespace Koala {
                 l = (l->next);
             }
         }
-
         while (l->previous != nullptr && (l->first == l->last || l->first == nullptr)) {
             l = l->previous;
         }
@@ -132,20 +119,13 @@ namespace Koala {
             } else {
                 break;
             }
-
-
         }
         std::cout << std::endl;
     }
 
     void FactorizingPermutation::ErasePart(part *p) {
-
         Lcheck();
         Rcheck();
-
-        if (p->first == nullptr) {
-            garbage.push_back(p);
-        }
 
         part *A, *B;
         A = p->previous;
@@ -161,6 +141,5 @@ namespace Koala {
         } else {
             B->previous = A;
         }
-
     }
 }
