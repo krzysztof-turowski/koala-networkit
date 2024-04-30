@@ -27,7 +27,7 @@ INSTANTIATE_TEST_SUITE_P
 (
         test_example, cograph_alg_test, testing::Values
         (
-                GraphRecognitionParameters{7, {{0, 4}, {0, 6}, {1, 5}, {1, 6}, {2, 5}, {3, 6}, {4,6},{5, 6}}, false}
+                GraphRecognitionParameters{7, {{0, 4}, {0, 6}, {1, 5}, {1, 6}, {2, 5}, {3, 6}, {4, 6}, {5, 6}}, false}
 
         )
 );

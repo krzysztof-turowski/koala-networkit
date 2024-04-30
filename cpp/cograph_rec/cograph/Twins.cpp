@@ -5,7 +5,7 @@ namespace Koala {
 
     void StartTest(long long n) {
         used.clear();
-        for (int i=0; i < n; i++) {
+        for (int i = 0; i < n; i++) {
             used.push_back(0);
         }
     }
@@ -30,7 +30,6 @@ namespace Koala {
         }
         return (counter == 0);
     }
-
 
     bool TrueTwins(long long A, long long B, NetworKit::Graph *graph, long long twins_counter) {
         int counter = 0, flag = 0;

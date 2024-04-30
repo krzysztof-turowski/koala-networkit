@@ -6,7 +6,7 @@ namespace Koala {
     class Cotree {
     public:
         NetworKit::Graph *graph;
-        std::vector<long long> left_son, right_son, parent, type, size, color,number_of_colors;
+        std::vector<long long> left_son, right_son, parent, type, size, color, number_of_colors;
         std::vector<std::pair<std::pair<long long, long long>, long long> > order;
 
         Cotree(NetworKit::Graph &Graph);
@@ -45,6 +45,6 @@ namespace Koala {
 
         long long GetColor(long long i);
 
-        bool СheckColoring();
+        bool CheckColoring();
     };
 }
