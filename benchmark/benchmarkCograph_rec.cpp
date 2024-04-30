@@ -28,17 +28,18 @@ int main() {
         auto recognize = Koala::CographRecognition(G);
         recognize.run();
 
-        if(recognize.GetState()==Koala::CographRecognition::State::COGRAPH && recognize.cotree->GetMaxIndependetSetSize()!=recognize.cotree->BruteForceIndependetSetSize())
+        if(recognize.GetState()==Koala::CographRecognition::State::COGRAPH)
         {
-            std::cout<<"error1"<<std::endl;
-        }
-        if(recognize.GetState()==Koala::CographRecognition::State::COGRAPH && recognize.cotree->GetMaxCliqueSize()!=recognize.cotree->BruteForceCliqueSize())
-        {
-            std::cout<<"error2"<<std::endl;
-        }
+            if(recognize.cotree->GetMaxIndependetSetSize()!=recognize.cotree->BruteForceIndependetSetSize())
+            {
+                std::cout<<"error1"<<std::endl;
+            }
 
-        if(recognize.GetState()==Koala::CographRecognition::State::COGRAPH )
-        {
+            if(recognize.cotree->GetMaxCliqueSize()!=recognize.cotree->BruteForceCliqueSize())
+            {
+                std::cout<<"error2"<<std::endl;
+            }
+
             recognize.cotree->Coloring();
             if(!recognize.cotree->СheckColoring())
             {

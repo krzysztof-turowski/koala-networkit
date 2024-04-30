@@ -41,9 +41,9 @@ namespace Koala {
 
         void EndOfColoring(long long v);
 
-        long long GetColor(long long i);
-
         void SubtreeColors(long long v);
+
+        long long GetColor(long long i);
 
         bool СheckColoring();
     };

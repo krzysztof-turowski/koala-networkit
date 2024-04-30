@@ -10,8 +10,7 @@ namespace Koala {
 
     void Cotree::BuildTree() {
         reverse(order.begin(), order.end());
-        long long n = graph->numberOfNodes();
-        long long i;
+        long long n = graph->numberOfNodes(),i;
 
         for (i = 0; i <= 2 * n; i++) {
             left_son.push_back(0);
