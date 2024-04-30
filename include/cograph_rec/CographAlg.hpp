@@ -11,8 +11,6 @@
 #include "cograph_rec/Part.hpp"
 
 namespace Koala {
-
-
     class CographRecognition : public NetworKit::Algorithm {
     public:
         enum class State {
@@ -42,5 +40,4 @@ namespace Koala {
 
         void Clear();
     };
-
 } /* namespace Koala */

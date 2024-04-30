@@ -6,7 +6,6 @@
 #include <networkit/graph/Graph.hpp>
 
 namespace Koala {
-
     class element;
 
     class part {
@@ -33,8 +32,6 @@ namespace Koala {
         element *previous, *next;
         long long num = -1;
     };
-
-
 };
 
 

@@ -31,6 +31,5 @@ namespace Koala {
         void Lcheck();
 
         void ShowTheOrder();
-
     };
 }
