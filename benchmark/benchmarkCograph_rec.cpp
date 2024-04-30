@@ -1,7 +1,5 @@
-#include <cassert>
 #include <iostream>
 #include <map>
-#include "vector"
 
 #include <io/G6GraphReader.hpp>
 #include "cograph_rec/CographAlg.hpp"
@@ -13,12 +11,8 @@ int main() {
         "COGRAPH",
         "IS_NOT_COGRAPH"
     };
-    std::ifstream fin("../../input/cographConnected11.g6");
-    //std::ifstream fin("../../input/graph9c.g6");
-
-    //cographConnected
-    //grapc
-    int kol=0;
+    //std::ifstream fin("../../input/cographConnected9.g6");
+    std::ifstream fin("../../input/graph8c.g6");
 
     while (true)
     {
@@ -32,11 +26,8 @@ int main() {
         NetworKit::Graph G = Koala::G6GraphReader().readline(line);
 
         auto recognize = Koala::CographRecognition(G);
-        kol++;
         recognize.run();
 
-
-        //std::cout<<recognize.cotree->GetMaxIndependetSetSize()<<std::endl;
         if(recognize.GetState()==Koala::CographRecognition::State::COGRAPH && recognize.cotree->GetMaxIndependetSetSize()!=recognize.cotree->BruteForceIndependetSetSize())
         {
             std::cout<<"error1"<<std::endl;
@@ -45,9 +36,7 @@ int main() {
         {
             std::cout<<"error2"<<std::endl;
         }
-
         classification[recognize.GetState()]++;
-
     }
 
     for (const auto &[k, v] : classification) {
