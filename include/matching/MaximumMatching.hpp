@@ -467,14 +467,34 @@ private:
     enum BlossomLabel { even, odd, free };
 
     struct Blossom {
+        // The blossom's base
         NetworKit::node base;
+
+        // Counters used in search:
+        //  z0     - initial value of the dual variable
+        //  t_root - time the blossom became a root blossom
+        //  t_odd  - time the blossom became odd
+        //  t_even - time the blossom became even
+        //  Delta  - number of dual adjustments experience by vertices in the blossom as odd
+        //           vertices before it became a root or even
         MaximumMatching::intedgeweight z0, t_root, t_odd, t_even, Delta;
+
+        // Parent and children in the blossom tree
         Blossom* parent;
         std::list<std::pair<Blossom*, EdgeInfo>> subblossoms;
+
+        // Status of the blossom in the search
         BlossomLabel label;
         EdgeInfo backtrack_edge;
+
+        // Flag needed for efficient backtracking
         bool visited;
+
+        // Iterator to the blossom position in a shell's blossom list
         std::list<Blossom*>::iterator shell_blossoms_it;
+
+        // For a non-even blossom maintains a list of it's nodes, the key for each node
+        // is used to maintain a minimum slack of an edge connecting it to an even vertex
         SplitFindMin<NetworKit::node, Blossom*, MaximumMatching::intedgeweight, EdgeInfo>::List* list;
 
         bool is_trivial();
@@ -492,14 +512,7 @@ private:
         // Dual weight of the shell
         MaximumMatching::intedgeweight z;
 
-        // TODO - check if these can be moved outside
-        
-        // Time the shell has become the active shell in the search
-        MaximumMatching::intedgeweight t_active;
-
-        // Time the shell has become the inner shell in the search
-        MaximumMatching::intedgeweight t_inner;
-
+        // Children of the shell
         std::list<Shell*> children;
 
         // List of nodes solely in this shell
@@ -523,18 +536,19 @@ private:
         void for_blossoms(const std::function<void(Shell*)>& handle);
         void short_print();
     };
-
+    
+    // Initial graph reduced to an instance of a maximum perfect matching problem
     NetworKit::Graph reducedGraph;
     std::vector<std::pair<NetworKit::node, NetworKit::node>> graph_edges; 
 
-    std::tuple<std::vector<NetworKit::node>, std::vector<MaximumMatching::intedgeweight>, Shell*>
-    scale(const std::vector<MaximumMatching::intedgeweight>& w);
-
-    void match(Shell* T);
-
+    // Current edge weights and vertex dual variables
     std::vector<MaximumMatching::intedgeweight> current_w;
     std::vector<MaximumMatching::intedgeweight> current_y;
+
+    // Trivial blossom for each node
     std::vector<Blossom*> trivial_blossom;
+
+    // State of the current matching
     std::vector<NetworKit::node> matched_vertex;
     std::vector<NetworKit::edgeid> matched_edge;
     std::vector<bool> edge_in_matching;
@@ -549,20 +563,29 @@ private:
     void check_edge_in_matching(NetworKit::edgeid edge);
 
     void create_trivial_blossoms(Shell* T);
-    Shell* turn_current_blossoms_into_old(const std::list<Blossom*>& subblossoms);
+    Shell* turn_current_blossoms_into_shells(const std::list<Blossom*>& subblossoms);
     void heavy_path_decomposition(Shell* T, MaximumMatching::intedgeweight outer_dual);
     void change_blossom_base(Blossom* B, NetworKit::node new_base, EdgeInfo edge);
     void swap_edges_on_even_path(Blossom* B, NetworKit::node u, NetworKit::node v);
     void swap_edges_on_even_path(Blossom* B, NetworKit::node out_vertex, std::list<Blossom*>&& out_blossoms);
     
+    std::tuple<std::vector<NetworKit::node>, std::vector<MaximumMatching::intedgeweight>, Shell*>
+    scale(const std::vector<MaximumMatching::intedgeweight>& w);
+
+    void match(Shell* T);
+
     void path(Shell* B, MaximumMatching::intedgeweight outer_dual);
+
+    void shell_search(Shell* B);
+    void init_shell_search();
 
     int free_nodes_in_shell(Shell* B);
     void enumerate_shells();
     void augmentPaths();
     int current_slack(EdgeInfo e);
     
-    std::vector<NetworKit::node> actual_to_contracted;
+    void finish_shell_search();
+    void delete_lists(Blossom* B);
 
     struct Event {
         enum Type { grow, blossom, dissolve, dissolveShell };
@@ -605,34 +628,79 @@ private:
 
     friend std::ostream& operator<<(std::ostream &out, const Event& event);
 
-    void shell_search(Shell* B);
-    void init_shell_search();
-    
-    void finish_shell_search();
-    void delete_lists(Blossom* B);
-
-    bool search_done;
-    MaximumMatching::intedgeweight t_undissolvable;
-    MaximumMatching::intedgeweight shell_Delta;
-    MaximumMatching::intedgeweight outer_blossom_dual;
-    MaximumMatching::intedgeweight active_shell_initial_dual;
+    // Outermost shell
     Shell* old_root;
+
+    // First shell in the current path
     Shell* path_root;
+
+    // First undissolved shell in the current path
     Shell* highest_undissolved;
-    Shell* active_shell;
-    Shell* starting_shell;
-    std::vector<std::pair<MaximumMatching::intedgeweight, Shell*>> shells;
-    std::vector<Shell*> vertex_path;
-    std::vector<MaximumMatching::intedgeweight> current_shell_duals;
-    std::vector<MaximumMatching::intedgeweight> y0;
-    std::vector<MaximumMatching::intedgeweight> t_shell;
-    std::vector<MaximumMatching::intedgeweight> Delta;
+
+    // Shells in the current path and the number of free vertices it contains
+    std::vector<std::pair<int, Shell*>> shells;
+
+    // Maps the vertices into the contracted graph during path augmentation
+    std::vector<NetworKit::node> actual_to_contracted;
+
+    // The blossom the vertex belongs to before augmentation
     std::vector<Blossom*> current_blossom;
+    
+    // Root of the path in which 
+    std::vector<Shell*> vertex_path;
+
+    // The shell the vertex belongs to before a path iteration
     std::vector<Shell*> current_shell;
-    std::vector<Shell*> search_shell;
-    FenwickTree shell_distribution;
+
+    // Sum of dual weights of the active shell and above at the time it became active
+    std::vector<MaximumMatching::intedgeweight> current_shell_duals; // TODO move to shell
+
+    // The status of the current search
+    bool search_done;
+
+    // Queue of search events
     ArrayPriorityQueue<Event> event_queue;
+
+    // Time the shell has become the active shell in the search
+    MaximumMatching::intedgeweight t_active;
+
+    // Time the shell has become the inner shell in the search
+    MaximumMatching::intedgeweight t_inner;
+
+    // Time the outermost shell has become active in the search
+    MaximumMatching::intedgeweight t_undissolvable;
+
+    // Sum of the dual variables of blossoms above current path
+    MaximumMatching::intedgeweight outer_shells_dual;
+
+    // Sum of dual weights of the active shell and above at the time it became active
+    MaximumMatching::intedgeweight active_shell_initial_dual;
+
+    // Currently searched shell
+    Shell* active_shell;
+
+    // Starting shell for the current shell
+    Shell* starting_shell;
+
+    // The value of vertex's dual variable at the start of search
+    std::vector<MaximumMatching::intedgeweight> y0;
+
+    // The time the vertex was added to the current search
+    std::vector<MaximumMatching::intedgeweight> t_shell;
+
+    // Distributions to vertex's dual variable before it was searched
+    std::vector<MaximumMatching::intedgeweight> Delta;
+
+    // The starting shell of the search in which the vertex was searched
+    std::vector<Shell*> search_shell;
+
+    // Used to maintain distributions by shells in the path
+    FenwickTree shell_distribution;
+
+    // Maintains nodes in even blossoms
     UnionFind<NetworKit::node, Blossom*> union_find;
+
+    // Maintains the list for non-even blossoms
     SplitFindMin<NetworKit::node, Blossom*, MaximumMatching::intedgeweight, EdgeInfo> split_find_min;
 
     void grow(NetworKit::node v, EdgeInfo e);
