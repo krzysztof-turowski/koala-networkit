@@ -32,8 +32,8 @@ GabowScalingMatching::GabowScalingMatching(NetworKit::Graph &graph):
     union_find(reducedGraph.upperNodeIdBound()),
     matched_vertex(reducedGraph.upperNodeIdBound()),
     matched_edge(reducedGraph.upperNodeIdBound()),
-    // TODO move this calculation 
-    split_find_min(reducedGraph.upperNodeIdBound(), 1000000000, no_edge, SplitFindMin<NetworKit::node, Blossom*, MaximumMatching::intedgeweight, EdgeInfo>::alpha(reducedGraph.numberOfEdges(), reducedGraph.numberOfNodes())),
+    split_find_min(reducedGraph.upperNodeIdBound(), 1000000000, no_edge, 
+        reducedGraph.numberOfNodes(), reducedGraph.numberOfEdges()),
     y0(reducedGraph.upperNodeIdBound()),
     Delta(reducedGraph.upperNodeIdBound()),
     t_shell(reducedGraph.upperNodeIdBound()),
@@ -324,8 +324,8 @@ void GabowScalingMatching::path(Shell* B, MaximumMatching::intedgeweight outer_d
         // Maximize the number of matched edges using tight edges
         augmentPaths();
 
-        // Finish dissolving the path when all shells are dissolved or the only remaining shell is
-        // the represent the entire graph and the matching is perfect, which ends the whole algorithm
+        // Finish dissolving the path when all shells are dissolved or the only remaining shell
+        // represents the entire graph and the matching is perfect, which ends the whole algorithm
         if (shells.size() == 0 || 
             (shells.size() == 1 && shells.front().second == old_root && matching_is_perfect())) {
             return;
@@ -335,11 +335,11 @@ void GabowScalingMatching::path(Shell* B, MaximumMatching::intedgeweight outer_d
         for (int i = 0; i < shells.size(); ++ i) {
             shells[i].first = free_nodes_in_shell(shells[i].second);
         }
-        std::sort(shells.begin(), shells.end(), std::greater<>());
         
         // Search shells in the order of decreasing number of free nodes
+        std::sort(shells.begin(), shells.end(), std::greater<>());
         for (auto [free_nodes, shell] : shells) {
-            if (!shell->dissolved && free_nodes > 0 && !shell->searched) {
+            if (free_nodes > 0 && !shell->dissolved && !shell->searched) {
                 shell_search(shell);
             }
         }
@@ -383,6 +383,8 @@ void GabowScalingMatching::enumerate_shells() {
             y0[v] = current_y[v];
             union_find.reset(v, trivial_blossom[v]);
         };
+
+        // Remember the blossom of each vertex before path augmentation
         for (auto B : shell->shell_blossoms) {
             B->for_nodes([this, B] (NetworKit::node v) {
                 current_blossom[v] = B;
@@ -397,7 +399,7 @@ void GabowScalingMatching::enumerate_shells() {
     // Clear the distributions
     shell_distribution.reset(shells.size());
 
-    // Record the index of the shell, sum up duals of above shells
+    // Record the index of each shell, sum up duals of above shells
     for (int i = 0; i < shells.size(); ++ i)  {
         shells[i].second->shell_index = i;
         if (i > 0) current_shell_duals[i] += current_shell_duals[i-1];
@@ -687,7 +689,7 @@ void GabowScalingMatching::grow(NetworKit::node v, EdgeInfo e) {
     // if (e != no_edge) union_find.addegde(e.u, e.v)
 
     // Check if the vertex is free
-    auto B = split_find_min.list(v)->id;
+    auto B = split_find_min.list(v);
     if (B->label != free) 
         return;
 
@@ -745,7 +747,7 @@ void GabowScalingMatching::schedule(NetworKit::node u) {
         // Continue the search through the vertex matched to u
         auto v = matched_vertex[u];
         auto e = matched_edge[u];
-        auto v_blossom = split_find_min.list(v)->id;
+        auto v_blossom = split_find_min.list(v);
 
         // If v is free, continue growing the search tree, if not a blossom has been found
         if (v_blossom->label == free)
@@ -763,7 +765,7 @@ void GabowScalingMatching::schedule(NetworKit::node u) {
                 union_find.find(u) == union_find.find(v)) return;
 
             auto edge_slack = slack({u, v, id});
-            auto v_blossom = split_find_min.list(v)->id;
+            auto v_blossom = split_find_min.list(v);
 
             if (v_blossom->label == even) {
                 // Found an edge connecting two even blossoms
@@ -1241,7 +1243,7 @@ MaximumMatching::intedgeweight GabowScalingMatching::y(NetworKit::node v) {
     // Add the distributions from old blossoms before and after it became active
     MaximumMatching::intedgeweight basic = y0[v] + Delta[v] + 
             std::max(0, std::min(event_queue.timeNow(), t_undissolvable) - t_shell[v]);
-    auto B = split_find_min.list(v)->id;
+    auto B = split_find_min.list(v);
 
     // Add the dual adjustments based on it's label
     if (B->label == odd) {
@@ -1284,11 +1286,11 @@ bool GabowScalingMatching::is_exposed(Blossom *b) {
 }
 
 bool GabowScalingMatching::is_even(NetworKit::node v) {
-    return split_find_min.list(v)->id->label == even;
+    return split_find_min.list(v)->label == even;
 }
 
 bool GabowScalingMatching::is_odd(NetworKit::node v) {
-    return split_find_min.list(v)->id->label == odd;
+    return split_find_min.list(v)->label == odd;
 }
 
 void GabowScalingMatching::add_distribution(Shell* S, MaximumMatching::intedgeweight distribution) {
@@ -1300,7 +1302,7 @@ MaximumMatching::intedgeweight GabowScalingMatching::distribution_so_far(int she
 }
 
 GabowScalingMatching::Blossom* GabowScalingMatching::get_blossom(NetworKit::node v) {
-    auto B = split_find_min.list(v)->id;
+    auto B = split_find_min.list(v);
 
     if (B->label == even) {
         // If the vertex is even the blossom is maintained with union-find
@@ -1559,7 +1561,7 @@ void GabowScalingMatching::print_vertex_state(NetworKit::node v) {
 
     MaximumMatching::intedgeweight basic = y0[v] + Delta[v] + 
             std::max(0, std::min(event_queue.timeNow(), t_undissolvable) - t_shell[v]);
-    auto B = split_find_min.list(v)->id;
+    auto B = split_find_min.list(v);
     
     MaximumMatching::intedgeweight y;
     

@@ -763,10 +763,11 @@ private:
 template<typename E, typename P>
 class PriorityQueue2 {
 public:
-    struct Group { 
+    class Group { 
+    private:
         Group(bool active, P Delta_last, P Delta_group): 
             elements(this), active(active), Delta_last(Delta_last), Delta_group(Delta_group) {}
-        
+
         Group(ConcatenableQueue<Group*, E, P>&& elements_, 
                 bool active, P Delta_last, P Delta_group): 
             elements(std::move(elements_)),
@@ -774,11 +775,6 @@ public:
 
             elements.head = this;
         }
-
-        ConcatenableQueue<Group*, E, P> elements;
-        bool active;
-        P Delta_last;
-        P Delta_group;
 
         bool empty() {
             return elements.empty() || elements.find_min().second == dummy_element_priority;
@@ -795,6 +791,13 @@ public:
             }
             Delta_last = Delta;
         }
+
+        ConcatenableQueue<Group*, E, P> elements;
+        bool active;
+        P Delta_last;
+        P Delta_group;
+
+        friend class PriorityQueue2;
     };
     
     /**
@@ -1104,8 +1107,9 @@ private:
  * as described in the paper 'A Scaling Algorithm for Weighted Matching on General Graphs'
  * by Harold N. Gabow.
  * 
- * The data structure deals with elements between 0 and n. Every element is in a list and has an
- * associated cost. The cost of a list is the smallest cost of any of it's elements.
+ * The data structure deals with elements between 0 and and a provided size. Every element can be in
+ * at most one list and has an associated cost. The cost of a list is the smallest cost of any of 
+ * it's elements. Each list has an id.
  * The structure allows for decreasing a cost a specific element to a given value, splitting
  * lists on provided element and finding the costs of lists and the elements that achieve the
  * minimum cost.
@@ -1114,28 +1118,26 @@ template<typename T, typename H, typename K, typename V>
 class SplitFindMin {
 public: 
     class List;
+    /**
+     * Creates a split-findmin data structure with level alpha(m, n)
+     * 
+     * @param size maximum value of a stored element
+     * @param infinity default value for a key
+     * @param empty_val default value for a value associated with a key
+     * @param n parameter used in calculating the level 
+     * @param m parameter used in calculating the level
+    */
+    SplitFindMin(T size, K infinity, V empty_val, int n, int m):
+        SplitFindMin(size, infinity, empty_val, alpha(m, n)) {}
 
-    SplitFindMin(T size, K infinity, V empty_val, int level):
-        max_i(level),
-        size(size), 
-        infinity(infinity), 
-        empty_val(empty_val),
-        e(level + 1),
-        key(level + 1),
-        val(level + 1),
-        element_list(level + 1),
-        list_it(level + 1),
-        superelement_nodes(level + 1) {
-            for (int i = 0; i <= level; ++ i) {
-                e[i] = std::vector<T>(size, -1);
-                element_list[i] = std::vector<List*>(size, nullptr);
-                key[i] = std::vector<K>(size, infinity),
-                val[i] = std::vector<V>(size, empty_val),
-                list_it[i] = std::vector<typename std::list<T>::iterator>(size);
-                superelement_nodes[i] = std::vector<std::list<T>>(size);
-            }
-        }
-
+    /**
+     * Creates a list from a provided lists of elements with a given id.
+     * All elements have default key values.
+     * 
+     * @param nodes elements to create a list of
+     * @param id id associated with the list
+     * @returns pointer to the new list
+    */
     List* init(const std::list<T>& nodes, H id) {
         List* L = new List;
         L->id = id;
@@ -1149,30 +1151,108 @@ public:
         return L;
     }
 
-    List* list(T u) {
-        return find_list(u, max_i);
+    /**
+     * Returns the id of the list containing the provided element
+     * 
+     * @param element value of the element whose list's id is to be returned
+     * @returns the id of the list containing the provided element
+    */
+    H list(T element) {
+        return find_list(element, max_i)->id;
     }
 
-    std::pair<List*, List*> split(T u, H id1, H id2) {
-        return split(u, id1, id2, max_i);
+    /**
+     * Splits the list containing the provided element into two list - one containing all the
+     * elements up to the provided one and a second one containg the remaining elements. The two lists
+     * are given a new id.
+     * 
+     * @param element the element on whose position to split it's list
+     * @param id1 the new id of the list containg elements up to the provided one
+     * @param id2 the new id of the list containg remaining elements
+     * @returns pair of two lists resulting from the split
+    */
+    std::pair<List*, List*> split(T element, H id1, H id2) {
+        return split(element, id1, id2, max_i);
     }
 
-    void decreaseKey(T u, K x, V v) {
-        decrease_key(u, x, v, max_i);
+    /**
+     * Updates the key of the element if the new one is lower
+     * 
+     * @param element the element whose key is to be updated
+     * @param key value of the key
+     * @param value value associated with the key
+    */
+    void decreaseKey(T element, K key, V value) {
+        decrease_key(element, key, value, max_i);
     }
 
+    /**
+     * Returns the minimum key of an element of the list and it's associated value
+     * 
+     * @param L list whose minimum key is returned
+     * @returns pair containing the minimum key in the list and it's associated value
+    */
     std::pair<K, V> findMin(List* L) {
         return {L->min_key, L->min_val};
     }
 
-    std::pair<K, V> currentKey(T u) {
-        return {key[max_i][u], val[max_i][u]};
+    /**
+     * Returns the current key of an element and it's associated value
+     * 
+     * @param element elements for which current key and it's value is returned
+     * @returns pair containing the current key of the provided element and it's associated value
+    */
+    std::pair<K, V> currentKey(T element) {
+        return {key[max_i][element], val[max_i][element]};
     }
 
+    /**
+     * Deletes the list
+     * 
+     * @param L the list to be deleted
+    */
     void deleteList(List* L) {
         reset_keys(L);
         delete L;
     }
+
+    struct Sublist {
+        int level;
+        bool head;
+        List* list;
+        List* elements;
+        std::list<Sublist*>::iterator sublist_it;
+
+        ~Sublist() { delete elements; }
+    };
+
+    class List {
+    public:
+        void clear() {
+            head_singletons.clear();
+            for (auto s : head) delete s;
+            head.clear();
+            for (auto s : tail) delete s;
+            tail.clear();
+            tail_singletons.clear();
+            nodes.clear();
+        }
+
+        H id;
+        int i;
+        K min_key;
+        V min_val;
+        std::list<T> nodes;
+        std::list<Sublist*> head, tail;
+        std::list<T> head_singletons, tail_singletons;
+        Sublist* sublist;
+
+        ~List() {
+            clear();
+        }
+    };
+
+private:
 
     static constexpr int inf_size = 1000000000;
     static constexpr int A2[4] = {2, 4, 16, 65536};
@@ -1197,44 +1277,27 @@ public:
         return i;
     }
 
-    struct Sublist;
-
-    struct List {
-        H id;
-        int i;
-        K min_key;
-        V min_val;
-        std::list<T> nodes;
-        std::list<Sublist*> head, tail;
-        std::list<T> head_singletons, tail_singletons;
-        Sublist* sublist;
-
-        void clear() {
-            head_singletons.clear();
-            for (auto s : head) delete s;
-            head.clear();
-            for (auto s : tail) delete s;
-            tail.clear();
-            tail_singletons.clear();
-            nodes.clear();
+    SplitFindMin(T size, K infinity, V empty_val, int level):
+        max_i(level),
+        size(size), 
+        infinity(infinity), 
+        empty_val(empty_val),
+        e(level + 1),
+        key(level + 1),
+        val(level + 1),
+        element_list(level + 1),
+        list_it(level + 1),
+        superelement_nodes(level + 1) {
+            for (int i = 0; i <= level; ++ i) {
+                e[i] = std::vector<T>(size, -1);
+                element_list[i] = std::vector<List*>(size, nullptr);
+                key[i] = std::vector<K>(size, infinity),
+                val[i] = std::vector<V>(size, empty_val),
+                list_it[i] = std::vector<typename std::list<T>::iterator>(size);
+                superelement_nodes[i] = std::vector<std::list<T>>(size);
+            }
         }
-
-        ~List() {
-            clear();
-        }
-    };
-
-    struct Sublist {
-        int level;
-        bool head;
-        List* list;
-        List* elements;
-        std::list<Sublist*>::iterator sublist_it;
-
-        ~Sublist() { delete elements; }
-    };
-
-private:
+    
     int max_i;
     T size;
     K infinity;
