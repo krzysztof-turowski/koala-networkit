@@ -25,7 +25,7 @@ NetworKit::Graph reduce_to_MWPM(const NetworKit::Graph& graph) {
 }
 
 GabowScalingMatching::GabowScalingMatching(NetworKit::Graph &graph):
-    MaximumMatching(graph), 
+    MaximumWeightMatching(graph), 
     reducedGraph(reduce_to_MWPM(graph)), 
     current_y(reducedGraph.upperNodeIdBound()),
     trivial_blossom(reducedGraph.upperNodeIdBound(), nullptr),
@@ -50,11 +50,11 @@ GabowScalingMatching::GabowScalingMatching(NetworKit::Graph &graph):
     }
 
 void GabowScalingMatching::run() {
-    std::vector<MaximumMatching::intedgeweight> w(reducedGraph.upperEdgeIdBound());
+    std::vector<MaximumWeightMatching::intedgeweight> w(reducedGraph.upperEdgeIdBound());
     reducedGraph.forEdges(
         [&w] (NetworKit::node u, NetworKit::node v, NetworKit::edgeweight ew, NetworKit::edgeid e) {
-            // Multiply all weights by 2 to ensure they;re even
-            w[e] = 2 * static_cast<MaximumMatching::intedgeweight>(ew);
+            // Multiply all weights by 2 to ensure they're even
+            w[e] = 2 * static_cast<MaximumWeightMatching::intedgeweight>(ew);
         }
     );
 
@@ -84,13 +84,13 @@ std::vector<NetworKit::node> defaultMatching(const NetworKit::Graph& original_gr
     return M;
 }
 
-std::tuple<std::vector<NetworKit::node>, std::vector<int>, GabowScalingMatching::Shell*>
+std::tuple<std::vector<NetworKit::node>, std::vector<int>, GabowScalingMatching::OldBlossom*>
 GabowScalingMatching::scale(const std::vector<int>& w) {
     if (allWeightsZero(w)) {
         // Base case - all weights are zero
         // Return only an outer blossom and a zero weight for all vertices
         // The perfect matching consists of edges joining corresponding vertices in the reduced graph
-        Shell* T = new Shell;
+        OldBlossom* T = new OldBlossom;
         T->size = reducedGraph.numberOfNodes();
         T->z = 0;
         T->heavy_path_parent = nullptr;
@@ -116,7 +116,7 @@ GabowScalingMatching::scale(const std::vector<int>& w) {
 
     current_w = w;
     old_root = T;
-    T->for_blossoms([this] (Shell* B) { 
+    T->for_blossoms([this] (OldBlossom* B) { 
         // Use weights from recursive call
         B->z = 2 * B->z; 
     });
@@ -136,29 +136,29 @@ GabowScalingMatching::scale(const std::vector<int>& w) {
     match(T);
 
     // Convert found blossoms into the representation for old blossoms
-    auto new_T = turn_current_blossoms_into_shells(T->shell_blossoms);
+    auto new_T = turn_current_blossoms_into_old(T->shell_blossoms);
 
     return std::make_tuple(matched_vertex, current_y, new_T);
 }
 
-void GabowScalingMatching::match(Shell* T) {
+void GabowScalingMatching::match(OldBlossom* T) {
     create_trivial_blossoms(T);
     
     heavy_path_decomposition(T, 0);
 }
 
-void GabowScalingMatching::delete_blossom(Blossom* B, Shell* S) {
+void GabowScalingMatching::delete_blossom(Blossom* B, OldBlossom* S) {
     // Delete a blossom from the shell
     S->shell_blossoms.erase(B->shell_blossoms_it);
 }
 
-void GabowScalingMatching::add_blossom(Blossom* B, Shell* S) {
+void GabowScalingMatching::add_blossom(Blossom* B, OldBlossom* S) {
     // Add a blossom to the shell
     S->shell_blossoms.push_back(B);
     B->shell_blossoms_it = std::prev(S->shell_blossoms.end());
 }
 
-void GabowScalingMatching::expand_blossom(Blossom* B, Shell* S) {
+void GabowScalingMatching::expand_blossom(Blossom* B, OldBlossom* S) {
     if (B->is_trivial()) return;
     
     // Add subblossom of the expanded blossom to their parent's shell
@@ -236,7 +236,7 @@ void GabowScalingMatching::check_edge_in_matching(NetworKit::edgeid edge) {
     }
 }
 
-void GabowScalingMatching::create_trivial_blossoms(Shell* T) {
+void GabowScalingMatching::create_trivial_blossoms(OldBlossom* T) {
     for (auto node : T->nodes) {
         Blossom* node_blossom = new Blossom {
             node, // base
@@ -253,9 +253,9 @@ void GabowScalingMatching::create_trivial_blossoms(Shell* T) {
         create_trivial_blossoms(sT);
 }
 
-GabowScalingMatching::Shell* 
-GabowScalingMatching::turn_current_blossoms_into_shells(const std::list<Blossom*>& subblossoms) {
-    Shell* T = new Shell;
+GabowScalingMatching::OldBlossom* 
+GabowScalingMatching::turn_current_blossoms_into_old(const std::list<Blossom*>& subblossoms) {
+    OldBlossom* T = new OldBlossom;
     T->size = 0;
     T->z = 0;
     T->heavy_path_parent = nullptr;
@@ -269,7 +269,7 @@ GabowScalingMatching::turn_current_blossoms_into_shells(const std::list<Blossom*
         } else {
             std::list<Blossom*> subblossoms;
             for (auto [sb, e] : b->subblossoms) subblossoms.push_back(sb);
-            auto sT = turn_current_blossoms_into_shells(subblossoms); 
+            auto sT = turn_current_blossoms_into_old(subblossoms); 
             sT->z = b->z0;
             T->size += sT->size;
             T->children.push_back(sT);
@@ -281,7 +281,7 @@ GabowScalingMatching::turn_current_blossoms_into_shells(const std::list<Blossom*
     return T;
 }
 
-void GabowScalingMatching::heavy_path_decomposition(Shell* T, MaximumMatching::intedgeweight outer_dual) {
+void GabowScalingMatching::heavy_path_decomposition(OldBlossom* T, MaximumWeightMatching::intedgeweight outer_dual) {
     // Divide the old blossom tree into heavy paths
     // Call path on the roots of these paths in postorder order
 
@@ -311,7 +311,7 @@ void GabowScalingMatching::heavy_path_decomposition(Shell* T, MaximumMatching::i
     }
 }
 
-void GabowScalingMatching::path(Shell* B, MaximumMatching::intedgeweight outer_dual) {
+void GabowScalingMatching::path(OldBlossom* B, MaximumWeightMatching::intedgeweight outer_dual) {
     outer_shells_dual = outer_dual;
     path_root = highest_undissolved = B;
     path_root->for_nodes([this] (NetworKit::node v) {
@@ -360,7 +360,7 @@ void GabowScalingMatching::path(Shell* B, MaximumMatching::intedgeweight outer_d
     }
 }
 
-int GabowScalingMatching::free_nodes_in_shell(Shell* B) {
+int GabowScalingMatching::free_nodes_in_shell(OldBlossom* B) {
     int free_nodes = 0;
     for (auto v : B->nodes) {
         if (matched_vertex[v] == NetworKit::none)
@@ -406,7 +406,7 @@ void GabowScalingMatching::enumerate_shells() {
     }
 }
 
-void GabowScalingMatching::change_blossom_base(Blossom* B, NetworKit::node new_base, EdgeInfo edge) {
+void GabowScalingMatching::change_blossom_base(Blossom* B, NetworKit::node new_base, Edge edge) {
     if (matched_edge[B->base] != NetworKit::none) {
         remove_edge_from_matching(matched_edge[B->base]);
     }
@@ -466,7 +466,7 @@ void GabowScalingMatching::swap_edges_on_even_path(
 }
 
 void GabowScalingMatching::augmentPaths() {
-    std::vector<std::tuple<NetworKit::node, NetworKit::node, EdgeInfo>> edges;
+    std::vector<std::tuple<NetworKit::node, NetworKit::node, Edge>> edges;
     NetworKit::index counter = 0;
 
     // Contract the graph into blossoms
@@ -505,7 +505,7 @@ void GabowScalingMatching::augmentPaths() {
                 }
 
                 T.addEdge(cu, cv);
-                edges.push_back(std::make_tuple(cu, cv, EdgeInfo{u, v, e}));
+                edges.push_back(std::make_tuple(cu, cv, Edge{u, v, e}));
         });
     });
 
@@ -526,9 +526,9 @@ void GabowScalingMatching::augmentPaths() {
                 edges.begin(), edges.end(), 
                 std::make_tuple(cv, cu, no_edge)
             ));
-            auto v = std::get<EdgeInfo>(*eit).u;
-            auto u = std::get<EdgeInfo>(*eit).v;
-            auto e = std::get<EdgeInfo>(*eit).id;
+            auto v = std::get<Edge>(*eit).u;
+            auto u = std::get<Edge>(*eit).v;
+            auto e = std::get<Edge>(*eit).id;
 
             auto v_blossom = current_blossom[v];
             auto u_blossom = current_blossom[u];
@@ -541,7 +541,7 @@ void GabowScalingMatching::augmentPaths() {
     }
 }
 
-MaximumMatching::intedgeweight GabowScalingMatching::current_slack(EdgeInfo edge) {
+MaximumWeightMatching::intedgeweight GabowScalingMatching::current_slack(Edge edge) {
     auto [u, v, id] = edge;
 
     // Calculate the slack of the edge 
@@ -552,7 +552,7 @@ MaximumMatching::intedgeweight GabowScalingMatching::current_slack(EdgeInfo edge
         current_shell_duals[std::min(current_shell[u]->shell_index, current_shell[v]->shell_index)];
 }
 
-void GabowScalingMatching::shell_search(Shell* B) {
+void GabowScalingMatching::shell_search(OldBlossom* B) {
     active_shell = starting_shell = B;
     init_shell_search();
 
@@ -685,7 +685,7 @@ void GabowScalingMatching::delete_lists(Blossom* B) {
     }
 }
 
-void GabowScalingMatching::grow(NetworKit::node v, EdgeInfo e) {
+void GabowScalingMatching::grow(NetworKit::node v, Edge e) {
     // if (e != no_edge) union_find.addegde(e.u, e.v)
 
     // Check if the vertex is free
@@ -902,17 +902,17 @@ GabowScalingMatching::blossoms_containing(NetworKit::node u, Blossom* until) {
     return res;
 }
 
-std::pair<std::list<std::pair<GabowScalingMatching::Blossom*, GabowScalingMatching::EdgeInfo>>,
-    std::list<std::pair<GabowScalingMatching::Blossom*, GabowScalingMatching::EdgeInfo>>>
+std::pair<std::list<std::pair<GabowScalingMatching::Blossom*, GabowScalingMatching::Edge>>,
+    std::list<std::pair<GabowScalingMatching::Blossom*, GabowScalingMatching::Edge>>>
 GabowScalingMatching::split_subblossoms(
-    std::list<std::pair<Blossom*, EdgeInfo>> sub_blossoms, Blossom* blossom) {
+    std::list<std::pair<Blossom*, Edge>> sub_blossoms, Blossom* blossom) {
             
     auto iter = sub_blossoms.begin();
     while (iter->first != blossom) iter ++;
     return {{sub_blossoms.begin(), std::next(iter)}, {std::next(iter), sub_blossoms.end()}};
 }
 
-void GabowScalingMatching::blossom(EdgeInfo edge) {
+void GabowScalingMatching::blossom(Edge edge) {
     auto [u, v, id] = edge;
 
     // The edge is contained in a single even blossom
@@ -922,7 +922,7 @@ void GabowScalingMatching::blossom(EdgeInfo edge) {
     backtrack(get_blossom(u), get_blossom(v), edge);
 }
 
-void GabowScalingMatching::dissolveShell(Shell* S) {
+void GabowScalingMatching::dissolveShell(OldBlossom* S) {
     S->dissolved = true;
     S->z = 0;
 
@@ -937,7 +937,7 @@ void GabowScalingMatching::dissolveShell(Shell* S) {
         // Find the shell that the active shell dissolves into
         auto outer_shell = S->heavy_path_parent;
 
-        std::vector<EdgeInfo> edges_to_schedule;
+        std::vector<Edge> edges_to_schedule;
 
         if (S == highest_undissolved) {
             // Outermost shell is dissolve, finish the search
@@ -1029,7 +1029,7 @@ void GabowScalingMatching::dissolveShell(Shell* S) {
         add_distribution(S, event_queue.timeNow() - t_inner);
         t_inner = event_queue.timeNow();
 
-        std::vector<EdgeInfo> edges_to_schedule;
+        std::vector<Edge> edges_to_schedule;
 
         if (S->searched) {
             // The inner shell has already been searched, finish the search
@@ -1099,7 +1099,7 @@ void GabowScalingMatching::dissolveShell(Shell* S) {
     }
 }
 
-bool GabowScalingMatching::backtrack(Blossom* u, Blossom* v, EdgeInfo edge) {
+bool GabowScalingMatching::backtrack(Blossom* u, Blossom* v, Edge edge) {
     std::vector<BacktrackInfo> u_path;
     std::vector<BacktrackInfo> v_path;
 
@@ -1160,7 +1160,7 @@ bool GabowScalingMatching::backtrack_step(Blossom*& iter, std::vector<BacktrackI
 }
 
 void GabowScalingMatching::create_new_blossom(
-        Blossom* u, Blossom* v, EdgeInfo edge, 
+        Blossom* u, Blossom* v, Edge edge, 
         std::vector<BacktrackInfo>& u_path, std::vector<BacktrackInfo>& v_path) {
     
     // Exclude blossoms after the one where paths meet
@@ -1173,7 +1173,7 @@ void GabowScalingMatching::create_new_blossom(
 
     // The base is at the end of the path or it's v if the path is empty
     Blossom* base = v_path.size() > 0 ? v_path.back().blossom : v;
-    std::list<std::pair<Blossom*, EdgeInfo>> subblossoms;
+    std::list<std::pair<Blossom*, Edge>> subblossoms;
     
     // Construct the subblossom list
     for (int i = v_path.size() - 1; i > 0; -- i)
@@ -1238,10 +1238,10 @@ void GabowScalingMatching::cut_path_at(std::vector<BacktrackInfo>& path, Blossom
     if (index != -1) path.resize(index + 1);
 }
 
-MaximumMatching::intedgeweight GabowScalingMatching::y(NetworKit::node v) {
+MaximumWeightMatching::intedgeweight GabowScalingMatching::y(NetworKit::node v) {
     // To calculate current dual variable start with the value before search
     // Add the distributions from old blossoms before and after it became active
-    MaximumMatching::intedgeweight basic = y0[v] + Delta[v] + 
+    MaximumWeightMatching::intedgeweight basic = y0[v] + Delta[v] + 
             std::max(0, std::min(event_queue.timeNow(), t_undissolvable) - t_shell[v]);
     auto B = split_find_min.list(v);
 
@@ -1254,7 +1254,7 @@ MaximumMatching::intedgeweight GabowScalingMatching::y(NetworKit::node v) {
     return basic + B->Delta;
 }
 
-MaximumMatching::intedgeweight GabowScalingMatching::z(Blossom* B) {
+MaximumWeightMatching::intedgeweight GabowScalingMatching::z(Blossom* B) {
     // Calculate the value of the blossom's dual variable
     if (B->label == odd) {
         return B->z0 - 2 * (event_queue.timeNow() - B->t_odd);
@@ -1265,13 +1265,13 @@ MaximumMatching::intedgeweight GabowScalingMatching::z(Blossom* B) {
     }
 }
 
-MaximumMatching::intedgeweight GabowScalingMatching::shell_z() {
+MaximumWeightMatching::intedgeweight GabowScalingMatching::shell_z() {
     // Calculate the current weight of the active shell
     return active_shell == old_root ? 0 :
         (active_shell_initial_dual - 2 * (event_queue.timeNow() - t_active));
 }
 
-MaximumMatching::intedgeweight GabowScalingMatching::slack(EdgeInfo e) {
+MaximumWeightMatching::intedgeweight GabowScalingMatching::slack(Edge e) {
     auto [u, v, id] = e;
     auto u_B = get_blossom(u);
     auto v_B = get_blossom(v); 
@@ -1293,11 +1293,11 @@ bool GabowScalingMatching::is_odd(NetworKit::node v) {
     return split_find_min.list(v)->label == odd;
 }
 
-void GabowScalingMatching::add_distribution(Shell* S, MaximumMatching::intedgeweight distribution) {
+void GabowScalingMatching::add_distribution(OldBlossom* S, MaximumWeightMatching::intedgeweight distribution) {
     shell_distribution.add(S->shell_index, distribution);
 }
 
-MaximumMatching::intedgeweight GabowScalingMatching::distribution_so_far(int shell_index) {
+MaximumWeightMatching::intedgeweight GabowScalingMatching::distribution_so_far(int shell_index) {
     return shell_distribution.sum(shell_index - 1);
 }
 
@@ -1313,11 +1313,11 @@ GabowScalingMatching::Blossom* GabowScalingMatching::get_blossom(NetworKit::node
     }
 }
 
-bool GabowScalingMatching::Shell::is_heavy_path_root() {
+bool GabowScalingMatching::OldBlossom::is_heavy_path_root() {
     return heavy_path_parent == nullptr;
 }
 
-void GabowScalingMatching::Shell::for_nodes(const std::function<void(NetworKit::node)>& handle) {
+void GabowScalingMatching::OldBlossom::for_nodes(const std::function<void(NetworKit::node)>& handle) {
     for (auto n : nodes)
         handle(n);
     for (auto b : children)
@@ -1326,7 +1326,7 @@ void GabowScalingMatching::Shell::for_nodes(const std::function<void(NetworKit::
         heavy_child->for_nodes(handle);
 }
 
-void GabowScalingMatching::Shell::for_blossoms(const std::function<void(Shell*)>& handle) {
+void GabowScalingMatching::OldBlossom::for_blossoms(const std::function<void(OldBlossom*)>& handle) {
     handle(this);
     for (auto b : children)
         b->for_blossoms(handle);
@@ -1359,20 +1359,20 @@ bool GabowScalingMatching::matching_is_perfect() {
     return edges_in_matching == reducedGraph.numberOfNodes() / 2;
 }
 
-GabowScalingMatching::EdgeInfo GabowScalingMatching::reverse(const EdgeInfo& info) {
+GabowScalingMatching::Edge GabowScalingMatching::reverse(const Edge& info) {
     auto [u, v, id] = info;
     return { v, u, id };
 }
 
-bool GabowScalingMatching::EdgeInfo::operator==(const GabowScalingMatching::EdgeInfo& other) const {
+bool GabowScalingMatching::Edge::operator==(const GabowScalingMatching::Edge& other) const {
     return u == other.u && v == other.v && id == other.id;
 }
 
-bool GabowScalingMatching::EdgeInfo::operator!=(const GabowScalingMatching::EdgeInfo& other) const {
+bool GabowScalingMatching::Edge::operator!=(const GabowScalingMatching::Edge& other) const {
     return !(*this == other);
 }
 
-bool GabowScalingMatching::EdgeInfo::operator<(const GabowScalingMatching::EdgeInfo& other) const {
+bool GabowScalingMatching::Edge::operator<(const GabowScalingMatching::Edge& other) const {
     return u  < other.u ? true  : 
            u  > other.u ? false :
            v  < other.v ? true  :
@@ -1408,7 +1408,7 @@ void GabowScalingMatching::Blossom::nodes_print() {
     std::cerr << ")";
 }
 
-void GabowScalingMatching::Shell::short_print() {
+void GabowScalingMatching::OldBlossom::short_print() {
     std::cerr << "{ "; 
     for (auto v : nodes) {
         std::cerr << v << " ";
@@ -1425,7 +1425,7 @@ void GabowScalingMatching::Shell::short_print() {
     std::cerr << "} : " << z;
 }
 
-std::ostream& operator<<(std::ostream &out, const GabowScalingMatching::EdgeInfo& edge) {
+std::ostream& operator<<(std::ostream &out, const GabowScalingMatching::Edge& edge) {
     out << "(" << node_to_str(edge.u) << ", " << node_to_str(edge.v) << ")";
     return out;
 }
@@ -1451,7 +1451,7 @@ std::ostream& operator<<(std::ostream &out, const GabowScalingMatching::Event& e
 }
 
 void GabowScalingMatching::print_backtrack(
-        Blossom* u, Blossom* v, EdgeInfo edge, 
+        Blossom* u, Blossom* v, Edge edge, 
         std::vector<BacktrackInfo>& u_path, std::vector<BacktrackInfo>& v_path) {
     
     std::cerr << "u_path:\n";
@@ -1559,11 +1559,11 @@ void GabowScalingMatching::print_current_state() {
 void GabowScalingMatching::print_vertex_state(NetworKit::node v) {
     if (search_shell[v] != starting_shell) return;
 
-    MaximumMatching::intedgeweight basic = y0[v] + Delta[v] + 
+    MaximumWeightMatching::intedgeweight basic = y0[v] + Delta[v] + 
             std::max(0, std::min(event_queue.timeNow(), t_undissolvable) - t_shell[v]);
     auto B = split_find_min.list(v);
     
-    MaximumMatching::intedgeweight y;
+    MaximumWeightMatching::intedgeweight y;
     
     if (B->label == odd) {
         y = basic + B->Delta + event_queue.timeNow() - B->t_odd;
@@ -1618,7 +1618,7 @@ void GabowScalingMatching::check_consistency() {
             }
         }
     });
-    path_root->for_blossoms([this] (Shell* S) {
+    path_root->for_blossoms([this] (OldBlossom* S) {
         for (auto B : S->shell_blossoms) {
             check_consistency(B);
         }

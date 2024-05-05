@@ -2,15 +2,9 @@
 
 namespace Koala {
 
-MaximumMatching::MaximumMatching(NetworKit::Graph &graph): graph(graph) { }
-
-const std::map<NetworKit::node, NetworKit::node>& MaximumMatching::getMatching() const {
-    assureFinished();
-    return matching;
-}
-
 BlossomMaximumMatching::BlossomMaximumMatching(NetworKit::Graph &graph):
-        MaximumMatching(graph),
+        MaximumWeightMatching(graph),
+        finished(false),
         graph_edges(graph.upperEdgeIdBound(), {NetworKit::none, NetworKit::none, 0}),
         is_in_matching(graph.upperEdgeIdBound(), false),
         matched_vertex(graph.upperNodeIdBound(), NetworKit::none),
@@ -20,7 +14,7 @@ BlossomMaximumMatching::BlossomMaximumMatching(NetworKit::Graph &graph):
     graph.forEdges([this] (
             NetworKit::node u, NetworKit::node v,
             NetworKit::edgeweight weight, NetworKit::edgeid id) {
-        graph_edges[id] = {u, v, 2 * static_cast<MaximumMatching::edgeweight>(weight)};
+        graph_edges[id] = {u, v, 2 * static_cast<MaximumWeightMatching::edgeweight>(weight)};
     });
 
     graph.forNodes([this] (NetworKit::node vertex) {
@@ -42,14 +36,7 @@ BlossomMaximumMatching::~BlossomMaximumMatching() {
 }
 
 void BlossomMaximumMatching::run() {
-    #if DEBUG_LOGGING
-    graph.forEdges([] (NetworKit::node u, NetworKit::node v, 
-                    NetworKit::edgeweight w, NetworKit::edgeid id) {
-        std::cerr << u << " " << v << " " << w << " : " << id << std::endl;
-    });
-    #endif
-
-    while (!hasRun) {
+    while (!finished) {
         run_stage();
     }
 
@@ -62,6 +49,8 @@ void BlossomMaximumMatching::run() {
     graph.forNodes([this] (NetworKit::node u) {
         matching[u] = matched_vertex[u];
     });
+
+    hasRun = true;
 }
 
 void BlossomMaximumMatching::run_stage() {
@@ -77,7 +66,7 @@ void BlossomMaximumMatching::run_stage() {
 
     // Perform searches and adjust dual variables until 
     // an augmenting path has been found or we reached the solution
-    while (!hasRun && run_substage()) {
+    while (!finished && run_substage()) {
         adjust_dual_variables();
 
         #if DEBUG_LOGGING
@@ -120,7 +109,7 @@ void BlossomMaximumMatching::expand_final_blossom(Blossom* blossom) {
     }
 }
 
-bool BlossomMaximumMatching::consider_edge(EdgeInfo edge) {
+bool BlossomMaximumMatching::consider_edge(Edge edge) {
     auto [u, v, id] = edge;
     auto u_blossom = get_blossom(u);
     auto v_blossom = get_blossom(v);
@@ -170,7 +159,7 @@ bool BlossomMaximumMatching::consider_edge(EdgeInfo edge) {
     return false;
 }
 
-bool BlossomMaximumMatching::backtrack(Blossom* u, Blossom* v, EdgeInfo edge) {
+bool BlossomMaximumMatching::backtrack(Blossom* u, Blossom* v, Edge edge) {
     std::vector<BacktrackInfo> u_path;
     std::vector<BacktrackInfo> v_path;
 
@@ -248,7 +237,7 @@ void BlossomMaximumMatching::cut_path_at(
 }
 
 void BlossomMaximumMatching::create_new_blossom(
-        Blossom* u, Blossom* v, EdgeInfo edge, 
+        Blossom* u, Blossom* v, Edge edge, 
         std::vector<BacktrackInfo>& u_path, std::vector<BacktrackInfo>& v_path) {
     
     cut_path_at(u_path, v_path.size() > 0 ? v_path.back().blossom : v, v);
@@ -263,7 +252,7 @@ void BlossomMaximumMatching::create_new_blossom(
 
     Blossom* base = v_path.size() > 0 ? v_path.back().blossom : v;
 
-    std::list<std::pair<Blossom*, EdgeInfo>> subblossoms;
+    std::list<std::pair<Blossom*, Edge>> subblossoms;
     
     for (int i = v_path.size() - 1; i > 0; -- i) {
         subblossoms.emplace_back(v_path[i-1].blossom, v_path[i].edge);
@@ -349,7 +338,7 @@ std::list<BlossomMaximumMatching::Blossom*> BlossomMaximumMatching::blossoms_con
 }
 
 void BlossomMaximumMatching::augment_path(
-        Blossom* u, Blossom* v, EdgeInfo edge,
+        Blossom* u, Blossom* v, Edge edge,
         std::vector<BacktrackInfo>& u_path, std::vector<BacktrackInfo>& v_path) {
     #if DEBUG_LOGGING
     std::cerr << "STEP AUGMENT" << std::endl;
@@ -459,10 +448,10 @@ void BlossomMaximumMatching::lazy_augment_path_in_blossom(Blossom* blossom) {
     blossom->subblossoms = pathB; // pathB + pathA   
 }
 
-std::pair<std::list<std::pair<BlossomMaximumMatching::Blossom*, BlossomMaximumMatching::EdgeInfo>>, 
-          std::list<std::pair<BlossomMaximumMatching::Blossom*, BlossomMaximumMatching::EdgeInfo>>>
+std::pair<std::list<std::pair<BlossomMaximumMatching::Blossom*, BlossomMaximumMatching::Edge>>, 
+          std::list<std::pair<BlossomMaximumMatching::Blossom*, BlossomMaximumMatching::Edge>>>
 BlossomMaximumMatching::split_subblossoms(
-        std::list<std::pair<BlossomMaximumMatching::Blossom*, BlossomMaximumMatching::EdgeInfo>> subblossoms, 
+        std::list<std::pair<BlossomMaximumMatching::Blossom*, BlossomMaximumMatching::Edge>> subblossoms, 
         Blossom* blossom) {
     
     auto iter = subblossoms.begin();
@@ -500,7 +489,7 @@ void BlossomMaximumMatching::adjust_dual_variables() {
 
     if (delta == delta1) {
         // Optimal solution has been reached
-        hasRun = true;
+        finished = true;
     } 
     else if (delta == delta3) find_delta3_useful_edges();
     else if (delta == delta2) find_delta2_useful_edges();
@@ -574,7 +563,7 @@ void BlossomMaximumMatching::expand_even_blossom(Blossom* blossom) {
 }
 
 void BlossomMaximumMatching::print_backtrack(
-        Blossom* u, Blossom* v, EdgeInfo edge, 
+        Blossom* u, Blossom* v, Edge edge, 
         std::vector<BacktrackInfo>& u_path, std::vector<BacktrackInfo>& v_path) {
     
     std::cerr << "u_path:\n";
@@ -605,7 +594,6 @@ void BlossomMaximumMatching::Blossom::delete_all_children() {
 }
 
 BlossomMaximumMatching::Blossom::~Blossom() {
-    // std::cerr << "Deleteing "; short_print(); std::cerr << std::endl;
     if (data != nullptr) delete data;
 }
 
@@ -686,7 +674,6 @@ void BlossomMaximumMatching::Blossom::short_print() {
         if (backtrack_edge.id != NetworKit::none) {
             std::cerr << "(" << backtrack_edge.u << ", " << backtrack_edge.v << ") ";
         }
-        // std::cerr << "," << initial_base << "/" << base;
     }
     std::cerr << "}";
 }
@@ -705,7 +692,7 @@ void BlossomMaximumMatching::Blossom::nodes_print() {
     std::cerr << ")";
 }
 
-BlossomMaximumMatching::EdgeInfo BlossomMaximumMatching::reverse(const EdgeInfo& info) {
+BlossomMaximumMatching::Edge BlossomMaximumMatching::reverse(const Edge& info) {
     auto [u, v, id] = info;
     return { v, u, id };
 }

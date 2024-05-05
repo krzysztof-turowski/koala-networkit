@@ -80,13 +80,14 @@ void MicaliVaziraniMatching::run() {
         reset();
 
         search();
-
+        
         clear_blooms();
     } while (augmentation_happened);
 
     graph.forNodes([this] (NetworKit::node vertex) {
         matching[vertex] = V[vertex].match;
     });
+
     hasRun = true;
 }
 

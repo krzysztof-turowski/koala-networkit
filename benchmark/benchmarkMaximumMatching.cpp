@@ -18,7 +18,7 @@ int main(int argc, char **argv) {
     }
     auto G = Koala::DimacsGraphReader().read(path);
     G.indexEdges(true);
-    Koala::MaximumMatching* maximum_matching;
+    Koala::MaximumWeightMatching* maximum_matching;
     if (algorithm == "edmonds") {
         maximum_matching = new Koala::EdmondsMaximumMatching(G);
     } else if (algorithm == "gabow") {
