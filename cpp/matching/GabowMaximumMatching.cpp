@@ -5,22 +5,17 @@ namespace Koala {
 GabowMaximumMatching::GabowMaximumMatching(NetworKit::Graph &graph) : 
         BlossomMaximumMatching(graph),
         current_blossom(graph.upperNodeIdBound(), nullptr),
+        y(graph.upperNodeIdBound(), max_weight),
         best_edge(graph.upperNodeIdBound(), no_edge),
         sorted_neighbours(graph.upperNodeIdBound()) { 
     
     graph.sortEdges();
 
-    // Find the edge with maximum weight to initialize dual variables
-    MaximumWeightMatching::edgeweight max_weight = std::numeric_limits<MaximumWeightMatching::edgeweight>::min();
-    graph.forEdges([this, &max_weight] 
+    graph.forEdges([this] 
             (NetworKit::node u, NetworKit::node v, NetworKit::edgeweight w, NetworKit::edgeid id) { 
-        max_weight = std::max(static_cast<MaximumWeightMatching::edgeweight>(w), max_weight);
         sorted_neighbours[u].emplace_back(v, id);
         sorted_neighbours[v].emplace_back(u, id);
     });
-
-    // Initialize the dual weights of vertices
-    y = std::vector<MaximumWeightMatching::edgeweight>(graph.upperNodeIdBound(), max_weight);
 
     graph.forNodes([this] (NetworKit::node vertex) {
         current_blossom[vertex] = trivial_blossom[vertex];

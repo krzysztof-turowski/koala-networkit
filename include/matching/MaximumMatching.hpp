@@ -144,6 +144,9 @@ protected:
 
     bool finished;
 
+    // Maximum edge weight in the graph
+    MaximumWeightMatching::edgeweight max_weight;
+
     // Store all graph edges so they can be accessed using the id
     std::vector<std::tuple<NetworKit::node, NetworKit::node, MaximumWeightMatching::edgeweight>> graph_edges;
     
@@ -243,7 +246,7 @@ private:
 
     // For each vertex store it's current blossom and the value of corresponding dual variable
     std::vector<Blossom*> current_blossom;
-    std::vector<MaximumWeightMatching::edgeweight> U;
+    std::vector<MaximumWeightMatching::edgeweight> y;
     
     // Queue of tight edges
     std::queue<Edge> edge_queue;
@@ -600,7 +603,7 @@ private:
         enum Type { grow, blossom, dissolve, dissolveShell };
         Type type;
         union {
-            struct { NetworKit::node v; Edge e; };
+            struct GrowArgs { NetworKit::node v; Edge e; } grow;
             Edge uv;
             Blossom* B;
             OldBlossom* S;
@@ -609,7 +612,7 @@ private:
         static Event make_grow(NetworKit::node v, Edge e) { 
             Event event;
             event.type = grow;
-            event.args.v = v; event.args.e = e; 
+            event.args.grow.v = v; event.args.grow.e = e; 
             return event;
         }
 

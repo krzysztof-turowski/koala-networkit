@@ -4,12 +4,9 @@ namespace Koala {
 
 EdmondsMaximumMatching::EdmondsMaximumMatching(NetworKit::Graph &graph) : 
         BlossomMaximumMatching(graph),
-        current_blossom(graph.upperNodeIdBound(), nullptr) { 
-    
-    MaximumWeightMatching::edgeweight  max_weight = std::numeric_limits<MaximumWeightMatching::edgeweight >::min();
-    for (auto [u, v, w] : graph_edges)
-        max_weight = std::max(w, max_weight);
-    U = std::vector<MaximumWeightMatching::edgeweight>(graph.upperNodeIdBound(), max_weight / 2);
+        current_blossom(graph.upperNodeIdBound(), nullptr),
+        y(graph.upperNodeIdBound(), max_weight / 2) { 
+
     graph.forNodes([this] (NetworKit::node vertex) {
         current_blossom[vertex] = trivial_blossom[vertex];
     });
@@ -106,9 +103,9 @@ void EdmondsMaximumMatching::adjust_by_delta(MaximumWeightMatching::edgeweight  
     graph.forNodes([this, delta] (NetworKit::node v) {
         Blossom* v_blossom = get_blossom(v);
         if (v_blossom->label == even) {
-            U[v] -= delta;
+            y[v] -= delta;
         } else if (v_blossom->label == odd) {
-            U[v] += delta;
+            y[v] += delta;
         }
     });
 
@@ -127,7 +124,7 @@ MaximumWeightMatching::edgeweight  EdmondsMaximumMatching::calc_delta1() {
     MaximumWeightMatching::edgeweight  res = std::numeric_limits<MaximumWeightMatching::edgeweight >::max();
     graph.forNodes([this, &res] (NetworKit::node v) {
         if (get_blossom(v)->label == even) {
-            res = std::min(res, U[v]);
+            res = std::min(res, y[v]);
         }
     });
     return res;
@@ -196,7 +193,7 @@ MaximumWeightMatching::edgeweight  EdmondsMaximumMatching::slack(NetworKit::edge
     auto [u, v, w] = graph_edges[edge];
     Blossom* u_blossom = get_blossom(u);
     Blossom* v_blossom = get_blossom(v);
-    return U[u] + U[v] - w + (u_blossom == v_blossom ? u_blossom->z : 0);
+    return y[u] + y[v] - w + (u_blossom == v_blossom ? u_blossom->z : 0);
 }
 
 bool EdmondsMaximumMatching::is_tight(NetworKit::node u, NetworKit::node v, NetworKit::edgeid edge) {
@@ -217,8 +214,8 @@ void EdmondsMaximumMatching::check_consistency() {
         std::cerr << std::endl;
     });
     std::cerr << "Current weights: \n";
-    for (int i = 0; i < U.size(); ++ i) {
-        std::cerr << i << ": " << U[i] << std::endl;
+    for (int i = 0; i < y.size(); ++ i) {
+        std::cerr << i << ": " << y[i] << std::endl;
     }
     for (auto b : blossoms) {
         if (!b->is_trivial()) {

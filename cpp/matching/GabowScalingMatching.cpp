@@ -562,7 +562,7 @@ void GabowScalingMatching::shell_search(OldBlossom* B) {
 
         switch (event.type) {
             case Event::Type::grow:
-                grow(event.args.v, event.args.e);
+                grow(event.args.grow.v, event.args.grow.e);
                 break;
             case Event::Type::blossom:
                 blossom(event.args.uv);
@@ -1433,7 +1433,7 @@ std::ostream& operator<<(std::ostream &out, const GabowScalingMatching::Edge& ed
 std::ostream& operator<<(std::ostream &out, const GabowScalingMatching::Event& event) {
     switch (event.type) {
         case GabowScalingMatching::Event::Type::grow:
-            out << "grow(" << event.args.v << ", " << event.args.e << ")";
+            out << "grow(" << event.args.grow.v << ", " << event.args.grow.e << ")";
             break;
         case GabowScalingMatching::Event::Type::blossom:
             out << "blossom(" << event.args.uv << ")";

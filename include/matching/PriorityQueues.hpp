@@ -13,6 +13,112 @@ namespace Koala {
 // TODO split these structures to different files / rename the file
 
 /**
+ * Implementation of a binary heap with ability to remove elements. Also allows for iterating
+ * over all elements (not in order).
+ * 
+ * @tparam V type of stored element
+*/
+template<typename V>
+class Heap {
+public:
+    using handle_type = size_t;
+    using const_iterator = typename std::vector<V>::const_iterator;
+    using iterator = const_iterator;
+    
+
+    Heap() {}
+
+    bool empty() { return heap.empty(); }
+
+    void clear() { 
+        heap.clear();
+        handle.clear(); 
+        heap_index.clear();
+    }
+
+    size_t size() { return heap.size(); }
+
+    handle_type push(V value) {
+        handle_type ref = heap_index.size();
+        size_t index = heap.size();
+        heap.push_back(value);
+        handle.push_back(ref);
+        heap_index.push_back(index);
+        push_up(index);
+
+        return ref;
+    }
+
+    V top() { return heap.front(); } 
+
+    void pop() { erase(handle[0]); }
+
+    void erase(handle_type ref) {
+        size_t index = heap_index[ref];
+        size_t last_index = heap.size() - 1;
+        swap(index, last_index);
+        heap.pop_back();
+        handle.pop_back();
+        if (index < heap.size()) {
+            push_down(index);
+            push_up(index);
+        }
+    }
+    
+    void for_elements(const std::function<void(V)>& handle) {
+        for (auto v : heap) 
+            handle(v);
+    }
+
+    const_iterator begin() const { return heap.begin(); }
+
+    const_iterator end() const { return heap.end(); }
+
+private:
+    std::vector<V> heap;
+    std::vector<handle_type> handle;
+    std::vector<size_t> heap_index;
+
+    size_t parent_index(size_t index) { return (index - 1) / 2; }
+    size_t left_son_index(size_t index) { return 2 * index + 1; }
+    size_t right_son_index(size_t index) { return 2 * index + 2; }
+
+    void push_up(size_t index) {
+        while (index > 0) {
+            size_t parent = parent_index(index);
+            if (heap[index] < heap[parent]) {
+                swap(index, parent);
+                index = parent;
+            } else {
+                break;
+            }
+        }
+    }
+
+    void push_down(size_t index) {
+        size_t minimum = index;
+        size_t left_son = left_son_index(index);
+        size_t right_son = right_son_index(index);;
+
+        if (left_son < heap.size() && heap[left_son] < heap[minimum])
+            minimum = left_son;
+        if (right_son < heap.size() && heap[right_son] < heap[minimum])
+            minimum = right_son;
+
+        if (minimum != index) {
+            swap(index, minimum);
+            push_down(minimum);
+        }
+    }
+
+    void swap(size_t index_1, size_t index_2) {
+        std::swap(heap[index_1], heap[index_2]);
+        std::swap(heap_index[handle[index_1]], heap_index[handle[index_2]]);
+        std::swap(handle[index_1], handle[index_2]);
+    }
+};
+
+/**
  * Implementation of pq1 from the paper 'An O(EV log V) algorithm for finding a maximal 
  * weighted mathcing in general graphs' by Galil, Micali, Gabow. 
  * Used to store elements and their priorities and additionally allows for 
@@ -30,7 +136,9 @@ public:
      * @param size the maximum value of elements that can be stored
     */
     PriorityQueue1(E size): 
-        queue(cmp),
+        heap(),
+        element_handle(size),
+        in_heap(size, false),
         modified_priority(size, 0) {}
 
     /**
@@ -40,8 +148,15 @@ public:
      * @param priority the priority of inserted element
     */
     void insert(E value, P priority) {
-        modified_priority[value] = priority + Delta;
-        queue.insert({ priority + Delta, value });
+        if (!in_heap[value]) {
+            modified_priority[value] = priority + Delta;
+            element_handle[value] = heap.push({ priority + Delta, value });
+            in_heap[value] = true;
+        } else if (priority < current_priority(value)) {
+            remove(value);
+            modified_priority[value] = priority + Delta;
+            element_handle[value] = heap.push({ priority + Delta, value });
+        }
     }
 
     /**
@@ -49,25 +164,32 @@ public:
      * 
      * @param value the value of element to remove
     */
-    void remove(E value) { queue.erase(get_element(value)); }
+    void remove(E value) { 
+        heap.erase(element_handle[value]); 
+        in_heap[value] = false;
+    }
 
     /**
      * Remove the minimum element
     */
-    void remove_min() { queue.erase(queue.begin()); }
+    void remove_min() { 
+        in_heap[heap.top().second] = false;
+        heap.pop(); 
+    }
 
     /**
      * Check if queue is empty
      * 
      * @return 'true' if queue is empty, 'false' otherwise
     */
-    bool empty() { return queue.empty(); }
+    bool empty() { return heap.empty(); }
 
     /**
      * Clear the queue
     */
     void clear() {
-        queue.clear();
+        for (auto [p, e] : heap) in_heap[e] = false;
+        heap.clear();
         Delta = 0;
     }
 
@@ -82,6 +204,7 @@ public:
      * Check the current priority of element
      * 
      * @param value the value of element to check
+     * @returns current priority of the provided element
     */
     P current_priority(E value) {
         return modified_priority[value] - Delta;
@@ -92,9 +215,9 @@ public:
      * 
      * @return a pair containing the value of an element with lowest priority it's priority
     */
-    std::pair<E, P>  find_min() {
-        auto min = queue.begin();
-        return { min->value, min->modified_priority - Delta };
+    std::pair<E, P> find_min() {
+        auto min = heap.top();
+        return { min.second, min.first - Delta };
     }
 
     /**
@@ -103,41 +226,19 @@ public:
      * @param handle the function to be called
     */
     void for_elements(const std::function<void(E,P)>& handle) {
-        for (auto entry : queue) {
-            handle(entry.value, entry.modified_priority - Delta);
+        for (auto entry : heap) {
+            handle(entry.second, entry.first - Delta);
         }
     }
 
-    /**
-     * Call function for each element of queue until it returns true or there are no more elements. The function receives the value and priority of each element
-     * 
-     * @param handle the function to be called
-    */
-    void for_elements_until(const std::function<bool(E,P)>& handle) {
-        for (auto entry : queue) {
-            if (handle(entry.value, entry.modified_priority - Delta)) {
-                break;
-            }
-        }
-    }
-
-private:
-    struct Entry { 
-        P modified_priority; 
-        E value; 
-    };
-    static bool cmp(const Entry& a, const Entry& b) { 
-        return a.modified_priority < b.modified_priority 
-            || (a.modified_priority == b.modified_priority && a.value < b.value); 
-    }
-
+// private:
+public:
     P Delta = 0;
-    std::set<Entry, decltype(cmp)*> queue;
+    using pair_heap = Heap<std::pair<P, E>>;
+    pair_heap heap;
+    std::vector<typename pair_heap::handle_type> element_handle;
+    std::vector<bool> in_heap;
     std::vector<P> modified_priority;
-
-    typename std::set<Entry>::iterator get_element(E value) {
-        return queue.find({ modified_priority[value], value });
-    }
 };
 
 /**
@@ -764,7 +865,7 @@ template<typename E, typename P>
 class PriorityQueue2 {
 public:
     class Group { 
-    private:
+    public:
         Group(bool active, P Delta_last, P Delta_group): 
             elements(this), active(active), Delta_last(Delta_last), Delta_group(Delta_group) {}
 
@@ -896,7 +997,7 @@ public:
      * 
      * @return a pair containing the value of an element with lowest priority it's priority
     */
-    std::pair<E, P>  find_min() {
+    std::pair<E, P> find_min() {
         return group_minima.find_min();
     }
 
@@ -977,6 +1078,10 @@ public:
                                 group->active, group->Delta_last, group->Delta_group);
 
         if (group->active) {
+            if(!group->empty()) {
+                auto [v, p] = group->elements.find_min();
+                group_minima.remove(v);
+            }
             if (!group_left->empty()) {
                 auto [v, p] = group_left->elements.find_min();
                 group_minima.insert(v, p);
@@ -1669,7 +1774,7 @@ public:
     ArrayPriorityQueue() { reset(); }
 
     void scheduleEvent(int time, T event) {
-        if (time < 0) return;
+        if (time < time) return;
         if (time >= event_queue.size())
             event_queue.resize(time * 2);
         event_queue[time].push_back(event);

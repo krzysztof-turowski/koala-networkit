@@ -17,6 +17,10 @@ BlossomMaximumMatching::BlossomMaximumMatching(NetworKit::Graph &graph):
         graph_edges[id] = {u, v, 2 * static_cast<MaximumWeightMatching::edgeweight>(weight)};
     });
 
+    max_weight = std::numeric_limits<MaximumWeightMatching::edgeweight>::min();
+    for (auto [u, v, w] : graph_edges) 
+        max_weight = std::max(w, max_weight);
+
     graph.forNodes([this] (NetworKit::node vertex) {
         Blossom* blossom = new Blossom {
             nullptr, vertex, vertex, vertex, {}, {}, 
