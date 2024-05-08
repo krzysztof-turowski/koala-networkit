@@ -11,7 +11,8 @@ MicaliGabowMaximumMatching::MicaliGabowMaximumMatching(NetworKit::Graph &graph) 
         z_even(graph.upperNodeIdBound()),
         z_odd(graph.upperNodeIdBound()),
         good_edges(graph.upperEdgeIdBound()),
-        even_edges(graph.upperEdgeIdBound() + graph.upperNodeIdBound()) { 
+        even_edges(graph.upperEdgeIdBound() + graph.upperNodeIdBound(), 
+            NetworKit::none, infinite_weight) { 
 
     for (auto b : trivial_blossom) {
         ConcatenableQueue<Blossom*, NetworKit::node, NetworKit::node> nodes(b);
@@ -44,7 +45,7 @@ void MicaliGabowMaximumMatching::initialize_stage() {
             blossom->for_nodes([this, even_edge_group] (NetworKit::node v) {
                 // Insert dummy edges for each node in blossom order
                 // This is needed when an odd blossom is expanded to allow splitting
-                even_edges.append_dummy(dummy_edge_id(v), even_edge_group);
+                even_edges.append(dummy_edge_id(v), infinite_weight, even_edge_group);
             });
             get_data(blossom)->even_edges = even_edge_group;
         }
@@ -76,27 +77,26 @@ void MicaliGabowMaximumMatching::finish_stage() {
     for (auto blossom : blossoms) {
         if (blossom->label != even) {
             even_edges.delete_group(get_data(blossom)->even_edges);
-            get_data(blossom)->even_edges = nullptr;
-        }
-    }
+            get_data(blossom)->even_edges = nullptr;            
+        } 
 
-    // Retrieve final weights for blossoms and vertices at the end of the stage
-    z_even.for_elements([this, &to_expand] (NetworKit::node base, MaximumWeightMatching::edgeweight dual_weight) {
-        Blossom* b = get_blossom(base);
-        b->z = dual_weight;
-        if (dual_weight == 0)
-            to_expand.push_back(b);
-    });
-    z_odd.for_elements([this] (NetworKit::node base, MaximumWeightMatching::edgeweight dual_weight) {
-        Blossom* b = get_blossom(base);
-        b->z = dual_weight;
-    });
-    y_even.for_elements([this] (NetworKit::node v, MaximumWeightMatching::edgeweight dual) {
-        y_free[v] = dual;
-    });
-    y_odd.for_elements([this] (NetworKit::node v, MaximumWeightMatching::edgeweight dual) {
-        y_free[v] = dual;
-    });
+        // Retrieve final weights for blossoms and vertices at the end of the stage
+        if (blossom->label == even) {
+            blossom->z = z_even.current_priority(blossom->initial_base);
+            blossom->for_nodes([this] (NetworKit::node v) {
+                y_free[v] = y_even.current_priority(v);
+            });
+
+            // Check if blossom has to be expanded
+            if (blossom->z == 0)
+                to_expand.push_back(blossom);
+        } else if (blossom->label == odd) {
+            blossom->z = z_odd.current_priority(blossom->initial_base);
+            blossom->for_nodes([this] (NetworKit::node v) {
+                y_free[v] = y_odd.current_priority(v);
+            });
+        }   
+    }
     
     for (auto b : to_expand) expand_even_blossom(b);
 }
@@ -334,8 +334,8 @@ void MicaliGabowMaximumMatching::handle_even_blossom_expansion(Blossom* blossom)
     }
 }
 
-void MicaliGabowMaximumMatching::adjust_by_delta(MaximumWeightMatching::edgeweight delta) {
-    // Update dual weight for even and odd vertices
+void MicaliGabowMaximumMatching::adjust_by_delta(MaximumWeightMatching::weight delta) {
+    // Update dual weights for even and odd vertices
     y_even.decrease_all_priorities(delta);
     y_odd.decrease_all_priorities(-delta);
 
@@ -350,37 +350,33 @@ void MicaliGabowMaximumMatching::adjust_by_delta(MaximumWeightMatching::edgeweig
     even_edges.decrease_all_priorities(delta);
 }
 
-MaximumWeightMatching::edgeweight  MicaliGabowMaximumMatching::calc_delta1() {
+MaximumWeightMatching::weight MicaliGabowMaximumMatching::calc_delta1() {
     // Find the even vertex with minimum dual weight
     // min u_i : i - even vertex
-    return y_even.empty() ? std::numeric_limits<MaximumWeightMatching::edgeweight >::max()
-        : y_even.find_min().second;
+    return y_even.empty() ? infinite_weight : y_even.find_min().second;
 }
 
-MaximumWeightMatching::edgeweight  MicaliGabowMaximumMatching::calc_delta2() {
+MaximumWeightMatching::weight MicaliGabowMaximumMatching::calc_delta2() {
     // Find the even edge with the smallest slack
     // min pi_ij : i - even vertex, j - free vertex
 
-    return even_edges.has_active_elements() ? even_edges.find_min().second
-        : std::numeric_limits<MaximumWeightMatching::edgeweight >::max();
+    return even_edges.has_active_elements() ? even_edges.find_min().second : infinite_weight;
 }
 
-MaximumWeightMatching::edgeweight  MicaliGabowMaximumMatching::calc_delta3() {
+MaximumWeightMatching::weight MicaliGabowMaximumMatching::calc_delta3() {
     // Find the good edge with smallest slack
     // min pi_ij / 2 : i,j - even vertices in different blossoms
     
     // Some edges might no longer be good and have to be removed
     clear_not_good_edges();
-    return good_edges.empty() ? std::numeric_limits<MaximumWeightMatching::edgeweight>::max()
-        : good_edges.find_min().second / 2;
+    return good_edges.empty() ? infinite_weight : good_edges.find_min().second / 2;
 }
 
-MaximumWeightMatching::edgeweight  MicaliGabowMaximumMatching::calc_delta4() {
+MaximumWeightMatching::weight MicaliGabowMaximumMatching::calc_delta4() {
     // Find the odd blossom with minimum dual weight
     // min z_k / 2 : B_k - odd blossom 
 
-    return z_odd.empty() ? std::numeric_limits<MaximumWeightMatching::edgeweight>::max()
-        : z_odd.find_min().second / 2;
+    return z_odd.empty() ? infinite_weight : z_odd.find_min().second / 2;
 }
 
 void MicaliGabowMaximumMatching::find_delta2_useful_edges() {}
@@ -403,7 +399,7 @@ MicaliGabowMaximumMatching::get_blossom(NetworKit::node vertex) {
     return nodes_refs[vertex]->find_queue()->head;
 }
 
-MaximumWeightMatching::edgeweight  MicaliGabowMaximumMatching::y(NetworKit::node v) {
+MaximumWeightMatching::weight MicaliGabowMaximumMatching::y(NetworKit::node v) {
     // Find the current dual weight for a vertex depending on it's label
     auto b = get_blossom(v);
     switch (b->label) {
@@ -414,14 +410,14 @@ MaximumWeightMatching::edgeweight  MicaliGabowMaximumMatching::y(NetworKit::node
     return 0;
 }
 
-MaximumWeightMatching::edgeweight  MicaliGabowMaximumMatching::slack(NetworKit::edgeid edge) {
+MaximumWeightMatching::weight MicaliGabowMaximumMatching::slack(NetworKit::edgeid edge) {
     auto [u, v, w] = graph_edges[edge];
     auto u_blossom = get_blossom(u);
     auto v_blossom = get_blossom(v);
     return y(u) + y(v) - w + (u_blossom == v_blossom ? z(u_blossom) : 0);
 }
 
-MaximumWeightMatching::edgeweight  MicaliGabowMaximumMatching::z(Blossom* b) {
+MaximumWeightMatching::weight MicaliGabowMaximumMatching::z(Blossom* b) {
     // Find the dual weight for a blossom depending on it's label
     switch (b->label) {
         case free: return b->z;
@@ -465,23 +461,23 @@ void MicaliGabowMaximumMatching::check_consistency() {
         std::cerr << v << ": " << y(v) << std::endl;
     });
     std::cerr << "z_even:\n";
-    z_even.for_elements([this] (NetworKit::node base, MaximumWeightMatching::edgeweight dual_weight) {
+    z_even.for_elements([this] (NetworKit::node base, MaximumWeightMatching::weight dual_weight) {
         std::cerr << base << " : " << dual_weight << std::endl;
     });
     std::cerr << "z_odd:\n";
-    z_odd.for_elements([this] (NetworKit::node base, MaximumWeightMatching::edgeweight dual_weight) {
+    z_odd.for_elements([this] (NetworKit::node base, MaximumWeightMatching::weight dual_weight) {
         std::cerr << base << " : " << dual_weight << std::endl;
     });
     std::cerr << "y_even:\n";
-    y_even.for_elements([this] (NetworKit::node v, MaximumWeightMatching::edgeweight dual_weight) {
+    y_even.for_elements([this] (NetworKit::node v, MaximumWeightMatching::weight dual_weight) {
         std::cerr << v << " : " << dual_weight << std::endl;
     });
     std::cerr << "y_odd:\n";
-    y_odd.for_elements([this] (NetworKit::node v, MaximumWeightMatching::edgeweight dual_weight) {
+    y_odd.for_elements([this] (NetworKit::node v, MaximumWeightMatching::weight dual_weight) {
         std::cerr << v << " : " << dual_weight << std::endl;
     });
     std::cerr << "Good edges: " << good_edges.heap.size() << "\n";
-    good_edges.for_elements([this] (NetworKit::edgeid id, MaximumWeightMatching::edgeweight var) {
+    good_edges.for_elements([this] (NetworKit::edgeid id, MaximumWeightMatching::weight var) {
         auto [u, v, w] = graph_edges[id];
         std::cerr << "(" << u << ", " << v << ") : " << var << std::endl;
     });
@@ -492,7 +488,7 @@ void MicaliGabowMaximumMatching::check_consistency() {
         EvenEdgeGroup group = get_data(blossom)->even_edges;
         std::cerr << "Group for ";
         blossom->nodes_print(); std::cerr << " - ";
-        std::cerr << (group->active ? "active" : "non-active") << std::endl;
+        std::cerr << (group->is_active() ? "active" : "non-active") << std::endl;
         if (group->empty()) {
             std::cerr << "Empty\n";
         } else {
@@ -501,22 +497,18 @@ void MicaliGabowMaximumMatching::check_consistency() {
                 std::cerr << "min : (" << u << ", " << v << ") : " << pi << std::endl;        
         }
         even_edges.for_each_in_group(group, 
-            [this] (NetworKit::edgeid id, MaximumWeightMatching::edgeweight pi) {
+            [this] (NetworKit::edgeid id, MaximumWeightMatching::weight pi) {
             if (id < graph.upperEdgeIdBound()) {
                 auto [u, v, w] = graph_edges[id];
                 std::cerr << "(" << u << ", " << v << ") : " << pi << std::endl;        
-            } else {
-                // std::cerr << "dummy " << id - graph.upperEdgeIdBound() << std::endl;
             }
         });
     }
     std::cerr << "Active minima:\n";
-    even_edges.for_group_minima([this] (NetworKit::edgeid id, MaximumWeightMatching::edgeweight pi) {
+    even_edges.for_group_minima([this] (NetworKit::edgeid id, MaximumWeightMatching::weight pi) {
         if (id < graph.upperEdgeIdBound()) {
             auto [u, v, w] = graph_edges[id];
             std::cerr << "(" << u << ", " << v << ") : " << pi << std::endl;        
-        } else {
-            // std::cerr << "dummy " << id - graph.upperEdgeIdBound() << std::endl;
         }
     });
 }

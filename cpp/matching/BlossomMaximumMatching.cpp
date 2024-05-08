@@ -14,10 +14,10 @@ BlossomMaximumMatching::BlossomMaximumMatching(NetworKit::Graph &graph):
     graph.forEdges([this] (
             NetworKit::node u, NetworKit::node v,
             NetworKit::edgeweight weight, NetworKit::edgeid id) {
-        graph_edges[id] = {u, v, 2 * static_cast<MaximumWeightMatching::edgeweight>(weight)};
+        graph_edges[id] = {u, v, 2 * static_cast<MaximumWeightMatching::weight>(weight)};
     });
 
-    max_weight = std::numeric_limits<MaximumWeightMatching::edgeweight>::min();
+    max_weight = std::numeric_limits<weight>::min();
     for (auto [u, v, w] : graph_edges) 
         max_weight = std::max(w, max_weight);
 
@@ -43,6 +43,8 @@ void BlossomMaximumMatching::run() {
     while (!finished) {
         run_stage();
     }
+
+    std::cout << infinite_weight << std::endl;
 
     std::vector<Blossom*> final_blossoms(blossoms.begin(), blossoms.end());
 

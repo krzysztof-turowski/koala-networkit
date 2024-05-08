@@ -8,7 +8,7 @@
 
 using CQ = Koala::ConcatenableQueue<std::string, int, int>;
 std::map<std::string, CQ*> Q;
-std::map<int, CQ::ElementRef> E;
+std::map<int, CQ::handle_type> E;
 
 void process_line(std::string line) {
     std::string command, name, name2, name3;

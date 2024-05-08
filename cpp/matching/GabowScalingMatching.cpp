@@ -50,11 +50,11 @@ GabowScalingMatching::GabowScalingMatching(NetworKit::Graph &graph):
     }
 
 void GabowScalingMatching::run() {
-    std::vector<MaximumWeightMatching::intedgeweight> w(reducedGraph.upperEdgeIdBound());
+    std::vector<MaximumWeightMatching::intweight> w(reducedGraph.upperEdgeIdBound());
     reducedGraph.forEdges(
         [&w] (NetworKit::node u, NetworKit::node v, NetworKit::edgeweight ew, NetworKit::edgeid e) {
             // Multiply all weights by 2 to ensure they're even
-            w[e] = 2 * static_cast<MaximumWeightMatching::intedgeweight>(ew);
+            w[e] = 2 * static_cast<MaximumWeightMatching::intweight>(ew);
         }
     );
 
@@ -281,7 +281,7 @@ GabowScalingMatching::turn_current_blossoms_into_old(const std::list<Blossom*>& 
     return T;
 }
 
-void GabowScalingMatching::heavy_path_decomposition(OldBlossom* T, MaximumWeightMatching::intedgeweight outer_dual) {
+void GabowScalingMatching::heavy_path_decomposition(OldBlossom* T, MaximumWeightMatching::intweight outer_dual) {
     // Divide the old blossom tree into heavy paths
     // Call path on the roots of these paths in postorder order
 
@@ -311,7 +311,7 @@ void GabowScalingMatching::heavy_path_decomposition(OldBlossom* T, MaximumWeight
     }
 }
 
-void GabowScalingMatching::path(OldBlossom* B, MaximumWeightMatching::intedgeweight outer_dual) {
+void GabowScalingMatching::path(OldBlossom* B, MaximumWeightMatching::intweight outer_dual) {
     outer_shells_dual = outer_dual;
     path_root = highest_undissolved = B;
     path_root->for_nodes([this] (NetworKit::node v) {
@@ -541,7 +541,7 @@ void GabowScalingMatching::augmentPaths() {
     }
 }
 
-MaximumWeightMatching::intedgeweight GabowScalingMatching::current_slack(Edge edge) {
+MaximumWeightMatching::intweight GabowScalingMatching::current_slack(Edge edge) {
     auto [u, v, id] = edge;
 
     // Calculate the slack of the edge 
@@ -1238,10 +1238,10 @@ void GabowScalingMatching::cut_path_at(std::vector<BacktrackInfo>& path, Blossom
     if (index != -1) path.resize(index + 1);
 }
 
-MaximumWeightMatching::intedgeweight GabowScalingMatching::y(NetworKit::node v) {
+MaximumWeightMatching::intweight GabowScalingMatching::y(NetworKit::node v) {
     // To calculate current dual variable start with the value before search
     // Add the distributions from old blossoms before and after it became active
-    MaximumWeightMatching::intedgeweight basic = y0[v] + Delta[v] + 
+    MaximumWeightMatching::intweight basic = y0[v] + Delta[v] + 
             std::max(0, std::min(event_queue.timeNow(), t_undissolvable) - t_shell[v]);
     auto B = split_find_min.list(v);
 
@@ -1254,7 +1254,7 @@ MaximumWeightMatching::intedgeweight GabowScalingMatching::y(NetworKit::node v) 
     return basic + B->Delta;
 }
 
-MaximumWeightMatching::intedgeweight GabowScalingMatching::z(Blossom* B) {
+MaximumWeightMatching::intweight GabowScalingMatching::z(Blossom* B) {
     // Calculate the value of the blossom's dual variable
     if (B->label == odd) {
         return B->z0 - 2 * (event_queue.timeNow() - B->t_odd);
@@ -1265,13 +1265,13 @@ MaximumWeightMatching::intedgeweight GabowScalingMatching::z(Blossom* B) {
     }
 }
 
-MaximumWeightMatching::intedgeweight GabowScalingMatching::shell_z() {
+MaximumWeightMatching::intweight GabowScalingMatching::shell_z() {
     // Calculate the current weight of the active shell
     return active_shell == old_root ? 0 :
         (active_shell_initial_dual - 2 * (event_queue.timeNow() - t_active));
 }
 
-MaximumWeightMatching::intedgeweight GabowScalingMatching::slack(Edge e) {
+MaximumWeightMatching::intweight GabowScalingMatching::slack(Edge e) {
     auto [u, v, id] = e;
     auto u_B = get_blossom(u);
     auto v_B = get_blossom(v); 
@@ -1293,11 +1293,11 @@ bool GabowScalingMatching::is_odd(NetworKit::node v) {
     return split_find_min.list(v)->label == odd;
 }
 
-void GabowScalingMatching::add_distribution(OldBlossom* S, MaximumWeightMatching::intedgeweight distribution) {
+void GabowScalingMatching::add_distribution(OldBlossom* S, MaximumWeightMatching::intweight distribution) {
     shell_distribution.add(S->shell_index, distribution);
 }
 
-MaximumWeightMatching::intedgeweight GabowScalingMatching::distribution_so_far(int shell_index) {
+MaximumWeightMatching::intweight GabowScalingMatching::distribution_so_far(int shell_index) {
     return shell_distribution.sum(shell_index - 1);
 }
 
@@ -1559,11 +1559,11 @@ void GabowScalingMatching::print_current_state() {
 void GabowScalingMatching::print_vertex_state(NetworKit::node v) {
     if (search_shell[v] != starting_shell) return;
 
-    MaximumWeightMatching::intedgeweight basic = y0[v] + Delta[v] + 
+    MaximumWeightMatching::intweight basic = y0[v] + Delta[v] + 
             std::max(0, std::min(event_queue.timeNow(), t_undissolvable) - t_shell[v]);
     auto B = split_find_min.list(v);
     
-    MaximumWeightMatching::intedgeweight y;
+    MaximumWeightMatching::intweight y;
     
     if (B->label == odd) {
         y = basic + B->Delta + event_queue.timeNow() - B->t_odd;

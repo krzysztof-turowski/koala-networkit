@@ -99,7 +99,7 @@ void EdmondsMaximumMatching::handle_even_blossom_expansion(Blossom* blossom) {
     }
 }
 
-void EdmondsMaximumMatching::adjust_by_delta(MaximumWeightMatching::edgeweight  delta) {
+void EdmondsMaximumMatching::adjust_by_delta(MaximumWeightMatching::weight delta) {
     graph.forNodes([this, delta] (NetworKit::node v) {
         Blossom* v_blossom = get_blossom(v);
         if (v_blossom->label == even) {
@@ -118,10 +118,10 @@ void EdmondsMaximumMatching::adjust_by_delta(MaximumWeightMatching::edgeweight  
     }
 }
 
-MaximumWeightMatching::edgeweight  EdmondsMaximumMatching::calc_delta1() {
+MaximumWeightMatching::weight EdmondsMaximumMatching::calc_delta1() {
     // min u_i : i - even vertex
 
-    MaximumWeightMatching::edgeweight  res = std::numeric_limits<MaximumWeightMatching::edgeweight >::max();
+    MaximumWeightMatching::weight res = infinite_weight;
     graph.forNodes([this, &res] (NetworKit::node v) {
         if (get_blossom(v)->label == even) {
             res = std::min(res, y[v]);
@@ -130,10 +130,10 @@ MaximumWeightMatching::edgeweight  EdmondsMaximumMatching::calc_delta1() {
     return res;
 }
 
-MaximumWeightMatching::edgeweight  EdmondsMaximumMatching::calc_delta2() {
+MaximumWeightMatching::weight EdmondsMaximumMatching::calc_delta2() {
     // min pi_ij : i - even vertex, j - free vertex
 
-    MaximumWeightMatching::edgeweight  res = std::numeric_limits<MaximumWeightMatching::edgeweight >::max();
+    MaximumWeightMatching::weight res = infinite_weight;
     graph.forEdges([this, &res] (NetworKit::node u, NetworKit::node v, NetworKit::edgeid id) {
         Blossom* u_blossom = get_blossom(u);
         Blossom* v_blossom = get_blossom(v);
@@ -145,10 +145,10 @@ MaximumWeightMatching::edgeweight  EdmondsMaximumMatching::calc_delta2() {
     return res;
 }
 
-MaximumWeightMatching::edgeweight  EdmondsMaximumMatching::calc_delta3() {
+MaximumWeightMatching::weight EdmondsMaximumMatching::calc_delta3() {
     // min pi_ij / 2 : i,j - even vertices in different blossoms
 
-    MaximumWeightMatching::edgeweight  res = std::numeric_limits<MaximumWeightMatching::edgeweight >::max();
+    MaximumWeightMatching::weight res = infinite_weight;
     graph.forEdges([this, &res] (NetworKit::node u, NetworKit::node v, NetworKit::edgeid id) {
         Blossom* u_blossom = get_blossom(u);
         Blossom* v_blossom = get_blossom(v);
@@ -159,10 +159,10 @@ MaximumWeightMatching::edgeweight  EdmondsMaximumMatching::calc_delta3() {
     return res;
 }
 
-MaximumWeightMatching::edgeweight  EdmondsMaximumMatching::calc_delta4() {
+MaximumWeightMatching::weight EdmondsMaximumMatching::calc_delta4() {
     // min z_k / 2 : B_k - odd blossom 
 
-    MaximumWeightMatching::edgeweight  res = std::numeric_limits<MaximumWeightMatching::edgeweight >::max();
+    MaximumWeightMatching::weight res = infinite_weight;
     for (Blossom* b : blossoms) {
         if (b->label == odd && !b->is_trivial()) {
             res = std::min(res, b->z / 2);
@@ -189,7 +189,7 @@ EdmondsMaximumMatching::Blossom* EdmondsMaximumMatching::get_blossom(NetworKit::
     return current_blossom[vertex];
 }
 
-MaximumWeightMatching::edgeweight  EdmondsMaximumMatching::slack(NetworKit::edgeid edge) {
+MaximumWeightMatching::weight EdmondsMaximumMatching::slack(NetworKit::edgeid edge) {
     auto [u, v, w] = graph_edges[edge];
     Blossom* u_blossom = get_blossom(u);
     Blossom* v_blossom = get_blossom(v);

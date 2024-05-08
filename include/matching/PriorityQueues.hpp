@@ -28,7 +28,7 @@ public:
 
     Heap() {}
 
-    bool empty() { return heap.empty(); }
+    bool empty() const { return heap.empty(); }
 
     void clear() { 
         heap.clear();
@@ -36,7 +36,7 @@ public:
         heap_index.clear();
     }
 
-    size_t size() { return heap.size(); }
+    size_t size() const { return heap.size(); }
 
     handle_type push(V value) {
         handle_type ref = heap_index.size();
@@ -49,7 +49,7 @@ public:
         return ref;
     }
 
-    V top() { return heap.front(); } 
+    V top() const { return heap.front(); } 
 
     void pop() { erase(handle[0]); }
 
@@ -65,7 +65,7 @@ public:
         }
     }
     
-    void for_elements(const std::function<void(V)>& handle) {
+    void for_elements(const std::function<void(V)>& handle) const {
         for (auto v : heap) 
             handle(v);
     }
@@ -182,7 +182,7 @@ public:
      * 
      * @return 'true' if queue is empty, 'false' otherwise
     */
-    bool empty() { return heap.empty(); }
+    bool empty() const { return heap.empty(); }
 
     /**
      * Clear the queue
@@ -206,7 +206,7 @@ public:
      * @param value the value of element to check
      * @returns current priority of the provided element
     */
-    P current_priority(E value) {
+    P current_priority(E value) const {
         return modified_priority[value] - Delta;
     }
 
@@ -215,7 +215,7 @@ public:
      * 
      * @return a pair containing the value of an element with lowest priority it's priority
     */
-    std::pair<E, P> find_min() {
+    std::pair<E, P> find_min() const {
         auto min = heap.top();
         return { min.second, min.first - Delta };
     }
@@ -254,57 +254,11 @@ template<class H, class E, class P>
 class ConcatenableQueue {
 public:
     struct Node;
-    using ElementRef = Node*;
+    using handle_type = Node*;
 
     H head;
     
     ConcatenableQueue(H head): head(head), root(nullptr) {}
-
-    ConcatenableQueue(H head, E element, P priority): head(head), 
-        root(new Node {
-            this, nullptr, { nullptr, nullptr, nullptr },
-            0, element, priority
-        }) {}
-
-    ConcatenableQueue(H head, Node* element): head(head) {
-        if (element->height == 0) {
-            root = new Node {
-                this, nullptr, { element, nullptr, nullptr },
-                1, element->min_element, element->min_priority
-            };
-            element->parent = root;
-        } else {
-            root = element;
-            root->parent = nullptr;
-        }
-        fix_root();
-
-        #if QUEUE_DEBUG
-        check_consistency();
-        #endif
-    }
-
-    // ConcatenableQueue(const ConcatenableQueue<H, E, P>& other) {
-    //     // TODO This should copy contents
-    //     // Not implemented as there's no need for it
-    // }
-
-    void swap(ConcatenableQueue<H, E, P>& other) {
-        std::swap(root, other.root);
-        std::swap(head, other.head);
-        fix_root();
-        other.fix_root();
-    }
-
-    void fix_root() { if (root != nullptr) { root->parent = nullptr; root->queue = this; } }
-
-    // ConcatenableQueue& operator=(const ConcatenableQueue<H, E, P>& other) {
-    //     if (this != &other) {
-    //         auto temp(other);
-    //         swap(temp);
-    //     }
-    //     return *this;
-    // }
 
     ConcatenableQueue(ConcatenableQueue&& other) {
         root = other.root;
@@ -334,6 +288,18 @@ public:
         }
     }
 
+    // Delete copy constructor as it's not used
+    // TODO implement copying maybe
+    ConcatenableQueue(const ConcatenableQueue<H, E, P>& other) = delete;
+    ConcatenableQueue& operator=(const ConcatenableQueue<H, E, P>& other) = delete;
+
+    void swap(ConcatenableQueue<H, E, P>& other) {
+        std::swap(root, other.root);
+        std::swap(head, other.head);
+        fix_root();
+        other.fix_root();
+    }
+
     /**
      * Append element to the end of queue
      * 
@@ -342,25 +308,18 @@ public:
      * @return reference to inserted element, used for spliting and finding queues. 
      *         Preserved by splits and concatenations.
     */
-    ElementRef append(E element, P priority) {
+    handle_type append(E element, P priority) {
         #if QUEUE_DEBUG
         std::cerr << this << " append " << element << std::endl;
         #endif
 
         if (empty()) {
-            Node* new_node = new Node {
-                this, nullptr, { nullptr, nullptr, nullptr },
-                0, element, priority
-            };    
-            root = new Node {
-                this, nullptr, { new_node, nullptr, nullptr },
-                1, element, priority
-            };
-            new_node->parent = root;
+            Node* new_node = new Node(this, element, priority);
+            root = Node::from_child(this, new_node);
             return new_node;
         }
 
-        ElementRef last = last_element();
+        handle_type last = last_element();
         return insert_after(last, element, priority);
     }
 
@@ -373,11 +332,8 @@ public:
      * @return reference to inserted element, used for spliting and finding queues. 
      *         Preserved by splits and concatenations.
     */
-    ElementRef insert_after(ElementRef ref, E element, P priority) {
-        Node* new_node = new Node {
-            this, nullptr, { nullptr, nullptr, nullptr },
-            0, element, priority
-        };
+    handle_type insert_after(handle_type ref, E element, P priority) {
+        Node* new_node = new Node(this, element, priority);
 
         add_child_after(ref->parent, ref, new_node);
 
@@ -395,11 +351,8 @@ public:
      * @return reference to inserted element, used for spliting and finding queues. 
      *         Preserved by splits and concatenations.
     */
-    ElementRef insert_before(ElementRef ref, E element, P priority) {
-        Node* new_node = new Node {
-            this, nullptr, { nullptr, nullptr, nullptr },
-            0, element, priority
-        };
+    handle_type insert_before(handle_type ref, E element, P priority) {
+        Node* new_node = new Node(this, element, priority);
 
         add_child_before(ref->parent, ref, new_node);
 
@@ -413,14 +366,14 @@ public:
      * 
      * @return 'true' if queue is empty, 'false' otherwise
     */
-    bool empty() { return root == nullptr; }
+    bool empty() const { return root == nullptr; }
 
     /**
      * Remove an element
      * 
      * @param element_ref reference to the element to remove
     */
-    void remove(ElementRef element_ref) {     
+    void remove(handle_type element_ref) {     
         if (element_ref->parent == root && root->children_count() == 1) {
             delete root;
             delete element_ref;
@@ -436,7 +389,7 @@ public:
      * 
      * @return a pair containing the value of an element with lowest priority it's priority
     */
-    std::pair<E, P> find_min() {
+    std::pair<E, P> find_min() const {
         return { root->min_element, root->min_priority };
     }
 
@@ -447,20 +400,6 @@ public:
         auto new_left = new ConcatenableQueue<H, E, P>(std::move(left));
         new_left->concat(std::move(right), head, update_min);
         return new_left;
-    }
-
-    static ConcatenableQueue<H, E, P>* concat(
-            ConcatenableQueue<H, E, P>&& left, ConcatenableQueue<H, E, P>::Node* right, 
-            H head, bool update_min = true) {
-        ConcatenableQueue<H, E, P> right_que(head, right);
-        return concat(std::move(left), std::move(right_que), head, update_min);
-    }
-
-    static ConcatenableQueue<H, E, P>* concat(
-            ConcatenableQueue<H, E, P>::Node* left, ConcatenableQueue<H, E, P>&& right, 
-            H head, bool update_min = true) {
-        ConcatenableQueue<H, E, P> left_que(head, left);
-        return concat(std::move(left_que), std::move(right), head, update_min);
     }
 
     void concat(ConcatenableQueue<H, E, P>&& other, H new_head, bool update_min = true) {
@@ -474,14 +413,7 @@ public:
         Node* left = root; cut(left);
         Node* right = other.root; cut(right);
         if (left->height == right->height) {
-            Node* new_root = new Node {
-                this, nullptr, { left, right, nullptr },
-                left->height + 1, left->min_element, left->min_priority
-            };
-            left->parent = new_root;
-            right->parent = new_root;
-            if (update_min) new_root->update_min();
-            root = new_root;
+            root = Node::from_children(this, left, right);
         } else if (left->height > right->height) {
             while (left->height > right->height) left = left->rightmost_child();
             add_child_after(left->parent, left, right);
@@ -497,7 +429,7 @@ public:
     }
 
     std::pair<ConcatenableQueue<H, E, P>*, ConcatenableQueue<H, E, P>*> 
-    split(ElementRef split_element, H head_left, H head_right) {
+    split(handle_type split_element, H head_left, H head_right) {
         Node* prev = split_element;
         Node* iter = split_element->parent;
         ConcatenableQueue<H, E, P>* left = new ConcatenableQueue<H, E, P>(head_left, split_element);
@@ -561,8 +493,7 @@ public:
         if (root == nullptr) return;
         if (root->parent != nullptr) {
             std::cerr << "root's parent is not null\n";
-            assert(false);
-            // exit(1);
+            exit(1);
         }
         if (root->queue != this) {
             std::cerr << "root points at wrong queue\n";
@@ -572,24 +503,57 @@ public:
     }
 
     struct Node {
-        ConcatenableQueue* queue; // Correct in the root
+
+        ConcatenableQueue* find_queue() {
+            Node* iter = this;
+            while (iter->parent != nullptr) iter = iter->parent;
+            return iter->queue;
+        }
+    
+    private:
+
+        ConcatenableQueue<H, E, P>* queue; // Correct in the root
         Node* parent;
         Node* children[3];
         int height;
         E min_element;
         P min_priority;
 
+        Node(ConcatenableQueue<H, E, P>* queue, E element, P priority): 
+            queue(queue),
+            parent(nullptr),
+            children{nullptr, nullptr, nullptr},
+            height(0),
+            min_element(element),
+            min_priority(priority) {}
+
+        static Node* from_child(ConcatenableQueue<H, E, P>* queue, Node* child) {
+            Node* node = new Node(queue, child->min_element, child->min_priority);
+            node->children[0] = child;
+            node->height = child->height + 1;
+            child->parent = node;
+            return node;
+        }
+
+        static Node* from_children(ConcatenableQueue<H, E, P>* queue, Node* left, Node* right) {
+            Node* node = new Node(queue, left->min_element, left->min_priority);
+            node->children[0] = left;
+            node->children[1] = right;
+            if (right->min_priority < node->min_priority) {
+                node->min_priority = right->min_priority;
+                node->min_element = right->min_element;
+            }
+            node->height = left->height + 1;
+            left->parent = node;
+            right->parent = node;
+            return node;
+        }
+
         int children_count() {
             if (children[0] == nullptr) return 0;
             if (children[1] == nullptr) return 1;
             if (children[2] == nullptr) return 2;
             return 3;
-        }
-
-        ConcatenableQueue* find_queue() {
-            Node* iter = this;
-            while (iter->parent != nullptr) iter = iter->parent;
-            return iter->queue;
         }
 
         void update_min() {
@@ -695,10 +659,54 @@ public:
                     delete children[i];
                 }
         }
+
+        friend class ConcatenableQueue<H, E, P>;
     };
 
 private:
     Node* root;
+
+    ConcatenableQueue(H head, E element, P priority): 
+        head(head), 
+        root(new Node(element, priority)) {}
+
+    ConcatenableQueue(H head, Node* element): 
+            head(head) {
+        if (element->height == 0) {
+            root = Node::from_child(this, element);
+            element->parent = root;
+        } else {
+            root = element;
+            root->parent = nullptr;
+        }
+
+        fix_root();
+
+        #if QUEUE_DEBUG
+        check_consistency();
+        #endif
+    }
+
+    static ConcatenableQueue<H, E, P>* concat(
+            ConcatenableQueue<H, E, P>&& left, ConcatenableQueue<H, E, P>::Node* right, 
+            H head, bool update_min = true) {
+        ConcatenableQueue<H, E, P> right_que(head, right);
+        return concat(std::move(left), std::move(right_que), head, update_min);
+    }
+
+    static ConcatenableQueue<H, E, P>* concat(
+                ConcatenableQueue<H, E, P>::Node* left, ConcatenableQueue<H, E, P>&& right, 
+            H head, bool update_min = true) {
+        ConcatenableQueue<H, E, P> left_que(head, left);
+        return concat(std::move(left_que), std::move(right), head, update_min);
+    }
+
+    void fix_root() { 
+        if (root != nullptr) { 
+            root->parent = nullptr; 
+            root->queue = this; 
+        } 
+    }
 
     void insert_child(Node** children, int index, int child_count, Node* child) {
         for (int i = child_count; i > index; -- i)
@@ -707,14 +715,7 @@ private:
     }
 
     void make_new_root(Node* a, Node* b) {
-        Node* new_root = new Node { 
-            this, nullptr, { a, b, nullptr },
-            a->height + 1, a->min_element, a->min_priority
-        };
-        a->parent = new_root;
-        b->parent = new_root;
-        new_root->update_min();
-        root = new_root;
+        root = Node::from_children(this, a, b);
     }
 
     void add_child_after(Node* target, Node* after, Node* child) {
@@ -749,14 +750,9 @@ private:
             target->children[0] = four_children[0]; four_children[0]->parent = target;
             target->children[1] = four_children[1]; four_children[1]->parent = target;
             target->children[2] = nullptr;
-            Node* new_node = new Node {
-                this, target->parent, { four_children[2], four_children[3], nullptr},
-                target->height, four_children[2]->min_element, four_children[2]->min_priority
-            };
-            four_children[2]->parent = new_node;
-            four_children[3]->parent = new_node;
+            Node* new_node = Node::from_children(this, four_children[2], four_children[3]);
+            new_node->parent = target->parent;
             target->update_min();
-            new_node->update_min();
             add_child_after(target->parent, target, new_node);
         }
     }
@@ -770,7 +766,7 @@ private:
         from->update_min();
     }
 
-    ElementRef first_element() {
+    handle_type first_element() {
         Node* iter = root;
         while (!iter->is_leaf()) {
             iter = iter->leftmost_child();
@@ -778,7 +774,7 @@ private:
         return iter;
     }
 
-    ElementRef last_element() {
+    handle_type last_element() {
         Node* iter = root;
         while (!iter->is_leaf()) {
             iter = iter->rightmost_child();
@@ -866,6 +862,21 @@ class PriorityQueue2 {
 public:
     class Group { 
     public:
+
+        bool empty() const {
+            return elements.empty();
+        }
+
+        std::pair<E, P> find_min() const {
+            auto [value, priority] = elements.find_min();
+            return {value, priority - Delta_group};
+        }
+
+        bool is_active() const {
+            return active;
+        }
+
+    private:
         Group(bool active, P Delta_last, P Delta_group): 
             elements(this), active(active), Delta_last(Delta_last), Delta_group(Delta_group) {}
 
@@ -875,15 +886,6 @@ public:
             active(active), Delta_last(Delta_last), Delta_group(Delta_group) {
 
             elements.head = this;
-        }
-
-        bool empty() {
-            return elements.empty() || elements.find_min().second == dummy_element_priority;
-        }
-
-        std::pair<E, P> find_min() {
-            auto [value, priority] = elements.find_min();
-            return {value, priority - Delta_group};
         }
 
         void update_Delta(P Delta) {
@@ -906,17 +908,11 @@ public:
      * 
      * @param size the maximum value of elements that can be stored
     */
-    PriorityQueue2(E size): group_minima(size), elements(size, nullptr) {}
-
-    /**
-     * Append a dummy element to the end group
-     * 
-     * @param value the value of inserted dummy element
-     * @param group the group to which the new element belongs
-    */
-    void append_dummy(E value, Group* group) {
-        elements[value] = group->elements.append(value, dummy_element_priority);
-    }
+    PriorityQueue2(E size, E no_element, P infinite_priority): 
+        no_element(no_element),
+        infinite_priority(infinite_priority),
+        group_minima(size), 
+        elements(size, nullptr) {}
 
     /**
      * Append an element with given priority to the end group
@@ -927,13 +923,13 @@ public:
     */
     void append(E value, P priority, Group* group) {
         group->update_Delta(Delta);
-        auto [last_min, last_min_priority] = group->find_min();
+        auto [last_min, last_min_priority] = group_minimum(group);
 
         elements[value] = group->elements.append(value, priority + group->Delta_group);
 
         // Check if the new element is the minimum in group
         if (group->active && group->find_min().first == value) {
-            if (last_min_priority != dummy_element_priority)
+            if (last_min != no_element)
                 group_minima.remove(last_min);
             group_minima.insert(value, priority);
         }
@@ -949,13 +945,13 @@ public:
     */
     void insert_before(E value, P priority, E before, Group* group) {
         group->update_Delta(Delta);
-        auto [last_min, last_min_priority] = group->find_min();
+        auto [last_min, last_min_priority] = group_minimum(group);
 
         elements[value] = group->elements.insert_before(elements[before], value, priority + group->Delta_group);
         
         // Check if the new element is the minimum in group
         if (group->active && group->find_min().first == value) {
-            if (last_min_priority != dummy_element_priority)
+            if (last_min != no_element)
                 group_minima.remove(last_min);
             group_minima.insert(value, priority);
         }
@@ -969,7 +965,7 @@ public:
     void remove(E value) { 
         Group* group = elements[value]->find_queue()->head;
         group->update_Delta(Delta);
-        auto [last_min, last_min_priority] = group->find_min();
+        auto [last_min, last_min_priority] = group_minimum(group);
         
         group->elements.remove(elements[value]);
 
@@ -988,7 +984,7 @@ public:
      * 
      * @return 'true' if there is an active nonempty group, 'false' otherwise
     */
-    bool has_active_elements() {
+    bool has_active_elements() const {
         return !group_minima.empty();
     }
 
@@ -997,7 +993,7 @@ public:
      * 
      * @return a pair containing the value of an element with lowest priority it's priority
     */
-    std::pair<E, P> find_min() {
+    std::pair<E, P> find_min() const {
         return group_minima.find_min();
     }
 
@@ -1118,10 +1114,15 @@ public:
     }
 
 private:
-    static constexpr P dummy_element_priority = std::numeric_limits<P>::max();
 
+    std::pair<E, P> group_minimum(Group* group) {
+        return group->empty() ? std::make_pair(no_element, infinite_priority) : group->find_min();
+    }
+
+    E no_element;
+    P infinite_priority;
     PriorityQueue1<E, P> group_minima;
-    std::vector<typename ConcatenableQueue<Group*, E, P>::ElementRef> elements;
+    std::vector<typename ConcatenableQueue<Group*, E, P>::handle_type> elements;
     
     P Delta = 0;
 };
@@ -1192,7 +1193,7 @@ public:
      * 
      * @param element value of the element
     */
-    R find(I element) {
+    R find(I element) const {
         return root[find_root(element)];
     }
 

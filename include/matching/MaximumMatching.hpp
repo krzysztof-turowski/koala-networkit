@@ -25,8 +25,8 @@ namespace Koala {
 class MaximumWeightMatching : public NetworKit::Algorithm {
 
 public:
-    using edgeweight = NetworKit::edgeweight;
-    using intedgeweight = int;
+    using weight = NetworKit::edgeweight;
+    using intweight = int;
 
     /**
      * Given an input graph, set up the maximum matching algorithm.
@@ -47,6 +47,9 @@ public:
 
 
 protected:
+
+    static constexpr weight infinite_weight = std::numeric_limits<weight>::max();
+
     NetworKit::Graph graph;
     
     std::map<NetworKit::node, NetworKit::node> matching;
@@ -116,7 +119,7 @@ protected:
         
         // Dual weight corresponding to the blossom
         // To be used by the specific algorithms, might not be correct depending on implementation
-        MaximumWeightMatching::edgeweight z;
+        MaximumWeightMatching::weight z;
 
         // Iterator pointing to the blossom in the 
         std::list<Blossom*>::iterator list_it;
@@ -145,10 +148,10 @@ protected:
     bool finished;
 
     // Maximum edge weight in the graph
-    MaximumWeightMatching::edgeweight max_weight;
+    MaximumWeightMatching::weight max_weight;
 
     // Store all graph edges so they can be accessed using the id
-    std::vector<std::tuple<NetworKit::node, NetworKit::node, MaximumWeightMatching::edgeweight>> graph_edges;
+    std::vector<std::tuple<NetworKit::node, NetworKit::node, MaximumWeightMatching::weight>> graph_edges;
     
     // Store a list of all proper blossoms
     std::list<Blossom*> blossoms;
@@ -207,12 +210,12 @@ protected:
 
     void adjust_dual_variables();
     
-    virtual MaximumWeightMatching::edgeweight calc_delta1() = 0;
-    virtual MaximumWeightMatching::edgeweight calc_delta2() = 0;
-    virtual MaximumWeightMatching::edgeweight calc_delta3() = 0;
-    virtual MaximumWeightMatching::edgeweight calc_delta4() = 0;
+    virtual MaximumWeightMatching::weight calc_delta1() = 0;
+    virtual MaximumWeightMatching::weight calc_delta2() = 0;
+    virtual MaximumWeightMatching::weight calc_delta3() = 0;
+    virtual MaximumWeightMatching::weight calc_delta4() = 0;
     
-    virtual void adjust_by_delta(MaximumWeightMatching::edgeweight delta) = 0;
+    virtual void adjust_by_delta(MaximumWeightMatching::weight delta) = 0;
     virtual void find_delta2_useful_edges() = 0;
     virtual void find_delta3_useful_edges() = 0;
     virtual std::vector<Blossom*> get_odd_blossoms_to_expand() = 0;
@@ -246,14 +249,14 @@ private:
 
     // For each vertex store it's current blossom and the value of corresponding dual variable
     std::vector<Blossom*> current_blossom;
-    std::vector<MaximumWeightMatching::edgeweight> y;
+    std::vector<MaximumWeightMatching::weight> y;
     
     // Queue of tight edges
     std::queue<Edge> edge_queue;
 
     void scan_edges(Blossom* b);
 
-    MaximumWeightMatching::edgeweight slack(NetworKit::edgeid edge);
+    MaximumWeightMatching::weight slack(NetworKit::edgeid edge);
     bool is_tight(NetworKit::node u, NetworKit::node v, NetworKit::edgeid edge);
 
     void initialize_stage() override;
@@ -271,11 +274,11 @@ private:
     void handle_odd_blossom_expansion(Blossom* blossom) override;
     void handle_even_blossom_expansion(Blossom* blossom) override;
     
-    MaximumWeightMatching::edgeweight calc_delta1() override;
-    MaximumWeightMatching::edgeweight calc_delta2() override;
-    MaximumWeightMatching::edgeweight calc_delta3() override;
-    MaximumWeightMatching::edgeweight calc_delta4() override;
-    void adjust_by_delta(MaximumWeightMatching::edgeweight delta) override;
+    MaximumWeightMatching::weight calc_delta1() override;
+    MaximumWeightMatching::weight calc_delta2() override;
+    MaximumWeightMatching::weight calc_delta3() override;
+    MaximumWeightMatching::weight calc_delta4() override;
+    void adjust_by_delta(MaximumWeightMatching::weight delta) override;
 
     void find_delta2_useful_edges() override;
     void find_delta3_useful_edges() override;
@@ -321,14 +324,14 @@ private:
 
     // For each vertex store it's current blossom and the value of it's corresponding dual variable
     std::vector<Blossom*> current_blossom;
-    std::vector<MaximumWeightMatching::edgeweight> y;
+    std::vector<MaximumWeightMatching::weight> y;
 
     // For each non even vertex store an edge connecting it to an even vertex with minimum slack
     std::vector<Edge> best_edge;
 
     void scan_edges(Blossom* b);
 
-    MaximumWeightMatching::edgeweight slack(NetworKit::edgeid edge);
+    MaximumWeightMatching::weight slack(NetworKit::edgeid edge);
 
     void initialize_stage() override;
     void finish_stage() override;
@@ -345,11 +348,11 @@ private:
     void handle_odd_blossom_expansion(Blossom* blossom) override;
     void handle_even_blossom_expansion(Blossom* blossom) override;
 
-    MaximumWeightMatching::edgeweight calc_delta1() override;
-    MaximumWeightMatching::edgeweight calc_delta2() override;
-    MaximumWeightMatching::edgeweight calc_delta3() override;
-    MaximumWeightMatching::edgeweight calc_delta4() override;
-    void adjust_by_delta(MaximumWeightMatching::edgeweight delta) override;
+    MaximumWeightMatching::weight calc_delta1() override;
+    MaximumWeightMatching::weight calc_delta2() override;
+    MaximumWeightMatching::weight calc_delta3() override;
+    MaximumWeightMatching::weight calc_delta4() override;
+    void adjust_by_delta(MaximumWeightMatching::weight delta) override;
 
     void find_delta2_useful_edges() override;
     void find_delta3_useful_edges() override;
@@ -371,7 +374,7 @@ public:
 
 private:
     using BlossomNodeList = ConcatenableQueue<Blossom*, NetworKit::node, NetworKit::node>;
-    using EvenEdgeGroup = PriorityQueue2<NetworKit::edgeid, MaximumWeightMatching::edgeweight>::Group*;
+    using EvenEdgeGroup = PriorityQueue2<NetworKit::edgeid, MaximumWeightMatching::weight>::Group*;
     class MicaliGabowBlossomData : public Blossom::BlossomData {
     public:
         // Contains all nodes in blossom order
@@ -384,41 +387,41 @@ private:
     };
     MicaliGabowBlossomData* get_data(Blossom* b);
     // References to nodes in concatenable queues of blossoms
-    std::vector<BlossomNodeList::ElementRef> nodes_refs;
+    std::vector<BlossomNodeList::handle_type> nodes_refs;
 
     // Queue of useful edges
     std::queue<Edge> edge_queue;
 
     // Used to maintain dual variables for vertices
-    PriorityQueue1<NetworKit::node, MaximumWeightMatching::edgeweight> y_even;
-    PriorityQueue1<NetworKit::node, MaximumWeightMatching::edgeweight> y_odd;
-    std::vector<MaximumWeightMatching::edgeweight> y_free;
-    MaximumWeightMatching::edgeweight y(NetworKit::node v);
+    PriorityQueue1<NetworKit::node, MaximumWeightMatching::weight> y_even;
+    PriorityQueue1<NetworKit::node, MaximumWeightMatching::weight> y_odd;
+    std::vector<MaximumWeightMatching::weight> y_free;
+    MaximumWeightMatching::weight y(NetworKit::node v);
 
     // Used to maintain dual variables for blossoms
-    PriorityQueue1<NetworKit::node, MaximumWeightMatching::edgeweight> z_even;
-    PriorityQueue1<NetworKit::node, MaximumWeightMatching::edgeweight> z_odd;
-    MaximumWeightMatching::edgeweight z(Blossom* b);
+    PriorityQueue1<NetworKit::node, MaximumWeightMatching::weight> z_even;
+    PriorityQueue1<NetworKit::node, MaximumWeightMatching::weight> z_odd;
+    MaximumWeightMatching::weight z(Blossom* b);
 
     // Used to maintain slack of edges between even vertices in different blossoms
     // Needed to calculate delta_3
     // Maintains slack / 2 for those edges
     // During the execution some edges might become contained in the same even blossom and have to
     // be removed. This is done lazily when checking for a good edge with smallest slack.
-    PriorityQueue1<NetworKit::edgeid, MaximumWeightMatching::edgeweight> good_edges;
+    PriorityQueue1<NetworKit::edgeid, MaximumWeightMatching::weight> good_edges;
     void clear_not_good_edges();
     bool is_good(NetworKit::edgeid edge);
 
     // Used to maintain edges from even to non-even vertices
     // Needed to calculate delta_2
     // Maintains slack for those edges
-    PriorityQueue2<NetworKit::edgeid, MaximumWeightMatching::edgeweight> even_edges;
+    PriorityQueue2<NetworKit::edgeid, MaximumWeightMatching::weight> even_edges;
     NetworKit::edgeid dummy_edge_id(NetworKit::node node);
 
     // Scan all edges from newly even blossom and update good_edges and even_edges
     void scan_edges(Blossom* b);
 
-    MaximumWeightMatching::edgeweight slack(NetworKit::edgeid edge);
+    MaximumWeightMatching::weight slack(NetworKit::edgeid edge);
 
     void initialize_stage() override;
     void finish_stage() override;
@@ -435,11 +438,11 @@ private:
     void handle_odd_blossom_expansion(Blossom* blossom) override;
     void handle_even_blossom_expansion(Blossom* blossom) override;
     
-    MaximumWeightMatching::edgeweight calc_delta1() override;
-    MaximumWeightMatching::edgeweight calc_delta2() override;
-    MaximumWeightMatching::edgeweight calc_delta3() override;
-    MaximumWeightMatching::edgeweight calc_delta4() override;
-    void adjust_by_delta(MaximumWeightMatching::edgeweight delta) override;
+    MaximumWeightMatching::weight calc_delta1() override;
+    MaximumWeightMatching::weight calc_delta2() override;
+    MaximumWeightMatching::weight calc_delta3() override;
+    MaximumWeightMatching::weight calc_delta4() override;
+    void adjust_by_delta(MaximumWeightMatching::weight delta) override;
 
     void find_delta2_useful_edges() override;
     void find_delta3_useful_edges() override;
@@ -489,7 +492,7 @@ private:
         //  t_even - time the blossom became even
         //  Delta  - number of dual adjustments experience by vertices in the blossom as odd
         //           vertices before it became a root or even
-        MaximumWeightMatching::intedgeweight z0, t_root, t_odd, t_even, Delta;
+        MaximumWeightMatching::intweight z0, t_root, t_odd, t_even, Delta;
 
         // Parent and children in the blossom tree
         Blossom* parent;
@@ -507,7 +510,7 @@ private:
 
         // For a non-even blossom maintains a list of it's nodes, the key for each node
         // is used to maintain a minimum slack of an edge connecting it to an even vertex
-        SplitFindMin<NetworKit::node, Blossom*, MaximumWeightMatching::intedgeweight, Edge>::List* list;
+        SplitFindMin<NetworKit::node, Blossom*, MaximumWeightMatching::intweight, Edge>::List* list;
 
         bool is_trivial();
         void for_nodes(const std::function<void(NetworKit::node)>& handle);
@@ -526,7 +529,7 @@ private:
         OldBlossom* heavy_child;
 
         // Dual weight of the old blossom
-        MaximumWeightMatching::intedgeweight z;
+        MaximumWeightMatching::intweight z;
 
         // Children of the shell
         std::list<OldBlossom*> children;
@@ -554,8 +557,8 @@ private:
     std::vector<std::pair<NetworKit::node, NetworKit::node>> graph_edges; 
 
     // Current edge weights and vertex dual variables
-    std::vector<MaximumWeightMatching::intedgeweight> current_w;
-    std::vector<MaximumWeightMatching::intedgeweight> current_y;
+    std::vector<MaximumWeightMatching::intweight> current_w;
+    std::vector<MaximumWeightMatching::intweight> current_y;
 
     // Trivial blossom for each node
     std::vector<Blossom*> trivial_blossom;
@@ -576,17 +579,17 @@ private:
 
     void create_trivial_blossoms(OldBlossom* T);
     OldBlossom* turn_current_blossoms_into_old(const std::list<Blossom*>& subblossoms);
-    void heavy_path_decomposition(OldBlossom* T, MaximumWeightMatching::intedgeweight outer_dual);
+    void heavy_path_decomposition(OldBlossom* T, MaximumWeightMatching::intweight outer_dual);
     void change_blossom_base(Blossom* B, NetworKit::node new_base, Edge edge);
     void swap_edges_on_even_path(Blossom* B, NetworKit::node u, NetworKit::node v);
     void swap_edges_on_even_path(Blossom* B, NetworKit::node out_vertex, std::list<Blossom*>&& out_blossoms);
     
-    std::tuple<std::vector<NetworKit::node>, std::vector<MaximumWeightMatching::intedgeweight>, OldBlossom*>
-    scale(const std::vector<MaximumWeightMatching::intedgeweight>& w);
+    std::tuple<std::vector<NetworKit::node>, std::vector<MaximumWeightMatching::intweight>, OldBlossom*>
+    scale(const std::vector<MaximumWeightMatching::intweight>& w);
 
     void match(OldBlossom* T);
 
-    void path(OldBlossom* B, MaximumWeightMatching::intedgeweight outer_dual);
+    void path(OldBlossom* B, MaximumWeightMatching::intweight outer_dual);
 
     void shell_search(OldBlossom* B);
     void init_shell_search();
@@ -665,7 +668,7 @@ private:
     std::vector<OldBlossom*> current_shell;
 
     // Sum of dual weights of the active shell and above at the time it became active
-    std::vector<MaximumWeightMatching::intedgeweight> current_shell_duals; // TODO move to shell
+    std::vector<MaximumWeightMatching::intweight> current_shell_duals; // TODO move to shell
 
     // The status of the current search
     bool search_done;
@@ -674,19 +677,19 @@ private:
     ArrayPriorityQueue<Event> event_queue;
 
     // Time the shell has become the active shell in the search
-    MaximumWeightMatching::intedgeweight t_active;
+    MaximumWeightMatching::intweight t_active;
 
     // Time the shell has become the inner shell in the search
-    MaximumWeightMatching::intedgeweight t_inner;
+    MaximumWeightMatching::intweight t_inner;
 
     // Time the outermost shell has become active in the search
-    MaximumWeightMatching::intedgeweight t_undissolvable;
+    MaximumWeightMatching::intweight t_undissolvable;
 
     // Sum of the dual variables of blossoms above current path
-    MaximumWeightMatching::intedgeweight outer_shells_dual;
+    MaximumWeightMatching::intweight outer_shells_dual;
 
     // Sum of dual weights of the active shell and above at the time it became active
-    MaximumWeightMatching::intedgeweight active_shell_initial_dual;
+    MaximumWeightMatching::intweight active_shell_initial_dual;
 
     // Currently searched shell
     OldBlossom* active_shell;
@@ -695,13 +698,13 @@ private:
     OldBlossom* starting_shell;
 
     // The value of vertex's dual variable at the start of search
-    std::vector<MaximumWeightMatching::intedgeweight> y0;
+    std::vector<MaximumWeightMatching::intweight> y0;
 
     // The time the vertex was added to the current search
-    std::vector<MaximumWeightMatching::intedgeweight> t_shell;
+    std::vector<MaximumWeightMatching::intweight> t_shell;
 
     // Distributions to vertex's dual variable before it was searched
-    std::vector<MaximumWeightMatching::intedgeweight> Delta;
+    std::vector<MaximumWeightMatching::intweight> Delta;
 
     // The starting shell of the search in which the vertex was searched
     std::vector<OldBlossom*> search_shell;
@@ -713,7 +716,7 @@ private:
     UnionFind<NetworKit::node, Blossom*> union_find;
 
     // Maintains the list for non-even blossoms
-    SplitFindMin<NetworKit::node, Blossom*, MaximumWeightMatching::intedgeweight, Edge> split_find_min;
+    SplitFindMin<NetworKit::node, Blossom*, MaximumWeightMatching::intweight, Edge> split_find_min;
 
     void grow(NetworKit::node v, Edge e);
     void schedule(NetworKit::node v);
@@ -738,16 +741,16 @@ private:
     std::pair<std::list<std::pair<Blossom*, Edge>>, std::list<std::pair<Blossom*, Edge>>>
     split_subblossoms(std::list<std::pair<Blossom*, Edge>> subblossoms, Blossom* blossom);
 
-    MaximumWeightMatching::intedgeweight y(NetworKit::node v);
-    MaximumWeightMatching::intedgeweight z(Blossom* B);
-    MaximumWeightMatching::intedgeweight shell_z();
-    MaximumWeightMatching::intedgeweight slack(Edge e);
+    MaximumWeightMatching::intweight y(NetworKit::node v);
+    MaximumWeightMatching::intweight z(Blossom* B);
+    MaximumWeightMatching::intweight shell_z();
+    MaximumWeightMatching::intweight slack(Edge e);
     bool is_exposed(Blossom* b);
     bool is_even(NetworKit::node v);
     bool is_odd(NetworKit::node v);
     Blossom* get_blossom(NetworKit::node v);
-    void add_distribution(OldBlossom* S, MaximumWeightMatching::intedgeweight distribution);
-    MaximumWeightMatching::intedgeweight distribution_so_far(int shell_index);
+    void add_distribution(OldBlossom* S, MaximumWeightMatching::intweight distribution);
+    MaximumWeightMatching::intweight distribution_so_far(int shell_index);
     bool matching_is_perfect();
 
     void print_current_state();
