@@ -5,16 +5,7 @@
 #include <matching/MaximumMatching.hpp>
 #include <io/DimacsGraphReader.hpp>
 
-NetworKit::Graph make_directed(const NetworKit::Graph& UG) {
-    NetworKit::Graph G(UG.upperNodeIdBound(), false, true, true);
-    UG.forEdges([&G] (NetworKit::node u, NetworKit::node v) {
-        G.addEdge(u, v);
-        G.addEdge(v, u);
-    });
-    return G;
-}
-
-int main(int argc, char **argv) {   
+int main(int argc, char **argv) {
     if (argc < 2) {
         std::cout << "Usage: " << argv[0] << " filename" << std::endl;
         return 1;
@@ -27,8 +18,6 @@ int main(int argc, char **argv) {
     auto G = Koala::DimacsGraphReader().read(path);
     G.indexEdges(true);
     Koala::MicaliVaziraniMatching MVmatching(G); 
-    // auto G2 = make_directed(G);
-    // Koala::MicaliVaziraniMatching MVmatching(G2); 
     MVmatching.run();
     auto matching = MVmatching.getMatching();
     int size = 0;

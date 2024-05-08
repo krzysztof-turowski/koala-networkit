@@ -854,10 +854,11 @@ private:
  * Allows for changing the status of a group, changing priorities off all elements in active groups,
  * splitting groups
  * 
- * @tparam E type of elmenents
+ * @tparam E type of elements
+ * @tparam V type of values
  * @tparam P type of priority values
 */
-template<typename E, typename P>
+template<typename E, typename V, typename P>
 class PriorityQueue2 {
 public:
     class Group { 
@@ -907,9 +908,13 @@ public:
      * Creates a queue that stores elements between 0 and size - 1.
      * 
      * @param size the maximum value of elements that can be stored
+     * @param no_element placeholder for lack of element
+     * @param no_value placeholder value
+     * @param infinite_priority upper limit for priority
     */
-    PriorityQueue2(E size, E no_element, P infinite_priority): 
+    PriorityQueue2(E size, E no_element, V no_value, P infinite_priority): 
         no_element(no_element),
+        no_value(no_value),
         infinite_priority(infinite_priority),
         group_minima(size), 
         elements(size, nullptr) {}
@@ -917,61 +922,61 @@ public:
     /**
      * Append an element with given priority to the end group
      * 
-     * @param value the value of inserted element
+     * @param element the value of inserted element
      * @param priority the priority of inserted element
      * @param group the group to which the new element belongs
     */
-    void append(E value, P priority, Group* group) {
+    void append(E element, P priority, Group* group) {
         group->update_Delta(Delta);
         auto [last_min, last_min_priority] = group_minimum(group);
 
-        elements[value] = group->elements.append(value, priority + group->Delta_group);
+        elements[element] = group->elements.append(element, priority + group->Delta_group);
 
         // Check if the new element is the minimum in group
-        if (group->active && group->find_min().first == value) {
+        if (group->active && group->find_min().first == element) {
             if (last_min != no_element)
                 group_minima.remove(last_min);
-            group_minima.insert(value, priority);
+            group_minima.insert(element, priority);
         }
     }
 
     /**
      * Insert an element with given priority into group before element
      * 
-     * @param value the value of inserted element
+     * @param element the value of inserted element
      * @param priority the priority of inserted element
      * @param before the value of element before which the new element is inserted
      * @param group the group to which the new element belongs
     */
-    void insert_before(E value, P priority, E before, Group* group) {
+    void insert_before(E element, P priority, E before, Group* group) {
         group->update_Delta(Delta);
         auto [last_min, last_min_priority] = group_minimum(group);
 
-        elements[value] = group->elements.insert_before(elements[before], value, priority + group->Delta_group);
+        elements[element] = group->elements.insert_before(elements[before], element, priority + group->Delta_group);
         
         // Check if the new element is the minimum in group
-        if (group->active && group->find_min().first == value) {
+        if (group->active && group->find_min().first == element) {
             if (last_min != no_element)
                 group_minima.remove(last_min);
-            group_minima.insert(value, priority);
+            group_minima.insert(element, priority);
         }
     }
 
     /**
      * Remove an element
      * 
-     * @param value the value of the element to remove
+     * @param element the value of the element to remove
     */
-    void remove(E value) { 
-        Group* group = elements[value]->find_queue()->head;
+    void remove(E element) { 
+        Group* group = elements[element]->find_queue()->head;
         group->update_Delta(Delta);
         auto [last_min, last_min_priority] = group_minimum(group);
         
-        group->elements.remove(elements[value]);
+        group->elements.remove(elements[element]);
 
         // Check if the removed element was the minimum in group
-        if (last_min == value && group->active) {
-            group_minima.remove(value);
+        if (last_min == element && group->active) {
+            group_minima.remove(element);
             if (!group->empty()) {
                 auto [new_min, new_min_priority] = group->find_min();
                 group_minima.insert(new_min, new_min_priority);
@@ -1054,11 +1059,11 @@ public:
      * Split a given group acording to the given element
      * 
      * @param group the group to be split
-     * @param value the value of the element according to which the groups are to be split
+     * @param element the value of the element according to which the groups are to be split
      * @return a pair containing the two new groups, the first contains elements from beginning of group
      *      until and containing the split element, the second one contains elements after the element
     */
-    std::pair<Group*, Group*> split_group(Group* group, E value) {
+    std::pair<Group*, Group*> split_group(Group* group, E element) {
         group->update_Delta(Delta);
 
         if (group->active && !group->empty()) {
@@ -1066,7 +1071,7 @@ public:
             group_minima.remove(v);
         }
 
-        auto [elements_left, elements_right] = group->elements.split(elements[value], group, group);
+        auto [elements_left, elements_right] = group->elements.split(elements[element], group, group);
 
         Group* group_left  = new Group(std::move(*elements_left),
                                 group->active, group->Delta_last, group->Delta_group);
@@ -1091,10 +1096,10 @@ public:
         return {group_left, group_right};
     }
 
-    void shift_group(Group* group, E value) {
+    void shift_group(Group* group, E element) {
         group->update_Delta(Delta);
 
-        auto [elements_left, elements_right] = group->elements.split(elements[value], group, group);
+        auto [elements_left, elements_right] = group->elements.split(elements[element], group, group);
 
         elements_right->concat(std::move(*elements_left), group);
         group->elements = std::move(*elements_right);
@@ -1120,6 +1125,7 @@ private:
     }
 
     E no_element;
+    V no_value;
     P infinite_priority;
     PriorityQueue1<E, P> group_minima;
     std::vector<typename ConcatenableQueue<Group*, E, P>::handle_type> elements;

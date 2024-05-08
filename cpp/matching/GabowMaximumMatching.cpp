@@ -83,11 +83,8 @@ void GabowMaximumMatching::handle_grow(Blossom* odd_blossom, Blossom* even_bloss
 }
 
 void GabowMaximumMatching::handle_new_blossom(Blossom* new_blossom) {
-    for (auto [b, edge] : new_blossom->subblossoms) { 
-        b->for_nodes([this, new_blossom] (NetworKit::node v) {
-            current_blossom[v] = new_blossom;
-        });
-    }
+    for (auto v : new_blossom->nodes) 
+        current_blossom[v] = new_blossom;
     GabowBlossomData* data = new GabowBlossomData();
     new_blossom->data = data;
     data->best_edge = no_edge;
@@ -134,10 +131,9 @@ void GabowMaximumMatching::handle_subblossom_shift(Blossom* blossom, Blossom* su
 
 void GabowMaximumMatching::handle_odd_blossom_expansion(Blossom* blossom) {
     for (auto [b, e] : blossom->subblossoms) {
-        Blossom* _b = b;
-        b->for_nodes([this, _b] (NetworKit::node v) {
-            current_blossom[v] = _b;
-        });
+        for (auto v : b->nodes) {
+            current_blossom[v] = b;
+        }
     }
 
     // Scan edges for newly even vertices
@@ -150,10 +146,7 @@ void GabowMaximumMatching::handle_odd_blossom_expansion(Blossom* blossom) {
 
 void GabowMaximumMatching::handle_even_blossom_expansion(Blossom* blossom) {
     for (auto [b, e] : blossom->subblossoms) {
-        Blossom* _b = b;
-        b->for_nodes([this, _b] (NetworKit::node v) {
-            current_blossom[v] = _b;
-        });
+        for (auto v : b->nodes) current_blossom[v] = b;
     }
 }
 
@@ -263,7 +256,7 @@ void GabowMaximumMatching::scan_edges(Blossom* b) {
     data->best_edge = no_edge;
     auto best_slack = slack(data->best_edge.id);
 
-    b->for_nodes([this, b, data, &best_slack] (NetworKit::node u) {
+    for (auto u : b->nodes) {
         auto edge_it = data->best_edges.begin();
 
         // Iterate in sorted order for efficiency
@@ -296,7 +289,7 @@ void GabowMaximumMatching::scan_edges(Blossom* b) {
                 }
             }
         }
-    });
+    }
 }
 
 MaximumWeightMatching::weight GabowMaximumMatching::slack(NetworKit::edgeid edge) {

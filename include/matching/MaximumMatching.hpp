@@ -109,6 +109,9 @@ protected:
         
         // Subblossoms of the blossom
         std::list<std::pair<Blossom*, Edge>> subblossoms;
+
+        // List of nodes in a root blossom
+        std::list<NetworKit::node> nodes;
         
         // Label and backtrack edge set during a search
         BlossomLabel label;
@@ -121,7 +124,7 @@ protected:
         // To be used by the specific algorithms, might not be correct depending on implementation
         MaximumWeightMatching::weight z;
 
-        // Iterator pointing to the blossom in the 
+        // Iterator pointing to the blossom's position in the root blossom list
         std::list<Blossom*>::iterator list_it;
 
         // Pointer to algorithm-specific data corresponding to a blossom
@@ -132,6 +135,7 @@ protected:
         bool contains(NetworKit::node v);
 
         void check_consistency();
+        void check_nodes_list();
         void print(int depth = 0);
         void short_print();
         void nodes_print();
@@ -155,6 +159,9 @@ protected:
     
     // Store a list of all proper blossoms
     std::list<Blossom*> blossoms;
+
+    // Store iterators to node positions in blossom node lists
+    std::vector<std::list<NetworKit::node>::iterator> node_iter;
     
     // For each edge store wether it's in the current matching
     std::vector<bool> is_in_matching;
@@ -374,7 +381,10 @@ public:
 
 private:
     using BlossomNodeList = ConcatenableQueue<Blossom*, NetworKit::node, NetworKit::node>;
-    using EvenEdgeGroup = PriorityQueue2<NetworKit::edgeid, MaximumWeightMatching::weight>::Group*;
+    using EvenEdgeQueue = PriorityQueue2<NetworKit::edgeid, NetworKit::edgeid, 
+        MaximumWeightMatching::weight>;
+    using EvenEdgeGroup = EvenEdgeQueue::Group*;
+
     class MicaliGabowBlossomData : public Blossom::BlossomData {
     public:
         // Contains all nodes in blossom order
@@ -415,7 +425,7 @@ private:
     // Used to maintain edges from even to non-even vertices
     // Needed to calculate delta_2
     // Maintains slack for those edges
-    PriorityQueue2<NetworKit::edgeid, MaximumWeightMatching::weight> even_edges;
+    EvenEdgeQueue even_edges;
     NetworKit::edgeid dummy_edge_id(NetworKit::node node);
 
     // Scan all edges from newly even blossom and update good_edges and even_edges

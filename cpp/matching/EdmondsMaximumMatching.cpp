@@ -213,6 +213,13 @@ void EdmondsMaximumMatching::check_consistency() {
         get_blossom(v)->nodes_print(); 
         std::cerr << std::endl;
     });
+    std::cerr << "Blossom lists: \n";
+    for (auto b : blossoms) {
+        b->nodes_print();
+        std::cerr << " : ";
+        for (auto n : b->nodes) std::cerr << n << " ";
+        std::cerr << std::endl;
+    }
     std::cerr << "Current weights: \n";
     for (int i = 0; i < y.size(); ++ i) {
         std::cerr << i << ": " << y[i] << std::endl;
