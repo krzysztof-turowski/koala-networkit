@@ -1585,7 +1585,7 @@ void GabowScalingMatching::print_vertex_state(NetworKit::node v) {
     std::cerr << "B->t_even: " << B->t_even << std::endl;
 }
 
-std::string GabowScalingMatching::label_to_str(BlossomLabel label) {
+std::string GabowScalingMatching::label_to_str(Label label) {
     switch (label)
     {
     case free:

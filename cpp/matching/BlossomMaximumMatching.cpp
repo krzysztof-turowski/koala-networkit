@@ -68,7 +68,6 @@ void BlossomMaximumMatching::run_stage() {
 
     #if DEBUG_LOGGING
     check_consistency();
-    for (auto b : blossoms) b->check_nodes_list();
     #endif
 
     // Perform searches and adjust dual variables until 
@@ -78,13 +77,11 @@ void BlossomMaximumMatching::run_stage() {
 
         #if DEBUG_LOGGING
         check_consistency();
-        for (auto b : blossoms) b->check_nodes_list();
         #endif
     }
 
     #if DEBUG_LOGGING
     check_consistency();
-    for (auto b : blossoms) b->check_nodes_list();
     #endif
 
     finish_stage();
@@ -101,6 +98,10 @@ bool BlossomMaximumMatching::run_substage() {
         auto [u, v, id] = get_useful_edge();
 
         if (consider_edge({u, v, id})) return false;
+
+        #if DEBUG_LOGGING
+        check_consistency();
+        #endif
     }
 
     return true;
@@ -280,15 +281,18 @@ void BlossomMaximumMatching::create_new_blossom(
         even, base->backtrack_edge, false, 0, {}, nullptr
     };
 
-    std::list<NetworKit::node> nodes;
     for (auto [b, edge] : subblossoms) { 
         remove_blossom(b);
         b->parent = new_blossom;
+    }
+    add_blossom(new_blossom);
+    handle_new_blossom(new_blossom);
+
+    std::list<NetworKit::node> nodes;
+    for (auto [b, edge] : subblossoms) { 
         nodes.splice(nodes.end(), std::move(b->nodes));
     }
     new_blossom->nodes = std::move(nodes);
-    add_blossom(new_blossom);
-    handle_new_blossom(new_blossom);
 
     #if DEBUG_LOGGING
     std::cerr << "Created new blossom: " << std::endl;
@@ -457,20 +461,8 @@ void BlossomMaximumMatching::lazy_augment_path_in_blossom(Blossom* blossom) {
 
     handle_subblossom_shift(blossom, out_blossom);
 
-    #if DEBUG_LOGGING
-    std::cerr << "inside "; blossom->nodes_print(); 
-    std::cerr << " shifting node list ";
-    for (auto n : blossom->nodes) std::cerr << n << " ";
-    std::cerr << "around " << pathA.back().first->last_node << std::endl;
-    #endif 
-
     blossom->nodes.splice(blossom->nodes.end(), blossom->nodes, 
         blossom->nodes.begin(), std::next(node_iter[pathA.back().first->last_node]));
-
-    #if DEBUG_LOGGING
-    for (auto n : blossom->nodes) std::cerr << n << " ";
-    std::cerr << std::endl;
-    #endif 
     
     pathB.splice(pathB.end(), pathA);
     blossom->subblossoms = std::move(pathB); // pathB + pathA
@@ -757,6 +749,12 @@ void BlossomMaximumMatching::Blossom::nodes_print() {
 BlossomMaximumMatching::Edge BlossomMaximumMatching::reverse(const Edge& info) {
     auto [u, v, id] = info;
     return { v, u, id };
+}
+
+std::string BlossomMaximumMatching::edge_to_string(const BlossomMaximumMatching::Edge& e) { 
+    return (e == no_edge) ? 
+        "none" : 
+        "(" + std::to_string(e.u) + ", " + std::to_string(e.v) + ")"; 
 }
 
 } /* namespace Koala */

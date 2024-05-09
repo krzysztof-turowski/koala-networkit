@@ -78,17 +78,19 @@ GabowMaximumMatching::Edge GabowMaximumMatching::get_useful_edge() {
 }
 
 void GabowMaximumMatching::handle_grow(Blossom* odd_blossom, Blossom* even_blossom) {
-    // Scan the edges 
+    // Scan the edges for newly even vertices
     scan_edges(even_blossom);
 }
 
 void GabowMaximumMatching::handle_new_blossom(Blossom* new_blossom) {
-    for (auto v : new_blossom->nodes) 
-        current_blossom[v] = new_blossom;
     GabowBlossomData* data = new GabowBlossomData();
     new_blossom->data = data;
     data->best_edge = no_edge;
     auto best_slack = slack(NetworKit::none);
+
+    for (auto [b, e] : new_blossom->subblossoms)
+        for (auto v : b->nodes)
+            current_blossom[v] = new_blossom;
 
     for (auto [b, e] : new_blossom->subblossoms) {
         if (b->label == odd) 

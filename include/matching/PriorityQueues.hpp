@@ -24,7 +24,6 @@ public:
     using handle_type = size_t;
     using const_iterator = typename std::vector<V>::const_iterator;
     using iterator = const_iterator;
-    
 
     Heap() {}
 
@@ -56,13 +55,15 @@ public:
     void erase(handle_type ref) {
         size_t index = heap_index[ref];
         size_t last_index = heap.size() - 1;
-        swap(index, last_index);
+        if (index != last_index)
+            swap(index, last_index);
         heap.pop_back();
         handle.pop_back();
-        if (index < heap.size()) {
+        if (index != last_index) {
             push_down(index);
             push_up(index);
         }
+        
     }
     
     void for_elements(const std::function<void(V)>& handle) const {
@@ -125,9 +126,10 @@ private:
  * decreasing all priorities by a given amount efficiently.
  * 
  * @tparam E type of elements
+ * @tparam V type of values
  * @tparam P type of priority values
 */
-template<typename E, typename P>
+template<typename E, typename V, typename P>
 class PriorityQueue1 {
 public:
     /**
@@ -139,34 +141,37 @@ public:
         heap(),
         element_handle(size),
         in_heap(size, false),
-        modified_priority(size, 0) {}
+        modified_priority(size, 0),
+        element_value(size) {}
 
     /**
      * Insert an element with given priority
      * 
-     * @param value the value of inserted element
+     * @param element the value of inserted element
      * @param priority the priority of inserted element
     */
-    void insert(E value, P priority) {
-        if (!in_heap[value]) {
-            modified_priority[value] = priority + Delta;
-            element_handle[value] = heap.push({ priority + Delta, value });
-            in_heap[value] = true;
-        } else if (priority < current_priority(value)) {
-            remove(value);
-            modified_priority[value] = priority + Delta;
-            element_handle[value] = heap.push({ priority + Delta, value });
+    void insert(E element, V value, P priority) {
+        if (!in_heap[element]) {
+            modified_priority[element] = priority + Delta;
+            element_handle[element] = heap.push({ priority + Delta, element });
+            in_heap[element] = true;
+            element_value[element] = value;
+        } else if (priority < current_priority(element)) {
+            remove(element);
+            modified_priority[element] = priority + Delta;
+            element_handle[element] = heap.push({ priority + Delta, element });
+            element_value[element] = value;
         }
     }
 
     /**
      * Remove the element with provided value
      * 
-     * @param value the value of element to remove
+     * @param element the value of element to remove
     */
-    void remove(E value) { 
-        heap.erase(element_handle[value]); 
-        in_heap[value] = false;
+    void remove(E element) { 
+        heap.erase(element_handle[element]); 
+        in_heap[element] = false;
     }
 
     /**
@@ -203,11 +208,11 @@ public:
     /**
      * Check the current priority of element
      * 
-     * @param value the value of element to check
+     * @param element the value of element to check
      * @returns current priority of the provided element
     */
-    P current_priority(E value) const {
-        return modified_priority[value] - Delta;
+    P current_priority(E element) const {
+        return modified_priority[element] - Delta;
     }
 
     /**
@@ -215,9 +220,19 @@ public:
      * 
      * @return a pair containing the value of an element with lowest priority it's priority
     */
-    std::pair<E, P> find_min() const {
-        auto min = heap.top();
-        return { min.second, min.first - Delta };
+    std::pair<V, P> find_min() const {
+        auto [priority, element] = heap.top();
+        return { element_value[element], priority - Delta };
+    }
+
+    /**
+     * Find the current minimum element
+     * 
+     * @return a pair containing the value of an element with lowest priority it's priority
+    */
+    std::tuple<E, V, P> find_min_element() const {
+        auto [priority, element] = heap.top();
+        return { element, element_value[element], priority - Delta };
     }
 
     /**
@@ -225,20 +240,20 @@ public:
      * 
      * @param handle the function to be called
     */
-    void for_elements(const std::function<void(E,P)>& handle) {
+    void for_elements(const std::function<void(E, V,P)>& handle) {
         for (auto entry : heap) {
-            handle(entry.second, entry.first - Delta);
+            handle(entry.second, element_value[entry.second], entry.first - Delta);
         }
     }
 
-// private:
-public:
+private:
     P Delta = 0;
     using pair_heap = Heap<std::pair<P, E>>;
     pair_heap heap;
     std::vector<typename pair_heap::handle_type> element_handle;
     std::vector<bool> in_heap;
     std::vector<P> modified_priority;
+    std::vector<V> element_value;
 };
 
 /**
@@ -288,7 +303,7 @@ public:
         }
     }
 
-    // Delete copy constructor as it's not used
+    // Delete copy constructor as we don't want it used
     // TODO implement copying maybe
     ConcatenableQueue(const ConcatenableQueue<H, E, P>& other) = delete;
     ConcatenableQueue& operator=(const ConcatenableQueue<H, E, P>& other) = delete;
@@ -362,6 +377,21 @@ public:
     }
 
     /**
+     * Decreases priority of an element to a new value if it's better than the current one.
+     * 
+     * @param ref reference to the element whose priority is to be updated
+     * @param priority new priority
+    */
+    void decrease_priority(handle_type ref, P priority) {
+        if (priority < ref->min_priority) {
+            ref->min_priority = priority;
+            if (ref->parent != nullptr) {
+                ref->parent->update_min_until_root();
+            }
+        }
+    }
+
+    /**
      * Check if queue is empty
      * 
      * @return 'true' if queue is empty, 'false' otherwise
@@ -394,6 +424,13 @@ public:
     }
 
     // TODO different memory management, maybe unique pointers?
+    /**
+     * Concatenate two queues
+     * 
+     * @param left the left queue to concatenate
+     * @param right the right queue to concatenat
+     * @return pointer to a new queue that is a concatenation of the two provided queues
+    */
     static ConcatenableQueue<H, E, P>* concat(
             ConcatenableQueue<H, E, P>&& left, ConcatenableQueue<H, E, P>&& right, 
             H head, bool update_min = true) {
@@ -402,6 +439,12 @@ public:
         return new_left;
     }
 
+    /**
+     * Concatenate the provieded queue to the end of the current one while updating the head value.
+     * 
+     * @param other the left queue to concatenate
+     * @param new_head the head value of the new queue
+    */
     void concat(ConcatenableQueue<H, E, P>&& other, H new_head, bool update_min = true) {
         if (other.empty()) { head = new_head; return; }
         if (empty()) {
@@ -503,7 +546,6 @@ public:
     }
 
     struct Node {
-
         ConcatenableQueue* find_queue() {
             Node* iter = this;
             while (iter->parent != nullptr) iter = iter->parent;
@@ -863,14 +905,14 @@ class PriorityQueue2 {
 public:
     class Group { 
     public:
-
-        bool empty() const {
-            return elements.empty();
+        bool has_elements() const {
+            return !elements.empty();
         }
 
-        std::pair<E, P> find_min() const {
-            auto [value, priority] = elements.find_min();
-            return {value, priority - Delta_group};
+        std::tuple<E, V, P> find_min() const {
+            auto [element, pv] = elements.find_min();
+            auto [priority, value] = pv;
+            return {element, value, priority - Delta_group};
         }
 
         bool is_active() const {
@@ -881,7 +923,7 @@ public:
         Group(bool active, P Delta_last, P Delta_group): 
             elements(this), active(active), Delta_last(Delta_last), Delta_group(Delta_group) {}
 
-        Group(ConcatenableQueue<Group*, E, P>&& elements_, 
+        Group(ConcatenableQueue<Group*, E, std::pair<P, V>>&& elements_, 
                 bool active, P Delta_last, P Delta_group): 
             elements(std::move(elements_)),
             active(active), Delta_last(Delta_last), Delta_group(Delta_group) {
@@ -896,7 +938,7 @@ public:
             Delta_last = Delta;
         }
 
-        ConcatenableQueue<Group*, E, P> elements;
+        ConcatenableQueue<Group*, E, typename std::pair<P, V>> elements;
         bool active;
         P Delta_last;
         P Delta_group;
@@ -926,17 +968,17 @@ public:
      * @param priority the priority of inserted element
      * @param group the group to which the new element belongs
     */
-    void append(E element, P priority, Group* group) {
+    void append(E element, V value, P priority, Group* group) {
         group->update_Delta(Delta);
-        auto [last_min, last_min_priority] = group_minimum(group);
+        auto [last_min, last_value, last_min_priority] = group_minimum(group);
 
-        elements[element] = group->elements.append(element, priority + group->Delta_group);
+        elements[element] = group->elements.append(element, {priority + group->Delta_group, value});
 
         // Check if the new element is the minimum in group
-        if (group->active && group->find_min().first == element) {
+        if (group->active && std::get<0>(group->find_min()) == element && value != no_value) {
             if (last_min != no_element)
                 group_minima.remove(last_min);
-            group_minima.insert(element, priority);
+            group_minima.insert(element, value, priority);
         }
     }
 
@@ -948,39 +990,43 @@ public:
      * @param before the value of element before which the new element is inserted
      * @param group the group to which the new element belongs
     */
-    void insert_before(E element, P priority, E before, Group* group) {
+    void insert_before(E element, V value, P priority, E before, Group* group) {
         group->update_Delta(Delta);
-        auto [last_min, last_min_priority] = group_minimum(group);
+        auto [last_min, last_value, last_min_priority] = group_minimum(group);
 
-        elements[element] = group->elements.insert_before(elements[before], element, priority + group->Delta_group);
+        elements[element] = group->elements.insert_before(elements[before], element, 
+            {priority + group->Delta_group, value});
         
         // Check if the new element is the minimum in group
-        if (group->active && group->find_min().first == element) {
+        if (group->active && std::get<0>(group->find_min()) == element && value != no_value) {
             if (last_min != no_element)
                 group_minima.remove(last_min);
-            group_minima.insert(element, priority);
+            group_minima.insert(element, value, priority);
         }
     }
 
     /**
-     * Remove an element
+     * Change priority of an element to a new value if it's lower than the current one, in which 
+     * case also update the associated value
      * 
-     * @param element the value of the element to remove
+     * @param element the value of the element whose priority is to be changed
+     * @param value value associated with the new priority
+     * @param priority the new priority of the element
+     * @param group the group to which the element belongs
     */
-    void remove(E element) { 
-        Group* group = elements[element]->find_queue()->head;
+    void decrease_priority(E element, V value, P priority, Group* group) {
         group->update_Delta(Delta);
-        auto [last_min, last_min_priority] = group_minimum(group);
-        
-        group->elements.remove(elements[element]);
+        auto [last_min, last_value, last_min_priority] = group_minimum(group);
 
-        // Check if the removed element was the minimum in group
-        if (last_min == element && group->active) {
-            group_minima.remove(element);
-            if (!group->empty()) {
-                auto [new_min, new_min_priority] = group->find_min();
-                group_minima.insert(new_min, new_min_priority);
-            }
+        if (last_min == element && last_min_priority <= priority) return;
+
+        group->elements.decrease_priority(elements[element], {priority + group->Delta_group, value});
+        
+        // Check if the new element is the minimum in group
+        if (group->active && std::get<0>(group->find_min()) == element && value != no_value) {
+            if (last_min != no_element)
+                group_minima.remove(last_min);
+            group_minima.insert(element, value, priority);
         }
     }
 
@@ -996,10 +1042,20 @@ public:
     /**
      * Find the current minimum element in any active group
      * 
-     * @return a pair containing the value of an element with lowest priority it's priority
+     * @return a pair containing the value associated with the lowest priority and the priority
     */
-    std::pair<E, P> find_min() const {
+    std::pair<V, P> find_min() const {
         return group_minima.find_min();
+    }
+
+    /**
+     * Find the current minimum element in any active group
+     * 
+     * @return a tuple containing the element with the lowest priority, the associated value and 
+     * the priority
+    */
+    std::tuple<E, V, P> find_min_element() const {
+        return group_minima.find_min_element();
     }
 
     /**
@@ -1022,15 +1078,15 @@ public:
         return new Group(active, Delta, 0);
     }
 
-
     /**
      * Delete a group
      * 
      * @param group the group to be deleted
     */
     void delete_group(Group* group) {
-        if (group->active && !group->empty()) {
-            group_minima.remove(group->find_min().first);
+        if (group->active && !is_empty(group)) {
+            auto [e, v, p] = group->find_min();
+            group_minima.remove(e);
         }
         delete group;
     }
@@ -1046,12 +1102,12 @@ public:
         group->update_Delta(Delta);
         group->active = active;
 
-        if (active && !group->empty()) {
-            auto [v, p] = group->find_min();
-            group_minima.insert(v, p);
-        } else if (!active && !group->empty()) {
-            auto [v, p] = group->find_min();
-            group_minima.remove(v);
+        if (active && !is_empty(group)) {
+            auto [e, v, p] = group->find_min();
+            group_minima.insert(e, v, p);
+        } else if (!active && !is_empty(group)) {
+            auto [e, v, p] = group->find_min();
+            group_minima.remove(e);
         }
     }
 
@@ -1066,9 +1122,9 @@ public:
     std::pair<Group*, Group*> split_group(Group* group, E element) {
         group->update_Delta(Delta);
 
-        if (group->active && !group->empty()) {
-            auto [v, p] = group->find_min();
-            group_minima.remove(v);
+        if (group->active && !is_empty(group)) {
+            auto [e, v, p] = group->find_min();
+            group_minima.remove(e);
         }
 
         auto [elements_left, elements_right] = group->elements.split(elements[element], group, group);
@@ -1079,21 +1135,26 @@ public:
                                 group->active, group->Delta_last, group->Delta_group);
 
         if (group->active) {
-            if(!group->empty()) {
-                auto [v, p] = group->elements.find_min();
-                group_minima.remove(v);
+            if(!is_empty(group)) {
+                auto [e, v, p] = group->find_min();
+                group_minima.remove(e);
             }
-            if (!group_left->empty()) {
-                auto [v, p] = group_left->elements.find_min();
-                group_minima.insert(v, p);
+            if (!is_empty(group_left)) {
+                auto [e, v, p] = group_left->find_min();
+                group_minima.insert(e, v, p);
             }
-            if (!group_right->empty()) {
-                auto [v, p] = group_right->elements.find_min();
-                group_minima.insert(v, p);
+            if (!is_empty(group_right)) {
+                auto [e, v, p] = group_right->find_min();
+                group_minima.insert(e, v, p);
             }
         }
         delete group;
         return {group_left, group_right};
+    }
+
+
+    bool is_empty(Group* group) {
+        return !group->has_elements() || std::get<1>(group->find_min()) == no_value;
     }
 
     void shift_group(Group* group, E element) {
@@ -1107,30 +1168,30 @@ public:
         delete elements_right;
     }
 
-    void for_each_in_group(Group* group, const std::function<void(E, P)>& handle) {
+    void for_each_in_group(Group* group, const std::function<void(E, V, P)>& handle) {
         group->update_Delta(Delta);
-        group->elements.for_each([&handle, group] (E e, P p) {
-            handle(e, p - group->Delta_group);
+        group->elements.for_each([&handle, group] (E e, std::pair<P, V> pv) {
+            handle(e, pv.second, pv.first - group->Delta_group);
         });
     }
 
-    void for_group_minima(const std::function<void(E, P)>& handle) {
+    void for_group_minima(const std::function<void(E, V, P)>& handle) {
         group_minima.for_elements(handle);
     }
 
 private:
 
-    std::pair<E, P> group_minimum(Group* group) {
-        return group->empty() ? std::make_pair(no_element, infinite_priority) : group->find_min();
+    std::tuple<E, V, P> group_minimum(Group* group) {
+        return is_empty(group) ? 
+            std::make_tuple(no_element, no_value, infinite_priority) : group->find_min();
     }
 
+    P Delta = 0;
     E no_element;
     V no_value;
     P infinite_priority;
-    PriorityQueue1<E, P> group_minima;
-    std::vector<typename ConcatenableQueue<Group*, E, P>::handle_type> elements;
-    
-    P Delta = 0;
+    PriorityQueue1<E, V, P> group_minima;
+    std::vector<typename ConcatenableQueue<Group*, E, typename std::pair<P, V>>::handle_type> elements;
 };
 
 /**
@@ -1329,6 +1390,8 @@ public:
     }
 
     struct Sublist {
+    private:
+
         int level;
         bool head;
         List* list;
@@ -1336,6 +1399,9 @@ public:
         std::list<Sublist*>::iterator sublist_it;
 
         ~Sublist() { delete elements; }
+
+        friend class List;
+        friend class SplitFindMin;
     };
 
     class List {
@@ -1350,6 +1416,11 @@ public:
             nodes.clear();
         }
 
+        ~List() {
+            clear();
+        }
+
+    private:
         H id;
         int i;
         K min_key;
@@ -1359,13 +1430,12 @@ public:
         std::list<T> head_singletons, tail_singletons;
         Sublist* sublist;
 
-        ~List() {
-            clear();
-        }
+        friend class SplitFindMin;
     };
 
 private:
 
+    // Hardcoded values of Ackermann's function below 1000000000
     static constexpr int inf_size = 1000000000;
     static constexpr int A2[4] = {2, 4, 16, 65536};
 

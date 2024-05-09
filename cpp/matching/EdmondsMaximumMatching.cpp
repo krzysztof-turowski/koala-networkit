@@ -13,12 +13,12 @@ EdmondsMaximumMatching::EdmondsMaximumMatching(NetworKit::Graph &graph) :
 }
 
 void EdmondsMaximumMatching::scan_edges(Blossom* b) {
-    b->for_nodes([this] (NetworKit::node vertex) {
-        graph.forEdgesOf(vertex, [this] (NetworKit::node u, NetworKit::node v, NetworKit::edgeid id) {
+    for (auto v : b->nodes) {
+        graph.forEdgesOf(v, [this] (NetworKit::node u, NetworKit::node v, NetworKit::edgeid id) {
             if (is_tight(u, v, id)) 
                 edge_queue.push({u, v, id});
         });
-    });
+    };
 }
 
 void EdmondsMaximumMatching::initialize_stage() {
@@ -67,12 +67,11 @@ void EdmondsMaximumMatching::handle_grow(Blossom* odd_blossom, Blossom* even_blo
 
 void EdmondsMaximumMatching::handle_new_blossom(Blossom* new_blossom) {
     for (auto [b, edge] : new_blossom->subblossoms) { 
-        b->for_nodes([this, new_blossom] (NetworKit::node v) {
+        for (auto v : b->nodes)
             current_blossom[v] = new_blossom;
-        });
-        if (b->label == odd) {
+
+        if (b->label == odd)
             scan_edges(b);
-        }
     }
 }
 
@@ -80,22 +79,18 @@ void EdmondsMaximumMatching::handle_subblossom_shift(Blossom* blossom, Blossom* 
 
 void EdmondsMaximumMatching::handle_odd_blossom_expansion(Blossom* blossom) {
     for (auto [b, e] : blossom->subblossoms) {
-        Blossom* _b = b;
-        b->for_nodes([this, _b] (NetworKit::node v) {
-            current_blossom[v] = _b;
-        });
-        if (b->label == even) {
+        for (auto v : b->nodes)
+            current_blossom[v] = b;
+
+        if (b->label == even)
             scan_edges(b);
-        }
     }
 }
 
 void EdmondsMaximumMatching::handle_even_blossom_expansion(Blossom* blossom) {
     for (auto [b, e] : blossom->subblossoms) {
-        Blossom* _b = b;
-        b->for_nodes([this, _b] (NetworKit::node v) {
-            current_blossom[v] = _b;
-        });
+        for (auto v : b->nodes)
+            current_blossom[v] = b;
     }
 }
 
@@ -111,9 +106,9 @@ void EdmondsMaximumMatching::adjust_by_delta(MaximumWeightMatching::weight delta
 
     for (Blossom* blossom : blossoms) {
         if (blossom->label == even) {
-            blossom->z += 2.0 * delta;
+            blossom->z += 2 * delta;
         } else if (blossom->label == odd) {
-            blossom->z -= 2.0 * delta;
+            blossom->z -= 2 * delta;
         }
     }
 }
@@ -213,13 +208,6 @@ void EdmondsMaximumMatching::check_consistency() {
         get_blossom(v)->nodes_print(); 
         std::cerr << std::endl;
     });
-    std::cerr << "Blossom lists: \n";
-    for (auto b : blossoms) {
-        b->nodes_print();
-        std::cerr << " : ";
-        for (auto n : b->nodes) std::cerr << n << " ";
-        std::cerr << std::endl;
-    }
     std::cerr << "Current weights: \n";
     for (int i = 0; i < y.size(); ++ i) {
         std::cerr << i << ": " << y[i] << std::endl;

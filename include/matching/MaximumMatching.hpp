@@ -82,14 +82,9 @@ protected:
     static constexpr Edge no_edge { NetworKit::none, NetworKit::none, NetworKit::none };
     
     static Edge reverse(const Edge& edge);
+    static std::string edge_to_string(const Edge& e);
 
-    std::string edge_to_string(const Edge& e) { 
-        return (e == no_edge) ? 
-            "none" : 
-            "(" + std::to_string(e.u) + ", " + std::to_string(e.v) + ")"; 
-    }
-
-    enum BlossomLabel { odd, even, free };
+    enum Label { odd, even, free };
 
     class Blossom {
     public:
@@ -105,6 +100,7 @@ protected:
         // Last node in the blossom order
         NetworKit::node last_node;
         
+        // List of the descendants containg the base, used for lazy augmentation
         std::list<Blossom*> base_blossoms;
         
         // Subblossoms of the blossom
@@ -114,7 +110,7 @@ protected:
         std::list<NetworKit::node> nodes;
         
         // Label and backtrack edge set during a search
-        BlossomLabel label;
+        Label label;
         Edge backtrack_edge;
         
         // Visited flag used during backtracking
@@ -381,7 +377,7 @@ public:
 
 private:
     using BlossomNodeList = ConcatenableQueue<Blossom*, NetworKit::node, NetworKit::node>;
-    using EvenEdgeQueue = PriorityQueue2<NetworKit::edgeid, NetworKit::edgeid, 
+    using EvenEdgeQueue = PriorityQueue2<NetworKit::node, NetworKit::edgeid, 
         MaximumWeightMatching::weight>;
     using EvenEdgeGroup = EvenEdgeQueue::Group*;
 
@@ -390,10 +386,10 @@ private:
         // Contains all nodes in blossom order
         BlossomNodeList nodes;
         // Group corresponding to blossom in queue even_edges
-        EvenEdgeGroup even_edges;
+        EvenEdgeGroup even_edge_group;
 
-        MicaliGabowBlossomData(BlossomNodeList&& nodes, EvenEdgeGroup even_edges): 
-            nodes(std::move(nodes)), even_edges(even_edges) {}
+        MicaliGabowBlossomData(BlossomNodeList&& nodes, EvenEdgeGroup even_edge_group): 
+            nodes(std::move(nodes)), even_edge_group(even_edge_group) {}
     };
     MicaliGabowBlossomData* get_data(Blossom* b);
     // References to nodes in concatenable queues of blossoms
@@ -403,14 +399,14 @@ private:
     std::queue<Edge> edge_queue;
 
     // Used to maintain dual variables for vertices
-    PriorityQueue1<NetworKit::node, MaximumWeightMatching::weight> y_even;
-    PriorityQueue1<NetworKit::node, MaximumWeightMatching::weight> y_odd;
+    PriorityQueue1<NetworKit::node, NetworKit::node, MaximumWeightMatching::weight> y_even;
+    PriorityQueue1<NetworKit::node, NetworKit::node, MaximumWeightMatching::weight> y_odd;
     std::vector<MaximumWeightMatching::weight> y_free;
     MaximumWeightMatching::weight y(NetworKit::node v);
 
     // Used to maintain dual variables for blossoms
-    PriorityQueue1<NetworKit::node, MaximumWeightMatching::weight> z_even;
-    PriorityQueue1<NetworKit::node, MaximumWeightMatching::weight> z_odd;
+    PriorityQueue1<NetworKit::node, Blossom*, MaximumWeightMatching::weight> z_even;
+    PriorityQueue1<NetworKit::node, Blossom*, MaximumWeightMatching::weight> z_odd;
     MaximumWeightMatching::weight z(Blossom* b);
 
     // Used to maintain slack of edges between even vertices in different blossoms
@@ -418,7 +414,7 @@ private:
     // Maintains slack / 2 for those edges
     // During the execution some edges might become contained in the same even blossom and have to
     // be removed. This is done lazily when checking for a good edge with smallest slack.
-    PriorityQueue1<NetworKit::edgeid, MaximumWeightMatching::weight> good_edges;
+    PriorityQueue1<NetworKit::edgeid, NetworKit::edgeid, MaximumWeightMatching::weight> good_edges;
     void clear_not_good_edges();
     bool is_good(NetworKit::edgeid edge);
 
@@ -426,7 +422,6 @@ private:
     // Needed to calculate delta_2
     // Maintains slack for those edges
     EvenEdgeQueue even_edges;
-    NetworKit::edgeid dummy_edge_id(NetworKit::node node);
 
     // Scan all edges from newly even blossom and update good_edges and even_edges
     void scan_edges(Blossom* b);
@@ -489,7 +484,7 @@ private:
     friend std::ostream& operator<<(std::ostream &out, const Edge& edge);
     static constexpr Edge no_edge {NetworKit::none, NetworKit::none, NetworKit::none};
 
-    enum BlossomLabel { even, odd, free };
+    enum Label { even, odd, free };
 
     struct Blossom {
         // The blossom's base
@@ -509,7 +504,7 @@ private:
         std::list<std::pair<Blossom*, Edge>> subblossoms;
 
         // Status of the blossom in the search
-        BlossomLabel label;
+        Label label;
         Edge backtrack_edge;
 
         // Flag needed for efficient backtracking
@@ -769,7 +764,7 @@ private:
     void check_consistency();
     void check_consistency(Blossom* B);
 
-    static std::string label_to_str(BlossomLabel label);
+    static std::string label_to_str(Label label);
     static Edge reverse(const Edge& edge);
     static void print_backtrack(
             Blossom* u, Blossom* v, Edge edge,
