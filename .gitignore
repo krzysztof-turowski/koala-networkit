@@ -4,8 +4,3 @@ input/*
 CMakeCache.txt
 CMakeFiles/
 *.code-workspace
-log
-run.sh
-debug.sh
-autodebug.sh
-build.sh
