@@ -11,7 +11,7 @@ BlossomMaximumMatching::BlossomMaximumMatching(NetworKit::Graph &graph):
         matched_vertex(graph.upperNodeIdBound(), NetworKit::none),
         matched_edge(graph.upperNodeIdBound(), NetworKit::none),
         trivial_blossom(graph.upperNodeIdBound(), nullptr) {
-    
+
     graph.forEdges([this] (
             NetworKit::node u, NetworKit::node v,
             NetworKit::edgeweight weight, NetworKit::edgeid id) {

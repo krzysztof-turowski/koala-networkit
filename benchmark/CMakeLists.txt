@@ -14,16 +14,6 @@ koala_make_benchmark(
     benchmarkMaximumMatching.sh)
 
 koala_make_benchmark(
-    benchmark_concat_queues
-    benchmarkConcatenableQueue.cpp
-    benchmarkConcatenableQueue.sh)
-
-koala_make_benchmark(
     benchmark_mv
     benchmarkMicaliVazirani.cpp
     benchmarkMicaliVazirani.sh)
-
-koala_make_benchmark(
-    benchmark_sfm
-    benchmarkSplitFindMin.cpp
-    benchmarkSplitFindMin.sh)
