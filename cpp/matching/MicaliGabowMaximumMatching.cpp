@@ -2,7 +2,7 @@
 
 namespace Koala {
 
-MicaliGabowMaximumMatching::MicaliGabowMaximumMatching(NetworKit::Graph &graph) : 
+MicaliGabowMaximumMatching::MicaliGabowMaximumMatching(NetworKit::Graph &graph) :
         BlossomMaximumMatching(graph),
         nodes_refs(graph.upperNodeIdBound()),
         y_even(graph.upperNodeIdBound()),
@@ -11,8 +11,7 @@ MicaliGabowMaximumMatching::MicaliGabowMaximumMatching(NetworKit::Graph &graph) 
         z_even(graph.upperNodeIdBound()),
         z_odd(graph.upperNodeIdBound()),
         good_edges(graph.upperEdgeIdBound()),
-        even_edges(graph.upperNodeIdBound(), NetworKit::none, NetworKit::none, infinite_weight) { 
-
+        even_edges(graph.upperNodeIdBound(), NetworKit::none, NetworKit::none, infinite_weight) {
     for (auto b : trivial_blossom) {
         ConcatenableQueue<Blossom*, NetworKit::node, NetworKit::node> nodes(b);
         nodes_refs[b->base] = nodes.append(b->base, 0);
@@ -20,7 +19,7 @@ MicaliGabowMaximumMatching::MicaliGabowMaximumMatching(NetworKit::Graph &graph) 
     }
 }
 
-MicaliGabowMaximumMatching::MicaliGabowBlossomData* 
+MicaliGabowMaximumMatching::MicaliGabowBlossomData*
 MicaliGabowMaximumMatching::get_data(Blossom* b) {
     return static_cast<MicaliGabowBlossomData*>(b->data);
 }
@@ -37,7 +36,7 @@ void MicaliGabowMaximumMatching::initialize_stage() {
         // Mark all exposed blossoms as even
         blossom->label = is_exposed(blossom) ? even : free;
         blossom->backtrack_edge = no_edge;
-        
+
         if (blossom->label == free) {
             // Create edge groups for all non even blossoms
             auto even_edge_group = even_edges.new_group(true);
@@ -45,7 +44,7 @@ void MicaliGabowMaximumMatching::initialize_stage() {
                 // Insert dummy edges for each node in blossom order
                 // This is needed when an odd blossom is expanded to allow splitting
                 even_edges.append(v, NetworKit::none, infinite_weight, even_edge_group);
-            };
+            }
             get_data(blossom)->even_edge_group = even_edge_group;
         }
 
@@ -65,7 +64,7 @@ void MicaliGabowMaximumMatching::initialize_stage() {
     for (auto blossom : blossoms) {
         if (blossom->label == even) {
             scan_edges(blossom);
-        } 
+        }
     }
 }
 
@@ -76,8 +75,8 @@ void MicaliGabowMaximumMatching::finish_stage() {
     for (auto blossom : blossoms) {
         if (blossom->label != even) {
             even_edges.delete_group(get_data(blossom)->even_edge_group);
-            get_data(blossom)->even_edge_group = nullptr;            
-        } 
+            get_data(blossom)->even_edge_group = nullptr;
+        }
 
         // Retrieve final weights for blossoms and vertices at the end of the stage
         if (blossom->label == even) {
@@ -92,10 +91,10 @@ void MicaliGabowMaximumMatching::finish_stage() {
             blossom->z = z_odd.current_priority(blossom->initial_base);
             for (auto v : blossom->nodes) {
                 y_free[v] = y_odd.current_priority(v);
-            };
-        }   
+            }
+        }
     }
-    
+
     for (auto b : to_expand) expand_even_blossom(b);
 }
 
@@ -103,13 +102,13 @@ void MicaliGabowMaximumMatching::initialize_substage() {}
 
 bool MicaliGabowMaximumMatching::has_useful_edges() {
     clear_not_good_edges();
-    
-    return (!good_edges.empty() && good_edges.find_min().second == 0) || 
+
+    return (!good_edges.empty() && good_edges.find_min().second == 0) ||
            (even_edges.has_active_elements() && even_edges.find_min().second == 0);
 }
 
 MicaliGabowMaximumMatching::Edge MicaliGabowMaximumMatching::get_useful_edge() {
-    // Find tight edges 
+    // Find tight edges
 
     // Check if there are good edges and the one with minimum slack is tight
     if (!good_edges.empty() && good_edges.find_min().second == 0) {
@@ -137,12 +136,12 @@ void MicaliGabowMaximumMatching::handle_grow(Blossom* odd_blossom, Blossom* even
     // Begin tracking dual weights for newly odd vertices
     for (auto v : odd_blossom->nodes) {
         y_odd.insert(v, v, y_free[v]);
-    };
-    if (!odd_blossom->is_trivial()) { 
+    }
+    if (!odd_blossom->is_trivial()) {
         // Track dual weight for the newly odd blossom
         z_odd.insert(odd_blossom->initial_base, odd_blossom, odd_blossom->z);
     }
-    
+
     // Even edges from the odd blossom are no longer affected by dual adjustments
     // Deactivate the corresponding group
     even_edges.change_status(get_data(odd_blossom)->even_edge_group, false);
@@ -150,7 +149,7 @@ void MicaliGabowMaximumMatching::handle_grow(Blossom* odd_blossom, Blossom* even
     // Begin tracking dual weights for newly even vertices
     for (auto v : even_blossom->nodes) {
         y_even.insert(v, v, y_free[v]);
-    };
+    }
     if (!even_blossom->is_trivial()) {
         // Track dual weight for the newly even blossom
         z_even.insert(even_blossom->initial_base, even_blossom, even_blossom->z);
@@ -176,20 +175,21 @@ void MicaliGabowMaximumMatching::scan_edges(Blossom* b) {
                 good_edges.insert(id, id, edge_slack);
             } else {
                 // An even edge is found. Update priority for v in the even edge group
-                even_edges.decrease_priority(v, id, edge_slack, 
+                even_edges.decrease_priority(v, id, edge_slack,
                     get_data(v_blossom)->even_edge_group);
             }
         });
-    };
+    }
 }
 
 void MicaliGabowMaximumMatching::clear_not_good_edges() {
     // Lazily clear edges that are no longer good
     while (!good_edges.empty()) {
         auto [edge, _] = good_edges.find_min();
-        if (!is_good(edge)) 
+        if (!is_good(edge))
             good_edges.remove_min();
-        else break;
+        else
+            break;
     }
 }
 
@@ -222,7 +222,7 @@ void MicaliGabowMaximumMatching::handle_new_blossom(Blossom* new_blossom) {
                 auto u = y_odd.current_priority(v);
                 y_odd.remove(v);
                 y_even.insert(v, v, u);
-            };
+            }
         }
     }
 
@@ -243,10 +243,10 @@ void MicaliGabowMaximumMatching::handle_new_blossom(Blossom* new_blossom) {
     z_even.insert(new_blossom->initial_base, new_blossom, 0);
 }
 
-void MicaliGabowMaximumMatching::handle_subblossom_shift(Blossom* blossom, Blossom* subblossom) {    
+void MicaliGabowMaximumMatching::handle_subblossom_shift(Blossom* blossom, Blossom* subblossom) {
     auto data = get_data(blossom);
 
-    // Change the order of nodes in the blossom node 
+    // Change the order of nodes in the blossom node
     auto nodes = std::move(data->nodes);
     auto [nodesA, nodesB] = nodes.split(nodes_refs[subblossom->last_node], blossom, blossom);
     nodesB->concat(std::move(*nodesA), blossom);
@@ -268,12 +268,12 @@ void MicaliGabowMaximumMatching::handle_odd_blossom_expansion(Blossom* blossom) 
 
     for (auto [b, e] : blossom->subblossoms) {
         // Split the node list of the expanded blossoms
-        // Assign each subblossom a list 
+        // Assign each subblossom a list
         auto [nodes_b, nodes_rest] = remaining_nodes->split(nodes_refs[b->last_node], b, blossom);
         remaining_nodes = nodes_rest;
-        get_data(b)->nodes = std::move(*nodes_b); 
+        get_data(b)->nodes = std::move(*nodes_b);
         delete nodes_b;
-        
+
         // Split even edge groups of the expanded blossom
         // Use the dummy edges to achieve the task
         auto [edges_b, edges_rest] = even_edges.split_group(remaining_edges, b->last_node);
@@ -282,26 +282,27 @@ void MicaliGabowMaximumMatching::handle_odd_blossom_expansion(Blossom* blossom) 
             // Delete the group if it now corresponds to an even blossom
             even_edges.delete_group(edges_b);
         } else {
-            // Assign the group 
+            // Assign the group
             get_data(b)->even_edge_group = edges_b;
 
             // Wether a group is now active is de
             even_edges.change_status(edges_b, b->label == free);
         }
 
-        // Retrieve the current weight for vertices that stop being odd and change how they're tracked
+        // Retrieve the current weight for vertices that stop being odd and change which queue
+        // they're tracked by
         if (b->label == even) {
             for (auto v : b->nodes) {
                 auto dual = y_odd.current_priority(v);
                 y_odd.remove(v);
                 y_even.insert(v, v, dual);
-            };
+            }
         } else if (b->label == free) {
             for (auto v : b->nodes) {
                 auto dual = y_odd.current_priority(v);
                 y_odd.remove(v);
                 y_free[v] = dual;
-            };
+            }
         }
 
         // Start tracking dual weight for non-free subblossoms
@@ -326,7 +327,7 @@ void MicaliGabowMaximumMatching::handle_even_blossom_expansion(Blossom* blossom)
     if (blossom->is_trivial()) return;
 
     auto remaining_nodes = &get_data(blossom)->nodes;
-    
+
     for (auto [b, e] : blossom->subblossoms) {
         auto [nodes_b, nodes_rest] = remaining_nodes->split(nodes_refs[b->last_node], b, blossom);
         remaining_nodes = nodes_rest;
@@ -366,7 +367,7 @@ MaximumWeightMatching::weight MicaliGabowMaximumMatching::calc_delta2() {
 MaximumWeightMatching::weight MicaliGabowMaximumMatching::calc_delta3() {
     // Find the good edge with smallest slack
     // min pi_ij / 2 : i,j - even vertices in different blossoms
-    
+
     // Some edges might no longer be good and have to be removed
     clear_not_good_edges();
     return good_edges.empty() ? infinite_weight : good_edges.find_min().second / 2;
@@ -374,7 +375,7 @@ MaximumWeightMatching::weight MicaliGabowMaximumMatching::calc_delta3() {
 
 MaximumWeightMatching::weight MicaliGabowMaximumMatching::calc_delta4() {
     // Find the odd blossom with minimum dual weight
-    // min z_k / 2 : B_k - odd blossom 
+    // min z_k / 2 : B_k - odd blossom
 
     return z_odd.empty() ? infinite_weight : z_odd.find_min().second / 2;
 }
@@ -383,8 +384,8 @@ void MicaliGabowMaximumMatching::find_delta2_useful_edges() {}
 
 void MicaliGabowMaximumMatching::find_delta3_useful_edges() {}
 
-std::vector<MicaliGabowMaximumMatching::Blossom*> 
-MicaliGabowMaximumMatching::get_odd_blossoms_to_expand() {    
+std::vector<MicaliGabowMaximumMatching::Blossom*>
+MicaliGabowMaximumMatching::get_odd_blossoms_to_expand() {
     std::vector<Blossom*> to_expand;
     while (!z_odd.empty() && z_odd.find_min().second == 0) {
         to_expand.push_back(z_odd.find_min().first);
@@ -394,7 +395,7 @@ MicaliGabowMaximumMatching::get_odd_blossoms_to_expand() {
     return to_expand;
 }
 
-MicaliGabowMaximumMatching::Blossom* 
+MicaliGabowMaximumMatching::Blossom*
 MicaliGabowMaximumMatching::get_blossom(NetworKit::node vertex) {
     return nodes_refs[vertex]->find_queue()->head;
 }
@@ -432,8 +433,9 @@ void MicaliGabowMaximumMatching::check_consistency() {
     graph.forNodes([this] (NetworKit::node v) {
         if (this->matched_vertex[v] != NetworKit::none)
             std::cerr << v << " " << this->matched_vertex[v] << " : ";
-        else std::cerr << v << " - : ";
-        get_blossom(v)->nodes_print(); 
+        else
+            std::cerr << v << " - : ";
+        get_blossom(v)->nodes_print();
         std::cerr << std::endl;
     });
     std::cerr << "Current weights:\n";
@@ -445,14 +447,15 @@ void MicaliGabowMaximumMatching::check_consistency() {
     graph.forNodes([this] (NetworKit::node v) {
         std::cerr << v << ": " << y(v) << std::endl;
     });
-    good_edges.for_elements([this] (NetworKit::edgeid id, NetworKit::edgeid _id, MaximumWeightMatching::weight var) {
+    good_edges.for_elements(
+        [this] (NetworKit::edgeid id, NetworKit::edgeid _id, MaximumWeightMatching::weight var) {
         auto [u, v, w] = graph_edges[id];
         std::cerr << "(" << u << ", " << v << ") : " << var << std::endl;
     });
     std::cerr << "Even edges:\n";
     for (auto blossom : blossoms) {
-        if (blossom->label == even) continue;        
-        
+        if (blossom->label == even) continue;
+
         EvenEdgeGroup group = get_data(blossom)->even_edge_group;
         std::cerr << "Group for ";
         blossom->nodes_print(); std::cerr << " - ";
@@ -462,9 +465,9 @@ void MicaliGabowMaximumMatching::check_consistency() {
         } else {
             auto [_, id, pi] = group->find_min();
             auto [u, v, w] = graph_edges[id];
-            std::cerr << "min : (" << u << ", " << v << ") : " << pi << std::endl;        
+            std::cerr << "min : (" << u << ", " << v << ") : " << pi << std::endl;
         }
-        even_edges.for_each_in_group(group, 
+        even_edges.for_each_in_group(group,
             [this] (NetworKit::node vtx, NetworKit::edgeid id, MaximumWeightMatching::weight pi) {
             std::cerr << vtx << " ";
             if (id != NetworKit::none) {
@@ -477,10 +480,11 @@ void MicaliGabowMaximumMatching::check_consistency() {
         });
     }
     std::cerr << "Active minima:\n";
-    even_edges.for_group_minima([this] (NetworKit::node vtx, NetworKit::edgeid id, MaximumWeightMatching::weight pi) {
+    even_edges.for_group_minima(
+            [this] (NetworKit::node vtx, NetworKit::edgeid id, MaximumWeightMatching::weight pi) {
         if (id != NetworKit::none) {
             auto [u, v, w] = graph_edges[id];
-            std::cerr << vtx << " : (" << u << ", " << v << ") : " << pi << std::endl;        
+            std::cerr << vtx << " : (" << u << ", " << v << ") : " << pi << std::endl;
         }
     });
 }

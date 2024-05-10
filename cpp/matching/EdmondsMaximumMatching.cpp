@@ -2,11 +2,10 @@
 
 namespace Koala {
 
-EdmondsMaximumMatching::EdmondsMaximumMatching(NetworKit::Graph &graph) : 
+EdmondsMaximumMatching::EdmondsMaximumMatching(NetworKit::Graph &graph) :
         BlossomMaximumMatching(graph),
         current_blossom(graph.upperNodeIdBound(), nullptr),
-        y(graph.upperNodeIdBound(), max_weight / 2) { 
-
+        y(graph.upperNodeIdBound(), max_weight / 2) {
     graph.forNodes([this] (NetworKit::node vertex) {
         current_blossom[vertex] = trivial_blossom[vertex];
     });
@@ -15,14 +14,14 @@ EdmondsMaximumMatching::EdmondsMaximumMatching(NetworKit::Graph &graph) :
 void EdmondsMaximumMatching::scan_edges(Blossom* b) {
     for (auto v : b->nodes) {
         graph.forEdgesOf(v, [this] (NetworKit::node u, NetworKit::node v, NetworKit::edgeid id) {
-            if (is_tight(u, v, id)) 
+            if (is_tight(u, v, id))
                 edge_queue.push({u, v, id});
         });
-    };
+    }
 }
 
 void EdmondsMaximumMatching::initialize_stage() {
-    // Start search in all exposed blossoms 
+    // Start search in all exposed blossoms
     for (auto blossom : blossoms) {
         blossom->label = is_exposed(blossom) ? even : free;
         blossom->backtrack_edge = {NetworKit::none, NetworKit::none, NetworKit::none};
@@ -66,7 +65,7 @@ void EdmondsMaximumMatching::handle_grow(Blossom* odd_blossom, Blossom* even_blo
 }
 
 void EdmondsMaximumMatching::handle_new_blossom(Blossom* new_blossom) {
-    for (auto [b, edge] : new_blossom->subblossoms) { 
+    for (auto [b, edge] : new_blossom->subblossoms) {
         for (auto v : b->nodes)
             current_blossom[v] = new_blossom;
 
@@ -132,7 +131,7 @@ MaximumWeightMatching::weight EdmondsMaximumMatching::calc_delta2() {
     graph.forEdges([this, &res] (NetworKit::node u, NetworKit::node v, NetworKit::edgeid id) {
         Blossom* u_blossom = get_blossom(u);
         Blossom* v_blossom = get_blossom(v);
-        if ((u_blossom->label == even && v_blossom->label == free) || 
+        if ((u_blossom->label == even && v_blossom->label == free) ||
             (u_blossom->label == free && v_blossom->label == even)) {
             res = std::min(res, slack(id));
         }
@@ -155,7 +154,7 @@ MaximumWeightMatching::weight EdmondsMaximumMatching::calc_delta3() {
 }
 
 MaximumWeightMatching::weight EdmondsMaximumMatching::calc_delta4() {
-    // min z_k / 2 : B_k - odd blossom 
+    // min z_k / 2 : B_k - odd blossom
 
     MaximumWeightMatching::weight res = infinite_weight;
     for (Blossom* b : blossoms) {
@@ -191,11 +190,12 @@ MaximumWeightMatching::weight EdmondsMaximumMatching::slack(NetworKit::edgeid ed
     return y[u] + y[v] - w + (u_blossom == v_blossom ? u_blossom->z : 0);
 }
 
-bool EdmondsMaximumMatching::is_tight(NetworKit::node u, NetworKit::node v, NetworKit::edgeid edge) {
+bool EdmondsMaximumMatching::is_tight(
+        NetworKit::node u, NetworKit::node v, NetworKit::edgeid edge) {
     auto u_blossom = get_blossom(u);
     auto v_blossom = get_blossom(v);
-    return !is_in_matching[edge] && slack(edge) == 0 && 
-            u_blossom->label == even && 
+    return !is_in_matching[edge] && slack(edge) == 0 &&
+            u_blossom->label == even &&
             ((v_blossom->label == even && u_blossom != v_blossom) || v_blossom->label == free);
 }
 
@@ -204,18 +204,19 @@ void EdmondsMaximumMatching::check_consistency() {
     graph.forNodes([this] (NetworKit::node v) {
         if (this->matched_vertex[v] != NetworKit::none)
             std::cerr << v << " " << this->matched_vertex[v] << " : ";
-        else std::cerr << v << " - : ";
-        get_blossom(v)->nodes_print(); 
+        else
+            std::cerr << v << " - : ";
+        get_blossom(v)->nodes_print();
         std::cerr << std::endl;
     });
     std::cerr << "Current weights: \n";
-    for (int i = 0; i < y.size(); ++ i) {
+    for (int i = 0; i < y.size(); ++i) {
         std::cerr << i << ": " << y[i] << std::endl;
     }
     for (auto b : blossoms) {
         if (!b->is_trivial()) {
-            b->short_print(); 
-            std::cerr << " : " << b->z << std::endl; 
+            b->short_print();
+            std::cerr << " : " << b->z << std::endl;
         }
     }
     std::cerr << "Edge queue:\n";
@@ -225,9 +226,9 @@ void EdmondsMaximumMatching::check_consistency() {
         q.pop();
     }
     std::cerr << "Edges:\n";
-    for (NetworKit::edgeid id = 0; id < graph.upperEdgeIdBound(); ++ id) {
+    for (NetworKit::edgeid id = 0; id < graph.upperEdgeIdBound(); ++id) {
         auto [u, v, w] = graph_edges[id];
-        std::cerr << edge_to_string({u, v, id}) << " : " << slack(id) << std::endl; 
+        std::cerr << edge_to_string({u, v, id}) << " : " << slack(id) << std::endl;
     }
 }
 

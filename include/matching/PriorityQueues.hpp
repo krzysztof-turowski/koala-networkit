@@ -11,6 +11,7 @@ namespace Koala {
 #define QUEUE_DEBUG 0
 
 // TODO split these structures to different files / rename the file
+// TODO make type names/order consistent between analogous data structures
 
 /**
  * Implementation of a binary heap with ability to remove elements. Also allows for iterating
@@ -1260,7 +1261,7 @@ public:
      * 
      * @param element value of the element
     */
-    R find(I element) const {
+    R find(I element) {
         return root[find_root(element)];
     }
 

@@ -15,7 +15,7 @@ MicaliVaziraniMatching::MicaliVaziraniMatching(NetworKit::Graph &graph):
         E(graph.upperEdgeIdBound()),
         candidates(graph.numberOfNodes()),
         bridges(2 * graph.numberOfNodes() + 1),
-        bloom_bases(graph.upperNodeIdBound()) { 
+        bloom_bases(graph.upperNodeIdBound()) {
             graph.forNodes([this] (NetworKit::node vertex) {
                 V[vertex].match = NetworKit::none;
             });
@@ -28,7 +28,7 @@ MicaliVaziraniMatching::MicaliVaziraniMatching(
         E(graph.upperEdgeIdBound()),
         candidates(graph.numberOfNodes()),
         bridges(2 * graph.numberOfNodes() + 1),
-        bloom_bases(graph.upperNodeIdBound()) { 
+        bloom_bases(graph.upperNodeIdBound()) {
             graph.forNodes([this, &initial_matching] (NetworKit::node vertex) {
                 V[vertex].match = initial_matching[vertex];
             });
@@ -56,7 +56,7 @@ void MicaliVaziraniMatching::reset() {
         E[e].type = EdgeData::Type::none;
     });
 
-    for (NetworKit::index i = 0; i < graph.numberOfNodes(); ++ i) {
+    for (NetworKit::index i = 0; i < graph.numberOfNodes(); ++i) {
         candidates[i].clear();
         bridges[2 * i + 1].clear();
         bloom_bases.reset(i, i);
@@ -80,7 +80,7 @@ void MicaliVaziraniMatching::run() {
         reset();
 
         search();
-        
+
         clear_blooms();
     } while (augmentation_happened);
 
@@ -100,7 +100,7 @@ void MicaliVaziraniMatching::search() {
 
     iter = max_iter = 0;
     augmentation_happened = false;
-    for (iter = 0; iter < candidates.size() && !augmentation_happened; iter ++) {
+    for (iter = 0; iter < candidates.size() && !augmentation_happened; iter++) {
         for (auto v : candidates[iter]) {
             graph.forEdgesOf(v, [this] (NetworKit::node v, NetworKit::node u, NetworKit::edgeid e) {
                 if (V[u].erased || E[e].type != EdgeData::Type::none ||
@@ -113,7 +113,7 @@ void MicaliVaziraniMatching::search() {
                         set_level(u, iter + 1);
                     }
                     V[u].predecessors.push_back(v);
-                    V[u].pred_count ++;
+                    V[u].pred_count++;
                     V[v].successors.push_back(u);
                 } else {
                     E[e].type = EdgeData::Type::bridge;
@@ -125,7 +125,7 @@ void MicaliVaziraniMatching::search() {
             });
         }
 
-        for (int i = 0; i < bridges[2 * iter + 1].size(); ++ i) {
+        for (int i = 0; i < bridges[2 * iter + 1].size(); ++i) {
             auto e = bridges[2 * iter + 1][i];
             auto s = E[e].v;
             auto t = E[e].u;
@@ -135,8 +135,8 @@ void MicaliVaziraniMatching::search() {
     }
 }
 
-void MicaliVaziraniMatching::flip_edge(NetworKit::node u, NetworKit::node v) {    
-    if(V[u].erased || V[v].erased || V[u].match == v) return;
+void MicaliVaziraniMatching::flip_edge(NetworKit::node u, NetworKit::node v) {
+    if (V[u].erased || V[v].erased || V[u].match == v) return;
 
     V[u].match = v;
     V[v].match = u;
@@ -147,7 +147,7 @@ void MicaliVaziraniMatching::flip_edge(NetworKit::node u, NetworKit::node v) {
     erase_queue.push_back(v);
 }
 
-bool MicaliVaziraniMatching::open(NetworKit::node x, NetworKit::node x_base, NetworKit::node y) {   
+bool MicaliVaziraniMatching::open(NetworKit::node x, NetworKit::node x_base, NetworKit::node y) {
     if (x_base == y) {
         find_path(x, x_base);
         return true;
@@ -175,8 +175,7 @@ void MicaliVaziraniMatching::find_path(NetworKit::node x, NetworKit::node y) {
         auto w = *std::find_if(V[z].predecessors.begin(), V[z].predecessors.end(),
             [this, z] (NetworKit::node pred) {
                 return base_star(pred) == base_star(z);
-            }
-        );
+        });
 
         flip_edge(z, w);
         find_path(w, y);
@@ -191,17 +190,17 @@ void MicaliVaziraniMatching::find_path(NetworKit::node x, NetworKit::node y) {
     }
 }
 
-void MicaliVaziraniMatching::bloss_aug(NetworKit::node g, NetworKit::node r) {    
+void MicaliVaziraniMatching::bloss_aug(NetworKit::node g, NetworKit::node r) {
     if (V[g].bloom == V[r].bloom && V[g].bloom != nullptr) return;
 
     auto v_G = base_star(g);
     auto v_R = base_star(r);
-    
+
     if (v_G == v_R) return;
 
     // Different colors for each bridge
-    int green_color = ++ color_counter;
-    int red_color = ++ color_counter;
+    int green_color = ++color_counter;
+    int red_color = ++color_counter;
 
     // Remember roots of dfs trees
     auto green_root = v_G;
@@ -245,15 +244,16 @@ void MicaliVaziraniMatching::bloss_aug(NetworKit::node g, NetworKit::node r) {
 
             // Assign other level
             set_level(y, 2 * iter + 1 - min_level(y));
-            
+
             if (inner(y)) {
                 // Find possible bridges
 
-                graph.forEdgesOf(y, [this] (NetworKit::node y, NetworKit::node u, NetworKit::edgeid e) {
+                graph.forEdgesOf(y,
+                        [this] (NetworKit::node y, NetworKit::node u, NetworKit::edgeid e) {
                     if (E[e].type != EdgeData::Type::bridge) return;
 
                     int t = tenacity(y, u);
-                    if (t < inf_level) 
+                    if (t < inf_level)
                         bridges[t].push_back(e);
                 });
             }
@@ -275,11 +275,10 @@ void MicaliVaziraniMatching::bloss_aug(NetworKit::node g, NetworKit::node r) {
 }
 
 void MicaliVaziraniMatching::red_dfs_step(
-        NetworKit::node& v_R, int red_color, NetworKit::node& v_G, 
+        NetworKit::node& v_R, int red_color, NetworKit::node& v_G,
         NetworKit::node r, NetworKit::node& barrier) {
-    
     while (V[v_R].pred_it < V[v_R].predecessors.size()) {
-        auto u = V[v_R].predecessors[V[v_R].pred_it ++];
+        auto u = V[v_R].predecessors[V[v_R].pred_it++];
         auto x = u;
 
         if (V[u].erased) continue;
@@ -323,11 +322,10 @@ void MicaliVaziraniMatching::red_dfs_step(
 }
 
 void MicaliVaziraniMatching::green_dfs_step(
-        NetworKit::node& v_G, int green_color, NetworKit::node& v_R, 
+        NetworKit::node& v_G, int green_color, NetworKit::node& v_R,
         NetworKit::node& barrier) {
-    
     while (V[v_G].pred_it < V[v_G].predecessors.size()) {
-        auto u = V[v_G].predecessors[V[v_G].pred_it ++];
+        auto u = V[v_G].predecessors[V[v_G].pred_it++];
         auto x = u;
 
         if (V[u].erased) continue;
@@ -364,13 +362,13 @@ void MicaliVaziraniMatching::green_dfs_step(
 }
 
 void MicaliVaziraniMatching::erase(std::vector<NetworKit::node>& Y) {
-    for (size_t i = 0; i < Y.size(); ++ i) {
+    for (size_t i = 0; i < Y.size(); ++i) {
         auto y = Y[i];
 
         for (auto z : V[y].successors) {
             if (V[z].erased) continue;
 
-            V[z].pred_count --;
+            V[z].pred_count--;
             if (V[z].pred_count == 0) {
                 V[z].erased = true;
                 Y.push_back(z);
@@ -425,7 +423,7 @@ bool MicaliVaziraniMatching::inner(NetworKit::node vertex) {
     return min_level(vertex) % 2 == 1;
 }
 
-std::tuple<NetworKit::node, NetworKit::node, NetworKit::node, NetworKit::node> 
+std::tuple<NetworKit::node, NetworKit::node, NetworKit::node, NetworKit::node>
 MicaliVaziraniMatching::get_bridge(NetworKit::node vertex) {
     auto B = V[vertex].bloom;
     return V[vertex].color == B->red_color ?

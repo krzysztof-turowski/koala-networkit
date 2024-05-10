@@ -88,6 +88,8 @@ protected:
 
     class Blossom {
     public:
+        using SubblossomList = std::list<std::pair<Blossom*, Edge>>;
+
         class BlossomData {};
         Blossom* parent;
         
@@ -104,7 +106,7 @@ protected:
         std::list<Blossom*> base_blossoms;
         
         // Subblossoms of the blossom
-        std::list<std::pair<Blossom*, Edge>> subblossoms;
+        SubblossomList subblossoms;
 
         // List of nodes in a root blossom
         std::list<NetworKit::node> nodes;
@@ -203,8 +205,8 @@ protected:
 
     void lazy_augment_path_in_blossom(Blossom* blossom);
 
-    std::pair<std::list<std::pair<Blossom*, Edge>>,std::list<std::pair<Blossom*, Edge>>>
-    split_subblossoms(std::list<std::pair<Blossom*, Edge>> subblossoms, Blossom* blossom);
+    std::pair<Blossom::SubblossomList,Blossom::SubblossomList>
+    split_subblossoms(Blossom::SubblossomList subblossoms, Blossom* blossom);
     void swap_edge_in_matching(NetworKit::edgeid edge);
     void check_edge_in_matching(NetworKit::edgeid edge);
     std::list<Blossom*> blossoms_containing(NetworKit::node u, Blossom* until);
