@@ -74,6 +74,6 @@ std::vector<NetworKit::node> BFSPath(
     return out;
 }
 
-} // namespace Traversal
+}  // namespace Traversal
 
-} // namespace Koala
+}  // namespace Koala

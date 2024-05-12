@@ -20,8 +20,7 @@ namespace Koala {
  *
  */
 class DimacsBinaryGraphReader final : public NetworKit::GraphReader {
-
-public:
+ public:
     DimacsBinaryGraphReader() = default;
 
     /**
@@ -33,4 +32,4 @@ public:
     NetworKit::Graph read(const std::string &path) override;
 };
 
-} /* namespace Koala */
+}  /* namespace Koala */

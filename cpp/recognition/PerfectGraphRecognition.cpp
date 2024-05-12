@@ -9,8 +9,6 @@
 #include <list>
 #include <set>
 
-#include <iostream>
-
 #include <graph/GraphTools.hpp>
 #include <recognition/PerfectGraphRecognition.hpp>
 
@@ -35,20 +33,20 @@ void PerfectGraphRecognition::run() {
         is_perfect = State::PERFECT;
         return;
     }
-    is_perfect = containsSimpleProhibited(*graph);
+    is_perfect = contains_simple_prohibited(*graph);
     if (is_perfect != State::UNKNOWN) {
         return;
     }
     auto graph_complement = Koala::GraphTools::toComplement(*graph);
-    is_perfect = containsSimpleProhibited(graph_complement);
+    is_perfect = contains_simple_prohibited(graph_complement);
     if (is_perfect != State::UNKNOWN) {
         return;
     }
-    if (containsNearCleanerOddHole(*graph)) {
+    if (contains_near_cleaner_odd_hole(*graph)) {
         is_perfect = State::HAS_NEAR_CLEANER_ODD_HOLE;
         return;
     }
-    if (containsNearCleanerOddHole(graph_complement)) {
+    if (contains_near_cleaner_odd_hole(graph_complement)) {
         is_perfect = State::HAS_NEAR_CLEANER_ODD_HOLE;
         return;
     }
@@ -58,27 +56,7 @@ void PerfectGraphRecognition::run() {
 void PerfectGraphRecognition::check() const {
     assureFinished();
     auto graph_complement = Koala::GraphTools::toComplement(*graph);
-    assert((!containsOddHole(*graph) && !containsOddHole(graph_complement)) == isPerfect());
-}
-
-PerfectGraphRecognition::State PerfectGraphRecognition::containsSimpleProhibited(
-        const NetworKit::Graph &graph) {
-    if (containsJewel(graph)) {
-        return State::HAS_JEWEL;
-    }
-    if (containsPyramid(graph)) {
-        return State::HAS_PYRAMID;
-    }
-    if (containsT1(graph)) {
-        return State::HAS_T1;
-    }
-    if (containsT2(graph)) {
-        return State::HAS_T2;
-    }
-    if (containsT3(graph)) {
-        return State::HAS_T3;
-    }
-    return State::UNKNOWN;
+    assert((!contains_odd_hole(*graph) && !contains_odd_hole(graph_complement)) == isPerfect());
 }
 
 bool PerfectGraphRecognition::isComplete(
@@ -107,6 +85,26 @@ std::vector<std::vector<NetworKit::node>> PerfectGraphRecognition::getAuxiliaryC
     NetworKit::ConnectedComponents auxiliary_components(auxiliary_graph);
     auxiliary_components.run();
     return auxiliary_components.getComponents();
+}
+
+PerfectGraphRecognition::State PerfectGraphRecognition::contains_simple_prohibited(
+        const NetworKit::Graph &graph) {
+    if (contains_jewel(graph)) {
+        return State::HAS_JEWEL;
+    }
+    if (contains_pyramid(graph)) {
+        return State::HAS_PYRAMID;
+    }
+    if (contains_t1(graph)) {
+        return State::HAS_T1;
+    }
+    if (contains_t2(graph)) {
+        return State::HAS_T2;
+    }
+    if (contains_t3(graph)) {
+        return State::HAS_T3;
+    }
+    return State::UNKNOWN;
 }
 
 }  // namespace Koala

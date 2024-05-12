@@ -1,0 +1,52 @@
+\section{General method for estimating an upper-bound}
+
+To determine complexities of algorithms we will be using these two asymptotic notions, deriving from the Landau big-O notation:
+\begin{defn}[Big $O$]
+$\boldsymbol{O(g(n))}$ is defined as: \\
+$O(g(n)) = \{ f (n) \colon$ there exist positive constants $c$ and $n_0$ such that
+$0 \leq f (n) \leq cg(n)$ for all $n \geq n_0\}$
+\end{defn}
+
+\begin{defn}[Big $\Theta$]
+$\boldsymbol{\Theta(g(n))}$ is defined as: \\
+$O(g(n)) = \{ f (n) \colon$ there exist positive constants $c_1, c_2$ and $n_0$ such that
+$0 \leq c_1 g(n) \leq f (n) \leq c_2 g(n)$ for all $n \geq n_0\}$
+\end{defn}
+
+\begin{defn}[Big $O^*$]
+$\boldsymbol{O^*(g(n))}$ is defined as: \\
+$O^*(g(n)) = f(n)$ if $f(n) = O(g(n)poly(n))$, where $poly(n)$ is a polynomial.
+\end{defn}
+
+Throughout this work, we determine upper bounds on the worst-case running times of our exact exponential algorithms as functions $O^*(\alpha^n)$ and some real constant $\alpha \geq 1$. 
+
+Flow control statements in branching algorithms split entire procedure into so-called reduction rules and branching rules. These rules must have polynomial complexity.
+
+\begin{defn}[reduction rule]
+A \emph{reduction rule} simplifies a problem instance or halts the algorithm.
+\end{defn}
+Reduction rules reduce the size of a current instance. The usually appear before branching rules as they allow for problem simplification without the creation of additional subproblems.
+
+\begin{defn}[branching rule]
+A \emph{branching rule} is used to solve a problem instance by recursively solving smaller instances of the problem.
+\end{defn}
+
+Let us define a search tree representing an execution of a branching algorithm. We build such trees as follows:
+\begin{itemize}
+    \item we assign the root node of the search tree to the input of the problem,
+    \item we recursively assign a child to a node for each smaller instance reached by applying a branching rule to the current instance state.
+\end{itemize}
+
+Let $T(n)$ count the number of leafs of that search tree.
+The general approach is to analyze each branching rule separately and then to use the worst-case time over all branching rules as an upper bound on the running time of the algorithm.
+
+Let's take a branching rule $b$ which form instance of size $n$ that creates instances of sizes $n-t_1, n-t_2, \ldots, n-t_n$. We can deduce that $T(n)$ will be bounded by the following:
+
+$$T(n) \leq T(n-t_1) +T(n-t_2) + \ldots +T(n-t_r).$$
+
+With this linear recurrence equation we also associate a \emph{branching vector} $b=(t_1, t_2, \ldots, t_r)$. There are well-known standard techniques to solve linear recurrences, however, in this paper we omit this discussion. 
+
+Important thing to note is that when at least one $t_i$ has $\Theta(n)$ complexity, the complexity of the entire branch is exponential. Linear recurrence associated with branching vector has an unique solution $\alpha$ but it this article we do not focus on techniques facilitating solving linear recurrences. Instead, we will use a function $\tau$ that takes elements of a branching vector as an argument and returns $\alpha$. 
+
+The computational complexity of a branch determined by a branching vector $b=(t_1, t_2, \ldots, t_r)$ is equal to
+$O^*(\alpha^n)$ where $\tau(t_1, t_2, \ldots, t_r) = \alpha$. Traditionally we estimate $\alpha$ up to four decimal places. A more detailed description is available in \cite{book}.

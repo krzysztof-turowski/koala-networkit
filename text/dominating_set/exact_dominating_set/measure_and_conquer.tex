@@ -1,0 +1,217 @@
+\section{Branch and reduce algorithms}
+\subsection{Branch and reduce} \label{branch_and_reduce}
+One approach of solving a problem in exponential time is to use a recursive algorithm. The Branch and Reduce algorithm takes advantage of recursion and consists of two kinds of rules, described in \cite{DBLP:journals/eatcs/FominGK05}. The idea is as follows:
+\begin{itemize}
+    \item A branching rule is a procedure that, for a given instance, generates in polynomial time two or more sub-instances (solved recursively). Having solutions to all of them allows one to retrieve an optimal solution to the instance. Usually, each branch makes some assumption about the solution that is disjoint from the ones in the other branches, and at least one of these assumptions is true. 
+    \item A reduction rule is a procedure that looks for a property of an instance. This search consumes polynomial time in terms of the size of the instance. If the property is found, the procedure transforms in polynomial time the instance into an equivalent sub-instance (smaller in the sense of some natural parameters), which means that by having the optimal solution to the smaller instance, one can retrieve the optimal solution for the instance.
+\end{itemize}
+
+The algorithm halts in the base case when it is known that the solution can be computed in polynomial time. Otherwise, the algorithm sequentially tries to apply each of the reduction rules. If one applies, it calls recursively on the instance obtained by the reduction and afterwards retrieves the solution from the result of the call. If none of the rules apply, it chooses from a set of branching rules to apply. It calls on each of the sub-instances recursively and compares the results to choose the one from which the optimal solution is retrieved.
+\par In order to analyze such an algorithm, one can represent its execution with a tree, with the nodes of the tree being sub-calls of the recursive algorithm \cite{DBLP:journals/eatcs/FominGK05}. In the previous, the root of the tree corresponds to the main instance. Assuming that the depth of the recurrence is polynomial in terms of the size of the input instance, in order to analyze the worst-case $O^*$ time complexity, one needs a function bounding number of leaves in the corresponding tree \cite{VANROOIJ20112147}.\par
+\subsection{Measure and Conquer} \label{family_of_recurrences}
+Measure and Conquer is a technique for analyzing the complexity of the Branch and Reduce algorithm by introducing the concept of measure, a function taking an instance and returning a non-negative real number. When measure can be bounded in terms of the instance size, one can evaluate complexity in terms of the instance size by evaluating complexity in terms of the measure. To achieve this, any sub-instance obtained by a reduction or branching rule must have a smaller measure.
+\par In a complexity proof using Measure and Conquer, one introduces a set of recursive inequalities for each branching rule (These are similar to recursive inequalities in an analysis depending on some natural parameter of the instance such as the number of vertices for MDS). For an instance $I$ of measure $k$ for which a branching rule generates sub-instances $I_1, I_2 \dots, I_s$, the corresponding inequality is in the form
+\begin{equation} \label{reccursive_inequality}
+    N_I(k) \leq N_I(k - \Delta_1) + N_I(k - \Delta_2) + \dots + N_I(k - \Delta_s)
+\end{equation}
+where $N_I(m)$ denotes the maximum number of leaves in the tree associated with the execution of the algorithm on any sub-instance of measure not greater than $m$ and for each $j \in \{1, \dots, s\}$ measure of instance $I_j$ is not greater than $k - \Delta_j$ \cite{DBLP:journals/eatcs/FominGK05} \cite{VANROOIJ20112147}. It is also possible, in a refined analysis, that a greater $\Delta_j'$ instead of $\Delta_j$ can be obtained when it can be inferred that a reduction rule can be immediately applied after branching. Hence, one would like to find a positive real root of the equation
+\begin{equation} \label{alpha_inequality}
+    \alpha^k = \alpha^{k-\Delta_1} + \dots + \alpha^{k-\Delta_s}
+\end{equation}
+\cite{DBLP:journals/eatcs/FominGK05}. Then for $c\geq\alpha$ and $f(x) = N_I(0)\cdot c^x$
+$$
+f(k) \geq f(k - \Delta_1) + f(k - \Delta_2) + \dots + f(k - \Delta_s).
+$$
+$$\forall_i\quad f(k - \Delta_i) \geq N_I(k -\Delta_i) \implies f(k)\geq N_I(k)$$.
+
+If there exists some $f(x) = O(c^x)$ such that any instance $I$ of measure $k$ satisfies $N_I(k) \leq f(k)$, then the algorithm finishes in $O^*(c^{m(n)})$ where function $m(n)$ is an upper bound on the measure of the instance of size $n$. The analysis using the Measure and Conquer technique is more detailed than the one based directly on the instance size. That results from the fact that each branching rule generates more recursive inequalities than there would be in the standard analysis expressing complexity from a single parameter of the size of an instance. With a good choice of measure, the resulting complexity bounds are tighter since the measure is optimized to improve on the most pessimistic recurrences.
+
+\subsection{Set Cover Algorithm of Grandoni}
+The algorithm is described in \cite{GRANDONI2006209}. It applies the Branch and Reduce method. The author uses analysis directly based on the number of vertices in the graph.
+
+\begin{algorithm}[H]
+\caption{Minimum Set Cover}
+\label{alg:grandoni}
+\begin{algorithmic}[1]
+\Procedure{MSC}{$\mathcal{U}, \mathcal{S}$}\Comment{$\bigcup{\mathcal{S}} = \mathcal{U}$}
+\State if $\mathcal{S}$ = $\emptyset$ return $\emptyset$ \Comment{base case}
+\State if there exist  $Q, R \in \mathcal{S}$ satisfying $Q \subseteq R$, discard $Q$ and call recursively
+\State if there exists $u\in \mathcal{U}$ and a unique $R\in\mathcal{S}$, satisfying $u \in R$, take $R$ to the solution, remove all $R's$ elements from $\mathcal{U}$, and call recursively
+\State if none of the above applies, let $S \in \mathcal{S}$ be a set of maximum cardinality
+\State in one branch discard $S$ and let $C_{discard}$ be the solution of recursive call
+\State in the other branch, remove all $S's$ elements from $\mathcal{U}$ and let $C_{take}$ be the solution of recursive call
+\State from $C_{discard}$, $(C_{take} \cup \{S\})$ return one of smaller cardinality
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+\textbf{Correctness.} To prove that Algorithm \ref{alg:grandoni} returns a proper set cover, it is sufficient to note that
+\begin{itemize}
+    \item The reduction on line 3 of Algorithm \ref{alg:grandoni} will be called \texttt{R-subset} in the following. When $Q \subseteq R$, for any $MSC$ solution containing $Q$ one has an equivalent solution taking $R$ instead.
+    \item The reduction on line 4 will be called \texttt{R-unique} in the following. When $R$ is unique such that $u\in R$, then any solution contains $R$.
+    \item Branching: the optimal solution either contains $S$ or not.
+\end{itemize}
+\textbf{Complexity analysis.} 
+Consider instance $I = (\mathcal{U}, \mathcal{S})$ and let $d = |\mathcal{U}| + |\mathcal{S}|$ be its dimension. Let one define $N(k)$ to be number of leaves of the tree associated with the execution of the algorithm, as described in subsections \ref{branch_and_reduce} and \ref{family_of_recurrences}. Following holds:
+$$
+N(d) \leq N(d -1) + N(d - 4),
+$$
+Indeed, let $s$ be the cardinality of set $S$, considered in the branching. If $s \geq 3$, then in a branch discarding $S$, the dimension is decreased by 1. In a branch removing all elements of $S$, the dimension decreases by at least 1+3, hence the above inequality. Corresponding inequality \eqref{alpha_inequality} gives some root $\alpha$ satisfying $\alpha < 1.3803$. Therefore given graph $G$ with $n = V(G)$ $d=2n$ and the composition of Algorithm \ref{alg:mds_to_msc} and Algorithm \ref{alg:grandoni} gives $O^*(1.3803^{2n}) = O^*(1.9053^n)$ time complexity for MDS.
+
+\subsection{Set Cover Algorithm of Fomin-Grandoni-Kratsch}
+The algorithm is described in \cite{10.1145/1552285.1552286}. Algorithm \ref{alg:fgk} is a minor refinement of Algorithm \ref{alg:grandoni}. Standard analysis using the dimension of the set cover instance gives the same $N(d) \leq N(d -1) + N(d - 4)$ recurrence and thus the same complexity. Authors take advantage of the Measure and Conquer technique to improve the complexity bound.
+\begin{algorithm}
+\caption{Minimum Set Cover}
+\label{alg:fgk}
+\begin{algorithmic}[1]
+\Procedure{MSC}{$\mathcal{U}, \mathcal{S}$}\Comment{$\bigcup{\mathcal{S}} = \mathcal{U}$}
+\State if $\mathcal{S}$ = $\emptyset$ return $\emptyset$ \Comment{base case}
+\State if \texttt{R-subset} discard $Q$ and call recursively
+\State if \texttt{R-unique} take unique $R$ to the solution and call recursively
+\State if all sets have cardinality at most 2 return Edge-Cover($\mathcal{U}, \mathcal{S}$)
+\State if none of the above applies, let $S \in \mathcal{S}$ be a set of maximum cardinality
+\State in one branch discard $S$ and let $C_{discard}$ be the solution of recursive call
+\State in the other branch remove all $S's$ elements from $\mathcal{U}$ and let $C_{take}$ be the solution of recursive call
+\State from $C_{discard}$, $(C_{take} \cup \{S\})$ return one of smaller cardinality
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+\par As one can see, the only difference is line 5. Here, since all sets have cardinality exactly 2. Sets of cardinality 1 are not considered because of \texttt{R-subset} and \texttt{R-unique} rules. Hence, these sets are straightforward edges in a graph $G = (\mathcal{U}, \mathcal{S})$. Thus, correctness is shown.
+\par \textbf{Complexity analysis.} 
+The considered measure is defined as
+\begin{equation}\label{measure_definition}
+    k =  k(\mathcal{U}, \mathcal{S}) = \sum_{u \in \mathcal{U}} v(f(u)) + \sum_{S \in \mathcal{S}} w(|S|)
+\end{equation}
+
+for some weight functions $v, w : \mathbb{N_+} \rightarrow \mathbb{R_+}$ and $f(u)$ denotes the frequency of $u$ in $\mathcal{S}$.
+
+\textbf{Some intuitions.} There are several key observations:
+\begin{enumerate}
+    \item If two elements $u_1, u_2\in \mathcal{U}$ of the same frequency contribute the same amount to the first sum, no matter to which sets they belong. However, these elements may influence the second sum differently, depending on the cardinalities of the sets $u_1, u_2$ belong to. 
+    \item When any rule is applied, the measure decreases by the amount dependent on the pattern it is focused on, not the whole instance. In addition, the weight functions are bounded, and their images are finite sets. This way, one can obtain a finite set of recursive inequalities to satisfy. 
+    \item The weight functions are non-decreasing functions. This is important whenever a reduction rule removes a set or element from the instance. In such situation, the measure always decreases. The dual argument applies when an element of $\mathcal{U}$ is removed from instance: the cardinalities of some sets decline by 1, and the measure decreases as well. 
+    \item $v(1)$ = $w(1) = 0$. This comes from the fact that when there is an element of frequency 1, the \texttt{R-unique} applies, and if the latter does not hold but there is a set of cardinality 1, the \texttt{R-subset} applies.
+\end{enumerate}
+
+For an instance of measure equal to $k$, one would like to bound the number of base instances considered during the execution (number of leaves in the tree\ref{branch_and_reduce}). For this purpose, define function $N$ as in section \ref{family_of_recurrences}. Let $S$ be the set (of maximum cardinality) on which branching decides. Each recursive inequality is of the form
+$$
+N(k) \leq N(k - \Delta k_{take}) + N(k - \Delta k_{discard})
+$$
+$\Delta k_{take}$ is a lower bound for the decrease of the measure in the branch for which the algorithm takes $S$ into the solution. That consists of a direct decrease from taking $S$, as well as an additional decrease in a situation when some reduction rules can be inferred to happen after branching. Analogously, $\Delta k_{discard}$ for the other branch. To obtain good bounds, one needs to consider all possible cases of how taking and discarding $S$ influences the evaluation of weight functions $v, w$ (defined below) on each element of $\mathcal{U}, \mathcal{S}$, respectively.   
+Introduce functions $\Delta v, \Delta w$ such that they satisfy
+$$
+\Delta v(i) = v(i) - v(i - 1), \quad \Delta w(i) = w(i) - w(i - 1) \quad \text{for } i \geq 2.
+$$
+and $w$ is concave
+\begin{equation}\label{steepness}
+    \Delta w(i - 1) \geq \Delta w(i) \quad \text{for } i\geq 3
+\end{equation}
+Exact values of $v, w$ remain to be optimized in order to achieve the best complexity bound. 
+\par The above concepts are extremely useful in the simplification of the following analysis. For instance, discarding $S$ decreases the frequency of any of its elements by 1. For this simple fact, one adds for each $u\in S$ $\Delta v(f(u))$ to $\Delta_{discard}$. Let $r_i$ denote the number of elements of frequency $i$ in $S$. Then $\sum_{u\in S} \Delta v(f(u))$ is equivalent to $\sum_{i=2}^\infty r_i \Delta v(i)$. Inequality \ref{steepness} is used when taking $S$. Then each $u\in S$ is removed from the instance, thus $f(u)$ times decreasing cardinalities of sets in which it occurred. This can be bound by $\Delta w(|S|)\sum_{i = 2}^\infty r_i(i - 1)$.
+\begin{equation*}
+    \begin{split}
+        \Delta k_{take} = 
+        &\text{ } w(|S|) + \sum_{i = 2}^\infty r_i v(i) + \Delta w(|S|)\sum_{i = 2}^\infty r_i(i - 1)
+    \end{split}
+\end{equation*}
+\begin{equation*}
+    \begin{split}
+        \Delta k_{discard} =
+        &\text{ } w(|S|) + \sum_{i = 2}^\infty r_i \Delta v(i) + r_2 \cdot v(2) + [r_2 > 0] v(2) 
+    \end{split}
+\end{equation*}
+
+\begin{table}[ht]
+    \centering
+    \begin{tabular}{c|c|c|c|c|c|c}
+        $i$ & 1 & 2 & 3 & 4 & 5 & $>$5 \\
+        \hline
+        $v(i)$ & 0.0000 & 0.3996 & 0.7677 & 0.9300 & 0.9856 & 1.0000 \\
+        \hline
+        $w(i)$ & 0.0000 & 0.3774 & 0.7548 & 0.9095 & 0.9764 & 1.0000 \\
+        \hline
+    \end{tabular}
+    \caption{optimized choice of weight functions, rounded to 4 digits}
+\end{table}
+
+Given graph $G$ with $n = V(G)$, $k\leq 2n$ and composition of Algorithm \ref{alg:mds_to_msc} and Algorithm \ref{alg:grandoni} gives $O^*(1.2353^{2n}) = O^*(1.5263^n)$ time complexity for MDS. \citeauthor{VANROOIJ20112147} \cite{VANROOIJ20112147} present analysis for this algorithm with almost the same $k_{discard}$ inequality but with different weights. In particular, for $i\geq 7$ $v(i)$ is approximately 0.6612 instead of 1 and for $i\geq 7$ $w(i) = 1$. With this advantage, \citeauthor{VANROOIJ20112147} obtain $O(1.28505^{1.661244n}) = O(1.51685^n)$ complexity for this algorithm.
+\subsection{Algorithm of van Rooij and Bodlaender}
+The algorithm is described in \cite{VANROOIJ20112147}. It is an extension of the previous algorithm, adding three additional rules.
+
+\begin{algorithm}
+\caption{Minimum Set Cover}
+\label{alg:rooij}
+\begin{algorithmic}[1]
+\Procedure{MSC}{$\mathcal{U}, \mathcal{S}$}\Comment{$\bigcup{\mathcal{S}} = \mathcal{U}$}
+\State if $\mathcal{S}$ = $\emptyset$ return $\emptyset$ \Comment{base case}
+\State if \texttt{R-unique} take unique $R$ to the solution and call recursively
+\State if \texttt{R-subset} discard $Q$ and call recursively
+\State if there exist $q, r \in \mathcal{U}$ such that any set containing $r$ contains $q$ as well, remove $q$ from $\mathcal{U}$ and call recursively
+\State if there exists set $R$ with $|\bigcup_{u\in R, f(u) = 2} R_u \setminus R| < |e\in R : f(e) = 2|$, where for each $R_u$ is the second set containing $u$, then take $R$ to the solution and call recursively
+\State if there exists $R = \{e_1, e_2\}$, $f(e_1) = f(e_2) = 2$, $e_1 \in R_1 \ne R$, $e_2 in R_2 \ne R$, then replace sets $R, R_1, R_1$ with $Q := (R_1 \cup R_2) \setminus R$. In a recursive call, if $Q$ belongs to the sub-solution, return the sub-solution augmented with $R_1, R_2$ instead of $Q$. If $Q$ is not in the sub-solution, return sub-solution augmented with $R$ 
+\State if all sets have cardinality at most 2, return Edge-Cover($\mathcal{U}, \mathcal{S}$)
+\State if none of the above applies, let $S \in \mathcal{S}$ be a set of maximum cardinality
+\State in one branch discard $S$ and let $C_{discard}$ be the solution of recursive call
+\State in the other branch remove all $S's$ elements from $\mathcal{U}$ and let $C_{take}$ be the solution of recursive call
+\State from $C_{discard}$, $(C_{take} \cup \{S\})$ return one of smaller cardinality
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+\textbf{Correctness}
+One can see that each rule transforms set cover instance into a smaller one. This holds for \textit{size two set with only frequency two elements rule} (introduced below) as well, since each reduction rule decreases $|\mathcal{U}| + |\mathcal{S}|$ by at least 1. Moreover, one needs to check if the newly added reduction rules provide minimal set cover solutions.
+\begin{enumerate}
+    \item The reduction on line 5 of Algorithm \ref{alg:rooij} is dual to the \texttt{R-subset}. Suppose that there exist elements $q, r$ such that $\{S : q \in S\} \supseteq \{S : r \in S\}$. In other words, any set containing $r$ contains $q$ as well. In such a situation, one does not need to check whether a candidate to set cover solution covers $q$ as long as it is checked that $r$ is covered.
+    \item The reduction on line 6 of Algorithm \ref{alg:rooij}. Given a set $S \in \mathcal{S}$, define the function $f_2(S) = \{u \in S$ : frequency of $u$ is 2\}. For a given $R$ each $u\in f_2(R)$ occurs in $R$ and just one other set, name it $R_u$. A crucial observation in the following is that, due to the subsumption rule applied before, all sets $R_us$ are pairwise distinct. (Parenthetically, if frequency of $u$ were $>$2 this trick would not work.) Consider any hypothetical set cover solution $\mathcal{C} \subseteq \mathcal{S}$ that does not contain $R$. $\mathcal{C}$ must cover each element $u\in f_2(R)$, meaning $R_u\in \mathcal{C}$. Therefore to cover all elements of $f_2(R)$, one needs $|f_2(R)|$ sets. Consider set $T := \bigcup_{u \in f_2(R)} R_u \setminus R$. If $|T| < |f_2(R)|$, then for each $u \in T$ fix $T_u$ to be any set containing $u$. Observe that one can consider alternative solution $\mathcal{C'}$ defined by removing from $\mathcal{C}$ all $R_u$s for $u \in f_2(R)$, adding set $R$ and all elements of $\mathcal{T} := \{T_u : u \in T\}$. Since the number of added sets is $1 + |\mathcal{T}| \leq 1 + |T| \leq |f_2(R)|$, there exists a set cover solution containing $R$ with cardinality not greater than any solution that does not contain $R$. In conclusion, if there exists $R$ such that $|T| < |f_2(R)|$ one can reduce instance $(\mathcal{U}, \mathcal{S})$ by taking $R$ to the solution.
+    \item Reduction on line 7 is \textit{size two set with only frequency two elements rule}. It applies if there exists $R = \{e_1, e_2\}$ such that the frequencies of $e_1, e_2$ are both 2. It means that $e_1$ occurs in some set, say $R_1 \neq R$ and analogously $R_2$ for $e_2$. Define $Q := R_1 \cup R_2 \setminus R$. Then one can reduce an instance $(\mathcal{U}, \mathcal{S})$ to an instance ($\mathcal{U'}, \mathcal{S'}$), such that $\mathcal{U'} := \mathcal{U} \setminus R$, $\mathcal{S'} := \mathcal{S}\setminus \{R, R_1, R_2\} \cup \{Q\}$. In other words, one obtains a reduced instance by removing elements $e_1, e_2$ and then merging $R_1, R_2$ into one set. Let $\mathcal{R} \subseteq \mathcal{S'}$ be a minimum cardinality solution in a reduced instance. Now suppose one has solution $\mathcal{C}$ to the original problem. If $R \in \mathcal{C}$ then $\mathcal{C} \setminus \{R\}$ is a solution to the reduced problem. In that case, $|\mathcal{C}| - 1 \geq |\mathcal{R}|$. If $R \notin \mathcal{C}$, then $R_1, R_2 \in \mathcal{C}$, as $e_1, e_2$ must be both covered. $\mathcal{C} \setminus \{R_1, R_2\} \cup \{R\}$ is then solution to reduced problem and $|\mathcal{C}| - 2 + 1 \geq |\mathcal{R}|$. That proves the minimum cardinality solution to the original problem is at least one greater than the one in the reduced problem. The following is a construction of solution one bigger than $\mathcal{R}$. In case $Q \in \mathcal{R}$, one retrieves a solution to the original instance of cardinality $|\mathcal{R}| + 1$ by taking $R_1, R_2$ instead of $Q$ into solution. It is so because $R_1, R_2$ cover elements covered by $Q$ and additionally $e_1, e_2$. In case $R \notin \mathcal{R}$, one retrieves the solution to the original instance of cardinality $|\mathcal{R}| + 1$ by adding $R$.
+
+\end{enumerate}
+
+\textbf{Complexity analysis.} 
+Given a graph $G$, let $n = |V(G)|$. Algorithm \ref{alg:mds_to_msc} composed with Algorithm \ref{alg:rooij} achieves $O(1.4969^n)$ complexity. For this purpose, measure is defined as in \eqref{measure_definition}, but different functions $v, w$ are chosen:
+\begin{table}[ht]
+    \centering
+    \begin{tabular}{c|c|c|c|c|c|c|c|c}
+        $i$ & 1 & 2 & 3 & 4 & 5 & 6 & 7 & $>$7 \\
+        \hline
+        $v(i)$ & 0.00000 & 0.01118 & 0.37948 & 0.52608 & 0.57380 & 0.59111 & 0.59572 & 0.59572 \\
+        \hline
+        $w(i)$ & 0.00000 & 0.35301 & 0.70602 & 0.86689 & 0.94395 & 0.98128 & 0.99706 & 1.00000\\
+        \hline
+    \end{tabular}
+    \caption{Optimized choice of weight functions, rounded to 5 digits}
+\end{table}
+
+As mentioned in the previous subsection, reduction rules cannot increase the measure. As \textit{the size two set with only frequency two elements rule} adds a new set to the instance, one needs to verify it. Note that when applied, some sets $R, R_1, R_2$ with $|R| = 2$ are removed and a set $Q = R_1 \cup R_2 \setminus R$ is introduced. By this, no $u\in\mathcal{U}$ increases its frequency, so it suffices that $w(i+j-2) \leq w(2) + w(i) + w(j)$ holds for any $i,j \geq 2$, what can be easily checked.
+\par It remains to consider the behaviour of the measure when the branching rule is applied. With extensive sub-casing analysis \citeauthor{VANROOIJ20112147} achieve following bounds:
+\begin{equation*}
+    \begin{split}
+        \Delta k_{take} \geq 
+        &\text{ } w(|S|) + \sum_{i = 2}^\infty r_i v(i) + \Delta w(|S|)\sum_{i = 2}^\infty r_i(i - 1) \\
+        &+ (r_{f3} + r_{f\geq 4})(w(2) - \Delta w(|S|)) + r_{s3}(\Delta w(3) - \Delta w(|S|)) \\
+        &+ [r_{f3} > 0] \text{min}(v(3), r_{f3} \Delta v(3)) + [r_{\text{rule 7}}](2v(2) + w(2))
+    \end{split}
+\end{equation*}
+\begin{equation*}
+    \begin{split}
+        \Delta k_{discard} \geq
+        &\text{ } w(|S|) + \sum_{i = 2}^\infty r_i \Delta v(i) \\
+        &+ r_2(v(2) + w(2)) + r_{s3} \Delta w(3) + r_{s\geq 4}(w(4) - w(2))\\
+        & + [r_{f3} > 0]\Delta v(3) + [r_{f\geq 4} > 0](v(4) - v(2)) \\
+        & + \text{min} \Big(q_{\vec{r}}\Delta w(|S|), \lfloor \frac{q_{\vec{r}}}{2}\rfloor w(2) + (q_{\vec{r}} \text{ mod } 2) \Delta w(|S|)\Big) 
+    \end{split}
+\end{equation*}
+As one can see, right hand sides of these inequalities are extensions of corresponding expressions in the previous algorithm's analysis. Additional summands are obtained for each of the added rules. This complex inequalities evaluate inequalities for each possible structure of $S$. When $S = \{ e_1, \dots, e_{|S|}\}$ of frequencies $f(e_1), \dots, f(e_{|S|})$, one can substitute suitable values for each term in the above inequalities, obtaining associated recurrence. 
+The bounding recurrence result from sets $S$ is described below. For each of them, all elements of $S$ have the same frequency: 
+\begin{table}[ht]
+    \centering
+    \begin{tabular}{c|c|c|c|c|c|c|c|c|c|c|c}
+         cardinality of $S$         & 3 & 3 & 4 & 4 & 5 & 5 & 6 & 6 & 7 & 7 & 8\\
+         \hline
+         frequency of any element of $S$   & 3 & 4 & 2 & 5 & 5 & 6 & 6 & 7 & 7 & 8 & 8\\
+    \end{tabular}
+    \caption{Bounding cases}
+    \label{bounding_cases}
+\end{table}
+One may notice that for each $i = 3, \dots 8$ there is a case in which $S$ has cardinality $i$. Intuitively, if it was not the case for some $i$, then since $\Delta w(i+1) = w(i+1) - w(i)$, one would decrease $w(i)$ thus improving some bounding recurrences and obtaining better complexity.
+\par With the above bounding cases \citeauthor{VANROOIJ20112147} obtain $N(k) \leq 1.28759^k$ and since $k(\mathcal{U}, \mathcal{S}) = \sum_{u \in \mathcal{U}} v(f(u)) + \sum_{S \in \mathcal{S}} w(|S|) \leq (0.59572 + 1) n$, this yields $O(1.28759^{1.59572n}) = O(1.4969^n)$

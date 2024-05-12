@@ -1,5 +1,6 @@
 #include <cstring>
 #include <fstream>
+#include <list>
 #include <random>
 #include <string>
 
@@ -20,7 +21,7 @@ bool compare_files(const std::string &leftPath, const std::string &rightPath) {
     const int BUFFER_SIZE = 8 * 1024 * 1024;
     std::ifstream leftFile(leftPath, std::ios::binary);
     std::ifstream rightFile(rightPath, std::ios::binary);
-    if(!leftFile.good() || !rightFile.good()) {
+    if (!leftFile.good() || !rightFile.good()) {
         return false;
     }
     std::string leftBuffer(BUFFER_SIZE, 0), rightBuffer(BUFFER_SIZE, 0);
@@ -39,8 +40,18 @@ bool compare_files(const std::string &leftPath, const std::string &rightPath) {
     return true;
 }
 
-NetworKit::Graph build_graph(const int &N, const std::list<std::tuple<int, int, int>> &E) {
-    NetworKit::Graph G(N, true, true);
+NetworKit::Graph build_graph(
+        const int &N, const std::list<std::pair<int, int>> &E, bool directed = true) {
+    NetworKit::Graph G(N, false, directed);
+    for (const auto &[u, v] : E) {
+        G.addEdge(u, v);
+    }
+    return G;
+}
+
+NetworKit::Graph build_graph(
+        const int &N, const std::list<std::tuple<int, int, int>> &E, bool directed = true) {
+    NetworKit::Graph G(N, true, directed);
     for (const auto &[u, v, w] : E) {
         G.increaseWeight(u, v, w);
         G.increaseWeight(v, u, 0);

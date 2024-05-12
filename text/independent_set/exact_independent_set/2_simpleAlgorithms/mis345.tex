@@ -1,0 +1,155 @@
+\section{\textsc{Mis3}, \textsc{Mis4} and \textsc{Mis5}}
+
+\subsection{Special case: graphs with $\Delta(G) \leq 2$}
+
+We start by introducing a special case $\Delta(G) \leq 2$ and then use this algorithm in a general solution that improves running time. 
+
+It is easy to observe that in graphs with a property $\Delta(G) \leq 2$ we have three types of structures.
+\begin{itemize}
+    \item isolated vertices with degree $0$,
+    \item paths with lengths $\geq 2$
+    \item cycles with lengths $\geq 3$
+\end{itemize}
+
+Each of these structures is a separate connected component, so we can solve the maximum independent set for them separately and then add results together.
+
+\begin{defn}[component]
+A \emph{component} of a graph $G$ is its maximal connected induced subgraph.
+\end{defn}
+
+\begin{algorithm}[H]
+\caption{\textsc{PolyMis}}\label{alg:poly}
+\begin{algorithmic}[1]
+\Require a graph $G=(V,E)$ with $\Delta(G) \leq 2$
+\Ensure the maximum independent set of $G$
+\Procedure{PolyMis}{graph $G$}
+    \State $I \gets \emptyset $
+    \ForEach{$v\in V$}
+        \State $visited[v] \gets false$
+    \EndFor
+    \ForEach{$v \in V$ \textbf{such that} $\deg(v)=0$}
+        \State $I \gets I \cup \{v\}$
+        \State $visited[v] \gets true$
+    \EndFor
+    \ForEach{$v \in V$ \textbf{such that} $\deg(v)=1 \land visited[v]=false$}
+        \State $P \gets$ path containing $v$
+        \State add $\lceil\|P|/2\rceil$ not neighboring vertices from $P$ to $I$
+        \ForEach{$v \in P$}
+            \State $visited[v] \gets true$
+        \EndFor
+    \EndFor
+    \ForEach{$v \in V$ \textbf{such that} $visited[v]=false$}
+        \State $C\gets$ cycle containing $v$
+        \State add $\lfloor\|C|/2\rfloor$ not neighboring vertices from $C$ to $I$
+        \ForEach{$v \in C$}
+            \State $visited[v] \gets true$
+        \EndFor
+    \EndFor
+    \State \Return $I$
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+For the sake of clarity, the algorithm is presented in not the most concise, but still asymptotically optimal (in terms of $O(\cdot)$ notation).
+
+\textsc{PolyMis} algorithm deals with these structures type by type and consecutively adds vertices to $I$. Vertices with degree $0$ can be simply added to $I$. For even and odd paths on $n$ vertices, it is easy to spot that the respective maximum independent sets would have $\lceil\frac{n}{2}\rceil$ vertices e.g. by taking every second vertex from one of its ends. Similarly, for cycles on $n$ vertices, one can find an independent set of size $\lfloor\frac{n}{2}\rfloor$.
+
+Every part of the \textsc{PolyMis} algorithm works in a linear time regarding the number of vertices of $G$. It, of course, means that the whole algorithm has polynomial complexity.
+
+Using this algorithm as a subprocedure for solving the general case allows us to branch only on vertices with higher degrees. 
+
+\subsection{General case algorithms}
+
+We proceed with three quite similar algorithms. We will discuss their correctness and complexity collectively.
+
+\begin{algorithm}[H]
+\caption{\textsc{Mis3}}\label{mis3}
+\begin{algorithmic}[1]
+\Require a graph $G=(V,E)$
+\Ensure the maximum independent set of $G$
+\Procedure{Mis3}{graph $G$}
+    \If{$\exists v \in V \colon \deg (v) = 0$} 
+         \State \Return $\Call{Mis3}{G\setminus \{v\}} \cup \{v\}$
+    \EndIf
+    \If{$\exists v \in V \colon \deg (v) = 1$} 
+        \State \Return $\Call{Mis3}{G\setminus N[v]} \cup \{v\}$
+    \EndIf
+    \If{$\Delta(G) \geq 3$} 
+        \State choose arbitrary vertex $v$ of maximum degree in $G$
+        \State $A \gets \Call{Mis3}{G\setminus N[v]} \cup \{v\}$
+        \State $B \gets \Call{Mis3}{G\setminus \{v\}}$
+        \State \Return largest of the sets: $A, B$
+    \Else
+        \State \Return maximum independent set using \Cref{alg:poly}
+    \EndIf
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]
+\caption{\textsc{Mis4}}\label{alg:mis4}
+\begin{algorithmic}[1]
+\Require a graph $G=(V,E)$
+\Ensure the maximum independent set of $G$
+\Procedure{Mis4}{graph $G$}
+    \If{$\Delta(G) \geq 3$} 
+        \State choose arbitrary vertex $v$ of degree $\deg(v) \geq 3$ in $G$
+        \State $A \gets \Call{Mis4}{G\setminus N[v]} \cup \{v\}$
+        \State $B \gets \Call{Mis4}{G\setminus \{v\}}$
+        \State \Return largest of the sets: $A, B$
+    \Else 
+        \State \Return maximum independent set using \Cref{alg:poly}
+    \EndIf
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]
+\caption{\textsc{Mis5}}\label{alg:mis5}
+\begin{algorithmic}[1]
+\Require a graph $G=(V,E)$
+\Ensure the maximum independent set of $G$
+\Procedure{Mis5}{graph $G$}
+    \If{$\Delta(G) \geq 3$}
+        \State choose arbitrary vertex $v$ of maximum degree in $G$
+        \State $A \gets \Call{Mis5}{G\setminus N[v]} \cup \{v\}$
+        \State $B \gets \Call{Mis5}{G\setminus \{v\}}$
+        \State \Return the largest of the sets: $A, B$
+    \Else
+        \State \Return maximum independent set using \Cref{alg:poly}
+    \EndIf
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Correctness}
+
+Let's start with the introduction of \emph{standard branching}. This is the default branching method that will be used throughout all the following algorithms. Later on, we will refine it and introduce mirror branching.
+\begin{lemma}
+Let $\alpha$ be an algorithm finding the maximum independent set. Then:
+$$
+\alpha(G) = max\{\alpha(G\setminus \{v\}),1+\alpha(G\setminus N[v])\}
+$$
+\end{lemma}
+It translates into "An algorithm will find the maximum independent set by either discarding $v$ from $G$ or selecting $v$ to the maximum independent set and discarding $N[v]$ from the independent set". $N[v]$ vertices can no longer be a part of a solution after adding $v$ to the independent set. There are no other options of choice, so at least in one of them, an algorithm will find the maximum independent set. 
+
+Standard branching can be applied on any vertex in graph $G$ and the correctness will hold. In the case of \textsc{Mis3}, \textsc{Mis4} and \textsc{Mis5} an algorithm selects a vertex with a degree of at least $3$ be it either the smallest or largest degree depending on the algorithm. Algorithms also save both results for selecting and not selecting $v$ to $A$ and $B$ and then select the set with the most elements. 
+
+These three algorithms also slightly differ in the way of dealing with small degree vertices. \textsc{Mis4} and \textsc{Mis5} do not do anything special and eventually solve graphs with $\Delta \leq 2$ with a polynomial algorithm. \textsc{Mis3} is somewhat unique because it deals with vertices of degree $0$ and $1$ right away. \textsc{Mis3} adds vertices of degree $0$ and $1$ to the independent set. Vertices of degree $0$ trivially must be added to the maximum independent set. Selecting vertices of degree $1$ is also always optimal, as selecting its neighbor -- $N(v)$ would lead to the removal of at least $v, N(v)$ and possibly another vertex connected to $N(v)$. 
+
+Ultimately, we are left with a graph with a property $\Delta \leq 2$. The polynomial algorithm \cite{alg:poly} finishes the job.
+
+\subsection{Computational complexity in \textsc{Mis3}, \textsc{Mis4} and \textsc{Mis5}}
+
+Now, after this introduction, let us try to bound \textsc{Mis3}, \textsc{Mis4} and \textsc{Mis5} with that method. Algorithms has only one branching rule when following Mis$(G\setminus N[v])$ or Mis$(G\setminus \{v\})$ down the tree. For vertex $v$ this reduces the size of the tree accordingly by $d(v) + 1$ and $1$. This implies the recurrence:
+
+$$
+T(n) \leq T(n-(d(v)+1)) + T(n - 1)
+$$
+
+The worst case scenario is going to be when $\deg(v)=3$, so we get
+$$
+T(n) \leq T(n - 4) + T(n - 1)
+$$
+
+Instead of solving it like for \textsc{Mis1} algorithm, we can use the branching vectors method to bound complexity. The branching vector for these three algorithms is $(4,1)$, which can be computed to $\tau(4,1)=1.3803$. \textsc{Mis3}, \textsc{Mis4}, \textsc{Mis5} all are bounded by $O^*(1.13803^n)$. We will see how they to each other and \textsc{Mis1} in \Cref{chp:benchmark}.

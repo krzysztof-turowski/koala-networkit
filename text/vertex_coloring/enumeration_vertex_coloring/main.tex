@@ -1,0 +1,32 @@
+\documentclass{report}
+\usepackage{import}
+%\usepackage{fullpage}
+
+\import{./}{preamble.tex}
+
+\author{Zofia Glapa}
+\date{\today{}}
+\begin{document}
+
+\include{titlepage}
+\pagebreak
+
+\listoftheorems[ignoreall,show={defn}]
+\renewcommand{\listtheoremname}{List of algorithms}
+\makeatletter
+\renewcommand\thmt@listnumwidth{2.6em}
+\makeatother
+\listoftheorems[ignoreall,show={alg}]
+\tableofcontents
+
+\pagebreak
+
+\chapter{Introduction}
+\input{introduction}
+\chapter{Enumeration algorithms}
+\input{enumerationAlgorithms}
+\chapter{Computational results}
+\input{results}
+
+\printbibliography
+\end{document}

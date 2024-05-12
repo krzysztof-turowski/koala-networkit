@@ -19,22 +19,11 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     set(KOALA_LINKER_FLAGS "${KOALA_LINKER_FLAGS} -fopenmp")
 endif()
 
-set(CMAKE_CXX_CPPLINT cpplint --linelength=100 --extensions=cpp,hpp --filter=-legal/copyright,-build/c++20,-build/include,-build/namespaces,-build/header_guard,-runtime/references,-runtime/string --recursive)
+set(CMAKE_CXX_CPPLINT cpplint --linelength=100 --extensions=cpp,hpp --filter=-legal/copyright,-build/c++20,-build/include,-build/namespaces,-build/header_guard,-runtime/references,-runtime/string --recursive --exclude=${CMAKE_SOURCE_DIR}/backup --exclude=${CMAKE_SOURCE_DIR}/build --exclude=${CMAKE_SOURCE_DIR}/input --exclude=${CMAKE_SOURCE_DIR}/lib --exclude=${CMAKE_SOURCE_DIR}/cpp/flow/maximum_flow/dynamic_tree/*)
 
 include(FetchContent)
 
 set(FETCHCONTENT_QUIET FALSE)
-
-#<gtest>
-FetchContent_Declare(
-    gtest
-    GIT_REPOSITORY "https://github.com/google/googletest.git"
-    GIT_TAG main
-    GIT_PROGRESS TRUE
-    SOURCE_DIR "${CMAKE_SOURCE_DIR}/lib/gtest"
-)
-FetchContent_MakeAvailable(gtest)
-#</gtest>
 
 #<networKit>
 FetchContent_Declare(
@@ -46,17 +35,6 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(networkit)
 #</networKit>
-
-#<boost>
-FetchContent_Declare(
-    boost
-    GIT_REPOSITORY "https://github.com/boostorg/boost.git"
-    GIT_TAG master
-    GIT_PROGRESS TRUE
-    SOURCE_DIR "${CMAKE_SOURCE_DIR}/lib/boost"
-)
-FetchContent_MakeAvailable(boost)
-#</boost>
 
 #<Csdp>
 FetchContent_Declare(
@@ -98,7 +76,7 @@ if(KOALA_BUILD_SHARED)
 else()
     add_library(${PROJECT_NAME} STATIC cpp/koala.cpp)
 endif()
-target_link_libraries(${PROJECT_NAME} networkit boost_dynamic_bitset csdp_lib lapack blas gfortran quadmath)
+target_link_libraries(${PROJECT_NAME} networkit boost_graph csdp_lib lapack blas gfortran quadmath)
 set_target_properties(${PROJECT_NAME} PROPERTIES
     COMPILE_FLAGS ${KOALA_CXX_FLAGS}
     LINK_FLAGS ${KOALA_LINKER_FLAGS})
@@ -106,7 +84,7 @@ add_subdirectory(cpp)
 
 function(koala_make_test testname testfile)
     add_executable(${testname} ${CMAKE_CURRENT_LIST_DIR}/${testfile})
-    target_link_libraries(${testname} ${PROJECT_NAME} gtest_main)
+    target_link_libraries(${testname} ${PROJECT_NAME} gtest gtest_main)
     set_target_properties(${testname} PROPERTIES
         COMPILE_FLAGS ${KOALA_CXX_FLAGS}
         LINK_FLAGS ${KOALA_LINKER_FLAGS})

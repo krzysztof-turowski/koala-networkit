@@ -1,0 +1,28 @@
+\section{Naive Algorithm}
+
+The easiest solution to the maximum independent set problem is the naive (otherwise known as the bruteforce) approach. \textsc{MisNaive} algorithm simply checks every possible induced subgraph of the graph $G$. It verifies if this is indeed an independent set and then compares it with the best currently known solution. If the currently analyzed subgraph satisfies these requirements, then the best solution is overwritten.
+
+\begin{algorithm}
+\caption{\textsc{MisNaive}}\label{bruteforce}
+\begin{algorithmic}[1]
+\Require a graph $G=(V,E)$
+\Ensure the maximum independent set of $G$
+\Procedure{MisNaive}{graph $G$}
+    \State $I \gets \emptyset$
+    \ForEach {$V' \subseteq V$}
+        \If{$G[V']$ has no edge \textbf{and} $|V'| > |R|$}
+            \State $I \gets V'$            
+        \EndIf
+    \EndFor
+    \State \Return $I$
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Correctness}
+
+Algorithms iterate over every single subgraph of a $G$ graph and check if it is independent and bigger than the previously found, so the returned set has to be doubtlessly independent and also maximum.
+
+\subsection{Computational complexity}
+
+There are $2^n$ subsets of the set of size $n$, and checking whether $E'$ does not contain any edge is polynomial in $n$. Therefore, the complexity is $O^*(2^n)$. It is the slowest possible time for a reasonable algorithm, however for small graphs, it could be the fastest approach due to low overhead.

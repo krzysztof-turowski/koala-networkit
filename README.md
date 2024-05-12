@@ -62,6 +62,7 @@ Its main part consists of an implementation of a broad set of procedures in the 
 - graph recognition for graph families: empty graphs, cliques, paths, caterpillar, trees, forests, cycles, connected, complete $k$-partite, regular, subcubic, block, bipartite, chordal, comparability, interval, split, cographs,
 - graph generation for several graph families (cliques, paths, cycles, fans, wheels, caterpillars, complete $k$-partite, regular trees) and random graphs models (Erdős–Rényi, Barabási–Albert, Watts–Strogatz),
 - operation on graphs: closures (reflexive, symmetric, transitive), line graphs, products of graphs (Cartesian, tensor, lexicographic, strong).
+- dominating set: exact exponential-time
 
 <p align="justify">
 The library was built on a custom, versatile, object-oriented templated graph structure, capable of handling edges of multiple types (undirected, directed, loops) at the same time.
@@ -70,18 +71,25 @@ At the most basic level, they presented generic versions of the algorithms, but 
 </p>
 
 <p align="justify">
-Moreover, they set up an online graph editor <a href="http://web.archive.org/web/20200721190618/http://koala.os.niwa.gda.pl/zgred">Zgred</a>, written in JavaScript. It allows to create, edit and visualize graphs. Furthermore, it is capable of running several algorithms from the library.
+Moreover, they set up an online graph editor <a href="https://stos.eti.pg.gda.pl/~kmocet/zgred/1.1.22/zgred.html">Zgred</a>, written in JavaScript. It allows to create, edit and visualize graphs. Furthermore, it is capable of running several algorithms from the library.
 </p>
 
 ### <a name="algorithms"></a>List of algorithms
 
-1. [Reading and writing graphs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/io): [graph6](https://users.cecs.anu.edu.au/~bdm/data/formats.html), [sparse6](https://users.cecs.anu.edu.au/~bdm/data/formats.html), [digraph6](https://users.cecs.anu.edu.au/~bdm/data/formats.html),[DIMACS](http://prolland.free.fr/works/research/dsat/dimacs.html), [DIMACS binary](https://mat.tepper.cmu.edu/COLOR/format/README.binformat) formats
-2. [Graph recognition](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/recognition/): [perfect graphs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/recognition/PerfectGraphRecognition.hpp)
-3. [Graph traversal](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/traversal/): [BFS](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/traversal/BFS.hpp), [DFS](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/traversal/DFS.hpp)
-4. [Flow algorithms](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/flow/)
+1. [Reading and writing graphs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/io): [graph6](https://users.cecs.anu.edu.au/~bdm/data/formats.html), [sparse6](https://users.cecs.anu.edu.au/~bdm/data/formats.html), [digraph6](https://users.cecs.anu.edu.au/~bdm/data/formats.html), [DIMACS](http://prolland.free.fr/works/research/dsat/dimacs.html), [DIMACS binary](https://mat.tepper.cmu.edu/COLOR/format/README.binformat) formats
+1. [Graph recognition](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/recognition/): [perfect graphs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/recognition/PerfectGraphRecognition.hpp)
+1. [Graph traversal](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/traversal/): [BFS](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/traversal/BFS.hpp), [DFS](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/traversal/DFS.hpp)
+1. [Minimum spanning tree algorithms](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/mst/): Kruskal, Prim, Borůvka, Klein-Karger-Tarjan
+    1. Hagerup algorithm for minimum spanning tree verification
+1. [Flow algorithms](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/flow/)
     1. [Maximum flow](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/flow/MaximumFlow.hpp): King-Rao-Tarjan
-5. [Vertex coloring](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/coloring/)
+1. [Vertex coloring](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/coloring/)
     1. [Greedy heuristics](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/coloring/GreedyVertexColoring.hpp): RandomSequential, LargestFirst, SmallestLast, SaturatedLargestFirst, GreedyIndependentSet
+    1. [Exact exponential-time algorithms](https://github.com/krzysztof-turowski/koala-networkit/blob/master/include/coloring/ExactVertexColoring.hpp): Brown, Christofides, Brélaz, Korman
+    1. [Grötschel-Lovász-Schrijver algorithm for perfect graphs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/coloring/PerfectGraphVertexColoring.hpp)
+1. [Maximum independent set](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/independent_set/)
+1. [Minimum dominating set](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/dominating_set/): Grandoni, Fomin-Grandoni-Kratsch, van Rooij-Bodlaender, Fomin-Kratsch-Woeginger, Schiermeyer
+1. Minimum set cover: [exact branch and reduce](https://github.com/krzysztof-turowski/koala-networkit/blob/master/include/set_cover/BranchAndReduceSetCover.hpp)
 
 For further planned changes, see the [Issues](https://github.com/krzysztof-turowski/koala-networkit/issues/) section.
 
@@ -97,7 +105,9 @@ To assess the speed of the algorithms we use primarily the publicly available St
 cmake -B build
 cmake --build build --parallel 4
 ```
-> Note: it may take a while to download and compile dependencies (googletest and networkit).
+> Note: it may take a while to download and compile dependencies (e.g. googletest, networkit, and boost).
+
+Additionally, users need to install beforehand the following packages (or their equivalents): <tt>g++/clang</tt>, <tt>cpplint</tt>, <tt>gfortran</tt>, <tt>libblas-dev</tt>, <tt>liblapack-dev</tt>, <tt>libgtest-dev</tt>, <tt>libboost-all-dev</tt>.
 
 ## <a name="usage"></a>Usage
 
