@@ -86,7 +86,7 @@ TEST_P(MaximumWeightMatchingTest, test) {
             algorithm = new Koala::GabowMaximumMatching(G);
             break;
         case micali:
-            algorithm = new Koala::MicaliGabowMaximumMatching(G);
+            algorithm = new Koala::GalilMicaliGabowMaximumMatching(G);
             break;
         case scaling:
             algorithm = new Koala::GabowScalingMatching(G);

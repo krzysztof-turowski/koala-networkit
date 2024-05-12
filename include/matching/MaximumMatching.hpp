@@ -372,10 +372,10 @@ private:
  * @ingroup matching
  * The class for the Edmonds maximum matching algorithm.
  */
-class MicaliGabowMaximumMatching final : public BlossomMaximumMatching {
+class GalilMicaliGabowMaximumMatching final : public BlossomMaximumMatching {
 
 public:
-    MicaliGabowMaximumMatching(NetworKit::Graph &graph);
+    GalilMicaliGabowMaximumMatching(NetworKit::Graph &graph);
 
 private:
     using BlossomNodeList = ConcatenableQueue<Blossom*, NetworKit::node, NetworKit::node>;

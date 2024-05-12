@@ -24,7 +24,7 @@ int main(int argc, char **argv) {
     } else if (algorithm == "gabow") {
         maximum_matching = new Koala::GabowMaximumMatching(G);
     } else if (algorithm == "micali") {
-        maximum_matching = new Koala::MicaliGabowMaximumMatching(G);
+        maximum_matching = new Koala::GalilMicaliGabowMaximumMatching(G);
     } else if (algorithm == "scaling") {
         maximum_matching = new Koala::GabowScalingMatching(G);
     } else {
