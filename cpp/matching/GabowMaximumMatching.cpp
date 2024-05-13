@@ -4,25 +4,16 @@ namespace Koala {
 
 GabowMaximumMatching::GabowMaximumMatching(NetworKit::Graph &graph) :
         BlossomMaximumMatching(graph),
-        sorted_neighbours(graph.upperNodeIdBound()),
         current_blossom(graph.upperNodeIdBound(), nullptr),
         y(graph.upperNodeIdBound(), max_weight),
         best_edge(graph.upperNodeIdBound(), no_edge) {
-    graph.sortEdges();
 
-    graph.forEdges([this]
-            (NetworKit::node u, NetworKit::node v, NetworKit::edgeweight w, NetworKit::edgeid id) {
-        sorted_neighbours[u].emplace_back(v, id);
-        sorted_neighbours[v].emplace_back(u, id);
-    });
+    // Sort the edges for efficient best edge list contstruction
+    graph.sortEdges();
 
     graph.forNodes([this] (NetworKit::node vertex) {
         current_blossom[vertex] = trivial_blossom[vertex];
         trivial_blossom[vertex]->data = new GabowBlossomData();
-
-        // For each vertex store a sorted list of it's neighbours
-        // This is needed to efficiently build lists of best edges
-        std::sort(sorted_neighbours[vertex].begin(), sorted_neighbours[vertex].end());
     });
 }
 
@@ -261,9 +252,10 @@ void GabowMaximumMatching::scan_edges(Blossom* b) {
         auto edge_it = data->best_edges.begin();
 
         // Iterate in sorted order for efficiency
-        for (auto [v, id] : sorted_neighbours[u]) {
+        graph.forEdgesOf(u, [this, b, data, &best_slack, &edge_it] 
+                (NetworKit::node u, NetworKit::node v, NetworKit::edgeid id) {
             auto v_blossom = get_blossom(v);
-            if (v_blossom == b) continue;
+            if (v_blossom == b) return;
 
             auto edge_slack = slack(id);
             if (v_blossom->label == even) {
@@ -289,7 +281,7 @@ void GabowMaximumMatching::scan_edges(Blossom* b) {
                     best_edge[v] = {u, v, id};
                 }
             }
-        }
+        });
     }
 }
 
@@ -300,46 +292,6 @@ MaximumWeightMatching::weight GabowMaximumMatching::slack(NetworKit::edgeid edge
     auto v_blossom = get_blossom(v);
 
     return y[u] + y[v] - w + (u_blossom == v_blossom ? u_blossom->z : 0);
-}
-
-void GabowMaximumMatching::check_consistency() {
-    std::cerr << "Current vertices: \n";
-    graph.forNodes([this] (NetworKit::node v) {
-        if (matched_vertex[v] != NetworKit::none)
-            std::cerr << v << " " << matched_vertex[v] << " : ";
-        else
-            std::cerr << v << " - : ";
-        get_blossom(v)->nodes_print();
-        std::cerr << std::endl;
-    });
-
-    std::cerr << "Current weights: \n";
-    graph.forNodes([this] (NetworKit::node v) {
-        std::cerr << v << ": " << y[v] << std::endl;
-    });
-
-    for (auto b : blossoms) if (!b->is_trivial()) {
-        b->short_print();
-        std::cerr << " : " << b->z << std::endl;
-    }
-
-    std::cerr << "Current best edges: \n";
-    graph.forNodes([this] (NetworKit::node v) {
-        if (get_blossom(v)->label != even) {
-            std::cerr << "best_edge[" << v << "] = "
-                << edge_to_string(best_edge[v]) << " : "
-                << slack(best_edge[v].id) << std::endl;
-        }
-    });
-    for (auto b : blossoms) {
-        if (b->label != even) continue;
-        std::cerr << "Best edges of "; b->short_print(); std::cerr << std::endl;
-        for (auto e : get_data(b)->best_edges) {
-            std::cerr << edge_to_string(e) << " : " << slack(e.id) << std::endl;
-        }
-        auto edge = get_data(b)->best_edge;
-        std::cerr << "Best one: " << edge_to_string(edge) << " : " << slack(edge.id) << std::endl;
-    }
 }
 
 } /* namespace Koala */

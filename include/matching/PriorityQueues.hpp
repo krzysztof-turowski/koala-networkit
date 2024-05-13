@@ -4,11 +4,8 @@
 #include <list>
 #include <vector>
 #include <functional>
-#include <iostream>
 
 namespace Koala {
-
-#define QUEUE_DEBUG 0
 
 // TODO split these structures to different files / rename the file
 // TODO make type names more consistent between analogous data structures / replace them with hardcoded types
@@ -279,10 +276,6 @@ public:
         head = other.head;
         other.root = nullptr;
         fix_root();
-        
-        #if QUEUE_DEBUG
-        check_consistency();
-        #endif
     }
 
     ConcatenableQueue& operator=(ConcatenableQueue&& other) {
@@ -323,10 +316,6 @@ public:
      *         Preserved by splits and concatenations.
     */
     handle_type append(E element, P priority) {
-        #if QUEUE_DEBUG
-        std::cerr << this << " append " << element << std::endl;
-        #endif
-
         if (empty()) {
             Node* new_node = new Node(this, element, priority);
             root = Node::from_child(this, new_node);
@@ -452,8 +441,10 @@ public:
             return;
         }
         head = new_head;
-        Node* left = root; cut(left);
-        Node* right = other.root; cut(right);
+        Node* left = root; 
+        cut(left);
+        Node* right = other.root; 
+        cut(right);
         if (left->height == right->height) {
             root = Node::from_children(this, left, right);
         } else if (left->height > right->height) {
@@ -505,43 +496,6 @@ public:
 
     void for_each(const std::function<void(E, P)>& handle) {
         if (root != nullptr) root->for_each(handle);
-    }
-
-    void print(std::ostream& out = std::cerr) {
-        out << head << " | ";
-        if (root != nullptr) {
-            out << find_min().first << " : ";
-            root->print(out);
-        }
-        out << std::endl;
-    }
-
-    void print_elements(std::ostream& out = std::cerr) {
-        if (empty())
-            out << head << " : ";
-        else 
-            out << head << " | " << find_min().first << " : ";
-        out << "{";
-        std::vector<E> elements;
-        for_each([&elements] (E element, P p) { elements.push_back(element); });
-        for (int i = 0; i < elements.size(); ++ i) {
-            out << elements[i];
-            if (i != elements.size() - 1) out << ", ";
-        }
-        out << "}\n";
-    }
-
-    void check_consistency() {
-        if (root == nullptr) return;
-        if (root->parent != nullptr) {
-            std::cerr << "root's parent is not null\n";
-            exit(1);
-        }
-        if (root->queue != this) {
-            std::cerr << "root points at wrong queue\n";
-            exit(1);
-        }
-        root->check_children();
     }
 
     struct Node {
@@ -652,22 +606,6 @@ public:
             return children[0] == nullptr;
         }
 
-        void check_children() {
-            if (parent == this) {
-                std::cerr << "parent link points to the node itself\n";
-                exit(1);
-            }
-            for (int i = 0; i < 3; ++ i) {
-                if (children[i]) {
-                    if (children[i]->parent != this) {
-                        std::cerr << "parent link wrong "; print(); std::cerr << std::endl;
-                        exit(1);
-                    }
-                    children[i]->check_children();
-                }
-            }
-        }
-
         void for_each(const std::function<void(E, P)>& handle) {
             if (is_leaf()) {
                 handle(min_element, min_priority);
@@ -677,20 +615,6 @@ public:
                 if (children[i] == nullptr) return;
                 children[i]->for_each(handle);
             }
-        }
-
-        void print(std::ostream& out = std::cerr) {
-            out << "(";
-            if (is_leaf()) {
-                out << min_element;
-            } else {
-                out << children_count() << ":";
-                for (int i = 0; i < 3; ++ i) {
-                    if (children[i] == nullptr) break;
-                    children[i]->print(out);
-                }
-            }
-            out << ")";
         }
 
         void delete_children() {
@@ -722,10 +646,6 @@ private:
         }
 
         fix_root();
-
-        #if QUEUE_DEBUG
-        check_consistency();
-        #endif
     }
 
     static ConcatenableQueue<H, E, P>* concat(

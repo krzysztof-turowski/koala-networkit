@@ -199,37 +199,4 @@ bool EdmondsMaximumMatching::is_tight(
             ((v_blossom->label == even && u_blossom != v_blossom) || v_blossom->label == free);
 }
 
-void EdmondsMaximumMatching::check_consistency() {
-    std::cerr << "Current vertices: \n";
-    graph.forNodes([this] (NetworKit::node v) {
-        if (this->matched_vertex[v] != NetworKit::none)
-            std::cerr << v << " " << this->matched_vertex[v] << " : ";
-        else
-            std::cerr << v << " - : ";
-        get_blossom(v)->nodes_print();
-        std::cerr << std::endl;
-    });
-    std::cerr << "Current weights: \n";
-    for (int i = 0; i < y.size(); ++i) {
-        std::cerr << i << ": " << y[i] << std::endl;
-    }
-    for (auto b : blossoms) {
-        if (!b->is_trivial()) {
-            b->short_print();
-            std::cerr << " : " << b->z << std::endl;
-        }
-    }
-    std::cerr << "Edge queue:\n";
-    std::queue<Edge> q = edge_queue;
-    while (!q.empty()) {
-        std::cerr << edge_to_string(q.front()) << std::endl;
-        q.pop();
-    }
-    std::cerr << "Edges:\n";
-    for (NetworKit::edgeid id = 0; id < graph.upperEdgeIdBound(); ++id) {
-        auto [u, v, w] = graph_edges[id];
-        std::cerr << edge_to_string({u, v, id}) << " : " << slack(id) << std::endl;
-    }
-}
-
 } /* namespace Koala */

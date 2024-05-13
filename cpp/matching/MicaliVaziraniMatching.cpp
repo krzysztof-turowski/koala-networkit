@@ -80,7 +80,7 @@ void MicaliVaziraniMatching::run() {
         reset();
 
         search();
-
+        
         clear_blooms();
     } while (augmentation_happened);
 

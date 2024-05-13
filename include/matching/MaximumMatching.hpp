@@ -13,8 +13,6 @@
 
 #include <matching/PriorityQueues.hpp>
 
-#define DEBUG_LOGGING 0
-
 namespace Koala {
 
 /**
@@ -25,6 +23,7 @@ namespace Koala {
 class MaximumWeightMatching : public NetworKit::Algorithm {
 
 public:
+    // This is double, which works for non-scaling algorithms
     using weight = NetworKit::edgeweight;
     using intweight = int;
 
@@ -132,12 +131,6 @@ protected:
         void for_nodes(const std::function<void(NetworKit::node)>& handle);
         bool contains(NetworKit::node v);
 
-        void check_consistency();
-        void check_nodes_list();
-        void print(int depth = 0);
-        void short_print();
-        void nodes_print();
-
         void delete_all_children();
         ~Blossom();
     };
@@ -205,7 +198,7 @@ protected:
 
     void lazy_augment_path_in_blossom(Blossom* blossom);
 
-    std::pair<Blossom::SubblossomList,Blossom::SubblossomList>
+    std::pair<Blossom::SubblossomList, Blossom::SubblossomList>
     split_subblossoms(Blossom::SubblossomList subblossoms, Blossom* blossom);
     void swap_edge_in_matching(NetworKit::edgeid edge);
     void check_edge_in_matching(NetworKit::edgeid edge);
@@ -234,11 +227,6 @@ protected:
     bool is_exposed(Blossom* b);
     
     virtual Blossom* get_blossom(NetworKit::node vertex) = 0;
-    
-    static void print_backtrack(
-            Blossom* u, Blossom* v, Edge edge,
-            std::vector<BacktrackInfo>& u_path, std::vector<BacktrackInfo>& v_path);
-    virtual void check_consistency() = 0;
 };
 
 /**
@@ -290,8 +278,6 @@ private:
     std::vector<Blossom*> get_odd_blossoms_to_expand() override;
     
     Blossom* get_blossom(NetworKit::node vertex) override;
-
-    void check_consistency() override;
 };
 
 /**
@@ -319,10 +305,6 @@ private:
         Edge best_edge;
     };
     GabowBlossomData* get_data(Blossom* b);
-
-    // For each vertex store a sorted list of it's neighbours
-    // This is needed to efficiently create lists of best edges
-    std::vector<std::vector<std::pair<NetworKit::node, NetworKit::edgeid>>> sorted_neighbours;
     
     // Queue of tight edges
     std::queue<Edge> edge_queue;
@@ -364,8 +346,6 @@ private:
     std::vector<Blossom*> get_odd_blossoms_to_expand() override;
     
     Blossom* get_blossom(NetworKit::node vertex) override;
-
-    void check_consistency() override;
 };
 
 /**
@@ -456,8 +436,6 @@ private:
     std::vector<Blossom*> get_odd_blossoms_to_expand() override;
     
     Blossom* get_blossom(NetworKit::node vertex) override;
-
-    void check_consistency() override;
 };
 
 /**
@@ -759,12 +737,6 @@ private:
     void add_distribution(OldBlossom* S, MaximumWeightMatching::intweight distribution);
     MaximumWeightMatching::intweight distribution_so_far(int shell_index);
     bool matching_is_perfect();
-
-    void print_current_state();
-    void print_search_state();
-    void print_vertex_state(NetworKit::node v);
-    void check_consistency();
-    void check_consistency(Blossom* B);
 
     static std::string label_to_str(Label label);
     static Edge reverse(const Edge& edge);
