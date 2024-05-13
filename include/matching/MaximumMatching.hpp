@@ -776,7 +776,6 @@ private:
 /**
  * @ingroup matching
  * The base class for the maximum cardinality matching algorithms.
- *
  */
 class MaximumCardinalityMatching : public NetworKit::Algorithm {
 
@@ -802,7 +801,7 @@ protected:
 
 /**
  * @ingroup matching
- * The class for the Edmonds maximum matching algorithm.
+ * The class for the Micali-Vazirani maximum cardinality matching algorithm.
  */
 class MicaliVaziraniMatching final : public MaximumCardinalityMatching {
 
