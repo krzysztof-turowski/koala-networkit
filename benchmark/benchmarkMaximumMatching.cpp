@@ -5,7 +5,7 @@
 #include <matching/MaximumMatching.hpp>
 #include <io/DimacsGraphReader.hpp>
 
-int main(int argc, char **argv) {   
+int main(int argc, char **argv) {
     if (argc < 3) {
         std::cout << "Usage: " << argv[0] << " algorithm filename" << std::endl;
         return 1;
@@ -42,7 +42,6 @@ int main(int argc, char **argv) {
 
             weight += static_cast<int>(G.weight(u, v));
         }
-            
     }
     std::cout << weight / 2 << std::endl;
 

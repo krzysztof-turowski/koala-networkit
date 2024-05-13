@@ -262,16 +262,15 @@ void GalilMicaliGabowMaximumMatching::handle_subblossom_shift(
 }
 
 void GalilMicaliGabowMaximumMatching::handle_odd_blossom_expansion(Blossom* blossom) {
-    auto remaining_nodes = &get_data(blossom)->nodes;
     auto remaining_edges = get_data(blossom)->even_edge_group;
-
     // Notice we don't remove blossom from z_odd as it's been done in get_odd_blossoms_to_expand()
 
     for (auto [b, e] : blossom->subblossoms) {
         // Split the node list of the expanded blossoms
         // Assign each subblossom a list
-        auto [nodes_b, nodes_rest] = remaining_nodes->split(nodes_refs[b->last_node], b, blossom);
-        remaining_nodes = nodes_rest;
+        auto [nodes_b, nodes_rest] = get_data(blossom)->nodes.split(nodes_refs[b->last_node], b, blossom);
+        get_data(blossom)->nodes = std::move(*nodes_rest);
+        delete nodes_rest;
         get_data(b)->nodes = std::move(*nodes_b);
         delete nodes_b;
 
@@ -315,6 +314,9 @@ void GalilMicaliGabowMaximumMatching::handle_odd_blossom_expansion(Blossom* blos
         }
     }
 
+    even_edges.delete_group(remaining_edges);
+    get_data(blossom)->even_edge_group = nullptr;
+
     // Scan the vertices that become even for the first time to find good and even edges
     // Do this only after all the other data is consistent
     for (auto [b, e] : blossom->subblossoms) {
@@ -327,12 +329,12 @@ void GalilMicaliGabowMaximumMatching::handle_odd_blossom_expansion(Blossom* blos
 void GalilMicaliGabowMaximumMatching::handle_even_blossom_expansion(Blossom* blossom) {
     if (blossom->is_trivial()) return;
 
-    auto remaining_nodes = &get_data(blossom)->nodes;
-
     for (auto [b, e] : blossom->subblossoms) {
-        auto [nodes_b, nodes_rest] = remaining_nodes->split(nodes_refs[b->last_node], b, blossom);
-        remaining_nodes = nodes_rest;
-        get_data(b)->nodes = std::move(*nodes_b); delete nodes_b;
+        auto [nodes_b, nodes_rest] = get_data(blossom)->nodes.split(nodes_refs[b->last_node], b, blossom);
+        get_data(blossom)->nodes = std::move(*nodes_rest);
+        delete nodes_rest;
+        get_data(b)->nodes = std::move(*nodes_b); 
+        delete nodes_b;
     }
 }
 

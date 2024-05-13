@@ -45,8 +45,8 @@ void BlossomMaximumMatching::run() {
         run_stage();
     }
 
+    // Copy root blossom pointers to separate container
     std::vector<Blossom*> final_blossoms(blossoms.begin(), blossoms.end());
-
     for (auto blossom : final_blossoms) {
         expand_final_blossom(blossom);
     }
@@ -458,9 +458,10 @@ void BlossomMaximumMatching::expand_odd_blossom(Blossom* blossom) {
 }
 
 void BlossomMaximumMatching::expand_even_blossom(Blossom* blossom) {
+    if (blossom->is_trivial()) return;
+    
     lazy_augment_path_in_blossom(blossom);
 
-    if (blossom->is_trivial()) return;
     for (auto [b, e] : blossom->subblossoms) {
         b->parent = nullptr;
         b->nodes.splice(b->nodes.end(), blossom->nodes,

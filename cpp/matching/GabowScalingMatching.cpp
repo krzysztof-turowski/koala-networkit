@@ -28,7 +28,7 @@ GabowScalingMatching::GabowScalingMatching(NetworKit::Graph &graph):
     matched_vertex(reducedGraph.upperNodeIdBound()),
     matched_edge(reducedGraph.upperNodeIdBound()),
     edge_in_matching(reducedGraph.upperEdgeIdBound()),
-    actual_to_contracted(reducedGraph.upperEdgeIdBound()),
+    actual_to_contracted(reducedGraph.upperNodeIdBound()),
     current_blossom(reducedGraph.upperNodeIdBound(), nullptr),
     vertex_path(reducedGraph.upperNodeIdBound(), nullptr),
     current_shell(reducedGraph.upperNodeIdBound()),
@@ -680,8 +680,6 @@ void GabowScalingMatching::delete_lists(Blossom* B) {
 }
 
 void GabowScalingMatching::grow(NetworKit::node v, Edge e) {
-    // if (e != no_edge) union_find.addegde(e.u, e.v)
-
     // Check if the vertex is free
     auto B = split_find_min.list(v);
     if (B->label != free)
@@ -691,7 +689,7 @@ void GabowScalingMatching::grow(NetworKit::node v, Edge e) {
 
     if (e != no_edge && slack(e) != 0) return;
 
-    if (edge_in_matching[e.id] || e == no_edge) {
+    if (e == no_edge || edge_in_matching[e.id]) {
         // Even blossom found, record the time
         B->label = even;
         B->t_root = B->t_even = event_queue.timeNow();

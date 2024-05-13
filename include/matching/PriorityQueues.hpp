@@ -283,10 +283,7 @@ class ConcatenableQueue {
 
     ConcatenableQueue& operator=(ConcatenableQueue&& other) {
         if (this != &other) {
-            root = other.root;
-            root_id = other.root_id;
-            other.root = nullptr;
-            fix_root();
+            swap(other);
         }
         return *this;
     }
@@ -475,11 +472,15 @@ class ConcatenableQueue {
             int path = iter->child_index(prev);
 
             for (int i = path - 1; i >= 0; --i) {
-                left = concat(iter->children[i], std::move(*left), id_left, false);
+                auto l = concat(iter->children[i], std::move(*left), id_left, false);
+                delete left;
+                left = l;
             }
 
             for (int i = path + 1; i < child_count; ++i) {
-                right = concat(std::move(*right), iter->children[i], id_right, false);
+                auto r = concat(std::move(*right), iter->children[i], id_right, false);
+                delete right;
+                right = r;
             }
 
             if (prev != split_element) delete prev;
@@ -1375,6 +1376,7 @@ class SplitFindMin {
     }
 
     static int alpha(int m, int n) {
+        if (m < n) return 1;
         int i = 1;
         while (A(i, m / n) < n) i++;
         return i;

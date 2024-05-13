@@ -122,6 +122,9 @@ TEST_P(MicaliVaziraniTest, test) {
 INSTANTIATE_TEST_SUITE_P(
     test_example, MaximumWeightMatchingTest, testing::Combine(
         testing::Values(
+            MaximumWeightMatchingParameters{3, {}, 0},
+            MaximumWeightMatchingParameters{3, {{0, 1, 1}}, 1},
+            MaximumWeightMatchingParameters{3, {{0, 1, 1}, {1, 2, 1}, {2, 0, 1}}, 1},
             MaximumWeightMatchingParameters{
                 12, {{1, 0, 4}, {2, 1, 2}, {4, 0, 4}, {4, 1, 12}, {4, 2, 3}, {6, 1, 17}, {6, 4, 6},
                      {6, 5, 19}, {7, 3, 13}, {8, 5, 5}, {8, 7, 12}, {9, 0, 16}, {9, 3, 11},
@@ -208,6 +211,9 @@ INSTANTIATE_TEST_SUITE_P(
 
 INSTANTIATE_TEST_SUITE_P(
     test_example, MicaliVaziraniTest, testing::Values(
+        MaximumCardinalityMatchingParameters{3, {}, 0},
+        MaximumCardinalityMatchingParameters{3, {{0, 1}}, 1},
+        MaximumCardinalityMatchingParameters{3, {{0, 1}, {1, 2}, {2, 0}}, 1},
         MaximumCardinalityMatchingParameters{
             12, {{3, 1}, {4, 0}, {4, 2}, {4, 3}, {5, 1}, {5, 2}, {6, 0}, {6, 3}, {6, 5}, {7, 0},
                  {7, 1}, {7, 3}, {7, 4}, {7, 5}, {8, 2}, {8, 3}, {8, 4}, {8, 5}, {8, 6}, {9, 0},
