@@ -76,7 +76,7 @@ TEST_P(MaximumWeightMatchingTest, test) {
     auto const& [matchingParams, matchingAlgorithm] = GetParam();
     NetworKit::Graph G = build_weighted_graph(matchingParams.N, matchingParams.E);
     G.indexEdges(true);
-    Koala::MaximumWeightMatching* algorithm;
+    Koala::MaximumWeightMatching* algorithm = nullptr;
 
     switch (matchingAlgorithm) {
         case edmonds:

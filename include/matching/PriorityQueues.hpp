@@ -7,16 +7,18 @@
 
 namespace Koala {
 
-// TODO split these structures to different files / rename the file
-// TODO make type names more consistent between analogous data structures / replace them with hardcoded types
+// TODO(rkilar):
+// * split these structures to different files / rename the file
+// * make type names more consistent between analogous data structures
+// * potentially replace some types with hardcoded NetwroKit types when applicable
 
 /**
- * Implementation of a binary heap with ability to remove elements. 
+ * Implementation of a binary heap with ability to remove elements.
  * Allows for iterating over all elements (not in order).
 */
 template<typename Key>
 class HeapWithRemove {
-public:
+ public:
     using handle_type = NetworKit::index;
     using const_iterator = typename std::vector<Key>::const_iterator;
     using iterator = const_iterator;
@@ -25,9 +27,9 @@ public:
 
     bool empty() const { return heap.empty(); }
 
-    void clear() { 
+    void clear() {
         heap.clear();
-        handle.clear(); 
+        handle.clear();
         heap_index.clear();
     }
 
@@ -44,7 +46,7 @@ public:
         return ref;
     }
 
-    Key top() const { return heap.front(); } 
+    Key top() const { return heap.front(); }
 
     void pop() { erase(handle[0]); }
 
@@ -59,11 +61,10 @@ public:
             push_down(index);
             push_up(index);
         }
-        
     }
-    
+
     void for_elements(const std::function<void(Key)>& handle) const {
-        for (auto v : heap) 
+        for (auto v : heap)
             handle(v);
     }
 
@@ -71,7 +72,7 @@ public:
 
     const_iterator end() const { return heap.end(); }
 
-private:
+ private:
     std::vector<Key> heap;
     std::vector<handle_type> handle;
     std::vector<NetworKit::index> heap_index;
@@ -116,24 +117,24 @@ private:
 };
 
 /**
- * Implementation of pq1 from the paper 'An O(EV log V) algorithm for finding a maximal 
- * weighted mathcing in general graphs' by Galil, Micali, Gabow. 
- * Used to store elements and their priorities and additionally allows for 
+ * Implementation of pq1 from the paper 'An O(EV log V) algorithm for finding a maximal
+ * weighted mathcing in general graphs' by Galil, Micali, Gabow.
+ * Used to store elements and their priorities and additionally allows for
  * decreasing all priorities by a given amount efficiently.
- * 
+ *
  * @tparam E type of elements
  * @tparam V type of values
  * @tparam P type of priority values
 */
 template<typename E, typename V, typename P>
 class PriorityQueue1 {
-public:
+ public:
     /**
      * Creates a queue that stores elements between 0 and size - 1.
-     * 
+     *
      * @param size the maximum value of elements that can be stored
     */
-    PriorityQueue1(E size): 
+    explicit PriorityQueue1(E size):
         heap(),
         element_handle(size),
         in_heap(size, false),
@@ -142,7 +143,7 @@ public:
 
     /**
      * Insert an element with given priority
-     * 
+     *
      * @param element the value of inserted element
      * @param priority the priority of inserted element
     */
@@ -162,25 +163,25 @@ public:
 
     /**
      * Remove the element with provided value
-     * 
+     *
      * @param element the value of element to remove
     */
-    void remove(E element) { 
-        heap.erase(element_handle[element]); 
+    void remove(E element) {
+        heap.erase(element_handle[element]);
         in_heap[element] = false;
     }
 
     /**
      * Remove the minimum element
     */
-    void remove_min() { 
+    void remove_min() {
         in_heap[heap.top().second] = false;
-        heap.pop(); 
+        heap.pop();
     }
 
     /**
      * Check if queue is empty
-     * 
+     *
      * @return 'true' if queue is empty, 'false' otherwise
     */
     bool empty() const { return heap.empty(); }
@@ -196,14 +197,14 @@ public:
 
     /**
      * Decrease all priorities of current elements by a provided value
-     * 
+     *
      * @param delta the amount by which to decrease priorities
     */
     void decrease_all_priorities(P delta) { Delta += delta; }
 
     /**
      * Check the current priority of element
-     * 
+     *
      * @param element the value of element to check
      * @returns current priority of the provided element
     */
@@ -213,7 +214,7 @@ public:
 
     /**
      * Find the current minimum element
-     * 
+     *
      * @return a pair containing the value of an element with lowest priority it's priority
     */
     std::pair<V, P> find_min() const {
@@ -223,7 +224,7 @@ public:
 
     /**
      * Find the current minimum element
-     * 
+     *
      * @return a pair containing the value of an element with lowest priority it's priority
     */
     std::tuple<E, V, P> find_min_element() const {
@@ -232,17 +233,18 @@ public:
     }
 
     /**
-     * Call function for each element of queue. The function receives the value and priority of each element
-     * 
+     * Call function for each element of queue. The function receives each element with it's
+     * priority and the associated value
+     *
      * @param handle the function to be called
     */
-    void for_elements(const std::function<void(E, V,P)>& handle) {
+    void for_elements(const std::function<void(E, V, P)>& handle) {
         for (auto entry : heap) {
             handle(entry.second, element_value[entry.second], entry.first - Delta);
         }
     }
 
-private:
+ private:
     P Delta = 0;
     using pair_heap = HeapWithRemove<std::pair<P, E>>;
     pair_heap heap;
@@ -253,27 +255,29 @@ private:
 };
 
 /**
- * Implementation of concatenable queues. Stores elements with their priorities. 
+ * Implementation of concatenable queues. Stores elements with their priorities.
  * Preserves the order of elements that is independent from their priorities.
  * Allows appending and inserting elements as well as concatenating queues and spliting them.
- * 
- * @tparam H type of head value stored in each queue (useful for identifying queues with find)
+ * Each queue has an associated id;
+ *
+ * @tparam Id type of the id value stored in each queue
  * @tparam E type of element values
  * @tparam P type of priority values
 */
-template<class H, class E, class P>
+template<class Id, class E, class P>
 class ConcatenableQueue {
-public:
+ public:
     struct Node;
     using handle_type = Node*;
+    using Self = ConcatenableQueue<Id, E, P>;
 
-    H head;
-    
-    ConcatenableQueue(H head): head(head), root(nullptr) {}
+    Id root_id;
+
+    explicit ConcatenableQueue(Id head): root_id(head), root(nullptr) {}
 
     ConcatenableQueue(ConcatenableQueue&& other) {
         root = other.root;
-        head = other.head;
+        root_id = other.root_id;
         other.root = nullptr;
         fix_root();
     }
@@ -281,7 +285,7 @@ public:
     ConcatenableQueue& operator=(ConcatenableQueue&& other) {
         if (this != &other) {
             root = other.root;
-            head = other.head;
+            root_id = other.root_id;
             other.root = nullptr;
             fix_root();
         }
@@ -296,23 +300,23 @@ public:
     }
 
     // Delete copy constructor as we don't want it used
-    // TODO implement copying maybe
-    ConcatenableQueue(const ConcatenableQueue<H, E, P>& other) = delete;
-    ConcatenableQueue& operator=(const ConcatenableQueue<H, E, P>& other) = delete;
+    // TODO(rkilar): implement copying maybe
+    ConcatenableQueue(const ConcatenableQueue& other) = delete;
+    ConcatenableQueue& operator=(const ConcatenableQueue& other) = delete;
 
-    void swap(ConcatenableQueue<H, E, P>& other) {
+    void swap(ConcatenableQueue& other) {
         std::swap(root, other.root);
-        std::swap(head, other.head);
+        std::swap(root_id, other.root_id);
         fix_root();
         other.fix_root();
     }
 
     /**
      * Append element to the end of queue
-     * 
+     *
      * @param element value of appended element
      * @param priority priority of appended element
-     * @return reference to inserted element, used for spliting and finding queues. 
+     * @return reference to inserted element, used for spliting and finding queues.
      *         Preserved by splits and concatenations.
     */
     handle_type append(E element, P priority) {
@@ -328,11 +332,11 @@ public:
 
     /**
      * Insert a new element after provided one
-     * 
+     *
      * @param ref reference to element after which the new one is to be inserted
      * @param element value of inserted element
      * @param priority priority of inserted element
-     * @return reference to inserted element, used for spliting and finding queues. 
+     * @return reference to inserted element, used for spliting and finding queues.
      *         Preserved by splits and concatenations.
     */
     handle_type insert_after(handle_type ref, E element, P priority) {
@@ -347,11 +351,11 @@ public:
 
     /**
      * Insert a new element before provided one
-     * 
+     *
      * @param ref reference to element before which the new one is to be inserted
      * @param element value of inserted element
      * @param priority priority of inserted element
-     * @return reference to inserted element, used for spliting and finding queues. 
+     * @return reference to inserted element, used for spliting and finding queues.
      *         Preserved by splits and concatenations.
     */
     handle_type insert_before(handle_type ref, E element, P priority) {
@@ -366,7 +370,7 @@ public:
 
     /**
      * Decreases priority of an element to a new value if it's better than the current one.
-     * 
+     *
      * @param ref reference to the element whose priority is to be updated
      * @param priority new priority
     */
@@ -381,17 +385,17 @@ public:
 
     /**
      * Check if queue is empty
-     * 
+     *
      * @return 'true' if queue is empty, 'false' otherwise
     */
     bool empty() const { return root == nullptr; }
 
     /**
      * Remove an element
-     * 
+     *
      * @param element_ref reference to the element to remove
     */
-    void remove(handle_type element_ref) {     
+    void remove(handle_type element_ref) {
         if (element_ref->parent == root && root->children_count() == 1) {
             delete root;
             delete element_ref;
@@ -404,46 +408,45 @@ public:
 
     /**
      * Find the current minimum element
-     * 
+     *
      * @return a pair containing the value of an element with lowest priority it's priority
     */
     std::pair<E, P> find_min() const {
         return { root->min_element, root->min_priority };
     }
 
-    // TODO different memory management, maybe unique pointers?
     /**
      * Concatenate two queues
-     * 
+     *
      * @param left the left queue to concatenate
      * @param right the right queue to concatenat
      * @return pointer to a new queue that is a concatenation of the two provided queues
     */
-    static ConcatenableQueue<H, E, P>* concat(
-            ConcatenableQueue<H, E, P>&& left, ConcatenableQueue<H, E, P>&& right, 
-            H head, bool update_min = true) {
-        auto new_left = new ConcatenableQueue<H, E, P>(std::move(left));
+    static ConcatenableQueue<Id, E, P>* concat(
+            ConcatenableQueue<Id, E, P>&& left, ConcatenableQueue<Id, E, P>&& right,
+            Id head, bool update_min = true) {
+        auto new_left = new ConcatenableQueue<Id, E, P>(std::move(left));
         new_left->concat(std::move(right), head, update_min);
         return new_left;
     }
 
     /**
      * Concatenate the provieded queue to the end of the current one while updating the head value.
-     * 
+     *
      * @param other the left queue to concatenate
      * @param new_head the head value of the new queue
     */
-    void concat(ConcatenableQueue<H, E, P>&& other, H new_head, bool update_min = true) {
-        if (other.empty()) { head = new_head; return; }
+    void concat(ConcatenableQueue<Id, E, P>&& other, Id new_head, bool update_min = true) {
+        if (other.empty()) { root_id = new_head; return; }
         if (empty()) {
             *this = std::move(other);
-            head = new_head;
+            root_id = new_head;
             return;
         }
-        head = new_head;
-        Node* left = root; 
+        root_id = new_head;
+        Node* left = root;
         cut(left);
-        Node* right = other.root; 
+        Node* right = other.root;
         cut(right);
         if (left->height == right->height) {
             root = Node::from_children(this, left, right);
@@ -461,23 +464,23 @@ public:
         other.root = nullptr;
     }
 
-    std::pair<ConcatenableQueue<H, E, P>*, ConcatenableQueue<H, E, P>*> 
-    split(handle_type split_element, H head_left, H head_right) {
+    std::pair<ConcatenableQueue*, ConcatenableQueue*>
+    split(handle_type split_element, Id id_left, Id id_right) {
         Node* prev = split_element;
         Node* iter = split_element->parent;
-        ConcatenableQueue<H, E, P>* left = new ConcatenableQueue<H, E, P>(head_left, split_element);
-        ConcatenableQueue<H, E, P>* right = new ConcatenableQueue<H, E, P>(head_right);
+        ConcatenableQueue* left = new ConcatenableQueue(id_left, split_element);
+        ConcatenableQueue* right = new ConcatenableQueue(id_right);
 
         while (iter != nullptr) {
             int child_count = iter->children_count();
             int path = iter->child_index(prev);
 
-            for (int i = path - 1; i >= 0; -- i) { 
-                left = concat(iter->children[i], std::move(*left), head_left, false);
+            for (int i = path - 1; i >= 0; --i) {
+                left = concat(iter->children[i], std::move(*left), id_left, false);
             }
 
-            for (int i = path + 1; i < child_count; ++ i) {
-                right = concat(std::move(*right), iter->children[i], head_right, false);
+            for (int i = path + 1; i < child_count; ++i) {
+                right = concat(std::move(*right), iter->children[i], id_right, false);
             }
 
             if (prev != split_element) delete prev;
@@ -504,17 +507,17 @@ public:
             while (iter->parent != nullptr) iter = iter->parent;
             return iter->queue;
         }
-    
-    private:
 
-        ConcatenableQueue<H, E, P>* queue; // Correct in the root
+     private:
+        // Pointer to the queue which is correct in the root
+        ConcatenableQueue* queue;
         Node* parent;
         Node* children[3];
         int height;
         E min_element;
         P min_priority;
 
-        Node(ConcatenableQueue<H, E, P>* queue, E element, P priority): 
+        Node(ConcatenableQueue* queue, E element, P priority):
             queue(queue),
             parent(nullptr),
             children{nullptr, nullptr, nullptr},
@@ -522,7 +525,7 @@ public:
             min_element(element),
             min_priority(priority) {}
 
-        static Node* from_child(ConcatenableQueue<H, E, P>* queue, Node* child) {
+        static Node* from_child(ConcatenableQueue* queue, Node* child) {
             Node* node = new Node(queue, child->min_element, child->min_priority);
             node->children[0] = child;
             node->height = child->height + 1;
@@ -530,7 +533,7 @@ public:
             return node;
         }
 
-        static Node* from_children(ConcatenableQueue<H, E, P>* queue, Node* left, Node* right) {
+        static Node* from_children(ConcatenableQueue* queue, Node* left, Node* right) {
             Node* node = new Node(queue, left->min_element, left->min_priority);
             node->children[0] = left;
             node->children[1] = right;
@@ -554,7 +557,7 @@ public:
         void update_min() {
             min_element = children[0]->min_element;
             min_priority = children[0]->min_priority;
-            for (int i = 1; i < 3; ++ i) {
+            for (int i = 1; i < 3; ++i) {
                 if (children[i] == nullptr) break;
                 if (children[i]->min_priority < min_priority) {
                     min_priority = children[i]->min_priority;
@@ -565,14 +568,14 @@ public:
 
         void update_min_until_root() {
             update_min();
-            
-            if (parent != nullptr) { 
+
+            if (parent != nullptr) {
                 parent->update_min_until_root();
-            } 
+            }
         }
-    
+
         int child_index(Node* child) {
-            for (int i = 0; i < 3; ++ i) 
+            for (int i = 0; i < 3; ++i)
                 if (children[i] == child)
                     return i;
             return -1;
@@ -611,32 +614,32 @@ public:
                 handle(min_element, min_priority);
                 return;
             }
-            for (int i = 0; i < 3; ++ i) {
+            for (int i = 0; i < 3; ++i) {
                 if (children[i] == nullptr) return;
                 children[i]->for_each(handle);
             }
         }
 
         void delete_children() {
-            for (int i = 0; i < 3; ++ i)
+            for (int i = 0; i < 3; ++i)
                 if (children[i] != nullptr) {
                     children[i]->delete_children();
                     delete children[i];
                 }
         }
 
-        friend class ConcatenableQueue<H, E, P>;
+        friend class ConcatenableQueue;
     };
 
-private:
+ private:
     Node* root;
 
-    ConcatenableQueue(H head, E element, P priority): 
-        head(head), 
+    ConcatenableQueue(Id id, E element, P priority):
+        root_id(id),
         root(new Node(element, priority)) {}
 
-    ConcatenableQueue(H head, Node* element): 
-            head(head) {
+    ConcatenableQueue(Id id, Node* element):
+            root_id(id) {
         if (element->height == 0) {
             root = Node::from_child(this, element);
             element->parent = root;
@@ -648,29 +651,29 @@ private:
         fix_root();
     }
 
-    static ConcatenableQueue<H, E, P>* concat(
-            ConcatenableQueue<H, E, P>&& left, ConcatenableQueue<H, E, P>::Node* right, 
-            H head, bool update_min = true) {
-        ConcatenableQueue<H, E, P> right_que(head, right);
-        return concat(std::move(left), std::move(right_que), head, update_min);
+    static ConcatenableQueue* concat(
+            ConcatenableQueue&& left, ConcatenableQueue::Node* right,
+            Id id, bool update_min = true) {
+        ConcatenableQueue right_que(id, right);
+        return concat(std::move(left), std::move(right_que), id, update_min);
     }
 
-    static ConcatenableQueue<H, E, P>* concat(
-                ConcatenableQueue<H, E, P>::Node* left, ConcatenableQueue<H, E, P>&& right, 
-            H head, bool update_min = true) {
-        ConcatenableQueue<H, E, P> left_que(head, left);
-        return concat(std::move(left_que), std::move(right), head, update_min);
+    static ConcatenableQueue* concat(
+                ConcatenableQueue::Node* left, ConcatenableQueue&& right,
+            Id id, bool update_min = true) {
+        ConcatenableQueue left_que(id, left);
+        return concat(std::move(left_que), std::move(right), id, update_min);
     }
 
-    void fix_root() { 
-        if (root != nullptr) { 
-            root->parent = nullptr; 
-            root->queue = this; 
-        } 
+    void fix_root() {
+        if (root != nullptr) {
+            root->parent = nullptr;
+            root->queue = this;
+        }
     }
 
     void insert_child(Node** children, int index, int child_count, Node* child) {
-        for (int i = child_count; i > index; -- i)
+        for (int i = child_count; i > index; --i)
             children[i] = children[i-1];
         children[index] = child;
     }
@@ -684,7 +687,7 @@ private:
             make_new_root(after, child);
             return;
         }
-        
+
         int after_index = target->child_index(after);
         insert_child_at_index(target, after_index + 1, child);
     }
@@ -694,7 +697,7 @@ private:
             make_new_root(child, before);
             return;
         }
-        
+
         int before_index = target->child_index(before);
         insert_child_at_index(target, before_index, child);
     }
@@ -705,7 +708,7 @@ private:
             insert_child(target->children, index, child_count, child);
             child->parent = target;
         } else {
-            Node* four_children[4] = { target->children[0], target->children[1], 
+            Node* four_children[4] = { target->children[0], target->children[1],
                                        target->children[2], nullptr };
             insert_child(four_children, index, child_count, child);
             target->children[0] = four_children[0]; four_children[0]->parent = target;
@@ -721,7 +724,7 @@ private:
     void remove_child(Node* from, Node* child) {
         int children = from->children_count();
         int child_index = from->child_index(child);
-        for (int i = child_index; i < children - 1; ++ i)
+        for (int i = child_index; i < children - 1; ++i)
             from->children[i] = from->children[i+1];
         from->children[children - 1] = nullptr;
         from->update_min();
@@ -745,7 +748,7 @@ private:
 
     void cut(Node*& node) {
         if (node->children_count() > 1) return;
-        node = node->children[0]; 
+        node = node->children[0];
         delete node->parent;
         node->parent = nullptr;
     }
@@ -808,22 +811,22 @@ private:
 };
 
 /**
- * Implementation of pq2 from the paper 'An O(EV log V) algorithm for finding a maximal 
- * weighted mathcing in general graphs' by Galil, Micali, Gabow. 
+ * Implementation of pq2 from the paper 'An O(EV log V) algorithm for finding a maximal
+ * weighted mathcing in general graphs' by Galil, Micali, Gabow.
  * Used to store elements and their priorities.
  * The elements are divided into groups that can be either active or nonactive.
  * Allows for changing the status of a group, changing priorities off all elements in active groups,
  * splitting groups
- * 
+ *
  * @tparam E type of elements
  * @tparam V type of values
  * @tparam P type of priority values
 */
 template<typename E, typename V, typename P>
 class PriorityQueue2 {
-public:
-    class Group { 
-    public:
+ public:
+    class Group {
+     public:
         bool has_elements() const {
             return !elements.empty();
         }
@@ -838,16 +841,18 @@ public:
             return active;
         }
 
-    private:
-        Group(bool active, P Delta_last, P Delta_group): 
+     private:
+        using ElementQueue = ConcatenableQueue<Group*, E, std::pair<P, V>>;
+
+        Group(bool active, P Delta_last, P Delta_group):
             elements(this), active(active), Delta_last(Delta_last), Delta_group(Delta_group) {}
 
-        Group(ConcatenableQueue<Group*, E, std::pair<P, V>>&& elements_, 
-                bool active, P Delta_last, P Delta_group): 
-            elements(std::move(elements_)),
-            active(active), Delta_last(Delta_last), Delta_group(Delta_group) {
-
-            elements.head = this;
+        Group(ElementQueue&& elements_, bool active, P Delta_last, P Delta_group):
+                elements(std::move(elements_)),
+                active(active),
+                Delta_last(Delta_last),
+                Delta_group(Delta_group) {
+            elements.root_id = this;
         }
 
         void update_Delta(P Delta) {
@@ -864,25 +869,25 @@ public:
 
         friend class PriorityQueue2;
     };
-    
+
     /**
      * Creates a queue that stores elements between 0 and size - 1.
-     * 
+     *
      * @param size the maximum value of elements that can be stored
      * @param no_element placeholder for lack of element
      * @param no_value placeholder value
      * @param infinite_priority upper limit for priority
     */
-    PriorityQueue2(E size, E no_element, V no_value, P infinite_priority): 
+    PriorityQueue2(E size, E no_element, V no_value, P infinite_priority):
         no_element(no_element),
         no_value(no_value),
         infinite_priority(infinite_priority),
-        group_minima(size), 
+        group_minima(size),
         elements(size, nullptr) {}
 
     /**
      * Append an element with given priority to the end group
-     * 
+     *
      * @param element the value of inserted element
      * @param priority the priority of inserted element
      * @param group the group to which the new element belongs
@@ -903,7 +908,7 @@ public:
 
     /**
      * Insert an element with given priority into group before element
-     * 
+     *
      * @param element the value of inserted element
      * @param priority the priority of inserted element
      * @param before the value of element before which the new element is inserted
@@ -913,9 +918,9 @@ public:
         group->update_Delta(Delta);
         auto [last_min, last_value, last_min_priority] = group_minimum(group);
 
-        elements[element] = group->elements.insert_before(elements[before], element, 
+        elements[element] = group->elements.insert_before(elements[before], element,
             {priority + group->Delta_group, value});
-        
+
         // Check if the new element is the minimum in group
         if (group->active && std::get<0>(group->find_min()) == element && value != no_value) {
             if (last_min != no_element)
@@ -925,9 +930,9 @@ public:
     }
 
     /**
-     * Change priority of an element to a new value if it's lower than the current one, in which 
+     * Change priority of an element to a new value if it's lower than the current one, in which
      * case also update the associated value
-     * 
+     *
      * @param element the value of the element whose priority is to be changed
      * @param value value associated with the new priority
      * @param priority the new priority of the element
@@ -939,8 +944,9 @@ public:
 
         if (last_min == element && last_min_priority <= priority) return;
 
-        group->elements.decrease_priority(elements[element], {priority + group->Delta_group, value});
-        
+        group->elements.decrease_priority(
+            elements[element], {priority + group->Delta_group, value});
+
         // Check if the new element is the minimum in group
         if (group->active && std::get<0>(group->find_min()) == element && value != no_value) {
             if (last_min != no_element)
@@ -951,7 +957,7 @@ public:
 
     /**
      * Check if there are any elements in active groups
-     * 
+     *
      * @return 'true' if there is an active nonempty group, 'false' otherwise
     */
     bool has_active_elements() const {
@@ -960,7 +966,7 @@ public:
 
     /**
      * Find the current minimum element in any active group
-     * 
+     *
      * @return a pair containing the value associated with the lowest priority and the priority
     */
     std::pair<V, P> find_min() const {
@@ -969,8 +975,8 @@ public:
 
     /**
      * Find the current minimum element in any active group
-     * 
-     * @return a tuple containing the element with the lowest priority, the associated value and 
+     *
+     * @return a tuple containing the element with the lowest priority, the associated value and
      * the priority
     */
     std::tuple<E, V, P> find_min_element() const {
@@ -979,17 +985,17 @@ public:
 
     /**
      * Decrease all priorities of current elements in active groups by a provided value
-     * 
+     *
      * @param delta the amount by which to decrease priorities
     */
-    void decrease_all_priorities(P delta) { 
-        Delta += delta; 
+    void decrease_all_priorities(P delta) {
+        Delta += delta;
         group_minima.decrease_all_priorities(delta);
     }
 
     /**
      * Create a new group
-     * 
+     *
      * @param active status of new group
      * @return reference to the new group
     */
@@ -999,7 +1005,7 @@ public:
 
     /**
      * Delete a group
-     * 
+     *
      * @param group the group to be deleted
     */
     void delete_group(Group* group) {
@@ -1012,7 +1018,7 @@ public:
 
     /**
      * Change the status of a group
-     * 
+     *
      * @param group group whose status is to be changed
      * @param active the new status of the group
     */
@@ -1032,11 +1038,12 @@ public:
 
     /**
      * Split a given group acording to the given element
-     * 
+     *
      * @param group the group to be split
      * @param element the value of the element according to which the groups are to be split
-     * @return a pair containing the two new groups, the first contains elements from beginning of group
-     *      until and containing the split element, the second one contains elements after the element
+     * @return a pair containing the two new groups, the first contains elements from beginning
+     *      of group until and containing the split element, the second one contains elements after
+     *      the element
     */
     std::pair<Group*, Group*> split_group(Group* group, E element) {
         group->update_Delta(Delta);
@@ -1046,15 +1053,15 @@ public:
             group_minima.remove(e);
         }
 
-        auto [elements_left, elements_right] = group->elements.split(elements[element], group, group);
+        auto [left, right] = group->elements.split(elements[element], group, group);
 
-        Group* group_left  = new Group(std::move(*elements_left),
+        Group* group_left  = new Group(std::move(*left),
                                 group->active, group->Delta_last, group->Delta_group);
-        Group* group_right = new Group(std::move(*elements_right),
+        Group* group_right = new Group(std::move(*right),
                                 group->active, group->Delta_last, group->Delta_group);
 
         if (group->active) {
-            if(!is_empty(group)) {
+            if (!is_empty(group)) {
                 auto [e, v, p] = group->find_min();
                 group_minima.remove(e);
             }
@@ -1079,12 +1086,12 @@ public:
     void shift_group(Group* group, E element) {
         group->update_Delta(Delta);
 
-        auto [elements_left, elements_right] = group->elements.split(elements[element], group, group);
+        auto [left, right] = group->elements.split(elements[element], group, group);
 
-        elements_right->concat(std::move(*elements_left), group);
-        group->elements = std::move(*elements_right);
-        delete elements_left;
-        delete elements_right;
+        right->concat(std::move(*left), group);
+        group->elements = std::move(*right);
+        delete left;
+        delete right;
     }
 
     void for_each_in_group(Group* group, const std::function<void(E, V, P)>& handle) {
@@ -1098,10 +1105,9 @@ public:
         group_minima.for_elements(handle);
     }
 
-private:
-
+ private:
     std::tuple<E, V, P> group_minimum(Group* group) {
-        return is_empty(group) ? 
+        return is_empty(group) ?
             std::make_tuple(no_element, no_value, infinite_priority) : group->find_min();
     }
 
@@ -1110,38 +1116,37 @@ private:
     V no_value;
     P infinite_priority;
     PriorityQueue1<E, V, P> group_minima;
-    std::vector<typename ConcatenableQueue<Group*, E, typename std::pair<P, V>>::handle_type> elements;
+    std::vector<typename Group::ElementQueue::handle_type> elements;
 };
 
 /**
- * Implementation of the union-find data structure operating on elements from a provided 
+ * Implementation of the union-find data structure operating on elements from a provided
  * interval. Allows for linking sets of two provided elements.
  * Each set is associated with a value that can be set when linking two sets and that is returned
  * when calling the find method.
- * 
+ *
  * @tparam I type of elmenents
  * @tparam R type of the value assigned to each set
 */
 template <typename I, typename R>
 class UnionFind {
-public:
-    
+ public:
     /**
      * Creates a union-find data structure for storing elements between 0 and size - 1
-     * 
+     *
      * @param size upper bound on the elements that can be stored
     */
-    UnionFind(I size): size(size), root(size), parent(size), rank(size) {}
+    explicit UnionFind(I size): size(size), root(size), parent(size), rank(size) {}
 
     /**
      * Resets the data structure for a provided element. After calling the method the element
-     * is in a set associated with a provided value. This is set might contain more than the 
-     * provided element. In order for the data structure to represent only singletons the method 
+     * is in a set associated with a provided value. This is set might contain more than the
+     * provided element. In order for the data structure to represent only singletons the method
      * has to be called for all elements that have been previously linked.
-     * 
+     *
      * This is done individually so that operations can be done on an arbitrary subset of elements
      * between 0 and size - 1 without having to reset all size values.
-     * 
+     *
      * @param element value of the element to be reset
      * @param value value that is to be associated with the element's new set
     */
@@ -1153,7 +1158,7 @@ public:
 
     /**
      * Links sets of two provided elements.
-     * 
+     *
      * @param x first element
      * @param y second element
      * @param value the value that is to associated with the created set
@@ -1169,21 +1174,21 @@ public:
             parent[ry] = rx;
             root[rx] = value;
             if (rank[rx] == rank[ry]) {
-                rank[rx] ++;
+                rank[rx]++;
             }
-        } 
+        }
     }
 
     /**
      * Returns the value associated with the set that the provided element belongs to.
-     * 
+     *
      * @param element value of the element
     */
     R find(I element) {
         return root[find_root(element)];
     }
 
-private:
+ private:
     I size;
     std::vector<R> root;
     std::vector<I> parent;
@@ -1198,9 +1203,9 @@ private:
  * Implementation of the split-findmin data structure based on the list splitting algorithm
  * as described in the paper 'A Scaling Algorithm for Weighted Matching on General Graphs'
  * by Harold N. Gabow.
- * 
+ *
  * The data structure deals with elements between 0 and and a provided size. Every element can be in
- * at most one list and has an associated cost. The cost of a list is the smallest cost of any of 
+ * at most one list and has an associated cost. The cost of a list is the smallest cost of any of
  * it's elements. Each list has an id.
  * The structure allows for decreasing a cost a specific element to a given value, splitting
  * lists on provided element and finding the costs of lists and the elements that achieve the
@@ -1208,15 +1213,15 @@ private:
 */
 template<typename T, typename H, typename K, typename V>
 class SplitFindMin {
-public: 
+ public:
     class List;
     /**
      * Creates a split-findmin data structure with level alpha(m, n)
-     * 
+     *
      * @param size maximum value of a stored element
      * @param infinity default value for a key
      * @param empty_val default value for a value associated with a key
-     * @param n parameter used in calculating the level 
+     * @param n parameter used in calculating the level
      * @param m parameter used in calculating the level
     */
     SplitFindMin(T size, K infinity, V empty_val, int n, int m):
@@ -1225,7 +1230,7 @@ public:
     /**
      * Creates a list from a provided lists of elements with a given id.
      * All elements have default key values.
-     * 
+     *
      * @param nodes elements to create a list of
      * @param id id associated with the list
      * @returns pointer to the new list
@@ -1245,7 +1250,7 @@ public:
 
     /**
      * Returns the id of the list containing the provided element
-     * 
+     *
      * @param element value of the element whose list's id is to be returned
      * @returns the id of the list containing the provided element
     */
@@ -1255,9 +1260,9 @@ public:
 
     /**
      * Splits the list containing the provided element into two list - one containing all the
-     * elements up to the provided one and a second one containg the remaining elements. The two lists
-     * are given a new id.
-     * 
+     * elements up to the provided one and a second one containg the remaining elements.
+     * The two lists are given new ids.
+     *
      * @param element the element on whose position to split it's list
      * @param id1 the new id of the list containg elements up to the provided one
      * @param id2 the new id of the list containg remaining elements
@@ -1269,7 +1274,7 @@ public:
 
     /**
      * Updates the key of the element if the new one is lower
-     * 
+     *
      * @param element the element whose key is to be updated
      * @param key value of the key
      * @param value value associated with the key
@@ -1280,7 +1285,7 @@ public:
 
     /**
      * Returns the minimum key of an element of the list and it's associated value
-     * 
+     *
      * @param L list whose minimum key is returned
      * @returns pair containing the minimum key in the list and it's associated value
     */
@@ -1290,7 +1295,7 @@ public:
 
     /**
      * Returns the current key of an element and it's associated value
-     * 
+     *
      * @param element elements for which current key and it's value is returned
      * @returns pair containing the current key of the provided element and it's associated value
     */
@@ -1300,7 +1305,7 @@ public:
 
     /**
      * Deletes the list
-     * 
+     *
      * @param L the list to be deleted
     */
     void deleteList(List* L) {
@@ -1309,8 +1314,7 @@ public:
     }
 
     struct Sublist {
-    private:
-
+     private:
         int level;
         bool head;
         List* list;
@@ -1324,7 +1328,7 @@ public:
     };
 
     class List {
-    public:
+     public:
         void clear() {
             head_singletons.clear();
             for (auto s : head) delete s;
@@ -1339,7 +1343,7 @@ public:
             clear();
         }
 
-    private:
+     private:
         H id;
         int i;
         K min_key;
@@ -1352,8 +1356,7 @@ public:
         friend class SplitFindMin;
     };
 
-private:
-
+ private:
     // Hardcoded values of Ackermann's function below 1000000000
     static constexpr int inf_size = 1000000000;
     static constexpr int A2[4] = {2, 4, 16, 65536};
@@ -1368,20 +1371,20 @@ private:
 
     static int a(int i, int n) {
         int j = -1;
-        while (2 * A(i, j + 1) <= n) j ++;
+        while (2 * A(i, j + 1) <= n) j++;
         return j;
     }
 
     static int alpha(int m, int n) {
         int i = 1;
-        while (A(i, m / n) < n) i ++;
+        while (A(i, m / n) < n) i++;
         return i;
     }
 
     SplitFindMin(T size, K infinity, V empty_val, int level):
         max_i(level),
-        size(size), 
-        infinity(infinity), 
+        size(size),
+        infinity(infinity),
         empty_val(empty_val),
         e(level + 1),
         key(level + 1),
@@ -1389,7 +1392,7 @@ private:
         element_list(level + 1),
         list_it(level + 1),
         superelement_nodes(level + 1) {
-            for (int i = 0; i <= level; ++ i) {
+            for (int i = 0; i <= level; ++i) {
                 e[i] = std::vector<T>(size, -1);
                 element_list[i] = std::vector<List*>(size, nullptr);
                 key[i] = std::vector<K>(size, infinity),
@@ -1398,7 +1401,7 @@ private:
                 superelement_nodes[i] = std::vector<std::list<T>>(size);
             }
         }
-    
+
     int max_i;
     T size;
     K infinity;
@@ -1412,7 +1415,7 @@ private:
 
     void initialize_head(List* L, const std::list<T>& nodes, H id, int i) {
         auto nodes_cpy = nodes;
-        for (auto it = nodes_cpy.begin(); it != nodes_cpy.end(); ++ it)
+        for (auto it = nodes_cpy.begin(); it != nodes_cpy.end(); ++it)
             list_it[i][*it] = it;
         L->nodes.splice(L->nodes.begin(), std::move(nodes_cpy));
 
@@ -1424,7 +1427,7 @@ private:
 
         do {
             int prev_j = j;
-            while (j >= 0 && 2 * A(i, j) > remaining) -- j;
+            while (j >= 0 && 2 * A(i, j) > remaining) --j;
 
             if (j != prev_j) {
                 if (sublist != nullptr) {
@@ -1437,7 +1440,7 @@ private:
 
                     initialize_head(sublist->elements, sublist_elements, id, i - 1);
                     sublist_elements.clear();
-                    
+
                     L->head.push_front(sublist);
                     sublist->sublist_it = L->head.begin();
                 }
@@ -1449,7 +1452,7 @@ private:
                     sublist->level = j;
                     sublist->head = true;
                 }
-            }    
+            }
 
             if (j == -1) {
                 T singleton = *it;
@@ -1457,7 +1460,7 @@ private:
                 element_list[i][singleton] = L;
 
                 L->head_singletons.push_front(singleton);
-                it ++;
+                it++;
             } else {
                 int size = 2 * A(i, j);
                 T superelement = *it;
@@ -1466,9 +1469,9 @@ private:
                 val[i-1][superelement] = empty_val;
 
                 std::list<T> se_nodes;
-                for (int j = 0; j < size; ++ j) {
+                for (int j = 0; j < size; ++j) {
                     se_nodes.push_front(*it);
-                    it ++;
+                    it++;
                 }
 
                 for (auto n : se_nodes) {
@@ -1491,7 +1494,7 @@ private:
             sublist->elements->min_val = empty_val;
 
             initialize_head(sublist->elements, sublist_elements, id, i - 1);
-            
+
             L->head.push_front(sublist);
             sublist->sublist_it = L->head.begin();
         }
@@ -1501,7 +1504,7 @@ private:
 
     void initialize_tail(List* L, const std::list<T>& nodes, H id, int i) {
         auto nodes_cpy = nodes;
-        for (auto it = nodes_cpy.begin(); it != nodes_cpy.end(); ++ it)
+        for (auto it = nodes_cpy.begin(); it != nodes_cpy.end(); ++it)
             list_it[i][*it] = it;
         L->nodes.splice(L->nodes.end(), std::move(nodes_cpy));
 
@@ -1513,7 +1516,7 @@ private:
 
         do {
             int prev_j = j;
-            while (j >= 0 && 2 * A(i, j) > remaining) -- j;
+            while (j >= 0 && 2 * A(i, j) > remaining) --j;
 
             if (j != prev_j) {
                 if (sublist != nullptr) {
@@ -1526,7 +1529,7 @@ private:
 
                     initialize_tail(sublist->elements, sublist_elements, id, i - 1);
                     sublist_elements.clear();
-                    
+
                     L->tail.push_back(sublist);
                     sublist->sublist_it = std::prev(L->tail.end());
                 }
@@ -1538,21 +1541,21 @@ private:
                     sublist->level = j;
                     sublist->head = false;
                 }
-            }    
+            }
 
             if (j == -1) {
                 T singleton = *it;
                 e[i][singleton] = -1;
                 element_list[i][singleton] = L;
                 L->tail_singletons.push_back(singleton);
-                it ++;
+                it++;
             } else {
                 int size = 2 * A(i, j);
 
                 std::list<T> se_nodes;
-                for (int j = 0; j < size; ++ j) {
+                for (int j = 0; j < size; ++j) {
                     se_nodes.push_back(*it);
-                    it ++;
+                    it++;
                 }
 
                 T superelement = se_nodes.back();
@@ -1580,7 +1583,7 @@ private:
             sublist->elements->min_val = empty_val;
 
             initialize_tail(sublist->elements, sublist_elements, id, i - 1);
-            
+
             L->tail.push_back(sublist);
             sublist->sublist_it = std::prev(L->tail.end());
         }
@@ -1620,7 +1623,8 @@ private:
             L2->i = i;
             L2->min_key = infinity;
             L2->min_val = empty_val;
-            L2->nodes.splice(L2->nodes.begin(), L1->nodes, std::next(list_it[i][x]), L1->nodes.end());
+            L2->nodes.splice(L2->nodes.begin(), L1->nodes,
+                std::next(list_it[i][x]), L1->nodes.end());
 
             auto head_it = std::find(L1->head_singletons.begin(), L1->head_singletons.end(), x);
             auto tail_it = std::find(L1->tail_singletons.begin(), L1->tail_singletons.end(), x);
@@ -1634,7 +1638,7 @@ private:
             } else {
                 assert(tail_it != L1->tail_singletons.end());
 
-                L2->tail_singletons.splice(L2->tail_singletons.end(), L1->tail_singletons, 
+                L2->tail_singletons.splice(L2->tail_singletons.end(), L1->tail_singletons,
                                            std::next(tail_it), L1->tail_singletons.end());
             }
 
@@ -1666,7 +1670,7 @@ private:
             S2sublist->level = S1->sublist->level;
             S2sublist->head = S1->sublist->head;
 
-            auto xit = std::find(superelement_nodes[i][superelement].begin(), 
+            auto xit = std::find(superelement_nodes[i][superelement].begin(),
                                  superelement_nodes[i][superelement].end(), x);
             std::list<T> nodes1(superelement_nodes[i][superelement].begin(), std::next(xit));
             std::list<T> nodes2(std::next(xit), superelement_nodes[i][superelement].end());
@@ -1680,11 +1684,11 @@ private:
             L2->min_key = infinity;
             L2->min_val = empty_val;
 
-            L2->nodes.splice(L2->nodes.begin(), L1->nodes, 
+            L2->nodes.splice(L2->nodes.begin(), L1->nodes,
                              std::next(list_it[i][superelement_nodes[i][superelement].back()]),
                              L1->nodes.end());
-            
-            L1->nodes.erase(list_it[i][superelement_nodes[i][superelement].front()], 
+
+            L1->nodes.erase(list_it[i][superelement_nodes[i][superelement].front()],
                             L1->nodes.end());
 
             if (S1->sublist->head) {
@@ -1766,7 +1770,7 @@ private:
 
 template<typename T>
 class ArrayPriorityQueue {
-public:
+ public:
     ArrayPriorityQueue() { reset(); }
 
     void scheduleEvent(int time, T event) {
@@ -1790,15 +1794,15 @@ public:
         time = 0;
     }
 
-private:
+ private:
     int time;
     size_t it;
     std::vector<std::vector<T>> event_queue;
 
     void advanceToNext() {
-        it ++;
+        it++;
         while (it >= event_queue[time].size()) {
-            time ++;
+            time++;
             it = 0;
         }
     }
@@ -1806,9 +1810,9 @@ private:
 
 
 class FenwickTree {
-public:
+ public:
     int sum(int index) {
-        index ++;
+        index++;
         int res = 0;
         for (; index > 0; index -= index & (-index))
             res += T[index];
@@ -1816,20 +1820,19 @@ public:
     }
 
     void add(int index, int val) {
-        index ++;
+        index++;
         for (; index < T.size(); index += index & (-index))
             T[index] += val;
     }
 
     void reset(int size) {
         T.resize(size + 1);
-        for (int i = 0; i <= size; ++ i)
+        for (int i = 0; i <= size; ++i)
             T[i] = 0;
     }
 
-private:
+ private:
     std::vector<int> T;
 };
 
-
-} // namespace Koala
+} /* namespace Koala */

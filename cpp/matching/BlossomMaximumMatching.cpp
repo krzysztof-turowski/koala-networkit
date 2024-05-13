@@ -71,13 +71,12 @@ void BlossomMaximumMatching::run_stage() {
 }
 
 bool BlossomMaximumMatching::run_substage() {
-
     initialize_substage();
 
     while (has_useful_edges()) {
         auto edge = get_useful_edge();
 
-        if (consider_edge(edge)) 
+        if (consider_edge(edge))
             return false;
     }
 

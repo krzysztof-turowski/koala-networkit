@@ -243,7 +243,8 @@ void GalilMicaliGabowMaximumMatching::handle_new_blossom(Blossom* new_blossom) {
     z_even.insert(new_blossom->initial_base, new_blossom, 0);
 }
 
-void GalilMicaliGabowMaximumMatching::handle_subblossom_shift(Blossom* blossom, Blossom* subblossom) {
+void GalilMicaliGabowMaximumMatching::handle_subblossom_shift(
+        Blossom* blossom, Blossom* subblossom) {
     auto data = get_data(blossom);
 
     // Change the order of nodes in the blossom node
@@ -397,7 +398,7 @@ GalilMicaliGabowMaximumMatching::get_odd_blossoms_to_expand() {
 
 GalilMicaliGabowMaximumMatching::Blossom*
 GalilMicaliGabowMaximumMatching::get_blossom(NetworKit::node vertex) {
-    return nodes_refs[vertex]->find_queue()->head;
+    return nodes_refs[vertex]->find_queue()->root_id;
 }
 
 MaximumWeightMatching::weight GalilMicaliGabowMaximumMatching::y(NetworKit::node v) {

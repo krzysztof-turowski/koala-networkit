@@ -78,9 +78,7 @@ void MicaliVaziraniMatching::run() {
 
     do {
         reset();
-
         search();
-        
         clear_blooms();
     } while (augmentation_happened);
 

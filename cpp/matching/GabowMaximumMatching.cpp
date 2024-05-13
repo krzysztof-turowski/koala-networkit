@@ -7,7 +7,6 @@ GabowMaximumMatching::GabowMaximumMatching(NetworKit::Graph &graph) :
         current_blossom(graph.upperNodeIdBound(), nullptr),
         y(graph.upperNodeIdBound(), max_weight),
         best_edge(graph.upperNodeIdBound(), no_edge) {
-
     // Sort the edges for efficient best edge list contstruction
     graph.sortEdges();
 
@@ -252,7 +251,7 @@ void GabowMaximumMatching::scan_edges(Blossom* b) {
         auto edge_it = data->best_edges.begin();
 
         // Iterate in sorted order for efficiency
-        graph.forEdgesOf(u, [this, b, data, &best_slack, &edge_it] 
+        graph.forEdgesOf(u, [this, b, data, &best_slack, &edge_it]
                 (NetworKit::node u, NetworKit::node v, NetworKit::edgeid id) {
             auto v_blossom = get_blossom(v);
             if (v_blossom == b) return;

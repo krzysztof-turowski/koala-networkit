@@ -20,9 +20,8 @@ namespace Koala {
  * The base class for the maximum weight matching algorithms.
  *
  */
-class MaximumWeightMatching : public NetworKit::Algorithm {
-
-public:
+class MaximumWeightMatching :  public NetworKit::Algorithm {
+ public:
     // This is double, which works for non-scaling algorithms
     using weight = NetworKit::edgeweight;
     using intweight = int;
@@ -32,7 +31,7 @@ public:
      *
      * @param graph The input graph.
      */
-    MaximumWeightMatching(NetworKit::Graph &graph) : graph(graph) {}
+    explicit MaximumWeightMatching(NetworKit::Graph &graph) : graph(graph) {}
 
     /**
      * Return the matching found by the algorithm.
@@ -44,13 +43,11 @@ public:
         return matching;
     }
 
-
-protected:
-
+ protected:
     static constexpr weight infinite_weight = std::numeric_limits<weight>::max();
 
     NetworKit::Graph graph;
-    
+
     std::map<NetworKit::node, NetworKit::node> matching;
 };
 
@@ -59,64 +56,64 @@ protected:
  * Implements essential steps in the algorithm while deferring some calculations to it's child
  * class which implement different variants of the algorithm.
 */
-class BlossomMaximumMatching : public MaximumWeightMatching {
-public:
-    BlossomMaximumMatching(NetworKit::Graph &graph);
+class BlossomMaximumMatching :  public MaximumWeightMatching {
+ public:
+    explicit BlossomMaximumMatching(NetworKit::Graph &graph);
 
     /**
      * Execute the Edmonds maximum matching algorithm.
      */
     void run();
 
-protected:
+ protected:
     virtual ~BlossomMaximumMatching();
-    
-    struct Edge { 
-        NetworKit::node u, v; 
-        NetworKit::edgeid id; 
+
+    struct Edge {
+        NetworKit::node u, v;
+        NetworKit::edgeid id;
 
         bool operator==(const Edge& other) const { return other.id == id; }
     };
 
     static constexpr Edge no_edge { NetworKit::none, NetworKit::none, NetworKit::none };
-    
+
     static Edge reverse(const Edge& edge);
     static std::string edge_to_string(const Edge& e);
 
     enum Label { odd, even, free };
 
     class Blossom {
-    public:
+     public:
         using SubblossomList = std::list<std::pair<Blossom*, Edge>>;
 
         class BlossomData {};
         Blossom* parent;
-        
+
         // Base of the blossom at the moment of creation
         NetworKit::node initial_base;
-        
+
         // Current base of the blossom
         NetworKit::node base;
-        
+
         // Last node in the blossom order
         NetworKit::node last_node;
-        
+
         // List of the descendants containg the base, used for lazy augmentation
         std::list<Blossom*> base_blossoms;
-        
+
         // Subblossoms of the blossom
         SubblossomList subblossoms;
 
         // List of nodes in a root blossom
         std::list<NetworKit::node> nodes;
-        
+
         // Label and backtrack edge set during a search
         Label label;
         Edge backtrack_edge;
-        
+
         // Visited flag used during backtracking
         bool visited;
-        
+
         // Dual weight corresponding to the blossom
         // To be used by the specific algorithms, might not be correct depending on implementation
         MaximumWeightMatching::weight z;
@@ -134,10 +131,10 @@ protected:
         void delete_all_children();
         ~Blossom();
     };
-    
-    struct BacktrackInfo { 
-        Blossom* blossom;  
-        Edge edge; 
+
+    struct BacktrackInfo {
+        Blossom* blossom;
+        Edge edge;
     };
 
     bool finished;
@@ -145,19 +142,20 @@ protected:
     // Maximum edge weight in the graph
     MaximumWeightMatching::weight max_weight;
 
-    // Store all graph edges so they can be accessed using the id
-    std::vector<std::tuple<NetworKit::node, NetworKit::node, MaximumWeightMatching::weight>> graph_edges;
-    
+    // Store all graph edges so they can be accessed using the id in constant time
+    std::vector<std::tuple<NetworKit::node, NetworKit::node, MaximumWeightMatching::weight>>
+    graph_edges;
+
     // Store a list of all proper blossoms
     std::list<Blossom*> blossoms;
 
     // Store iterators to node positions in blossom node lists
     std::vector<std::list<NetworKit::node>::iterator> node_iter;
-    
+
     // For each edge store wether it's in the current matching
     std::vector<bool> is_in_matching;
-    
-    // For each vertex store the vertex it's matched to and the id of the edge by which they're matched
+
+    // For each vertex store the vertex it's match and the id of the edge by which they're matched
     std::vector<NetworKit::node> matched_vertex;
     std::vector<NetworKit::edgeid> matched_edge;
 
@@ -182,7 +180,7 @@ protected:
 
     bool backtrack(Blossom* u, Blossom* v, Edge edge);
     bool backtrack_step(Blossom*& iter, std::vector<BacktrackInfo>& path);
-    
+
     void add_blossom(Blossom* b);
     void remove_blossom(Blossom* b);
     void create_new_blossom(Blossom* u, Blossom* v, Edge edge,
@@ -194,7 +192,8 @@ protected:
             std::vector<BacktrackInfo>& u_path, std::vector<BacktrackInfo>& v_path);
 
     void swap_edges_on_even_path(Blossom* blossom, NetworKit::node u, NetworKit::node v);
-    void swap_edges_on_even_path(Blossom* blossom, NetworKit::node out_vertex, std::list<Blossom*>&& base_blossoms);
+    void swap_edges_on_even_path(Blossom* blossom, NetworKit::node out_vertex,
+        std::list<Blossom*>&& base_blossoms);
 
     void lazy_augment_path_in_blossom(Blossom* blossom);
 
@@ -207,12 +206,12 @@ protected:
     virtual void handle_subblossom_shift(Blossom* blossom, Blossom* subblossom) = 0;
 
     void adjust_dual_variables();
-    
+
     virtual MaximumWeightMatching::weight calc_delta1() = 0;
     virtual MaximumWeightMatching::weight calc_delta2() = 0;
     virtual MaximumWeightMatching::weight calc_delta3() = 0;
     virtual MaximumWeightMatching::weight calc_delta4() = 0;
-    
+
     virtual void adjust_by_delta(MaximumWeightMatching::weight delta) = 0;
     virtual void find_delta2_useful_edges() = 0;
     virtual void find_delta3_useful_edges() = 0;
@@ -220,12 +219,12 @@ protected:
 
     void expand_odd_blossom(Blossom* blossom);
     void expand_even_blossom(Blossom* blossom);
-    
+
     virtual void handle_odd_blossom_expansion(Blossom* blossom) = 0;
     virtual void handle_even_blossom_expansion(Blossom* blossom) = 0;
 
     bool is_exposed(Blossom* b);
-    
+
     virtual Blossom* get_blossom(NetworKit::node vertex) = 0;
 };
 
@@ -233,17 +232,15 @@ protected:
  * @ingroup matching
  * The class for the Edmonds maximum matching algorithm.
  */
-class EdmondsMaximumMatching final : public BlossomMaximumMatching {
+class EdmondsMaximumMatching final :  public BlossomMaximumMatching {
+ public:
+    explicit EdmondsMaximumMatching(NetworKit::Graph &graph);
 
-public:
-    EdmondsMaximumMatching(NetworKit::Graph &graph);
-
-private:
-
+ private:
     // For each vertex store it's current blossom and the value of corresponding dual variable
     std::vector<Blossom*> current_blossom;
     std::vector<MaximumWeightMatching::weight> y;
-    
+
     // Queue of tight edges
     std::queue<Edge> edge_queue;
 
@@ -266,7 +263,7 @@ private:
     void handle_subblossom_shift(Blossom* blossom, Blossom* subblossom) override;
     void handle_odd_blossom_expansion(Blossom* blossom) override;
     void handle_even_blossom_expansion(Blossom* blossom) override;
-    
+
     MaximumWeightMatching::weight calc_delta1() override;
     MaximumWeightMatching::weight calc_delta2() override;
     MaximumWeightMatching::weight calc_delta3() override;
@@ -276,7 +273,7 @@ private:
     void find_delta2_useful_edges() override;
     void find_delta3_useful_edges() override;
     std::vector<Blossom*> get_odd_blossoms_to_expand() override;
-    
+
     Blossom* get_blossom(NetworKit::node vertex) override;
 };
 
@@ -284,14 +281,13 @@ private:
  * @ingroup matching
  * The class for the Edmonds maximum matching algorithm.
  */
-class GabowMaximumMatching final : public BlossomMaximumMatching {
+class GabowMaximumMatching final :  public BlossomMaximumMatching {
+ public:
+    explicit GabowMaximumMatching(NetworKit::Graph &graph);
 
-public:
-    GabowMaximumMatching(NetworKit::Graph &graph);
-
-private:
-    class GabowBlossomData : public Blossom::BlossomData {
-    public:
+ private:
+    class GabowBlossomData :  public Blossom::BlossomData {
+     public:
         GabowBlossomData(): best_edges(), best_edge(no_edge) {}
 
         // For an even blossom store a list of edges (x_i, y_i) such that
@@ -305,7 +301,7 @@ private:
         Edge best_edge;
     };
     GabowBlossomData* get_data(Blossom* b);
-    
+
     // Queue of tight edges
     std::queue<Edge> edge_queue;
 
@@ -330,7 +326,7 @@ private:
     void handle_grow(Blossom* odd_blossom, Blossom* even_blossom) override;
 
     void handle_new_blossom(Blossom* b) override;
-    
+
     void handle_subblossom_shift(Blossom* blossom, Blossom* subblossom) override;
     void handle_odd_blossom_expansion(Blossom* blossom) override;
     void handle_even_blossom_expansion(Blossom* blossom) override;
@@ -344,7 +340,7 @@ private:
     void find_delta2_useful_edges() override;
     void find_delta3_useful_edges() override;
     std::vector<Blossom*> get_odd_blossoms_to_expand() override;
-    
+
     Blossom* get_blossom(NetworKit::node vertex) override;
 };
 
@@ -352,25 +348,24 @@ private:
  * @ingroup matching
  * The class for the Edmonds maximum matching algorithm.
  */
-class GalilMicaliGabowMaximumMatching final : public BlossomMaximumMatching {
+class GalilMicaliGabowMaximumMatching final :  public BlossomMaximumMatching {
+ public:
+    explicit GalilMicaliGabowMaximumMatching(NetworKit::Graph &graph);
 
-public:
-    GalilMicaliGabowMaximumMatching(NetworKit::Graph &graph);
-
-private:
+ private:
     using BlossomNodeList = ConcatenableQueue<Blossom*, NetworKit::node, NetworKit::node>;
-    using EvenEdgeQueue = PriorityQueue2<NetworKit::node, NetworKit::edgeid, 
+    using EvenEdgeQueue = PriorityQueue2<NetworKit::node, NetworKit::edgeid,
         MaximumWeightMatching::weight>;
     using EvenEdgeGroup = EvenEdgeQueue::Group*;
 
-    class MicaliGabowBlossomData : public Blossom::BlossomData {
-    public:
+    class MicaliGabowBlossomData :  public Blossom::BlossomData {
+     public:
         // Contains all nodes in blossom order
         BlossomNodeList nodes;
         // Group corresponding to blossom in queue even_edges
         EvenEdgeGroup even_edge_group;
 
-        MicaliGabowBlossomData(BlossomNodeList&& nodes, EvenEdgeGroup even_edge_group): 
+        MicaliGabowBlossomData(BlossomNodeList&& nodes, EvenEdgeGroup even_edge_group):
             nodes(std::move(nodes)), even_edge_group(even_edge_group) {}
     };
     MicaliGabowBlossomData* get_data(Blossom* b);
@@ -424,7 +419,7 @@ private:
     void handle_subblossom_shift(Blossom* blossom, Blossom* subblossom) override;
     void handle_odd_blossom_expansion(Blossom* blossom) override;
     void handle_even_blossom_expansion(Blossom* blossom) override;
-    
+
     MaximumWeightMatching::weight calc_delta1() override;
     MaximumWeightMatching::weight calc_delta2() override;
     MaximumWeightMatching::weight calc_delta3() override;
@@ -434,7 +429,7 @@ private:
     void find_delta2_useful_edges() override;
     void find_delta3_useful_edges() override;
     std::vector<Blossom*> get_odd_blossoms_to_expand() override;
-    
+
     Blossom* get_blossom(NetworKit::node vertex) override;
 };
 
@@ -442,19 +437,19 @@ private:
  * @ingroup matching
  * The class for Gabow's scaling maximum matching algorithm.
  */
-class GabowScalingMatching : public MaximumWeightMatching {
-public:
-    GabowScalingMatching(NetworKit::Graph &graph);
+class GabowScalingMatching :  public MaximumWeightMatching {
+ public:
+    explicit GabowScalingMatching(NetworKit::Graph &graph);
 
     /**
      * Execute the Gabow scaling maximum matching algorithm.
      */
     void run();
 
-private:
-    struct Edge { 
-        NetworKit::node u, v; 
-        NetworKit::edgeid id; 
+ private:
+    struct Edge {
+        NetworKit::node u, v;
+        NetworKit::edgeid id;
 
         bool operator==(const Edge& other) const;
         bool operator!=(const Edge& other) const;
@@ -500,7 +495,7 @@ private:
         bool is_trivial();
         void for_nodes(const std::function<void(NetworKit::node)>& handle);
         std::list<NetworKit::node> node_list();
-        
+
         void short_print();
         void nodes_print();
     };
@@ -525,6 +520,9 @@ private:
         // Blossoms contained in the shell
         std::list<Blossom*> shell_blossoms;
 
+        // Sum of dual weights of the active shell and above at the time it became active
+        MaximumWeightMatching::intweight current_shell_dual;
+
         // Status of the shell - wether it has been searched or dissolved
         bool dissolved, searched;
 
@@ -536,10 +534,10 @@ private:
         void for_blossoms(const std::function<void(OldBlossom*)>& handle);
         void short_print();
     };
-    
+
     // Initial graph reduced to an instance of a maximum perfect matching problem
     NetworKit::Graph reducedGraph;
-    std::vector<std::pair<NetworKit::node, NetworKit::node>> graph_edges; 
+    std::vector<std::pair<NetworKit::node, NetworKit::node>> graph_edges;
 
     // Current edge weights and vertex dual variables
     std::vector<MaximumWeightMatching::intweight> current_w;
@@ -552,7 +550,7 @@ private:
     std::vector<NetworKit::node> matched_vertex;
     std::vector<NetworKit::edgeid> matched_edge;
     std::vector<bool> edge_in_matching;
-    int edges_in_matching;
+    NetworKit::count edges_in_matching;
 
     void delete_blossom(Blossom* B, OldBlossom* S);
     void add_blossom(Blossom* B, OldBlossom* S);
@@ -567,10 +565,13 @@ private:
     void heavy_path_decomposition(OldBlossom* T, MaximumWeightMatching::intweight outer_dual);
     void change_blossom_base(Blossom* B, NetworKit::node new_base, Edge edge);
     void swap_edges_on_even_path(Blossom* B, NetworKit::node u, NetworKit::node v);
-    void swap_edges_on_even_path(Blossom* B, NetworKit::node out_vertex, std::list<Blossom*>&& out_blossoms);
-    
-    std::tuple<std::vector<NetworKit::node>, std::vector<MaximumWeightMatching::intweight>, OldBlossom*>
-    scale(const std::vector<MaximumWeightMatching::intweight>& w);
+    void swap_edges_on_even_path(Blossom* B, NetworKit::node out_vertex,
+        std::list<Blossom*>&& out_blossoms);
+
+    std::tuple<
+        std::vector<NetworKit::node>,
+        std::vector<MaximumWeightMatching::intweight>,
+        OldBlossom*> scale(const std::vector<MaximumWeightMatching::intweight>& w);
 
     void match(OldBlossom* T);
 
@@ -579,11 +580,11 @@ private:
     void shell_search(OldBlossom* B);
     void init_shell_search();
 
-    int free_nodes_in_shell(OldBlossom* B);
+    NetworKit::count free_nodes_in_shell(OldBlossom* B);
     void enumerate_shells();
     void augmentPaths();
-    int current_slack(Edge e);
-    
+    MaximumWeightMatching::intweight current_slack(Edge e);
+
     void finish_shell_search();
     void delete_lists(Blossom* B);
 
@@ -597,36 +598,34 @@ private:
             OldBlossom* S;
         } args;
 
-        static Event make_grow(NetworKit::node v, Edge e) { 
+        static Event make_grow(NetworKit::node v, Edge e) {
             Event event;
             event.type = grow;
-            event.args.grow.v = v; event.args.grow.e = e; 
+            event.args.grow.v = v; event.args.grow.e = e;
             return event;
         }
 
-        static Event make_blossom(Edge uv) { 
+        static Event make_blossom(Edge uv) {
             Event event;
             event.type = blossom;
-            event.args.uv = uv; 
+            event.args.uv = uv;
             return event;
         }
 
-        static Event make_dissolve(Blossom* B) { 
+        static Event make_dissolve(Blossom* B) {
             Event event;
             event.type = dissolve;
             event.args.B = B;
             return event;
         }
 
-        static Event make_dissolveShell(OldBlossom* S) { 
+        static Event make_dissolveShell(OldBlossom* S) {
             Event event;
             event.type = dissolveShell;
-            event.args.S = S; 
+            event.args.S = S;
             return event;
         }
     };
-
-    friend std::ostream& operator<<(std::ostream &out, const Event& event);
 
     // Outermost shell
     OldBlossom* old_root;
@@ -638,22 +637,19 @@ private:
     OldBlossom* highest_undissolved;
 
     // Shells in the current path and the number of free vertices it contains
-    std::vector<std::pair<int, OldBlossom*>> shells;
+    std::vector<std::pair<NetworKit::count, OldBlossom*>> shells;
 
     // Maps the vertices into the contracted graph during path augmentation
     std::vector<NetworKit::node> actual_to_contracted;
 
     // The blossom the vertex belongs to before augmentation
     std::vector<Blossom*> current_blossom;
-    
-    // Root of the path in which 
+
+    // Root of the path in which
     std::vector<OldBlossom*> vertex_path;
 
     // The shell the vertex belongs to before a path iteration
     std::vector<OldBlossom*> current_shell;
-
-    // Sum of dual weights of the active shell and above at the time it became active
-    std::vector<MaximumWeightMatching::intweight> current_shell_duals; // TODO move to shell
 
     // The status of the current search
     bool search_done;
@@ -709,17 +705,17 @@ private:
     void blossom(Edge edge);
     void dissolveShell(OldBlossom* S);
 
-    struct BacktrackInfo { 
-        Blossom* blossom;  
-        Edge edge; 
+    struct BacktrackInfo {
+        Blossom* blossom;
+        Edge edge;
     };
 
     bool backtrack(Blossom* u, Blossom* v, Edge edge);
     bool backtrack_step(Blossom*& iter, std::vector<BacktrackInfo>& path);
-    
+
     void create_new_blossom(Blossom* u, Blossom* v, Edge edge,
             std::vector<BacktrackInfo>& u_path, std::vector<BacktrackInfo>& v_path);
-    
+
     std::list<Blossom*> blossoms_containing(NetworKit::node u, Blossom* until);
     void cut_path_at(std::vector<BacktrackInfo>& path, Blossom* cut, Blossom* cut_2);
 
@@ -749,15 +745,14 @@ private:
  * @ingroup matching
  * The base class for the maximum cardinality matching algorithms.
  */
-class MaximumCardinalityMatching : public NetworKit::Algorithm {
-
-public:
+class MaximumCardinalityMatching :  public NetworKit::Algorithm {
+ public:
     /**
      * Given an input graph, set up the maximum matching algorithm.
      *
      * @param graph The input graph.
      */
-    MaximumCardinalityMatching(NetworKit::Graph &graph);
+    explicit MaximumCardinalityMatching(NetworKit::Graph &graph);
 
     /**
      * Return the matching found by the algorithm.
@@ -766,7 +761,7 @@ public:
      */
     const std::map<NetworKit::node, NetworKit::node>& getMatching() const;
 
-protected:
+ protected:
     NetworKit::Graph graph;
     std::map<NetworKit::node, NetworKit::node> matching;
 };
@@ -775,10 +770,9 @@ protected:
  * @ingroup matching
  * The class for the Micali-Vazirani maximum cardinality matching algorithm.
  */
-class MicaliVaziraniMatching final : public MaximumCardinalityMatching {
-
-public:
-    MicaliVaziraniMatching(NetworKit::Graph &graph);
+class MicaliVaziraniMatching final :  public MaximumCardinalityMatching {
+ public:
+    explicit MicaliVaziraniMatching(NetworKit::Graph &graph);
     MicaliVaziraniMatching(
         NetworKit::Graph &graph, const std::vector<NetworKit::node>& initial_matching);
 
@@ -787,7 +781,7 @@ public:
      */
     void run();
 
-private:
+ private:
     struct Bloom {
         NetworKit::node base;
         int green_color;
@@ -843,16 +837,16 @@ private:
     void clear_blooms();
 
     void bloss_aug(NetworKit::node s, NetworKit::node t);
-    void red_dfs_step(NetworKit::node& v_R, int red_color, NetworKit::node& v_G, 
+    void red_dfs_step(NetworKit::node& v_R, int red_color, NetworKit::node& v_G,
                   NetworKit::node r, NetworKit::node& barrier);
-    void green_dfs_step(NetworKit::node& v_G, int green_color, NetworKit::node& v_R, 
+    void green_dfs_step(NetworKit::node& v_G, int green_color, NetworKit::node& v_R,
                   NetworKit::node& barrier);
 
     void erase(std::vector<NetworKit::node>& Y);
-    
+
     void find_path(NetworKit::node x, NetworKit::node y);
     bool open(NetworKit::node cur, NetworKit::node bcur, NetworKit::node b);
-    
+
     NetworKit::node base_star(Bloom* bloom);
     NetworKit::node base_star(NetworKit::node vertex);
     NetworKit::node base(NetworKit::node vertex);
@@ -866,7 +860,7 @@ private:
     bool outer(NetworKit::node vertex);
     bool inner(NetworKit::node vertex);
 
-    std::tuple<NetworKit::node, NetworKit::node, NetworKit::node, NetworKit::node> 
+    std::tuple<NetworKit::node, NetworKit::node, NetworKit::node, NetworKit::node>
     get_bridge(NetworKit::node vertex);
 };
 

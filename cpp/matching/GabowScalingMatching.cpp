@@ -353,8 +353,8 @@ void GabowScalingMatching::path(OldBlossom* B, MaximumWeightMatching::intweight 
     }
 }
 
-int GabowScalingMatching::free_nodes_in_shell(OldBlossom* B) {
-    int free_nodes = 0;
+NetworKit::count GabowScalingMatching::free_nodes_in_shell(OldBlossom* B) {
+    NetworKit::count free_nodes = 0;
     for (auto v : B->nodes) {
         if (matched_vertex[v] == NetworKit::none)
             free_nodes++;
@@ -364,11 +364,11 @@ int GabowScalingMatching::free_nodes_in_shell(OldBlossom* B) {
 
 void GabowScalingMatching::enumerate_shells() {
     shells.clear();
-    current_shell_duals.clear();
 
     // Find all the undissolved shells on the current path
     for (auto shell = highest_undissolved; shell != nullptr; shell = shell->heavy_child) {
         shell->searched = false;
+        shell->current_shell_dual = shell->z;
         for (auto v : shell->nodes) {
             current_shell[v] = shell;
             search_shell[v] = nullptr;
@@ -386,7 +386,6 @@ void GabowScalingMatching::enumerate_shells() {
         }
 
         shells.push_back({0, shell});
-        current_shell_duals.push_back(shell->z);
     }
 
     // Clear the distributions
@@ -395,7 +394,7 @@ void GabowScalingMatching::enumerate_shells() {
     // Record the index of each shell, sum up duals of above shells
     for (int i = 0; i < shells.size(); ++i)  {
         shells[i].second->shell_index = i;
-        if (i > 0) current_shell_duals[i] += current_shell_duals[i-1];
+        if (i > 0) shells[i].second->current_shell_dual += shells[i-1].second->current_shell_dual;
     }
 }
 
@@ -534,13 +533,14 @@ void GabowScalingMatching::augmentPaths() {
 
 MaximumWeightMatching::intweight GabowScalingMatching::current_slack(Edge edge) {
     auto [u, v, id] = edge;
+    auto highest_shell = std::min(current_shell[u]->shell_index, current_shell[v]->shell_index);
 
     // Calculate the slack of the edge
     // Include duals of old blossoms above the current path,
     // the blossom that contains both vertices and old blossoms that
     return current_y[u] + current_y[v] - current_w[id] + outer_shells_dual +
         (current_blossom[u] == current_blossom[v] ? current_blossom[v]->z0 : 0) +
-        current_shell_duals[std::min(current_shell[u]->shell_index, current_shell[v]->shell_index)];
+        shells[highest_shell].second->current_shell_dual;
 }
 
 void GabowScalingMatching::shell_search(OldBlossom* B) {
@@ -573,7 +573,7 @@ void GabowScalingMatching::init_shell_search() {
     event_queue.reset();
     t_active = 0;
     active_shell->searched = true;
-    active_shell_initial_dual = current_shell_duals[active_shell->shell_index] -
+    active_shell_initial_dual = active_shell->current_shell_dual -
                                 2 * distribution_so_far(active_shell->shell_index + 1);
 
     for (auto b : active_shell->shell_blossoms) {
@@ -991,7 +991,7 @@ void GabowScalingMatching::dissolveShell(OldBlossom* S) {
         // Change the active shell, update the counters and dual variables
         active_shell = outer_shell;
         t_active = event_queue.timeNow();
-        active_shell_initial_dual = current_shell_duals[active_shell->shell_index] -
+        active_shell_initial_dual = active_shell->current_shell_dual -
                                     2 * distribution_so_far(active_shell->shell_index + 1);
         active_shell->searched = true;
 
