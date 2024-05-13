@@ -11,22 +11,20 @@ namespace Koala {
 #define QUEUE_DEBUG 0
 
 // TODO split these structures to different files / rename the file
-// TODO make type names/order consistent between analogous data structures
+// TODO make type names more consistent between analogous data structures / replace them with hardcoded types
 
 /**
- * Implementation of a binary heap with ability to remove elements. Also allows for iterating
- * over all elements (not in order).
- * 
- * @tparam V type of stored element
+ * Implementation of a binary heap with ability to remove elements. 
+ * Allows for iterating over all elements (not in order).
 */
-template<typename V>
-class Heap {
+template<typename Key>
+class HeapWithRemove {
 public:
-    using handle_type = size_t;
-    using const_iterator = typename std::vector<V>::const_iterator;
+    using handle_type = NetworKit::index;
+    using const_iterator = typename std::vector<Key>::const_iterator;
     using iterator = const_iterator;
 
-    Heap() {}
+    HeapWithRemove() {}
 
     bool empty() const { return heap.empty(); }
 
@@ -36,11 +34,11 @@ public:
         heap_index.clear();
     }
 
-    size_t size() const { return heap.size(); }
+    NetworKit::index size() const { return heap.size(); }
 
-    handle_type push(V value) {
+    handle_type push(Key value) {
         handle_type ref = heap_index.size();
-        size_t index = heap.size();
+        NetworKit::index index = heap.size();
         heap.push_back(value);
         handle.push_back(ref);
         heap_index.push_back(index);
@@ -49,13 +47,13 @@ public:
         return ref;
     }
 
-    V top() const { return heap.front(); } 
+    Key top() const { return heap.front(); } 
 
     void pop() { erase(handle[0]); }
 
     void erase(handle_type ref) {
-        size_t index = heap_index[ref];
-        size_t last_index = heap.size() - 1;
+        NetworKit::index index = heap_index[ref];
+        NetworKit::index last_index = heap.size() - 1;
         if (index != last_index)
             swap(index, last_index);
         heap.pop_back();
@@ -67,7 +65,7 @@ public:
         
     }
     
-    void for_elements(const std::function<void(V)>& handle) const {
+    void for_elements(const std::function<void(Key)>& handle) const {
         for (auto v : heap) 
             handle(v);
     }
@@ -77,17 +75,17 @@ public:
     const_iterator end() const { return heap.end(); }
 
 private:
-    std::vector<V> heap;
+    std::vector<Key> heap;
     std::vector<handle_type> handle;
-    std::vector<size_t> heap_index;
+    std::vector<NetworKit::index> heap_index;
 
-    size_t parent_index(size_t index) { return (index - 1) / 2; }
-    size_t left_son_index(size_t index) { return 2 * index + 1; }
-    size_t right_son_index(size_t index) { return 2 * index + 2; }
+    NetworKit::index parent_index(NetworKit::index index) { return (index - 1) / 2; }
+    NetworKit::index left_son_index(NetworKit::index index) { return 2 * index + 1; }
+    NetworKit::index right_son_index(NetworKit::index index) { return 2 * index + 2; }
 
-    void push_up(size_t index) {
+    void push_up(NetworKit::index index) {
         while (index > 0) {
-            size_t parent = parent_index(index);
+            NetworKit::index parent = parent_index(index);
             if (heap[index] < heap[parent]) {
                 swap(index, parent);
                 index = parent;
@@ -97,10 +95,10 @@ private:
         }
     }
 
-    void push_down(size_t index) {
-        size_t minimum = index;
-        size_t left_son = left_son_index(index);
-        size_t right_son = right_son_index(index);;
+    void push_down(NetworKit::index index) {
+        NetworKit::index minimum = index;
+        NetworKit::index left_son = left_son_index(index);
+        NetworKit::index right_son = right_son_index(index);;
 
         if (left_son < heap.size() && heap[left_son] < heap[minimum])
             minimum = left_son;
@@ -249,7 +247,7 @@ public:
 
 private:
     P Delta = 0;
-    using pair_heap = Heap<std::pair<P, E>>;
+    using pair_heap = HeapWithRemove<std::pair<P, E>>;
     pair_heap heap;
     std::vector<typename pair_heap::handle_type> element_handle;
     std::vector<bool> in_heap;
