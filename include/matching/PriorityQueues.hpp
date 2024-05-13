@@ -269,7 +269,6 @@ class ConcatenableQueue {
  public:
     struct Node;
     using handle_type = Node*;
-    using Self = ConcatenableQueue<Id, E, P>;
 
     Id root_id;
 

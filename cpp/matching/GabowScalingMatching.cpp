@@ -78,8 +78,11 @@ std::vector<NetworKit::node> defaultMatching(const NetworKit::Graph& original_gr
     return M;
 }
 
-std::tuple<std::vector<NetworKit::node>, std::vector<int>, GabowScalingMatching::OldBlossom*>
-GabowScalingMatching::scale(const std::vector<int>& w) {
+std::tuple<
+    std::vector<NetworKit::node>,
+    std::vector<MaximumWeightMatching::intweight>,
+    GabowScalingMatching::OldBlossom*>
+GabowScalingMatching::scale(const std::vector<MaximumWeightMatching::intweight>& w) {
     if (allWeightsZero(w)) {
         // Base case - all weights are zero
         // Return only an outer blossom and a zero weight for all vertices

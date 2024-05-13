@@ -10,15 +10,15 @@ using WeightedEdge = std::tuple<int, int, int>;
 enum MaxmimumWeightMatchingAlgorithm { edmonds, gabow, micali, scaling };
 
 struct MaximumWeightMatchingParameters {
-    int N;
+    NetworKit::count N;
     std::list<WeightedEdge> E;
     int maximumMatching;
 };
 
 struct MaximumCardinalityMatchingParameters {
-    int N;
+    NetworKit::count N;
     std::list<Edge> E;
-    int maximumMatching;
+    NetworKit::count maximumMatching;
 };
 
 class MaximumWeightMatchingTest
@@ -63,11 +63,11 @@ int caluculate_matching_weight(const auto& graph, const auto& matching) {
     return weight / 2;
 }
 
-int calculate_matching_size(const auto& matching) {
-    int size = 0;
+NetworKit::count calculate_matching_size(const auto& matching) {
+    NetworKit::count size = 0;
     for (auto [u, v] : matching) {
         if (v != NetworKit::none)
-            size ++;
+            size++;
     }
     return size / 2;
 }

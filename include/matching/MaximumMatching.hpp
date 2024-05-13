@@ -495,14 +495,11 @@ class GabowScalingMatching :  public MaximumWeightMatching {
         bool is_trivial();
         void for_nodes(const std::function<void(NetworKit::node)>& handle);
         std::list<NetworKit::node> node_list();
-
-        void short_print();
-        void nodes_print();
     };
 
     struct OldBlossom {
         // The number of all nodes in the old blossom
-        int size;
+        NetworKit::count size;
 
         // Parent and child in heavy path decomposition
         OldBlossom* heavy_path_parent;
@@ -527,12 +524,11 @@ class GabowScalingMatching :  public MaximumWeightMatching {
         bool dissolved, searched;
 
         // Index of the shell in the path
-        int shell_index;
+        NetworKit::index shell_index;
 
         bool is_heavy_path_root();
         void for_nodes(const std::function<void(NetworKit::node)>& handle);
         void for_blossoms(const std::function<void(OldBlossom*)>& handle);
-        void short_print();
     };
 
     // Initial graph reduced to an instance of a maximum perfect matching problem
