@@ -15,13 +15,13 @@ GalilMicaliGabowMaximumMatching::GalilMicaliGabowMaximumMatching(NetworKit::Grap
     for (auto b : trivial_blossom) {
         ConcatenableQueue<Blossom*, NetworKit::node, NetworKit::node> nodes(b);
         nodes_refs[b->base] = nodes.append(b->base, 0);
-        b->data = new MicaliGabowBlossomData(std::move(nodes), nullptr);
+        b->data = new GalilMicaliGabowBlossomData(std::move(nodes), nullptr);
     }
 }
 
-GalilMicaliGabowMaximumMatching::MicaliGabowBlossomData*
+GalilMicaliGabowMaximumMatching::GalilMicaliGabowBlossomData*
 GalilMicaliGabowMaximumMatching::get_data(Blossom* b) {
-    return static_cast<MicaliGabowBlossomData*>(b->data);
+    return static_cast<GalilMicaliGabowBlossomData*>(b->data);
 }
 
 void GalilMicaliGabowMaximumMatching::initialize_stage() {
@@ -237,7 +237,7 @@ void GalilMicaliGabowMaximumMatching::handle_new_blossom(Blossom* new_blossom) {
         }
     }
 
-    new_blossom->data = new MicaliGabowBlossomData(std::move(nodes), nullptr);
+    new_blossom->data = new GalilMicaliGabowBlossomData(std::move(nodes), nullptr);
 
     // Track the dual weight for the new blossom
     z_even.insert(new_blossom->initial_base, new_blossom, 0);
@@ -262,13 +262,14 @@ void GalilMicaliGabowMaximumMatching::handle_subblossom_shift(
 }
 
 void GalilMicaliGabowMaximumMatching::handle_odd_blossom_expansion(Blossom* blossom) {
-    auto remaining_edges = get_data(blossom)->even_edge_group;
+    auto data = get_data(blossom);
+    auto remaining_edges = data->even_edge_group;
     // Notice we don't remove blossom from z_odd as it's been done in get_odd_blossoms_to_expand()
 
     for (auto [b, e] : blossom->subblossoms) {
         // Split the node list of the expanded blossoms
         // Assign each subblossom a list
-        auto [nodes_b, nodes_rest] = get_data(blossom)->nodes.split(nodes_refs[b->last_node], b, blossom);
+        auto [nodes_b, nodes_rest] = data->nodes.split(nodes_refs[b->last_node], b, blossom);
         get_data(blossom)->nodes = std::move(*nodes_rest);
         delete nodes_rest;
         get_data(b)->nodes = std::move(*nodes_b);
@@ -329,11 +330,13 @@ void GalilMicaliGabowMaximumMatching::handle_odd_blossom_expansion(Blossom* blos
 void GalilMicaliGabowMaximumMatching::handle_even_blossom_expansion(Blossom* blossom) {
     if (blossom->is_trivial()) return;
 
+    auto data = get_data(blossom);
+
     for (auto [b, e] : blossom->subblossoms) {
-        auto [nodes_b, nodes_rest] = get_data(blossom)->nodes.split(nodes_refs[b->last_node], b, blossom);
-        get_data(blossom)->nodes = std::move(*nodes_rest);
+        auto [nodes_b, nodes_rest] = data->nodes.split(nodes_refs[b->last_node], b, blossom);
+        data->nodes = std::move(*nodes_rest);
         delete nodes_rest;
-        get_data(b)->nodes = std::move(*nodes_b); 
+        get_data(b)->nodes = std::move(*nodes_b);
         delete nodes_b;
     }
 }

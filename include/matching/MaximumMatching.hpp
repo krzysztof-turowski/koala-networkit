@@ -86,7 +86,7 @@ class BlossomMaximumMatching :  public MaximumWeightMatching {
      public:
         using SubblossomList = std::list<std::pair<Blossom*, Edge>>;
 
-        class BlossomData {};
+        class BlossomData { public: virtual ~BlossomData() {} };
         Blossom* parent;
 
         // Base of the blossom at the moment of creation
@@ -299,6 +299,8 @@ class GabowMaximumMatching final :  public BlossomMaximumMatching {
 
         // Edge in the best_edges list with smallest slack
         Edge best_edge;
+
+        ~GabowBlossomData() override = default;
     };
     GabowBlossomData* get_data(Blossom* b);
 
@@ -358,17 +360,19 @@ class GalilMicaliGabowMaximumMatching final :  public BlossomMaximumMatching {
         MaximumWeightMatching::weight>;
     using EvenEdgeGroup = EvenEdgeQueue::Group*;
 
-    class MicaliGabowBlossomData :  public Blossom::BlossomData {
+    class GalilMicaliGabowBlossomData : public Blossom::BlossomData {
      public:
         // Contains all nodes in blossom order
         BlossomNodeList nodes;
         // Group corresponding to blossom in queue even_edges
         EvenEdgeGroup even_edge_group;
 
-        MicaliGabowBlossomData(BlossomNodeList&& nodes, EvenEdgeGroup even_edge_group):
+        GalilMicaliGabowBlossomData(BlossomNodeList&& nodes, EvenEdgeGroup even_edge_group):
             nodes(std::move(nodes)), even_edge_group(even_edge_group) {}
+
+        ~GalilMicaliGabowBlossomData() override = default;
     };
-    MicaliGabowBlossomData* get_data(Blossom* b);
+    GalilMicaliGabowBlossomData* get_data(Blossom* b);
     // References to nodes in concatenable queues of blossoms
     std::vector<BlossomNodeList::handle_type> nodes_refs;
 

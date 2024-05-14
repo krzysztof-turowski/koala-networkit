@@ -1060,6 +1060,9 @@ class PriorityQueue2 {
         Group* group_right = new Group(std::move(*right),
                                 group->active, group->Delta_last, group->Delta_group);
 
+        delete left;
+        delete right;
+
         if (group->active) {
             if (!is_empty(group)) {
                 auto [e, v, p] = group->find_min();

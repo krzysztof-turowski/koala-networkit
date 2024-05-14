@@ -459,7 +459,7 @@ void BlossomMaximumMatching::expand_odd_blossom(Blossom* blossom) {
 
 void BlossomMaximumMatching::expand_even_blossom(Blossom* blossom) {
     if (blossom->is_trivial()) return;
-    
+
     lazy_augment_path_in_blossom(blossom);
 
     for (auto [b, e] : blossom->subblossoms) {
