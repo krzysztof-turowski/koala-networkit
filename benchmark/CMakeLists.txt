@@ -27,3 +27,13 @@ koala_make_benchmark(
     benchmark_independent_set
     benchmarkIndependentSet.cpp
     benchmarkIndependentSet.sh)
+
+koala_make_benchmark(
+    benchmark_maximum_matching
+    benchmarkMaximumMatching.cpp
+    benchmarkMaximumMatching.sh)
+
+koala_make_benchmark(
+    benchmark_mv
+    benchmarkMicaliVazirani.cpp
+    benchmarkMicaliVazirani.sh)
