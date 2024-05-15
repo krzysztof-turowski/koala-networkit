@@ -53,9 +53,10 @@ class CographRecognition : public NetworKit::Algorithm {
 class BretscherCorneilHabibPaulCographRecognition : public CographRecognition {
  public:
     using CographRecognition::CographRecognition;
-    std::vector<NetworKit::node> LexBfs();
-    std::vector<NetworKit::node> LexBfsMinus(NetworKit::Graph G, std::vector<NetworKit::node> a);
-    bool NeighbourhoodSubsetProperty(std::vector<NetworKit::node> a, std::vector<NetworKit::node> b);
+    std::pair<std::vector<std::vector<std::pair<int, int>>>, std::vector<NetworKit::node>>
+    LexBfsMinus(bool is_complement, std::vector<NetworKit::node> &a);
+    bool NeighbourhoodSubsetProperty(bool is_complement, std::vector<NetworKit::node> a,
+    std::vector<std::vector<std::pair<int, int>>> borders);
     void run() override;
     bool isCograph() const override;
  private:
