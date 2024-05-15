@@ -1,6 +1,6 @@
 #include <graph/GraphTools.hpp>
 
-#include "cograph_rec/FactorizingPermutation.hpp"
+#include "recognition/Cograph/FactorizingPermutation.hpp"
 
 namespace Koala {
     FactorizingPermutation::FactorizingPermutation() {

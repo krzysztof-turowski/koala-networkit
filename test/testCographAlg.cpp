@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <list>
 
-#include "cograph_rec/CographAlg.hpp"
+#include "recognition/CographAlg.hpp"
 #include "helpers.hpp"
 
 struct GraphRecognitionParameters {

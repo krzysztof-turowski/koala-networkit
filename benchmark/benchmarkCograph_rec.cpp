@@ -1,46 +1,52 @@
 #include <iostream>
 #include <map>
+#include <cassert>
 
 #include <io/G6GraphReader.hpp>
-#include "cograph_rec/CographAlg.hpp"
+#include "recognition/CographAlg.hpp"
+#include "coloring/CographVertexColoring.hpp"
+#include "independent_set/CographIndependentSet.hpp"
+#include "max_clique/MaxClique.hpp"
 
 int main() {
     std::map<Koala::CographRecognition::State, int> classification;
     std::string types[] = {
             "UNKNOWN",
             "COGRAPH",
-            "IS_NOT_COGRAPH"
+            "NOT_COGRAPH"
     };
-    std::ifstream fin("../../input/cographConnected11.g6");
-    //std::ifstream fin("../../input/graph8c.g6");
+    std::ifstream fin("../../input/cographConnected7.g6");
+    //std::ifstream fin("../../input/graph4c.g6");
 
     while (true) {
         std::string line;
         fin >> line;
-
         if (!fin.good()) {
             break;
         }
+
         NetworKit::Graph G = Koala::G6GraphReader().readline(line);
 
         auto recognize = Koala::CographRecognition(G);
         recognize.run();
 
         if (recognize.GetState() == Koala::CographRecognition::State::COGRAPH) {
-            if (recognize.cotree->GetMaxIndependetSetSize() != recognize.cotree->BruteForceIndependetSetSize()) {
-                std::cout << "error1" << std::endl;
-            }
+            auto IndependentSet = Koala::CographIndependentSet(*(recognize.cotree), G.numberOfNodes());
+            IndependentSet.run();
 
-            if (recognize.cotree->GetMaxCliqueSize() != recognize.cotree->BruteForceCliqueSize()) {
-                std::cout << "error2" << std::endl;
-            }
+            assert(("Wrong independent set", IndependentSet.independet_set_size ==
+                                             IndependentSet.BruteForceIndependetSetSize(G)));
 
-            recognize.cotree->Coloring();
-            if (!recognize.cotree->CheckColoring()) {
-                std::cout << "error3" << std::endl;
-            }
+            auto Clique = Koala::MaxClique(*(recognize.cotree), G.numberOfNodes());
+            Clique.run();
+
+            assert(("Wrong max clique size", Clique.size == Clique.BruteForceCliqueSize(G)));
+
+            auto Coloring = Koala::CographVertexColoring(G);
+            Coloring.run();
+
+            assert(("Wrong coloring", Coloring.CheckColoring()));
         }
-
         classification[recognize.GetState()]++;
     }
 

@@ -1,4 +1,4 @@
-#include "cograph_rec/CographAlg.hpp"
+#include "recognition/CographAlg.hpp"
 #include "cograph/Twins.cpp"
 
 namespace Koala {
@@ -39,7 +39,6 @@ namespace Koala {
         Clear();
         num_of_nodes = graph->numberOfNodes();
         long long i, twins_counter = 0;
-
         part *P = new part();
 
         permutation->first_part = P;
@@ -52,10 +51,8 @@ namespace Koala {
             permutation->AddElementToPart(P, permutation->E[i]);
 
         }
-
         permutation->origin = permutation->E[0];
         num_of_parts = 1;
-
         while (num_of_parts < num_of_nodes) {
             part *H = permutation->origin->my_part;
             if (H->first != H->last) {
@@ -174,7 +171,6 @@ namespace Koala {
                 }
             }
         }
-
         part *X_0 = new part(), *X_N = new part(), *Z;
         element *Y_0 = new element(), *Y_N = new element();
         Y_0->num = -1;
@@ -214,13 +210,12 @@ namespace Koala {
                 }
             }
         }
-
         if (flag == num_of_nodes - 1) {
             status = CographRecognition::State::COGRAPH;
             order.push_back({{permutation->first_part->next->pivot->num, -1}, 3});
         } else {
 
-            status = CographRecognition::State::IS_NOT_COGRAPH;
+            status = CographRecognition::State::NOT_COGRAPH;
         }
         cotree->SetOrder(order);
     }

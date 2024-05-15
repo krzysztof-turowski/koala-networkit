@@ -4,4 +4,7 @@ koala_add_module(recognition
    perfect/Jewels.cpp
    perfect/Pyramids.cpp
    perfect/NearCleaners.cpp
+   CographAlg.cpp
+   cograph/FactorizingPermutation.cpp
+   cograph/Twins.cpp
 )
