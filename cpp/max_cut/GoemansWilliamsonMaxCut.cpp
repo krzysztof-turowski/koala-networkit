@@ -14,6 +14,8 @@ namespace Koala {
 
 GoemansWilliamsonMaxCut::GoemansWilliamsonMaxCut(const std::vector<std::vector<int>>& graphInput)
     : graph(graphInput), n(graphInput.size()), maxCutValue(0) {
+    srand(time(NULL));
+
     bestSet.resize(n, false);
 }
 
@@ -23,27 +25,32 @@ void GoemansWilliamsonMaxCut::solve() {
     double *b = NULL, *y = NULL;
     double pobj, dobj;
     struct constraintmatrix *constraints = NULL;
+    maxCutValue = 0;
     
     // Prepare constraints
     initializeSDP(C, b, constraints);
 
+    // Calculate
     initsoln(n, 1, C, b, constraints, &X, &y, &Z);
     int ret = easy_sdp(n, 1, C, b, constraints, 0.0, &X, &y, &Z, &pobj, &dobj);
+
+    std::vector<double> r = randomUnitVector(n);
     
-    if (ret == 0) {
-        std::vector<double> r = randomUnitVector(n);
-        
-        for (int i = 0; i < n; ++i) {
-            double sum = 0;
-            for (int j = 0; j < n; ++j) {
-                sum += X.blocks[1].data.mat[(i+1) * (n+1) + (j+1)] * r[j];
-            }
-            bestSet[i] = (sum >= 0);
+    for (int i = 0; i < n; ++i) {
+        double sum = 0;
+        for (int j = 0; j < n; ++j) {
+            sum += X.blocks[1].data.mat[i * n + j] * r[j];
         }
-        
-        maxCutValue = static_cast<int>(pobj);
-    } else {
-        std::cout << "SDP solver error: " << ret << std::endl;
+        bestSet[i] = (sum >= 0);
+    }
+    
+    // Calculate cut
+    for (int i = 0; i < n; ++i) {
+        for (int j = i + 1; j < n; ++j) {
+            if (bestSet[i] != bestSet[j]) {
+                maxCutValue += graph[i][j];
+            }
+        }
     }
 
     free_prob(n, 1, C, b, constraints, X, y, Z);
@@ -72,41 +79,40 @@ std::vector<double> GoemansWilliamsonMaxCut::randomUnitVector(int dim) {
 }
 
 void GoemansWilliamsonMaxCut::initializeSDP(struct blockmatrix &C, double *&b, struct constraintmatrix *&constraints) {
-    // Increase allocation size by a factor of 2 during debugging
-    const int debugFactor = 2;
-    
     // Allocate the block matrix
     C.nblocks = 1;
-    C.blocks = (struct blockrec *) malloc((C.nblocks + 1) * debugFactor * sizeof(struct blockrec));
+    C.blocks = (struct blockrec *) malloc((C.nblocks + 1) * sizeof(struct blockrec));
     C.blocks[1].blockcategory = MATRIX;
     C.blocks[1].blocksize = n;
-    C.blocks[1].data.mat = (double *) malloc(n * n * debugFactor * sizeof(double));
-    memset(C.blocks[1].data.mat, 0, n * debugFactor * n * sizeof(double));
+    C.blocks[1].data.mat = (double *) malloc((n * n + 1) * sizeof(double));
+    memset(C.blocks[1].data.mat, 0, (n * n + 1) * sizeof(double));
 
     // Set up the objective matrix C (weights)
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < n; j++) {
-            if (i != j && graph[i][j] != 0) {
-                C.blocks[1].data.mat[i * n + j + 1] = -graph[i][j];
+    for (int i = 1; i <= n; i++) {
+        for (int j = 1; j <= n; j++) {
+            if (i != j && graph[i - 1][j - 1] != 0) {
+                C.blocks[1].data.mat[ijtok(i, j, n)] = -graph[i - 1][j - 1];
+                C.blocks[1].data.mat[ijtok(i, j, n)] = -graph[i - 1][j - 1];
             }
         }
     }
 
     // Linear constraints
-    b = (double *) malloc(sizeof(double) * n * debugFactor);
-    constraints = (struct constraintmatrix *) malloc(n * debugFactor * sizeof(struct constraintmatrix));
+    b = (double *) malloc(sizeof(double) * (n + 1));
+    constraints = (struct constraintmatrix *) malloc((n + 1) * sizeof(struct constraintmatrix));
     for (int i = 1; i <= n; ++i) {
-        b[i] = 1;
+        b[i] = 1.0;
         constraints[i].blocks = (struct sparseblock *) malloc(sizeof(struct sparseblock));
         constraints[i].blocks->blocknum = 1;
+        constraints[i].blocks->blocksize = n;   // should i add?
         constraints[i].blocks->constraintnum = i;
-        constraints[i].blocks->entries = (double *) malloc(debugFactor * sizeof(double));
-        constraints[i].blocks->iindices = (int *) malloc(debugFactor * sizeof(int));
-        constraints[i].blocks->jindices = (int *) malloc(debugFactor * sizeof(int));
+        constraints[i].blocks->entries = (double *) malloc(sizeof(double));
+        constraints[i].blocks->iindices = (int *) malloc(sizeof(int));
+        constraints[i].blocks->jindices = (int *) malloc(sizeof(int));
         constraints[i].blocks->numentries = 1;
         constraints[i].blocks->iindices[1] = i;
         constraints[i].blocks->jindices[1] = i;
-        constraints[i].blocks->entries[1] = 1;
+        constraints[i].blocks->entries[1] = 1.0;
         constraints[i].blocks->next = NULL;
     }
 }
