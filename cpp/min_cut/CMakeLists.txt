@@ -1,6 +1,6 @@
 koala_add_module(min_cut
+    MinCut.cpp
     PushRelabelMinCut.cpp
-    HaoOrlinMinCut.cpp
     KargerMinCut.cpp
     KargerSteinMinCut.cpp
     StoerWagnerMinCut.cpp

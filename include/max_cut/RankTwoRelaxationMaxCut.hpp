@@ -10,53 +10,32 @@
 
 #include <vector>
 
+#include "MaxCut.hpp"
+
 namespace Koala {
 
 /**
- * @ingroup graph_algorithms
+ * @ingroup max-cut
  * The class for solving the Max-Cut problem on a given graph
  * using the Rank Two Relaxation algorithm.
  */
-class RankTwoRelaxationMaxCut {
-public:
-    /**
-     * Constructor that initializes the solver with a graph.
-     *
-     * @param graphInput The graph on which to solve the Max-Cut problem, represented as an adjacency matrix.
-     */
-    RankTwoRelaxationMaxCut(const std::vector<std::vector<int>>& graphInput);
+class RankTwoRelaxationMaxCut final : public MaxCut {
+ public:
+    using MaxCut::MaxCut;
 
     /**
      * Executes the Max-Cut problem solver.
      */
-    void solve();
+    void run();
 
-    /**
-     * Retrieves the maximum cut value found by the algorithm.
-     *
-     * @return The maximum cut value.
-     */
-    int getMaxCutValue() const;
-
-    /**
-     * Retrieves the best set partition found by the algorithm.
-     * 1 represents vertices in one set, while -1 represents vertices in the opposite set.
-     *
-     * @return Vector of integers indicating the set membership of each vertex.
-     */
-    const std::vector<int>& getBestSet() const;
-
-private:
-    std::vector<std::vector<int>> graph; // Graph represented as an adjacency matrix
-    int numberOfVertices;
-    double bestCutValue;
-    std::vector<int> bestSet;
+ private:
+    static const double alpha = 0.001;
+    static const int maxIterations = 100000;
     std::vector<double> theta;
 
     // Helper functions
     void distributeThetaEvenly();
-    double computeCutValue(const std::vector<int>& x);
-    std::vector<int> procedureCut();
+    std::vector<bool> procedureCut();
     std::vector<double> calculateGradient(const std::vector<double>& theta);
     void gradientDescent(double alpha, int maxIterations);
     void perturbTheta();

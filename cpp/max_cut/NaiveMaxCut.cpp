@@ -15,48 +15,25 @@
 
 namespace Koala {
 
-NaiveMaxCut::NaiveMaxCut(const std::vector<std::vector<int>>& graphInput)
-    : graph(graphInput), numberOfVertices(graphInput.size()), maxCutValue(0) {
-    bestSet.resize(numberOfVertices, false);
-}
-
-int NaiveMaxCut::calculateCutValue(const std::vector<bool>& set) {
-    int cutValue = 0;
-    for (int i = 0; i < numberOfVertices; ++i) {
-        for (int j = i + 1; j < numberOfVertices; ++j) {
-            if (set[i] != set[j] && graph[i][j] > 0) {
-                cutValue += graph[i][j];
-            }
-        }
-    }
-    return cutValue;
-}
-
-void NaiveMaxCut::solve() {
-    std::vector<bool> set(numberOfVertices, false);
+void NaiveMaxCut::run() {
+    maxCutValue = 0;
+    std::vector<bool> set(graph->numberOfNodes(), false);
     bool improved = true;
+
     while (improved) {
         improved = false;
-        for (int i = 0; i < numberOfVertices; i++) {
+        for (int i = 0; i < graph->numberOfNodes(); i++) {
             set[i] = !set[i];
-            int newCut = calculateCutValue(set);
+            double newCut = calculateCutValue(set);
             if (newCut > maxCutValue) {
                 maxCutValue = newCut;
-                bestSet = set;
+                maxCutSet = set;
                 improved = true;
             } else {
                 set[i] = !set[i];
             }
         }
     }
-}
-
-int NaiveMaxCut::getMaxCutValue() const {
-    return maxCutValue;
-}
-
-const std::vector<bool>& NaiveMaxCut::getBestSet() const {
-    return bestSet;
 }
 
 }  // namespace Koala

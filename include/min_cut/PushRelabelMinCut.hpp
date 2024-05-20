@@ -13,46 +13,23 @@
 namespace Koala {
 
 /**
- * @ingroup graph_algorithms
+ * @ingroup min-cut
  * The class for solving the Min-Cut problem on a given graph
  * using the Push-Relabel algorithm.
  */
 class PushRelabelMinCut {
-public:
-    /**
-     * Constructor that initializes the solver with a graph.
-     *
-     * @param vertices The number of vertices in the graph.
-     * @param src The source vertex.
-     * @param snk The sink vertex.
-     * @param graphMatrix The graph represented as an adjacency matrix.
-     */
-    PushRelabelMinCut(int vertices, int src, int snk, const std::vector<std::vector<int>>& graphMatrix);
+ public:
+    using MinCut::MinCut;
 
     /**
-     * Executes the Min-Cut problem solver using the Push-Relabel algorithm.
+     * Executes the Min-Cut problem solver.
      */
-    void solve();
+    void run();
 
-    /**
-     * Retrieves the maximum flow value found by the algorithm.
-     *
-     * @return The maximum flow value.
-     */
-    long long getMaxFlow() const;
-
-    /**
-     * Retrieves the best set partition found by the algorithm.
-     * 1 represents vertices in one set, while 0 represents vertices in the opposite set.
-     *
-     * @return Vector of integers indicating the set membership of each vertex.
-     */
-    std::vector<int> getMinCut() const;
-
-private:
+ private:
     struct Edge {
         int source, sink;
-        long long capacity, flow;
+        int capacity, flow;
         int revIndex;
     };
 
@@ -60,7 +37,7 @@ private:
     int source;
     int sink;
     std::vector<std::vector<Edge>> graph;
-    std::vector<long long> excess;        // Excess flow at each vertex
+    std::vector<int> excess;              // Excess flow at each vertex
     std::vector<int> height;              // Height of each vertex for the push-relabel method
     std::vector<bool> active;             // Active vertices for optimization
     std::vector<int> current;             // Current edge being considered for each vertex
@@ -70,8 +47,8 @@ private:
     void push(Edge& e);
     void relabel(int v);
     void discharge(int v);
-    void addEdge(int from, int to, long long capacity);
+    void addEdge(int from, int to, int capacity);
     int overflowVertex();
 };
 
-} // namespace Koala
+}  // namespace Koala

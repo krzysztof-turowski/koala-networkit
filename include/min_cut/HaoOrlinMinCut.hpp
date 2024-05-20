@@ -10,44 +10,52 @@
 
 #include <vector>
 
+#include "MinCut.hpp"
+
 namespace Koala {
 
 /**
- * @ingroup graph_algorithms
+ * @ingroup min-cut
  * The class for solving the Min-Cut problem on a given graph
  * using the Hao-Orlin algorithm.
  */
-class HaoOrlinMinCut {
-public:
-    /**
-     * Constructor that initializes the solver with a graph.
-     *
-     * @param vertices The number of vertices in the graph.
-     * @param src The source vertex.
-     * @param snk The sink vertex.
-     * @param graphMatrix The graph represented as an adjacency matrix.
-     */
-    HaoOrlinMinCut(int vertices, int src, int snk, const std::vector<std::vector<int>>& graphMatrix);
+template <typename MaxFlowT>
+class HaoOrlinMinCut final : public MinCut {
+ public:
+    using MinCut::MinCut;
 
     /**
-     * Executes the Min-Cut problem solver using the Hao-Orlin algorithm.
+     * Executes the Min-Cut problem solver `repeat` times and takes the best solution.
      */
-    void findMinimumCut();
+    void run() {
+        minCutValue = INT_MAX;
+        minCutSet.assign(graph->numberOfNodes(), false);
+        std::vector<bool> visited(graph->numberOfNodes(), false);
+        visited[0] = true;
+        std::vector<int> S = {0};
 
-    /**
-     * Retrieves the minimum cut value found by the algorithm.
-     *
-     * @return The minimum cut value.
-     */
-    long long getMinCut() const;
+        while (S.size() < graph->numberOfNodes()) {
+            int t_prime = -1;
+            for (int i = 0; i < graph->numberOfNodes(); ++i) {
+                if (!visited[i]) {
+                    t_prime = i;
+                    break;
+                }
+            }
 
-private:
-    int numVertices;
-    int source;
-    int sink;
-    std::vector<std::vector<int>> graph;
-    int bestValue;
-    std::vector<int> cut;
+            MaxFlowT minCutSolver(*graph, 0, t_prime);
+            minCutSolver.run();
+            double currentMinCutValue = minCutSolver.getFlowSize();
+
+            minCutValue = std::min(minCutValue, currentMinCutValue);
+
+            visited[t_prime] = true;
+            S.push_back(t_prime);
+        }
+    }
+
+ private:
+    // Helper functions
 };
 
-} // namespace Koala
+}  // namespace Koala

@@ -1,30 +1,12 @@
-#include <iostream>
 #include <vector>
 #include <cstdlib>
 #include <ctime>
 #include <climits>
+#include <random>
 
 #include <min_cut/KargerMinCut.hpp>
 
 namespace Koala {
-
-KargerMinCut::KargerMinCut(int vertices, int repeat, const std::vector<std::vector<int>>& graphMatrix) : numVertices(vertices), numRepeat(repeat) {
-    srand(time(NULL));
-    
-    for (int i = 0; i < vertices; ++i) {
-        for (int j = 0; j < vertices; ++j) {
-            if (graphMatrix[i][j] > 0) {
-                addEdge(i, j, graphMatrix[i][j]);
-            }
-        }
-    }
-}
-
-void KargerMinCut::addEdge(int u, int v, int weight) {
-    for (int i = 0; i < weight; ++i) { // Adding multiple edges for the given weight
-        edges.push_back({u, v});
-    }
-}
 
 int KargerMinCut::find(std::vector<int>& parent, int i) {
     if (parent[i] == i) return i;
@@ -36,63 +18,80 @@ void KargerMinCut::unionSub(std::vector<int>& parent, std::vector<int>& rank, in
     int xRoot = find(parent, x);
     int yRoot = find(parent, y);
 
-    if (rank[xRoot] < rank[yRoot])
-    {
+    if (rank[xRoot] < rank[yRoot]) {
         parent[xRoot] = yRoot;
-    }
-    else if (rank[xRoot] > rank[yRoot])
-    {
+    } else if (rank[xRoot] > rank[yRoot]) {
         parent[yRoot] = xRoot;
-    }
-    else
-    {
+    } else {
         parent[yRoot] = xRoot;
         rank[xRoot]++;
     }
 }
 
 
-void KargerMinCut::solve() {
-    bestMinCut = INT_MAX;
-    for (int i = 0; i < numRepeat; ++i) {
-        int currentMinCut = findMinCut();
+void KargerMinCut::run() {
+    double bestMinCutValue = INT_MAX;
+    for (int i = 0; i < repeat; ++i) {
+        runOnce();
 
-        bestMinCut = std::min(bestMinCut, currentMinCut);
+        bestMinCutValue = std::min(bestMinCutValue, minCutValue);
     }
+    minCutValue = bestMinCutValue;
 }
 
-int KargerMinCut::findMinCut() {
-    std::vector<int> parent(numVertices), rank(numVertices, 0);
-    int vertices = numVertices;
-    int minCut = 0;
+void KargerMinCut::runOnce() {
+    int vertices = graph->numberOfNodes();
+    std::vector<int> parent(vertices), rank(vertices, 0);
+    minCutValue = 0;
 
-    for (int i = 0; i < numVertices; ++i) {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+
+    double totalWeight = 0;
+    std::vector<NetworKit::WeightedEdge> edges;
+    graph->forEdges([&](NetworKit::node u, NetworKit::node v, double weight) {
+        edges.emplace_back(u, v, weight);
+        totalWeight += weight;
+    });
+
+    std::uniform_real_distribution<> dis(0.0, totalWeight);
+
+    for (int i = 0; i < graph->numberOfNodes(); ++i) {
         parent[i] = i;
     }
 
     while (vertices > 2) {
-        int i = rand() % edges.size();
-        int subset1 = find(parent, edges[i].u);
-        int subset2 = find(parent, edges[i].v);
+        double pick = dis(gen);
+        double cumulativeWeight = 0;
+
+        int selectedEdge = -1;
+        for (int i = 0; i < edges.size(); ++i) {
+            cumulativeWeight += edges[i].weight;
+            if (cumulativeWeight >= pick) {
+                selectedEdge = i;
+                break;
+            }
+        }
+
+        int subset1 = find(parent, edges[selectedEdge].u);
+        int subset2 = find(parent, edges[selectedEdge].v);
 
         if (subset1 != subset2) {
             unionSub(parent, rank, subset1, subset2);
             vertices--;
+
+            totalWeight -= edges[selectedEdge].weight;
         }
     }
 
-    for (auto& edge : edges) {
-        int subset1 = find(parent, edge.u);
-        int subset2 = find(parent, edge.v);
-        if (subset1 != subset2)
-            minCut++;
-    }
-
-    return minCut / 2; // Each edge counted twice
+    graph->forEdges([&](NetworKit::node u, NetworKit::node v, double weight) {
+        int subset1 = find(parent, u);
+        int subset2 = find(parent, v);
+        if (subset1 != subset2) {
+            minCutValue += weight;
+        }
+    });
 }
 
-int KargerMinCut::getMinCut() {
-    return bestMinCut;
-}
 
-} // namespace Koala
+}  // namespace Koala

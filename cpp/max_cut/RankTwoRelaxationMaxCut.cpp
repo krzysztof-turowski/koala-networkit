@@ -18,40 +18,22 @@
 
 namespace Koala {
 
-RankTwoRelaxationMaxCut::RankTwoRelaxationMaxCut(const std::vector<std::vector<int>>& graphInput)
-    : graph(graphInput), numberOfVertices(graphInput.size()), bestCutValue(std::numeric_limits<int>::min()) {
-    theta.resize(numberOfVertices);
-    distributeThetaEvenly();
-}
-
 void RankTwoRelaxationMaxCut::distributeThetaEvenly() {
-    for (int i = 0; i < numberOfVertices; ++i) {
-        theta[i] = 2 * M_PI * i / numberOfVertices;
+    for (int i = 0; i < graph->numberOfNodes(); ++i) {
+        theta[i] = 2 * M_PI * i / graph->numberOfNodes();
     }
 }
 
-double RankTwoRelaxationMaxCut::computeCutValue(const std::vector<int>& x) {
-    double cutValue = 0;
-    for (int i = 0; i < numberOfVertices; ++i) {
-        for (int j = 0; j < numberOfVertices; ++j) {
-            if (x[i] != x[j]) {
-                cutValue += graph[i][j];
-            }
-        }
-    }
-    return cutValue / 2;
-}
-
-std::vector<int> RankTwoRelaxationMaxCut::procedureCut() {
+std::vector<bool> RankTwoRelaxationMaxCut::procedureCut() {
     double bestValue = -std::numeric_limits<double>::infinity();
-    std::vector<int> bestCut(numberOfVertices), x(numberOfVertices);
+    std::vector<bool> bestCut(graph->numberOfNodes()), x(graph->numberOfNodes());
 
     for (double alpha = 0; alpha <= M_PI; alpha += 0.01) {
-        for (int i = 0; i < numberOfVertices; ++i) {
-            x[i] = (theta[i] >= alpha && theta[i] < alpha + M_PI) ? 1 : -1;
+        for (int i = 0; i < graph->numberOfNodes(); ++i) {
+            x[i] = (theta[i] >= alpha && theta[i] < alpha + M_PI) ? true : false;
         }
 
-        double value = computeCutValue(x);
+        double value = calculateCutValue(x);
         if (value > bestValue) {
             bestValue = value;
             bestCut = x;
@@ -61,24 +43,24 @@ std::vector<int> RankTwoRelaxationMaxCut::procedureCut() {
 }
 
 std::vector<double> RankTwoRelaxationMaxCut::calculateGradient(const std::vector<double>& theta) {
-    std::vector<double> gradient(numberOfVertices, 0.0);
-    for (int j = 0; j < numberOfVertices; ++j) {
-        for (int k = 0; k < numberOfVertices; ++k) {
-            gradient[j] += graph[k][j] * sin(theta[k] - theta[j]);
-        }
-    }
+    std::vector<double> gradient(graph->numberOfNodes(), 0.0);
+    graph->forEdges([&](NetworKit::node j, NetworKit::node k, NetworKit::edgeweight w) {
+        gradient[j] += w * sin(theta[k] - theta[j]);
+        gradient[k] += w * sin(theta[j] - theta[k]);
+    });
     return gradient;
 }
+
 
 void RankTwoRelaxationMaxCut::gradientDescent(double alpha, int maxIterations) {
     for (int iter = 0; iter < maxIterations; ++iter) {
         std::vector<double> gradient = calculateGradient(theta);
-        for (int j = 0; j < numberOfVertices; ++j) {
+        for (int j = 0; j < graph->numberOfNodes(); ++j) {
             theta[j] -= alpha * gradient[j];
         }
     }
 
-    for (int i = 0; i < numberOfVertices; ++i) {
+    for (int i = 0; i < graph->numberOfNodes(); ++i) {
         if (theta[i] < 0) theta[i] += 2 * M_PI;
         if (theta[i] >= 2 * M_PI) theta[i] -= 2 * M_PI;
     }
@@ -88,29 +70,23 @@ void RankTwoRelaxationMaxCut::gradientDescent(double alpha, int maxIterations) {
 
 void RankTwoRelaxationMaxCut::perturbTheta() {
     distributeThetaEvenly();
-    gradientDescent(0.001, 1000000);
+    gradientDescent(alpha, maxIterations);
 }
 
-void RankTwoRelaxationMaxCut::solve() {
+void RankTwoRelaxationMaxCut::run() {
+    theta.resize(graph->numberOfNodes());
+    distributeThetaEvenly();
     perturbTheta();
-    bestSet = procedureCut();
-    bestCutValue = computeCutValue(bestSet);
+    maxCutSet = procedureCut();
+    maxCutValue = calculateCutValue(maxCutSet);
 
-    if (bestSet[numberOfVertices - 1] != -1) {
-        bestSet[numberOfVertices - 1] = -1;
-        double candidateValue = computeCutValue(bestSet);
-        if (candidateValue > bestCutValue) {
-            bestCutValue = candidateValue;
+    if (maxCutSet[graph->numberOfNodes() - 1] == true) {
+        maxCutSet[graph->numberOfNodes() - 1] = false;
+        double candidateValue = calculateCutValue(maxCutSet);
+        if (candidateValue > maxCutValue) {
+            maxCutValue = candidateValue;
         }
     }
-}
-
-int RankTwoRelaxationMaxCut::getMaxCutValue() const {
-    return bestCutValue;
-}
-
-const std::vector<int>& RankTwoRelaxationMaxCut::getBestSet() const {
-    return bestSet;
 }
 
 }  // namespace Koala

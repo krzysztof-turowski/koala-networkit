@@ -8,33 +8,30 @@
 
 namespace Koala {
 
-StoerWagnerMinCut::StoerWagnerMinCut(int vertices, const std::vector<std::vector<int>>& graphMatrix)
-    : numVertices(vertices), graph(graphMatrix), vertices(vertices), bestMinCut(INT_MAX) {
-    for (int i = 0; i < vertices; ++i) {
-        this->vertices[i] = i;
-    }
-}
+void StoerWagnerMinCut::run() {
+    std::vector<NetworKit::node> localVertices(graph->numberOfNodes());
+    std::vector<std::vector<double>> edges(graph->numberOfNodes(),
+            std::vector<double>(graph->numberOfNodes(), 0));
+    minCutValue = INT_MAX;
 
-void StoerWagnerMinCut::solve() {
-    bestMinCut = findMinCut(graph);
-}
+    graph->forNodes([&](NetworKit::node u) {
+        localVertices[u] = u;
+    });
 
-int StoerWagnerMinCut::getMinCut() const {
-    return bestMinCut;
-}
+    graph->forEdges([&](NetworKit::node u, NetworKit::node v, double w) {
+        edges[u][v] = w;
+        edges[v][u] = w;
+    });
 
-int StoerWagnerMinCut::findMinCut(std::vector<std::vector<int>>& weights) {
-    std::vector<int> localVertices = vertices;
-    int minCut = INT_MAX;
     while (localVertices.size() > 1) {
-        minCut = std::min(minCut, minCutPhase(localVertices, weights));
+        minCutValue = std::min(minCutValue, minCutPhase(localVertices, edges));
     }
-    return minCut;
 }
 
-int StoerWagnerMinCut::minCutPhase(std::vector<int>& vertices, std::vector<std::vector<int>>& weights) {
+double StoerWagnerMinCut::minCutPhase(std::vector<NetworKit::node>& vertices,
+        std::vector<std::vector<double>>& edges) {
     int size = vertices.size();
-    std::vector<int> weightsPhase(size, 0);
+    std::vector<double> weightsPhase(size, 0);
     std::vector<bool> added(size, false);
 
     int prev, last = 0;
@@ -43,28 +40,30 @@ int StoerWagnerMinCut::minCutPhase(std::vector<int>& vertices, std::vector<std::
         prev = last;
         last = -1;
         for (int j = 0; j < size; ++j) {
-            if (!added[vertices[j]] && (last == -1 || weightsPhase[vertices[j]] > weightsPhase[vertices[last]])) {
+            if (!added[j] && (last == -1 || weightsPhase[j] > weightsPhase[last])) {
                 last = j;
             }
         }
 
         if (i == size - 1) {
-            int minCut = weightsPhase[vertices[last]];
+            double minCut = weightsPhase[last];
             for (int j = 0; j < size; ++j) {
-                weights[vertices[prev]][vertices[j]] += weights[vertices[last]][vertices[j]];
-                weights[vertices[j]][vertices[prev]] += weights[vertices[j]][vertices[last]];
+                if (j != last) {
+                    edges[vertices[prev]][vertices[j]] += edges[vertices[last]][vertices[j]];
+                    edges[vertices[j]][vertices[prev]] += edges[vertices[j]][vertices[last]];
+                }
             }
             vertices.erase(vertices.begin() + last);
             return minCut;
         }
-        added[vertices[last]] = true;
+        added[last] = true;
         for (int j = 0; j < size; ++j) {
-            if (!added[vertices[j]]) {
-                weightsPhase[vertices[j]] += weights[vertices[last]][vertices[j]];
+            if (!added[j]) {
+                weightsPhase[j] += edges[vertices[last]][vertices[j]];
             }
         }
     }
     return INT_MAX;
 }
 
-} // namespace Koala
+}  // namespace Koala

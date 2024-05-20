@@ -5,10 +5,10 @@
 #include <algorithm>
 #include <tuple>
 
-#include <min_cut/PushRelabelMinCut.hpp> 
+#include <min_cut/PushRelabelMinCut.hpp>
 
 namespace Koala {
-    
+
 int PushRelabelMinCut::overflowVertex() {
     for (int i = 0; i < numVertices; ++i) {
         if (i != source && i != sink && excess[i] > 0) return i;
@@ -27,7 +27,7 @@ void PushRelabelMinCut::initializePreflow() {
 }
 
 void PushRelabelMinCut::push(Edge& e) {
-    long long flow = std::min(excess[e.source], e.capacity - e.flow);
+    int flow = std::min(excess[e.source], e.capacity - e.flow);
     e.flow += flow;
     graph[e.sink][e.revIndex].flow -= flow;
     excess[e.source] -= flow;
@@ -78,14 +78,14 @@ PushRelabelMinCut::PushRelabelMinCut(int vertices, int src, int snk, const std::
     }
 }
 
-void PushRelabelMinCut::addEdge(int from, int to, long long capacity) {
+void PushRelabelMinCut::addEdge(int from, int to, int capacity) {
     Edge forward = {from, to, capacity, 0, static_cast<int>(graph[to].size())};
     Edge reverse = {to, from, 0, 0, static_cast<int>(graph[from].size())};
     graph[from].push_back(forward);
     graph[to].push_back(reverse);
 }
 
-long long PushRelabelMinCut::getMaxFlow() const {
+int PushRelabelMinCut::getMaxFlow() const {
     return excess[sink];
 }
 

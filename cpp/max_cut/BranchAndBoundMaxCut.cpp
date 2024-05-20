@@ -16,40 +16,27 @@
 namespace Koala {
 
 struct BranchAndBoundMaxCut::Node {
-    std::vector<bool> set; // Indicates which set a vertex belongs to
-    int level; // Current vertex to consider
-    int bound; // Upper bound of the maximum cut value from this node
+    std::vector<bool> set;      // Indicates which set a vertex belongs to
+    int level;                  // Current vertex to consider
+    int bound;                  // Upper bound of the maximum cut value from this node
 };
-
-int BranchAndBoundMaxCut::calculateCutValue(const std::vector<bool>& set) {
-    int cutValue = 0;
-    for (int i = 0; i < numberOfVertices; ++i) {
-        for (int j = i + 1; j < numberOfVertices; ++j) {
-            if (set[i] != set[j] && graph[i][j] > 0) {
-                cutValue += graph[i][j];
-            }
-        }
-    }
-    return cutValue;
-}
 
 int BranchAndBoundMaxCut::bound(Node u) {
     int result = calculateCutValue(u.set);
-    for (int j = u.level; j < numberOfVertices; ++j) {
-        for (int k = 0; k < numberOfVertices; ++k) {
-            if (graph[j][k] > 0) {
-                result += graph[j][k];
-            }
+    graph->forEdges([&](NetworKit::node j, NetworKit::node k, NetworKit::edgeweight w) {
+        if (j >= u.level) {
+            result += w;
         }
-    }
+    });
     return result;
 }
 
 void BranchAndBoundMaxCut::branchAndBound() {
+    maxCutValue = 0;
     std::vector<Node> stack;
     Node root;
     root.level = 0;
-    root.set.resize(numberOfVertices, false);
+    root.set.resize(graph->numberOfNodes(), false);
     root.bound = bound(root);
     stack.push_back(root);
 
@@ -57,11 +44,11 @@ void BranchAndBoundMaxCut::branchAndBound() {
         Node u = stack.back();
         stack.pop_back();
 
-        if (u.level == numberOfVertices) {
-            int currentCutValue = calculateCutValue(u.set);
+        if (u.level == graph->numberOfNodes()) {
+            double currentCutValue = calculateCutValue(u.set);
             if (currentCutValue > maxCutValue) {
                 maxCutValue = currentCutValue;
-                bestSet = u.set;
+                maxCutSet = u.set;
             }
         } else {
             for (int i = 0; i < 2; ++i) {
@@ -77,19 +64,8 @@ void BranchAndBoundMaxCut::branchAndBound() {
     }
 }
 
-BranchAndBoundMaxCut::BranchAndBoundMaxCut(const std::vector<std::vector<int>>& graphInput)
-    : graph(graphInput), numberOfVertices(graphInput.size()), maxCutValue(std::numeric_limits<int>::min()) {}
-
-void BranchAndBoundMaxCut::solve() {
+void BranchAndBoundMaxCut::run() {
     branchAndBound();
-}
-
-int BranchAndBoundMaxCut::getMaxCutValue() const {
-    return maxCutValue;
-}
-
-const std::vector<bool>& BranchAndBoundMaxCut::getBestSet() const {
-    return bestSet;
 }
 
 }  // namespace Koala

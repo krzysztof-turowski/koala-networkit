@@ -9,56 +9,38 @@
 #pragma once
 
 #include <vector>
-#include <networkit/graph/Graph.hpp>
+
+#include "MinCut.hpp"
 
 namespace Koala {
 
 /**
- * @ingroup graph_algorithms
+ * @ingroup min-cut
  * The class for solving the Min-Cut problem on a given graph
  * using the Karger-Stein algorithm.
  */
-class KargerSteinMinCut {
-public:
-    /**
-     * Constructor that initializes the graph from a given adjacency matrix.
-     *
-     * @param vertices The number of vertices in the graph.
-     * @param repeats The number of repetitions to perform the algorithm.
-     * @param graphMatrix The graph represented as an adjacency matrix.
-     */
-    KargerSteinMinCut(int vertices, int repeats, const std::vector<std::vector<int>>& graphMatrix);
+class KargerSteinMinCut final : public MinCut {
+ public:
+    using MinCut::MinCut;
 
     /**
-     * Adds an edge to the graph array.
-     *
-     * @param u The starting vertex of the edge.
-     * @param v The ending vertex of the edge.
-     * @param weight The weight of the edge.
+     * Executes the Min-Cut problem solver `repeat` times and takes the best solution.
      */
-    void addEdge(int u, int v, int weight);
+    void run();
 
     /**
-     * Executes the Min-Cut problem solver using the Karger-Stein algorithm.
+     * Executes the Min-Cut problem solver without repeat.
      */
-    void solve();
+    void runOnce();
 
-    /**
-     * Retrieves the minimum cut value found by the algorithm.
-     *
-     * @return The minimum cut value.
-     */
-    int getMinCut();
+ private:
+    int repeat = 10;
 
-private:
-    int numVertices, numRepeats;
-    std::vector<NetworKit::Edge> edges;
-    int bestMinCut;
-
+    // Helper functions
     int find(std::vector<int>& parent, int i);
     void unionSub(std::vector<int>& parent, std::vector<int>& rank, int x, int y);
     int recursiveMinCut(int numVertices);
     int standardMinCut();
 };
 
-} // namespace Koala
+}  // namespace Koala
