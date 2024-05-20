@@ -15,13 +15,11 @@ int main() {
             "COGRAPH",
             "NOT_COGRAPH"
     };
-    std::ifstream fin("../../input/cographConnected7.g6");
-    //std::ifstream fin("../../input/graph4c.g6");
 
     while (true) {
         std::string line;
-        fin >> line;
-        if (!fin.good()) {
+        std::cin >> line;
+        if (!std::cin.good()) {
             break;
         }
 
