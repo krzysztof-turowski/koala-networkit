@@ -47,7 +47,7 @@ class CographRecognition : public NetworKit::Algorithm {
 /**
  * @ingroup recognition
  * The class for recognition of cographs procedure from
- * Bretscher, Corneil, Habib, Paul, "A Simple Linear Time LexBFS Cograph Recognition Algorithm".
+ * Bretscher, Corneil, Habib, Paul, "A Simple Linear Time LexBFS Cograph recognition Algorithm".
  *
  */
 class BretscherCorneilHabibPaulCographRecognition : public CographRecognition {
@@ -55,6 +55,7 @@ class BretscherCorneilHabibPaulCographRecognition : public CographRecognition {
     using CographRecognition::CographRecognition;
     void run();
     bool isCograph() const;
+
  private:
     class Info {
      public:
@@ -62,8 +63,8 @@ class BretscherCorneilHabibPaulCographRecognition : public CographRecognition {
         std::vector<NetworKit::node> ans;
     };
     Info info;
-    void LexBfsMinus(bool is_complement, std::vector<NetworKit::node> &a);
-    bool NeighbourhoodSubsetProperty(bool is_complement, std::vector<NetworKit::node> a,
+    void lex_bfs_minus(bool is_complement, std::vector<NetworKit::node> &a);
+    bool neighbourhood_subset_property(bool is_complement, std::vector<NetworKit::node> a,
         std::vector<std::vector<std::pair<int, int>>> borders);
     bool is_cograph = false;
 };
@@ -95,12 +96,13 @@ class CorneilStewartPerlCographRecognition : public CographRecognition {
     State getState() const;
     void run();
     bool isCograph() const;
+
  private:
-    CorneilStewartPerlCographRecognition::State Recognition();
-    void Unmark();
-    void Mark(CoNode *x);
-    std::pair<CoNode*, CorneilStewartPerlCographRecognition::State>FindLowest() const;
-    void InsertXToCoTree(CoNode *u, CoNode *x);
+    CorneilStewartPerlCographRecognition::State recognition();
+    void unmark();
+    void mark(CoNode *x);
+    std::pair<CoNode*, CorneilStewartPerlCographRecognition::State>find_lowest() const;
+    void insert_x_to_cotree(CoNode *u, CoNode *x);
     State is_cograph = State::UNKNOWN;
     CoTree T;
     int mark_count = 0;
