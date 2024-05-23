@@ -53,13 +53,13 @@ class CographRecognition : public NetworKit::Algorithm {
 class BretscherCorneilHabibPaulCographRecognition : public CographRecognition {
  public:
     using CographRecognition::CographRecognition;
-    std::pair<std::vector<std::vector<std::pair<int, int>>>, std::vector<NetworKit::node>>
-    LexBfsMinus(bool is_complement, std::vector<NetworKit::node> &a);
-    bool NeighbourhoodSubsetProperty(bool is_complement, std::vector<NetworKit::node> a,
-    std::vector<std::vector<std::pair<int, int>>> borders);
-    void run() override;
-    bool isCograph() const override;
+    void run();
+    bool isCograph() const;
  private:
+    std::pair<std::vector<std::vector<std::pair<int, int>>>, std::vector<NetworKit::node>>
+        LexBfsMinus(bool is_complement, std::vector<NetworKit::node> &a);
+    bool NeighbourhoodSubsetProperty(bool is_complement, std::vector<NetworKit::node> a,
+        std::vector<std::vector<std::pair<int, int>>> borders);
     bool is_cograph = false;
 };
 
@@ -88,15 +88,14 @@ class CorneilStewartPerlCographRecognition : public CographRecognition {
      * @return State of the graph.
      */
     State getState() const;
+    void run();
+    bool isCograph() const;
+ private:
     CorneilStewartPerlCographRecognition::State Recognition();
-    void run() override;
-    bool isCograph() const override;
     void Unmark();
     void Mark(CoNode *x);
     std::pair<CoNode*, CorneilStewartPerlCographRecognition::State>FindLowest() const;
     void InsertXToCoTree(CoNode *u, CoNode *x);
-
- private:
     State is_cograph = State::UNKNOWN;
     CoTree T;
     int mark_count = 0;
