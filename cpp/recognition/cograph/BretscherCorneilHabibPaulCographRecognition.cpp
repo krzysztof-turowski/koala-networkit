@@ -34,7 +34,7 @@ namespace Koala {
     std::pair<std::vector<std::vector<std::pair<int, int>>>, std::vector<NetworKit::node>>
         BretscherCorneilHabibPaulCographRecognition::
         LexBfsMinus(bool is_complement, std::vector<NetworKit::node> &a) {
-        std::vector<NetworKit::node> ans(a.size(), INT_MAX);
+        std::vector<NetworKit::node> ans;
         std::vector<bool> used(a.size());
         std::vector<std::vector<std::pair<NetworKit::node, unsigned int>>> what_ends_here(a.size());
         std::vector<std::vector<std::pair<int, int>>> borders(a.size());
@@ -72,7 +72,8 @@ namespace Koala {
             if (L.front().empty()) {
                 L.erase(L.begin());
             }
-            ans[i++] = x;
+            ans.push_back(x);
+            i++;
             used[x] = true;
             unsigned int SA = 0;
             for (auto v : graph.neighborRange(x)) {
