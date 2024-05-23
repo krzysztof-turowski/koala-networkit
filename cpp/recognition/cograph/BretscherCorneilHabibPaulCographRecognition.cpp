@@ -4,7 +4,6 @@
  *  Created on: 2024
  *      Author: fixikmila
  */
-// Copyright 2024 milana
 #include <graph/GraphTools.hpp>
 
 #include "recognition/CographRecognition.hpp"
@@ -28,17 +27,13 @@ namespace Koala {
         auto [bb, a] = LexBfsMinus(false, start);
         auto [borders1, b] = LexBfsMinus(true, a);  // graph complement
         auto [borders2, c] = LexBfsMinus(false, b);
-        if (NeighbourhoodSubsetProperty(true, b, borders1) &&
-        NeighbourhoodSubsetProperty(false, c, borders2)) {
-            is_cograph = true;
-        } else {
-            is_cograph = false;
-        }
+        is_cograph = NeighbourhoodSubsetProperty(true, b, borders1) &&
+            NeighbourhoodSubsetProperty(false, c, borders2);
     }
 
     std::pair<std::vector<std::vector<std::pair<int, int>>>, std::vector<NetworKit::node>>
-    BretscherCorneilHabibPaulCographRecognition::
-    LexBfsMinus(bool is_complement, std::vector<NetworKit::node> &a) {
+        BretscherCorneilHabibPaulCographRecognition::
+        LexBfsMinus(bool is_complement, std::vector<NetworKit::node> &a) {
         std::vector<NetworKit::node> ans(a.size(), INT_MAX);
         std::vector<bool> used(a.size());
         std::vector<std::vector<std::pair<NetworKit::node, unsigned int>>> what_ends_here(a.size());
@@ -91,16 +86,12 @@ namespace Koala {
                     SA++;
                 }
                 auto previous = number;
-
                 auto copy_number = number;
                 auto end_it = L.end();
                 end_it--;
-
                 if (is_complement) {
                     copy_number++;
                 }
-
-
                 if ((number == L.begin() && !is_complement) ||
                 (number == end_it && is_complement)) {
                     std::list<NetworKit::node> insert;
@@ -112,8 +103,8 @@ namespace Koala {
                     previous++;
                 }
                 if (!previous->empty() && (!graph.hasEdge(previous->front(), x)
-                                           || !used_at_this_step[previous->front()] ||
-                                           previous_list[previous->front()] != previous_list[v])) {
+                    || !used_at_this_step[previous->front()] ||
+                    previous_list[previous->front()] != previous_list[v])) {
                     std::list<NetworKit::node> insert;
                     L.insert(copy_number, insert);
                     previous = number;
@@ -129,7 +120,6 @@ namespace Koala {
                 if (number->empty()) {
                     L.erase(number);
                 }
-
                 auto end = previous->end();
                 end--;
                 in_which_position[v] = end;
@@ -147,59 +137,58 @@ namespace Koala {
         return {borders, ans};
     }
 
-    bool BretscherCorneilHabibPaulCographRecognition::NeighbourhoodSubsetProperty
-    (bool is_complement, std::vector<NetworKit::node> a,
-    std::vector<std::vector<std::pair<int, int>>> borders) {
+    bool BretscherCorneilHabibPaulCographRecognition::NeighbourhoodSubsetProperty(
+        bool is_complement, std::vector<NetworKit::node> a,
+        std::vector<std::vector<std::pair<int, int>>> borders) {
         std::vector<bool> used(a.size());
-        std::vector<int> pos(a.size());
+        std::vector<int> positions(a.size());
         for (unsigned int i = 0; i < a.size(); i++) {
-            pos[a[i]] = i;
+            positions[a[i]] = i;
         }
         for (auto i : a) {
             if (borders[i].empty()) {
                 continue;
             }
             for (unsigned int j = 0; j < borders[i].size() - 1; j++) {
-                auto l = borders[i][j].first;
-                auto r = borders[i][j].second;
+                auto [l, r] = borders[i][j];
                 auto y = a[l];
                 auto p = a[borders[i][j + 1].first];
                 if (is_complement) {
-                    int cnt = 0;
+                    int count = 0;
                     for (auto z : graph.neighborRange(p)) {
-                        if (pos[z] < pos[p]) {
+                        if (positions[z] < positions[p]) {
                             used[z] = true;
                         }
-                        if (pos[z] >= l && pos[z] <= r) {
-                            cnt++;
+                        if (positions[z] >= l && positions[z] <= r) {
+                            count++;
                         }
                     }
-                    if (cnt != r - l + 1) {
+                    if (count != r - l + 1) {
                         return false;
                     }
                     for (auto z : graph.neighborRange(y)) {
-                        if (pos[z] < pos[y] && !used[z]) {
+                        if (positions[z] < positions[y] && !used[z]) {
                             return false;
                         }
                     }
                     for (auto z : graph.neighborRange(p)) {
-                        if (pos[z] < pos[p]) {
+                        if (positions[z] < positions[p]) {
                             used[z] = false;
                         }
                     }
                 } else {
                     for (auto z : graph.neighborRange(y)) {
-                        if (pos[z] < pos[y]) {
+                        if (positions[z] < positions[y]) {
                             used[z] = true;
                         }
                     }
                     for (auto z : graph.neighborRange(p)) {
-                        if (pos[z] < pos[p] && !used[z]) {
+                        if (positions[z] < positions[p] && !used[z]) {
                             return false;
                         }
                     }
                     for (auto z : graph.neighborRange(y)) {
-                        if (pos[z] < pos[y]) {
+                        if (positions[z] < positions[y]) {
                             used[z] = false;
                         }
                     }
