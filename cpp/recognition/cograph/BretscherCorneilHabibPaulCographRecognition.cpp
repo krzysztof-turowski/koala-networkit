@@ -24,20 +24,20 @@ namespace Koala {
         for (auto u : graph.nodeRange()) {
             start.push_back(u);
         }
-        LexBfsMinus(false, start);
+        lex_bfs_minus(false, start);
         auto a = info.ans;
-        LexBfsMinus(true, a);  // graph complement
+        lex_bfs_minus(true, a);  // graph complement
         auto borders1 = info.borders;
         auto b = info.ans;
-        LexBfsMinus(false, b);
+        lex_bfs_minus(false, b);
         auto borders2 = info.borders;
         auto c = info.ans;
-        is_cograph = NeighbourhoodSubsetProperty(true, b, borders1) &&
-            NeighbourhoodSubsetProperty(false, c, borders2);
+        is_cograph = neighbourhood_subset_property(true, b, borders1) &&
+                     neighbourhood_subset_property(false, c, borders2);
     }
 
     void BretscherCorneilHabibPaulCographRecognition::
-        LexBfsMinus(bool is_complement, std::vector<NetworKit::node> &a) {
+        lex_bfs_minus(bool is_complement, std::vector<NetworKit::node> &a) {
         std::vector<NetworKit::node> ans;
         std::vector<bool> used(a.size());
         std::vector<std::vector<std::pair<NetworKit::node, unsigned int>>> what_ends_here(a.size());
@@ -143,7 +143,7 @@ namespace Koala {
         info.ans = ans;
     }
 
-    bool BretscherCorneilHabibPaulCographRecognition::NeighbourhoodSubsetProperty(
+    bool BretscherCorneilHabibPaulCographRecognition::neighbourhood_subset_property(
         bool is_complement, std::vector<NetworKit::node> a,
         std::vector<std::vector<std::pair<int, int>>> borders) {
         std::vector<bool> used(a.size());
