@@ -24,15 +24,19 @@ namespace Koala {
         for (auto u : graph.nodeRange()) {
             start.push_back(u);
         }
-        auto [bb, a] = LexBfsMinus(false, start);
-        auto [borders1, b] = LexBfsMinus(true, a);  // graph complement
-        auto [borders2, c] = LexBfsMinus(false, b);
+        LexBfsMinus(false, start);
+        auto a = info.ans;
+        LexBfsMinus(true, a);  // graph complement
+        auto borders1 = info.borders;
+        auto b = info.ans;
+        LexBfsMinus(false, b);
+        auto borders2 = info.borders;
+        auto c = info.ans;
         is_cograph = NeighbourhoodSubsetProperty(true, b, borders1) &&
             NeighbourhoodSubsetProperty(false, c, borders2);
     }
 
-    std::pair<std::vector<std::vector<std::pair<int, int>>>, std::vector<NetworKit::node>>
-        BretscherCorneilHabibPaulCographRecognition::
+    void BretscherCorneilHabibPaulCographRecognition::
         LexBfsMinus(bool is_complement, std::vector<NetworKit::node> &a) {
         std::vector<NetworKit::node> ans;
         std::vector<bool> used(a.size());
@@ -135,7 +139,8 @@ namespace Koala {
                 what_ends_here[i + SA].emplace_back(x, slice_size - SA - 1);
             }
         }
-        return {borders, ans};
+        info.borders = borders;
+        info.ans = ans;
     }
 
     bool BretscherCorneilHabibPaulCographRecognition::NeighbourhoodSubsetProperty(
