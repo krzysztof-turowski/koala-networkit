@@ -56,8 +56,13 @@ class BretscherCorneilHabibPaulCographRecognition : public CographRecognition {
     void run();
     bool isCograph() const;
  private:
-    std::pair<std::vector<std::vector<std::pair<int, int>>>, std::vector<NetworKit::node>>
-        LexBfsMinus(bool is_complement, std::vector<NetworKit::node> &a);
+    class Info {
+     public:
+        std::vector<std::vector<std::pair<int, int>>> borders;
+        std::vector<NetworKit::node> ans;
+    };
+    Info info;
+    void LexBfsMinus(bool is_complement, std::vector<NetworKit::node> &a);
     bool NeighbourhoodSubsetProperty(bool is_complement, std::vector<NetworKit::node> a,
         std::vector<std::vector<std::pair<int, int>>> borders);
     bool is_cograph = false;
