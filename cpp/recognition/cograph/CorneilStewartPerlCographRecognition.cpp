@@ -13,7 +13,7 @@
 
 namespace Koala {
 
-void CorneilStewartPerlCographRecognition::Unmark() {
+void CorneilStewartPerlCographRecognition::unmark() {
     CoNode *u = marked_with_d_equal_to_md.front();
     marked_with_d_equal_to_md.pop();
     u->unmark();
@@ -46,7 +46,7 @@ void CorneilStewartPerlCographRecognition::Unmark() {
     }
 }
 
-void CorneilStewartPerlCographRecognition::Mark(CoNode *x) {
+void CorneilStewartPerlCographRecognition::mark(CoNode *x) {
     mark_count = 0;
     mark_and_unmarked_count = 0;
     mark_ever_count = 0;
@@ -61,7 +61,7 @@ void CorneilStewartPerlCographRecognition::Mark(CoNode *x) {
         marked_with_d_equal_to_md.push(u);
     }
     while (!marked_with_d_equal_to_md.empty()) {
-        Unmark();
+        unmark();
     }
     if (mark_count && T.root->d == 1) {
         T.root->mark();
@@ -78,7 +78,7 @@ void ResetAllCoNodes(CoNode *x, int level = 0) {
 }
 
 std::pair<CoNode*, CorneilStewartPerlCographRecognition::State>
-CorneilStewartPerlCographRecognition::FindLowest() const {
+CorneilStewartPerlCographRecognition::find_lowest() const {
     CoNode *y = nullptr;
     if (T.root->marked == Marked::UNMARKED) {
         return {y, CorneilStewartPerlCographRecognition::State::GRANDPARENT_IS_NOT_IN_SET};
@@ -184,7 +184,7 @@ CoNode* GetLastFromChildren(CoNode *u) {
     return x;
 }
 
-void CorneilStewartPerlCographRecognition::InsertXToCoTree(CoNode *u, CoNode *x) {
+void CorneilStewartPerlCographRecognition::insert_x_to_cotree(CoNode *u, CoNode *x) {
     std::vector<CoNode*> a;
     int u_number = u->number;
     a = GetWereMarked(u);
@@ -245,7 +245,7 @@ void CorneilStewartPerlCographRecognition::InsertXToCoTree(CoNode *u, CoNode *x)
     }
 }
 
-CorneilStewartPerlCographRecognition::State CorneilStewartPerlCographRecognition::Recognition() {
+CorneilStewartPerlCographRecognition::State CorneilStewartPerlCographRecognition::recognition() {
     T.ReserveSpace(3 * graph.numberOfNodes());
     auto *R = T.Add(Type::ZERO_ONE, 1);
     T.root = R;
@@ -290,7 +290,7 @@ CorneilStewartPerlCographRecognition::State CorneilStewartPerlCographRecognition
 
     for (int i = 2; i < count; i++) {
         ResetAllCoNodes(T.root);
-        Mark(covertex[i]);
+        mark(covertex[i]);
         if (T.root->marked == Marked::MARKED_AND_UNMARKED) {
             // all nodes of T were marked and unmarked <=>
             // R is marked and unmarked
@@ -307,12 +307,12 @@ CorneilStewartPerlCographRecognition::State CorneilStewartPerlCographRecognition
                 T.root = R1;
             }
         } else {
-            auto [v, state] = FindLowest();
+            auto [v, state] = find_lowest();
             if (state != State::COGRAPH) {
                 T.Clear();
                 return state;
             }
-            InsertXToCoTree(v, covertex[i]);
+            insert_x_to_cotree(v, covertex[i]);
         }
         covertex[i]->in_graph = true;
     }
@@ -333,7 +333,7 @@ CorneilStewartPerlCographRecognition::getState() const {
 
 void CorneilStewartPerlCographRecognition::run() {
     hasRun = true;
-    is_cograph = Recognition();
+    is_cograph = recognition();
 }
 
 }  // namespace Koala
