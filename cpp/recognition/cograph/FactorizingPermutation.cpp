@@ -2,23 +2,35 @@
 
 #include "recognition/Cograph/FactorizingPermutation.hpp"
 
-namespace Koala {
+namespace Koala
+{
     FactorizingPermutation::FactorizingPermutation() {
-        l = nullptr;
-        r = nullptr;
-        first_part = nullptr;
-        last_part = nullptr;
-        origin = nullptr;
+        l= nullptr;
+        r= nullptr;
+        first_part= nullptr;
+        last_part= nullptr;
+        origin= nullptr;
+        last_used_part=0;
     }
 
     FactorizingPermutation::~FactorizingPermutation() {
-        for (auto v: E) {
-            delete v;
-        }
         E.clear();
+        P.clear();
     }
 
-    void FactorizingPermutation::Lcheck() {
+    NetworKit::count FactorizingPermutation::newPart()
+    {
+        if(P[last_used_part].size==0)
+        {
+            return last_used_part;
+        }
+        last_used_part++;
+        return last_used_part;
+    }
+
+
+
+    void FactorizingPermutation::lCheck() {
         if (origin->my_part != l && l->next != nullptr) {
             if (l->next->first != l->next->last) {
                 l = (l->next);
@@ -29,7 +41,7 @@ namespace Koala {
         }
     }
 
-    void FactorizingPermutation::Rcheck() {
+    void FactorizingPermutation::rCheck() {
         if (origin->my_part != r && r->previous != nullptr) {
             if (r->previous->first != r->previous->last) {
                 r = r->previous;
@@ -41,59 +53,59 @@ namespace Koala {
         }
     }
 
-    void FactorizingPermutation::AddElementToPart(part *P, element *v) {
-        P->size++;
-        v->my_part = P;
-        if (P->first == nullptr) {
-            P->first = v;
-            P->last = v;
-            v->previous = nullptr;
-            v->next = nullptr;
+    void FactorizingPermutation::addElementToPart(part &P, element &v) {
+        P.size++;
+        v.my_part = &P;
+        if (P.first == nullptr) {
+            P.first = &v;
+            P.last = &v;
+            v.previous = nullptr;
+            v.next = nullptr;
         } else {
-            v->previous = P->last;
-            v->next = nullptr;
-            P->last->next = v;
-            P->last = v;
+            v.previous = P.last;
+            v.next = nullptr;
+            P.last->next = &v;
+            P.last = &v;
         }
     }
 
-    void FactorizingPermutation::EraseElement(element *v) {
+    void FactorizingPermutation::eraseElement(element &v) {
         element *A, *B;
-        A = v->previous;
-        B = v->next;
-        v->my_part->size--;
+        A = v.previous;
+        B = v.next;
+        v.my_part->size--;
         if (A != nullptr) {
             A->next = B;
         } else {
-            v->my_part->first = B;
+            v.my_part->first = B;
         }
 
         if (B != nullptr) {
             B->previous = A;
         } else {
-            v->my_part->last = A;
+            v.my_part->last = A;
         }
 
-        if (v->my_part->pivot == v) {
-            v->my_part->pivot = nullptr;
+        if (v.my_part->pivot == &v) {
+            v.my_part->pivot = nullptr;
         }
     }
 
-    void FactorizingPermutation::AddPart(part *x, part *y) {
-        part *A = x->next;
-        x->next = y;
-        y->previous = x;
-        y->next = A;
+    void FactorizingPermutation::AddPart(part &x, part &y) {
+        part *A = x.next;
+        x.next = &y;
+        y.previous = &x;
+        y.next = A;
         if (A != nullptr) {
-            A->previous = y;
+            A->previous = &y;
         } else {
-            last_part = y;
+            last_part = &y;
         }
     }
 
     void FactorizingPermutation::ShowTheOrder() {
         part *x;
-        element *y, *z;
+        element *y;
         x = first_part;
         while (true) {
             y = x->first;
@@ -121,13 +133,13 @@ namespace Koala {
         std::cout << std::endl;
     }
 
-    void FactorizingPermutation::ErasePart(part *p) {
-        Lcheck();
-        Rcheck();
+    void FactorizingPermutation::erasePart(part &p) {
+        lCheck();
+        rCheck();
 
         part *A, *B;
-        A = p->previous;
-        B = p->next;
+        A = p.previous;
+        B = p.next;
         if (A == nullptr) {
             first_part = B;
         } else {

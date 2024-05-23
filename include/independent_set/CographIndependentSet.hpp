@@ -1,24 +1,22 @@
 #pragma once
 
 #include "recognition/CographAlg.hpp"
-
+#include "IndependentSet.hpp"
 namespace Koala {
     class CographIndependentSet {
-    public:
-        Koala::Cotree *cotree;
+    private:
+        NetworKit::count recurse_run(NetworKit::count v);
 
-        CographIndependentSet(Koala::Cotree &CoTree, NetworKit::count N) {
-            cotree = &CoTree;
-            n = N;
+        Koala::Cotree &cotree;
+    public:
+        CographIndependentSet(Koala::Cotree &CoTree) : cotree(CoTree){
+
         }
 
-        std::vector<NetworKit::count> color, number_of_colors;
-        NetworKit::count independet_set_size = 0, n;
+        NetworKit::count independet_set_size = 0;
 
         void run();
 
-        NetworKit::count recurse_run(NetworKit::count n, NetworKit::count v);
-
-        NetworKit::count BruteForceIndependetSetSize(NetworKit::Graph &Graph);
+        NetworKit::count bruteForceIndependetSetSize(NetworKit::Graph &Graph);
     };
 }

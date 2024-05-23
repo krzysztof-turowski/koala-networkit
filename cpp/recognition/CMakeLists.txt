@@ -1,10 +1,10 @@
 koala_add_module(recognition
+   CographAlg.cpp
+   cograph/FactorizingPermutation.cpp
+   cograph/Twins.cpp
    PerfectGraphRecognition.cpp
    perfect/OddHoles.cpp
    perfect/Jewels.cpp
    perfect/Pyramids.cpp
    perfect/NearCleaners.cpp
-   CographAlg.cpp
-   cograph/FactorizingPermutation.cpp
-   cograph/Twins.cpp
 )

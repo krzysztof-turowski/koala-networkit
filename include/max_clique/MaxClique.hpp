@@ -4,20 +4,19 @@
 
 namespace Koala {
     class MaxClique {
+    private:
+        NetworKit::count recurse_run(NetworKit::count v);
     public:
-        Koala::Cotree *cotree;
+        Koala::Cotree &cotree;
 
-        MaxClique(Koala::Cotree &CoTree, NetworKit::count N) {
-            cotree = &CoTree;
-            n = N;
+        MaxClique(Koala::Cotree &CoTree) : cotree(CoTree){
+
         }
 
-        NetworKit::count size = 0, n = 0;
+        NetworKit::count size = 0;
 
         void run();
 
-        NetworKit::count recurse_run(NetworKit::count n, NetworKit::count v);
-
-        NetworKit::count BruteForceCliqueSize(NetworKit::Graph &Graph);
+        NetworKit::count bruteForceCliqueSize(NetworKit::Graph &Graph);
     };
 }

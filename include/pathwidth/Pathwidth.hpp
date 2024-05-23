@@ -4,22 +4,21 @@
 
 namespace Koala {
     class Pathwidth {
+    private:
+        NetworKit::count pathwidth(NetworKit::count v);
+
+        NetworKit::count subtree_size(NetworKit::count v);
     public:
 
-        NetworKit::Graph *graph;
-        Koala::CographRecognition *recognition;
+        Koala::Cotree &cotree;
 
-        Pathwidth(NetworKit::Graph &Graph) {
-            graph = &Graph;
+        Pathwidth(Koala::Cotree &CoTree) : cotree(CoTree){
+
         }
 
         NetworKit::count width = 0;
 
         void run();
-
-        NetworKit::count pathwidth(NetworKit::count n, NetworKit::count v);
-
-        NetworKit::count SubtreeSize(NetworKit::count n, NetworKit::count v);
 
     };
 }

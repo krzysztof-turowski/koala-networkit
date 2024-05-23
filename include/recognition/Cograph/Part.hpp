@@ -31,6 +31,13 @@ namespace Koala {
         part *my_part;
         element *previous, *next;
         NetworKit::count num = -1;
+        element()
+        {
+            my_part= nullptr;
+            previous= nullptr;
+            next= nullptr;
+            num=-1;
+        }
     };
 };
 

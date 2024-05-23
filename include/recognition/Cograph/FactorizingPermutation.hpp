@@ -10,26 +10,29 @@ namespace Koala {
     public:
         part *l, *r, *first_part, *last_part;
         element *origin;
-        std::vector<element *> E;
-
+        std::vector<element> E;
+        std::vector<part> P;
+        NetworKit::count last_used_part;
         FactorizingPermutation();
 
         ~FactorizingPermutation();
 
-        void Check() const;
+        void check() const;
 
-        void AddPart(part *l, part *r);
+        void AddPart(part &l, part &r);
 
-        void EraseElement(element *v);
+        void eraseElement(element &v);
 
-        void ErasePart(part *p);
+        void erasePart(part &p);
 
-        void AddElementToPart(part *P, element *v);
+        void addElementToPart(part &P, element &v);
 
-        void Rcheck();
+        void rCheck();
 
-        void Lcheck();
+        void lCheck();
 
         void ShowTheOrder();
+
+        NetworKit::count newPart();
     };
 }

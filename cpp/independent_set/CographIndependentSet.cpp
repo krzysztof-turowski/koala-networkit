@@ -3,21 +3,23 @@
 #include "independent_set/CographIndependentSet.hpp"
 
 namespace Koala {
-    NetworKit::count CographIndependentSet::recurse_run(NetworKit::count n, NetworKit::count v) {
-        NetworKit::count i;
-        if (cotree->nodes[v].type == 2) {
+    NetworKit::count CographIndependentSet::recurse_run(NetworKit::count v) {
+        CoNode V(0,0,0);
+        V=cotree.getNode(v);
+        if (V.type == NodeType::LEAF) {
             return 1;
         } else {
+
             NetworKit::count l = 0, r = 0;
-            if (cotree->nodes[v].left_son != -1) {
-                l = recurse_run(n,cotree->nodes[v].left_son);
+            if (V.left_son != NetworKit::none) {
+                l = recurse_run(V.left_son);
             }
 
-            if (cotree->nodes[v].right_son != -1) {
-                r = recurse_run(n,cotree->nodes[v].right_son);
+            if (V.right_son != NetworKit::none) {
+                r = recurse_run(V.right_son);
             }
 
-            if (cotree->nodes[v].type == 1) {
+            if (V.type == NodeType::COMPLEMENT_NODE) {
                 return std::max(l, r);
             } else {
                 return l + r;
@@ -26,14 +28,13 @@ namespace Koala {
     }
 
     void CographIndependentSet::run() {
-
-        if (cotree->prepared == false) {
-            cotree->BuildTree();
+        if (!cotree.prepared) {
+            cotree.buildTree();
         }
-        independet_set_size = recurse_run(n, n);
+        independet_set_size = recurse_run(cotree.graph->numberOfNodes());
     }
 
-    NetworKit::count CographIndependentSet::BruteForceIndependetSetSize(NetworKit::Graph &Graph) {
+    NetworKit::count CographIndependentSet::bruteForceIndependetSetSize(NetworKit::Graph &Graph) {
         NetworKit::count n = Graph.numberOfNodes(), mask, i, j, ans = 0, flag;
         std::vector<NetworKit::count> st(31), independet_set_nodes;
         st[0] = 1;
