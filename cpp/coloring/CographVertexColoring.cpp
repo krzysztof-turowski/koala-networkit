@@ -3,7 +3,7 @@
 namespace Koala {
     void CographVertexColoring::subtree_colors(NetworKit::count v) {
         CoNode V(0,0,0);
-        V=recognition->cotree.getNode(v);
+        V=cotree.getNode(v);
         if (V.left_son != NetworKit::none) {
             subtree_colors(V.left_son);
         }
@@ -42,7 +42,7 @@ namespace Koala {
 
     void CographVertexColoring::end_of_coloring(NetworKit::count v) {
         CoNode V(0,0,0);
-        V=recognition->cotree.getNode(v);
+        V=cotree.getNode(v);
         if (V.left_son != NetworKit::none) {
             color[V.left_son] += color[v];
             end_of_coloring(V.left_son);
@@ -55,10 +55,10 @@ namespace Koala {
     }
 
     void CographVertexColoring::run() {
+        hasRun = true;
         NetworKit::count n = graph->numberOfNodes();
-        recognition->run();
-        if (!recognition->cotree.prepared) {
-            recognition->cotree.buildTree();
+        if (!cotree.prepared) {
+            cotree.buildTree();
         }
         color.resize(2 * n, 0);
         number_of_colors.resize(2 * n, 0);
@@ -69,12 +69,6 @@ namespace Koala {
             colors[u] = color[u];
         }
     }
-
-    const std::map<NetworKit::node, int> &CographVertexColoring::getColoring() const
-    {
-        return colors;
-    }
-
 
     bool CographVertexColoring::checkColoring()
     {

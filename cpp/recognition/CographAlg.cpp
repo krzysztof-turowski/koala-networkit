@@ -26,7 +26,7 @@ namespace Koala {
 
     void CographRecognition::run() {
         Clear();
-
+        hasRun = true;
         num_of_nodes = graph.numberOfNodes();
 
         NetworKit::count twins_counter = 0;
@@ -238,7 +238,7 @@ namespace Koala {
             status = CographRecognition::State::NOT_COGRAPH;
         }
         cotree.setOrder(order);
-
+        cotree.buildTree();
     }
 
 

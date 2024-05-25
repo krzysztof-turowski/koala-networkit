@@ -24,6 +24,7 @@ namespace Koala {
         nodes[order[0].first.first].parent = n;
 
         for (i = 1; i < n; i++) {
+
             nodes[order[i].first.first].left_son = NetworKit::none;
             nodes[order[i].first.first].right_son = NetworKit::none;
             nodes[order[i].first.first].type = NodeType::LEAF;

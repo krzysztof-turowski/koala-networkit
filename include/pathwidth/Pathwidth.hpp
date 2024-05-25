@@ -1,24 +1,23 @@
 #pragma once
 
-#include "recognition/CographAlg.hpp"
+#include <optional>
+#include <set>
+
+#include <networkit/base/Algorithm.hpp>
+#include <networkit/graph/Graph.hpp>
 
 namespace Koala {
-    class Pathwidth {
-    private:
-        NetworKit::count pathwidth(NetworKit::count v);
-
-        NetworKit::count subtree_size(NetworKit::count v);
+    class Pathwidth : public NetworKit::Algorithm {
     public:
+        virtual void run() = 0;
 
-        Koala::Cotree &cotree;
+        NetworKit::count getPathwidthSize();
 
-        Pathwidth(Koala::Cotree &CoTree) : cotree(CoTree){
+        Pathwidth(const NetworKit::Graph &graph);
 
-        }
-
+    protected:
         NetworKit::count width = 0;
-
-        void run();
+        std::optional<NetworKit::Graph> graph;
 
     };
 }

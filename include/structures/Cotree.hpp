@@ -30,7 +30,7 @@ namespace Koala {
     public:
         NetworKit::Graph *graph;
 
-        explicit Cotree(NetworKit::Graph &Graph);
+        Cotree(NetworKit::Graph &Graph);
 
         bool prepared;
 

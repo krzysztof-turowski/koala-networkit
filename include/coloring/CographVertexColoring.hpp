@@ -13,15 +13,18 @@ namespace Koala {
 
         std::vector<NetworKit::count> color, number_of_colors;
 
-        Koala::CographRecognition *recognition = new Koala::CographRecognition(graph.value());
+        Koala::Cotree &cotree;
     public:
-        using VertexColoring::VertexColoring;
+
+        CographVertexColoring(NetworKit::Graph Graph, Koala::Cotree &Cotree) : VertexColoring(Graph), cotree(Cotree)
+        {
+
+        };
 
         void run();
 
         bool checkColoring();
 
-        const std::map<NetworKit::node, int> &getColoring() const;
     };
 
 }
