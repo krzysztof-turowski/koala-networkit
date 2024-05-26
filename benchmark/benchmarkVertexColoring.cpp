@@ -5,15 +5,33 @@
 #include <coloring/ExactVertexColoring.hpp>
 #include <coloring/GreedyVertexColoring.hpp>
 #include <coloring/PerfectGraphVertexColoring.hpp>
+#include "coloring/CographVertexColoring.hpp"
+#include "recognition/CographRecognition.hpp"
 #include <io/G6GraphReader.hpp>
 
 template <typename T>
 int run_algorithm(NetworKit::Graph &G) {
-    auto algorithm = T(G);
-    algorithm.run();
-    auto colors = algorithm.getColoring();
-    G.forEdges([&](NetworKit::node u, NetworKit::node v) { assert(colors[u] != colors[v]); });
+
+    std::map<NetworKit::node, int> colors;
+    if constexpr (std::is_same_v<T, Koala::CographVertexColoring>)
+    {
+        auto recognition=Koala::CographRecognition(G);
+        recognition.run();
+        auto algorithm = T(G,recognition.cotree);
+        algorithm.run();
+        colors = algorithm.getColoring();
+    }
+    else
+    {
+        auto algorithm = T(G);
+        algorithm.run();
+        colors = algorithm.getColoring();
+    }
+
     int max_color = 0;
+
+    G.forEdges([&](NetworKit::node u, NetworKit::node v) { assert(colors[u] != colors[v]); });
+
     for (const auto& [v, c] : colors) {
         max_color = std::max(max_color, c);
     }
@@ -25,7 +43,8 @@ std::map<std::string, int> ALGORITHM = {
     { "exact", 0 },
     { "RS", 1 }, { "LF", 2 }, { "SL", 3 }, { "SLF", 4 }, { "GIS", 5 },
     { "Brown", 10 }, { "Christofides", 11 }, { "Brelaz", 12 }, { "Korman", 13 },
-    { "perfect", 20 }
+    { "perfect", 20 },
+    { "cograph",30 }
 };
 
 int main(int argc, char **argv) {
@@ -80,6 +99,8 @@ int main(int argc, char **argv) {
         case 20:
             run_algorithm<Koala::PerfectGraphVertexColoring>(G);
             break;
+        case 30:
+            run_algorithm<Koala::CographVertexColoring>(G);
         }
         std::cout << std::endl;
     }

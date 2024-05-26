@@ -1,16 +1,15 @@
 #include <graph/GraphTools.hpp>
 
-#include "recognition/Cograph/FactorizingPermutation.hpp"
+#include "recognition/сograph/FactorizingPermutation.hpp"
 
-namespace Koala
-{
+namespace Koala {
     FactorizingPermutation::FactorizingPermutation() {
-        l= nullptr;
-        r= nullptr;
-        first_part= nullptr;
-        last_part= nullptr;
-        origin= nullptr;
-        last_used_part=0;
+        l = nullptr;
+        r = nullptr;
+        first_part = nullptr;
+        last_part = nullptr;
+        origin = nullptr;
+        last_used_part = 0;
     }
 
     FactorizingPermutation::~FactorizingPermutation() {
@@ -18,16 +17,13 @@ namespace Koala
         P.clear();
     }
 
-    NetworKit::count FactorizingPermutation::newPart()
-    {
-        if(P[last_used_part].size==0)
-        {
+    NetworKit::count FactorizingPermutation::newPart() {
+        if (P[last_used_part].size == 0) {
             return last_used_part;
         }
         last_used_part++;
         return last_used_part;
     }
-
 
 
     void FactorizingPermutation::lCheck() {
@@ -152,4 +148,4 @@ namespace Koala
             B->previous = A;
         }
     }
-}
+} /* namespace Koala */

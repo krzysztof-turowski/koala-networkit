@@ -1,13 +1,10 @@
-#include "recognition/CographAlg.hpp"
+#include "recognition/CographRecognition.hpp"
 
 namespace Koala {
-    CographRecognition::CographRecognition(NetworKit::Graph &Graph) : cotree(Cotree(Graph)), graph(Graph),T(Twins(graph)){
+    CographRecognition::CographRecognition(NetworKit::Graph &Graph) :
+            cotree(Cotree(Graph)), graph(Graph), T(Twins(graph)) {
         original_graph = Graph;
         status = CographRecognition::State::UNKNOWN;
-    }
-
-    CographRecognition::~CographRecognition() {
-
     }
 
     bool CographRecognition::isCograph() const {
@@ -32,15 +29,14 @@ namespace Koala {
         NetworKit::count twins_counter = 0;
 
 
-        permutation.E.resize(graph.numberOfNodes(),element());
+        permutation.E.resize(graph.numberOfNodes(), element());
 
-        permutation.P.resize(graph.numberOfNodes()+2,part());
+        permutation.P.resize(graph.numberOfNodes() + 2, part());
 
         permutation.first_part = &(permutation.P[0]);
         permutation.last_part = &permutation.P[0];
 
-        for (const auto &u : graph.nodeRange())
-        {
+        for (const auto &u : graph.nodeRange()) {
             permutation.E[u].num = u;
             permutation.addElementToPart(permutation.P[0], permutation.E[u]);
         }
@@ -57,10 +53,10 @@ namespace Koala {
                     H->pivot = H->first;
                 }
 
-                NetworKit::count n_part=permutation.newPart();
+                NetworKit::count n_part = permutation.newPart();
 
 
-                for (auto v: graph.neighborRange(permutation.origin->num)) {
+                for (auto v : graph.neighborRange(permutation.origin->num)) {
                     if (permutation.E[v].my_part == H) {
                         permutation.eraseElement(permutation.E[v]);
                         permutation.addElementToPart(permutation.P[n_part], permutation.E[v]);
@@ -74,7 +70,7 @@ namespace Koala {
                 }
 
                 if (H->first != H->last) {
-                    NetworKit::count o_part =  permutation.newPart();
+                    NetworKit::count o_part = permutation.newPart();
 
                     permutation.eraseElement(*permutation.origin);
                     permutation.addElementToPart(permutation.P[o_part], *permutation.origin);
@@ -92,29 +88,27 @@ namespace Koala {
                 permutation.lCheck();
 
                 permutation.rCheck();
-
             }
 
 
             while (unused_parts.size() > 0) {
-
                 if (unused_parts.front() != nullptr && unused_parts.front()->first != nullptr) {
-                    H=unused_parts.front();
+                    H = unused_parts.front();
                     unused_parts.pop_front();
                     if (H->pivot == nullptr) {
                         H->pivot = H->first;
                     }
 
-                    for (auto v: graph.neighborRange(H->pivot->num)) {
+                    for (auto v : graph.neighborRange(H->pivot->num)) {
                         part *v_part = permutation.E[v].my_part;
                         if (v_part != H) {
                             v_part->amount++;
                         }
                     }
 
-                    for (auto v: graph.neighborRange(H->pivot->num)) {
+                    for (auto v : graph.neighborRange(H->pivot->num)) {
                         part *v_part = permutation.E[v].my_part;
-                        if (v_part != H  && v_part->size > v_part->amount) {
+                        if (v_part != H && v_part->size > v_part->amount) {
                             if (v_part->division == nullptr) {
                                 if (v_part->first == v_part->last) {
                                     continue;
@@ -134,7 +128,7 @@ namespace Koala {
                         }
                     }
 
-                    for (auto v: graph.neighborRange(H->pivot->num)) {
+                    for (auto v : graph.neighborRange(H->pivot->num)) {
                         part *v_part = permutation.E[v].my_part;
                         if (v_part->amount > 0) {
                             v_part->amount = 0;
@@ -154,9 +148,7 @@ namespace Koala {
                             }
                         }
                     }
-                }
-                else
-                {
+                } else {
                     unused_parts.pop_front();
                 }
                 permutation.lCheck();
@@ -181,7 +173,6 @@ namespace Koala {
         }
 
 
-
         part X_0 = part(), X_N = part(), *Z;
         element Y_0 = element(), Y_N = element();
         Y_0.num = NetworKit::none;
@@ -197,11 +188,10 @@ namespace Koala {
         permutation.last_part = &X_N;
 
         Z = permutation.first_part->next;
-        long long flag = 0;
+        NetworKit::count flag = 0;
 
 
         while (Z != permutation.last_part) {
-
             int twin = T.twins(Z->first->num, Z->previous->first->num, twins_counter);
             twins_counter += 4;
             if (twin < 2) {
@@ -216,7 +206,6 @@ namespace Koala {
                     Z = Z->next;
 
                     order.push_back({{Z->previous->first->num, Z->first->num}, twin});
-
 
 
                     graph.removeNode(Z->previous->first->num);
@@ -234,7 +223,6 @@ namespace Koala {
             status = CographRecognition::State::COGRAPH;
             order.push_back({{permutation.first_part->next->pivot->num, -1}, 3});
         } else {
-
             status = CographRecognition::State::NOT_COGRAPH;
         }
         cotree.setOrder(order);
@@ -242,4 +230,5 @@ namespace Koala {
     }
 
 
-}
+} /* namespace Koala */
+

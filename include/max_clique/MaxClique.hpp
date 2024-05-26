@@ -7,12 +7,11 @@
 #include <networkit/graph/Graph.hpp>
 
 namespace Koala {
-
 class MaxClique : public NetworKit::Algorithm {
  public:
-    MaxClique(const NetworKit::Graph &graph);
+    explicit MaxClique(const NetworKit::Graph &graph);
 
-    std::set<NetworKit::node>& getMaxCliqueSet();
+    std::set<NetworKit::node> &getMaxCliqueSet();
 
     virtual void run() = 0;
 
@@ -23,5 +22,5 @@ class MaxClique : public NetworKit::Algorithm {
     std::optional<NetworKit::Graph> graph;
 };
 
+} /* namespace Koala */
 
-}

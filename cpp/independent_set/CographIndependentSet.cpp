@@ -5,15 +5,13 @@
 namespace Koala {
 
     std::set<NetworKit::node> CographIndependentSet::recurse_run(NetworKit::count v) {
-        CoNode V(0,0,0);
-
-        V=cotree.getNode(v);
+        CoNode &V = cotree.getNode(v);
         if (V.type == NodeType::LEAF) {
             std::set<NetworKit::node> Set;
             Set.insert(v);
             return Set;
         } else {
-            std::set<NetworKit::node> l,r;
+            std::set<NetworKit::node> l, r;
             if (V.left_son != NetworKit::none) {
                 l = recurse_run(V.left_son);
             }
@@ -22,43 +20,29 @@ namespace Koala {
                 r = recurse_run(V.right_son);
             }
 
-            if (V.type == NodeType::COMPLEMENT_NODE)
-            {
-                if(l.size()>=r.size())
-                {
+            if (V.type == NodeType::COMPLEMENT_NODE) {
+                if (l.size() >= r.size()) {
                     return l;
-                }
-                else
-                {
+                } else {
                     return r;
                 }
-            }
-            else
-            {
-
-                if(l.size()>r.size())
-                {
-                    l.insert(r.begin(),r.end());
+            } else {
+                if (l.size() > r.size()) {
+                    l.insert(r.begin(), r.end());
 
                     return l;
-                }
-                else
-                {
-                    r.insert(l.begin(),l.end());
+                } else {
+                    r.insert(l.begin(), l.end());
 
                     return r;
                 }
             }
         }
-
     }
 
     void CographIndependentSet::run() {
         hasRun = true;
-        if (!cotree.prepared) {
-            cotree.buildTree();
-        }
-        independentSet=recurse_run(cotree.graph->numberOfNodes());
+        independentSet = recurse_run(cotree.graph->numberOfNodes());
     }
 
     NetworKit::count CographIndependentSet::bruteForceIndependetSetSize(NetworKit::Graph &Graph) {
@@ -93,4 +77,4 @@ namespace Koala {
         }
         return ans;
     }
-}
+} /* namespace Koala */

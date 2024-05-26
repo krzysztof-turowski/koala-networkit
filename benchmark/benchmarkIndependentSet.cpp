@@ -5,14 +5,28 @@
 #include <io/G6GraphReader.hpp>
 #include <io/DimacsGraphReader.hpp>
 #include <independent_set/IndependentSet.hpp>
-
+#include "independent_set/CographIndependentSet.hpp"
 #define PRINT 1
 
 template <typename T>
 int run_algorithm(NetworKit::Graph &G) {
-    auto algorithm = T(G);
-    algorithm.run();
-    auto &independent_set = algorithm.getIndependentSet();
+
+    std::set<NetworKit::node> independent_set;
+    if constexpr (std::is_same_v<T, Koala::CographIndependentSet>)
+    {
+        auto recognition=Koala::CographRecognition(G);
+        recognition.run();
+        auto algorithm = T(G,recognition.cotree);
+        algorithm.run();
+        independent_set = algorithm.getIndependentSet();
+    }
+    else
+    {
+        auto algorithm = T(G);
+        algorithm.run();
+        independent_set = algorithm.getIndependentSet();
+    }
+
     std::cout << independent_set.size() << " " << std::flush;
     return independent_set.size();
 }
@@ -20,7 +34,8 @@ int run_algorithm(NetworKit::Graph &G) {
 std::map<std::string, int> ALGORITHM = {
     { "exact", 0 },
     { "bruteforce", 1 }, { "MIS1", 2 }, { "MIS2", 3 }, { "MIS3", 4 }, { "MIS4", 5 },
-    { "MIS5", 6 }, { "MeasureAndConquer", 7 }
+    { "MIS5", 6 }, { "MeasureAndConquer", 7 },
+    { "cograph", 10 }
 };
 
 void run_g6_tests(const std::string &path, const std::string &algorithm) {
@@ -67,6 +82,9 @@ void run_g6_tests(const std::string &path, const std::string &algorithm) {
             break;
         case 7:
             run_algorithm<Koala::MeasureAndConquerIndependentSet>(G);
+            break;
+        case 10:
+            run_algorithm<Koala::CographIndependentSet>(G);
             break;
         }
         std::cout << std::endl;

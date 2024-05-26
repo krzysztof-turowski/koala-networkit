@@ -2,8 +2,7 @@
 
 namespace Koala {
     NetworKit::count CographPathwidth::subtree_size(NetworKit::count v) {
-        CoNode V(0,0,0);
-        V=cotree.getNode(v);
+        CoNode& V = cotree.getNode(v);
         if (V.type == NodeType::LEAF) {
             V.size = 1;
             return 1;
@@ -22,8 +21,7 @@ namespace Koala {
     }
 
     NetworKit::count CographPathwidth::pathwidth(NetworKit::count v) {
-        CoNode V(0,0,0);
-        V=cotree.getNode(v);
+        CoNode& V = cotree.getNode(v);
         if (V.type == NodeType::LEAF) {
             return 1;
         } else {
@@ -35,17 +33,16 @@ namespace Koala {
             if (V.right_son != NetworKit::none) {
                 r = pathwidth(V.right_son);
             }
-
             if (V.type == NodeType::UNION_NODE) {
                 return std::max(l, r);
             } else {
-                NetworKit::count minpathwidth = graph->numberOfNodes()*100 ;
+                NetworKit::count minpathwidth =0;
                 if (V.left_son != NetworKit::none) {
-                    minpathwidth = std::min(minpathwidth, r +cotree.getNode(V.left_son).size);
+                    minpathwidth = std::max(minpathwidth, r + cotree.getNode(V.left_son).size);
                 }
 
                 if (V.right_son != NetworKit::none) {
-                    minpathwidth = std::min(minpathwidth, l +cotree.getNode(V.right_son).size);
+                    minpathwidth = std::max(minpathwidth, l + cotree.getNode(V.right_son).size);
                 }
                 return minpathwidth;
             }
@@ -54,10 +51,7 @@ namespace Koala {
 
     void CographPathwidth::run() {
         hasRun = true;
-        if (cotree.prepared == false) {
-            cotree.buildTree();
-        }
         subtree_size(cotree.graph->numberOfNodes());
         width = pathwidth(cotree.graph->numberOfNodes());
     }
-}
+} /* namespace Koala */

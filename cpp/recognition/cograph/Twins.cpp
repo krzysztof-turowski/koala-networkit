@@ -1,10 +1,10 @@
 #include <graph/GraphTools.hpp>
 
-#include "recognition/Cograph/Twins.hpp"
+#include "recognition/сograph/Twins.hpp"
+
 namespace Koala {
-    Twins::Twins(NetworKit::Graph &Graph) : graph(Graph)
-    {
-        used.resize(graph.numberOfNodes(),0);
+    Twins::Twins(NetworKit::Graph &Graph) : graph(Graph) {
+        used.resize(graph.numberOfNodes(), 0);
     }
 
     bool Twins::false_twins(NetworKit::count A, NetworKit::count B, NetworKit::count twins_counter) {
@@ -13,12 +13,12 @@ namespace Koala {
             return false;
         }
 
-        for (auto node1: graph.neighborRange(A)) {
+        for (auto node1 : graph.neighborRange(A)) {
             used[node1] = twins_counter;
             counter++;
         }
 
-        for (auto node2: graph.neighborRange(B)) {
+        for (auto node2 : graph.neighborRange(B)) {
             if (used[node2] == twins_counter) {
                 counter--;
             } else {
@@ -33,7 +33,7 @@ namespace Koala {
         if (graph.degree(A) != graph.degree((B))) {
             return false;
         }
-        for (auto node1: graph.neighborRange(A)) {
+        for (auto node1 : graph.neighborRange(A)) {
             if (node1 != B) {
                 used[node1] = twins_counter;
                 counter++;
@@ -41,7 +41,7 @@ namespace Koala {
                 flag++;
             }
         }
-        for (auto node2: graph.neighborRange(B)) {
+        for (auto node2 : graph.neighborRange(B)) {
             if (node2 != A) {
                 if (used[node2] == twins_counter) {
                     counter--;
@@ -60,7 +60,7 @@ namespace Koala {
             return 2;
         }
         twins_counter += 2;
-        if (true_twins(A, B ,twins_counter)) {
+        if (true_twins(A, B, twins_counter)) {
             return 1;
         }
         twins_counter += 2;
@@ -69,4 +69,4 @@ namespace Koala {
         }
         return 2;
     }
-}
+} /* namespace Koala */

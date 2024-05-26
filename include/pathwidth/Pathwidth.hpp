@@ -7,17 +7,18 @@
 #include <networkit/graph/Graph.hpp>
 
 namespace Koala {
-    class Pathwidth : public NetworKit::Algorithm {
-    public:
-        virtual void run() = 0;
+class Pathwidth : public NetworKit::Algorithm {
+ public:
+    virtual void run() = 0;
 
-        NetworKit::count getPathwidthSize();
+    NetworKit::count getPathwidthSize();
 
-        Pathwidth(const NetworKit::Graph &graph);
+    explicit Pathwidth(NetworKit::Graph &graph);
 
-    protected:
-        NetworKit::count width = 0;
-        std::optional<NetworKit::Graph> graph;
+ protected:
+    NetworKit::count width = 0;
 
-    };
-}
+    NetworKit::Graph& graph;
+};
+} /* namespace Koala */
+

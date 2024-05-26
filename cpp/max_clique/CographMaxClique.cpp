@@ -1,18 +1,17 @@
 #include <graph/GraphTools.hpp>
 
 #include "max_clique/CographMaxClique.hpp"
-#include "recognition/CographAlg.hpp"
+#include "recognition/CographRecognition.hpp"
 
 namespace Koala {
     std::set<NetworKit::node> CographMaxClique::recurse_run(NetworKit::count v) {
-        CoNode V(0,0,0);
-        V=cotree.getNode(v);
+        CoNode &V = cotree.getNode(v);
         if (V.type == NodeType::LEAF) {
             std::set<NetworKit::node> Set;
             Set.insert(v);
             return Set;
         } else {
-            std::set<NetworKit::node> l,r;
+            std::set<NetworKit::node> l, r;
             if (V.left_son != NetworKit::none) {
                 l = recurse_run(V.left_son);
             }
@@ -22,24 +21,18 @@ namespace Koala {
             }
 
             if (V.type == NodeType::UNION_NODE) {
-                if(l.size()>=r.size())
-                {
+                if (l.size() >= r.size()) {
                     return l;
-                }
-                else
-                {
+                } else {
                     return r;
                 }
             } else {
-                if(l.size()>r.size())
-                {
-                    l.insert(r.begin(),r.end());
+                if (l.size() > r.size()) {
+                    l.insert(r.begin(), r.end());
 
                     return l;
-                }
-                else
-                {
-                    r.insert(l.begin(),l.end());
+                } else {
+                    r.insert(l.begin(), l.end());
 
                     return r;
                 }
@@ -48,14 +41,9 @@ namespace Koala {
     }
 
     void CographMaxClique::run() {
-        hasRun= true;
-        if (cotree.prepared == false) {
-            cotree.buildTree();
-        }
+        hasRun = true;
         max_clique = recurse_run(cotree.graph->numberOfNodes());
     }
-
-
 
     NetworKit::count CographMaxClique::bruteForceCliqueSize(NetworKit::Graph &Graph) {
         NetworKit::count n = Graph.numberOfNodes(), ans = 0, flag;
@@ -90,4 +78,4 @@ namespace Koala {
         }
         return ans;
     }
-}
+} /* namespace Koala */
