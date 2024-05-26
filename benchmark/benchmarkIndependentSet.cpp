@@ -6,22 +6,19 @@
 #include <io/DimacsGraphReader.hpp>
 #include <independent_set/IndependentSet.hpp>
 #include "independent_set/CographIndependentSet.hpp"
+
 #define PRINT 1
 
-template <typename T>
+template<typename T>
 int run_algorithm(NetworKit::Graph &G) {
-
     std::set<NetworKit::node> independent_set;
-    if constexpr (std::is_same_v<T, Koala::CographIndependentSet>)
-    {
-        auto recognition=Koala::CographRecognition(G);
+    if constexpr (std::is_same_v<T, Koala::CographIndependentSet>) {
+        auto recognition = Koala::CographRecognition(G);
         recognition.run();
-        auto algorithm = T(G,recognition.cotree);
+        auto algorithm = T(G, recognition.cotree);
         algorithm.run();
         independent_set = algorithm.getIndependentSet();
-    }
-    else
-    {
+    } else {
         auto algorithm = T(G);
         algorithm.run();
         independent_set = algorithm.getIndependentSet();
@@ -32,10 +29,15 @@ int run_algorithm(NetworKit::Graph &G) {
 }
 
 std::map<std::string, int> ALGORITHM = {
-    { "exact", 0 },
-    { "bruteforce", 1 }, { "MIS1", 2 }, { "MIS2", 3 }, { "MIS3", 4 }, { "MIS4", 5 },
-    { "MIS5", 6 }, { "MeasureAndConquer", 7 },
-    { "cograph", 10 }
+        {"exact",             0},
+        {"bruteforce",        1},
+        {"MIS1",              2},
+        {"MIS2",              3},
+        {"MIS3",              4},
+        {"MIS4",              5},
+        {"MIS5",              6},
+        {"MeasureAndConquer", 7},
+        {"cograph",           10}
 };
 
 void run_g6_tests(const std::string &path, const std::string &algorithm) {
@@ -51,46 +53,46 @@ void run_g6_tests(const std::string &path, const std::string &algorithm) {
         std::set<int> I;
         std::cout << line << " " << std::flush;
         switch (ALGORITHM[algorithm]) {
-        case 0:
-            I.insert(run_algorithm<Koala::BruteForceIndependentSet>(G));
-            I.insert(run_algorithm<Koala::Mis1IndependentSet>(G));
-            I.insert(run_algorithm<Koala::Mis2IndependentSet>(G));
-            I.insert(run_algorithm<Koala::Mis3IndependentSet>(G));
-            I.insert(run_algorithm<Koala::Mis4IndependentSet>(G));
-            I.insert(run_algorithm<Koala::Mis5IndependentSet>(G));
-            I.insert(run_algorithm<Koala::MeasureAndConquerIndependentSet>(G));
-            assert(I.size() == 1);
-            classification[*I.begin()]++;
-            break;
-        case 1:
-            run_algorithm<Koala::BruteForceIndependentSet>(G);
-            break;
-        case 2:
-            run_algorithm<Koala::Mis1IndependentSet>(G);
-            break;
-        case 3:
-            run_algorithm<Koala::Mis2IndependentSet>(G);
-            break;
-        case 4:
-            run_algorithm<Koala::Mis3IndependentSet>(G);
-            break;
-        case 5:
-            run_algorithm<Koala::Mis4IndependentSet>(G);
-            break;
-        case 6:
-            run_algorithm<Koala::Mis5IndependentSet>(G);
-            break;
-        case 7:
-            run_algorithm<Koala::MeasureAndConquerIndependentSet>(G);
-            break;
-        case 10:
-            run_algorithm<Koala::CographIndependentSet>(G);
-            break;
+            case 0:
+                I.insert(run_algorithm<Koala::BruteForceIndependentSet>(G));
+                I.insert(run_algorithm<Koala::Mis1IndependentSet>(G));
+                I.insert(run_algorithm<Koala::Mis2IndependentSet>(G));
+                I.insert(run_algorithm<Koala::Mis3IndependentSet>(G));
+                I.insert(run_algorithm<Koala::Mis4IndependentSet>(G));
+                I.insert(run_algorithm<Koala::Mis5IndependentSet>(G));
+                I.insert(run_algorithm<Koala::MeasureAndConquerIndependentSet>(G));
+                assert(I.size() == 1);
+                classification[*I.begin()]++;
+                break;
+            case 1:
+                run_algorithm<Koala::BruteForceIndependentSet>(G);
+                break;
+            case 2:
+                run_algorithm<Koala::Mis1IndependentSet>(G);
+                break;
+            case 3:
+                run_algorithm<Koala::Mis2IndependentSet>(G);
+                break;
+            case 4:
+                run_algorithm<Koala::Mis3IndependentSet>(G);
+                break;
+            case 5:
+                run_algorithm<Koala::Mis4IndependentSet>(G);
+                break;
+            case 6:
+                run_algorithm<Koala::Mis5IndependentSet>(G);
+                break;
+            case 7:
+                run_algorithm<Koala::MeasureAndConquerIndependentSet>(G);
+                break;
+            case 10:
+                run_algorithm<Koala::CographIndependentSet>(G);
+                break;
         }
         std::cout << std::endl;
     }
     std::cout << "List of graphs counted by solution size:" << std::endl;
-    for (const auto &[k, v] : classification) {
+    for (const auto &[k, v]: classification) {
         std::cout << k << ": " << v << std::endl;
     }
 }

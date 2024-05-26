@@ -36,7 +36,7 @@ namespace Koala {
             if (V.type == NodeType::UNION_NODE) {
                 return std::max(l, r);
             } else {
-                NetworKit::count minpathwidth =0;
+                NetworKit::count minpathwidth = 0;
                 if (V.left_son != NetworKit::none) {
                     minpathwidth = std::max(minpathwidth, r + cotree.getNode(V.left_son).size);
                 }

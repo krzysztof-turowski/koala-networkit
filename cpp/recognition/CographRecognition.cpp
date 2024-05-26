@@ -218,15 +218,14 @@ namespace Koala {
                 }
             }
         }
-
         if (flag == num_of_nodes - 1) {
             status = CographRecognition::State::COGRAPH;
             order.push_back({{permutation.first_part->next->pivot->num, -1}, 3});
+            cotree.setOrder(order);
+            cotree.buildTree();
         } else {
             status = CographRecognition::State::NOT_COGRAPH;
         }
-        cotree.setOrder(order);
-        cotree.buildTree();
     }
 
 

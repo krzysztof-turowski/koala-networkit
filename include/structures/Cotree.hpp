@@ -22,7 +22,6 @@ class CoNode {
         type = NodeType::UNKNOWN;
         size = 0;
     }
-
 };
 
 class Cotree {

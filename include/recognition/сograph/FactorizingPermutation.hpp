@@ -32,8 +32,6 @@ class FactorizingPermutation {
 
     void lCheck();
 
-    void ShowTheOrder();
-
     NetworKit::count newPart();
 };
 } /* namespace Koala */

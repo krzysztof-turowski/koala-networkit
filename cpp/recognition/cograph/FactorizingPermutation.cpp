@@ -99,36 +99,6 @@ namespace Koala {
         }
     }
 
-    void FactorizingPermutation::ShowTheOrder() {
-        part *x;
-        element *y;
-        x = first_part;
-        while (true) {
-            y = x->first;
-            if (y != nullptr) {
-                std::cout << y->num << " ";
-                while (y->next != nullptr) {
-                    y = y->next;
-                    std::cout << y->num << " ";
-                }
-            }
-            std::cout << " pivot=";
-            if (x->pivot == nullptr) {
-                std::cout << "nullptr";
-            } else {
-                std::cout << x->pivot->num;
-            }
-            std::cout << " amount=" << x->amount << std::endl;
-            std::cout << " size=" << x->size << std::endl;
-            if (x != last_part) {
-                x = x->next;
-            } else {
-                break;
-            }
-        }
-        std::cout << std::endl;
-    }
-
     void FactorizingPermutation::erasePart(part &p) {
         lCheck();
         rCheck();

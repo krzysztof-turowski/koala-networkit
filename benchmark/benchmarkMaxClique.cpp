@@ -6,7 +6,6 @@
 
 template<typename T>
 int run_algorithm(NetworKit::Graph &G) {
-
     std::set<NetworKit::node> max_clique;
     if constexpr (std::is_same_v<T, Koala::CographMaxClique>) {
         auto recognition = Koala::CographRecognition(G);
