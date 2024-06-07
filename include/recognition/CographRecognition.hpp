@@ -65,7 +65,7 @@ class BretscherCorneilHabibPaulCographRecognition : public CographRecognition {
     Info info;
     void lex_bfs_minus(bool is_complement, std::vector<NetworKit::node> &a);
     bool neighbourhood_subset_property(bool is_complement, std::vector<NetworKit::node> a,
-        std::vector<std::vector<std::pair<int, int>>> borders);
+                                       std::vector<std::vector<std::pair<int, int>>> borders);
     bool is_cograph = false;
 };
 
@@ -109,6 +109,35 @@ class CorneilStewartPerlCographRecognition : public CographRecognition {
     int mark_and_unmarked_count = 0;
     int mark_ever_count = 0;
     std::queue<CoNode*> marked_with_d_equal_to_md;  // TODO(fixikmila): get rid of this
+};
+
+/**
+ * @ingroup recognition
+ * The class for recognition of cographs procedure from
+ * Dahlhaus, "Efficient parallel recognition algorithms of cographs
+ * and distance hereditary graphs".
+ *
+ */
+class DahlhausCographRecognition : public CographRecognition {
+ public:
+    using CographRecognition::CographRecognition;
+
+    void run();
+
+    bool isCograph() const;
+
+ private:
+    std::vector<CoNode *> pointer;
+    std::vector<CoTree> save;
+    bool is_cograph = false;
+
+    CoTree &build_cotree(NetworKit::Graph G, std::vector<int> real_number_of_node);
+
+    inline void add(int vertex_type, CoTree &T, std::vector<int> &vec,
+        std::vector<int> &fake_number_of_node, NetworKit::Graph &G,
+        std::vector<int> &real_number_of_node);
+
+    bool check_cotree(CoTree T);
 };
 
 } /* namespace Koala */
