@@ -9,6 +9,6 @@ koala_add_module(cograph
    CographRecognition.cpp
    cograph/CorneilStewartPerlCographRecognition.cpp
    cograph/BretscherCorneilHabibPaulCographRecognition.cpp
+   cograph/DahlhausCographRecognition.cpp
    cograph/CoTree.cpp
 )
-
