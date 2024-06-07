@@ -36,12 +36,17 @@ void run_algorithm(NetworKit::Graph &G, int number) {
         auto algorithm = Koala::BretscherCorneilHabibPaulCographRecognition(G);
         algorithm.run();
         classification[default_types[algorithm.isCograph()]]++;
+    } else if (number == 2) {
+        auto algorithm = Koala::DahlhausCographRecognition(G);
+        algorithm.run();
+        classification[default_types[algorithm.isCograph()]]++;
     }
 }
 
 std::map<std::string, int> ALGORITHM = {
         { "decomposition", 0 },
-        { "lexbfs", 1 }
+        { "lexbfs", 1 },
+        { "sort", 2 }
 };
 
 int main(int argc, char **argv) {
