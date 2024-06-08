@@ -47,7 +47,7 @@ class CographRecognition : public NetworKit::Algorithm {
 /**
  * @ingroup recognition
  * The class for recognition of cographs procedure from
- * Bretscher, Corneil, Habib, Paul, "A Simple Linear Time LexBFS Cograph recognition Algorithm".
+ * Bretscher, Corneil, Habib, Paul, "A Simple Linear Time LexBFS Cograph Recognition Algorithm".
  *
  */
 class BretscherCorneilHabibPaulCographRecognition : public CographRecognition {
