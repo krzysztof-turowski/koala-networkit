@@ -193,10 +193,17 @@ namespace Koala {
                 gamma[i].push_back(u);
             }
         }
-        std::sort(components.begin(), components.end(),
-            [&gamma](std::vector<int> &a, std::vector<int> &b)
-            {return gamma[a[0]].size() > gamma[b[0]].size();
-        });
+        std::vector<std::vector<int>> count_sort(n), components_sorted;
+        for (int i = 0; i < components.size(); i++) {
+            count_sort[gamma[components[i][0]].size()].push_back(i);
+        }
+        for (int i = n - 1; i >= 0; i--) {
+            for (auto value : count_sort[i]) {
+                components_sorted.push_back(components[value]);
+            }
+        }
+        components = components_sorted;
+        components_sorted.clear();
         for (int i = 0; i < component_number; i++) {
             for (int j = 0; j < components[i].size(); j++) {
                 component[components[i][j]] = i;
