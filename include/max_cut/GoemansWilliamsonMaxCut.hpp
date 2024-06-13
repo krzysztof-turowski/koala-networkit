@@ -12,10 +12,6 @@
 
 #include "MaxCut.hpp"
 
-extern "C" {
-#include <declarations.h>
-}
-
 namespace Koala {
 
 /**

@@ -2,7 +2,6 @@
 
 #include <list>
 
-#include <min_cut/PushRelabelMinCut.hpp>
 #include <min_cut/HaoOrlinMinCut.hpp>
 #include <min_cut/KargerMinCut.hpp>
 #include <min_cut/KargerSteinMinCut.hpp>
@@ -23,11 +22,11 @@ class MinCutTest : public testing::TestWithParam<MinCutParameters> {};
 TEST_P(MinCutTest, TestMinCutSolution) {
     MinCutParameters const& parameters = GetParam();
     NetworKit::Graph G = build_graph(parameters.N, parameters.EW, false);
-    
+
     Koala::StoerWagnerMinCut algorithm(G);
-    
+
     algorithm.run();
-    
+
     EXPECT_EQ(algorithm.getMinCutValue(), parameters.expectedMinCutValue);
 }
 

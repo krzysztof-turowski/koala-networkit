@@ -11,6 +11,10 @@
 #include <cstring>
 #include <random>
 
+extern "C" {
+#include <declarations.h>
+}
+
 #include <max_cut/GoemansWilliamsonMaxCut.hpp>
 
 namespace Koala {
@@ -30,7 +34,7 @@ void GoemansWilliamsonMaxCut::run() {
 
     // Calculate
     initsoln(n, 1, C, b, constraints, &X, &y, &Z);
-    int ret = easy_sdp(n, 1, C, b, constraints, 0.0, &X, &y, &Z, &pobj, &dobj);
+    easy_sdp(n, 1, C, b, constraints, 0.0, &X, &y, &Z, &pobj, &dobj);
 
     std::vector<double> r = randomUnitVector(n);
 
@@ -67,12 +71,14 @@ std::vector<double> GoemansWilliamsonMaxCut::randomUnitVector(int dim) {
     return r;
 }
 
-void GoemansWilliamsonMaxCut::initializeSDP(struct blockmatrix &C, double *&b, struct constraintmatrix *&constraints) {
+void GoemansWilliamsonMaxCut::initializeSDP(struct blockmatrix &C, double *&b,
+                struct constraintmatrix *&constraints) {
     int n = graph->numberOfNodes();
 
     // Allocate the block matrix
     C.nblocks = 1;
-    C.blocks = reinterpret_cast<struct blockrec *>(malloc((C.nblocks + 1) * sizeof(struct blockrec)));
+    C.blocks = reinterpret_cast<struct blockrec *>
+                    (malloc((C.nblocks + 1) * sizeof(struct blockrec)));
     C.blocks[1].blockcategory = MATRIX;
     C.blocks[1].blocksize = n;
     C.blocks[1].data.mat = reinterpret_cast<double *>(malloc((n * n + 1) * sizeof(double)));
@@ -86,12 +92,14 @@ void GoemansWilliamsonMaxCut::initializeSDP(struct blockmatrix &C, double *&b, s
 
     // Linear constraints
     b = reinterpret_cast<double *>(malloc(sizeof(double) * (n + 1)));
-    constraints = reinterpret_cast<struct constraintmatrix *>(malloc((n + 1) * sizeof(struct constraintmatrix)));
+    constraints = reinterpret_cast<struct constraintmatrix *>
+                    (malloc((n + 1) * sizeof(struct constraintmatrix)));
     for (int i = 1; i <= n; ++i) {
         b[i] = 1.0;
-        constraints[i].blocks = (struct sparseblock *) malloc(sizeof(struct sparseblock));
+        constraints[i].blocks = reinterpret_cast<struct sparseblock *>
+                    (malloc(sizeof(struct sparseblock)));
         constraints[i].blocks->blocknum = 1;
-        constraints[i].blocks->blocksize = n;   // should i add?
+        constraints[i].blocks->blocksize = n;
         constraints[i].blocks->constraintnum = i;
         constraints[i].blocks->entries = reinterpret_cast<double *>(malloc(sizeof(double)));
         constraints[i].blocks->iindices = reinterpret_cast<int *>(malloc(sizeof(int)));

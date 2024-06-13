@@ -22,9 +22,9 @@ TEST_P(MaxCutTest, TestMaxCutSolution) {
     NetworKit::Graph G = build_graph(parameters.N, parameters.EW, false);
 
     Koala::GoemansWilliamsonMaxCut algorithm(G);
-    
+
     algorithm.run();
-    
+
     EXPECT_EQ(algorithm.getMaxCutValue(), parameters.expectedMaxCutValue);
 }
 
