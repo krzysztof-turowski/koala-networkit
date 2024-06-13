@@ -4,14 +4,12 @@
 #include "recognition/CographRecognition.hpp"
 
 namespace Koala {
-    std::set<NetworKit::node> CographMaxClique::recurse_run(NetworKit::count v) {
+    NetworKit::count  CographMaxClique::recurse_run(NetworKit::count v) {
         CoNode &V = cotree.getNode(v);
         if (V.type == NodeType::LEAF) {
-            std::set<NetworKit::node> Set;
-            Set.insert(v);
-            return Set;
+            subgraph_clique_size[v] = 1;
         } else {
-            std::set<NetworKit::node> l, r;
+            NetworKit::count  l=0, r=0;
             if (V.left_son != NetworKit::none) {
                 l = recurse_run(V.left_son);
             }
@@ -21,28 +19,51 @@ namespace Koala {
             }
 
             if (V.type == NodeType::UNION_NODE) {
-                if (l.size() >= r.size()) {
-                    return l;
+                subgraph_clique_size[v] = std::max(l,r);
+            } else {
+                subgraph_clique_size[v] = l + r;
+            }
+        }
+        return subgraph_clique_size[v];
+    }
+
+    void CographMaxClique::add_to_set(NetworKit::count v) {
+        if(v == NetworKit::none)
+        {
+            return;
+        }
+        CoNode &V = cotree.getNode(v);
+        if (V.type == NodeType::LEAF) {
+           max_clique.insert(v);
+        } else {
+            NetworKit::count  l=0, r=0;
+            if (V.left_son != NetworKit::none) {
+                l = subgraph_clique_size[V.left_son];
+            }
+
+            if (V.right_son != NetworKit::none) {
+                r = subgraph_clique_size[V.right_son];
+            }
+
+            if (V.type == NodeType::UNION_NODE) {
+                if (l >= r) {
+                    add_to_set(V.left_son);
                 } else {
-                    return r;
+                    add_to_set(V.right_son);
                 }
             } else {
-                if (l.size() > r.size()) {
-                    l.insert(r.begin(), r.end());
-
-                    return l;
-                } else {
-                    r.insert(l.begin(), l.end());
-
-                    return r;
-                }
+                add_to_set(V.left_son);
+                add_to_set(V.right_son);
             }
         }
     }
 
     void CographMaxClique::run() {
         hasRun = true;
-        max_clique = recurse_run(cotree.graph->numberOfNodes());
+        NetworKit::count n = cotree.graph->numberOfNodes();
+        subgraph_clique_size.resize(2*n+1);
+        recurse_run(n);
+        add_to_set(n);
     }
 
     NetworKit::count CographMaxClique::bruteForceCliqueSize(NetworKit::Graph &Graph) {

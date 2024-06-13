@@ -6,10 +6,15 @@
 namespace Koala {
 class CographMaxClique : public MaxClique {
  private:
-    std::set<NetworKit::node> recurse_run(NetworKit::count v);
+    NetworKit::count  recurse_run(NetworKit::count v);
+
+    void add_to_set(NetworKit::count v);
+
+    Koala::Cotree &cotree;
+
+    std::vector<NetworKit::count > subgraph_clique_size;
 
  public:
-    Koala::Cotree &cotree;
 
     CographMaxClique(NetworKit::Graph &Graph, Koala::Cotree &CoTree) : MaxClique(Graph), cotree(CoTree) {
     }
