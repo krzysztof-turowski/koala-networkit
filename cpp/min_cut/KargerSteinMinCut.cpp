@@ -34,8 +34,8 @@ int KargerSteinMinCut::recursiveMinCut(int currentV) {
     }
 
     int T = static_cast<int>(std::ceil(currentV / std::sqrt(2)));
-    std::vector<int> parent(currentV), rank(currentV, 0);
-    for (int i = 0; i < currentV; ++i) {
+    std::vector<int> parent(graph->numberOfNodes()), rank(graph->numberOfNodes(), 0);
+    for (int i = 0; i < graph->numberOfNodes(); ++i) {
         parent[i] = i;
     }
 

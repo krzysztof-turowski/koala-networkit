@@ -75,7 +75,6 @@ void RankTwoRelaxationMaxCut::perturbTheta() {
 
 void RankTwoRelaxationMaxCut::run() {
     theta.resize(graph->numberOfNodes());
-    distributeThetaEvenly();
     perturbTheta();
     maxCutSet = procedureCut();
     maxCutValue = calculateCutValue(maxCutSet);
