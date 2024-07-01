@@ -6,7 +6,7 @@
  */
 #include <graph/GraphTools.hpp>
 
-#include "recognition/CographRecognitionMilana.hpp"
+#include "recognition/CographRecognition.hpp"
 #include "recognition/CoTree.hpp"
 
 namespace Koala {
