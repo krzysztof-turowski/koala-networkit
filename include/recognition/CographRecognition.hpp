@@ -118,9 +118,9 @@ class CorneilStewartPerlCographRecognition : public CographRecognition {
  * and distance hereditary graphs".
  *
  */
-class DahlhausCographRecognition : public CographRecognitionMilana {
+class DahlhausCographRecognition : public CographRecognition {
  public:
-    using CographRecognitionMilana::CographRecognitionMilana;
+    using CographRecognition::CographRecognition;
 
     void run();
 
