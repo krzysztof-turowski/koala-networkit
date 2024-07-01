@@ -118,20 +118,25 @@ class CorneilStewartPerlCographRecognition : public CographRecognition {
  * and distance hereditary graphs".
  *
  */
-class DahlhausCographRecognition : public CographRecognition {
+class DahlhausCographRecognition : public CographRecognitionMilana {
  public:
-    using CographRecognition::CographRecognition;
+    using CographRecognitionMilana::CographRecognitionMilana;
 
     void run();
 
     bool isCograph() const;
 
  private:
+    const int A = 10;
     std::vector<CoNode *> pointer;
     std::vector<CoTree> save;
     bool is_cograph = false;
 
     CoTree &build_cotree(NetworKit::Graph G, std::vector<int> real_number_of_node);
+
+    void high_low_case(CoTree &T, NetworKit::Graph &G, std::vector<int> &real_number_of_node);
+    
+    void big_component(CoTree &T, NetworKit::Graph &G, std::vector<int> &vec, std::vector<int> &real_number_of_node);
 
     inline void add(int vertex_type, CoTree &T, std::vector<int> &vec,
         std::vector<int> &fake_number_of_node, NetworKit::Graph &G,
