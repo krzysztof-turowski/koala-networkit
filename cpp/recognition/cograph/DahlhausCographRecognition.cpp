@@ -6,7 +6,7 @@
  */
 #include <graph/GraphTools.hpp>
 
-#include "recognition/CographRecognition.hpp"
+#include "recognition/CographRecognitionMilana.hpp"
 #include "recognition/CoTree.hpp"
 
 namespace Koala {
@@ -85,19 +85,19 @@ namespace Koala {
     }
 
     void dfs(NetworKit::node v, NetworKit::Graph &G, std::vector<int> &component,
-        std::vector<bool> &is_neighbour) {
+             std::vector<bool> &is_in_vec) {
         for (auto u : G.neighborRange(v)) {
-            if (is_neighbour[u] || component[u] != -1) {
+            if (!is_in_vec[u] || component[u] != -1) {
                 continue;
             }
             component[u] = component[v];
-            dfs(u, G, component, is_neighbour);
+            dfs(u, G, component, is_in_vec);
         }
     }
 
     inline NetworKit::Graph
     build_graph(std::vector<int> &nodes, NetworKit::Graph &G,
-        std::vector<int> &fake_number_of_node) {
+                std::vector<int> &fake_number_of_node) {
         NetworKit::Graph h;
         for (auto u : nodes) {
             h.addNode();
@@ -142,18 +142,232 @@ namespace Koala {
         }
     }
 
+    std::vector<std::vector<int>>
+    compute_connected_components(std::vector<int> &vec, std::vector<int> &component,
+        std::vector<bool> &is_in_vec, NetworKit::Graph &G) {
+        int component_number = 0;
+        for (auto u : vec) {
+            if (component[u] == -1) {
+                component[u] = component_number++;
+                dfs(u, G, component, is_in_vec);
+            }
+        }
+        std::vector<std::vector<int>> components(component_number);
+        for (int i = 0; i < is_in_vec.size(); i++) {
+            if (!is_in_vec[i]) {
+                continue;
+            }
+            components[component[i]].push_back(i);
+        }
+        return components;
+    }
+
+    std::vector<std::vector<int>>
+    compute_gamma(std::vector<bool> &is_in_vec, NetworKit::Graph &G, std::vector<int> &component) {
+        std::vector<std::vector<int>> gamma(is_in_vec.size());
+        for (int i = 0; i < is_in_vec.size(); i++) {
+            if (!is_in_vec[i]) {
+                continue;
+            }
+            for (auto u : G.neighborRange(i)) {
+                if (is_in_vec[u] && component[u] == component[i]) {
+                    continue;
+                }
+                gamma[i].push_back(u);
+            }
+        }
+        return gamma;
+    }
+
+    std::vector<std::vector<int>>
+    compute_components_sorted(int n, std::vector<std::vector<int>> &components,
+        std::vector<std::vector<int>> &gamma) {
+        std::vector<std::vector<int>> count_sort(n), components_sorted;
+        for (int i = 0; i < components.size(); i++) {
+            count_sort[gamma[components[i][0]].size()].push_back(i);
+        }
+        for (int i = n - 1; i >= 0; i--) {
+            for (auto value : count_sort[i]) {
+                components_sorted.push_back(components[value]);
+            }
+        }
+        return components_sorted;
+    }
+
+    void recompute_component(std::vector<std::vector<int>> &components,
+        std::vector<int> &component) {
+        for (int i = 0; i < components.size(); i++) {
+            for (int j = 0; j < components[i].size(); j++) {
+                component[components[i][j]] = i;
+            }
+        }
+    }
+
+    std::vector<std::vector<int>>
+    compute_gamma_difference(std::vector<std::vector<int>> &components, std::vector<int> &component,
+                             std::vector<std::vector<int>> &gamma, std::vector<bool> &is_in_vec,
+                             std::vector<bool> &is_in_new_vec) {
+        std::vector<std::vector<int>> gamma_difference(components.size() + 1);
+        int n = is_in_vec.size();
+        std::vector<int> last_position_where_met(n, -1);
+        for (int i = 0; i < n; i++) {
+            if (!is_in_vec[i]) {
+                continue;
+            }
+            for (auto a : gamma[i]) {
+                last_position_where_met[a] = std::max(last_position_where_met[a], component[i]);
+            }
+        }
+        for (int i = 0; i < n; i++) {
+            if (is_in_new_vec[i]) {
+                continue;
+            }
+            gamma_difference[1 + last_position_where_met[i]].push_back(i);
+        }
+        return gamma_difference;
+    }
+
+    void reverse_cotree(CoTree &T, CoNode *v) {
+        if (v->type == Type::ZERO_ONE) {
+            v->number ^= 1;
+        }
+        auto u = v->first_child;
+        while (u != nullptr) {
+            reverse_cotree(T, u);
+            u = u->next;
+        }
+    }
+
+    void DahlhausCographRecognition::big_component(CoTree &T, NetworKit::Graph &G,
+        std::vector<int> &vec, std::vector<int> &real_number_of_node) {
+        NetworKit::Graph GC = Koala::GraphTools::toComplement(G);
+        int n = GC.numberOfNodes();
+        std::vector<int> component(n, -1), fake_number_of_node(n, -1);
+        std::vector<bool> is_in_vec(n);
+        for (auto u : vec) {
+            is_in_vec[u] = true;
+        }
+        auto components = compute_connected_components(vec, component, is_in_vec, GC);
+        for (auto c : components) {
+            for (int j = 0; j < c.size(); j++) {
+                fake_number_of_node[c[j]] = j;
+            }
+            auto GI = build_graph(c, GC, fake_number_of_node);  // induced subgraph by c
+            for (int j = 0; j < c.size(); j++) {
+                fake_number_of_node[c[j]] = -1;
+            }
+            std::vector<int> new_real_number_of_node(c.size());
+            for (int j = 0; j < c.size(); j++) {
+                new_real_number_of_node[j] = real_number_of_node[c[j]];
+            }
+            auto TI = build_cotree(GI, new_real_number_of_node);
+            reverse_cotree(TI, TI.root);  // reverse TI
+            T.root->AddChild(TI.root);
+        }
+    }
+
+    void
+    DahlhausCographRecognition::high_low_case(CoTree &T, NetworKit::Graph &G,
+        std::vector<int> &real_number_of_node) {
+        int n = G.numberOfNodes();
+        std::vector<int> degree(n);
+        for (auto u : G.nodeRange()) {
+            for (auto q : G.neighborRange(u)) {
+                degree[u]++;
+            }
+        }
+        auto V = T.Add(Type::ZERO_ONE, 0);
+        T.root = V;
+        // compute low components
+        // sort and compute gamma difference
+        // 0-low components 1-high components
+        // if high component is big, then call big_components
+        std::vector<bool> is_in_vec(n);
+        std::vector<int> vec, component(n, -1);
+        for (auto u : G.nodeRange()) {
+            if (degree[u] * A <= n) {
+                is_in_vec[u] = true;
+                vec.push_back(u);
+            }
+        }
+        auto components = compute_connected_components(vec, component, is_in_vec, G);
+        auto gamma = compute_gamma(is_in_vec, G, component);
+        components = compute_components_sorted(n, components, gamma);
+        recompute_component(components, component);
+        auto gamma_difference =
+                compute_gamma_difference(components, component, gamma, is_in_vec, is_in_vec);
+        std::vector<int> fake_number_of_node(n, -1);
+
+        for (int i = 0; i <= components.size(); i++) {
+            bool special_case_big_component = true;
+            if (gamma_difference[i].size() * A > (A - 1) * n) {
+                std::vector<bool> is_in_gamma_difference(n);
+                for (auto u : gamma_difference[i]) {
+                    is_in_gamma_difference[u] = true;
+                }
+                for (auto u : gamma_difference[i]) {
+                    int sum = 0;
+                    for (auto v : G.neighborRange(u)) {
+                        if (!is_in_gamma_difference[v]) {
+                            continue;
+                        }
+                        sum++;
+                    }
+                    sum = gamma_difference[i].size() - 1 - sum;
+                    if (sum * A >= n) {
+                        special_case_big_component = false;
+                        break;
+                    }
+                }
+            } else {
+                special_case_big_component = false;
+            }
+            if (special_case_big_component) {
+                std::vector<int> empty;
+                add(1, T, empty, fake_number_of_node, G, real_number_of_node);
+                big_component(T, G, gamma_difference[i], real_number_of_node);
+            } else {
+                add(1, T, gamma_difference[i], fake_number_of_node, G, real_number_of_node);
+            }
+            if (i == components.size()) {
+                break;
+            }
+            add(0, T, components[i], fake_number_of_node, G, real_number_of_node);
+        }
+    }
+
     CoTree &DahlhausCographRecognition::build_cotree(NetworKit::Graph G,
         std::vector<int> real_number_of_node) {  // should return cotree reference
         int n = G.numberOfNodes();
-        auto v = *G.nodeRange().begin();
         CoTree &T = save.emplace_back();
         T.ReserveSpace(3 * n);
+        if (n == 1) {
+            auto v = *G.nodeRange().begin();
+            auto V = T.Add(Type::VERTEX, real_number_of_node[v]);
+            pointer[real_number_of_node[v]] = V;
+            T.root = V;
+            return T;
+        }
+
+
+        int v = -1;
+        for (auto u : G.nodeRange()) {
+            int size = 0;
+            for (auto q : G.neighborRange(u)) {
+                size++;
+            }
+            if (A * size >= n && size * A <= (A - 1) * n) {
+                v = u;
+                break;
+            }
+        }
+        if (v == -1) {
+            high_low_case(T, G, real_number_of_node);
+            return T;
+        }
         auto V = T.Add(Type::VERTEX, real_number_of_node[v]);
         pointer[real_number_of_node[v]] = V;
         T.root = V;
-        if (n == 1) {
-            return T;
-        }
         std::vector<bool> is_neighbour(n);
         std::vector<int> not_neighbours;
         for (auto u : G.neighborRange(v)) {
@@ -168,67 +382,25 @@ namespace Koala {
             }
         }
         std::vector<int> component(n, -1);
-        int component_number = 0;
-        for (auto u : not_neighbours) {
-            if (component[u] == -1) {
-                component[u] = component_number++;
-                dfs(u, G, component, is_neighbour);
-            }
-        }
-        std::vector<std::vector<int>> components(component_number), gamma(n);
+        std::vector<bool> is_in_vec(n, true);
         for (int i = 0; i < n; i++) {
             if (is_neighbour[i] || i == v) {
-                continue;
-            }
-            components[component[i]].push_back(i);
-        }
-        for (int i = 0; i < n; i++) {
-            if (is_neighbour[i] || i == v) {
-                continue;
-            }
-            for (auto u : G.neighborRange(i)) {
-                if (!is_neighbour[u] && component[u] == component[i]) {
-                    continue;
-                }
-                gamma[i].push_back(u);
+                is_in_vec[i] = false;
             }
         }
-        std::vector<std::vector<int>> count_sort(n), components_sorted;
-        for (int i = 0; i < components.size(); i++) {
-            count_sort[gamma[components[i][0]].size()].push_back(i);
-        }
-        for (int i = n - 1; i >= 0; i--) {
-            for (auto value : count_sort[i]) {
-                components_sorted.push_back(components[value]);
-            }
-        }
-        components = components_sorted;
-        components_sorted.clear();
-        for (int i = 0; i < component_number; i++) {
-            for (int j = 0; j < components[i].size(); j++) {
-                component[components[i][j]] = i;
-            }
-        }
-        std::vector<std::vector<int>> gamma_difference(component_number + 1);
-        std::vector<int> last_position_where_met(n, -1);
-        for (int i = 0; i < n; i++) {
-            if (is_neighbour[i] || i == v) {
-                continue;
-            }
-            for (auto a : gamma[i]) {
-                last_position_where_met[a] = std::max(last_position_where_met[a], component[i]);
-            }
-        }
-        for (int i = 0; i < n; i++) {
-            if (!is_neighbour[i] || i == v) {
-                continue;
-            }
-            gamma_difference[1 + last_position_where_met[i]].push_back(i);
-        }
+        std::vector<std::vector<int>> components =
+                compute_connected_components(not_neighbours, component, is_in_vec, G),
+        gamma = compute_gamma(is_in_vec, G, component);
+        components = compute_components_sorted(n, components, gamma);
+        recompute_component(components, component);
+        std::vector<bool> is_in_new_vec = is_in_vec;
+        is_in_new_vec[v] = true;
+        auto gamma_difference =
+                compute_gamma_difference(components, component, gamma, is_in_vec, is_in_new_vec);
         std::vector<int> fake_number_of_node(n, -1);
-        for (int i = 0; i <= component_number; i++) {
+        for (int i = 0; i <= components.size(); i++) {
             add(1, T, gamma_difference[i], fake_number_of_node, G, real_number_of_node);
-            if (i == component_number) {
+            if (i == components.size()) {
                 break;
             }
             add(0, T, components[i], fake_number_of_node, G, real_number_of_node);
