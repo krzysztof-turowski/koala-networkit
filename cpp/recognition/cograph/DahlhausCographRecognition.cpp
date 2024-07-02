@@ -59,6 +59,7 @@ namespace Koala {
     }
 
     void DahlhausCographRecognition::run() {
+        is_cograph = true;
         hasRun = true;
         std::vector<NetworKit::node> nodes;
         for (auto u : graph.nodeRange()) {
@@ -72,7 +73,9 @@ namespace Koala {
         save.reserve(nodes.size() * 4);
         pointer.resize(nodes.size());
         auto &T = build_cotree(graph, real_number_of_node);
-        is_cograph = check_cotree(T);
+        if (is_cograph) {
+            is_cograph = check_cotree(T);
+        }
         for (auto &t : save) {
             t.Clear();
         }
@@ -85,7 +88,7 @@ namespace Koala {
     }
 
     void dfs(NetworKit::node v, NetworKit::Graph &G, std::vector<int> &component,
-             std::vector<bool> &is_in_vec) {
+        std::vector<bool> &is_in_vec) {
         for (auto u : G.neighborRange(v)) {
             if (!is_in_vec[u] || component[u] != -1) {
                 continue;
@@ -97,7 +100,7 @@ namespace Koala {
 
     inline NetworKit::Graph
     build_graph(std::vector<int> &nodes, NetworKit::Graph &G,
-                std::vector<int> &fake_number_of_node) {
+        std::vector<int> &fake_number_of_node) {
         NetworKit::Graph h;
         for (auto u : nodes) {
             h.addNode();
@@ -195,7 +198,7 @@ namespace Koala {
     }
 
     void recompute_component(std::vector<std::vector<int>> &components,
-        std::vector<int> &component) {
+                             std::vector<int> &component) {
         for (int i = 0; i < components.size(); i++) {
             for (int j = 0; j < components[i].size(); j++) {
                 component[components[i][j]] = i;
@@ -205,8 +208,8 @@ namespace Koala {
 
     std::vector<std::vector<int>>
     compute_gamma_difference(std::vector<std::vector<int>> &components, std::vector<int> &component,
-                             std::vector<std::vector<int>> &gamma, std::vector<bool> &is_in_vec,
-                             std::vector<bool> &is_in_new_vec) {
+        std::vector<std::vector<int>> &gamma, std::vector<bool> &is_in_vec,
+        std::vector<bool> &is_in_new_vec) {
         std::vector<std::vector<int>> gamma_difference(components.size() + 1);
         int n = is_in_vec.size();
         std::vector<int> last_position_where_met(n, -1);
@@ -249,6 +252,10 @@ namespace Koala {
         }
         auto components = compute_connected_components(vec, component, is_in_vec, GC);
         for (auto c : components) {
+            if (c.size() * A > 2 * n) {
+                is_cograph = false;
+                return;
+            }
             for (int j = 0; j < c.size(); j++) {
                 fake_number_of_node[c[j]] = j;
             }
@@ -269,6 +276,9 @@ namespace Koala {
     void
     DahlhausCographRecognition::high_low_case(CoTree &T, NetworKit::Graph &G,
         std::vector<int> &real_number_of_node) {
+        if (!is_cograph) {
+            return;
+        }
         int n = G.numberOfNodes();
         std::vector<int> degree(n);
         for (auto u : G.nodeRange()) {
@@ -313,7 +323,7 @@ namespace Koala {
                         }
                         sum++;
                     }
-                    sum = gamma_difference[i].size() - 1 - sum;
+                    sum = int(gamma_difference[i].size()) - 1 - sum;
                     if (sum * A >= n) {
                         special_case_big_component = false;
                         break;
@@ -332,6 +342,10 @@ namespace Koala {
             if (i == components.size()) {
                 break;
             }
+            if (components[i].size() * A > 2 * n) {
+                is_cograph = false;
+                return;
+            }
             add(0, T, components[i], fake_number_of_node, G, real_number_of_node);
         }
     }
@@ -348,7 +362,9 @@ namespace Koala {
             T.root = V;
             return T;
         }
-
+        if (!is_cograph) {
+            return T;
+        }
 
         int v = -1;
         for (auto u : G.nodeRange()) {
@@ -390,7 +406,7 @@ namespace Koala {
         }
         std::vector<std::vector<int>> components =
                 compute_connected_components(not_neighbours, component, is_in_vec, G),
-        gamma = compute_gamma(is_in_vec, G, component);
+                gamma = compute_gamma(is_in_vec, G, component);
         components = compute_components_sorted(n, components, gamma);
         recompute_component(components, component);
         std::vector<bool> is_in_new_vec = is_in_vec;
