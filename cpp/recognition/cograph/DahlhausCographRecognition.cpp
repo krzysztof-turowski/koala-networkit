@@ -252,7 +252,7 @@ namespace Koala {
         }
         auto components = compute_connected_components(vec, component, is_in_vec, GC);
         for (auto c : components) {
-            if (c.size() * A > 2 * n) {
+            if (c.size() * A > 2 * n + A) {
                 is_cograph = false;
                 return;
             }
@@ -342,7 +342,7 @@ namespace Koala {
             if (i == components.size()) {
                 break;
             }
-            if (components[i].size() * A > 2 * n) {
+            if (components[i].size() * A > 2 * n + A) {
                 is_cograph = false;
                 return;
             }
