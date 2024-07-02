@@ -136,6 +136,9 @@ namespace Koala {
             new_real_number_of_node[j] = real_number_of_node[vec[j]];
         }
         CoTree &T2 = build_cotree(C, new_real_number_of_node);
+        if (!is_cograph) {
+            return;
+        }
         if (vertex_type == 0) {
             u2->AddChild(T2.root);
         } else {
@@ -268,6 +271,9 @@ namespace Koala {
                 new_real_number_of_node[j] = real_number_of_node[c[j]];
             }
             auto TI = build_cotree(GI, new_real_number_of_node);
+            if (!is_cograph) {
+                return;
+            }
             reverse_cotree(TI, TI.root);  // reverse TI
             T.root->AddChild(TI.root);
         }
@@ -336,6 +342,9 @@ namespace Koala {
                 std::vector<int> empty;
                 add(1, T, empty, fake_number_of_node, G, real_number_of_node);
                 big_component(T, G, gamma_difference[i], real_number_of_node);
+                if (!is_cograph) {
+                    return;
+                }
             } else {
                 add(1, T, gamma_difference[i], fake_number_of_node, G, real_number_of_node);
             }
