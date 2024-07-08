@@ -50,7 +50,6 @@ int bakers_technique(Graph& g, NetworKit::Graph &G, PlanarEmbedding& embedding, 
                                       std::back_inserter(intersection));
 
                 for (int level : intersection) {
-//                int level = intersection.front();
                     int local_source = global_to_local[level][e.m_source];
                     int local_target = global_to_local[level][e.m_target];
                     std::pair<int, int> e_pair(std::min(e.m_source, e.m_target), std::max(e.m_source, e.m_target));

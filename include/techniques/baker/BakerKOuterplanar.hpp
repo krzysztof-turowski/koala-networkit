@@ -72,8 +72,7 @@ class baker_impl {
         for (int i = 0; i < face.size(); i++) {
             int v = face[i];
             for (auto &e : embedding[v]) {
-                int neighbour = e.u == v ? e.v : e.u;
-                auto element = std::find(component.begin(), component.end(), neighbour);
+                auto element = std::find(component.begin(), component.end(), e.u == v ? e.v : e.u);
                 if (element != component.end()) {
                     connecting_e = e;
                     std::rotate(face.begin(), face.begin() + i, face.end());
@@ -203,10 +202,9 @@ class baker_impl {
         }
 
         int edge_it = get_edge_it(one, two, embedding);
-        int cos = edge_it - one_edges.size();
         int third;
         int connecting_e_it = -1;
-        for (int i = edge_it - 1; i > cos; i--) {
+        for (int i = edge_it - 1; i > edge_it - one_edges.size(); i--) {
             third = one_edges[i].u == one ? one_edges[i].v : one_edges[i].u;
 
             if (third != one) {
