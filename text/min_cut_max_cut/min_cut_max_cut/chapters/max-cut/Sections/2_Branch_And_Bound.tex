@@ -1,0 +1,79 @@
+\section{Branch and Bound algorithm}
+\label{sec:branchandbound}
+
+\subsection{Idea}
+The Branch and Bound algorithm is an optimization technique that systematically explores the solution space for combinatorial problems like the max-cut problem. The core idea is to iteratively partition the problem into smaller subproblems (branching) and compute bounds to eliminate subproblems that cannot yield better solutions than the best one found so far (bounding).
+
+To visualize this, consider a binary tree where each node represents a decision to include a vertex in either subset \(S\) or \(T\). The root node represents the initial state with no vertices assigned. Each level of the tree corresponds to a decision about one vertex, and the bounding step helps in cutting off large portions of the tree that cannot contain the optimal solution, thus saving computation time.
+
+Formally, for a graph \(G = (V, E)\) with vertices \(V = \{v_1, v_2, \ldots, v_n\}\), we seek to partition \(V\) into two disjoint subsets \(S\) and \(T\) such that the sum of the weights of the edges between \(S\) and \(T\) is maximized. The algorithm can be described as follows:
+
+At each step, decide whether to include a vertex \(v_i\) in subset \(S\) or subset \(T\). This decision creates a branching tree of possible subsets. After that, for each partial partition, calculate an upper bound on the possible maximum cut value that can be achieved if the partition is extended. If this bound is less than the current best known cut value, prune that branch.
+
+This method effectively narrows down the solution space, focusing only on promising subproblems and thereby improving efficiency over naive exhaustive search methods.
+
+\subsection{Implementation}
+The implementation of the Branch and Bound algorithm involves several key components
+
+The \texttt{bound} function calculates an upper bound on the maximum cut value for a given node. It adds the maximum possible contributions from unassigned vertices to the current cut value. This ensures that the calculated bound is as tight as possible, facilitating effective pruning of the search tree.
+
+\begin{minted}[linenos]{cpp}
+int BranchAndBoundMaxCut::bound(Node u) {
+    int result = calculateCutValue(u.set);
+    graph->forEdges([&](node j, node k, edgeweight w) {
+        if (j >= u.level) {
+            result += w;
+        }
+    });
+    return result;
+}
+\end{minted}
+
+The \texttt{branchAndBound} function is the core of the algorithm:
+at the beginning, the stack is initialized with the root node, representing an empty partition. While the stack is not empty, nodes are removed from it and explored. If a node represents assignment of the last vertex, its cut value is calculated and compared to the best known value. For non-leaf nodes, two new nodes are created by assigning the current vertex to either subset \(S\) or \(T\), and their bounds are calculated. New nodes are pushed onto the stack only if their bounds indicate potential for a better solution.
+
+\begin{minted}[linenos]{cpp}
+void BranchAndBoundMaxCut::branchAndBound() {
+    maxCutValue = 0;
+    std::vector<Node> stack;
+    Node root;
+    root.level = 0;
+    root.set.resize(graph->numberOfNodes(), false);
+    root.bound = bound(root);
+    stack.push_back(root);
+    while (!stack.empty()) {
+        Node u = stack.back();
+        stack.pop_back();
+        if (u.level == graph->numberOfNodes()) {
+            double currentCutValue = calculateCutValue(u.set);
+            if (currentCutValue > maxCutValue) {
+                maxCutValue = currentCutValue;
+                maxCutSet = u.set;
+            }
+        } else {
+            for (int i = 0; i < 2; ++i) {
+                Node v = u;
+                v.level = u.level + 1;
+                v.set[u.level] = i;
+                v.bound = bound(v);
+                if (v.bound > maxCutValue) {
+                    stack.push_back(v);
+                }
+            }
+        }
+    }
+}
+\end{minted}
+
+
+\subsection{Correctness}
+The correctness of the Branch and Bound algorithm for max-cut is ensured by its approach to exploring the solution space and its use of bounding to non-promising subproblems. The algorithm maintains a global best solution and prunes branches where the upper bound indicates no possible improvement over this best solution.
+
+The bounding function ensures that if a branch is abandoned, no better solution exists within that branch. This is because the bound represents the maximum possible cut value that can be achieved from that node onward.This guarantees that the algorithm does not miss any potential solutions.
+
+Whenever a leaf node representing some cut \((S, T)\) is reached, the actual cut value is compared against the current best found value, ensuring that the best known solution is always updated.
+
+Thus, the Branch and Bound algorithm correctly finds the maximum cut by systematically exploring feasible partitions and using bounds to eliminate non-promising ones.
+
+\subsection{Time complexity}
+The time complexity of the Branch and Bound algorithm is influenced by the effectiveness of the bounding function and the graph's structure. In the worst case, the algorithm explores an exponential number of nodes, similar to a naive exhaustive search, leading to a time complexity of \(O(2^{|V|} \cdot |E|)\). However, in practice, the bounding step significantly reduces the number of nodes to be explored, making the algorithm more efficient for many practical instances.
