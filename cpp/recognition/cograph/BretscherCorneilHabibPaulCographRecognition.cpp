@@ -107,7 +107,7 @@ namespace Koala {
                 } else {
                     previous++;
                 }
-                if (!previous->empty() && (!graph.hasEdge(previous->front(), x)
+                if (!previous->empty() && (!graph.hasEdge(previous->front(), x)  // TODO: get rid of hasEdge usage, it is linear time
                     || !used_at_this_step[previous->front()] ||
                     previous_list[previous->front()] != previous_list[v])) {
                     std::list<NetworKit::node> insert;
