@@ -4,19 +4,24 @@
 #include "Pathwidth.hpp"
 
 namespace Koala {
-class CographPathwidth : public Pathwidth {
- private:
-    NetworKit::count pathwidth(NetworKit::count v);
+    class CographPathwidth : public Pathwidth {
+    private:
+        void pathwidth();
 
-    NetworKit::count subtree_size(NetworKit::count v);
+        void subtree_size();
 
- public:
-    Koala::Cotree &cotree;
+        std::stack<int> st;
 
-    CographPathwidth(NetworKit::Graph &Graph, Koala::Cotree &CoTree) : Pathwidth(Graph), cotree(CoTree) {
-    }
+        std::vector<bool> used;
 
-    void run();
-};
+        std::vector<NetworKit::count> path;
+    public:
+        Koala::Cotree &cotree;
+
+        CographPathwidth(NetworKit::Graph &Graph, Koala::Cotree &CoTree) : Pathwidth(Graph), cotree(CoTree) {
+        }
+
+        void run();
+    };
 } /* namespace Koala */
 

@@ -5,22 +5,26 @@
 
 namespace Koala {
 
-class CographVertexColoring : public VertexColoring {
- private:
-    void end_of_coloring(NetworKit::count v);
+    class CographVertexColoring : public VertexColoring {
+    private:
+        void end_of_coloring();
 
-    void subtree_colors(NetworKit::count v);
+        void subtree_colors();
 
-    std::vector<NetworKit::count> color, number_of_colors;
+        std::vector<NetworKit::count> color, number_of_colors;
 
-    Koala::Cotree &cotree;
- public:
-    CographVertexColoring(NetworKit::Graph Graph, Koala::Cotree &Cotree) : VertexColoring(Graph), cotree(Cotree) {
-    }
+        Koala::Cotree &cotree;
 
-    void run();
+        std::stack<int> st;
 
-    bool checkColoring();
-};
+        std::vector<bool> used;
+    public:
+        CographVertexColoring(NetworKit::Graph Graph, Koala::Cotree &Cotree) : VertexColoring(Graph), cotree(Cotree) {
+        }
+
+        void run();
+
+        bool checkColoring();
+    };
 } /* namespace Koala */
 

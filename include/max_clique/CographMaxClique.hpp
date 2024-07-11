@@ -4,23 +4,26 @@
 #include "MaxClique.hpp"
 
 namespace Koala {
-class CographMaxClique : public MaxClique {
- private:
-    NetworKit::count  recurse_run(NetworKit::count v);
+    class CographMaxClique : public MaxClique {
+    private:
+        void recurse_run();
 
-    void add_to_set(NetworKit::count v);
+        void add_to_set();
 
-    Koala::Cotree &cotree;
+        Koala::Cotree &cotree;
 
-    std::vector<NetworKit::count > subgraph_clique_size;
+        std::vector<NetworKit::count> subgraph_clique_size;
 
- public:
+        std::vector<bool> used;
 
-    CographMaxClique(NetworKit::Graph &Graph, Koala::Cotree &CoTree) : MaxClique(Graph), cotree(CoTree) {
-    }
+        std::stack<int> st;
+    public:
 
-    void run() override;
+        CographMaxClique(NetworKit::Graph &Graph, Koala::Cotree &CoTree) : MaxClique(Graph), cotree(CoTree) {
+        }
 
-    NetworKit::count bruteForceCliqueSize(NetworKit::Graph &Graph);
-};
+        void run() override;
+
+        NetworKit::count bruteForceCliqueSize(NetworKit::Graph &Graph);
+    };
 } /* namespace Koala */

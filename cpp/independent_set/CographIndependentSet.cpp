@@ -3,56 +3,75 @@
 #include "independent_set/CographIndependentSet.hpp"
 
 namespace Koala {
-    NetworKit::count CographIndependentSet::recurse_run(NetworKit::count v)  {
-        CoNode &V = cotree.getNode(v);
-        if (V.type == NodeType::LEAF) {
-            independent_set_size[v] = 1;
-        } else {
-            NetworKit::count  l=0, r=0;
-            if (V.left_son != NetworKit::none) {
-                l = recurse_run(V.left_son);
-            }
+    void CographIndependentSet::recurse_run() {
+        while (!st.empty()) {
+            int v = st.top();
+            CoNode &V = cotree.getNode(v);
+            if (used[v] == false) {
+                used[v] = true;
+                if (V.left_son != NetworKit::none) {
+                    st.push(V.left_son);
+                }
 
-            if (V.right_son != NetworKit::none) {
-                r = recurse_run(V.right_son);
-            }
-
-            if (V.type == NodeType::COMPLEMENT_NODE) {
-                independent_set_size[v] = std::max(l,r);
-            } else {
-                independent_set_size[v] = l + r;
-            }
-        }
-        return independent_set_size[v];
-    }
-
-    void CographIndependentSet::add_to_set(NetworKit::count v) {
-        if(v == NetworKit::none)
-        {
-            return;
-        }
-        CoNode &V = cotree.getNode(v);
-        if (V.type == NodeType::LEAF) {
-           independentSet.insert(v);
-        } else {
-            NetworKit::count  l=0, r=0;
-            if (V.left_son != NetworKit::none) {
-                l = independent_set_size[V.left_son];
-            }
-
-            if (V.right_son != NetworKit::none) {
-                r = independent_set_size[V.right_son];
-            }
-
-            if (V.type == NodeType::COMPLEMENT_NODE) {
-                if (l >= r) {
-                    add_to_set(V.left_son);
-                } else {
-                    add_to_set(V.right_son);
+                if (V.right_son != NetworKit::none) {
+                    st.push(V.right_son);
                 }
             } else {
-                add_to_set(V.left_son);
-                add_to_set(V.right_son);
+                st.pop();
+                if (V.type == NodeType::LEAF) {
+                    independent_set_size[v] = 1;
+                } else {
+                    NetworKit::count l = 0, r = 0;
+                    if (V.left_son != NetworKit::none) {
+                        l = independent_set_size[V.left_son];
+                    }
+
+                    if (V.right_son != NetworKit::none) {
+                        r = independent_set_size[V.right_son];
+                    }
+
+                    if (V.type == NodeType::COMPLEMENT_NODE) {
+                        independent_set_size[v] = std::max(l, r);
+                    } else {
+                        independent_set_size[v] = l + r;
+                    }
+                }
+            }
+        }
+    }
+
+    void CographIndependentSet::add_to_set() {
+        while (!st.empty()) {
+            int v = st.top();
+            CoNode &V = cotree.getNode(v);
+            st.pop();
+            if (V.type == NodeType::LEAF) {
+                independentSet.insert(v);
+            } else {
+                NetworKit::count l = 0, r = 0;
+                if (V.left_son != NetworKit::none) {
+                    l = independent_set_size[V.left_son];
+                }
+
+                if (V.right_son != NetworKit::none) {
+                    r = independent_set_size[V.right_son];
+                }
+
+                if (V.type == NodeType::COMPLEMENT_NODE) {
+                    if (l >= r) {
+                        st.push(V.left_son);
+                    } else {
+                        st.push(V.right_son);
+                    }
+                } else {
+                    if (V.left_son != NetworKit::none) {
+                        st.push(V.left_son);
+                    }
+
+                    if (V.right_son != NetworKit::none) {
+                        st.push(V.right_son);
+                    }
+                }
             }
         }
     }
@@ -60,9 +79,13 @@ namespace Koala {
     void CographIndependentSet::run() {
         hasRun = true;
         NetworKit::count n = cotree.graph->numberOfNodes();
-        independent_set_size.resize(2*n+1);
-        recurse_run(n);
-        add_to_set(n);
+        independent_set_size.resize(2 * n + 1, 0);
+        st.push(n);
+        used.resize(2 * n + 1, false);
+        recurse_run();
+        st.push(n);
+        used.resize(2 * n + 1, false);
+        add_to_set();
     }
 
     NetworKit::count CographIndependentSet::bruteForceIndependetSetSize(NetworKit::Graph &Graph) {
