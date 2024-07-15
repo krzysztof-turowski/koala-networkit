@@ -1,0 +1,36 @@
+\begin{minted}[
+frame=lines,
+framesep=2mm,
+baselinestretch=1.2,
+fontsize=\footnotesize,
+linenos
+]{c++}
+add(type t, graph H) {
+  x = new (t)-node;
+  x.add_child(T.root);
+  T.root = x;
+  if (t == 0) {
+    x.add_child(build_cotree(H).root);
+  } else {
+    y = new (0)-node;
+    x.add_child(y);
+    y.add_child(build_cotree(H).root);
+  }
+}
+
+build_cotree(G) {
+  v = arbitrary chosen vertex from G;
+  compute B[0], .., B[k];
+  reorder B[0], .., B[k];
+  compute A[0], .., A[k + 1];
+  create empty cotree T;
+  T.root = v;
+  for (i in [0..k+1]) {
+    add(1, A[i]);
+    if (i == k + 1) {
+      break;
+    }
+    add(0, B[i]);
+  }
+}
+\end{minted}
