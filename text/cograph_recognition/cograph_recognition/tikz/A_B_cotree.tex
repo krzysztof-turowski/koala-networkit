@@ -1,0 +1,25 @@
+\begin{tikzpicture}[xscale=1.4,yscale=0.85,every node/.style={circle,draw,minimum size=13mm},level distance=2cm,
+  level 1/.style={sibling distance=4cm},
+  level 2/.style={sibling distance=2cm},
+  level 3/.style={sibling distance=2cm},
+  level 4/.style={sibling distance=2cm}]
+    
+    \node {$1$}
+        child { node {$0$}
+            child { node {$T_{A_k+1}$}
+            }
+        }
+        child { node {$0$}
+        child { node {$T_{B_k}$}
+            }
+            child{ node{$\ldots$}
+                child{ node{$0$}
+                    child{node{$T_{B_0}$}}
+                    child{ node{$1$}
+                        child{node {$0$} child{node {$T_{A_0}$}}}
+                        child{node{$v$}}
+                    }
+                }
+            } 
+        };
+\end{tikzpicture}
