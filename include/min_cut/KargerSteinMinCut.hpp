@@ -1,0 +1,46 @@
+/*
+ * KargerSteinMinCut.hpp
+ *
+ * Header file for the Min-Cut problem solver using the Karger-Stein algorithm.
+ * Created on: 05.05.2024
+ * Author: Michał Miziołek
+ */
+
+#pragma once
+
+#include <vector>
+
+#include "MinCut.hpp"
+
+namespace Koala {
+
+/**
+ * @ingroup min-cut
+ * The class for solving the Min-Cut problem on a given graph
+ * using the Karger-Stein algorithm.
+ */
+class KargerSteinMinCut final : public MinCut {
+ public:
+    using MinCut::MinCut;
+
+    /**
+     * Executes the Min-Cut problem solver `repeat` times and takes the best solution.
+     */
+    void run();
+
+    /**
+     * Executes the Min-Cut problem solver without repeat.
+     */
+    void runOnce();
+
+ private:
+    int repeat = 10;
+
+    // Helper functions
+    int find(std::vector<int>& parent, int i);
+    void unionSub(std::vector<int>& parent, std::vector<int>& rank, int x, int y);
+    int recursiveMinCut(int numVertices);
+    int standardMinCut();
+};
+
+}  // namespace Koala

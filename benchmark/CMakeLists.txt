@@ -31,3 +31,13 @@ koala_make_benchmark(
     benchmark_independent_set
     benchmarkIndependentSet.cpp
     benchmarkIndependentSet.sh)
+
+koala_make_benchmark(
+    benchmark_max_cut
+    benchmarkMaxCut.cpp
+    benchmarkMaxCut.sh)
+
+koala_make_benchmark(
+    benchmark_min_cut
+    benchmarkMinCut.cpp
+    benchmarkMinCut.sh)
