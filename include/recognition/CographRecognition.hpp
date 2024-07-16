@@ -1,20 +1,19 @@
 /*
  * CographRecognition.hpp
  *
- *  Created on: 2024
+ *  Created on: 29.10.2023
  *      Author: fixikmila
  */
-// Copyright 2024 milana
 
 #pragma once
 
-#include "networkit/base/Algorithm.hpp"
-#include "networkit/components/ConnectedComponents.hpp"
-#include "networkit/graph/Graph.hpp"
-#include "networkit/graph/GraphTools.hpp"
-
 #include <optional>
 #include <vector>
+
+#include <networkit/base/Algorithm.hpp>
+#include <networkit/components/ConnectedComponents.hpp>
+#include <networkit/graph/Graph.hpp>
+#include <networkit/graph/GraphTools.hpp>
 
 #include "recognition/CoTree.hpp"
 
@@ -22,7 +21,25 @@ namespace Koala {
 
 class CographRecognition : public NetworKit::Algorithm {
  public:
+    enum class State {
+        UNKNOWN,
+        COGRAPH,
+        NOT_COGRAPH,
+        CONTAINS_0_NODE,
+        EXISTS_1_NODE_NOT_PROPERLY_MARKED,
+        GRANDPARENT_IS_NOT_IN_SET,
+        NO_ONE_PATH,
+        WRONG_PARENT,
+        WRONG_GRANDPARENT
+     };
+
+    /**
+     * Given an input graph, set up the cograph recognition.
+     *
+     * @param graph The input graph.
+     */
     explicit CographRecognition(const NetworKit::Graph &graph);
+
     /**
      * Execute the cograph recognition procedure.
      */
@@ -33,7 +50,14 @@ class CographRecognition : public NetworKit::Algorithm {
      *
      * @return true if the graph is a cograph, false otherwise.
      */
-    virtual bool isCograph() const = 0;
+    virtual bool isCograph() const;
+
+    /**
+     * Return the graph type found by the algorithm.
+     *
+     * @return State of the graph.
+     */
+    virtual State getState() const;
 
     /**
      * Verify the result found by the algorithm.
@@ -42,6 +66,7 @@ class CographRecognition : public NetworKit::Algorithm {
 
  protected:
     NetworKit::Graph graph;
+    State is_cograph;
 };
 
 /**
@@ -53,9 +78,11 @@ class CographRecognition : public NetworKit::Algorithm {
 class BretscherCorneilHabibPaulCographRecognition : public CographRecognition {
  public:
     using CographRecognition::CographRecognition;
-    void run();
-    bool isCograph() const;
 
+    /**
+     * Execute the Bretscher-Corneil-Habib-Paul cograph recognition algorithm.
+     */
+    void run();
  private:
     class Info {
      public:
@@ -64,9 +91,9 @@ class BretscherCorneilHabibPaulCographRecognition : public CographRecognition {
     };
     Info info;
     void lex_bfs_minus(bool is_complement, std::vector<NetworKit::node> &a);
-    bool neighbourhood_subset_property(bool is_complement, std::vector<NetworKit::node> a,
-                                       std::vector<std::vector<std::pair<int, int>>> borders);
-    bool is_cograph = false;
+    bool neighbourhood_subset_property(
+        bool is_complement, std::vector<NetworKit::node> a,
+        std::vector<std::vector<std::pair<int, int>>> borders);
 };
 
 /**
@@ -78,24 +105,11 @@ class BretscherCorneilHabibPaulCographRecognition : public CographRecognition {
 class CorneilStewartPerlCographRecognition : public CographRecognition {
  public:
     using CographRecognition::CographRecognition;
-    enum class State {
-        UNKNOWN,
-        COGRAPH,
-        CONTAINS_0_NODE,
-        EXISTS_1_NODE_NOT_PROPERLY_MARKED,
-        GRANDPARENT_IS_NOT_IN_SET,
-        NO_ONE_PATH,
-        WRONG_PARENT,
-        WRONG_GRANDPARENT
-    };
+
     /**
-     * Return the graph type found by the algorithm.
-     *
-     * @return State of the graph.
+     * Execute the Corneil-Stewart-Perl cograph recognition algorithm.
      */
-    State getState() const;
     void run();
-    bool isCograph() const;
 
  private:
     CorneilStewartPerlCographRecognition::State recognition();
@@ -103,7 +117,6 @@ class CorneilStewartPerlCographRecognition : public CographRecognition {
     void mark(CoNode *x);
     std::pair<CoNode*, CorneilStewartPerlCographRecognition::State>find_lowest() const;
     void insert_x_to_cotree(CoNode *u, CoNode *x);
-    State is_cograph = State::UNKNOWN;
     CoTree T;
     int mark_count = 0;
     int mark_and_unmarked_count = 0;
@@ -122,27 +135,23 @@ class DahlhausCographRecognition : public CographRecognition {
  public:
     using CographRecognition::CographRecognition;
 
+    /**
+     * Execute the sequential version of Dahlhaus' cograph recognition algorithm.
+     */
     void run();
-
-    bool isCograph() const;
 
  private:
     const int A = 10;
-    std::vector<CoNode *> pointer;
+    std::vector<CoNode*> pointer;
     std::vector<CoTree> save;
-    bool is_cograph = false;
 
-    CoTree &build_cotree(NetworKit::Graph G, std::vector<int> real_number_of_node);
-
-    void high_low_case(CoTree &T, NetworKit::Graph &G, std::vector<int> &real_number_of_node);
-    
-    void big_component(CoTree &T, NetworKit::Graph &G, std::vector<int> &vec, std::vector<int> &real_number_of_node);
-
+    CoTree& build_cotree(NetworKit::Graph G, std::vector<int> real_index);
+    void high_low_case(CoTree &T, NetworKit::Graph &G, std::vector<int> &real_index);
+    void big_component(
+        CoTree &T, NetworKit::Graph &G, std::vector<int> &vec, std::vector<int> &real_index);
     inline void add(int vertex_type, CoTree &T, std::vector<int> &vec,
-        std::vector<int> &fake_number_of_node, NetworKit::Graph &G,
-        std::vector<int> &real_number_of_node);
-
-    bool check_cotree(CoTree T);
+        std::vector<int> &fake_index, NetworKit::Graph &G, std::vector<int> &real_index);
+    bool check_cotree(const CoTree &T);
 };
 
 } /* namespace Koala */

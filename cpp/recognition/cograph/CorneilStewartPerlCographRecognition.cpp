@@ -1,10 +1,9 @@
 /*
  * CorneilStewartPerlCographRecognition.cpp
  *
- *  Created on: 2024
+ *  Created on: 06.03.2024
  *      Author: fixikmila
  */
-// Copyright 2024 milana
 
 #include <graph/GraphTools.hpp>
 
@@ -12,6 +11,11 @@
 #include "recognition/CoTree.hpp"
 
 namespace Koala {
+
+void CorneilStewartPerlCographRecognition::run() {
+    hasRun = true;
+    is_cograph = recognition();
+}
 
 void CorneilStewartPerlCographRecognition::unmark() {
     CoNode *u = marked_with_d_equal_to_md.front();
@@ -318,22 +322,6 @@ CorneilStewartPerlCographRecognition::State CorneilStewartPerlCographRecognition
     }
     T.Clear();
     return State::COGRAPH;
-}
-
-bool CorneilStewartPerlCographRecognition::isCograph() const {
-    assureFinished();
-    return is_cograph == State::COGRAPH;
-}
-
-CorneilStewartPerlCographRecognition::State
-CorneilStewartPerlCographRecognition::getState() const {
-    assureFinished();
-    return is_cograph;
-}
-
-void CorneilStewartPerlCographRecognition::run() {
-    hasRun = true;
-    is_cograph = recognition();
 }
 
 }  // namespace Koala

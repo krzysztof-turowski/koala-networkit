@@ -1,10 +1,9 @@
 /*
  * CographRecognition.cpp
  *
- *  Created on: 2024
+ *  Created on: 29.10.2023
  *      Author: fixikmila
  */
-// Copyright 2024 milana
 
 #include <graph/GraphTools.hpp>
 
@@ -12,13 +11,23 @@
 
 namespace Koala {
 
-CographRecognition::CographRecognition(const NetworKit::Graph &graph) : graph(graph) {}
+CographRecognition::CographRecognition(const NetworKit::Graph &graph)
+    : graph(graph), is_cograph(State::UNKNOWN) { }
 
-bool checkPath(
-        const NetworKit::Graph &graph, NetworKit::node x, NetworKit::node y,
-        NetworKit::node u, NetworKit::node v) {
-    return graph.hasEdge(y, u) && !graph.hasEdge(x, u)
-        && !graph.hasEdge(x, v) && !graph.hasEdge(y, v);
+bool CographRecognition::isCograph() const {
+    assureFinished();
+    return is_cograph == State::COGRAPH;
+}
+
+CographRecognition::State CographRecognition::getState() const {
+    assureFinished();
+    return is_cograph;
+}
+
+bool check_path(
+        const NetworKit::Graph &G,
+        NetworKit::node x, NetworKit::node y, NetworKit::node u, NetworKit::node v) {
+    return G.hasEdge(y, u) && !G.hasEdge(x, u) && !G.hasEdge(x, v) && !G.hasEdge(y, v);
 }
 
 void CographRecognition::check() const {
@@ -28,9 +37,8 @@ void CographRecognition::check() const {
             if (x == u || x == v || y == u || y == v) {
                 continue;
             }
-            assert(
-                !checkPath(graph, x, y, u, v) && !checkPath(graph, x, y, v, u)
-                && !checkPath(graph, y, x, u, v) && !checkPath(graph, y, x, v, u));
+            assert(!check_path(graph, x, y, u, v) && !check_path(graph, x, y, v, u)
+                && !check_path(graph, y, x, u, v) && !check_path(graph, y, x, v, u));
         }
     }
 }

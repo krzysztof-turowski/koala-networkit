@@ -1,6 +1,3 @@
-//
-// Created by milana on 19.03.24.
-//
 #include <io/G6GraphReader.hpp>
 
 #include <iostream>
@@ -10,61 +7,84 @@
 #include "recognition/CographRecognition.hpp"
 
 std::string types[] = {
-        "UNKNOWN",
-        "COGRAPH",
-        "CONTAINS_0_NODE",
-        "EXISTS_1_NODE_NOT_PROPERLY_MARKED",
-        "GRANDPARENT_IS_NOT_IN_SET",
-        "NO_ONE_PATH",
-        "WRONG_PARENT",
-        "WRONG_GRANDPARENT"
+    "UNKNOWN",
+    "COGRAPH",
+    "NOT_COGRAPH",
+    "CONTAINS_0_NODE",
+    "EXISTS_1_NODE_NOT_PROPERLY_MARKED",
+    "GRANDPARENT_IS_NOT_IN_SET",
+    "NO_ONE_PATH",
+    "WRONG_PARENT",
+    "WRONG_GRANDPARENT"
 };
 
-std::string default_types[] = {
-        "NOT_COGRAPH",
-        "COGRAPH"
-};
-
-std::map<std::string, int> classification;
-
-void run_algorithm(NetworKit::Graph &G, int number) {
-    if (number == 0) {
-        auto algorithm = Koala::CorneilStewartPerlCographRecognition(G);
-        algorithm.run();
-        classification[types[static_cast<int>(algorithm.getState())]]++;
-    } else if (number == 1) {
-        auto algorithm = Koala::BretscherCorneilHabibPaulCographRecognition(G);
-        algorithm.run();
-        classification[default_types[algorithm.isCograph()]]++;
-    } else if (number == 2) {
-        auto algorithm = Koala::DahlhausCographRecognition(G);
-        algorithm.run();
-        classification[default_types[algorithm.isCograph()]]++;
+template <typename T>
+int run_algorithm(NetworKit::Graph &G, bool verbose = false) {
+    auto algorithm = T(G);
+    algorithm.run();
+    if (verbose) {
+        std::cout << static_cast<int>(algorithm.getState()) << " " << std::flush;
     }
+    if (algorithm.isCograph()) {
+        algorithm.check();
+    }
+    return static_cast<int>(algorithm.getState());
 }
 
 std::map<std::string, int> ALGORITHM = {
-        { "decomposition", 0 },
-        { "lexbfs", 1 },
-        { "sort", 2 }
+    { "all", 0 }, { "BCHP", 1 }, { "CSP", 2 }, { "Dahlhaus", 3 }
 };
 
-int main(int argc, char **argv) {
-    if (argc != 2) {
-        std::cerr << "Usage: " << argv[0] << " <algorithm>" << std::endl;
-        return 1;
-    }
+void run_g6_tests(const std::string &path, const std::string &algorithm) {
+    std::fstream file(path, std::fstream::in);
+    std::map<int, int> classification;
     while (true) {
         std::string line;
-        std::cin >> line;
-        if (!std::cin.good()) {
+        file >> line;
+        if (!file.good()) {
             break;
         }
-        NetworKit::Graph G = Koala::G6GraphReader().readline(line);
-        run_algorithm(G, std::stoi(argv[1]));
+        auto G = Koala::G6GraphReader().readline(line);
+        std::set<int> T;
+        switch (ALGORITHM[algorithm]) {
+        case 0:
+            std::cout << line << " " << std::flush;
+            T.insert(run_algorithm<Koala::BretscherCorneilHabibPaulCographRecognition>(G, true));
+            T.insert(
+                run_algorithm<Koala::CorneilStewartPerlCographRecognition>(G, true) != 1 ? 2 : 1);
+            T.insert(run_algorithm<Koala::DahlhausCographRecognition>(G, true));
+            std::cout << std::endl;
+            assert(T.size() == 1);
+            break;
+        case 1:
+            classification[run_algorithm<Koala::BretscherCorneilHabibPaulCographRecognition>(G)]++;
+            break;
+        case 2:
+            classification[run_algorithm<Koala::CorneilStewartPerlCographRecognition>(G)]++;
+            break;
+        case 3:
+            classification[run_algorithm<Koala::DahlhausCographRecognition>(G)]++;
+            break;
+        }
     }
-    for (const auto &[k, v] : classification) {
-        std::cout << k << ": " << v << std::endl;
+    if (ALGORITHM[algorithm]) {
+        for (const auto &[k, v] : classification) {
+            std::cout << types[k] << ": " << v << std::endl;
+        }
+    }
+}
+
+int main(int argc, const char *argv[]) {
+    if (argc != 3) {
+        std::cerr << "Usage: " << argv[0] << " <algorithm> <file>" << std::endl;
+        return 1;
+    }
+    std::string path(argv[2]);
+    auto extension = path.substr(path.find_last_of(".") + 1);
+    if (extension == "g6") {
+        run_g6_tests(path, std::string(argv[1]));
+    } else {
+        std::cerr << "File type not supported: " << path << std::endl;
     }
     return 0;
 }

@@ -1,10 +1,9 @@
 /*
  * CoTree.cpp
  *
- *  Created on: 2024
+ *  Created on: 30.03.2024
  *      Author: fixikmila
  */
-// Copyright 2024 milana
 
 #include <graph/GraphTools.hpp>
 
