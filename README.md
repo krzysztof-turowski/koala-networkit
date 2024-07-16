@@ -77,7 +77,9 @@ Moreover, they set up an online graph editor <a href="https://stos.eti.pg.gda.pl
 ### <a name="algorithms"></a>List of algorithms
 
 1. [Reading and writing graphs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/io): [graph6](https://users.cecs.anu.edu.au/~bdm/data/formats.html), [sparse6](https://users.cecs.anu.edu.au/~bdm/data/formats.html), [digraph6](https://users.cecs.anu.edu.au/~bdm/data/formats.html), [DIMACS](http://prolland.free.fr/works/research/dsat/dimacs.html), [DIMACS binary](https://mat.tepper.cmu.edu/COLOR/format/README.binformat) formats
-1. [Graph recognition](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/recognition/): [perfect graphs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/recognition/PerfectGraphRecognition.hpp)
+1. [Graph recognition](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/recognition/):
+  1. [Perfect graphs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/recognition/PerfectGraphRecognition.hpp)
+  1. [Cographs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/recognition/CographRecognition.hpp): Bretscher-Corneil-Habib-Paul, Corneil-Stewart-Perl, Dahlhaus (sqeuential)
 1. [Graph traversal](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/traversal/): [BFS](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/traversal/BFS.hpp), [DFS](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/traversal/DFS.hpp)
 1. [Minimum spanning tree algorithms](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/mst/): Kruskal, Prim, Borůvka, Klein-Karger-Tarjan
     1. Hagerup algorithm for minimum spanning tree verification

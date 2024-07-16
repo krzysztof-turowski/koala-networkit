@@ -1,0 +1,77 @@
+
+\begin{tikzpicture}[scale=0.8,every node/.style={circle,draw,minimum size=5mm}]
+  \node (u) at (0, 4) {$u$};
+  \node (v) at (0, 3) {$v$};
+  \node (w) at (0, 2) {$w$};
+  \node (y) at (0, 1) {$y$};
+
+  \node (b) at (4, 5) {$b$};
+  \node (d) at (4, 4) {$d$};
+  \node (c) at (4, 3) {$c$};
+  \node (a) at (4, 2) {$a$};
+  \node (z) at (4, 1) {$z$};
+  \node (x) at (4, 0) {$x$};
+
+  \draw (u) -- (v);
+  \draw (w) -- (y);
+  \draw (b) -- (d);
+  \draw (d) -- (c);
+  \draw (a) -- (z);
+  \draw (z) -- (x);
+  \draw (u) -- (b);
+  \draw (u) -- (d);
+  \draw (u) -- (c);
+  \draw (u) -- (a);
+  \draw (u) -- (z);
+  \draw (u) -- (x);
+  \draw (v) -- (b);
+  \draw (v) -- (d);
+  \draw (v) -- (a);
+  \draw (v) -- (z);
+  \draw (v) -- (x);
+  \draw (w) -- (b);
+  \draw (w) -- (d);
+  \draw (w) -- (a);
+  \draw (w) -- (z);
+  \draw (w) -- (x);
+  \draw (y) -- (b);
+  \draw (y) -- (d);
+  \draw (y) -- (a);
+  \draw (y) -- (z);
+  \draw (y) -- (x);
+\end{tikzpicture}
+\quad
+\begin{tikzpicture}[scale=0.8,every node/.style={circle,draw,minimum size=1mm},level distance=1.5cm,
+  level 1/.style={sibling distance=4cm},
+  level 2/.style={sibling distance=2cm},
+  level 3/.style={sibling distance=1cm},
+  level 4/.style={sibling distance=1cm}]
+    
+    \node {$1$}
+        child { node {$0$}
+            child { node {$1$}
+                child { node {\textcolor{red}{$v$} }}
+                child { node {\textcolor{red}{$u$}} }
+            }
+            child { node {$1$}
+                child { node {\textcolor{red}{$w$} }}
+                child { node {\textcolor{red}{$y$} }}
+            }
+        }
+        child { node {$0$}
+        child { node {$1$}
+                child { node {$0$}
+                    child { node {\textcolor{red}{$b$} }}
+                    child { node {\textcolor{red}{$c$} }}
+                }
+                child { node {\textcolor{red}{$d$}}}
+            }
+        child { node {$1$}
+        child { node {\textcolor{red}{$z$}}}
+            child { node {$0$}
+                child { node {\textcolor{red}{$a$} }}
+                child { node {\textcolor{red}{$x$} }}
+            }
+        } 
+        };
+\end{tikzpicture}

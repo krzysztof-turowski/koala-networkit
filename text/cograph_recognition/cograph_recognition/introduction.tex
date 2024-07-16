@@ -1,0 +1,78 @@
+\section{Cograph information}
+The discoverers of cographs include Jung (1978) ``On a Class of Posets and the Corresponding Comparability Graphs''  \cite{Jung1978OnAC}, who called them \emph{$D^*$-graphs}; Lerchs (1971) ``On cliques and kernel'' \cite{corneil_lerchs_stewart_81}, who reffered to them as \emph{hereditary Dacey graphs}; Seinsche (1974) ``On a property of the class of $n$-colorable graphs'' \cite{Seinsche1974OnAP}, who named them \emph{$2$-parity graphs}; and Sumner (1974) ``Dacey graphs'' \cite{Sumner1974DaceyG}. Cographs recognition can be done in linear time. The different recognition algorithms are listed in tables (see \Cref{tbl:recognition_algorithms} and \Cref{tbl:parallel_recognition_algorithms}). This work will discuss some of these recognition algorithms, compare them, and describe their respective advantages and disadvantages.
+
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{ | p{45mm} | p{19mm} | c | c | c | }
+\hline
+Recognition algorithm & Authors & Year & Ref. & Complexity \\ [0.5ex] 
+\hline\hline
+
+\emph{Complement reducible graphs} & 
+Corneil, Lerchs, Stewart & 1981 & \cite{corneil_lerchs_stewart_81} & $O(n^2)$ \\
+\hline
+
+\textbf{\emph{A linear recognition algorithm for cographs}} & Corneil, Perl, Stewart & 1985 & \cite{corneil_perl_stewart_85} & $O(n + m)$\\
+\hline
+
+\textbf{\emph{A simple Linear Time LexBFS Cograph Recognition Algorithm}} & Bretscher, Corneil, Habib, Paul & 2003 & \cite{Bretscher2003ASL} & $O(n + m)$\\
+\hline
+
+\emph{A fully dynamic algorithm for modular decomposition and recognition of cographs} & Shamir, Sharan & 2004 & \cite{shamir_sharan_04} & $O(n + m)$\\
+\hline
+
+\emph{A simple linear time algorithm for cograph recognition(partition refinement)} & 
+Habib, Paul & 2005 & \cite{Habib2005ASL} & $O(n + m)$ \\
+\hline
+
+\emph{Linear-time certifying recognition algorithms and forbidden induced subgraphs} & Heggernes, Kratsch & 2007 & \cite{heggernes_kratsch_07} & $O(n + m)$\\
+\hline
+
+\emph{Split decomposition and graph-labelled trees: characterizations and fully dynamic algorithms for totally decomposable graphs} & 
+Gioan, Paul & 2008 & \cite{gioan_paul_08} & $O(n + m)$\\
+\hline
+\end{tabular}
+\caption{Consecutive recognition algorithms for cographs. The implemented algorithms are marked in bold.}
+\label{tbl:recognition_algorithms}
+\end{table}
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{| p{37mm} | p{19mm} | c | c | c |}
+\hline
+Recognition algorithm & Authors & Year & Ref. & Complexity \\ [0.5ex] 
+\hline\hline
+\multirow{2}{*}{\parbox{37mm}{\emph{An NC recognition algorithm for cographs}}} &
+Lin, Olariu &
+1991 & \cite{Lin1991AnNR} &
+$O(\log{n})$ time \\
+&  &  &  & $O(\frac{n^2 + mn}{\log{n}})$ processors
+\\[2pt] \hline
+\multirow{2}{*}{\parbox{37mm}{\vspace{2pt}\textbf{\emph{Efficient parallel recognition algorithms of cographs and distance hereditary graphs}}}} &
+Dahlhaus & 1995 & \cite{dahlhaus_95} &
+$O(\log^2{n})$ time \\
+&  &  &  & $O(n + m)$ processors
+\\[38pt] \hline
+\multirow{2}{*}{\parbox{37mm}{\emph{Efficient parallel recognition of cographs}}} &
+\multirow{2}{*}{\parbox{19mm}{Nikolopoulos, Palios}} &
+2005 &
+\cite{nikolopoulos_palios_05} & $O(\log^2{n})$ time\\
+ & & & & $O(\frac{n + m}{\log{n}})$ processors \\[2pt]
+\hline
+\end{tabular}
+\caption{Parallel recognition algorithms for cographs. The implemented algorithm is marked in bold.}
+\label{tbl:parallel_recognition_algorithms}
+\end{table}
+
+The subclasses of cographs include complete graphs, cluster graphs, threshold graphs, and Turán graphs. An example of the complexity of a problem for cographs is that the weighted maximum cut is NP-complete for threshold graphs, and consequently NP-complete for cographs.
+
+Regarding the superclasses of cographs, they encompass distance-hereditary graphs, permutation graphs, comparability graphs, perfectly orderable graphs, even hole-free graphs, Meyniel graphs, and strongly perfect graphs. An example is that the domination problem is linear for distance-hereditary graphs, and therefore linear for cographs.
+
+
+Various results are known for cographs:
+\begin{itemize}
+    \item the ability to find in linear time the maximum clique, maximum independent set, vertex coloring number, maximum clique cover,  Hamiltonicity \cite{corneil_lerchs_stewart_81},  pathwidth and treewidth, which are equal for cographs \cite{Bodlaender1990ThePA}. Additionally, there is $O (n^2) $ algorithm for simple max cut \cite{Bodlaender1994OnTC},
+    \item NP-complete problems include determining whether a given cograph $G$ is a subgraph of a given cograph $H$ \cite{damaschke_91}, computing achromatic number \cite{Bodlaender1989AchromaticNI} and list coloring \cite{Jansen1992GeneralizedCF},
+    \item fixed parameter tractable (FPT)  problems are determining whether a graph can be made into a cograph by deleting at most $i$ vertices, at most $j$ edges is fixed parameter tractable with respect to $i$ and $j$ \cite{Cai1996FixedParameterTO}, $k$-edge-deletion to cographs is solvable in $O(2.562^k \cdot (m + n))$ time and $k$-vertex-deletion algorithm is solvable in $O(3.303^k \cdot (m +n))$ time \cite{nastos_gao_10}, $k$-edge-edited to cographs is solvable in $O(4.612^k \cdot (m+n))$ time \cite{Liu2012ComplexityAP}.
+\end{itemize}
