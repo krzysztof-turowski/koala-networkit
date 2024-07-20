@@ -13,7 +13,7 @@ template<typename T>
 int run_algorithm(NetworKit::Graph &G) {
     std::set<NetworKit::node> independent_set;
     if constexpr (std::is_same_v<T, Koala::CographIndependentSet>) {
-        auto recognition = Koala::CographRecognition(G);
+        auto recognition = Koala::HabibPaulCographRecognition(G);
         recognition.run();
         auto algorithm = T(G, recognition.cotree);
         algorithm.run();
@@ -32,7 +32,7 @@ std::map<std::string, int> ALGORITHM = {
     { "exact", 0 },
     { "bruteforce", 1 },
     { "MIS1", 2 }, { "MIS2", 3 }, { "MIS3", 4 }, { "MIS4", 5 }, { "MIS5", 6 },
-    { "MeasureAndConquer", 7 }
+    { "MeasureAndConquer", 7 },
     { "cograph", 10}
 };
 

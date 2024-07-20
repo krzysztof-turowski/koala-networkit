@@ -8,7 +8,7 @@ template<typename T>
 int run_algorithm(NetworKit::Graph &G) {
     NetworKit::count pathwidth_size;
     if constexpr (std::is_same_v<T, Koala::CographPathwidth>) {
-        auto recognition = Koala::CographRecognition(G);
+        auto recognition = Koala::HabibPaulCographRecognition(G);
         recognition.run();
         Koala::CographPathwidth algorithm = T(G, recognition.cotree);
         algorithm.run();

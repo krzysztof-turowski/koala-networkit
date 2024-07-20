@@ -20,7 +20,7 @@ class SimpleGraphs : public testing::Test {
         NetworKit::Graph G = build_graph(parameters.N, parameters.E);
         std::set<NetworKit::node> independent_set;
         if constexpr (std::is_same_v<Algorithm, Koala::CographIndependentSet>) {
-            auto recognition = Koala::CographRecognition(G);
+            auto recognition = Koala::HabibPaulCographRecognition(G);
             recognition.run();
             if (recognition.isCograph()) {
                 auto algorithm = Algorithm(G, recognition.cotree);

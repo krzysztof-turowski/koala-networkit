@@ -7,20 +7,23 @@
 #include <coloring/PerfectGraphVertexColoring.hpp>
 #include <coloring/CographVertexColoring.hpp>
 #include <io/G6GraphReader.hpp>
-#include <recognition/CographRecognition.hpp>
+
+#include <recognition/CographRecognitionOther.hpp>
 
 template<typename T>
 int run_algorithm(NetworKit::Graph &G) {
+    std::map<NetworKit::node, int> colors;
     if constexpr (std::is_same_v<T, Koala::CographVertexColoring>) {
-        auto recognition = Koala::CographRecognition(G);
+        auto recognition = Koala::HabibPaulCographRecognition(G);
         recognition.run();
         auto algorithm = T(G, recognition.cotree);
         algorithm.run();
+        colors = algorithm.getColoring();
     } else {
         auto algorithm = T(G);
         algorithm.run();
+        colors = algorithm.getColoring();
     }
-    auto colors = algorithm.getColoring();
 
     G.forEdges([&](NetworKit::node u, NetworKit::node v) { assert(colors[u] != colors[v]); });
     int max_color = 0;

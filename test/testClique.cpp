@@ -19,7 +19,7 @@ class SimpleGraphsClique : public testing::Test {
         NetworKit::Graph G = build_graph(parameters.N, parameters.E);
         std::set<NetworKit::node> max_clique;
         if constexpr (std::is_same_v<Algorithm, Koala::CographMaxClique>) {
-            auto recognition = Koala::CographRecognition(G);
+            auto recognition = Koala::HabibPaulCographRecognition(G);
             recognition.run();
             if (recognition.isCograph()) {
                 auto algorithm = Algorithm(G, recognition.cotree);

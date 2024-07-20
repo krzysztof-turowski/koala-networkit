@@ -2,7 +2,7 @@
 
 #include "IndependentSet.hpp"
 
-#include "recognition/CographRecognition.hpp"
+#include "recognition/CographRecognitionOther.hpp"
 
 namespace Koala {
 

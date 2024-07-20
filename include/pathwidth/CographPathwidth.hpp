@@ -1,7 +1,8 @@
 #pragma once
 
-#include "recognition/CographRecognition.hpp"
 #include "Pathwidth.hpp"
+
+#include "recognition/CographRecognitionOther.hpp"
 
 namespace Koala {
 

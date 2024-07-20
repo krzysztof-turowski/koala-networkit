@@ -246,7 +246,7 @@ TEST_P(CographVertexColoringTest, test) {
     VertexColoringParameters const &parameters = GetParam();
     NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
 
-    auto recognition = Koala::CographRecognition(G);
+    auto recognition = Koala::HabibPaulCographRecognition(G);
     recognition.run();
     if (recognition.isCograph()) {
         auto algorithm = Koala::CographVertexColoring(G, recognition.cotree);

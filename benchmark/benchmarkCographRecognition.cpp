@@ -2,10 +2,11 @@
 #include <map>
 
 #include <io/G6GraphReader.hpp>
+
 #include "recognition/CographRecognitionOther.hpp"
 
 int main() {
-    std::map<Koala::CographRecognition::State, int> classification;
+    std::map<Koala::HabibPaulCographRecognition::State, int> classification;
     std::string types[] = {
         "UNKNOWN",
         "COGRAPH",
@@ -20,7 +21,7 @@ int main() {
         }
 
         NetworKit::Graph G = Koala::G6GraphReader().readline(line);
-        auto recognize = Koala::CographRecognition(G);
+        auto recognize = Koala::HabibPaulCographRecognition(G);
         recognize.run();
         classification[recognize.getState()]++;
     }

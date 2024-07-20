@@ -2,11 +2,11 @@
 
 #include "Clique.hpp"
 
-#include "recognition/CographRecognition.hpp"
+#include "recognition/CographRecognitionOther.hpp"
 
 namespace Koala {
 
-class CographMaxClique : public Clique {
+class CographMaxClique : public MaxClique {
  private:
     void recurse_run();
 

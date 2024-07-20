@@ -1,14 +1,14 @@
 #include <iostream>
 
 #include <io/G6GraphReader.hpp>
-#include "max_clique/MaxClique.hpp"
-#include "max_clique/CographMaxClique.hpp"
+#include "clique/Clique.hpp"
+#include "clique/CographClique.hpp"
 
 template<typename T>
 int run_algorithm(NetworKit::Graph &G) {
     std::set<NetworKit::node> max_clique;
     if constexpr (std::is_same_v<T, Koala::CographMaxClique>) {
-        auto recognition = Koala::CographRecognition(G);
+        auto recognition = Koala::HabibPaulCographRecognition(G);
         recognition.run();
         Koala::CographMaxClique algorithm = T(G, recognition.cotree);
         algorithm.run();

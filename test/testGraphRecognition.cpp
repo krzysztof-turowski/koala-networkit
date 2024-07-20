@@ -64,7 +64,7 @@ void CographRecognitionTest(GraphRecognitionParameters parameters) {
 class CographHabibPaulRecognitionTest
     : public testing::TestWithParam<GraphRecognitionParameters> { };
 
-TEST_P(CographBCHPRecognitionTest, test_cographs) {
+TEST_P(CographHabibPaulRecognitionTest, test_cographs) {
     CographRecognitionTest<Koala::HabibPaulCographRecognition>(GetParam());
 }
 

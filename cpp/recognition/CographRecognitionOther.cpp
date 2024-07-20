@@ -1,28 +1,28 @@
-#include "recognition/CographRecognition.hpp"
+#include "recognition/CographRecognitionOther.hpp"
 
 namespace Koala {
 
-CographRecognition::CographRecognition(NetworKit::Graph &Graph)
+HabibPaulCographRecognition::HabibPaulCographRecognition(NetworKit::Graph &Graph)
         : cotree(Cotree(Graph)), graph(Graph), T(Twins(graph)) {
     original_graph = Graph;
-    status = CographRecognition::State::UNKNOWN;
+    status = HabibPaulCographRecognition::State::UNKNOWN;
 }
 
-bool CographRecognition::isCograph() const {
+bool HabibPaulCographRecognition::isCograph() const {
     return status == State::COGRAPH;
 }
 
-CographRecognition::State CographRecognition::getState() const {
+HabibPaulCographRecognition::State HabibPaulCographRecognition::getState() const {
     return status;
 }
 
-void CographRecognition::Clear() {
+void HabibPaulCographRecognition::Clear() {
     num_of_parts = 0;
     order.clear();
     unused_parts.clear();
 }
 
-void CographRecognition::run() {
+void HabibPaulCographRecognition::run() {
     Clear();
     hasRun = true;
     num_of_nodes = graph.numberOfNodes();
@@ -194,12 +194,12 @@ void CographRecognition::run() {
         }
     }
     if (flag == num_of_nodes - 1) {
-        status = CographRecognition::State::COGRAPH;
+        status = HabibPaulCographRecognition::State::COGRAPH;
         order.push_back({{permutation.first_part->next->pivot->num, -1}, 3});
         cotree.setOrder(order);
         cotree.buildTree();
     } else {
-        status = CographRecognition::State::NOT_COGRAPH;
+        status = HabibPaulCographRecognition::State::NOT_COGRAPH;
     }
 }
 
