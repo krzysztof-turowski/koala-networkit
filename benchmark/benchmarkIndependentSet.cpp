@@ -29,15 +29,11 @@ int run_algorithm(NetworKit::Graph &G) {
 }
 
 std::map<std::string, int> ALGORITHM = {
-        {"exact",             0},
-        {"bruteforce",        1},
-        {"MIS1",              2},
-        {"MIS2",              3},
-        {"MIS3",              4},
-        {"MIS4",              5},
-        {"MIS5",              6},
-        {"MeasureAndConquer", 7},
-        {"cograph",           10}
+    { "exact", 0 },
+    { "bruteforce", 1 },
+    { "MIS1", 2 }, { "MIS2", 3 }, { "MIS3", 4 }, { "MIS4", 5 }, { "MIS5", 6 },
+    { "MeasureAndConquer", 7 }
+    { "cograph", 10}
 };
 
 void run_g6_tests(const std::string &path, const std::string &algorithm) {
@@ -92,7 +88,7 @@ void run_g6_tests(const std::string &path, const std::string &algorithm) {
         std::cout << std::endl;
     }
     std::cout << "List of graphs counted by solution size:" << std::endl;
-    for (const auto &[k, v]: classification) {
+    for (const auto &[k, v] : classification) {
         std::cout << k << ": " << v << std::endl;
     }
 }

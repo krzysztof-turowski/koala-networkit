@@ -17,8 +17,7 @@ class Pathwidth : public NetworKit::Algorithm {
 
  protected:
     NetworKit::count width = 0;
-
     NetworKit::Graph& graph;
 };
-} /* namespace Koala */
 
+} /* namespace Koala */

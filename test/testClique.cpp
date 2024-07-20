@@ -2,7 +2,8 @@
 
 #include <list>
 
-#include "max_clique/CographMaxClique.hpp"
+#include "clique/CographClique.hpp"
+
 #include "helpers.hpp"
 
 struct MaxCliqueParameters {
@@ -39,26 +40,17 @@ class SimpleGraphsClique : public testing::Test {
     }
 };
 
-TYPED_TEST_CASE_P
-(SimpleGraphsClique);
+TYPED_TEST_CASE_P(SimpleGraphsClique);
 
 TYPED_TEST_P(SimpleGraphsClique, Cograph) {
-    MaxCliqueParameters parameters =
-            {6, {
-                    {0, 2}, {0, 3}, {0, 4}, {0, 1}, {5, 1}, {5, 2}, {5, 3}, {5, 4}, {1, 0}, {2, 0}, {3, 0}, {4, 0},
-                    {1, 5}, {2, 5}, {3, 5}, {4, 5}
-            },
-             2};
+    MaxCliqueParameters parameters = {
+        6, {{0, 2}, {0, 3}, {0, 4}, {0, 1}, {5, 1}, {5, 2}, {5, 3}, {5, 4}, {1, 0}, {2, 0},
+            {3, 0}, {4, 0}, {1, 5}, {2, 5}, {3, 5}, {4, 5}}, 2};
     this->verify(parameters);
 }
 
-REGISTER_TYPED_TEST_CASE_P
-(
-        SimpleGraphsClique, Cograph);
+REGISTER_TYPED_TEST_CASE_P(SimpleGraphsClique, Cograph);
 
-using Algorithms = testing::Types<
-        Koala::CographMaxClique
->;
+using Algorithms = testing::Types<Koala::CographMaxClique>;
 
-INSTANTIATE_TYPED_TEST_CASE_P
-(IndependentSet, SimpleGraphsClique, Algorithms);
+INSTANTIATE_TYPED_TEST_CASE_P(IndependentSet, SimpleGraphsClique, Algorithms);

@@ -3,6 +3,7 @@
 #include <list>
 
 #include "pathwidth/CographPathwidth.hpp"
+
 #include "helpers.hpp"
 
 struct MaxCliqueParameters {
@@ -30,31 +31,23 @@ class SimpleGraphsPathwidth : public testing::Test {
             algorithm.run();
             pathwidth = algorithm.getPathwidthSize();
         }
-
         EXPECT_EQ(pathwidth, parameters.expectedSetSize);
     }
 };
 
-TYPED_TEST_CASE_P
-(SimpleGraphsPathwidth);
+TYPED_TEST_CASE_P(SimpleGraphsPathwidth);
 
 TYPED_TEST_P(SimpleGraphsPathwidth, Cograph) {
     MaxCliqueParameters parameters =
-            {6, {
-                    {0, 2}, {0, 3}, {0, 4}, {0, 1}, {5, 1}, {5, 2}, {5, 3}, {5, 4}, {1, 0}, {2, 0}, {3, 0}, {4, 0},
-                    {1, 5}, {2, 5}, {3, 5}, {4, 5}
-            },
-             8};
+        {6, {{0, 2}, {0, 3}, {0, 4}, {0, 1}, {5, 1}, {5, 2}, {5, 3}, {5, 4}, {1, 0}, {2, 0},
+             {3, 0}, {4, 0}, {1, 5}, {2, 5}, {3, 5}, {4, 5}}, 8};
     this->verify(parameters);
 }
 
-REGISTER_TYPED_TEST_CASE_P
-(
-        SimpleGraphsPathwidth, Cograph);
+REGISTER_TYPED_TEST_CASE_P(SimpleGraphsPathwidth, Cograph);
 
 using Algorithms = testing::Types<
-        Koala::CographPathwidth
+    Koala::CographPathwidth
 >;
 
-INSTANTIATE_TYPED_TEST_CASE_P
-(IndependentSet, SimpleGraphsPathwidth, Algorithms);
+INSTANTIATE_TYPED_TEST_CASE_P(IndependentSet, SimpleGraphsPathwidth, Algorithms);

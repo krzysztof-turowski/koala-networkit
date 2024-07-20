@@ -1,30 +1,33 @@
 #pragma once
 
 #include "VertexColoring.hpp"
+
 #include "recognition/CographRecognition.hpp"
 
 namespace Koala {
 
-    class CographVertexColoring : public VertexColoring {
-    private:
-        void end_of_coloring();
+class CographVertexColoring : public VertexColoring {
+ private:
+    void end_of_coloring();
 
-        void subtree_colors();
+    void subtree_colors();
 
-        std::vector<NetworKit::count> color, number_of_colors;
+    std::vector<NetworKit::count> color, number_of_colors;
 
-        Koala::Cotree &cotree;
+    Koala::Cotree &cotree;
 
-        std::stack<int> st;
+    std::stack<int> st;
 
-        std::vector<bool> used;
-    public:
-        CographVertexColoring(NetworKit::Graph Graph, Koala::Cotree &Cotree) : VertexColoring(Graph), cotree(Cotree) {
-        }
+    std::vector<bool> used;
 
-        void run();
+ public:
+    CographVertexColoring(NetworKit::Graph Graph, Koala::Cotree &Cotree)
+        : VertexColoring(Graph), cotree(Cotree) { }
 
-        bool checkColoring();
-    };
+    void run();
+
+    bool checkColoring();
+};
+
 } /* namespace Koala */
 

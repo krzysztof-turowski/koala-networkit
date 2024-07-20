@@ -12,7 +12,8 @@
 #include "сograph/Twins.hpp"
 
 namespace Koala {
-class CographRecognition : public NetworKit::Algorithm {
+
+class HabibPaulCographRecognition : public NetworKit::Algorithm {
  public:
     enum class State {
         UNKNOWN,
@@ -22,9 +23,9 @@ class CographRecognition : public NetworKit::Algorithm {
 
     bool isCograph() const;
 
-    CographRecognition::State getState() const;
+    HabibPaulCographRecognition::State getState() const;
 
-    explicit CographRecognition(NetworKit::Graph &graph);
+    explicit HabibPaulCographRecognition(NetworKit::Graph &graph);
 
 
     void run();
@@ -41,9 +42,9 @@ class CographRecognition : public NetworKit::Algorithm {
     FactorizingPermutation permutation;
     NetworKit::count num_of_parts, num_of_nodes;
 
-    std::vector<std::pair<std::pair<NetworKit::count, NetworKit::count>, NetworKit::count> > order;
+    std::vector<std::pair<std::pair<NetworKit::count, NetworKit::count>, NetworKit::count>> order;
     part *H;
-    std::list<part *> unused_parts;
+    std::list<part*> unused_parts;
 };
-} /* namespace Koala */
 
+} /* namespace Koala */

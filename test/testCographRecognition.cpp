@@ -2,6 +2,7 @@
 #include <list>
 
 #include "recognition/CographRecognition.hpp"
+
 #include "helpers.hpp"
 
 struct GraphRecognitionParameters {
@@ -11,7 +12,7 @@ struct GraphRecognitionParameters {
 };
 
 class cograph_alg_test
-        : public testing::TestWithParam<GraphRecognitionParameters> {
+    : public testing::TestWithParam<GraphRecognitionParameters> {
 };
 
 TEST_P(cograph_alg_test, test) {
@@ -22,11 +23,8 @@ TEST_P(cograph_alg_test, test) {
     EXPECT_EQ(algorithm.isCograph(), parameters.is_cograph);
 }
 
-INSTANTIATE_TEST_SUITE_P
-(
-        test_example, cograph_alg_test, testing::Values
-        (
-                GraphRecognitionParameters{8, {{0, 4}, {0, 6}, {1, 5}, {1, 6}, {2, 5}, {3, 6}, {4, 6}, {5, 6}}, false}
-
-        )
+INSTANTIATE_TEST_SUITE_P(
+    test_example, cograph_alg_test, testing::Values(
+        GraphRecognitionParameters{
+            8, {{0, 4}, {0, 6}, {1, 5}, {1, 6}, {2, 5}, {3, 6}, {4, 6}, {5, 6}}, false})
 );
