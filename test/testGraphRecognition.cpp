@@ -3,6 +3,7 @@
 #include <list>
 
 #include <recognition/CographRecognition.hpp>
+#include <recognition/CographRecognitionOther.hpp>
 #include <recognition/PerfectGraphRecognition.hpp>
 
 #include "helpers.hpp"
@@ -65,6 +66,8 @@ class CographBCHPRecognitionTest : public testing::TestWithParam<GraphRecognitio
 class CographCSPRecognitionTest : public testing::TestWithParam<GraphRecognitionParameters> { };
 class CographDahlhausRecognitionTest
     : public testing::TestWithParam<GraphRecognitionParameters> { };
+class CographHabibPaulRecognitionTest
+    : public testing::TestWithParam<GraphRecognitionParameters> { };
 
 TEST_P(CographBCHPRecognitionTest, test_cographs) {
     CographRecognitionTest<Koala::BretscherCorneilHabibPaulCographRecognition>(GetParam());
@@ -78,6 +81,12 @@ TEST_P(CographDahlhausRecognitionTest, test_cographs) {
     CographRecognitionTest<Koala::DahlhausCographRecognition>(GetParam());
 }
 
+TEST_P(CographHabibPaulRecognitionTest, test_cographs) {
+    CographRecognitionTest<Koala::HabibPaulCographRecognition>(GetParam());
+}
+
 INSTANTIATE_TEST_SUITE_P(test_cographs_bchp_example, CographBCHPRecognitionTest, cographs);
 INSTANTIATE_TEST_SUITE_P(test_cographs_csp_example, CographCSPRecognitionTest, cographs);
 INSTANTIATE_TEST_SUITE_P(test_cographs_dahlhaus_example, CographDahlhausRecognitionTest, cographs);
+INSTANTIATE_TEST_SUITE_P(
+    test_cographs_habib_paul_example, CographHabibPaulRecognitionTest, cographs);

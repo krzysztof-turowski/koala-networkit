@@ -1,0 +1,14 @@
+\begin{tikzpicture}[every node/.style={circle,draw,minimum size=5mm}]
+  \node (a) at (0, 4) {$a$};
+  \node (b) at (3, 4) {$b$};
+  \node (c) at (3, 0) {$c$};
+  \node (d) at (0, 0) {$d$};
+
+
+  \draw (a) -- (c);
+  \draw (a) -- (d);
+  \draw (b) -- (c);
+  \draw (b) -- (d);
+  \draw (c) -- (d);
+  
+\end{tikzpicture}
