@@ -7,8 +7,6 @@
 #include <independent_set/IndependentSet.hpp>
 #include "independent_set/CographIndependentSet.hpp"
 
-#define PRINT 1
-
 template<typename T>
 int run_algorithm(NetworKit::Graph &G) {
     std::set<NetworKit::node> independent_set;
@@ -49,41 +47,41 @@ void run_g6_tests(const std::string &path, const std::string &algorithm) {
         std::set<int> I;
         std::cout << line << " " << std::flush;
         switch (ALGORITHM[algorithm]) {
-            case 0:
-                I.insert(run_algorithm<Koala::BruteForceIndependentSet>(G));
-                I.insert(run_algorithm<Koala::Mis1IndependentSet>(G));
-                I.insert(run_algorithm<Koala::Mis2IndependentSet>(G));
-                I.insert(run_algorithm<Koala::Mis3IndependentSet>(G));
-                I.insert(run_algorithm<Koala::Mis4IndependentSet>(G));
-                I.insert(run_algorithm<Koala::Mis5IndependentSet>(G));
-                I.insert(run_algorithm<Koala::MeasureAndConquerIndependentSet>(G));
-                assert(I.size() == 1);
-                classification[*I.begin()]++;
-                break;
-            case 1:
-                run_algorithm<Koala::BruteForceIndependentSet>(G);
-                break;
-            case 2:
-                run_algorithm<Koala::Mis1IndependentSet>(G);
-                break;
-            case 3:
-                run_algorithm<Koala::Mis2IndependentSet>(G);
-                break;
-            case 4:
-                run_algorithm<Koala::Mis3IndependentSet>(G);
-                break;
-            case 5:
-                run_algorithm<Koala::Mis4IndependentSet>(G);
-                break;
-            case 6:
-                run_algorithm<Koala::Mis5IndependentSet>(G);
-                break;
-            case 7:
-                run_algorithm<Koala::MeasureAndConquerIndependentSet>(G);
-                break;
-            case 10:
-                run_algorithm<Koala::CographIndependentSet>(G);
-                break;
+        case 0:
+            I.insert(run_algorithm<Koala::BruteForceIndependentSet>(G));
+            I.insert(run_algorithm<Koala::Mis1IndependentSet>(G));
+            I.insert(run_algorithm<Koala::Mis2IndependentSet>(G));
+            I.insert(run_algorithm<Koala::Mis3IndependentSet>(G));
+            I.insert(run_algorithm<Koala::Mis4IndependentSet>(G));
+            I.insert(run_algorithm<Koala::Mis5IndependentSet>(G));
+            I.insert(run_algorithm<Koala::MeasureAndConquerIndependentSet>(G));
+            assert(I.size() == 1);
+            classification[*I.begin()]++;
+            break;
+        case 1:
+            run_algorithm<Koala::BruteForceIndependentSet>(G);
+            break;
+        case 2:
+            run_algorithm<Koala::Mis1IndependentSet>(G);
+            break;
+        case 3:
+            run_algorithm<Koala::Mis2IndependentSet>(G);
+            break;
+        case 4:
+            run_algorithm<Koala::Mis3IndependentSet>(G);
+            break;
+        case 5:
+            run_algorithm<Koala::Mis4IndependentSet>(G);
+            break;
+        case 6:
+            run_algorithm<Koala::Mis5IndependentSet>(G);
+            break;
+        case 7:
+            run_algorithm<Koala::MeasureAndConquerIndependentSet>(G);
+            break;
+        case 10:
+            run_algorithm<Koala::CographIndependentSet>(G);
+            break;
         }
         std::cout << std::endl;
     }

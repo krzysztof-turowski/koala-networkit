@@ -6,6 +6,7 @@
 #include <networkit/graph/Graph.hpp>
 
 namespace Koala {
+
 class Twins {
  public:
     std::vector<NetworKit::count> used;
@@ -19,5 +20,6 @@ class Twins {
 
     int twins(NetworKit::count A, NetworKit::count B, NetworKit::count twins_counter);
 };
+
 } /* namespace Koala */
 

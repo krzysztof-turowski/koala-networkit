@@ -1,3 +1,3 @@
 koala_add_module(structures
-        Cotree.cpp
+    Cotree.cpp
 )

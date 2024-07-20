@@ -24,9 +24,8 @@ int run_algorithm(NetworKit::Graph &G) {
 }
 
 std::map<std::string, int> ALGORITHM = {
-        {"cograph", 0}
+    {"cograph", 0}
 };
-
 
 int main(int argc, const char *argv[]) {
     if (argc != 3) {

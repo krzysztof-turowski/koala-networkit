@@ -6,6 +6,7 @@
 #include "Part.hpp"
 
 namespace Koala {
+
 class FactorizingPermutation {
  public:
     part *l, *r, *first_part, *last_part;
@@ -34,4 +35,5 @@ class FactorizingPermutation {
 
     NetworKit::count newPart();
 };
+
 } /* namespace Koala */

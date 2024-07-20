@@ -1,0 +1,21 @@
+\begin{minted}[
+frame=lines,
+framesep=2mm,
+baselinestretch=1.2,
+fontsize=\footnotesize,
+linenos
+]{c++}
+LexBFS_recognition_cograph(G) {
+  a = arbitrary_permutation_of_vertices(G);
+  b = LexBFS(G, a);
+  GC = complement(G);
+  c = LexBFS(GC, b);
+  d = LexBFS(G, c);
+  if (Neighbourhood_Subset_Property(c) and
+    Neighbourhood_Subset_Property(d)) {
+    return is_cograph;
+  } else {
+    return not_cograph;
+  }
+}
+\end{minted}

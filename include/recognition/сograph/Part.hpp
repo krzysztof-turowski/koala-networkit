@@ -6,6 +6,7 @@
 #include <networkit/graph/Graph.hpp>
 
 namespace Koala {
+
 class element;
 
 class part {

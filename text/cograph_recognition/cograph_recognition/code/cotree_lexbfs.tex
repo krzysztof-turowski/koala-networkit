@@ -1,0 +1,37 @@
+\begin{minted}[
+frame=lines,
+framesep=2mm,
+baselinestretch=1.2,
+fontsize=\footnotesize,
+linenos
+]{c++}
+Construct_Cotree (borders [l,r] of slice S) {
+  S = result_permutation[l..r];
+  v = S[0];
+  S(v) = slices borders for v in G; 
+  /* S(v)[i].first and S(v)[i].second 
+  are the borders for i-th slice of v */
+  SC(v) = slices borders for v in complement of G
+  create empty cotree T;
+  set root of T to v;
+  m = max(number of S(v), number of SC(v)); 
+  /* if number of S(v) is greater than the number of SC(V),
+  then S(v)[m] is not empty and S(v)[m + 1] is empty */
+  for (i in [0..m]) {
+    z = new (0)-vertex;
+    z.add_child(T.root);
+    if (S(v)[i] is not empty) { 
+      z.add_child(Construct_Cotree(S(v)[i]));
+    }
+    y = new (1)-vertex;
+    y.add_child(z);
+    set root of T to y;
+    if (SC(v)[i] is not empty) {
+      p = new (0)-vertex;
+      y.add_child(p);
+      p.add_child(Construct_Cotree(SC(v)[i]));
+    }
+  }
+  return T.root;
+}
+\end{minted}

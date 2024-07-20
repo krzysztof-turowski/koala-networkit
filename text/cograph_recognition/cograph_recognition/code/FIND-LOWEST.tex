@@ -1,0 +1,72 @@
+\begin{minted}[
+frame=lines,
+framesep=2mm,
+baselinestretch=1.2,
+fontsize=\footnotesize,
+linenos
+]{c++}
+FIND-LOWEST() {
+  // Phase 1.
+  y = trash;
+  If (R is not marked) {
+    // G+x is not a cograph: condition (iii)
+    return NOT_COGRAPH;
+  }
+  if (md(R) != d(R) - 1) {
+    y = R;
+  }
+  unmark(R);  // change state from marked to marked-and-unmarked
+  md(R) = 0;
+  u = w = R;
+  while (marked vertex exists in T) {
+  // Phase 2
+  u = arbitrary marked vertex;
+  if (y != trash) {
+    // G+x is not a cograph: condition (i) or (ii)
+    return NOT_COGRAPH;
+  }
+  if (label (u) == 1) {
+    if (md(u) != d(u) - 1) {
+      y = u;
+    }
+    if (parent (u) is marked) {
+      // G+x is not a cograph: conditions (i) and (vi)
+      return NOT_COGRAPH;
+    }
+    else {
+      t = parent (parent (u));
+    }
+  }
+  else {
+    y = u;
+    t = parent (u);
+  }
+  unmark (u);
+  md (u) = 0;
+  // phase 3
+  while (t != w) {
+    if (t == R) {
+      // G+x is not a cograph: condition (iv)
+      return NOT_COGRAPH;
+    }
+    if (t is not marked) {
+      // G+x is not a cograph: condition (iii) or (v) or (vi)
+      return NOT_COGRAPH;
+    }
+    if (md(t) != d(t) - 1) {
+      // G+x is not a cograph: condition (ii)
+      return NOT_COGRAPH;
+    }
+    if (parent (t) is marked) {
+      // G+x is not a cograph: condition (i)
+      return NOT_COGRAPH;
+    }
+    unmark(t); 
+    md(t) = 0;
+    t = parent (parent (t));
+  }
+  // Reset w for next choice of marked vertex
+  w = u;
+  }
+}
+\end{minted}
