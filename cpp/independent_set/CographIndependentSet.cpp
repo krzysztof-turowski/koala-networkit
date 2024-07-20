@@ -7,7 +7,7 @@ namespace Koala {
 void CographIndependentSet::recurse_run() {
     while (!st.empty()) {
         int v = st.top();
-        CoNode &V = cotree.getNode(v);
+        Conode &V = cotree.getNode(v);
         if (used[v] == false) {
             used[v] = true;
             if (V.left_son != NetworKit::none) {
@@ -41,7 +41,7 @@ void CographIndependentSet::recurse_run() {
 void CographIndependentSet::add_to_set() {
     while (!st.empty()) {
         int v = st.top();
-        CoNode &V = cotree.getNode(v);
+        Conode &V = cotree.getNode(v);
         st.pop();
         if (V.type == NodeType::LEAF) {
             independentSet.insert(v);

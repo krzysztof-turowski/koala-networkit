@@ -5,7 +5,7 @@ namespace Koala {
 void CographPathwidth::subtree_size() {
     while (!st.empty()) {
         int v = st.top();
-        CoNode &V = cotree.getNode(v);
+        Conode &V = cotree.getNode(v);
         if (used[v] == false) {
             used[v] = true;
             if (V.left_son != NetworKit::none) {
@@ -31,7 +31,7 @@ void CographPathwidth::subtree_size() {
 void CographPathwidth::pathwidth() {
     while (!st.empty()) {
         int v = st.top();
-        CoNode &V = cotree.getNode(v);
+        Conode &V = cotree.getNode(v);
         if (used[v] == false) {
             used[v] = true;
 

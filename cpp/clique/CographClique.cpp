@@ -8,7 +8,7 @@ namespace Koala {
 void CographMaxClique::recurse_run() {
     while (!st.empty()) {
         int v = st.top();
-        CoNode &V = cotree.getNode(v);
+        Conode &V = cotree.getNode(v);
         if (used[v] == false) {
             used[v] = true;
             if (V.left_son != NetworKit::none) {
@@ -46,7 +46,7 @@ void CographMaxClique::add_to_set() {
     while (!st.empty()) {
         int v = st.top();
         st.pop();
-        CoNode &V = cotree.getNode(v);
+        Conode &V = cotree.getNode(v);
         if (V.type == NodeType::LEAF) {
             max_clique.insert(v);
         } else {

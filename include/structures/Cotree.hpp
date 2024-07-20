@@ -10,12 +10,12 @@ enum class NodeType {
     COMPLEMENT_NODE
 };
 
-class CoNode {
+class Conode {
  public:
     NetworKit::count left_son, right_son, parent, size;
     NodeType type;
 
-    CoNode(NetworKit::count l, NetworKit::count r, NetworKit::count p) {
+    Conode(NetworKit::count l, NetworKit::count r, NetworKit::count p) {
         left_son = l;
         right_son = r;
         parent = p;
@@ -26,7 +26,7 @@ class CoNode {
 
 class Cotree {
  private:
-    std::vector<CoNode> nodes;
+    std::vector<Conode> nodes;
     std::vector<std::pair<std::pair<NetworKit::count, NetworKit::count>, NetworKit::count> > order;
  public:
     NetworKit::Graph *graph;
@@ -41,7 +41,7 @@ class Cotree {
         order = a;
     }
 
-    CoNode& getNode(NetworKit::count i) {
+    Conode& getNode(NetworKit::count i) {
         return nodes[i];
     }
 };

@@ -12,7 +12,7 @@ Cotree::Cotree(NetworKit::Graph &Graph) {
 void Cotree::buildTree() {
     reverse(order.begin(), order.end());
     NetworKit::count n = graph->numberOfNodes(), i;
-    nodes.resize(2 * n, CoNode(0, 0, 0));
+    nodes.resize(2 * n, Conode(0, 0, 0));
 
     nodes[n].left_son = order[0].first.first;
     nodes[n].right_son = NetworKit::none;
