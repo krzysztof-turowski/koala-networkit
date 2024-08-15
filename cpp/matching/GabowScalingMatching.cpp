@@ -52,7 +52,8 @@ void GabowScalingMatching::run() {
             w[e] = 2 * static_cast<MaximumWeightMatching::intweight>(ew);
     });
 
-    auto [M, _, __] = scale(w);
+    auto [M, _, T] = scale(w);
+    clear_old_blossoms(T);
 
     graph.forNodes([this, &M] (NetworKit::node v) {
         // Only include matched vertices if they're from the original graph and weren't added
@@ -132,6 +133,7 @@ GabowScalingMatching::scale(const std::vector<MaximumWeightMatching::intweight>&
 
     // Convert found blossoms into the representation for old blossoms
     auto new_T = turn_current_blossoms_into_old(T->shell_blossoms);
+    delete T;
 
     return std::make_tuple(matched_vertex, current_y, new_T);
 }
@@ -140,6 +142,13 @@ void GabowScalingMatching::match(OldBlossom* T) {
     create_trivial_blossoms(T);
 
     heavy_path_decomposition(T, 0);
+}
+
+void GabowScalingMatching::clear_old_blossoms(OldBlossom* T) {
+    for (auto child : T->children)
+        clear_old_blossoms(child);
+    
+    delete T;
 }
 
 void GabowScalingMatching::delete_blossom(Blossom* B, OldBlossom* S) {

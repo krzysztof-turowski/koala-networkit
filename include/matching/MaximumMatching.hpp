@@ -733,6 +733,7 @@ class GabowScalingMatching :  public MaximumWeightMatching {
     void add_distribution(OldBlossom* S, MaximumWeightMatching::intweight distribution);
     MaximumWeightMatching::intweight distribution_so_far(int shell_index);
     bool matching_is_perfect();
+    void clear_old_blossoms(OldBlossom* T);
 
     static std::string label_to_str(Label label);
     static Edge reverse(const Edge& edge);
