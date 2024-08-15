@@ -462,7 +462,6 @@ void GabowScalingMatching::swap_edges_on_even_path(
 }
 
 void GabowScalingMatching::augmentPaths() {
-    std::vector<std::tuple<NetworKit::node, NetworKit::node, Edge>> edges;
     NetworKit::index counter = 0;
 
     // Contract the graph into blossoms
@@ -475,6 +474,7 @@ void GabowScalingMatching::augmentPaths() {
 
     NetworKit::Graph T(counter, false, false, true);
     std::vector<NetworKit::node> initial_matching(counter, NetworKit::none);
+    std::vector<std::vector<std::pair<NetworKit::node, Edge>>> edges(counter);
 
     if (highest_undissolved == nullptr) return;
 
@@ -500,12 +500,10 @@ void GabowScalingMatching::augmentPaths() {
                 }
 
                 T.addEdge(cu, cv);
-                edges.push_back(std::make_tuple(cu, cv, Edge{u, v, e}));
+                edges[cu].push_back({cv, {u, v, e}});
         });
     });
 
-    // Sort the edges to be able to find dthem
-    std::sort(edges.begin(), edges.end());
     // Maximize the number of edges in the matching using a maximum cardinality matching algorithm
     MicaliVaziraniMatching cardinality_matching(T, initial_matching);
     cardinality_matching.run();
@@ -513,24 +511,28 @@ void GabowScalingMatching::augmentPaths() {
 
     // Look through all edges in a matching
     for (NetworKit::index cv = 0; cv < counter; ++cv) {
-        if (matching[cv] != NetworKit::none && cv < matching[cv]) {
-            auto cu = matching[cv];
+        if (matching[cv] == NetworKit::none || cv > matching[cv])
+            continue;
 
-            // Find the shell in a list to identify it
-            auto eit = std::prev(
-                std::lower_bound(edges.begin(), edges.end(), std::make_tuple(cv, cu, no_edge)));
-            auto v = std::get<Edge>(*eit).u;
-            auto u = std::get<Edge>(*eit).v;
-            auto e = std::get<Edge>(*eit).id;
+        auto cu = matching[cv];
 
-            auto v_blossom = current_blossom[v];
-            auto u_blossom = current_blossom[u];
+        // Find the edge in cu's adjacency list
+        auto edge = no_edge;
+        for (auto [cu, e] : edges[cv])
+            if (cu == matching[cv])
+                edge = e;
 
-            // Set the edge in matching
-            change_blossom_base(v_blossom, v, {v, u, e});
-            change_blossom_base(u_blossom, u, {u, v, e});
-            set_edge_in_matching(e);
-        }
+        assert(edge.id != NetworKit::none);
+
+        auto [u, v, e] = edge;
+
+        auto v_blossom = current_blossom[v];
+        auto u_blossom = current_blossom[u];
+
+        // Set the edge in matching
+        change_blossom_base(v_blossom, v, {v, u, e});
+        change_blossom_base(u_blossom, u, {u, v, e});
+        set_edge_in_matching(e);
     }
 }
 
@@ -592,10 +594,11 @@ void GabowScalingMatching::init_shell_search() {
     }
 
     // Set counters for starting nodes
+    auto dist = distribution_so_far(active_shell->shell_index + 1);
     for (auto v : active_shell->nodes) {
         t_shell[v] = 0;
         search_shell[v] = starting_shell;
-        Delta[v] = distribution_so_far(active_shell->shell_index + 1);
+        Delta[v] = dist;
     }
 
     // If the shell is not the outermost one, schedule it's dissolution
@@ -943,9 +946,10 @@ void GabowScalingMatching::dissolveShell(OldBlossom* S) {
                 finish_shell_search();
             } else {
                 // Update counters for new nodes
+                auto dist = distribution_so_far(S->shell_index);
                 for (auto v : outer_shell->nodes) {
                     t_shell[v] = event_queue.timeNow();
-                    Delta[v] = distribution_so_far(S->shell_index);
+                    Delta[v] = dist;
                     search_shell[v] = starting_shell;
                 }
 
@@ -1027,9 +1031,10 @@ void GabowScalingMatching::dissolveShell(OldBlossom* S) {
             finish_shell_search();
         } else {
             // Update values for newly added nodes
+            auto dist = distribution_so_far(S->shell_index + 1);
             for (auto v : S->nodes) {
                 t_shell[v] = event_queue.timeNow();
-                Delta[v] = distribution_so_far(S->shell_index + 1);
+                Delta[v] = dist;
                 search_shell[v] = starting_shell;
             }
 
