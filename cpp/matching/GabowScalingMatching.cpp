@@ -37,7 +37,7 @@ GabowScalingMatching::GabowScalingMatching(NetworKit::Graph &graph):
     Delta(reducedGraph.upperNodeIdBound()),
     search_shell(reducedGraph.upperNodeIdBound()),
     union_find(reducedGraph.upperNodeIdBound()),
-    split_find_min(reducedGraph.upperNodeIdBound(), 1000000000, no_edge,
+    split_findmin(reducedGraph.upperNodeIdBound(), 1000000000, no_edge,
         reducedGraph.numberOfNodes(), reducedGraph.numberOfEdges()) {
         reducedGraph.forEdges([this] (NetworKit::node u, NetworKit::node v, NetworKit::edgeid e) {
             graph_edges[e] = {u, v};
@@ -308,7 +308,7 @@ void GabowScalingMatching::heavy_path_decomposition(
 }
 
 void GabowScalingMatching::path(OldBlossom* B, MaximumWeightMatching::intweight outer_dual) {
-    outer_shells_dual = outer_dual;
+    z_outer = outer_dual;
     path_root = highest_undissolved = B;
     path_root->for_nodes([this] (NetworKit::node v) {
         vertex_path[v] = path_root;
@@ -544,7 +544,7 @@ MaximumWeightMatching::intweight GabowScalingMatching::current_slack(Edge edge) 
     // and that its end are in different blossoms
     // Include duals of old blossoms above the current path
     // and the old blossoms on the path
-    return current_y[u] + current_y[v] - current_w[id] + outer_shells_dual +
+    return current_y[u] + current_y[v] - current_w[id] + z_outer +
         shells[current_shell[u]->shell_index].second->current_shell_dual;
 }
 
@@ -576,14 +576,14 @@ void GabowScalingMatching::shell_search(OldBlossom* B) {
 void GabowScalingMatching::init_shell_search() {
     search_done = false;
     event_queue.reset();
-    t_active = 0;
+    t_outer = 0;
     active_shell->searched = true;
-    active_shell_initial_dual = active_shell->current_shell_dual -
+    z_boundary = active_shell->current_shell_dual -
                                 2 * distribution_so_far(active_shell->shell_index + 1);
 
     for (auto b : active_shell->shell_blossoms) {
         // Create a list for each blossom
-        b->list = split_find_min.init(b->node_list(), b);
+        b->list = split_findmin.init(b->node_list(), b);
         b->Delta = 0;
         b->label = free;
 
@@ -648,7 +648,7 @@ void GabowScalingMatching::finish_shell_search() {
     // updates the value of it's dual weight and register the distributed weights
     if (!active_shell->dissolved && active_shell != old_root) {
         // Calculate time the shell has been active
-        auto distributed = event_queue.timeNow() - t_active;
+        auto distributed = event_queue.timeNow() - t_outer;
 
         active_shell->z -= 2 * distributed;
         add_distribution(active_shell, distributed);
@@ -669,7 +669,7 @@ void GabowScalingMatching::finish_shell_search() {
 
 void GabowScalingMatching::delete_lists(Blossom* B) {
     if (B->list != nullptr) {
-        split_find_min.deleteList(B->list);
+        split_findmin.deleteList(B->list);
         B->list = nullptr;
 
         // If the blossom has a list, none of it's children do
@@ -684,7 +684,7 @@ void GabowScalingMatching::delete_lists(Blossom* B) {
 
 void GabowScalingMatching::grow(NetworKit::node v, Edge e) {
     // Check if the vertex is free
-    auto B = split_find_min.list(v);
+    auto B = split_findmin.list(v);
     if (B->label != free)
         return;
 
@@ -740,7 +740,7 @@ void GabowScalingMatching::schedule(NetworKit::node u) {
         // Continue the search through the vertex matched to u
         auto v = matched_vertex[u];
         auto e = matched_edge[u];
-        auto v_blossom = split_find_min.list(v);
+        auto v_blossom = split_findmin.list(v);
 
         // If v is free, continue growing the search tree, if not a blossom has been found
         if (v_blossom->label == free)
@@ -759,7 +759,7 @@ void GabowScalingMatching::schedule(NetworKit::node u) {
                 union_find.find(u) == union_find.find(v)) return;
 
             auto edge_slack = slack({u, v, id});
-            auto v_blossom = split_find_min.list(v);
+            auto v_blossom = split_findmin.list(v);
 
             if (v_blossom->label == even) {
                 // Found an edge connecting two even blossoms
@@ -770,20 +770,20 @@ void GabowScalingMatching::schedule(NetworKit::node u) {
                     Event::make_blossom({u, v, id}));
             } else if (v_blossom->label == odd) {
                 // Check if the edge has a smaller slack than any other edge from an even vertex
-                auto [key, min_edge] = split_find_min.currentKey(v);
+                auto [key, min_edge] = split_findmin.currentKey(v);
                 if (min_edge == no_edge || edge_slack < slack(min_edge)) {
                     // If v is in and odd blossom B, than
                     // minimum slack(v, u) for even u is key(u) - (t_odd(B) - Delta(B))
-                    split_find_min.decreaseKey(
+                    split_findmin.decreaseKey(
                         v, edge_slack + (v_blossom->t_odd - v_blossom->Delta), {u, v, id});
                 }
             } else if (v_blossom->label == free) {
                 // If v is in a free blossom B, than
                 // minimum slack(v, u) for even u is key(u) - (t_now - Delta(B))
-                auto min_slack = split_find_min.findMin(v_blossom->list).first -
+                auto min_slack = split_findmin.findMin(v_blossom->list).first -
                                  (event_queue.timeNow() - v_blossom->Delta);
 
-                split_find_min.decreaseKey(
+                split_findmin.decreaseKey(
                         v, edge_slack + (event_queue.timeNow() - v_blossom->Delta), {u, v, id});
 
                 // Schedule a grow event if an edge with smaller slack has been found
@@ -831,7 +831,7 @@ void GabowScalingMatching::dissolve(Blossom* B) {
     for (auto it = B->subblossoms.begin(); std::next(it) != B->subblossoms.end(); it ++) {
         auto this_blossom = it->first;
         auto next_blossom = std::next(it)->first;
-        auto [L1, L2] = split_find_min.split(this_blossom->base, this_blossom, next_blossom);
+        auto [L1, L2] = split_findmin.split(this_blossom->base, this_blossom, next_blossom);
         this_blossom->list = L1;
         next_blossom->list = L2;
     }
@@ -866,7 +866,7 @@ void GabowScalingMatching::dissolve(Blossom* B) {
         } else {
             // The blossom is free. Schedule the grow event for the blossom by finding the edge
             // with smallest slack that connects it to an even vertex.
-            auto [key, edge] = split_find_min.findMin(b->list);
+            auto [key, edge] = split_findmin.findMin(b->list);
             if (edge != no_edge) {
                 auto [u, v, id] = edge;
                 auto slack = key - (event_queue.timeNow() - b->Delta);
@@ -921,11 +921,11 @@ void GabowScalingMatching::dissolveShell(OldBlossom* S) {
     S->z = 0;
 
     // Update dual weights distributed by the active shell
-    auto distributed = event_queue.timeNow() - t_active;
+    auto distributed = event_queue.timeNow() - t_outer;
     active_shell->z -= 2 * distributed;
-    active_shell_initial_dual -= 2 * distributed;
+    z_boundary -= 2 * distributed;
     add_distribution(active_shell, distributed);
-    t_active = event_queue.timeNow();
+    t_outer = event_queue.timeNow();
 
     if (S == active_shell) {
         // Find the shell that the active shell dissolves into
@@ -955,7 +955,7 @@ void GabowScalingMatching::dissolveShell(OldBlossom* S) {
 
                 // Update counters and labels, create lists for new blossoms
                 for (auto b : outer_shell->shell_blossoms) {
-                    b->list = split_find_min.init(b->node_list(), b);
+                    b->list = split_findmin.init(b->node_list(), b);
                     b->Delta = 0;
                     b->label = free;
                 }
@@ -995,8 +995,8 @@ void GabowScalingMatching::dissolveShell(OldBlossom* S) {
 
         // Change the active shell, update the counters and dual variables
         active_shell = outer_shell;
-        t_active = event_queue.timeNow();
-        active_shell_initial_dual = active_shell->current_shell_dual -
+        t_outer = event_queue.timeNow();
+        z_boundary = active_shell->current_shell_dual -
                                     2 * distribution_so_far(active_shell->shell_index + 1);
         active_shell->searched = true;
 
@@ -1040,7 +1040,7 @@ void GabowScalingMatching::dissolveShell(OldBlossom* S) {
 
             // Update values for newly added blossoms
             for (auto b : S->shell_blossoms) {
-                b->list = split_find_min.init(b->node_list(), b);
+                b->list = split_findmin.init(b->node_list(), b);
                 b->Delta = 0;
                 b->label = free;
             }
@@ -1237,7 +1237,7 @@ MaximumWeightMatching::intweight GabowScalingMatching::y(NetworKit::node v) {
     // Add the distributions from old blossoms before and after it became active
     MaximumWeightMatching::intweight basic = y0[v] + Delta[v] +
             std::max(0, std::min(event_queue.timeNow(), t_undissolvable) - t_shell[v]);
-    auto B = split_find_min.list(v);
+    auto B = split_findmin.list(v);
 
     // Add the dual adjustments based on it's label
     if (B->label == odd) {
@@ -1262,7 +1262,7 @@ MaximumWeightMatching::intweight GabowScalingMatching::z(Blossom* B) {
 MaximumWeightMatching::intweight GabowScalingMatching::shell_z() {
     // Calculate the current weight of the active shell
     return active_shell == old_root ? 0 :
-        (active_shell_initial_dual - 2 * (event_queue.timeNow() - t_active));
+        (z_boundary - 2 * (event_queue.timeNow() - t_outer));
 }
 
 MaximumWeightMatching::intweight GabowScalingMatching::slack(Edge e) {
@@ -1270,7 +1270,7 @@ MaximumWeightMatching::intweight GabowScalingMatching::slack(Edge e) {
 
     // Calculate the slack of the edge
     // Include the dual weights of all the shells that contain the edge
-    return y(u) + y(v) - current_w[id] + outer_shells_dual + shell_z();
+    return y(u) + y(v) - current_w[id] + z_outer + shell_z();
 }
 
 bool GabowScalingMatching::is_exposed(Blossom *b) {
@@ -1278,11 +1278,11 @@ bool GabowScalingMatching::is_exposed(Blossom *b) {
 }
 
 bool GabowScalingMatching::is_even(NetworKit::node v) {
-    return split_find_min.list(v)->label == even;
+    return split_findmin.list(v)->label == even;
 }
 
 bool GabowScalingMatching::is_odd(NetworKit::node v) {
-    return split_find_min.list(v)->label == odd;
+    return split_findmin.list(v)->label == odd;
 }
 
 void GabowScalingMatching::add_distribution(
@@ -1295,7 +1295,7 @@ MaximumWeightMatching::intweight GabowScalingMatching::distribution_so_far(int s
 }
 
 GabowScalingMatching::Blossom* GabowScalingMatching::get_blossom(NetworKit::node v) {
-    auto B = split_find_min.list(v);
+    auto B = split_findmin.list(v);
 
     if (B->label == even) {
         // If the vertex is even the blossom is maintained with union-find

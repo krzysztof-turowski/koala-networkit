@@ -657,20 +657,20 @@ class GabowScalingMatching :  public MaximumWeightMatching {
     // Queue of search events
     ArrayPriorityQueue<Event> event_queue;
 
-    // Time the shell has become the active shell in the search
-    MaximumWeightMatching::intweight t_active;
+    // Time the old blossom has become the outer boundary of the shell in the search
+    MaximumWeightMatching::intweight t_outer;
 
-    // Time the shell has become the inner shell in the search
+    // Time the old blossom has become the inner boundary in the search
     MaximumWeightMatching::intweight t_inner;
 
-    // Time the outermost shell has become active in the search
+    // Time the whole graph has becoe the outer boundary in the search
     MaximumWeightMatching::intweight t_undissolvable;
 
     // Sum of the dual variables of blossoms above current path
-    MaximumWeightMatching::intweight outer_shells_dual;
+    MaximumWeightMatching::intweight z_outer;
 
-    // Sum of dual weights of the active shell and above at the time it became active
-    MaximumWeightMatching::intweight active_shell_initial_dual;
+    // Sum of dual weights of the outer boundary and above at the time it became the boundary
+    MaximumWeightMatching::intweight z_boundary;
 
     // Currently searched shell
     OldBlossom* active_shell;
@@ -697,7 +697,7 @@ class GabowScalingMatching :  public MaximumWeightMatching {
     UnionFind<NetworKit::node, Blossom*> union_find;
 
     // Maintains the list for non-even blossoms
-    SplitFindMin<NetworKit::node, Blossom*, MaximumWeightMatching::intweight, Edge> split_find_min;
+    SplitFindMin<NetworKit::node, Blossom*, MaximumWeightMatching::intweight, Edge> split_findmin;
 
     void grow(NetworKit::node v, Edge e);
     void schedule(NetworKit::node v);
