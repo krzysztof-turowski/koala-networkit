@@ -1,0 +1,62 @@
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{indentfirst}
+\usepackage{fancyhdr}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{url,hyperref}
+\usepackage{multirow,multicol}
+\usepackage[justification=centering,singlelinecheck=false]{caption}
+\usepackage{booktabs,float,tabularx,ltablex}
+\usepackage[flushleft]{threeparttable}
+\usepackage{enumitem}
+\usepackage{pstricks,graphicx}
+\usepackage{lipsum}
+\usepackage{chngcntr}
+\counterwithout{table}{chapter}
+\counterwithout{figure}{chapter}
+\usepackage{titlesec}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepackage{cleveref}
+\usepackage{pdflscape}
+\usepackage{rotating}
+\usepackage{setspace}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+\usepackage[
+  style=numeric,
+  maxbibnames=5
+]{biblatex}
+\addbibresource{bib.bib}
+
+\newcommand{\floor}[1]{\left\lfloor#1\right\rfloor}
+
+\pagestyle{fancy}
+\fancyhead[C]{} 
+\fancyfoot[R]{\thepage}
+\fancyhead[L]{\scriptsize\leftmark}
+\fancyhead[R]{\scriptsize\rightmark}
+\cfoot[]{}
+\fancypagestyle{plain}{
+\fancyhf{}
+\fancyfoot[R]{\textbf{\thepage}}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}}
+
+\setcounter{secnumdepth}{4}
+
+\renewcommand{\chaptermark}[1]{
+\markboth{\MakeUppercase{
+\chaptername}\ \thechapter.
+\ #1}{}}
+\renewcommand{\sectionmark}[1]{\markright{\thesection.\ #1}}
+
+\renewcommand{\labelenumi}{(\arabic{enumi})}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem{lemma}{Lemma}[theorem]

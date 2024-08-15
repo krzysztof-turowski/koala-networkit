@@ -536,14 +536,14 @@ void GabowScalingMatching::augmentPaths() {
 
 MaximumWeightMatching::intweight GabowScalingMatching::current_slack(Edge edge) {
     auto [u, v, id] = edge;
-    auto highest_shell = std::min(current_shell[u]->shell_index, current_shell[v]->shell_index);
 
     // Calculate the slack of the edge
-    // Include duals of old blossoms above the current path,
-    // the blossom that contains both vertices and old blossoms that
+    // We can assume that the edge is contined within a single shell 
+    // and that its end are in different blossoms
+    // Include duals of old blossoms above the current path
+    // and the old blossoms on the path
     return current_y[u] + current_y[v] - current_w[id] + outer_shells_dual +
-        (current_blossom[u] == current_blossom[v] ? current_blossom[v]->z0 : 0) +
-        shells[highest_shell].second->current_shell_dual;
+        shells[current_shell[u]->shell_index].second->current_shell_dual;
 }
 
 void GabowScalingMatching::shell_search(OldBlossom* B) {
@@ -1040,7 +1040,7 @@ void GabowScalingMatching::dissolveShell(OldBlossom* S) {
                 b->label = free;
             }
 
-            // Schedule events for newly added no
+            // Schedule events for newly added vertices
             for (auto v : S->nodes) {
                 // Add exposed vertices to the search tree
                 if (matched_vertex[v] == NetworKit::none)
@@ -1262,12 +1262,10 @@ MaximumWeightMatching::intweight GabowScalingMatching::shell_z() {
 
 MaximumWeightMatching::intweight GabowScalingMatching::slack(Edge e) {
     auto [u, v, id] = e;
-    auto u_B = get_blossom(u);
-    auto v_B = get_blossom(v);
 
     // Calculate the slack of the edge
     // Include the dual weights of all the shells that contain the edge
-    return y(u) + y(v) - current_w[id] + (u_B == v_B ? z(u_B) : 0) + outer_shells_dual + shell_z();
+    return y(u) + y(v) - current_w[id] + outer_shells_dual + shell_z();
 }
 
 bool GabowScalingMatching::is_exposed(Blossom *b) {

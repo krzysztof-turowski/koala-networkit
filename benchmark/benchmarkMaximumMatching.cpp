@@ -1,9 +1,40 @@
 #include <cassert>
 #include <filesystem>
 #include <iostream>
+#include <chrono>
 
 #include <matching/MaximumMatching.hpp>
 #include <io/DimacsGraphReader.hpp>
+
+int calc_matching_weight(
+        const NetworKit::Graph& G, const std::map<NetworKit::node, NetworKit::node> matching) {
+    int weight = 0;
+    for (auto [u, v] : matching) {
+        if (v != NetworKit::none) {
+            assert(matching[v] == u);
+            assert(G.hasEdge(u, v));
+
+            weight += static_cast<int>(G.weight(u, v));
+        }
+    }
+    return weight / 2;
+}
+
+template<typename Algorithm>
+void test_algorithm(NetworKit::Graph& G) {
+    auto start = std::chrono::high_resolution_clock::now();
+    Algorithm algo(G);
+    algo.run();
+    auto end = std::chrono::high_resolution_clock::now();
+
+    std::chrono::duration<double> elapsed_seconds = end - start;
+
+    auto matching = algo.getMatching();
+    auto weight = calc_matching_weight(G, matching);
+
+    std::cout << "Time: " << elapsed_seconds.count() << "s\n";
+    std::cout << weight << std::endl;
+}
 
 int main(int argc, char **argv) {
     if (argc < 3) {
@@ -18,33 +49,20 @@ int main(int argc, char **argv) {
     }
     auto G = Koala::DimacsGraphReader().read(path);
     G.indexEdges(true);
+
     Koala::MaximumWeightMatching* maximum_matching;
     if (algorithm == "edmonds") {
-        maximum_matching = new Koala::EdmondsMaximumMatching(G);
+        test_algorithm<Koala::EdmondsMaximumMatching>(G);
     } else if (algorithm == "gabow") {
-        maximum_matching = new Koala::GabowMaximumMatching(G);
+        test_algorithm<Koala::GabowMaximumMatching>(G);
     } else if (algorithm == "micali") {
-        maximum_matching = new Koala::GalilMicaliGabowMaximumMatching(G);
+        test_algorithm<Koala::GalilMicaliGabowMaximumMatching>(G);
     } else if (algorithm == "scaling") {
-        maximum_matching = new Koala::GabowScalingMatching(G);
+        test_algorithm<Koala::GabowScalingMatching>(G);
     } else {
         std::cout << "Unknown algorithm: " << algorithm << std::endl;
         return 1;
     }
-    maximum_matching->run();
-    auto matching = maximum_matching->getMatching();
-    int weight = 0;
-    for (auto [u, v] : matching) {
-        std::cout << u << " " << v << std::endl;
-        if (v != NetworKit::none) {
-            assert(matching[v] == u);
-            assert(G.hasEdge(u, v));
 
-            weight += static_cast<int>(G.weight(u, v));
-        }
-    }
-    std::cout << weight / 2 << std::endl;
-
-    delete maximum_matching;
     return 0;
 }

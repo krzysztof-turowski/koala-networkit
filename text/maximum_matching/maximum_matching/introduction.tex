@@ -1,0 +1,55 @@
+The graph matching problem is among the most extensively researched topics in combinatorial optimization. Initial studies into the subject were motivated by practical issues including minimization of transportation costs~\cite{hitchcock1941distribution} or optimally assigning personnel to tasks~\cite{thorndike1950problem}. Over time, matching algorithms have found their use in scheduling, approximation algorithms and network switching among other problems. They play a crucial role in various other optimization algorithms including undirected shortest paths~\cite{lawler2001combinatorial}, planar max cut~\cite{hadlock1975finding}, metric traveling salesman~\cite{christofides2022worst}, and Chinese postman tours~\cite{edmonds1973matching}.
+
+Graph matching algorithms are mainly divided into four groups based on the classes of graphs they operate on: whether they're weighted or unweighted and whether they're bipartite or non-bipartite. We will focus on the solutions to the case of weighted matching on general graphs.
+
+To discuss further, we first define some terms. Consider a weighted graph $G = (V, E)$ with edge weight function $w$. We use $n = |V|$ and $m = |E|$ unless otherwise specified. For a graph $G'=(H, E')$ induced by a vertex set $H \subseteq V$ we denote $n_H = |H|$ and $m_H = |E'|$.
+
+A \textit{matching} is a vertex-disjoint subset of the graph's edges. We call a matching \textit{perfect} if all vertices belong to exactly one edge of the matching. We define the \textit{weight} of a matching as the sum of its edges' weights and denote it as $w(M) = \sum_{e \in M} w(e)$.
+
+In this work, we consider following variants of the maximum matching problem:
+
+\begin{itemize}
+    \item \textsc{Maximum Cardinality Matching} (\textsc{MCM}) Find a matching in a graph $G$ with maximum number of edges.
+    \item \textsc{Maximum Weight Matching} (\textsc{MWM}) Find a matching in a weighted graph $G$ with maximum weight.
+    \item \textsc{Maximum Weight Perfect Matching} (\textsc{MWPM}) Find a perfect matching in a weighted graph $G$ which maximum weight.
+\end{itemize}
+
+The \textsc{MWM} and \textsc{MWPM} are reducible to each other. For an instance $G=(V, E)$ of \textsc{MWM}, define a new graph $G'=(V', E')$ where $V'=V_1 \cup V_2$ and $V_1, V_2$ are of two copies of $V$. The edges $E'$ consist of copies of edges in $E$ as well as one zero-weight edge between each corresponding vertices in $V_1$ and $V_2$. A maximum weight perfect matching $M'$ on $G'$ can be used to obtain a maximum weight matching $M$ on $G$ by restricting the matching to only edges contained in $V_1$. If a vertex in $V_1$ is matched to its copy in $V_2$ it is unmatched in $M$. It's easy to see that $M$ is a maximum weight matching on $G$ as a matching with higher weight could be used to create a perfect matching on $G'$ with weight higher than $M'$. In the other direction, let a graph $G=(V, E)$ with weight function $w$ be an instance of \textsc{MWPM}. Construct a weight function $w'(e) = w(e) + nN$. A maximum weight matching on graph $G' = G$ with weight function $w'$ has to have a maximum possible number of edges as the $nN$ term in the definition $w'$ ensures that any matching with more edges has a higher weight.
+
+The first polynomial algorithm for maximum weight matching in general graphs has been given by Edmonds in~\cite{edmonds1965maximum}. It uses the primal-dual method and relies on his previous work in non-weighted matching~\cite{edmonds1965paths}. It is called the blossom algorithm after blossoms, which are certain odd length cycles, a feature that notably doesn't appear in bipartite graphs and is a major source of complexity in algorithms for general graphs. The running time given by Edmonds was $O(n^m)$. It was than independently improved to $O(n^3)$ by~\cite{lawler2001combinatorial} and~\cite{gabow1974implementation}. Many implementations of Edmonds' blossom algorithm followed with improved theoretical time complexity. The current best runs in $O(nm + n^2 \log n)$ due to~\cite{gabow1990data}, which is in some sense optimal. The blossom algorithm works in $O(n)$ phases, a single of which can be used to sort $n$ number and therefore requires $\Omega(m + n \log n)$ time in an appropriate model of computation. Other algorithms use an approach called scaling to solve the problem for graphs with integer edge weights. The said weights are exposed one bit a time. In the $i$th scale, the algorithm computes the optimal solution for weights $w_i$ consisting of $i$ significant bits of $w$. The solution is than used to more efficiently solve the next scale. The first algorithm based on the approach was presented in~\cite{gabow1984efficient} and runs in time $O(n^{3/4}m)$. This was later improved to $O(m \sqrt{n\alpha(m, n) \log n} \log(nN))$ in~\cite{gabow1991faster} and lately $O(m \sqrt{n} \log(nN))$ in~\cite{duan2018scaling}. An algebraic randomized algorithm of~\cite{cygan2015algorithmic} runs in $O(n^\omega N)$ with high probability for the matrix multiplication exponent $\omega$.
+
+A summary of existing algorithms is presented in table~\ref{tab:complexity}.
+
+\begin{table}
+\centering
+\renewcommand{\arraystretch}{1.25}
+\setlength{\tabcolsep}{1em}
+\begin{tabular}{|l|l|l|}
+\hline
+Author & Year & Running time \\
+\hline
+Edmonds & 1965 & $n^2m$ \\
+\hline
+Gabow & 1974 & $n^3$ \\
+\hline
+Lawler & 1976 & $n^3$ \\
+\hline
+Gabow & 1985 & $n^{3/4}m \log N$ \\
+\hline
+Galil, Micali \& Gabow & 1986 & $nm \log n$ \\
+\hline
+Gabow, Galil \& Spencer & 1989 & $nm \log \log \log_{2 + m/2} + n^2\log n$ \\
+\hline
+Gabow & 1990 & $nm + n^2 \log n$ \\
+\hline
+Gabow \& Tarjan & 1991 & $m \sqrt{n \alpha(m, n) \log n} \log (nN)$ \\
+\hline
+Cygan, Gabow \& Sankowski & 2012 & $n^\omega N$ \\
+\hline
+Duan, Pettie \& Su & 2018 & $m \sqrt{n} \log(nN)$ \\
+\hline
+\end{tabular}
+\caption{Summary of maximum weight matching algorithms}\label{tab:complexity}
+\end{table}
+
+We will take a closer look at a selection of maximum weight matching algorithms, namely Edmond's original $O(n^2m)$ algorithm, Gabow's $O(n^3)$ algorithm, Galil, Micali \& Gabow's $O(nm \log n)$ algorithm and Gabow's $O(n^{3/4}m \log N)$ algorithm. We implement all of them in C++20 as part of the open-source KOALA NetworKit librar~\cite{koala-networkit} . In~\autoref{chap:algo} we describe how they work and how to implement them. In~\autoref{chap:results} we present results of computational tests and compare the performance of our implementations.

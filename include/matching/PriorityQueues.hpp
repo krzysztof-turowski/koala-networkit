@@ -1653,6 +1653,7 @@ class SplitFindMin {
 
             return {L1, L2};
         } else {
+            // Find superelemnt e(x)
             T superelement = e[i][x];
             auto [S1, S2] = split(superelement, id1, id2, i - 1);
 
@@ -1668,26 +1669,35 @@ class SplitFindMin {
                 delete S;
             }
 
+            // S1 contains superlement before e(x) in the sublist
+            // S2 contains superlement after e(x) in the sublist
+
+            // Create a new sublist for S2 
             Sublist* S2sublist = new Sublist;
             S2sublist->elements = S2;
             S2->sublist = S2sublist;
             S2sublist->level = S1->sublist->level;
             S2sublist->head = S1->sublist->head;
 
+            // Split elements in superelment e(x) into those until and after x
             auto xit = std::find(superelement_nodes[i][superelement].begin(),
                                  superelement_nodes[i][superelement].end(), x);
             std::list<T> nodes1(superelement_nodes[i][superelement].begin(), std::next(xit));
             std::list<T> nodes2(std::next(xit), superelement_nodes[i][superelement].end());
 
+            // Find the list
             auto L1 = S1->sublist->list;
             L1->id = id1;
             assert(L1->i == i);
+
+            // Create a new list
             auto L2 = new List;
             L2->id = id2;
             L2->i = i;
             L2->min_key = infinity;
             L2->min_val = empty_val;
 
+            // Update nodes lists for L1 and L2
             L2->nodes.splice(L2->nodes.begin(), L1->nodes,
                              std::next(list_it[i][superelement_nodes[i][superelement].back()]),
                              L1->nodes.end());
@@ -1695,6 +1705,7 @@ class SplitFindMin {
             L1->nodes.erase(list_it[i][superelement_nodes[i][superelement].front()],
                             L1->nodes.end());
 
+            // Split the sublist list in L1
             if (S1->sublist->head) {
                 auto split_it = S1->sublist->sublist_it;
                 L2->head.splice(L2->head.end(), L1->head, std::next(split_it), L1->head.end());
@@ -1714,10 +1725,14 @@ class SplitFindMin {
 
             set_list_pointers(L2, i);
 
+            // Update the cost of lists
             calculate_min(L1, i);
             calculate_min(L2, i);
 
+            // Initialize the tail of L1 with nodes until x in e(x)
             initialize_tail(L1, nodes1, id1, i);
+
+            // Initialize the head of L2 with nodes after x in e(x)
             if (nodes2.size() > 0)
                 initialize_head(L2, nodes2, id2, i);
 
