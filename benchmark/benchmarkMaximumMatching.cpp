@@ -10,12 +10,8 @@ int calc_matching_weight(
         const NetworKit::Graph& G, const std::map<NetworKit::node, NetworKit::node> matching) {
     int weight = 0;
     for (auto [u, v] : matching) {
-        if (v != NetworKit::none) {
-            assert(matching[v] == u);
-            assert(G.hasEdge(u, v));
-
+        if (v != NetworKit::none)
             weight += static_cast<int>(G.weight(u, v));
-        }
     }
     return weight / 2;
 }

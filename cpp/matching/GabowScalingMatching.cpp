@@ -147,7 +147,7 @@ void GabowScalingMatching::match(OldBlossom* T) {
 void GabowScalingMatching::clear_old_blossoms(OldBlossom* T) {
     for (auto child : T->children)
         clear_old_blossoms(child);
-    
+
     delete T;
 }
 
@@ -549,7 +549,7 @@ MaximumWeightMatching::intweight GabowScalingMatching::current_slack(Edge edge) 
     auto [u, v, id] = edge;
 
     // Calculate the slack of the edge
-    // We can assume that the edge is contined within a single shell 
+    // We can assume that the edge is contined within a single shell
     // and that its end are in different blossoms
     // Include duals of old blossoms above the current path
     // and the old blossoms on the path
@@ -779,11 +779,11 @@ void GabowScalingMatching::schedule(NetworKit::node u) {
                     Event::make_blossom({u, v, id}));
             } else if (v_blossom->label == odd) {
                 // Check if the edge has a smaller slack than any other edge from an even vertex
-                auto [key, min_edge] = split_findmin.currentKey(v);
+                auto [key, min_edge] = split_findmin.currentCost(v);
                 if (min_edge == no_edge || edge_slack < slack(min_edge)) {
                     // If v is in and odd blossom B, than
                     // minimum slack(v, u) for even u is key(u) - (t_odd(B) - Delta(B))
-                    split_findmin.decreaseKey(
+                    split_findmin.decreaseCost(
                         v, edge_slack + (v_blossom->t_odd - v_blossom->Delta), {u, v, id});
                 }
             } else if (v_blossom->label == free) {
@@ -792,7 +792,7 @@ void GabowScalingMatching::schedule(NetworKit::node u) {
                 auto min_slack = split_findmin.findMin(v_blossom->list).first -
                                  (event_queue.timeNow() - v_blossom->Delta);
 
-                split_findmin.decreaseKey(
+                split_findmin.decreaseCost(
                         v, edge_slack + (event_queue.timeNow() - v_blossom->Delta), {u, v, id});
 
                 // Schedule a grow event if an edge with smaller slack has been found

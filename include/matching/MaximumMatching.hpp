@@ -11,7 +11,11 @@
 #include <networkit/base/Algorithm.hpp>
 #include <networkit/graph/Graph.hpp>
 
-#include <matching/PriorityQueues.hpp>
+#include <matching/structures/ArrayPriorityQueue.hpp>
+#include <matching/structures/FenwickTree.hpp>
+#include <matching/structures/PriorityQueues.hpp>
+#include <matching/structures/SplitFindMin.hpp>
+#include <matching/structures/UnionFind.hpp>
 
 namespace Koala {
 
@@ -494,7 +498,7 @@ class GabowScalingMatching :  public MaximumWeightMatching {
 
         // For a non-even blossom maintains a list of it's nodes, the key for each node
         // is used to maintain a minimum slack of an edge connecting it to an even vertex
-        SplitFindMin<NetworKit::node, Blossom*, MaximumWeightMatching::intweight, Edge>::List* list;
+        SplitFindMin<NetworKit::node, MaximumWeightMatching::intweight, Edge, Blossom*>::List* list;
 
         bool is_trivial();
         void for_nodes(const std::function<void(NetworKit::node)>& handle);
@@ -697,7 +701,7 @@ class GabowScalingMatching :  public MaximumWeightMatching {
     UnionFind<NetworKit::node, Blossom*> union_find;
 
     // Maintains the list for non-even blossoms
-    SplitFindMin<NetworKit::node, Blossom*, MaximumWeightMatching::intweight, Edge> split_findmin;
+    SplitFindMin<NetworKit::node, MaximumWeightMatching::intweight, Edge, Blossom*> split_findmin;
 
     void grow(NetworKit::node v, Edge e);
     void schedule(NetworKit::node v);
