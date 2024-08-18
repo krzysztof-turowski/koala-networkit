@@ -13,7 +13,7 @@ GalilMicaliGabowMaximumMatching::GalilMicaliGabowMaximumMatching(NetworKit::Grap
         good_edges(graph.upperEdgeIdBound()),
         even_edges(graph.upperNodeIdBound(), NetworKit::none, NetworKit::none, infinite_weight) {
     for (auto b : trivial_blossom) {
-        ConcatenableQueue<Blossom*, NetworKit::node, NetworKit::node> nodes(b);
+        BlossomNodeList nodes(b);
         nodes_refs[b->base] = nodes.append(b->base, 0);
         b->data = new GalilMicaliGabowBlossomData(std::move(nodes), nullptr);
     }
@@ -200,7 +200,7 @@ bool GalilMicaliGabowMaximumMatching::is_good(NetworKit::edgeid edge) {
 
 void GalilMicaliGabowMaximumMatching::handle_new_blossom(Blossom* new_blossom) {
     // Create a list of nodes for the new blossom to track it's vertices
-    ConcatenableQueue<Blossom*, NetworKit::node, NetworKit::node> nodes(new_blossom);
+    BlossomNodeList nodes(new_blossom);
 
     for (auto [b, e] : new_blossom->subblossoms) {
         // Concatenate the lists of all the subblossoms
@@ -248,7 +248,7 @@ void GalilMicaliGabowMaximumMatching::handle_subblossom_shift(
     auto data = get_data(blossom);
 
     // Change the order of nodes in the blossom node
-    auto nodes = std::move(data->nodes);
+    BlossomNodeList nodes(std::move(data->nodes));
     auto [nodesA, nodesB] = nodes.split(nodes_refs[subblossom->last_node], blossom, blossom);
     nodesB->concat(std::move(*nodesA), blossom);
     data->nodes = std::move(*nodesB);

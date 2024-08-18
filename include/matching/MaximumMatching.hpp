@@ -12,6 +12,7 @@
 #include <networkit/graph/Graph.hpp>
 
 #include <matching/structures/ArrayPriorityQueue.hpp>
+#include <matching/structures/ConcatenableQueue.hpp>
 #include <matching/structures/FenwickTree.hpp>
 #include <matching/structures/PriorityQueues.hpp>
 #include <matching/structures/SplitFindMin.hpp>
@@ -359,9 +360,9 @@ class GalilMicaliGabowMaximumMatching final :  public BlossomMaximumMatching {
     explicit GalilMicaliGabowMaximumMatching(NetworKit::Graph &graph);
 
  private:
-    using BlossomNodeList = ConcatenableQueue<Blossom*, NetworKit::node, NetworKit::node>;
-    using EvenEdgeQueue = PriorityQueue2<NetworKit::node, NetworKit::edgeid,
-        MaximumWeightMatching::weight>;
+    using BlossomNodeList = ConcatenableQueue<NetworKit::node, NetworKit::node, Blossom*>;
+    using EvenEdgeQueue = PriorityQueue2<NetworKit::node, MaximumWeightMatching::weight,
+        NetworKit::edgeid>;
     using EvenEdgeGroup = EvenEdgeQueue::Group*;
 
     class GalilMicaliGabowBlossomData : public Blossom::BlossomData {
@@ -384,14 +385,14 @@ class GalilMicaliGabowMaximumMatching final :  public BlossomMaximumMatching {
     std::queue<Edge> edge_queue;
 
     // Used to maintain dual variables for vertices
-    PriorityQueue1<NetworKit::node, NetworKit::node, MaximumWeightMatching::weight> y_even;
-    PriorityQueue1<NetworKit::node, NetworKit::node, MaximumWeightMatching::weight> y_odd;
+    PriorityQueue1<NetworKit::node, MaximumWeightMatching::weight, NetworKit::node> y_even;
+    PriorityQueue1<NetworKit::node, MaximumWeightMatching::weight, NetworKit::node> y_odd;
     std::vector<MaximumWeightMatching::weight> y_free;
     MaximumWeightMatching::weight y(NetworKit::node v);
 
     // Used to maintain dual variables for blossoms
-    PriorityQueue1<NetworKit::node, Blossom*, MaximumWeightMatching::weight> z_even;
-    PriorityQueue1<NetworKit::node, Blossom*, MaximumWeightMatching::weight> z_odd;
+    PriorityQueue1<NetworKit::node, MaximumWeightMatching::weight, Blossom*> z_even;
+    PriorityQueue1<NetworKit::node, MaximumWeightMatching::weight, Blossom*> z_odd;
     MaximumWeightMatching::weight z(Blossom* b);
 
     // Used to maintain slack of edges between even vertices in different blossoms
@@ -399,7 +400,7 @@ class GalilMicaliGabowMaximumMatching final :  public BlossomMaximumMatching {
     // Maintains slack / 2 for those edges
     // During the execution some edges might become contained in the same even blossom and have to
     // be removed. This is done lazily when checking for a good edge with smallest slack.
-    PriorityQueue1<NetworKit::edgeid, NetworKit::edgeid, MaximumWeightMatching::weight> good_edges;
+    PriorityQueue1<NetworKit::edgeid, MaximumWeightMatching::weight, NetworKit::edgeid> good_edges;
     void clear_not_good_edges();
     bool is_good(NetworKit::edgeid edge);
 
