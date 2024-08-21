@@ -2,8 +2,8 @@
 
 namespace Koala {
 
-GabowMaximumMatching::GabowMaximumMatching(NetworKit::Graph &graph) :
-        BlossomMaximumMatching(graph),
+GabowMaximumMatching::GabowMaximumMatching(NetworKit::Graph &graph, bool perfect) :
+        BlossomMaximumMatching(graph, perfect),
         current_blossom(graph.upperNodeIdBound(), nullptr),
         y(graph.upperNodeIdBound(), max_weight),
         best_edge(graph.upperNodeIdBound(), no_edge) {

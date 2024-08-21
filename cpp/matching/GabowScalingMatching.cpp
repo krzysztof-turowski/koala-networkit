@@ -19,34 +19,34 @@ NetworKit::Graph reduce_to_MWPM(const NetworKit::Graph& graph) {
     return G;
 }
 
-GabowScalingMatching::GabowScalingMatching(NetworKit::Graph &graph):
-    MaximumWeightMatching(graph),
-    reducedGraph(reduce_to_MWPM(graph)),
-    graph_edges(reducedGraph.upperEdgeIdBound()),
-    current_y(reducedGraph.upperNodeIdBound()),
-    trivial_blossom(reducedGraph.upperNodeIdBound(), nullptr),
-    matched_vertex(reducedGraph.upperNodeIdBound()),
-    matched_edge(reducedGraph.upperNodeIdBound()),
-    edge_in_matching(reducedGraph.upperEdgeIdBound()),
-    actual_to_contracted(reducedGraph.upperNodeIdBound()),
-    current_blossom(reducedGraph.upperNodeIdBound(), nullptr),
-    vertex_path(reducedGraph.upperNodeIdBound(), nullptr),
-    current_shell(reducedGraph.upperNodeIdBound()),
-    y0(reducedGraph.upperNodeIdBound()),
-    t_shell(reducedGraph.upperNodeIdBound()),
-    Delta(reducedGraph.upperNodeIdBound()),
-    search_shell(reducedGraph.upperNodeIdBound()),
-    union_find(reducedGraph.upperNodeIdBound()),
-    split_findmin(reducedGraph.upperNodeIdBound(), 1000000000, no_edge,
-        reducedGraph.numberOfNodes(), reducedGraph.numberOfEdges()) {
-        reducedGraph.forEdges([this] (NetworKit::node u, NetworKit::node v, NetworKit::edgeid e) {
+GabowScalingMatching::GabowScalingMatching(NetworKit::Graph &graph, bool perfect):
+    MaximumWeightMatching(graph, perfect),
+    workingGraph(perfect ? graph : reduce_to_MWPM(graph)),
+    graph_edges(workingGraph.upperEdgeIdBound()),
+    current_y(workingGraph.upperNodeIdBound()),
+    trivial_blossom(workingGraph.upperNodeIdBound(), nullptr),
+    matched_vertex(workingGraph.upperNodeIdBound()),
+    matched_edge(workingGraph.upperNodeIdBound()),
+    edge_in_matching(workingGraph.upperEdgeIdBound()),
+    actual_to_contracted(workingGraph.upperNodeIdBound()),
+    current_blossom(workingGraph.upperNodeIdBound(), nullptr),
+    vertex_path(workingGraph.upperNodeIdBound(), nullptr),
+    current_shell(workingGraph.upperNodeIdBound()),
+    y0(workingGraph.upperNodeIdBound()),
+    t_shell(workingGraph.upperNodeIdBound()),
+    Delta(workingGraph.upperNodeIdBound()),
+    search_shell(workingGraph.upperNodeIdBound()),
+    union_find(workingGraph.upperNodeIdBound()),
+    split_findmin(workingGraph.upperNodeIdBound(), 1000000000, no_edge,
+        workingGraph.numberOfNodes(), workingGraph.numberOfEdges()) {
+        workingGraph.forEdges([this] (NetworKit::node u, NetworKit::node v, NetworKit::edgeid e) {
             graph_edges[e] = {u, v};
         });
     }
 
 void GabowScalingMatching::run() {
-    std::vector<MaximumWeightMatching::intweight> w(reducedGraph.upperEdgeIdBound());
-    reducedGraph.forEdges(
+    std::vector<MaximumWeightMatching::intweight> w(workingGraph.upperEdgeIdBound());
+    workingGraph.forEdges(
         [&w] (NetworKit::node u, NetworKit::node v, NetworKit::edgeweight ew, NetworKit::edgeid e) {
             // Multiply all weights by 2 to ensure they're even
             w[e] = 2 * static_cast<MaximumWeightMatching::intweight>(ew);
@@ -79,6 +79,16 @@ std::vector<NetworKit::node> defaultMatching(const NetworKit::Graph& original_gr
     return M;
 }
 
+std::vector<NetworKit::node> getPerfectMatching(NetworKit::Graph& graph) {
+    MicaliVaziraniMatching mcm(graph);
+    mcm.run();
+    auto matching = mcm.getMatching();
+    std::vector<NetworKit::node> M(graph.upperNodeIdBound(), NetworKit::none);
+    for (auto [u, v] : matching)
+        M[u] = v;
+    return M;
+}
+
 std::tuple<
     std::vector<NetworKit::node>,
     std::vector<MaximumWeightMatching::intweight>,
@@ -90,16 +100,21 @@ GabowScalingMatching::scale(const std::vector<MaximumWeightMatching::intweight>&
         // The perfect matching consists of edges joining corresponding vertices in the reduced
         // graph
         OldBlossom* T = new OldBlossom;
-        T->size = reducedGraph.numberOfNodes();
+        T->size = workingGraph.numberOfNodes();
         T->z = 0;
         T->heavy_path_parent = nullptr;
         T->heavy_child = nullptr;
         T->dissolved = false;
-        reducedGraph.forNodes([T] (NetworKit::node v) {
+        workingGraph.forNodes([T] (NetworKit::node v) {
             T->nodes.push_back(v);
         });
         return std::make_tuple(
-            defaultMatching(graph), std::vector<int>(reducedGraph.upperNodeIdBound(), 0), T);
+            // Theoretically, the original graph could have only 0 weights, so we calculate the
+            // matching, even if in most cases it would be discarded
+            perfect ? getPerfectMatching(graph) : defaultMatching(graph),
+            std::vector<MaximumWeightMatching::intweight>(workingGraph.upperNodeIdBound(), 0), 
+            T
+        );
     }
 
     // Scale down weights
@@ -112,18 +127,21 @@ GabowScalingMatching::scale(const std::vector<MaximumWeightMatching::intweight>&
 
     current_w = w;
     old_root = T;
+
+    // Calculate the dual weights
     T->for_blossoms([this] (OldBlossom* B) {
         // Use weights from recursive call
         B->z = 2 * B->z;
     });
-    reducedGraph.forNodes([this, &y1] (NetworKit::node v) {
+    workingGraph.forNodes([this, &y1] (NetworKit::node v) {
         // Use weights from recursive call
         current_y[v] = 2 * y1[v] + 1;
         matched_vertex[v] = NetworKit::none;
         matched_edge[v] = NetworKit::none;
     });
-    // Reset matching
-    reducedGraph.forEdges([this] (NetworKit::node u, NetworKit::node v, NetworKit::edgeid e) {
+
+    // Reset the matching
+    workingGraph.forEdges([this] (NetworKit::node u, NetworKit::node v, NetworKit::edgeid e) {
         edge_in_matching[e] = false;
     });
     edges_in_matching = 0;
@@ -488,7 +506,7 @@ void GabowScalingMatching::augmentPaths() {
     if (highest_undissolved == nullptr) return;
 
     highest_undissolved->for_nodes([this, &edges, &T, &initial_matching] (NetworKit::node v) {
-        reducedGraph.forEdgesOf(v, [this, &edges, &T, &initial_matching]
+        workingGraph.forEdgesOf(v, [this, &edges, &T, &initial_matching]
             (NetworKit::node v, NetworKit::node u, NetworKit::edgeid e) {
                 // Contract blossoms, only consider tight edges within the same shell
                 if (vertex_path[u] != path_root || u < v || current_shell[v] != current_shell[u] ||
@@ -634,7 +652,7 @@ void GabowScalingMatching::finish_shell_search() {
         current_y[v] = y(v);
 
         // Record the ditributions done to v when it was in the search
-        Delta[v] += (std::min(event_queue.timeNow(), t_undissolvable) - t_shell[v]);
+        Delta[v] += std::max(0, (std::min(event_queue.timeNow(), t_undissolvable) - t_shell[v]));
     }
 
     for (auto B : active_shell->shell_blossoms) {
@@ -658,7 +676,6 @@ void GabowScalingMatching::finish_shell_search() {
     if (!active_shell->dissolved && active_shell != old_root) {
         // Calculate time the shell has been active
         auto distributed = event_queue.timeNow() - t_outer;
-
         active_shell->z -= 2 * distributed;
         add_distribution(active_shell, distributed);
     }
@@ -760,7 +777,7 @@ void GabowScalingMatching::schedule(NetworKit::node u) {
     } else {
         // The vertex u is newly even
         // Scan the edges adjacent to it
-        reducedGraph.forEdgesOf(u,
+        workingGraph.forEdgesOf(u,
                 [this] (NetworKit::node u, NetworKit::node v, NetworKit::edgeid id) {
             // Ignore neighbours outside the shell, inside the same blossom or matched to u
             if (edge_in_matching[id] || vertex_path[v] != path_root ||
@@ -930,7 +947,7 @@ void GabowScalingMatching::dissolveShell(OldBlossom* S) {
     S->z = 0;
 
     // Update dual weights distributed by the active shell
-    auto distributed = event_queue.timeNow() - t_outer;
+    auto distributed = active_shell == old_root ? 0 : event_queue.timeNow() - t_outer;
     active_shell->z -= 2 * distributed;
     z_boundary -= 2 * distributed;
     add_distribution(active_shell, distributed);
@@ -977,7 +994,7 @@ void GabowScalingMatching::dissolveShell(OldBlossom* S) {
                             Event::make_grow(v, no_edge));
 
                     // Check for edges connecting to even vertices to schedule grow events
-                    reducedGraph.forEdgesOf(v, [this, &edges_to_schedule]
+                    workingGraph.forEdgesOf(v, [this, &edges_to_schedule]
                             (NetworKit::node v, NetworKit::node u, NetworKit::edgeid id) {
                         // Check if the neighbours is in the current shell
                         if (vertex_path[u] != path_root || search_shell[u] != starting_shell)
@@ -1061,7 +1078,7 @@ void GabowScalingMatching::dissolveShell(OldBlossom* S) {
                     event_queue.scheduleEvent(event_queue.timeNow(), Event::make_grow(v, no_edge));
 
                 // Check for edges connecting to even vertices to schedule grow events
-                reducedGraph.forEdgesOf(v, [this, &edges_to_schedule]
+                workingGraph.forEdgesOf(v, [this, &edges_to_schedule]
                         (NetworKit::node v, NetworKit::node u, NetworKit::edgeid id) {
                     // Check if the neighbours is in the current shell
                     if (vertex_path[u] != path_root || search_shell[u] != starting_shell)
@@ -1360,7 +1377,7 @@ std::list<NetworKit::node> GabowScalingMatching::Blossom::node_list() {
 }
 
 bool GabowScalingMatching::matching_is_perfect() {
-    return edges_in_matching == reducedGraph.numberOfNodes() / 2;
+    return edges_in_matching == workingGraph.numberOfNodes() / 2;
 }
 
 GabowScalingMatching::Edge GabowScalingMatching::reverse(const Edge& info) {

@@ -2,12 +2,13 @@
 
 namespace Koala {
 
-BlossomMaximumMatching::BlossomMaximumMatching(NetworKit::Graph &graph):
-        MaximumWeightMatching(graph),
+BlossomMaximumMatching::BlossomMaximumMatching(NetworKit::Graph &graph, bool perfect):
+        MaximumWeightMatching(graph, perfect),
         finished(false),
         graph_edges(graph.upperEdgeIdBound(), {NetworKit::none, NetworKit::none, 0}),
         node_iter(graph.upperNodeIdBound()),
         is_in_matching(graph.upperEdgeIdBound(), false),
+        edges_in_matching(0),
         matched_vertex(graph.upperNodeIdBound(), NetworKit::none),
         matched_edge(graph.upperNodeIdBound(), NetworKit::none),
         trivial_blossom(graph.upperNodeIdBound(), nullptr) {
@@ -22,11 +23,7 @@ BlossomMaximumMatching::BlossomMaximumMatching(NetworKit::Graph &graph):
         max_weight = std::max(w, max_weight);
 
     graph.forNodes([this] (NetworKit::node vertex) {
-        Blossom* blossom = new Blossom {
-            nullptr, vertex, vertex, vertex, {}, {}, { vertex },
-            free, no_edge, false,
-            0, {}, nullptr
-        };
+        Blossom* blossom = Blossom::trivial(vertex);
         trivial_blossom[vertex] = blossom;
         node_iter[vertex] = blossom->nodes.begin();
         add_blossom(blossom);
@@ -68,6 +65,8 @@ void BlossomMaximumMatching::run_stage() {
     }
 
     finish_stage();
+
+    if (perfect && is_matching_perfect()) finished = true;
 }
 
 bool BlossomMaximumMatching::run_substage() {
@@ -214,8 +213,6 @@ void BlossomMaximumMatching::create_new_blossom(
     if (v_path.size() > 0 && v_path.back().blossom == u) u_path.clear();
     if (u_path.size() > 0 && u_path.back().blossom == v) v_path.clear();
 
-    Blossom* base = v_path.size() > 0 ? v_path.back().blossom : v;
-
     std::list<std::pair<Blossom*, Edge>> subblossoms;
 
     for (int i = v_path.size() - 1; i > 0; --i) {
@@ -230,10 +227,7 @@ void BlossomMaximumMatching::create_new_blossom(
         subblossoms.emplace_back(u_path[i].blossom, reverse(u_path[i].edge));
     }
 
-    Blossom* new_blossom = new Blossom {
-        nullptr, base->base, base->base, base->last_node, {}, subblossoms, {},
-        even, base->backtrack_edge, false, 0, {}, nullptr
-    };
+    Blossom* new_blossom = Blossom::nontrivial(subblossoms); 
 
     for (auto [b, edge] : subblossoms) {
         remove_blossom(b);
@@ -242,6 +236,8 @@ void BlossomMaximumMatching::create_new_blossom(
     add_blossom(new_blossom);
     handle_new_blossom(new_blossom);
 
+    // Only update the blossom list after the handle_new_blossom call so that 
+    // lists for individual subblosssoms are available there
     std::list<NetworKit::node> nodes;
     for (auto [b, edge] : subblossoms) {
         nodes.splice(nodes.end(), std::move(b->nodes));
@@ -254,10 +250,12 @@ void BlossomMaximumMatching::swap_edge_in_matching(NetworKit::edgeid edge) {
 
     if (is_in_matching[edge]) {
         is_in_matching[edge] = false;
+        edges_in_matching --;
         if (matched_vertex[u] == v) matched_vertex[u] = matched_edge[u] = NetworKit::none;
         if (matched_vertex[v] == u) matched_vertex[v] = matched_edge[v] = NetworKit::none;
     } else {
         is_in_matching[edge] = true;
+        edges_in_matching ++;
         matched_vertex[u] = v;
         matched_vertex[v] = u;
         matched_edge[u] = matched_edge[v] = edge;
@@ -391,7 +389,7 @@ bool BlossomMaximumMatching::is_exposed(BlossomMaximumMatching::Blossom* b) {
 }
 
 void BlossomMaximumMatching::adjust_dual_variables() {
-    auto delta1 = calc_delta1();  // min u_i : i - even vertex
+    auto delta1 = perfect ? infinite_weight : calc_delta1();  // min u_i : i - even vertex
     auto delta2 = calc_delta2();  // min pi_ij : i - even vertex, j - free vertex
     auto delta3 = calc_delta3();  // min pi_ij / 2 : i,j - even vertices in different blossoms
     auto delta4 = calc_delta4();  // min z_k : B_k - odd blossom
@@ -400,7 +398,7 @@ void BlossomMaximumMatching::adjust_dual_variables() {
 
     adjust_by_delta(delta);
 
-    if (delta == delta1) {
+    if (!perfect && delta == delta1) {
         // Optimal solution has been reached
         finished = true;
     } else if (delta == delta3) {
@@ -473,6 +471,10 @@ void BlossomMaximumMatching::expand_even_blossom(Blossom* blossom) {
     delete blossom;
 }
 
+bool BlossomMaximumMatching::is_matching_perfect() {
+    return 2 * edges_in_matching == graph.upperNodeIdBound();
+}
+
 void BlossomMaximumMatching::Blossom::delete_all_children() {
     for (auto [b, e] : subblossoms) {
         b->delete_all_children();
@@ -482,6 +484,24 @@ void BlossomMaximumMatching::Blossom::delete_all_children() {
 
 BlossomMaximumMatching::Blossom::~Blossom() {
     if (data != nullptr) delete data;
+}
+
+BlossomMaximumMatching::Blossom* 
+BlossomMaximumMatching::Blossom::trivial(NetworKit::node vertex) {
+    return new Blossom {
+        nullptr, vertex, vertex, vertex, {}, {}, { vertex },
+        free, no_edge, false,
+        0, {}, nullptr
+    };
+}
+
+BlossomMaximumMatching::Blossom* 
+BlossomMaximumMatching::Blossom::nontrivial(const SubblossomList& subblossoms) {
+    Blossom* base = subblossoms.back().first;
+    return new Blossom {
+        nullptr, base->base, base->base, base->last_node, {}, subblossoms, {},
+        even, base->backtrack_edge, false, 0, {}, nullptr
+    };
 }
 
 bool BlossomMaximumMatching::Blossom::is_trivial() {

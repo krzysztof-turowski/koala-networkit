@@ -36,7 +36,8 @@ class MaximumWeightMatching :  public NetworKit::Algorithm {
      *
      * @param graph The input graph.
      */
-    explicit MaximumWeightMatching(NetworKit::Graph &graph) : graph(graph) {}
+    explicit MaximumWeightMatching(NetworKit::Graph &graph, bool perfect = false): 
+        graph(graph), perfect(perfect) {}
 
     /**
      * Return the matching found by the algorithm.
@@ -52,6 +53,7 @@ class MaximumWeightMatching :  public NetworKit::Algorithm {
     static constexpr weight infinite_weight = std::numeric_limits<weight>::max();
 
     NetworKit::Graph graph;
+    bool perfect;
 
     std::map<NetworKit::node, NetworKit::node> matching;
 };
@@ -63,7 +65,7 @@ class MaximumWeightMatching :  public NetworKit::Algorithm {
 */
 class BlossomMaximumMatching :  public MaximumWeightMatching {
  public:
-    explicit BlossomMaximumMatching(NetworKit::Graph &graph);
+    explicit BlossomMaximumMatching(NetworKit::Graph &graph, bool perfect);
 
     /**
      * Execute the Edmonds maximum matching algorithm.
@@ -92,6 +94,10 @@ class BlossomMaximumMatching :  public MaximumWeightMatching {
         using SubblossomList = std::list<std::pair<Blossom*, Edge>>;
 
         class BlossomData { public: virtual ~BlossomData() {} };
+
+        static Blossom* trivial(NetworKit::node vertex);
+        static Blossom* nontrivial(const SubblossomList& subblossoms);
+
         Blossom* parent;
 
         // Base of the blossom at the moment of creation
@@ -159,6 +165,7 @@ class BlossomMaximumMatching :  public MaximumWeightMatching {
 
     // For each edge store wether it's in the current matching
     std::vector<bool> is_in_matching;
+    NetworKit::count edges_in_matching;
 
     // For each vertex store the vertex it's match and the id of the edge by which they're matched
     std::vector<NetworKit::node> matched_vertex;
@@ -230,6 +237,8 @@ class BlossomMaximumMatching :  public MaximumWeightMatching {
 
     bool is_exposed(Blossom* b);
 
+    bool is_matching_perfect();
+
     virtual Blossom* get_blossom(NetworKit::node vertex) = 0;
 };
 
@@ -239,7 +248,7 @@ class BlossomMaximumMatching :  public MaximumWeightMatching {
  */
 class EdmondsMaximumMatching final :  public BlossomMaximumMatching {
  public:
-    explicit EdmondsMaximumMatching(NetworKit::Graph &graph);
+    explicit EdmondsMaximumMatching(NetworKit::Graph &graph, bool perfect = true);
 
  private:
     // For each vertex store it's current blossom and the value of corresponding dual variable
@@ -288,7 +297,7 @@ class EdmondsMaximumMatching final :  public BlossomMaximumMatching {
  */
 class GabowMaximumMatching final :  public BlossomMaximumMatching {
  public:
-    explicit GabowMaximumMatching(NetworKit::Graph &graph);
+    explicit GabowMaximumMatching(NetworKit::Graph &graph, bool perfect = true);
 
  private:
     class GabowBlossomData :  public Blossom::BlossomData {
@@ -357,7 +366,7 @@ class GabowMaximumMatching final :  public BlossomMaximumMatching {
  */
 class GalilMicaliGabowMaximumMatching final :  public BlossomMaximumMatching {
  public:
-    explicit GalilMicaliGabowMaximumMatching(NetworKit::Graph &graph);
+    explicit GalilMicaliGabowMaximumMatching(NetworKit::Graph &graph, bool perfect = true);
 
  private:
     using BlossomNodeList = ConcatenableQueue<NetworKit::node, NetworKit::node, Blossom*>;
@@ -448,7 +457,7 @@ class GalilMicaliGabowMaximumMatching final :  public BlossomMaximumMatching {
  */
 class GabowScalingMatching :  public MaximumWeightMatching {
  public:
-    explicit GabowScalingMatching(NetworKit::Graph &graph);
+    explicit GabowScalingMatching(NetworKit::Graph &graph, bool perfect = false);
 
     /**
      * Execute the Gabow scaling maximum matching algorithm.
@@ -540,8 +549,9 @@ class GabowScalingMatching :  public MaximumWeightMatching {
         void for_blossoms(const std::function<void(OldBlossom*)>& handle);
     };
 
-    // Initial graph reduced to an instance of a maximum perfect matching problem
-    NetworKit::Graph reducedGraph;
+    // The working graph. It is the same as the provided graph when a perfect matching is sought.
+    // Otherwise, it is the original graph reduced to an instance of MWPM.
+    NetworKit::Graph workingGraph;
     std::vector<std::pair<NetworKit::node, NetworKit::node>> graph_edges;
 
     // Current edge weights and vertex dual variables
