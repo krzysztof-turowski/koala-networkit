@@ -112,9 +112,8 @@ GabowScalingMatching::scale(const std::vector<MaximumWeightMatching::intweight>&
             // Theoretically, the original graph could have only 0 weights, so we calculate the
             // matching, even if in most cases it would be discarded
             perfect ? getPerfectMatching(graph) : defaultMatching(graph),
-            std::vector<MaximumWeightMatching::intweight>(workingGraph.upperNodeIdBound(), 0), 
-            T
-        );
+            std::vector<MaximumWeightMatching::intweight>(workingGraph.upperNodeIdBound(), 0),
+            T);
     }
 
     // Scale down weights

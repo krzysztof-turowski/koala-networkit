@@ -227,7 +227,7 @@ void BlossomMaximumMatching::create_new_blossom(
         subblossoms.emplace_back(u_path[i].blossom, reverse(u_path[i].edge));
     }
 
-    Blossom* new_blossom = Blossom::nontrivial(subblossoms); 
+    Blossom* new_blossom = Blossom::nontrivial(subblossoms);
 
     for (auto [b, edge] : subblossoms) {
         remove_blossom(b);
@@ -236,7 +236,7 @@ void BlossomMaximumMatching::create_new_blossom(
     add_blossom(new_blossom);
     handle_new_blossom(new_blossom);
 
-    // Only update the blossom list after the handle_new_blossom call so that 
+    // Only update the blossom list after the handle_new_blossom call so that
     // lists for individual subblosssoms are available there
     std::list<NetworKit::node> nodes;
     for (auto [b, edge] : subblossoms) {
@@ -250,12 +250,12 @@ void BlossomMaximumMatching::swap_edge_in_matching(NetworKit::edgeid edge) {
 
     if (is_in_matching[edge]) {
         is_in_matching[edge] = false;
-        edges_in_matching --;
+        edges_in_matching--;
         if (matched_vertex[u] == v) matched_vertex[u] = matched_edge[u] = NetworKit::none;
         if (matched_vertex[v] == u) matched_vertex[v] = matched_edge[v] = NetworKit::none;
     } else {
         is_in_matching[edge] = true;
-        edges_in_matching ++;
+        edges_in_matching++;
         matched_vertex[u] = v;
         matched_vertex[v] = u;
         matched_edge[u] = matched_edge[v] = edge;
@@ -486,7 +486,7 @@ BlossomMaximumMatching::Blossom::~Blossom() {
     if (data != nullptr) delete data;
 }
 
-BlossomMaximumMatching::Blossom* 
+BlossomMaximumMatching::Blossom*
 BlossomMaximumMatching::Blossom::trivial(NetworKit::node vertex) {
     return new Blossom {
         nullptr, vertex, vertex, vertex, {}, {}, { vertex },
@@ -495,7 +495,7 @@ BlossomMaximumMatching::Blossom::trivial(NetworKit::node vertex) {
     };
 }
 
-BlossomMaximumMatching::Blossom* 
+BlossomMaximumMatching::Blossom*
 BlossomMaximumMatching::Blossom::nontrivial(const SubblossomList& subblossoms) {
     Blossom* base = subblossoms.back().first;
     return new Blossom {

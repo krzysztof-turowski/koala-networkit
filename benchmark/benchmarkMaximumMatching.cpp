@@ -41,7 +41,7 @@ bool check_matching_perfect(const std::map<NetworKit::node, NetworKit::node>& ma
 
 int main(int argc, char **argv) {
     if (argc < 3) {
-        std::cout << "Usage: " << argv[0] << " algorithm filename [--pefrect]" << std::endl;
+        std::cout << "Usage: " << argv[0] << " algorithm filename [--pefrect] [--check-has-perfect]" << std::endl;
         return 1;
     }
     std::string algorithm(argv[1]);
@@ -51,13 +51,21 @@ int main(int argc, char **argv) {
         return 1;
     }
     bool perfect = false;
-    if (argc > 3 && std::string(argv[3]) == "--perfect") {
-        perfect = true;
-    } 
+    bool checkPerfect = false;
+    for (int i = 3; i < argc; ++ i) {
+        auto option = std::string(argv[i]);
+        if (option == "--perfect") perfect = true;
+        else if (option == "--check-has-perfect") checkPerfect = true;
+        else {
+            std::cout << "Unknown option " << option << std::endl;
+            return 1;
+        }
+    }
+
     auto G = Koala::DimacsGraphReader().read(path);
     G.indexEdges(true);
 
-    if (perfect) {
+    if (perfect && checkPerfect) {
         Koala::MicaliVaziraniMatching mcm(G);
         mcm.run();
         if (!check_matching_perfect(mcm.getMatching())) {

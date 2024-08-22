@@ -36,7 +36,7 @@ class MaximumWeightMatching :  public NetworKit::Algorithm {
      *
      * @param graph The input graph.
      */
-    explicit MaximumWeightMatching(NetworKit::Graph &graph, bool perfect = false): 
+    explicit MaximumWeightMatching(NetworKit::Graph &graph, bool perfect = false) :
         graph(graph), perfect(perfect) {}
 
     /**
