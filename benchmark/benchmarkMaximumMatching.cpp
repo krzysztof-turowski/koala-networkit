@@ -6,12 +6,15 @@
 #include <matching/MaximumMatching.hpp>
 #include <io/DimacsGraphReader.hpp>
 
+enum OutputFormat { weight, csv };
+
 struct Arguments {
     std::string algorithm;
     std::string filename;
     bool perfect;
     bool checkPerfect;
     Koala::BlossomMaximumMatching::InitializationStrategy initialization;
+    OutputFormat outputFormat;
 };
 
 Arguments parseArguments(int argc, char**argv) {
@@ -22,7 +25,8 @@ Arguments parseArguments(int argc, char**argv) {
     // Check if required arguments are present
     if (argc < 3) {
         std::cout << "Usage: " << argv[0] << " algorithm filename" 
-            << "[--pefrect] [--check-has-perfect] [--initialization=<strategy>]" << std::endl;
+            << "[--pefrect] [--check-has-perfect] [--initialization=<strategy>]"
+            << "[--output=<output format>]" << std::endl;
         exit(1);
     }
 
@@ -42,6 +46,7 @@ Arguments parseArguments(int argc, char**argv) {
     args.perfect = false;
     args.checkPerfect = false;
     args.initialization = Koala::BlossomMaximumMatching::InitializationStrategy::empty;
+    args.outputFormat = weight;
     for (int i = 2; i < all_args.size(); ++ i) {
         std::string option = all_args[i];
 
@@ -56,7 +61,18 @@ Arguments parseArguments(int argc, char**argv) {
             else if (initOption == "greedy")
                 args.initialization = Koala::BlossomMaximumMatching::InitializationStrategy::greedy;
             else {
-                std::cout << "Unknown initialization option " << initOption << std::endl;
+                std::cout << "Unknown initialization option '" << initOption << "'" << std::endl;
+                exit(1);
+            }
+        } else if (option.starts_with("--output=")) {
+            std::string outputOption = option.substr(9);
+            if (outputOption == "weight") {
+                args.outputFormat = weight;
+            } else if (outputOption == "csv") {
+                args.outputFormat = csv;
+            } else {
+                std::cout << "Unknown output format option '" << outputOption << "'" << std::endl;
+                exit(1);
             }
         } else {
             std::cout << "Unknown option " << option << std::endl;
@@ -78,7 +94,7 @@ bool check_matching_perfect(NetworKit::Graph& G) {
     return true;
 }
 
-Koala::MaximumWeightMatching* get_algorithm(const Arguments& args, NetworKit::Graph& G) {
+Koala::MaximumWeightMatching* get_algorithm(NetworKit::Graph& G, const Arguments& args) {
     if (args.algorithm == "edmonds") {
         return new Koala::EdmondsMaximumMatching(G, args.perfect, args.initialization);
     } else if (args.algorithm == "gabow") {
@@ -93,28 +109,49 @@ Koala::MaximumWeightMatching* get_algorithm(const Arguments& args, NetworKit::Gr
     }
 }
 
-int calc_matching_weight(
+std::pair<int, int> calc_matching_weight(
         const NetworKit::Graph& G, const std::map<NetworKit::node, NetworKit::node> matching) {
     int weight = 0;
+    int cardinality = 0;
     for (auto [u, v] : matching) {
-        if (v != NetworKit::none)
+        if (v != NetworKit::none) {
             weight += static_cast<int>(G.weight(u, v));
+            cardinality++;
+        }
     }
-    return weight / 2;
+    return {weight, cardinality};
 }
 
-void test_algorithm(NetworKit::Graph& G, Koala::MaximumWeightMatching* algorithm) {
+void test_algorithm(NetworKit::Graph& G, Arguments args) {
     auto start = std::chrono::high_resolution_clock::now();
+    auto algorithm = get_algorithm(G, args);
     algorithm->run();
     auto end = std::chrono::high_resolution_clock::now();
 
-    std::chrono::duration<double> elapsed_seconds = end - start;
+    auto elapsed_time = end - start;
+    auto microseconds = elapsed_time.count() / 1000;
 
     auto matching = algorithm->getMatching();
-    auto weight = calc_matching_weight(G, matching);
-    
-    std::cout << "Time: " << elapsed_seconds.count() << "s\n";
-    std::cout << weight << std::endl;
+    auto [weight, cardinality] = calc_matching_weight(G, matching);
+
+    if (args.outputFormat == OutputFormat::weight) {
+        std::cout << weight << std::endl;
+    } else {
+        std::cout
+            << args.filename << ","
+            << G.upperNodeIdBound() << ","
+            << G.upperEdgeIdBound() << ","
+            << args.algorithm << ","
+            << (args.perfect ? "perfect" : "weight") << ","
+            << (args.initialization == Koala::BlossomMaximumMatching::InitializationStrategy::empty
+                ? "empty" : "greedy") << ","
+            << weight << ","
+            << cardinality << ","
+            << microseconds
+            << std::endl;
+    }
+
+    delete algorithm;
 }
 
 int main(int argc, char **argv) {
@@ -131,11 +168,8 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
-    // Run algorithm and clean up
-    auto algorithm = get_algorithm(args, G);
-    test_algorithm(G, algorithm);
-
-    delete algorithm;
+    // Run algorithm
+    test_algorithm(G, args);
 
     return 0;
 }
