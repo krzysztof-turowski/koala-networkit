@@ -2,10 +2,10 @@
 
 namespace Koala {
 
-EdmondsMaximumMatching::EdmondsMaximumMatching(NetworKit::Graph &graph, bool perfect) :
-        BlossomMaximumMatching(graph, perfect),
-        current_blossom(graph.upperNodeIdBound(), nullptr),
-        y(graph.upperNodeIdBound(), max_weight / 2) {
+EdmondsMaximumMatching::EdmondsMaximumMatching(
+    NetworKit::Graph &graph, bool perfect, InitializationStrategy initialization):
+        BlossomMaximumMatching(graph, perfect, initialization),
+        current_blossom(graph.upperNodeIdBound(), nullptr) {
     graph.forNodes([this] (NetworKit::node vertex) {
         current_blossom[vertex] = trivial_blossom[vertex];
     });

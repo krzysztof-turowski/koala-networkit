@@ -2,16 +2,18 @@
 
 namespace Koala {
 
-BlossomMaximumMatching::BlossomMaximumMatching(NetworKit::Graph &graph, bool perfect):
+BlossomMaximumMatching::BlossomMaximumMatching(
+    NetworKit::Graph &graph, bool perfect, InitializationStrategy initialization):
         MaximumWeightMatching(graph, perfect),
         finished(false),
-        graph_edges(graph.upperEdgeIdBound(), {NetworKit::none, NetworKit::none, 0}),
+        graph_edges(graph.upperEdgeIdBound()),
         node_iter(graph.upperNodeIdBound()),
         is_in_matching(graph.upperEdgeIdBound(), false),
         edges_in_matching(0),
         matched_vertex(graph.upperNodeIdBound(), NetworKit::none),
         matched_edge(graph.upperNodeIdBound(), NetworKit::none),
-        trivial_blossom(graph.upperNodeIdBound(), nullptr) {
+        trivial_blossom(graph.upperNodeIdBound(), nullptr),
+        y(graph.upperNodeIdBound()) {
     graph.forEdges([this] (
             NetworKit::node u, NetworKit::node v,
             NetworKit::edgeweight weight, NetworKit::edgeid id) {
@@ -28,12 +30,49 @@ BlossomMaximumMatching::BlossomMaximumMatching(NetworKit::Graph &graph, bool per
         node_iter[vertex] = blossom->nodes.begin();
         add_blossom(blossom);
     });
+
+    initialize(initialization);
 }
 
 BlossomMaximumMatching::~BlossomMaximumMatching() {
     for (auto b : blossoms) {
         b->delete_all_children();
         delete b;
+    }
+}
+
+void BlossomMaximumMatching::initialize(
+    BlossomMaximumMatching::InitializationStrategy initialization) {
+    switch (initialization) {
+    case empty:
+        graph.forNodes([this] (NetworKit::node v) {
+            y[v] = max_weight / 2;
+        });
+
+        return;
+    case greedy:
+        graph.forNodes([this] (NetworKit::node v) {
+            y[v] = 0;
+        });
+
+        graph.forEdges([this] (NetworKit::node u, NetworKit::node v, NetworKit::edgeid e) {
+            auto [_, __, w] = graph_edges[e];
+            std::get<2>(graph_edges[e]) = 2 * w;
+            y[u] = std::max(y[u], w);
+            y[v] = std::max(y[v], w);
+        });
+
+        graph.forEdges([this] (NetworKit::node u, NetworKit::node v, NetworKit::edgeid e) {
+            auto [_, __, w] = graph_edges[e];
+
+            if (y[u] + y[v] > w ||
+                matched_vertex[u] != NetworKit::none || matched_vertex[v] != NetworKit::none)
+                return;
+
+            swap_edge_in_matching(e);
+        });
+
+        return;
     }
 }
 

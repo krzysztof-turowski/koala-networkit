@@ -2,13 +2,13 @@
 
 namespace Koala {
 
-GalilMicaliGabowMaximumMatching::GalilMicaliGabowMaximumMatching
-    (NetworKit::Graph &graph, bool perfect) :
-        BlossomMaximumMatching(graph, perfect),
+GalilMicaliGabowMaximumMatching::GalilMicaliGabowMaximumMatching(
+    NetworKit::Graph &graph, bool perfect, InitializationStrategy initialization):
+        BlossomMaximumMatching(graph, perfect, initialization),
         nodes_refs(graph.upperNodeIdBound()),
         y_even(graph.upperNodeIdBound()),
         y_odd(graph.upperNodeIdBound()),
-        y_free(graph.upperNodeIdBound(), max_weight / 2),
+        y_free(y),
         z_even(graph.upperNodeIdBound()),
         z_odd(graph.upperNodeIdBound()),
         good_edges(graph.upperEdgeIdBound()),
@@ -367,14 +367,12 @@ MaximumWeightMatching::weight GalilMicaliGabowMaximumMatching::calc_delta1() {
 MaximumWeightMatching::weight GalilMicaliGabowMaximumMatching::calc_delta2() {
     // Find the even edge with the smallest slack
     // min pi_ij : i - even vertex, j - free vertex
-
     return even_edges.has_active_elements() ? even_edges.find_min().second : infinite_weight;
 }
 
 MaximumWeightMatching::weight GalilMicaliGabowMaximumMatching::calc_delta3() {
     // Find the good edge with smallest slack
     // min pi_ij / 2 : i,j - even vertices in different blossoms
-
     // Some edges might no longer be good and have to be removed
     clear_not_good_edges();
     return good_edges.empty() ? infinite_weight : good_edges.find_min().second / 2;
@@ -383,7 +381,6 @@ MaximumWeightMatching::weight GalilMicaliGabowMaximumMatching::calc_delta3() {
 MaximumWeightMatching::weight GalilMicaliGabowMaximumMatching::calc_delta4() {
     // Find the odd blossom with minimum dual weight
     // min z_k / 2 : B_k - odd blossom
-
     return z_odd.empty() ? infinite_weight : z_odd.find_min().second / 2;
 }
 
@@ -407,7 +404,7 @@ GalilMicaliGabowMaximumMatching::get_blossom(NetworKit::node vertex) {
     return nodes_refs[vertex]->find_queue()->root_id;
 }
 
-MaximumWeightMatching::weight GalilMicaliGabowMaximumMatching::y(NetworKit::node v) {
+MaximumWeightMatching::weight GalilMicaliGabowMaximumMatching::current_y(NetworKit::node v) {
     // Find the current dual weight for a vertex depending on it's label
     auto b = get_blossom(v);
     switch (b->label) {
@@ -420,19 +417,7 @@ MaximumWeightMatching::weight GalilMicaliGabowMaximumMatching::y(NetworKit::node
 
 MaximumWeightMatching::weight GalilMicaliGabowMaximumMatching::slack(NetworKit::edgeid edge) {
     auto [u, v, w] = graph_edges[edge];
-    auto u_blossom = get_blossom(u);
-    auto v_blossom = get_blossom(v);
-    return y(u) + y(v) - w + (u_blossom == v_blossom ? z(u_blossom) : 0);
-}
-
-MaximumWeightMatching::weight GalilMicaliGabowMaximumMatching::z(Blossom* b) {
-    // Find the dual weight for a blossom depending on it's label
-    switch (b->label) {
-        case free: return b->z;
-        case even: return z_even.current_priority(b->initial_base);
-        case odd:  return z_odd.current_priority(b->initial_base);
-    }
-    return 0;
+    return current_y(u) + current_y(v) - w;
 }
 
 } /* namespace Koala */

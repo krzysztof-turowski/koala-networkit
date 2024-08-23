@@ -65,7 +65,10 @@ class MaximumWeightMatching :  public NetworKit::Algorithm {
 */
 class BlossomMaximumMatching :  public MaximumWeightMatching {
  public:
-    explicit BlossomMaximumMatching(NetworKit::Graph &graph, bool perfect);
+    enum InitializationStrategy { empty, greedy };
+
+    explicit BlossomMaximumMatching(
+        NetworKit::Graph &graph, bool perfect, InitializationStrategy initialization);
 
     /**
      * Execute the Edmonds maximum matching algorithm.
@@ -174,6 +177,11 @@ class BlossomMaximumMatching :  public MaximumWeightMatching {
     // For each vertex store it's corresponding trivial blossom
     std::vector<Blossom*> trivial_blossom;
 
+    // Contains initial dual weights y_v for all vertices can be changed by implementations
+    std::vector<MaximumWeightMatching::weight> y;
+
+    void initialize(InitializationStrategy initialization);
+
     void run_stage();
     virtual void initialize_stage() = 0;
     virtual void finish_stage() = 0;
@@ -248,12 +256,14 @@ class BlossomMaximumMatching :  public MaximumWeightMatching {
  */
 class EdmondsMaximumMatching final :  public BlossomMaximumMatching {
  public:
-    explicit EdmondsMaximumMatching(NetworKit::Graph &graph, bool perfect = true);
+    explicit EdmondsMaximumMatching(
+        NetworKit::Graph &graph,
+        bool perfect = true,
+        InitializationStrategy initialization = empty);
 
  private:
     // For each vertex store it's current blossom and the value of corresponding dual variable
     std::vector<Blossom*> current_blossom;
-    std::vector<MaximumWeightMatching::weight> y;
 
     // Queue of tight edges
     std::queue<Edge> edge_queue;
@@ -297,7 +307,9 @@ class EdmondsMaximumMatching final :  public BlossomMaximumMatching {
  */
 class GabowMaximumMatching final :  public BlossomMaximumMatching {
  public:
-    explicit GabowMaximumMatching(NetworKit::Graph &graph, bool perfect = true);
+    explicit GabowMaximumMatching(NetworKit::Graph &graph,
+    bool perfect = true,
+    InitializationStrategy initialization = empty);
 
  private:
     class GabowBlossomData :  public Blossom::BlossomData {
@@ -323,7 +335,6 @@ class GabowMaximumMatching final :  public BlossomMaximumMatching {
 
     // For each vertex store it's current blossom and the value of it's corresponding dual variable
     std::vector<Blossom*> current_blossom;
-    std::vector<MaximumWeightMatching::weight> y;
 
     // For each non even vertex store an edge connecting it to an even vertex with minimum slack
     std::vector<Edge> best_edge;
@@ -366,7 +377,10 @@ class GabowMaximumMatching final :  public BlossomMaximumMatching {
  */
 class GalilMicaliGabowMaximumMatching final :  public BlossomMaximumMatching {
  public:
-    explicit GalilMicaliGabowMaximumMatching(NetworKit::Graph &graph, bool perfect = true);
+    explicit GalilMicaliGabowMaximumMatching(
+        NetworKit::Graph &graph,
+        bool perfect = true,
+        InitializationStrategy initialization = empty);
 
  private:
     using BlossomNodeList = ConcatenableQueue<NetworKit::node, NetworKit::node, Blossom*>;
@@ -397,12 +411,12 @@ class GalilMicaliGabowMaximumMatching final :  public BlossomMaximumMatching {
     PriorityQueue1<NetworKit::node, MaximumWeightMatching::weight, NetworKit::node> y_even;
     PriorityQueue1<NetworKit::node, MaximumWeightMatching::weight, NetworKit::node> y_odd;
     std::vector<MaximumWeightMatching::weight> y_free;
-    MaximumWeightMatching::weight y(NetworKit::node v);
+    MaximumWeightMatching::weight current_y(NetworKit::node v);
 
     // Used to maintain dual variables for blossoms
     PriorityQueue1<NetworKit::node, MaximumWeightMatching::weight, Blossom*> z_even;
     PriorityQueue1<NetworKit::node, MaximumWeightMatching::weight, Blossom*> z_odd;
-    MaximumWeightMatching::weight z(Blossom* b);
+    MaximumWeightMatching::weight current_z(Blossom* b);
 
     // Used to maintain slack of edges between even vertices in different blossoms
     // Needed to calculate delta_3

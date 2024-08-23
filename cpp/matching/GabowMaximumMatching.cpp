@@ -2,10 +2,10 @@
 
 namespace Koala {
 
-GabowMaximumMatching::GabowMaximumMatching(NetworKit::Graph &graph, bool perfect) :
-        BlossomMaximumMatching(graph, perfect),
+GabowMaximumMatching::GabowMaximumMatching(
+    NetworKit::Graph &graph, bool perfect, InitializationStrategy initialization):
+        BlossomMaximumMatching(graph, perfect, initialization),
         current_blossom(graph.upperNodeIdBound(), nullptr),
-        y(graph.upperNodeIdBound(), max_weight),
         best_edge(graph.upperNodeIdBound(), no_edge) {
     // Sort the edges for efficient best edge list contstruction
     graph.sortEdges();
