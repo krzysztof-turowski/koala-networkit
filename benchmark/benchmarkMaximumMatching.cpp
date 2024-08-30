@@ -109,9 +109,9 @@ Koala::MaximumWeightMatching* get_algorithm(NetworKit::Graph& G, const Arguments
     }
 }
 
-std::pair<int, int> calc_matching_weight(
+std::pair<long long int, int> calc_matching_weight(
         const NetworKit::Graph& G, const std::map<NetworKit::node, NetworKit::node> matching) {
-    int weight = 0;
+    long long int weight = 0;
     int cardinality = 0;
     for (auto [u, v] : matching) {
         if (v != NetworKit::none) {
@@ -119,7 +119,7 @@ std::pair<int, int> calc_matching_weight(
             cardinality++;
         }
     }
-    return {weight, cardinality};
+    return {weight / 2, cardinality / 2};
 }
 
 void test_algorithm(NetworKit::Graph& G, Arguments args) {

@@ -1,1 +1,230 @@
-TODO
+All the algorithms described in the previous chapter have been implemented as part of the KOALA library~\cite{koala-networkit} built on top of NetworKit(TODO cite). 
+
+The implementations are contained in following files:
+
+\begin{itemize}
+    \item \texttt{include/matching/MaximumMatching.hpp} contains declarations of classes corresponding to maximum matching algorithms, namely: \begin{itemize}
+        \item \texttt{MaximumWeightMatching} - the base class for \textsc{MWM} and \textsc{MWPM} algorithms,
+        \item \texttt{BlossomMaximumMatching} - an abstract base class for implementations of the blossom algorithm. Responsible for the common operations shared by all implementations - building the search tree, creating blossoms, augmenting paths, expanding blossom and others. It relies on call virtual methods implemented by children classes to perform implementation-specific parts of the algorithm. One such part is calculating the $\delta_i$ values during dual weight adjustment. Another one is finding useful edges to perform the next step. After each step of the algorithm, specific virtual methods are called to allow the implementations to update their specific data structures.
+        \item \texttt{EdmondsMaximumMatching} - the Edmond's original $O(n^m)$ version of the blossom algorithm~\cite{edmonds1965maximum},
+        \item \texttt{GabowMaximumMatching} - the Gabow's $O(n^3)$ implementation of the blossom algorithm~\cite{gabow1974implementation},
+        \item \texttt{GalilMicaliGabowMaximumMatching} - the $O(nm\log n)$ implementation of the blossom algorithm of~\cite{galil1986ev},
+        \item \texttt{GabowScalingMatching} - the $O(n^{3/4}m\log N)$ scaling algorithm~\cite{gabow1984scaling},
+        \item \texttt{MaximumCardinalityMatching} - base class for \textsc{MCM} algorithms,
+        \item \texttt{MicaliVaziraniMatching} - the class for the implementation of the Micali-Vazirani maximum cardinality matching algorithm~\cite{micali1980v}.
+    \end{itemize}
+    \item \texttt{include/matching/structures} directory contains the implementations of various data structures utilized across the implemented algorithms: \begin{itemize}
+        \item \texttt{ArrayPriorityQueue.hpp} - contains the implementation of a simple array priority queue used by the scaling algorithm,
+        \item \texttt{ConcatenableQueue.hpp} - contains the implementation of concatenable queues,
+        \item \texttt{FenwickTree.hpp} - contains an implementation of the $addprefixsum$ data strucutre based the Fenwick trees,
+        \item \texttt{HeapWithRemove.hpp} - contains a simple implementation of an array based heap with ability to remove elements, used by the $pq_1$ priority queue implementation,
+        \item \texttt{PriorityQueues.hpp} - contains the implementations \texttt{PriorityQueue1} and \texttt{PriorityQueue2} of the $pq_1$ and $pq_2$ priority queues,
+        \item \texttt{SplitFindMin.hpp} - contains the splitting list implementation of the $splitfindmin$ data structure,
+        \item \texttt{UnionFind.hpp} - contains the implementation of the $unionfind$ data structure.
+    \end{itemize}
+    \item \texttt{cpp/matching} contains the implementation of the classes defined in the \texttt{MaximumMatching.hpp} header file,
+    \item \texttt{test/testMaximumMatching.cpp} contains simple unit tests for the implemented algorithms,
+    \item \texttt{benchmark/benchmarkMaximumMatching.cpp} contains the program used to benchmark the various algorithms on provided graphs with various options.
+\end{itemize}
+
+All tests were conducted on a personal computer equipped with an Intel Core i7-6700HQ processor running at a clock speed of 2.60 GHz, using the Ubuntu 22.04.4 LTS operating system.
+
+We've made use of test generators provided as part of the 1st DIMACS implementation challenge~\cite{rutgersDIMACSImplementation}.
+
+\subsubsection*{Random instances}
+
+The first class of graphs we've tested are random sparse and dense graphs generated using the \texttt{random.c} generator from the DIMACS challenge written by C. McGeoch. The program generates a random graph with a provided number of nodes and edges with weights uniformly chosen from a specified range $[1, N]$. It is also possible to specify a seed used to generate random numbers. For all of our test we've set the maximum cost at $2^{16}$. For each pair of values $n$ and $m$ we've generated $3$ different graphs using random seeds and then average the running time.
+
+Our set of sparse graphs consists of graphs with varying values of $n$ and $m = a n$ where $a \in \{2, 4, 8 \}$. The results are presented in~\ref{tab:sparse}. We use the letter $E$ to refer to our implementation of Edmonds' algorithm, $G$ to Gabow's blossom algorithm, $M$ to Galil, Micali and Gabow's algorithm and $S$ to Gabow's scaling algorithm. We will refer to them using those letters. 
+As our set of dense graphs we've chosen random graphs with $n \in \{ 1000, 2000, 3000, 4000 \}$ and containing approximately $20\%$, $40\%$ and $60\%$ possible edges with results presented in~\ref{tab:dense}. In both cases the scaling algorithm performs the best. Among our implementations of the blossom algorithm, $M$ runs fastest for some smaller test, but gets overtaken by $E$ for larger instances. The $G$ implementation is consistently the slowest.
+
+\begin{table}
+\centering
+\begin{tabular}{cc|cccc}
+$n$ & $m$ & $E$ & $G$ & $M$ & $S$ \\
+\hline
+1000 & 2000 & 0.15 & 0.17 & \textbf{0.13} & 0.20 \\
+1000 & 4000 & 0.28 & 0.25 & \textbf{0.21} & 0.25 \\
+1000 & 8000 & 0.57 & 0.39 & 0.35 & \textbf{0.29} \\
+2000 & 4000 & 0.59 & 0.76 & 0.54 & \textbf{0.44} \\
+2000 & 8000 & 1.17 & 1.22 & 0.90 & \textbf{0.59} \\
+2000 & 16000 & 2.14 & 1.75 & 1.45 & \textbf{0.69} \\
+4000 & 8000 & 2.39 & 3.33 & 2.36 & \textbf{1.29} \\
+4000 & 16000 & 4.54 & 5.35 & 3.85 & \textbf{1.72} \\
+4000 & 32000 & 8.61 & 8.15 & 6.34 & \textbf{2.73} \\
+8000 & 16000 & 9.48 & 14.91 & 13.90 & \textbf{4.05} \\
+8000 & 32000 & 18.30 & 27.09 & 24.45 & \textbf{5.41} \\
+8000 & 64000 & 34.24 & 50.38 & 42.33 & \textbf{8.77} \\
+16000 & 32000 & 43.03 & 93.19 & 88.01 & \textbf{11.72} \\
+16000 & 64000 & 88.41 & 171.60 & 159.38 & \textbf{16.00} \\
+16000 & 128000 & 149.67 & 294.83 & 278.59 & \textbf{33.65} \\
+32000 & 64000 & 232.85 & 569.88 & 481.55 & \textbf{44.63} \\
+32000 & 128000 & 414.49 & 1026.40 & 857.90 & \textbf{52.79} \\
+32000 & 256000 & 611.80 & 1652.81 & 1467.07 & \textbf{125.09} \\
+\end{tabular}
+\caption{Results on random sparse graphs}\label{tab:sparse}
+\end{table}
+
+\begin{table}
+\centering
+\begin{tabular}{cc|cccc}
+$n$ & $m$ & $E$ & $G$ & $M$ & $S$ \\
+\hline
+1000 & 100000 & 5.65 & 3.51 & 3.17 & \textbf{0.82} \\
+1000 & 200000 & 7.35 & 7.26 & 5.46 & \textbf{1.62} \\
+1000 & 300000 & 8.04 & 10.26 & 8.21 & \textbf{2.26} \\
+2000 & 400000 & 25.09 & 40.97 & 37.88 & \textbf{4.47} \\
+2000 & 800000 & 31.16 & 60.80 & 43.28 & \textbf{8.14} \\
+2000 & 1200000 & 40.67 & 87.33 & 67.36 & \textbf{12.77} \\
+3000 & 900000 & 82.91 & 149.13 & 138.37 & \textbf{12.36} \\
+3000 & 1800000 & 84.38 & 205.11 & 162.77 & \textbf{17.59} \\
+3000 & 2700000 & 102.76 & 286.73 & 217.87 & \textbf{50.79} \\
+4000 & 1600000 & 139.25 & 346.93 & 338.66 & \textbf{23.99} \\
+4000 & 3200000 & 151.17 & 505.38 & 400.74 & \textbf{38.57} \\
+4000 & 4800000 & 233.07 & 700.78 & 614.43 & \textbf{99.25} \\
+\end{tabular}
+\caption{Results on random dense graphs}\label{tab:dense}
+\end{table}
+
+\subsubsection*{Perfect matching}
+
+We repeat the same tests, this time running the perfect matching versions of our implementations. The tests are generated similarly as in the previous section, with the difference that we make sure that the generated instances contain perfect matchings by running our implementation of the Micali-Vazirani maximum cardinality algorithm. The approach was infeasible for some larger sparse instances, in which case we've used our own random test generator that ensures that the generated graph contains a perfect matching by first generating a random permutation of vertices $[1, n]$ $v_1, v_2, \dots v_n$ and adding edges $v_1v_2, v_3v_4, \dots, v_{n-1}v_n$, with the rest of edges chosen randomly.
+
+We've tested our blossom algorithm implementation with both the empty and greedy initialization strategies. The results using the greedy initialization are marked with a $G$ subscript. Additionally, all algorithms are marked with $^*$ to indicate that the perfect matching variant is used.
+
+The results of our experiments on random sparse and dense graphs containing perfect matchings are presented in~\ref{tab:perfect_sparse} and~\ref{tab:perfect_dense} respectively. As in the case of non-perfect matchings, the scaling algorithm $S$ comes out on top. The margin is even larger most likely to the fact it is designed to find maximum perfect matching and finding a non-perfect matching requires a reduction that doubles the number of nodes and edges. For all blossom algorithm implementations, the greedy initialization resulted in a shorter running time. The speedup ranged from around $30\%$ for the $E$ algorithm and as much as $2-4$ times for the $G$ and $M$ implementations.
+
+\begin{table}
+\centering
+\rotatebox{90}{
+\begin{tabular}{cc|ccccccc}
+$n$ & $m$ & $E^*$ & $E^*_G$ & $G^*$ & $G^*_G$ & $M^*$ & $M^*_G$ & $S^*$ \\
+\hline
+1000 & 4000 & 0.32 & 0.22 & 0.27 & 0.13 & 0.22 & \textbf{0.11} & 0.13 \\
+1000 & 8000 & 0.54 & 0.36 & 0.36 & 0.16 & 0.34 & 0.15 & \textbf{0.13} \\
+2000 & 8000 & 1.36 & 0.90 & 1.25 & 0.65 & 0.92 & 0.45 & \textbf{0.29} \\
+2000 & 16000 & 2.11 & 1.43 & 1.63 & 0.74 & 1.44 & 0.64 & \textbf{0.30} \\
+4000 & 16000 & 5.52 & 3.91 & 5.66 & 3.07 & 3.86 & 1.91 & \textbf{0.73} \\
+4000 & 32000 & 9.15 & 5.91 & 7.75 & 3.42 & 6.31 & 2.77 & \textbf{0.93} \\
+8000 & 32000 & 21.34 & 15.33 & 29.52 & 13.81 & 24.47 & 12.22 & \textbf{2.24} \\
+8000 & 64000 & 35.71 & 23.37 & 48.09 & 16.29 & 42.34 & 18.62 & \textbf{3.31} \\
+16000 & 64000 & 100.73 & 74.28 & 184.69 & 87.47 & 164.19 & 79.15 & \textbf{7.66} \\
+16000 & 128000 & 156.35 & 106.55 & 298.43 & 107.97 & 278.69 & 125.61 & \textbf{11.38} \\
+32000 & 128000 & 512.00 & 354.36 & 1166.83 & 594.43 & 853.16 & 417.09 & \textbf{26.70} \\
+32000 & 256000 & 707.58 & 542.16 & 1655.12 & 727.57 & 1478.61 & 670.98 & \textbf{21.80} \\
+\end{tabular}
+}
+\caption{Results on random sparse graphs when looking for a perfect matching}\label{tab:perfect_sparse}
+\end{table}
+
+\begin{table}
+\centering
+\rotatebox{90}{
+\begin{tabular}{cc|ccccccc}
+$n$ & $m$ & $E^*$ & $E^*_G$ & $G^*$ & $G^*_G$ & $M^*$ & $M^*_G$ & $S^*$ \\
+\hline
+1000 & 100000 & 4.79 & 3.75 & 3.54 & 0.74 & 3.23 & 1.04 & \textbf{0.41} \\
+1000 & 200000 & 6.49 & 4.47 & 7.11 & 1.67 & 5.36 & 1.70 & \textbf{0.70} \\
+1000 & 300000 & 8.14 & 5.68 & 10.98 & 2.72 & 8.28 & 2.72 & \textbf{0.89} \\
+2000 & 400000 & 28.21 & 22.42 & 41.09 & 10.21 & 37.42 & 11.67 & \textbf{1.93} \\
+2000 & 800000 & 33.37 & 26.92 & 62.93 & 16.37 & 44.33 & 14.24 & \textbf{2.83} \\
+2000 & 1200000 & 40.55 & 30.74 & 86.72 & 22.38 & 65.92 & 20.31 & \textbf{4.20} \\
+4000 & 1600000 & 134.92 & 110.14 & 347.76 & 87.46 & 336.06 & 95.41 & \textbf{10.89} \\
+4000 & 3200000 & 157.18 & 111.22 & 494.36 & 127.89 & 408.90 & 116.81 & \textbf{16.26} \\
+4000 & 4800000 & 218.07 & 143.22 & 718.58 & 180.23 & 598.02 & 175.83 & \textbf{32.61} \\
+\end{tabular}
+}
+\caption{Results on random dense graphs when looking for a perfect matching}\label{tab:perfect_dense}
+\end{table}
+
+\subsubsection*{The influence of edge weight ranges}
+
+The previous tests have neglected to account for one of the main contributing factors in the running time of the scaling algorithm - the maximum edge weight $N$. To test how different values of $N$ affect the running time of the $S$ algorithm, we've conducted a series of tests on random sparse graphs with values of $N$ ranging from $1$ to $10^7$. We've compared both the perfect and non-perfect variant of $S$ to the $M$ algorithm. The results can be found in~\ref{tab:weight}. We can observe that the running time of the blossom algorithm implementation $M$ is influenced slightly by the value of $N$ but seems to level off by $N \geq 100$. In the case of $S$ the running time steadily increases. We've found that it outperforms $M$ for smaller of the tested values of $N$, but consistently fall short when $N$ reaches $1^7$.
+
+\begin{table}
+\centering
+\begin{tabular}{ccc|cc|cc}
+$n$ & $m$ & $N$ & $M$ & $S$ & $M^*_G$ & $S^*$ \\
+\hline
+1000 & 4000 & 1 & 0.18 & \textbf{0.01} & 0.02 & \textbf{0.01} \\
+1000 & 4000 & 10 & 0.20 & \textbf{0.06} & 0.07 & \textbf{0.04} \\
+1000 & 4000 & 1000 & 0.21 & \textbf{0.16} & 0.11 & \textbf{0.08} \\
+1000 & 4000 & 100000 & \textbf{0.22} & 0.28 & \textbf{0.11} & 0.16 \\
+1000 & 4000 & 10000000 & \textbf{0.21} & 2.40 & \textbf{0.11} & 1.95 \\
+2000 & 8000 & 1 & 0.76 & \textbf{0.03} & 0.05 & \textbf{0.02} \\
+2000 & 8000 & 10 & 0.84 & \textbf{0.14} & 0.29 & \textbf{0.09} \\
+2000 & 8000 & 1000 & 0.87 & \textbf{0.36} & 0.41 & \textbf{0.20} \\
+2000 & 8000 & 100000 & 0.89 & \textbf{0.58} & 0.45 & \textbf{0.31} \\
+2000 & 8000 & 10000000 & \textbf{0.90} & 3.37 & \textbf{0.44} & 3.65 \\
+4000 & 16000 & 1 & 3.15 & \textbf{0.07} & 0.22 & \textbf{0.04} \\
+4000 & 16000 & 10 & 3.48 & \textbf{0.38} & 1.20 & \textbf{0.21} \\
+4000 & 16000 & 1000 & 3.56 & \textbf{1.15} & 1.74 & \textbf{0.56} \\
+4000 & 16000 & 100000 & 3.85 & \textbf{1.72} & 1.91 & \textbf{0.71} \\
+4000 & 16000 & 10000000 & \textbf{3.83} & 5.52 & \textbf{1.93} & 3.73 \\
+\end{tabular}
+\caption{Results on random graphs with varying maximum weights for both perfect and non-perfect variants}\label{tab:weight}
+\end{table}
+
+\subsubsection*{DIMACS instances}
+
+We next turn to more structured instances. The tests were generated using the following programs:
+
+\begin{itemize}
+    \item \texttt{t.f} written by N. Ritchey and B. Mattingly. For a parameter $k$ it generates a sequence of $k$ triangles. Consecutive triangles are connected with a single edge. The configuration tends to generate a lot of blossoms according to the comments provided with the generators.
+    \item \texttt{tt.f} written by N. Ritchey and B. Mattingly. Similar to \texttt{t.f} with the difference that each pair of consecutive triangles is connected with $3$ separate edges.
+    \item \texttt{hardcard.f} written by B. Mattingly. Generates graphs that have been shown in~\cite{gabow1976efficient} to be hard for Edmond's maximum cardinality matching algorithm.
+\end{itemize}
+
+All of these instances contain perfect matching, so we've run both variants of the algorithms. For perfect matching we've opted to only test with greedy initialization. We ran each algorithm $3$ times and average the time spent.
+
+The results for \texttt{t.f} are presented in~\ref{tab:t}. Once again, $S$ is by far the fastest. Of the blossom algorithm implementations $E$ is the clear winner with $G$ and $M$ following. The results are similar for \texttt{tt.f} with the exception that the greedy initialization tends to find the perfect matching immediately. 
+
+In the case of \texttt{hardcard.f}, as observed in~\ref{tab:hardcard}, the $S$ algorithm once again comes out on top. What is unusual is that $G$ outperforms both $E$ and $M$, while in most of the previous tests it was consistently the slowest. 
+
+\begin{table}
+\centering
+\begin{tabular}{
+ccc|cccc}
+$k$ & $n$ & $m$ & $E$ & $G$ & $M$ & $S$ \\
+\hline
+100 & 300 & 399 & \textbf{0.00} & 0.01 & 0.01 & \textbf{0.00} \\
+200 & 600 & 799 & 0.02 & 0.02 & 0.04 & \textbf{0.00} \\
+400 & 1200 & 1599 & 0.06 & 0.10 & 0.14 & \textbf{0.01} \\
+1000 & 3000 & 3999 & 0.35 & 0.60 & 0.81 & \textbf{0.04} \\
+2000 & 6000 & 7999 & 1.38 & 2.40 & 3.37 & \textbf{0.12} \\
+4000 & 12000 & 15999 & 6.01 & 10.38 & 17.79 & \textbf{0.39} \\
+\hline
+$k$ & $n$ & $m$ & $E^*_G$ & $G^*_G$ & $M^*_G$ & $S^*$ \\
+\hline
+100 & 300 & 399 & \textbf{0.00} & \textbf{0.00} & \textbf{0.00} & \textbf{0.00} \\
+200 & 600 & 799 & \textbf{0.00} & \textbf{0.00} & 0.01 & \textbf{0.00} \\
+400 & 1200 & 1599 & \textbf{0.01} & 0.02 & 0.04 & \textbf{0.01} \\
+1000 & 3000 & 3999 & 0.05 & 0.10 & 0.23 & \textbf{0.02} \\
+2000 & 6000 & 7999 & 0.19 & 0.40 & 0.94 & \textbf{0.06} \\
+4000 & 12000 & 15999 & 0.74 & 1.76 & 5.69 & \textbf{0.20} \\
+\end{tabular}
+\caption{Results on the \texttt{t.f} DIMACS instances with varying $k$}\label{tab:t}
+\end{table}
+
+\begin{table}
+\centering
+\begin{tabular}{
+ccc|cccc}
+$k$ & $n$ & $m$ & $E$ & $G$ & $M$ & $S$ \\
+\hline
+50 & 300 & 20000 & 0.11 & 0.08 & 0.08 & \textbf{0.02} \\
+100 & 600 & 80000 & 0.90 & 0.60 & 0.64 & \textbf{0.06} \\
+200 & 1200 & 320000 & 8.60 & 5.56 & 6.15 & \textbf{0.24} \\
+400 & 2400 & 1280000 & 68.91 & 44.53 & 51.86 & \textbf{0.97} \\
+800 & 4800 & 5120000 & 529.36 & 351.33 & 495.37 & \textbf{4.08} \\
+\hline
+& & & $E^*_G$ & $G^*_G$ & $M^*_G$ & $S^*$ \\
+\hline
+50 & 300 & 20000 & 0.03 & \textbf{0.01} & 0.03 & \textbf{0.01} \\
+100 & 600 & 80000 & 0.21 & 0.07 & 0.22 & \textbf{0.03} \\
+200 & 1200 & 320000 & 2.55 & 0.69 & 2.31 & \textbf{0.13} \\
+400 & 2400 & 1280000 & 19.67 & 5.43 & 20.16 & \textbf{0.55} \\
+800 & 4800 & 5120000 & 139.87 & 41.25 & 215.75 & \textbf{2.28} \\
+\end{tabular}
+\caption{Results on the \texttt{hardcard.f} DIMACS instances with varying $k$}\label{tab:hardcard}
+\end{table}

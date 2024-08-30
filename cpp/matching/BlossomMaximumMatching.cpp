@@ -95,6 +95,11 @@ void BlossomMaximumMatching::run() {
 }
 
 void BlossomMaximumMatching::run_stage() {
+    if (perfect && is_matching_perfect()) {
+        finished = true;
+        return;
+    }
+    
     initialize_stage();
 
     // Perform searches and adjust dual variables until
@@ -104,8 +109,6 @@ void BlossomMaximumMatching::run_stage() {
     }
 
     finish_stage();
-
-    if (perfect && is_matching_perfect()) finished = true;
 }
 
 bool BlossomMaximumMatching::run_substage() {
