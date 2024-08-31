@@ -37,9 +37,6 @@ class ConcatenableQueue {
     }
 
     ~ConcatenableQueue() {
-        // std::cerr << "delete CC " << this << std::endl;
-        // std::cerr.flush();
-
         if (root != nullptr) {
             root->delete_children();
             delete root;

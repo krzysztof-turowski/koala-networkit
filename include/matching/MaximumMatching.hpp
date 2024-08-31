@@ -248,8 +248,6 @@ class BlossomMaximumMatching :  public MaximumWeightMatching {
     bool is_matching_perfect();
 
     virtual Blossom* get_blossom(NetworKit::node vertex) = 0;
-
-    void print_blossom(Blossom* blosssom);
 };
 
 /**
@@ -392,14 +390,14 @@ class GalilMicaliGabowMaximumMatching final :  public BlossomMaximumMatching {
     class GalilMicaliGabowBlossomData : public Blossom::BlossomData {
      public:
         // Group corresponding to blossom in queue even_edges
-        EvenEdgeGroup even_edge_group;
+        EvenEdgeGroup node_group;
 
-        explicit GalilMicaliGabowBlossomData(EvenEdgeGroup even_edge_group):
-            even_edge_group(even_edge_group) {}
+        explicit GalilMicaliGabowBlossomData(EvenEdgeGroup node_group):
+            node_group(node_group) {}
 
         ~GalilMicaliGabowBlossomData() override {
-            if (even_edge_group != nullptr)
-                delete even_edge_group;
+            if (node_group != nullptr)
+                delete node_group;
         };
     };
     GalilMicaliGabowBlossomData* get_data(Blossom* b);
@@ -409,8 +407,6 @@ class GalilMicaliGabowMaximumMatching final :  public BlossomMaximumMatching {
 
     // Used to maintain dual variables for vertices
     PriorityQueue1<NetworKit::node, MaximumWeightMatching::weight, NetworKit::node> y_even;
-    PriorityQueue1<NetworKit::node, MaximumWeightMatching::weight, NetworKit::node> y_odd;
-    std::vector<MaximumWeightMatching::weight> y_free;
     MaximumWeightMatching::weight current_y(NetworKit::node v);
 
     // Used to maintain dual variables for blossoms

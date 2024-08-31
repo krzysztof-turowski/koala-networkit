@@ -180,23 +180,24 @@ class PriorityQueue2 {
         }
 
      private:
-        using ElementQueue = ConcatenableQueue<Element, typename std::pair<Priority, Value>, Id>;
+        using ElementQueue =
+            ConcatenableQueue<Element, typename std::pair<Priority, Value>, Group*>;
 
-        Group(Id id, bool active, Priority Delta_last, Priority Delta_group, bool dead):
-            elements(id),
+        Group(Id id, bool active, Priority Delta_last, Priority Delta_group):
+            id(id),
+            elements(this),
             active(active),
             Delta_last(Delta_last),
-            Delta_group(Delta_group),
-            dead(dead) {}
+            Delta_group(Delta_group) {}
 
         Group(Id id, ElementQueue&& elements_, bool active, Priority Delta_last,
-            Priority Delta_group, bool dead):
+            Priority Delta_group):
+                id(id),
                 elements(std::move(elements_)),
                 active(active),
                 Delta_last(Delta_last),
-                Delta_group(Delta_group),
-                dead(dead) {
-            elements.root_id = id;
+                Delta_group(Delta_group) {
+            elements.root_id = this;
         }
 
         void update_Delta(Priority Delta) {
@@ -206,9 +207,9 @@ class PriorityQueue2 {
             Delta_last = Delta;
         }
 
+        Id id;
         ElementQueue elements;
         bool active;
-        bool dead;
         Priority Delta_last;
         Priority Delta_group;
 
@@ -228,7 +229,8 @@ class PriorityQueue2 {
         no_value(no_value),
         infinite_priority(infinite_priority),
         group_minima(size),
-        elements(size, nullptr) {}
+        elements(size, nullptr),
+        element_priority(size) {}
 
     /**
      * Append an element with given priority to the end group
@@ -345,21 +347,7 @@ class PriorityQueue2 {
      * @return reference to the new group
     */
     Group* new_group(Id id) {
-        return new Group(id, false, Delta, 0, false);
-    }
-
-    /**
-     * Kill a group
-     *
-     * @param group the group to be killed
-    */
-    void kill_group(Group* group) {
-        if (group->active && !is_empty(group)) {
-            auto [e, v, p] = group->find_min();
-            group_minima.remove(e);
-        }
-        group->dead = true;
-        group->active = false;
+        return new Group(id, false, Delta, 0);
     }
 
     /**
@@ -408,12 +396,12 @@ class PriorityQueue2 {
             group_minima.remove(e);
         }
 
-        auto [left, right] = group->elements.split(elements[element], left_id, right_id);
+        auto [left, right] = group->elements.split(elements[element], group, group);
 
         Group* group_left  = new Group(left_id, std::move(*left),
-                                group->active, group->Delta_last, group->Delta_group, false);
+                                group->active, group->Delta_last, group->Delta_group);
         Group* group_right = new Group(right_id, std::move(*right),
-                                group->active, group->Delta_last, group->Delta_group, false);
+                                group->active, group->Delta_last, group->Delta_group);
 
         delete left;
         delete right;
@@ -438,12 +426,12 @@ class PriorityQueue2 {
 
     Group* concat_groups(Group* left, Group* right, Id id) {
         auto group_elements = Group::ElementQueue::concat(
-            std::move(left->elements), std::move(right->elements), id);
+            std::move(left->elements), std::move(right->elements), nullptr);
 
         delete left;
         delete right;
 
-        auto group = new Group(id, std::move(*group_elements), false, 0, 0, true);
+        auto group = new Group(id, std::move(*group_elements), false, 0, 0);
 
         delete group_elements;
 
@@ -473,13 +461,31 @@ class PriorityQueue2 {
     }
 
     void reset_group(Group* group) {
-        group->active = group->dead = false;
+        group->active = false;
         group->Delta_last = group->Delta_last = 0;
         group->elements.set_all_priorities(std::make_pair(infinite_priority, no_value));
     }
 
     Id find_group(Element element) {
-        return elements[element]->find_queue()->root_id;
+        return elements[element]->find_queue()->root_id->id;
+    }
+
+    void set_element_priority(Element element, Priority priority) {
+        set_element_priority(element, priority, elements[element]->find_queue()->root_id);
+    }
+
+    void set_element_priority(Element element, Priority priority, Group* group) {
+        group->update_Delta(Delta);
+        element_priority[element] = priority - Delta + group->Delta_group;
+    }
+
+    Priority current_element_priority(Element element, Group* group) {
+        group->update_Delta(Delta);
+        return element_priority[element] + Delta - group->Delta_group;
+    }
+
+    Priority current_element_priority(Element element) {
+        return current_element_priority(element, elements[element]->find_queue()->root_id);
     }
 
  private:
@@ -494,6 +500,7 @@ class PriorityQueue2 {
     Priority infinite_priority;
     PriorityQueue1<Element, Priority, Value> group_minima;
     std::vector<typename Group::ElementQueue::handle_type> elements;
+    std::vector<Priority> element_priority;
 };
 
 } /* namespace Koala */
