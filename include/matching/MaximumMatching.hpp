@@ -223,7 +223,7 @@ class BlossomMaximumMatching :  public MaximumWeightMatching {
     void check_edge_in_matching(NetworKit::edgeid edge);
     std::list<Blossom*> blossoms_containing(NetworKit::node u, Blossom* until);
 
-    virtual void handle_subblossom_shift(Blossom* blossom, Blossom* subblossom) = 0;
+    virtual void handle_nodes_split(Blossom* blossom) = 0;
 
     void adjust_dual_variables();
 
@@ -248,6 +248,8 @@ class BlossomMaximumMatching :  public MaximumWeightMatching {
     bool is_matching_perfect();
 
     virtual Blossom* get_blossom(NetworKit::node vertex) = 0;
+
+    void print_blossom(Blossom* blosssom);
 };
 
 /**
@@ -284,7 +286,7 @@ class EdmondsMaximumMatching final :  public BlossomMaximumMatching {
 
     void handle_new_blossom(Blossom* b) override;
 
-    void handle_subblossom_shift(Blossom* blossom, Blossom* subblossom) override;
+    void handle_nodes_split(Blossom* blossom) override;
     void handle_odd_blossom_expansion(Blossom* blossom) override;
     void handle_even_blossom_expansion(Blossom* blossom) override;
 
@@ -354,7 +356,7 @@ class GabowMaximumMatching final :  public BlossomMaximumMatching {
 
     void handle_new_blossom(Blossom* b) override;
 
-    void handle_subblossom_shift(Blossom* blossom, Blossom* subblossom) override;
+    void handle_nodes_split(Blossom* blossom) override;
     void handle_odd_blossom_expansion(Blossom* blossom) override;
     void handle_even_blossom_expansion(Blossom* blossom) override;
 
@@ -383,26 +385,24 @@ class GalilMicaliGabowMaximumMatching final :  public BlossomMaximumMatching {
         InitializationStrategy initialization = empty);
 
  private:
-    using BlossomNodeList = ConcatenableQueue<NetworKit::node, NetworKit::node, Blossom*>;
     using EvenEdgeQueue = PriorityQueue2<NetworKit::node, MaximumWeightMatching::weight,
-        NetworKit::edgeid>;
+        NetworKit::edgeid, Blossom*>;
     using EvenEdgeGroup = EvenEdgeQueue::Group*;
 
     class GalilMicaliGabowBlossomData : public Blossom::BlossomData {
      public:
-        // Contains all nodes in blossom order
-        BlossomNodeList nodes;
         // Group corresponding to blossom in queue even_edges
         EvenEdgeGroup even_edge_group;
 
-        GalilMicaliGabowBlossomData(BlossomNodeList&& nodes, EvenEdgeGroup even_edge_group):
-            nodes(std::move(nodes)), even_edge_group(even_edge_group) {}
+        explicit GalilMicaliGabowBlossomData(EvenEdgeGroup even_edge_group):
+            even_edge_group(even_edge_group) {}
 
-        ~GalilMicaliGabowBlossomData() override = default;
+        ~GalilMicaliGabowBlossomData() override {
+            if (even_edge_group != nullptr)
+                delete even_edge_group;
+        };
     };
     GalilMicaliGabowBlossomData* get_data(Blossom* b);
-    // References to nodes in concatenable queues of blossoms
-    std::vector<BlossomNodeList::handle_type> nodes_refs;
 
     // Queue of useful edges
     std::queue<Edge> edge_queue;
@@ -448,7 +448,7 @@ class GalilMicaliGabowMaximumMatching final :  public BlossomMaximumMatching {
 
     void handle_new_blossom(Blossom* b) override;
 
-    void handle_subblossom_shift(Blossom* blossom, Blossom* subblossom) override;
+    void handle_nodes_split(Blossom* blossom) override;
     void handle_odd_blossom_expansion(Blossom* blossom) override;
     void handle_even_blossom_expansion(Blossom* blossom) override;
 

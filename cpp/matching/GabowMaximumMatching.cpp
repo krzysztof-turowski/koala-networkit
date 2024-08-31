@@ -118,7 +118,7 @@ void GabowMaximumMatching::handle_new_blossom(Blossom* new_blossom) {
     }
 }
 
-void GabowMaximumMatching::handle_subblossom_shift(Blossom* blossom, Blossom* subblossom) {}
+void GabowMaximumMatching::handle_nodes_split(Blossom* blossom) {}
 
 void GabowMaximumMatching::handle_odd_blossom_expansion(Blossom* blossom) {
     for (auto [b, e] : blossom->subblossoms) {

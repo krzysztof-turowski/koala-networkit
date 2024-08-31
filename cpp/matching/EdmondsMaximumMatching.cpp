@@ -74,7 +74,7 @@ void EdmondsMaximumMatching::handle_new_blossom(Blossom* new_blossom) {
     }
 }
 
-void EdmondsMaximumMatching::handle_subblossom_shift(Blossom* blossom, Blossom* subblossom) {}
+void EdmondsMaximumMatching::handle_nodes_split(Blossom* blossom) {}
 
 void EdmondsMaximumMatching::handle_odd_blossom_expansion(Blossom* blossom) {
     for (auto [b, e] : blossom->subblossoms) {

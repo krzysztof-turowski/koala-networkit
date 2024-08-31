@@ -99,7 +99,7 @@ void BlossomMaximumMatching::run_stage() {
         finished = true;
         return;
     }
-    
+
     initialize_stage();
 
     // Perform searches and adjust dual variables until
@@ -158,7 +158,6 @@ bool BlossomMaximumMatching::consider_edge(Edge edge) {
 
         c_blossom->label = even;
         c_blossom->backtrack_edge = { b, c, matched_edge[b] };
-
         handle_grow(v_blossom, c_blossom);
     } else if (v_blossom->label == even) {
         // Useful edge between two even vertices
@@ -409,8 +408,6 @@ void BlossomMaximumMatching::lazy_augment_path_in_blossom(Blossom* blossom) {
             swap_edges_on_even_path(base_blossom, blossom->initial_base, pathB.back().second.v);
     }
 
-    handle_subblossom_shift(blossom, out_blossom);
-
     blossom->nodes.splice(blossom->nodes.end(), blossom->nodes,
         blossom->nodes.begin(), std::next(node_iter[pathA.back().first->last_node]));
 
@@ -457,6 +454,9 @@ void BlossomMaximumMatching::adjust_dual_variables() {
 void BlossomMaximumMatching::expand_odd_blossom(Blossom* blossom) {
     if (blossom->is_trivial()) return;
 
+    // Allow the handling of blossom lists before the lists get shifted
+    handle_nodes_split(blossom);
+
     lazy_augment_path_in_blossom(blossom);
 
     auto node = blossom->backtrack_edge.v;
@@ -499,6 +499,9 @@ void BlossomMaximumMatching::expand_odd_blossom(Blossom* blossom) {
 
 void BlossomMaximumMatching::expand_even_blossom(Blossom* blossom) {
     if (blossom->is_trivial()) return;
+
+    // Allow the handling of blossom lists before the lists get shifted
+    handle_nodes_split(blossom);
 
     lazy_augment_path_in_blossom(blossom);
 

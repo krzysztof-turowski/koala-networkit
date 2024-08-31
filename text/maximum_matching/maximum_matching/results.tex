@@ -4,23 +4,23 @@ The implementations are contained in following files:
 
 \begin{itemize}
     \item \texttt{include/matching/MaximumMatching.hpp} contains declarations of classes corresponding to maximum matching algorithms, namely: \begin{itemize}
-        \item \texttt{MaximumWeightMatching} - the base class for \textsc{MWM} and \textsc{MWPM} algorithms,
-        \item \texttt{BlossomMaximumMatching} - an abstract base class for implementations of the blossom algorithm. Responsible for the common operations shared by all implementations - building the search tree, creating blossoms, augmenting paths, expanding blossom and others. It relies on call virtual methods implemented by children classes to perform implementation-specific parts of the algorithm. One such part is calculating the $\delta_i$ values during dual weight adjustment. Another one is finding useful edges to perform the next step. After each step of the algorithm, specific virtual methods are called to allow the implementations to update their specific data structures.
-        \item \texttt{EdmondsMaximumMatching} - the Edmond's original $O(n^m)$ version of the blossom algorithm~\cite{edmonds1965maximum},
-        \item \texttt{GabowMaximumMatching} - the Gabow's $O(n^3)$ implementation of the blossom algorithm~\cite{gabow1974implementation},
-        \item \texttt{GalilMicaliGabowMaximumMatching} - the $O(nm\log n)$ implementation of the blossom algorithm of~\cite{galil1986ev},
-        \item \texttt{GabowScalingMatching} - the $O(n^{3/4}m\log N)$ scaling algorithm~\cite{gabow1984scaling},
-        \item \texttt{MaximumCardinalityMatching} - base class for \textsc{MCM} algorithms,
-        \item \texttt{MicaliVaziraniMatching} - the class for the implementation of the Micali-Vazirani maximum cardinality matching algorithm~\cite{micali1980v}.
+        \item \texttt{MaximumWeightMatching} – the base class for \textsc{MWM} and \textsc{MWPM} algorithms,
+        \item \texttt{BlossomMaximumMatching} – an abstract base class for implementations of the blossom algorithm. Responsible for the common operations shared by all implementations – building the search tree, creating blossoms, augmenting paths, expanding blossom and others. It relies on call virtual methods implemented by children classes to perform implementation-specific parts of the algorithm. One such part is calculating the $\delta_i$ values during dual weight adjustment. Another one is finding useful edges to perform the next step. After each step of the algorithm, specific virtual methods are called to allow the implementations to update their specific data structures.
+        \item \texttt{EdmondsMaximumMatching} – the Edmond's original $O(n^m)$ version of the blossom algorithm~\cite{edmonds1965maximum},
+        \item \texttt{GabowMaximumMatching} – the Gabow's $O(n^3)$ implementation of the blossom algorithm~\cite{gabow1974implementation},
+        \item \texttt{GalilMicaliGabowMaximumMatching} – the $O(nm\log n)$ implementation of the blossom algorithm of~\cite{galil1986ev},
+        \item \texttt{GabowScalingMatching} – the $O(n^{3/4}m\log N)$ scaling algorithm~\cite{gabow1984scaling},
+        \item \texttt{MaximumCardinalityMatching} – base class for \textsc{MCM} algorithms,
+        \item \texttt{MicaliVaziraniMatching} – the class for the implementation of the Micali-Vazirani maximum cardinality matching algorithm~\cite{micali1980v}.
     \end{itemize}
     \item \texttt{include/matching/structures} directory contains the implementations of various data structures utilized across the implemented algorithms: \begin{itemize}
-        \item \texttt{ArrayPriorityQueue.hpp} - contains the implementation of a simple array priority queue used by the scaling algorithm,
-        \item \texttt{ConcatenableQueue.hpp} - contains the implementation of concatenable queues,
-        \item \texttt{FenwickTree.hpp} - contains an implementation of the $addprefixsum$ data strucutre based the Fenwick trees,
-        \item \texttt{HeapWithRemove.hpp} - contains a simple implementation of an array based heap with ability to remove elements, used by the $pq_1$ priority queue implementation,
-        \item \texttt{PriorityQueues.hpp} - contains the implementations \texttt{PriorityQueue1} and \texttt{PriorityQueue2} of the $pq_1$ and $pq_2$ priority queues,
-        \item \texttt{SplitFindMin.hpp} - contains the splitting list implementation of the $splitfindmin$ data structure,
-        \item \texttt{UnionFind.hpp} - contains the implementation of the $unionfind$ data structure.
+        \item \texttt{ArrayPriorityQueue.hpp} – contains the implementation of a simple array priority queue used by the scaling algorithm,
+        \item \texttt{ConcatenableQueue.hpp} – contains the implementation of concatenable queues,
+        \item \texttt{FenwickTree.hpp} – contains an implementation of the $addprefixsum$ data strucutre based the Fenwick trees,
+        \item \texttt{HeapWithRemove.hpp} – contains a simple implementation of an array based heap with ability to remove elements, used by the $pq_1$ priority queue implementation,
+        \item \texttt{PriorityQueues.hpp} – contains the implementations \texttt{PriorityQueue1} and \texttt{PriorityQueue2} of the $pq_1$ and $pq_2$ priority queues,
+        \item \texttt{SplitFindMin.hpp} – contains the splitting list implementation of the $splitfindmin$ data structure,
+        \item \texttt{UnionFind.hpp} – contains the implementation of the $unionfind$ data structure.
     \end{itemize}
     \item \texttt{cpp/matching} contains the implementation of the classes defined in the \texttt{MaximumMatching.hpp} header file,
     \item \texttt{test/testMaximumMatching.cpp} contains simple unit tests for the implemented algorithms,
@@ -179,7 +179,7 @@ All of these instances contain perfect matching, so we've run both variants of t
 
 The results for \texttt{t.f} are presented in~\ref{tab:t}. Once again, $S$ is by far the fastest. Of the blossom algorithm implementations $E$ is the clear winner with $G$ and $M$ following. The results are similar for \texttt{tt.f} with the exception that the greedy initialization tends to find the perfect matching immediately. 
 
-In the case of \texttt{hardcard.f}, as observed in~\ref{tab:hardcard}, the $S$ algorithm once again comes out on top. What is unusual is that $G$ outperforms both $E$ and $M$, while in most of the previous tests it was consistently the slowest. 
+In the case of \texttt{hardcard.f}, as observed in~\ref{tab:hardcard}, the $S$ algorithm once again comes out on top. What is unusual is that $G$ outperforms both $E$ and $M$, while in most of the previous tests it was consistently the slowest.
 
 \begin{table}
 \centering
@@ -228,3 +228,5 @@ $k$ & $n$ & $m$ & $E$ & $G$ & $M$ & $S$ \\
 \end{tabular}
 \caption{Results on the \texttt{hardcard.f} DIMACS instances with varying $k$}\label{tab:hardcard}
 \end{table}
+
+TODO conclusions.

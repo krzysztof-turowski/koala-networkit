@@ -160,7 +160,7 @@ class PriorityQueue1 {
  * @tparam Value type of values
  * @tparam Priority type of priority values
 */
-template<typename Element, typename Priority, typename Value>
+template<typename Element, typename Priority, typename Value, typename Id>
 class PriorityQueue2 {
  public:
     class Group {
@@ -180,19 +180,23 @@ class PriorityQueue2 {
         }
 
      private:
-        using ElementlementQueue = ConcatenableQueue<
-            Element, typename std::pair<Priority, Value>, Group*>;
+        using ElementQueue = ConcatenableQueue<Element, typename std::pair<Priority, Value>, Id>;
 
-        Group(bool active, Priority Delta_last, Priority Delta_group):
-            elements(this), active(active), Delta_last(Delta_last), Delta_group(Delta_group) {}
+        Group(Id id, bool active, Priority Delta_last, Priority Delta_group, bool dead):
+            elements(id),
+            active(active),
+            Delta_last(Delta_last),
+            Delta_group(Delta_group),
+            dead(dead) {}
 
-        Group(ElementlementQueue&& elements_, bool active, Priority Delta_last,
-            Priority Delta_group):
+        Group(Id id, ElementQueue&& elements_, bool active, Priority Delta_last,
+            Priority Delta_group, bool dead):
                 elements(std::move(elements_)),
                 active(active),
                 Delta_last(Delta_last),
-                Delta_group(Delta_group) {
-            elements.root_id = this;
+                Delta_group(Delta_group),
+                dead(dead) {
+            elements.root_id = id;
         }
 
         void update_Delta(Priority Delta) {
@@ -202,8 +206,9 @@ class PriorityQueue2 {
             Delta_last = Delta;
         }
 
-        ElementlementQueue elements;
+        ElementQueue elements;
         bool active;
+        bool dead;
         Priority Delta_last;
         Priority Delta_group;
 
@@ -339,8 +344,22 @@ class PriorityQueue2 {
      * @param active status of new group
      * @return reference to the new group
     */
-    Group* new_group(bool active) {
-        return new Group(active, Delta, 0);
+    Group* new_group(Id id) {
+        return new Group(id, false, Delta, 0, false);
+    }
+
+    /**
+     * Kill a group
+     *
+     * @param group the group to be killed
+    */
+    void kill_group(Group* group) {
+        if (group->active && !is_empty(group)) {
+            auto [e, v, p] = group->find_min();
+            group_minima.remove(e);
+        }
+        group->dead = true;
+        group->active = false;
     }
 
     /**
@@ -349,10 +368,6 @@ class PriorityQueue2 {
      * @param group the group to be deleted
     */
     void delete_group(Group* group) {
-        if (group->active && !is_empty(group)) {
-            auto [e, v, p] = group->find_min();
-            group_minima.remove(e);
-        }
         delete group;
     }
 
@@ -385,7 +400,7 @@ class PriorityQueue2 {
      *      of group until and containing the split element, the second one contains elements after
      *      the element
     */
-    std::pair<Group*, Group*> split_group(Group* group, Element element) {
+    std::pair<Group*, Group*> split_group(Group* group, Element element, Id left_id, Id right_id) {
         group->update_Delta(Delta);
 
         if (group->active && !is_empty(group)) {
@@ -393,12 +408,12 @@ class PriorityQueue2 {
             group_minima.remove(e);
         }
 
-        auto [left, right] = group->elements.split(elements[element], group, group);
+        auto [left, right] = group->elements.split(elements[element], left_id, right_id);
 
-        Group* group_left  = new Group(std::move(*left),
-                                group->active, group->Delta_last, group->Delta_group);
-        Group* group_right = new Group(std::move(*right),
-                                group->active, group->Delta_last, group->Delta_group);
+        Group* group_left  = new Group(left_id, std::move(*left),
+                                group->active, group->Delta_last, group->Delta_group, false);
+        Group* group_right = new Group(right_id, std::move(*right),
+                                group->active, group->Delta_last, group->Delta_group, false);
 
         delete left;
         delete right;
@@ -421,20 +436,22 @@ class PriorityQueue2 {
         return {group_left, group_right};
     }
 
+    Group* concat_groups(Group* left, Group* right, Id id) {
+        auto group_elements = Group::ElementQueue::concat(
+            std::move(left->elements), std::move(right->elements), id);
+
+        delete left;
+        delete right;
+
+        auto group = new Group(id, std::move(*group_elements), false, 0, 0, true);
+
+        delete group_elements;
+
+        return group;
+    }
 
     bool is_empty(Group* group) {
         return !group->has_elements() || std::get<1>(group->find_min()) == no_value;
-    }
-
-    void shift_group(Group* group, Element element) {
-        group->update_Delta(Delta);
-
-        auto [left, right] = group->elements.split(elements[element], group, group);
-
-        right->concat(std::move(*left), group);
-        group->elements = std::move(*right);
-        delete left;
-        delete right;
     }
 
     using ElementHandlerFunction = std::function<void(Element, Value, Priority)>;
@@ -450,6 +467,21 @@ class PriorityQueue2 {
         group_minima.for_elements(handle);
     }
 
+    void reset() {
+        Delta = 0;
+        group_minima.clear();
+    }
+
+    void reset_group(Group* group) {
+        group->active = group->dead = false;
+        group->Delta_last = group->Delta_last = 0;
+        group->elements.set_all_priorities(std::make_pair(infinite_priority, no_value));
+    }
+
+    Id find_group(Element element) {
+        return elements[element]->find_queue()->root_id;
+    }
+
  private:
     std::tuple<Element, Value, Priority> group_minimum(Group* group) {
         return is_empty(group) ?
@@ -461,7 +493,7 @@ class PriorityQueue2 {
     Value no_value;
     Priority infinite_priority;
     PriorityQueue1<Element, Priority, Value> group_minima;
-    std::vector<typename Group::ElementlementQueue::handle_type> elements;
+    std::vector<typename Group::ElementQueue::handle_type> elements;
 };
 
 } /* namespace Koala */

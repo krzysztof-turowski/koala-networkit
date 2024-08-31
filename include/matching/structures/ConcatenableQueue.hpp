@@ -37,6 +37,9 @@ class ConcatenableQueue {
     }
 
     ~ConcatenableQueue() {
+        // std::cerr << "delete CC " << this << std::endl;
+        // std::cerr.flush();
+
         if (root != nullptr) {
             root->delete_children();
             delete root;
@@ -250,6 +253,10 @@ class ConcatenableQueue {
         if (root != nullptr) root->for_each(handle);
     }
 
+    void set_all_priorities(Priority priority) {
+        root->set_all_priorities(priority);
+    }
+
     struct Node {
         ConcatenableQueue* find_queue() {
             Node* iter = this;
@@ -366,6 +373,17 @@ class ConcatenableQueue {
             for (int i = 0; i < 3; ++i) {
                 if (children[i] == nullptr) return;
                 children[i]->for_each(handle);
+            }
+        }
+
+        void set_all_priorities(Priority priority) {
+            min_priority = priority;
+            for (int i = 0; i < 3; ++i) {
+                if (children[i] == nullptr) break;
+                children[i]->set_all_priorities(priority);
+            }
+            if (children[0] != nullptr) {
+                min_element = children[0]->min_element;
             }
         }
 
