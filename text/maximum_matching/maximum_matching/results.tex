@@ -35,8 +35,11 @@ We've made use of test generators provided as part of the 1st DIMACS implementat
 
 The first class of graphs we've tested are random sparse and dense graphs generated using the \texttt{random.c} generator from the DIMACS challenge written by C. McGeoch. The program generates a random graph with a provided number of nodes and edges with weights uniformly chosen from a specified range $[1, N]$. It is also possible to specify a seed used to generate random numbers. For all of our test we've set the maximum cost at $2^{16}$. For each pair of values $n$ and $m$ we've generated $3$ different graphs using random seeds and then average the running time.
 
-Our set of sparse graphs consists of graphs with varying values of $n$ and $m = a n$ where $a \in \{2, 4, 8 \}$. The results are presented in~\ref{tab:sparse}. We use the letter $E$ to refer to our implementation of Edmonds' algorithm, $G$ to Gabow's blossom algorithm, $M$ to Galil, Micali and Gabow's algorithm and $S$ to Gabow's scaling algorithm. We will refer to them using those letters. 
-As our set of dense graphs we've chosen random graphs with $n \in \{ 1000, 2000, 3000, 4000 \}$ and containing approximately $20\%$, $40\%$ and $60\%$ possible edges with results presented in~\ref{tab:dense}. In both cases the scaling algorithm performs the best. Among our implementations of the blossom algorithm, $M$ runs fastest for some smaller test, but gets overtaken by $E$ for larger instances. The $G$ implementation is consistently the slowest.
+Our set of sparse graphs consists of graphs with varying values of $n$ and $m = a n$ where $a \in \{2, 4, 8 \}$. The results are presented in table~\ref{tab:sparse}. We use the letter $E$ to refer to our implementation of Edmonds' algorithm, $G$ to Gabow's blossom algorithm, $M$ to Galil, Micali and Gabow's algorithm and $S$ to Gabow's scaling algorithm. We will refer to them using those letters. 
+As our set of dense graphs we've chosen random graphs with $n \in \{ 1000, 2000, 3000, 4000 \}$ and containing approximately $20\%$, $40\%$ and $60\%$ possible edges with results presented in table~\ref{tab:dense}. In both cases the scaling algorithm performs the best. Among our implementations of the blossom algorithm, $M$ runs fastest for some smaller test, but gets overtaken by $E$ for larger instances. The $G$ implementation is consistently the slowest for sparse graphs and on par with $M$ for dense instances.
+
+We plot the running time of tested algorithms in relation to $n$ for sparse graphs with $m = 4 n$ and dense graphs containing roughly $20\%$ of possible edges. For sparse graphs, the running time of blossom algorithm implementation is roughly quadratic, indicating that that the $G$ and $E$ variant perform better than their theoretical worst case complexity would suggest. Meanwhile, the running time of the scaling algorithm $S$ seems to align with its $n^{7/4}$ complexity. For dense instances, gauging the asymptotic running time seems to be harder with the blossom implementations taking roughly $n^3$ time. 
+
 
 \begin{table}
 \centering
@@ -88,13 +91,20 @@ $n$ & $m$ & $E$ & $G$ & $M$ & $S$ \\
 \caption{Results on random dense graphs}\label{tab:dense}
 \end{table}
 
+\begin{figure}[b]
+    \centering
+    \includegraphics*[width=0.4\textwidth]{figures/sparse.png}
+    \includegraphics*[width=0.4\textwidth]{figures/dense.png}
+    \caption{Running time of tested algorithms on sparse and dense random instances.}\label{fig:sparse_dense}
+\end{figure}
+
 \subsubsection*{Perfect matching}
 
 We repeat the same tests, this time running the perfect matching versions of our implementations. The tests are generated similarly as in the previous section, with the difference that we make sure that the generated instances contain perfect matchings by running our implementation of the Micali-Vazirani maximum cardinality algorithm. The approach was infeasible for some larger sparse instances, in which case we've used our own random test generator that ensures that the generated graph contains a perfect matching by first generating a random permutation of vertices $[1, n]$ $v_1, v_2, \dots v_n$ and adding edges $v_1v_2, v_3v_4, \dots, v_{n-1}v_n$, with the rest of edges chosen randomly.
 
 We've tested our blossom algorithm implementation with both the empty and greedy initialization strategies. The results using the greedy initialization are marked with a $G$ subscript. Additionally, all algorithms are marked with $^*$ to indicate that the perfect matching variant is used.
 
-The results of our experiments on random sparse and dense graphs containing perfect matchings are presented in~\ref{tab:perfect_sparse} and~\ref{tab:perfect_dense} respectively. As in the case of non-perfect matchings, the scaling algorithm $S$ comes out on top. The margin is even larger most likely to the fact it is designed to find maximum perfect matching and finding a non-perfect matching requires a reduction that doubles the number of nodes and edges. For all blossom algorithm implementations, the greedy initialization resulted in a shorter running time. The speedup ranged from around $30\%$ for the $E$ algorithm and as much as $2-4$ times for the $G$ and $M$ implementations.
+The results of our experiments on random sparse and dense graphs containing perfect matchings are presented in table~\ref{tab:perfect_sparse} and table~\ref{tab:perfect_dense} respectively. As in the case of non-perfect matchings, the scaling algorithm $S$ comes out on top. The margin is even larger most likely to the fact it is designed to find maximum perfect matching and finding a non-perfect matching requires a reduction that doubles the number of nodes and edges. For all blossom algorithm implementations, the greedy initialization resulted in a shorter running time. The speedup ranged from around $30\%$ for the $E$ algorithm and as much as 2-4 times for the $G$ and $M$ implementations.
 
 \begin{table}
 \centering
@@ -143,41 +153,61 @@ $n$ & $m$ & $E^*$ & $E^*_G$ & $G^*$ & $G^*_G$ & $M^*$ & $M^*_G$ & $S^*$ \\
 
 \subsubsection*{The influence of edge weight ranges}
 
-The previous tests have neglected to account for one of the main contributing factors in the running time of the scaling algorithm - the maximum edge weight $N$. To test how different values of $N$ affect the running time of the $S$ algorithm, we've conducted a series of tests on random sparse graphs with values of $N$ ranging from $1$ to $10^7$. We've compared both the perfect and non-perfect variant of $S$ to the $M$ algorithm. The results can be found in~\ref{tab:weight}. We can observe that the running time of the blossom algorithm implementation $M$ is influenced slightly by the value of $N$ but seems to level off by $N \geq 100$. In the case of $S$ the running time steadily increases. We've found that it outperforms $M$ for smaller of the tested values of $N$, but consistently fall short when $N$ reaches $1^7$.
+The previous tests have neglected to account for one of the main contributing factors in the running time of the scaling algorithm - the maximum edge weight $N$. To test how different values of $N$ affect the running time of the $S$ algorithm, we've conducted a series of tests on random sparse graphs with $m = 4n$ and values of $N$ ranging from $1$ to $10^7$. We've compared both the perfect and non-perfect variant of $S$ to the $E$ algorithm. 
+
+The results can be found in table~\ref{tab:weight}. We can observe that the running time of the blossom algorithm implementation $E$ is influenced slightly by the value of $N$ but seems to level off at higher values of $N$. Intuitively, we speculate that the initial increase in weight range causes a rise in complexity, but as the weights get larger, especially compared to the number of edges, the higher weight range doesn't meaningfully increase the complexity. As we expect from its time complexity, the running time of the $S$ algorithm seems to scale with $\log N$, which can be seen in figure~\ref{fig:weight}.
 
 \begin{table}
 \centering
 \begin{tabular}{
 ccc|cc|cc}
-$n$ & $m$ & $N$ & $M$ & $S$ & $M^*_G$ & $S^*$ \\
+$n$ & $m$ & $N$ & $E$ & $S$ & $E^*_G$ & $S^*$ \\
 \hline
-1000 & 4000 & 1 & 0.14 & \textbf{0.01} & \textbf{0.01} & \textbf{0.01} \\
-1000 & 4000 & 10 & 0.17 & 0.08 & \textbf{0.05} & \textbf{0.05} \\
-1000 & 4000 & 100 & 0.17 & 0.13 & \textbf{0.07} & 0.08 \\
-1000 & 4000 & 1000 & 0.18 & 0.19 & \textbf{0.08} & 0.11 \\
-1000 & 4000 & 10000 & 0.19 & 0.23 & \textbf{0.09} & 0.12 \\
-1000 & 4000 & 100000 & 0.18 & 0.31 & \textbf{0.08} & 0.16 \\
-1000 & 4000 & 1000000 & 0.19 & 0.54 & \textbf{0.08} & 0.37 \\
-1000 & 4000 & 10000000 & 0.19 & 3.63 & \textbf{0.08} & 2.97 \\
-2000 & 8000 & 1 & 0.60 & 0.04 & 0.03 & \textbf{0.02} \\
-2000 & 8000 & 10 & 0.69 & 0.17 & 0.17 & \textbf{0.11} \\
-2000 & 8000 & 100 & 0.70 & 0.30 & 0.27 & \textbf{0.16} \\
-2000 & 8000 & 1000 & 0.74 & 0.44 & 0.31 & \textbf{0.21} \\
-2000 & 8000 & 10000 & 0.77 & 0.57 & 0.32 & \textbf{0.28} \\
-2000 & 8000 & 100000 & 0.78 & 0.74 & \textbf{0.33} & 0.35 \\
-2000 & 8000 & 1000000 & 0.79 & 1.10 & \textbf{0.31} & 0.73 \\
-2000 & 8000 & 10000000 & 0.78 & 3.12 & \textbf{0.33} & 2.56 \\
-4000 & 16000 & 1 & 2.59 & 0.09 & 0.10 & \textbf{0.05} \\
-4000 & 16000 & 10 & 3.11 & 0.44 & 0.79 & \textbf{0.24} \\
-4000 & 16000 & 100 & 3.03 & 0.92 & 1.05 & \textbf{0.44} \\
-4000 & 16000 & 1000 & 3.26 & 1.24 & 1.30 & \textbf{0.57} \\
-4000 & 16000 & 10000 & 3.55 & 1.71 & 1.45 & \textbf{0.65} \\
-4000 & 16000 & 100000 & 3.44 & 2.09 & 1.39 & \textbf{0.82} \\
-4000 & 16000 & 1000000 & 3.51 & 2.74 & 1.45 & \textbf{1.29} \\
-4000 & 16000 & 10000000 & 3.65 & 5.49 & \textbf{1.46} & 4.39 \\
+1000 & 4000 & 1 & 0.07 & \textbf{0.01} & \textbf{0.01} & \textbf{0.01} \\
+1000 & 4000 & 10 & 0.06 & 0.07 & \textbf{0.03} & 0.04 \\
+1000 & 4000 & 100 & 0.08 & 0.11 & 0.07 & \textbf{0.06} \\
+1000 & 4000 & 1000 & 0.19 & 0.16 & 0.17 & \textbf{0.09} \\
+1000 & 4000 & 10000 & 0.28 & 0.21 & 0.23 & \textbf{0.11} \\
+1000 & 4000 & 100000 & 0.29 & 0.24 & 0.24 & \textbf{0.12} \\
+1000 & 4000 & 1000000 & 0.30 & 0.26 & 0.29 & \textbf{0.15} \\
+1000 & 4000 & 10000000 & 0.29 & 0.33 & 0.22 & \textbf{0.16} \\
+\hline
+2000 & 8000 & 1 & 0.27 & 0.03 & \textbf{0.02} & \textbf{0.02} \\
+2000 & 8000 & 10 & 0.23 & 0.15 & 0.11 & \textbf{0.09} \\
+2000 & 8000 & 100 & 0.25 & 0.27 & 0.22 & \textbf{0.15} \\
+2000 & 8000 & 1000 & 0.55 & 0.41 & 0.54 & \textbf{0.24} \\
+2000 & 8000 & 10000 & 1.05 & 0.50 & 0.85 & \textbf{0.25} \\
+2000 & 8000 & 100000 & 1.17 & 0.59 & 0.90 & \textbf{0.29} \\
+2000 & 8000 & 1000000 & 1.19 & 0.68 & 1.02 & \textbf{0.33} \\
+2000 & 8000 & 10000000 & 1.20 & 0.70 & 1.06 & \textbf{0.36} \\
+\hline
+4000 & 16000 & 1 & 1.12 & 0.07 & 0.09 & \textbf{0.04} \\
+4000 & 16000 & 10 & 0.90 & 0.42 & 0.44 & \textbf{0.26} \\
+4000 & 16000 & 100 & 0.91 & 0.78 & 0.68 & \textbf{0.36} \\
+4000 & 16000 & 1000 & 1.64 & 1.14 & 1.65 & \textbf{0.50} \\
+4000 & 16000 & 10000 & 3.75 & 1.51 & 3.17 & \textbf{0.63} \\
+4000 & 16000 & 100000 & 4.72 & 1.75 & 3.96 & \textbf{0.75} \\
+4000 & 16000 & 1000000 & 4.79 & 1.97 & 4.04 & \textbf{0.83} \\
+4000 & 16000 & 10000000 & 4.74 & 2.33 & 3.82 & \textbf{0.87} \\
+\hline
+8000 & 32000 & 1 & 4.76 & 0.24 & 0.36 & \textbf{0.12} \\
+8000 & 32000 & 10 & 3.68 & 1.23 & 1.90 & \textbf{0.73} \\
+8000 & 32000 & 100 & 3.55 & 2.35 & 2.67 & \textbf{1.07} \\
+8000 & 32000 & 1000 & 5.19 & 3.45 & 6.93 & \textbf{1.58} \\
+8000 & 32000 & 10000 & 13.16 & 4.49 & 13.62 & \textbf{1.70} \\
+8000 & 32000 & 100000 & 18.89 & 5.28 & 14.74 & \textbf{2.05} \\
+8000 & 32000 & 1000000 & 19.66 & 6.06 & 16.81 & \textbf{2.36} \\
+8000 & 32000 & 10000000 & 19.70 & 6.76 & 16.62 & \textbf{2.75} \\
 \end{tabular}
 \caption{Results on random graphs with varying maximum weights for both perfect and non-perfect variants}\label{tab:weight}
 \end{table}
+
+\begin{figure}[b]
+    \centering
+    \includegraphics*[width=0.4\textwidth]{figures/Nweight.png}
+    \includegraphics*[width=0.4\textwidth]{figures/Eweight.png}
+    \caption{Running time of the scaling algorithm and the Edmond's algorithm in relation to the maximum edge weight $N$.}\label{fig:weight}
+\end{figure}
 
 \subsubsection*{DIMACS instances}
 
@@ -191,9 +221,9 @@ We next turn to more structured instances. The tests were generated using the fo
 
 All of these instances contain perfect matching, so we've run both variants of the algorithms. For perfect matching we've opted to only test with greedy initialization. We ran each algorithm $3$ times and average the time spent.
 
-The results for \texttt{t.f} are presented in~\ref{tab:t}. Once again, $S$ is by far the fastest. Of the blossom algorithm implementations $E$ is the clear winner with $G$ and $M$ following. The results are similar for \texttt{tt.f} with the exception that the greedy initialization tends to find the perfect matching immediately. 
+The results for \texttt{t.f} are presented in table~\ref{tab:t}. Once again, $S$ is by far the fastest. Of the blossom algorithm implementations $E$ is the clear winner with $G$ and $M$ following. The results are similar for \texttt{tt.f} with the exception that the greedy initialization tends to find the perfect matching immediately. 
 
-In the case of \texttt{hardcard.f}, as observed in~\ref{tab:hardcard}, the $S$ algorithm once again comes out on top. What is unusual is that $G$ outperforms both $E$ and $M$, while in most of the previous tests it was consistently the slowest.
+In the case of \texttt{hardcard.f}, as observed in table~\ref{tab:hardcard}, the $S$ algorithm once again comes out on top. What is unusual is that $G$ outperforms both $E$ and $M$, while in most of the previous tests it was consistently the slowest.
 
 \begin{table}
 \centering
@@ -243,4 +273,3 @@ $k$ & $n$ & $m$ & $E^*_G$ & $G^*_G$ & $M^*_G$ & $S^*$ \\
 \caption{Results on the \texttt{hardcard.f} DIMACS instances with varying $k$}\label{tab:hardcard}
 \end{table}
 
-TODO conclusions.
