@@ -30,6 +30,7 @@ GabowScalingMatching::GabowScalingMatching(NetworKit::Graph &graph, bool perfect
     edge_in_matching(workingGraph.upperEdgeIdBound()),
     actual_to_contracted(workingGraph.upperNodeIdBound()),
     current_blossom(workingGraph.upperNodeIdBound(), nullptr),
+    event_queue(workingGraph.upperNodeIdBound()),
     vertex_path(workingGraph.upperNodeIdBound(), nullptr),
     current_shell(workingGraph.upperNodeIdBound()),
     y0(workingGraph.upperNodeIdBound()),
