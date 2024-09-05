@@ -35,8 +35,8 @@ We've made use of test generators provided as part of the 1st DIMACS implementat
 
 The first class of graphs we've tested are random sparse and dense graphs generated using the \texttt{random.c} generator from the DIMACS challenge written by C. McGeoch. The program generates a random graph with a provided number of nodes and edges with weights uniformly chosen from a specified range $[1, N]$. It is also possible to specify a seed used to generate random numbers. For all of our test we've set the maximum cost at $2^{16}$. For each pair of values $n$ and $m$ we've generated $3$ different graphs using random seeds and then average the running time.
 
-Our set of sparse graphs consists of graphs with varying values of $n$ and $m = a n$ where $a \in \{2, 4, 8 \}$. The results are presented in table~\ref{tab:sparse}. We use the letter $E$ to refer to our implementation of Edmonds' algorithm, $G$ to Gabow's blossom algorithm, $M$ to Galil, Micali and Gabow's algorithm and $S$ to Gabow's scaling algorithm. We will refer to them using those letters. 
-As our set of dense graphs we've chosen random graphs with $n \in \{ 1000, 2000, 3000, 4000 \}$ and containing approximately $20\%$, $40\%$ and $60\%$ possible edges with results presented in table~\ref{tab:dense}. In both cases the scaling algorithm performs the best. Among our implementations of the blossom algorithm, $M$ runs fastest for some smaller test, but gets overtaken by $E$ for larger instances. The $G$ implementation is consistently the slowest for sparse graphs and on par with $M$ for dense instances.
+Our set of sparse graphs consists of graphs with varying values of $n$ and $m = a n$ where $a \in \{2, 4, 8 \}$. The results are presented in~\Cref{tab:sparse}. We use the letter $E$ to refer to our implementation of Edmonds' algorithm, $G$ to Gabow's blossom algorithm, $M$ to Galil, Micali and Gabow's algorithm and $S$ to Gabow's scaling algorithm. We will refer to them using those letters. 
+As our set of dense graphs we've chosen random graphs with $n \in \{ 1000, 2000, 3000, 4000 \}$ and containing approximately $20\%$, $40\%$ and $60\%$ possible edges with results presented in~\Cref{tab:dense}. In both cases the scaling algorithm performs the best. Among our implementations of the blossom algorithm, $M$ runs fastest for some smaller test, but gets overtaken by $E$ for larger instances. The $G$ implementation is consistently the slowest for sparse graphs and on par with $M$ for dense instances.
 
 We plot the running time of tested algorithms in relation to $n$ for sparse graphs with $m = 4 n$ and dense graphs containing roughly $20\%$ of possible edges. For sparse graphs, the running time of blossom algorithm implementation is roughly quadratic, indicating that that the $G$ and $E$ variant perform better than their theoretical worst case complexity would suggest. Meanwhile, the running time of the scaling algorithm $S$ seems to align with its $n^{7/4}$ complexity. For dense instances, gauging the asymptotic running time seems to be harder with the blossom implementations taking roughly $n^3$ time. 
 
@@ -104,7 +104,7 @@ We repeat the same tests, this time running the perfect matching versions of our
 
 We've tested our blossom algorithm implementation with both the empty and greedy initialization strategies. The results using the greedy initialization are marked with a $G$ subscript. Additionally, all algorithms are marked with $^*$ to indicate that the perfect matching variant is used.
 
-The results of our experiments on random sparse and dense graphs containing perfect matchings are presented in table~\ref{tab:perfect_sparse} and table~\ref{tab:perfect_dense} respectively. As in the case of non-perfect matchings, the scaling algorithm $S$ comes out on top. The margin is even larger most likely to the fact it is designed to find maximum perfect matching and finding a non-perfect matching requires a reduction that doubles the number of nodes and edges. For all blossom algorithm implementations, the greedy initialization resulted in a shorter running time. The speedup ranged from around $30\%$ for the $E$ algorithm and as much as 2-4 times for the $G$ and $M$ implementations.
+The results of our experiments on random sparse and dense graphs containing perfect matchings are presented in~\Cref{tab:perfect_sparse} and~\Cref{tab:perfect_dense} respectively. As in the case of non-perfect matchings, the scaling algorithm $S$ comes out on top. The margin is even larger most likely to the fact it is designed to find maximum perfect matching and finding a non-perfect matching requires a reduction that doubles the number of nodes and edges. For all blossom algorithm implementations, the greedy initialization resulted in a shorter running time. The speedup ranged from around $30\%$ for the $E$ algorithm and as much as 2-4 times for the $G$ and $M$ implementations.
 
 \begin{table}
 \centering
@@ -155,7 +155,7 @@ $n$ & $m$ & $E^*$ & $E^*_G$ & $G^*$ & $G^*_G$ & $M^*$ & $M^*_G$ & $S^*$ \\
 
 The previous tests have neglected to account for one of the main contributing factors in the running time of the scaling algorithm - the maximum edge weight $N$. To test how different values of $N$ affect the running time of the $S$ algorithm, we've conducted a series of tests on random sparse graphs with $m = 4n$ and values of $N$ ranging from $1$ to $10^7$. We've compared both the perfect and non-perfect variant of $S$ to the $E$ algorithm. 
 
-The results can be found in table~\ref{tab:weight}. We can observe that the running time of the blossom algorithm implementation $E$ is influenced slightly by the value of $N$ but seems to level off at higher values of $N$. Intuitively, we speculate that the initial increase in weight range causes a rise in complexity, but as the weights get larger, especially compared to the number of edges, the higher weight range doesn't meaningfully increase the complexity. As we expect from its time complexity, the running time of the $S$ algorithm seems to scale with $\log N$, which can be seen in figure~\ref{fig:weight}.
+The results can be found in~\Cref{tab:weight}. We can observe that the running time of the blossom algorithm implementation $E$ is influenced slightly by the value of $N$ but seems to level off at higher values of $N$. Intuitively, we speculate that the initial increase in weight range causes a rise in complexity, but as the weights get larger, especially compared to the number of edges, the higher weight range doesn't meaningfully increase the complexity. As we expect from its time complexity, the running time of the $S$ algorithm seems to scale with $\log N$, which can be seen in~\Cref{fig:weight}.
 
 \begin{table}
 \centering
@@ -216,14 +216,14 @@ We next turn to more structured instances. The tests were generated using the fo
 \begin{itemize}
     \item \texttt{t.f} written by N. Ritchey and B. Mattingly. For a parameter $k$ it generates a sequence of $k$ triangles. Consecutive triangles are connected with a single edge. The configuration tends to generate a lot of blossoms according to the comments provided with the generators.
     \item \texttt{tt.f} written by N. Ritchey and B. Mattingly. Similar to \texttt{t.f} with the difference that each pair of consecutive triangles is connected with $3$ separate edges.
-    \item \texttt{hardcard.f} written by B. Mattingly. Generates graphs that have been shown in~\cite{gabow1976efficient} to be hard for Edmond's maximum cardinality matching algorithm.
+    \item \texttt{hardcard.f} written by B. Mattingly. It generates graphs that have been shown in~\cite{gabow1976efficient} to be hard for Edmond's maximum cardinality matching algorithm.
 \end{itemize}
 
 All of these instances contain perfect matching, so we've run both variants of the algorithms. For perfect matching we've opted to only test with greedy initialization. We ran each algorithm $3$ times and average the time spent.
 
-The results for \texttt{t.f} are presented in table~\ref{tab:t}. Once again, $S$ is by far the fastest. Of the blossom algorithm implementations $E$ is the clear winner with $G$ and $M$ following. The results are similar for \texttt{tt.f} with the exception that the greedy initialization tends to find the perfect matching immediately. 
+The results for \texttt{t.f} are presented in~\Cref{tab:t}. Once again, $S$ is by far the fastest. Of the blossom algorithm implementations $E$ is the clear winner with $G$ and $M$ following. The results are similar for \texttt{tt.f} with the exception that the greedy initialization tends to find the perfect matching immediately. 
 
-In the case of \texttt{hardcard.f}, as observed in table~\ref{tab:hardcard}, the $S$ algorithm once again comes out on top. What is unusual is that $G$ outperforms both $E$ and $M$, while in most of the previous tests it was consistently the slowest.
+In the case of \texttt{hardcard.f}, as observed in~\Cref{tab:hardcard}, the $S$ algorithm once again comes out on top. What is unusual is that $G$ outperforms both $E$ and $M$, while in most of the previous tests it was consistently the slowest.
 
 \begin{table}
 \centering
