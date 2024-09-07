@@ -42,11 +42,11 @@ This directly implies the following
 \end{proof}
 \end{fact}
 
-\begin{figure}[b]
+\begin{figure}
     \centering
     \includegraphics*[width=0.49\textwidth]{figures/Basic Blossom.png}
     \includegraphics*[width=0.49\textwidth]{figures/Blossom alternating clean.png}
-    \caption{Example of a blossom $B$ with subblossom list $(B_1, e_1), \dots, (B_8, e_8), (B_9, e_0)$ and a base $b$. Edges in the matching are indicated with dashed lines. On the right an alternating path of even length between $B$'s base $b$ and an example vertex $c$ is highlighted.}
+    \caption{Example of a blossom $B$ with subblossom list $(B_1, e_1), \dots, (B_8, e_8), (B_9, e_0)$ and a base $b$. Edges in the matching are indicated with dashed lines. On the right an alternating path of even length between $B$'s base $b$ and an example vertex $c$ is highlighted.}\label{fig:odd_expansion}
 \end{figure}
 
 \begin{defn}[structure tree]
@@ -99,9 +99,9 @@ The primal linear program $(\textsc{MWM})$ has a corresponding dual program with
 \end{align*}
 
 \begin{defn}[slack]
-    For each edge $e = (u, v) \in E$ we introduce a value called the \emph{slack} of $e$ defined as follows:
+    For each edge $e = (u, v) \in E$ we introduce a function \emph{slack(e)} defined as follows:
 
-    \[slack(e) = \pi_e = y_u + y_v - w(e) + \sum_{u, v \in B} z_B\]
+    \[slack(e) = \pi_e = y_u + y_v - w(e) + \sum_{\substack{B \in \mathcal{O} \\ u, v \in B}} z_B\]
 \end{defn}
 
 We say that an edge $e$ is \emph{tight} if $slack(e) = 0$. We say that dual weights $y$ and $z$ are \emph{dominating} if $slack(e) \geq 0$ for each $e \in E$.
@@ -110,9 +110,10 @@ We say that an edge $e$ is \emph{tight} if $slack(e) = 0$. We say that dual weig
 Given dual variables $y$ and $z$, a matching $M$ is a maximum weight matching if the following conditions hold:
 
 \begin{enumerate}
+    \renewcommand{\labelenumi}{(\arabic{enumi})}
     \item $y_v, \pi_{e}, z_B \geq 0$ for each $v \in V, e \in E, B \in \mathcal{O}$,
     \item $\pi_{e} = 0$ for each edge $e \in M$,
-    \item $y_i = 0$ for each exposed vertex $i$,
+    \item $y_v = 0$ for each exposed vertex $v$,
     \item $|\{e | e \subseteq B, e \in M\}| = \floor{\frac{1}{2}n_B}$ for each blossom $B$ where $z_B > 0$.
 \end{enumerate}
 
@@ -134,7 +135,7 @@ The initial state of the algorithm consists of an empty matching $M_0$, dual wei
 
 The algorithm works in phases we call \emph{stages}. Each stage we find an augmenting path between two exposed blossoms comprised of solely tight edges and augments the matching along the path. The execution ends when there are no more exposed vertices or all dual variables $y_v$ for all exposed vertices $v$ have been reduced to $0$.
 
-We describe the basic data structures used to maintain the current state. Each vertex is associated with a number from $\{0, 1, \dots, n-1\}$. Each edge has a unique ID from $\{0, 1, \dots, m\}$. Three arrays are used to represent the current matching $M$: \texttt{mate[$v$]} stores the mate of each vertex $v$, \texttt{matchedEdge[$v$]} stores the ID of $v$'s matched edge and \texttt{isMatched[$e$]} stores a boolean value indicating whether the edge $e$ belongs to $M$. 
+We describe the basic data structures used to maintain the current state. Each vertex is associated with a number from $\{0, 1, \dots, n-1\}$. Each edge has a unique ID from $\{0, 1, \dots, m\}$. Three arrays are used to represent the current matching $M$: $mate[v]$ stores the mate of each vertex $v$, $matched\_edge[v]$ stores the ID of the matched edge of $v$ and $in\_matching[e]$ stores a boolean value indicating whether the edge $e$ belongs to $M$. 
 
 In order to be able to iterate over them, we maintain a list of all proper blossoms. Each blossom contains a pointer to its position in said list which can be used to remove it. Additionally, each blossom $B$ stores its blossom list $L(B)$.
 
@@ -155,12 +156,12 @@ In order to expand the search structure we will look for so-called \emph{useful 
     \end{itemize}
 \end{defn}
 
-Based on which of the two conditions hold and whether the search trees of the two even blossoms are distinct, one of three steps can take place: \emph{grow}, \emph{blossom} or \emph{augment}. Which of the steps happen is decided by the \textsc{ConsiderEdge} and \textsc{Backtrack} procedures. At some point there may be any useful edges in which case a \emph{dual weight adjustment} step is performed, during which dual weights are adjusted. The adjustment maintains optimality conditions and reveals new useful edges or forces blossom expansion. The intervals between dual weight adjustments are called \emph{substages}. The \textsc{BlossomSearch} procedure are presented in~\Cref{alg:blossom_search}.
+Based on which of the two conditions hold and whether the search trees of the two even blossoms are distinct, one of three steps can take place: \emph{grow}, \emph{blossom} or \emph{augment}. Which of the steps happen is decided by the \textsc{consider\_edge} and \textsc{backtrack} procedures. At some point there may be any useful edges in which case a \emph{dual weight adjustment} step is performed, during which dual weights are adjusted. The adjustment maintains optimality conditions and reveals new useful edges or forces blossom expansion. The intervals between dual weight adjustments are called \emph{substages}. The \textsc{blossom\_search} procedure are presented in~\Cref{alg:blossom_search}.
 
 \begin{algorithm}
 \caption{The blossom search procedure}\label{alg:blossom_search}
 \begin{algorithmic}[1]
-\Procedure{BlossomSearch}{}
+\Procedure{blossom\_search}{}
 \For{each blossom $B$}
     \If{$B$ is exposed}
         \State{label $B$ as \emph{even}}
@@ -171,23 +172,23 @@ Based on which of the two conditions hold and whether the search trees of the tw
 \State
 \While{an augmenting path has not been found}
     \While{a useful edge $uv$ exists}
-        \State{$\textsc{ConsiderEdge}(uv)$}
+        \State{$\textsc{consider\_edge}(uv)$}
     \EndWhile
     \State{$\textsc{DualWeightAdjustment}()$}
 \EndWhile
 \EndProcedure
 \State
-\Procedure{ConsiderEdge}{$uv$}
+\Procedure{consider\_edge}{$uv$}
 \If{$v$ is \emph{free}}\Comment{$u$ is \emph{even} from definition of useful edges}
     \State{\textsc{Grow}($uv$)}
 \Else\Comment{$v$ is \emph{even}}
-    \State{\textsc{Backtrack}($uv$)}
+    \State{\textsc{backtrack}($uv$)}
 \EndIf
 \EndProcedure
 \end{algorithmic}
 \end{algorithm}
 
-\paragraph*{Grow step}
+\subsubsection*{Grow step}
 
 In the case when the useful edge connects an even vertex $u$ to a free vertex $v$, the grow step takes place. Let $B_v$ be the blossom of $v$. We mark $B_v$ as odd and set its backtrack edge to $uv$. Let $p$ be the base of $B_v$. Because $B_v$ was previously free, $p$ has to be matched to some vertex $q$ and its blossom $B_q$. We mark $B_q$ as even and set its backtrack edge to $pq$. Vertices of $B_q$ become even for the first time so some of their adjacent edges might become useful.
 
@@ -195,10 +196,10 @@ In the case when the useful edge connects an even vertex $u$ to a free vertex $v
 \caption{The grow step procedure}\label{alg:grow_step}
 \begin{algorithmic}[1]
 \Procedure{Grow}{$uv$}
-\State{Let $B_v$ be $v$'s current blossom}
+\State{Let $B_v$ be the current blossom of $v$}
 \State{$b \gets base(B_v)$}
 \State{$c \gets \texttt{mate}[b]$}
-\State{Let $B_c$ be $c$'c current blossom}
+\State{Let $B_c$ be the current blossom of $c$}
 \State{Label $B_v$ as \emph{odd}}
 \State{$backtrack(B_v) \gets (u, v)$}
 \State{Label $B_c$ as \emph{even}}
@@ -207,7 +208,7 @@ In the case when the useful edge connects an even vertex $u$ to a free vertex $v
 \end{algorithmic}
 \end{algorithm}
 
-\paragraph*{Backtrack procedure}
+\subsubsection*{backtrack procedure}
 
 When considering a tight edge $e=\{u, v\}$ between two even blossom $B_u$ and $B_v$ we backtrack using the previously described backtrack edges. We either find an augmenting path between two exposed blossoms at the roots of $B_u$ and $B_v$'s search trees and perform the augment step or the two blossoms are in the same search tree, in which case we execute the blossom step. 
 
@@ -215,19 +216,19 @@ There is one important detail we need to take into account to ensure that the pr
 
 To avoid that, we advance simultaneously along the two paths one step at a time and mark the blossom as visited while checking if the paths have met. Doing that we only visit $2\max(l_u, l_v)$ blossoms where $l_u$ and $l_v$ are the lengths of paths from $B_u$ and $B_v$ to $B_q$.
 
-\paragraph*{Augment step}
+\subsubsection*{Augment step}
 
 If an augmenting path between two exposed blossoms is found, the augment step is performed and the current stage comes to an end. The augmentation consists of swapping the edges along the found path in the current matching $M$. We have previously described how to recursively find alternating paths in blossoms. After such an augmentation the bases of blossoms along the paths change and with them the order of subblossom lists, which get shifted cyclically to put the blossom containing the new base at the end. 
 
-Notice we do not actually need to perform the augmentation inside the blossoms and instead can do it lazily. The only information about blossom we need are which vertices belong to it and what its base is. Instead of swapping edges along an even alternating path inside the blossoms along the augmenting path, we can simply change their bases, which saves time with repeated augmentations. The augmentation is only done when the blossom is expanded. We do so by swapping edges along the even path from the blossom's initial base to its current base. We again only do so for the blossom edges and only update the bases of subblossoms. 
+Notice we do not actually need to perform the augmentation inside the blossoms and instead can do it lazily. For a blossom we only need to know its base and its vertices. Instead of swapping edges along the full augmenting path in the original graph, we only swap the edges between proper blossom. The base of a blossom $B$ is its sole vertex whose mate is outside $B$. When swapping edges between blossom we also need to change their bases. Lazy augmentation saves time when paths are repeatedly augmented. The augmentation is only done when the blossom is expanded. We do so by swapping edges along the even path from the blossom's initial base to its current base. We again only do so for the blossom edges and only update the bases of subblossoms.
 
-At the end of the algorithm we expand all blossoms to reveal the final matching. One issue is that lazy augmentation makes it harder to maintain the matching. The value of the \texttt{mate} array may not be accurate inside a blossom and is only guaranteed to be consistent for bases of blossoms.  When expanding a blossom, besides swapping edges along the even path we also fix the \texttt{mate} array for remaining edges using the information contained in the \texttt{isMatched} array.
+At the end of the algorithm we expand all blossoms to reveal the final matching. The only issue is that lazy augmentation makes it harder to maintain the matching. The value of the \texttt{mate} array may not be accurate inside a blossom and is only guaranteed to be consistent for bases of blossoms.  When expanding a blossom, besides swapping edges along the even path we also fix the \texttt{mate} array for remaining edges using the information contained in the \texttt{in\_matching} array, which is not affected by lazy augmentation.
 
-\paragraph*{Blossom step}
+\subsubsection*{Blossom step}
 
 When the two backtrack paths meet at some blossom $B_q$, a new blossom $B$ is formed. The base of the new blossom is the base $q$ of $B_q$. As the paths split in $B_q$, it has to be an even blossom which is why we also label $B$ as such. The backtrack edge for $B$ is $B_q$'s backtrack edge, which is also the edge matched to $q$, or it's empty if $B_q$ is a root of a search tree. Notice that vertices in odd subblossoms of $B$ become even for the first time in the current stage, so some of their adjacent edges might turn useful.
 
-\paragraph*{Dual weight adjustment step}
+\subsubsection*{Dual weight adjustment step}
 
 Whenever there are no more useful edges, a dual weight adjustment step is performed. For a chosen $\delta > 0$ we adjust the values of dual variables as follows:
 
@@ -237,8 +238,6 @@ Whenever there are no more useful edges, a dual weight adjustment step is perfor
     \item $z_B \gets z_B + 2\delta$ for all even blossoms $B$,
     \item $z_B \gets z_B - 2\delta$ for all odd blossoms $B$.
 \end{itemize}
-
-Such an adjustment strictly decreases the dual objective function getting us closer to the optimal weights. Simple calculation shows that the dual objective function changes by $\delta(o - e)$ where $e$ is the number of even blossoms and $o$ the odd ones. Each tree in the search forest starts with an even blossom at the root and by the grow step, all odd blossom lead to a unique even blossom connected to it with an edge in the current matching, meaning there are more even blossoms than odd ones and the dual objective function decreases.
 
 We choose a maximum value of $\delta$ that preserves the (1), (2) and (4) constraints of~\Cref{thm:conditions}. In order to do that we compute 4 candidate values $\delta_1, \delta_2, \delta_3$ and $\delta_4$ and choose $\delta = \min \{\delta_1, \delta_2, \delta_3, \delta_4\}$. We define them as follows:
 
@@ -255,11 +254,11 @@ When $\delta = \delta_1$, all even vertices $v$ have their dual variables reduce
 
 When $\delta = \delta_2$ or $\delta = \delta_3$ the edges for which the minimum was achieved become tight as their slack reaches $0$, meaning they're now useful and we can continue with the search.
 
-When $\delta = \delta_4$ we expand all odd blossoms $B$ for which $z_B = 0$ after the dual weight adjustment. Let $b$ be the base of $B$ and $uv$ be $B$ the backtrack edge of $B$. Let $B_v$ be the subblossom of $B$ that contains $v$. We find an alternating path of even length over subblossoms of $B$ from $B_0$ to $B_v$ and label the subblossom on the path even and odd in turns while setting their backtrack edges accordingly. The remaining subblossoms become free. As some vertices become even for the first time, some edges might become useful as a result of this process.
+When $\delta = \delta_4$ we expand all odd blossoms $B$ for which $z_B = 0$ after the dual weight adjustment. Let $b$ be the base of $B$ and $uv$ be $B$ the backtrack edge of $B$. Let $B_v$ be the subblossom of $B$ that contains $v$ and $B_0$ the one that contains the base $b$. We find an alternating path of even length over subblossoms of $B$ from $B_0$ to $B_v$ and label the subblossom on the path even and odd in turns while setting their backtrack edges accordingly. The remaining subblossoms become free. An example expansion is pictured in~\Cref{fig:odd_expansion}. As some vertices become even for the first time, some edges might become useful as a result of this process.
 
 At the end of the stage all even blossoms $B$ with $z_B = 0$ are expanded to preserve the constraint (4).
 
-\begin{figure}[t]
+\begin{figure}
     \centering
     \includegraphics*[width=0.49\textwidth]{figures/Odd expansion.png}
     \includegraphics*[width=0.49\textwidth]{figures/Odd expanded.png}
@@ -272,7 +271,7 @@ All new blossoms are even and even blossoms are only expanded at the end of the 
 
 We count the number of dual weight adjustments. We get $\delta = \delta_1$ at most once as it leads to the end of the algorithm. Whenever $\delta = \delta_2$, the newly useful edges lead to grow steps during which new blossoms are labeled as odd and even. When $\delta = \delta_3$, either the blossom step is performed and a new even blossom is added or the augment step is executed and the stage is finished. Finally, each time $\delta = \delta_4$, an odd blossoms is expanded. We see that there's at most $O(n)$ dual weight adjustments in a single stage as their number is bounded by the number of unique blossoms. We call the section of the algorithm between each dual weight adjustment a \textit{substage}.
 
-The Edmonds' original algorithm spends most of it's time calculating $\delta$ for each dual weight adjustment and finding new useful edges. It maintains a doubly linked lists of vertices for each proper blossom, which are split and concatenated whenever blossoms are created or expanded. For each vertex its current blossom is maintained in a simple array and updated together with the vertex lists. As there are $O(n)$ unique blossoms, it takes $O(n)$ time to maintain vertex lists and $O(n^2)$ to update the current blossom array in each stage. We also maintain a doubly linked list of all proper blossoms which we can update in constant time each time a new blossom appears by storing a pointer to its position in said list for each blossom.
+The Edmonds' original algorithm spends most of its time calculating $\delta$ for each dual weight adjustment and finding new useful edges. It maintains a doubly linked lists of vertices for each proper blossom, which are split and concatenated whenever blossoms are created or expanded. For each vertex its current blossom is maintained in a simple array and updated together with the vertex lists. As there are $O(n)$ unique blossoms, it takes $O(n)$ time to maintain vertex lists and $O(n^2)$ to update the current blossom array in each stage. We also maintain a doubly linked list of all proper blossoms which we can update in constant time each time a new blossom appears by storing a pointer to its position in said list for each blossom.
 
 Once a vertex becomes even, it stays that way, so we only need to scan its edges once either at the start of the stage, after a grow step or after an odd blossom expansion. All of that takes $O(m)$ time per stage. We calculate $\delta$ by iterating over all vertices and edges. If $\delta = \delta_2$ or $\delta = \delta_3$ we also check which edges achieved the minimum and become useful. Each dual weight adjustment step takes $O(n+m)=O(m)$ time for a total cost of $O(nm)$ per stage. With $O(n)$ stages the total time complexity of Edmonds' algorithm comes down to $O(n^2m)$ or $O(n^4)$ when bounding $m$ by $n^2$.
 
@@ -293,6 +292,23 @@ Let $B_v$ and $B_u$ be $u$ and $v$'s current blossoms. There exist an even lengt
 \[\sum_{uv \in M} w(uv) = \sum_{uv \in M} y_u + y_v + \sum_{u, v \in B} z_B\]
 
 We can ignore the weights $z_B$ as they're all even. The sums for $M$ and $M'$ share all vertices except for $u$ and $v$ so the difference between $M$ and $M'$'s weights is of the same parity as $y_u - y_v$. As all edge weights are even, so are the weights of the two matchings meaning that $y_u - y_v$ is even and $y_u$ and $y_v$ are of the same parity.
+
+\subsection{Correctness}
+
+It is easy to verify that the obtained matching is optimal using~\Cref{thm:conditions}. We've shown that during the execution we maintain conditions (1), (2) and (4) and the algorithm only finished when (3) is satisfied. What remains to show is that the algorithm terminates.
+
+The progress of the algorithms is first measured by the number of exposed vertices $v$ for which $y_v > 0$ which violate (3). Each stage finishes either by finding an augmenting path and decreasing the number of vertices violating (3) by making two of them no longer exposed or during the dual weight adjustment step when $\delta = \delta_1$ in which case all exposed vertices have their dual weights reduced to $0$.
+
+The progress of the \textsc{blossom\_search} procedure is measured by the number of edges that have been added to the search structure (including those that have been absorbed into new blossoms). An edge is only added to the search structure at most once. When it becomes absorbed into a new even blossom, it remains in this state as even blossoms are only expanded at the end of a stage. If a useful edge exists, it can be added to the search structure which may result in an augmenting path being found or a new blossom being created. If no useful edges exist the dual weight adjustment is performed. We consider the possible cases that arise during dual weight adjustment:
+
+\begin{enumerate}
+    \item If $\delta = \delta_1$, the algorithm as a whole finishes.
+    \item If $\delta = \delta_2$, some edge $\{u, v\}$ between an even vertex $u$ and free vertex $v$ becomes useful and can be added to the search structure.
+    \item If $\delta = \delta_3$, some edge $\{u, v\}$ between even vertices $u$ and $v$ becomes useful and can be added to the search structure.
+    \item If $\delta = \delta_4$, some odd blossoms $B$ have their dual weights $z_B$ reach $0$ and are expanded. There no new odd blossoms, so this happens at most $O(n)$ times.
+\end{enumerate}
+
+In all cases the dual weight adjustment results in new edges being added to the search structure. As there is a finite number of edges, this process has to come to an end, meaning the \textsc{blossom\_search} procedure always terminates.
 
 \subsection{Finding a maximum weight perfect matching}
 
@@ -319,15 +335,15 @@ The conditions need for a matching to be the maximum weight perfect matching are
     
     \begin{enumerate}
         \item $\pi_{e}, z_B \geq 0$ for each $v \in V, e \in E, B \in \mathcal{O}$,
+        \item $\pi_{e} = 0$ for each edge $e \in M$,
         \item $M$ is a perfect matching,
-        \item $y_i = 0$ for each exposed vertex $i$,
         \item $|\{e | e \subseteq B, e \in M\}| = \floor{\frac{1}{2}n_B}$ for each blossom $B$ where $z_B > 0$.
     \end{enumerate}
 \end{theorem}
 
-The algorithm again maintains conditions (1), (3) and (4) and runs until the matching $M$ is perfect. Each stage increases the number of edges in $M$.
+The algorithm again maintains conditions (1), (2) and (4) and runs until the matching $M$ is perfect. Each stage increases the number of edges in $M$. The only difference from the maximum weight matching algorithm is that we no longer calculate $\delta_1 = \min_{\text{even } u} y_u$ as the dual weights $y_u$ are unrestricted.
 
-The only difference from the maximum weight matching algorithm is that we no longer calculate $\delta_1 = \min_{\text{even } u} y_u$ as the dual weights $y_u$ are unrestricted. 
+The lack of restriction on $y_u$ allows us more freedom in choosing initial weights. This was not possible in the described maximum weight matching algorithm, as it relies on the fact that all exposed vertices have the same dual weight. If the weights differed, at some point one of the exposed vertices $v$ would reach $y_v = 0$ while others would still be positive. In this case, we would not be able to perform dual weight adjustment as we've described it. One initialization strategy is the \emph{greedy} initialization. We start by assigning to each weight $y_v$ half of the maximum weight of any edges adjacent to $v$. We then iterate over all the edges and add any tight edge to the initial matching $M$ (only if none of its endvertices have been matched).
 
 \section{Gabow's algorithm}
 
@@ -353,20 +369,21 @@ To sum up, we spend $O(n^2)$ time maintaining the new values and $O(n^2)$ doing 
 
 \section{Galil, Micali \& Gabow algorithm}
 
-Implementations of the blossom algorithm described above spend most of their time doing dual weight adjustments and finding useful edges. The authors of~\cite{micali1980v} showed that it is possible to perform dual weight adjustment in constant time by taking advantage of the fact that large groups of weights are changed by the same amount. We start by describing the specialized priority queues they've devised to do so and we show how they're used in the search stage of the blossom algorithm.
+Implementations of the blossom algorithm described above spend most of their time doing dual weight adjustments and finding useful edges. The authors of~\cite{micali1980v} showed that it is possible to perform dual weight adjustment in constant time by taking advantage of the fact that large groups of weights are changed by the same amount. We start by describing the specialized priority queues they have devised to do so and we show how they are used in the search procedure of the blossom algorithm.
 
 \subsection{Data structures}
 
-We define a specialized priority queue we call $pq_1$ which operates on integer elements from $\{0, \dots, n-1\}$. Elements start outside the queue and can be inserted or deleted from it. Elements inside the queue are called \textit{current}. Each current element has an associated priority. We support following operations:
+We define a specialized priority queue we call $pq_1$ which operates on integers from a set $\{0, \dots, n-1\}$ for a specified $n$. Elements start outside the queue and can be inserted into or deleted from it. Elements inside the queue are called \textit{current}. Each current element has an associated priority. We support following operations:
 
 \begin{itemize}
-    \item $\textsc{insert}(i, p)$ insert an element $i$ with priority $p$ or update its priority if $p$ is smaller than the current one in time $O(\log n)$,
+    \item $\textsc{insert}(i, p)$ insert an element $i$ with priority $p$ or update the priority of $i$ if $p$ is smaller than the current priority of $i$ in time $O(\log n)$,
     \item $\textsc{delete}(i)$ delete the element $i$ in time $O(\log n)$,
-    \item $\textsc{findMin}()$ find the element with the lowest priority in time $O(1)$,
+    \item $\textsc{find\_min}()$ find the element with the lowest priority in time $O(1)$,
+    \item $\textsc{current\_priority}(i)$ return the current priority of $i$ in time $O(1)$
     \item $\textsc{decrease}(\delta)$ decrease the priorities of all current elements by $\delta$ in time $O(1)$.
 \end{itemize}
 
-Let $\Delta$ be the sum of all priority decreases. We make use of a priority queue $Q$ which supports insertion, deletion, finding minimum and updating priority which in our case is implemented with an array heap. We do not store the exact priorities of the elements of $Q$. Instead, we use what we call their \textit{modified priorities}. An element's modified priority is calculated at the moment of insertion into the priority update. When an element's priority is set to $p$ we set its modified priority to the value $p + \Delta$ and the time of the change and store it as such in $Q$. Additionally, we store the modified priority in an array to support checking an element's current priority. Any element's current priority can be calculated by adding $\Delta$ to its modified priority. The order of elements' modified priorities is the same as the order of their real priorities as they're all just shifted by $\Delta$.
+Let $\Delta$ be the sum of all priority decreases. We make use of a priority queue $Q$ which supports insertion, deletion, finding minimum and updating priority which in our case is implemented with an array heap. We do not store the exact priorities of the elements  $Q$. Instead, we use what we call their \textit{modified priorities}. An element's modified priority is calculated at the moment of insertion into the priority update. When an element's priority is set to $p$ we set its modified priority to the value $p + \Delta$ and the time of the change and store it as such in $Q$. Additionally, we store the modified priority in an array to support checking the current priority of a given element in $\textsc{current\_priority}$. The current priority of any element can be calculated by adding $\Delta$ to its modified priority. The order of all the modified priorities is the same as the order of actual priorities as they're all just shifted by $\Delta$.
 
 We will also make use of what we call \textit{concatenable queues}. Each queue contains a list of elements in a specific order. Each element has a corresponding priority. The queues can be concatenated together or split at a specified element. Elements are referenced using handles which are preserved by split and concatenate operations. An elements handle allows one to find its current queue.
 
@@ -374,52 +391,58 @@ We will also make use of what we call \textit{concatenable queues}. Each queue c
     \item $\textsc{init}()$ create an empty queue,
     \item $\textsc{append}(q, i, p)$ append an element $i$ with priority $p$ to the end of the queue $q$ in $O(\log n)$,
     \item $\textsc{delete}(i)$ delete the element $i$ from its queue in time $O(\log n)$,
-    \item $\textsc{findMin}(q)$ find the element in queue $q$ with the lowest priority in time $O(1)$,
+    \item $\textsc{find\_min}(q)$ find the element in queue $q$ with the lowest priority in time $O(1)$,
     \item $\textsc{concat}(q_1, q_2)$ concatenate queues $q_1$ and $q_2$ in time $O(\log n)$,
     \item $\textsc{split}(q, i)$ split $q$ into two new queues: one that contains all elements in $q$ up to $i$ and one that contains all elements after $i$ in q in time $O(\log n)$,
-    \item $\textsc{findQueue}(i)$ return $i$'s current queue in time $O(\log n)$.
+    \item $\textsc{find\_queue}(i)$ return $i$'s current queue in time $O(\log n)$.
 \end{itemize}
 
-We implement concatenable queues using 2–3 trees which support splitting and concatenation as described in~\cite{aho1974design}. Elements are stored in the leaves of the tree with their order determined by the order of the leaves. Each inner node stores the element with the lowest priority among its descendants along with said priority, meaning the minimum can be easily accessed by checking the root. The elements are referenced using pointers to their corresponding leaves. We take care to maintain said pointers during splits and concatenations. The root of the tree stores a pointer to it's queue which allows us to implement findqueue with a simple walk from its corresponding leaf. To differentiate between queues each one stores an ID in its root which can be set during init, concat or split operations. 
+We implement concatenable queues using 2–3 trees which support splitting and concatenation as described in~\cite{aho1974design}. Elements are stored in the leaves of the tree with their order determined by the order of the leaves. Each inner node stores the element with the lowest priority among its descendants along with said priority, meaning the minimum can be easily accessed by checking the root. The elements are referenced using pointers to their corresponding leaves. We take care to maintain said pointers during splits and concatenations. The root of the tree stores a pointer to its queue which allows us to implement \textsc{find\_queue} with a simple walk from its corresponding leaf. To differentiate between queues each one stores an ID in its root which can be set during \textsc{init}, \textsc{concat} or s \textsc{split} operations. The ID is what is returned by \textsc{find\_queue}.
 
-The last data structure we need is priority queue $pq_2$. Just like $pq_1$ it operates on elements from a predetermined universe $\{0, \dots, n-1\}$ which are divided into groups. The elements in a given group have an order and priority. Each group can be either \textit{active} or \textit{nonactive}. We call elements active if they're inside an active group. We support modifying the priorities of all active elements by a provided value. The status of a group can be changed at any time and their elements can be split to create two new groups. Lastly we can retrieve the active element with the smallest priority. To summarize we support operations:
+The last data structure we need is priority queue $pq_2$. Just like $pq_1$ it operates on elements from an integer set $\{0, \dots, n-1\}$ which are divided into groups. All elements have an associated priority. Within a given group the elements are ordered. Each group can be either \textit{active} or \textit{inactive}. We call elements active if they are inside an active group. We support modifying the priorities of all active elements by a provided value. The status of a group can be changed at any time and their elements can be split to create two new groups. Lastly we can retrieve the active element with the smallest priority. To summarize, the queue supports following operations:
 
 \begin{itemize}
-    \item $\textsc{createGroup}()$ create a new empty group,
-    \item $\textsc{append}(g, i, p)$ append an element $i$ with priority $p$ to the end of the group $g$ in $O(\log n)$,
+    \item $\textsc{create\_group}()$ create a new empty group,
+    \item $\textsc{append}(g, i, p)$ add an element $i$ with priority $p$ to the end of the group $g$ in $O(\log n)$,
     \item $\textsc{update}(i, p)$ update $i$'s priority to $p$ if it's smaller than the current one in time $O(\log n)$,
-    \item $\textsc{findMin}()$ find the active element with the lowest priority in time $O(1)$,
+    \item $\textsc{find\_min}()$ find the active element with the lowest priority in time $O(1)$,
     \item $\textsc{split}(g, i)$ split $g$ into two new groups: one that contains all elements in $q$ up to $i$ and one that contains all elements after $i$ in q in time $O(\log n)$,
-    \item $\textsc{change}(g, s)$ change $g$'s status in time $O(1)$,
+    \item $\textsc{change}(g, s)$ change the status of $g$ to $s$ in time $O(1)$,
     \item $\textsc{delete}(g)$ delete the group $g$,
     \item $\textsc{decrease}(\delta)$ decrease the priorities of all active elements by $\delta$.
 \end{itemize}
 
 We store the sum of changes from the decrease function in a variable $\Delta$.
 
-For each group $g$ we sum up all the changes to its elements' priorities in a variable $\Delta_g$. This value is updated each time we refer to $g$. To do this we also store the value $\Delta_{last}$ which corresponds to the value of $\Delta$ last time we looked at $g$. If during that time $g$ was active, we increase $\Delta_g$ by $\Delta - \Delta_{last}$. We then update $\Delta_{last}$ to the current value of $\Delta$ regardless of $g$'s status. The elements of $g$ are stored in a concatenable queue $Q_g$. The priorities of the elements in $Q_g$ again use modified priorities similarly to $pq_1$ but using $\Delta_g$ instead. 
+For each group $g$ we sum up all the changes to the priorities of its elements in a variable $\Delta_g$. This value is updated each time we refer to $g$. To do this we also store the value $\Delta_{last}$ which corresponds to the value of $\Delta$ last time we looked at $g$. If during that time $g$ was active, we increase $\Delta_g$ by $\Delta - \Delta_{last}$. We then update $\Delta_{last}$ to the current value of $\Delta$ regardless of the status of $g$. The elements of $g$ are stored in a concatenable queue $Q_g$. The priorities of the elements in $Q_g$ again use modified priorities similarly to $pq_1$ but using $\Delta_g$ instead. 
 
-In order to find a minimum active element we maintain a $pq_1$ called $Q_{\min}$ which for each active group stores its smallest element according to priority. Whenever a new element is added or a priority is changed in an active group we check if we need to update its corresponding entry in $Q_{\min}$. When a group is set to nonactive or deleted we remove said entry. Similarly, during a split if the group is active we need to replace its entry with entries for the two resulting groups. We need to make sure to store the elements' actual priorities in $Q_{\min}$. The decrease function simply calls decrease on $Q_{\min}$.
+In order to find a minimum active element we maintain a $pq_1$ called $Q_{\min}$ which for each active group stores its smallest element according to priority. Whenever a new element is added or a priority is changed in an active group we check if we need to update its corresponding entry in $Q_{\min}$. When a group is set to inactive or deleted we remove said entry. Similarly, during a split if the group is active we need to replace its entry with entries for the two resulting groups. We need to make sure to store the elements' actual priorities in $Q_{\min}$. The decrease function simply calls decrease on $Q_{\min}$.
 
 \subsection{Search procedure}
 
-We use concatenable queues to maintain the current blossoms for each vertex. For a given blossom, its vertices are stored in a separate concatenable queue with the same order as the blossom's vertex list $L(B)$. We perform the appropriate split and concatenation operations whenever blossoms are created or expanded. Maintaining the queues costs us $O(n\log n)$ per stage. The queues' ids store references to their corresponding blossoms allowing us to retrieve a given vertex's current blossom in $O(\log n)$.
+We use concatenable queues to maintain the current blossoms for each vertex. Each proper blossom $B$ has an associated concatenable queue $Q_B$. The elements of $Q_B$ are vertices of $B$ in the order of its blossom list $L(B)$. When a new blossom $B'$ is formed create a new concatenable queue by performing the $\textsc{concat}$ operation with queues corresponding to subblossoms of $B'$. When a blossom is expanded, we perform $\textsc{split}$ operations to create queues for its subblossoms that now become proper.
 
-To maintain dual weights $y_v$ we make use of two queues $pq_1$ we call $y_{even}$ and $y_{odd}$ which we use to maintain values $y_v$ for correspondingly even and odd vertices. The values for free vertices are stored in an array $y_{free}$. Similarly, for weights $z_B$ two queues $pq_1$ $z_{even}$ and $z_{odd}$ for even and odd blossoms are used. Then $B$ is free, its dual weight $z_B$ is stored int a field in the blossom struct. To retrieve the current value of $y_v$ or $z_B$ for a vertex $v$ or blossom $B$ (mainly for the purpose of calculating an edge's slack) the algorithm checks their label and refers to the appropriate queue.
+Maintaining the queues costs us $O(n\log n)$ per stage. The queues' IDs store references to their corresponding blossoms allowing us to retrieve a given vertex's current blossom in $O(\log n)$.
 
-In order to calculate the value of $\delta_3$, we employ a $pq_1$ called $Q_{good}$ in which we store edges $uv$ between two different even blossoms which we refer to as \textit{good edges}. Each edge's priority in $Q_{good}$ corresponds to its current slack. Over the course of the algorithm, as new even blossoms are created, some of those edges might become contained within a single even blossom. We do not have enough time to detect it at the time it happens, so instead we remove them in a lazy manner each time we want to check the minimum by removing the smallest edge as long as it is no longer good.
+To maintain dual weights $y_v$ we make use of two queues $pq_1$ we call $y_{even}$ and $y_{odd}$ which we use to maintain values $y_v$ for correspondingly even and odd vertices. The values for free vertices are stored in an array $y_{free}$. Similarly, for weights $z_B$ two queues $pq_1$ $z_{even}$ and $z_{odd}$ for even and odd blossoms are used. Then $B$ is free, its dual weight $z_B$ is stored int a field in the blossom struct. To retrieve the current value of $y_v$ or $z_B$ for a vertex $v$ or blossom $B$ (mainly for the purpose of calculating the slack of an edge) the algorithm checks their label and refers to the appropriate queue.
 
-To calculate the value of $\delta_2$ efficiently we make use of a $pq_2$ called $Q_{even}$. Each non even blossom $B$ has a corresponding group $g_B$. The elements of $g_B$ are vertices of $B$ stored in blossom order. The priority of $v \in B$ in $Q_{even}$ corresponds to the minimum slack of an edge $uv \in E$ such that $u$ is even. We also remember the edge for which the minimum is achieved. Group $g_B$ is active when $B$ is free and nonactive when it's odd. Free blossoms may become odd and odd blossoms might be expanded into even, odd or free subblossoms, so we need to change a group's status and perform splits whenever necessary.
+In order to calculate the value of $\delta_3$, we use a $pq_1$ called $Q_{good}$ in which we store edges $\{u, v\}$ between two different even blossoms which we refer to as \textit{good edges}. The priority of each edge in $Q_{good}$ corresponds to its current slack. Over the course of the algorithm, as new even blossoms are created, some of those edges might become contained within a single even blossom. We do not have enough time to detect it at the time it happens, so instead we remove them in a lazy manner each time we want to check the minimum by removing the smallest edge as long as it is no longer good.
 
-\paragraph*{Beginning of a stage} For free blossom we initialize groups in $Q_{even}$ and set all priorities to $\inf$. For even blossoms we  scan outgoing edges to update $Q_{even}$ and $Q_{good}$ and start tracking the dual variables for even vertices using $y_{even}$.
+To calculate the value of $\delta_2$ efficiently we make use of a $pq_2$ called $Q_{even}$. Each non-even blossom $B$ has a corresponding group $g_B$. The elements of $g_B$ are vertices of $B$ stored in blossom order. The priority of $v \in B$ in $Q_{even}$ corresponds to the minimum slack of an edge $uv \in E$ such that $u$ is even. We also remember the edge for which the minimum is achieved. Group $g_B$ is active when $B$ is free and inactive when it's odd. Free blossoms may become odd and odd blossoms might be expanded into even, odd or free subblossoms, so we need to change the status of a group and perform splits whenever necessary.
 
-\paragraph*{Grow step} Two blossoms are added to the search structure, one even and one odd. We scan edges adjacent to the newly even vertices to update $Q_{good}$ and $Q_{even}$. To maintain the $y$ weights we add the blossoms' vertices to $y_{even}$ and $y_{odd}$ according to their label.
+\subsubsection*{Beginning of a stage}
+For free blossom we initialize groups in $Q_{even}$ and set all priorities to $\inf$. For even blossoms we  scan outgoing edges to update $Q_{even}$ and $Q_{good}$ and start tracking the dual variables for even vertices using $y_{even}$.
 
-\paragraph*{Blossom step} We concatenate all vertex queues for all subblossoms. For each odd subblossom we scan its outgoing edges to update $Q_{good}$ and $Q_{even}$, move its vertices from $y_{odd}$ to $y_{even}$ and delete its corresponding group in $Q_{even}$. We remove the subblossoms from $z_{even}$ and $z_{odd}$ and insert the new blossom into $z_{even}$.
+\subsubsection*{Grow step}
+Two blossoms are added to the search structure, one even and one odd. We scan edges adjacent to the newly even vertices to update $Q_{good}$ and $Q_{even}$. To maintain the $y$ weights we add the blossoms' vertices to $y_{even}$ and $y_{odd}$ according to their labels.
 
-\paragraph*{Odd blossom expansion} Let $B$ be the odd blossom that is being expanded. We split $B$'s group in $Q_{even}$ and assign the new groups to corresponding subblossoms. We delete the groups for even subblossom as they're no longer in use. For non-even ones we set the status according to the label – active for free subblossoms and nonactive for odd. We also swap the way we track $y$ according to the new labels.
+\subsubsection*{Blossom step}
+We concatenate all vertex queues for all subblossoms. For each odd subblossom we scan its outgoing edges to update $Q_{good}$ and $Q_{even}$, move its vertices from $y_{odd}$ to $y_{even}$ and delete its corresponding group in $Q_{even}$. We remove the subblossoms from $z_{even}$ and $z_{odd}$ and insert the new blossom into $z_{even}$.
 
-\paragraph*{Dual weight adjustment step} We can calculate $\delta$ using our $findmin$ functions for corresponding queues: 
+\subsubsection*{Odd blossom expansion}
+et $B$ be the odd blossom that is being expanded. We split $B$'s group in $Q_{even}$ and assign the new groups to corresponding subblossoms. We delete the groups for even subblossom as they're no longer in use. For non-even ones we set the status according to the label – active for free subblossoms and inactive for odd. We also swap the way we track $y$ according to the new labels.
+
+\subsubsection*{Dual weight adjustment step} We can calculate $\delta$ using our $\textsc{find\_min}$ methods for corresponding queues: 
 \begin{itemize}
     \item $y_{even}$ to calculate $\delta_1$,
     \item $Q_{good}$ to calculate $\delta_2$,
@@ -427,7 +450,7 @@ To calculate the value of $\delta_2$ efficiently we make use of a $pq_2$ called 
     \item $z_{odd}$ to calculate $\delta_4$.
 \end{itemize}
 
-To adjust dual weights we use the decrease functions to change the priorities in all the queues:
+To adjust dual weights we use the $\textsc{decrease}$ methods to change priorities in all the queues:
 \begin{itemize}
     \item by $\delta$ in $y_{even}$,
     \item by $-\delta$ in $y_{odd}$, 
@@ -437,8 +460,13 @@ To adjust dual weights we use the decrease functions to change the priorities in
     \item by $\delta$ in $Q_{even}$.
 \end{itemize}
 
-\paragraph*{End of a stage} After the search finishes we clear all the queues after first moving the current priorities from queues $y_{even}$, $y_{odd}$, $z_{even}$ and $z_{odd}$ into the $y_{free}$ array and the $z$ field to keep the dual weights up to date for the next stage.
+\subsubsection*{End of a stage} 
+After the search finishes we clear all the queues after first moving the current priorities from queues $y_{even}$, $y_{odd}$, $z_{even}$ and $z_{odd}$ into the $y_{free}$ array and the $z$ field to keep the dual weights up to date for the next stage.
 
 \subsection{Complexity}
 
-There are $O(n)$ stages in the algorithm. During each stage we consider each edge at most twice. Each time we may make a constant number of calls to various queues, each of which takes $O(\log n)$ time. Maintaining queues for blossoms by executing splits and concatenations when necessary takes $O(n \log n)$ time per stage. The $O(n)$ dual adjustments each take constant time. Single stage takes $O((n + m) \log n) = O(m \log n)$ time for a total running time of $O(nm \log n)$.
+There are $O(n)$ stages in the algorithm. During each stage we consider each edge at most twice – once each time one of its endvertices becomes even and its adjacent edges are scanned. When considering an edge we make a constant number of calls to various queues – to check the current blossoms of its endvertices or to update edge queues. Each queue operation takes at most $O(\log n)$ time. 
+
+Maintaining queues for blossoms by executing splits and concatenations when necessary takes $O(n \log n)$ time per stage. We previously showed that there are at most $O(n)$ different proper blossom during a stage. Each unique proper blossom corresponds to at most one \textsc{split} operation when it becomes proper as a result of an expansion of its parent and at most one \textsc{concat} operation when it becomes a subblossom of a newly created blossom.
+
+The $O(n)$ dual adjustments each take constant time. Summing it all up, each stage takes $O((n + m) \log n) = O(m \log n)$ time for a total running time of $O(nm \log n)$.

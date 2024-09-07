@@ -6,7 +6,7 @@ The implementations are contained in following files:
     \item \texttt{include/matching/MaximumMatching.hpp} contains declarations of classes corresponding to maximum matching algorithms, namely: \begin{itemize}
         \item \texttt{MaximumWeightMatching} – the base class for \textsc{MWM} and \textsc{MWPM} algorithms,
         \item \texttt{BlossomMaximumMatching} – an abstract base class for implementations of the blossom algorithm. Responsible for the common operations shared by all implementations – building the search tree, creating blossoms, augmenting paths, expanding blossom and others. It relies on call virtual methods implemented by children classes to perform implementation-specific parts of the algorithm. One such part is calculating the $\delta_i$ values during dual weight adjustment. Another one is finding useful edges to perform the next step. After each step of the algorithm, specific virtual methods are called to allow the implementations to update their specific data structures.
-        \item \texttt{EdmondsMaximumMatching} – the Edmond's original $O(n^m)$ version of the blossom algorithm~\cite{edmonds1965maximum},
+        \item \texttt{EdmondsMaximumMatching} – the Edmonds' original $O(n^m)$ version of the blossom algorithm~\cite{edmonds1965maximum},
         \item \texttt{GabowMaximumMatching} – the Gabow's $O(n^3)$ implementation of the blossom algorithm~\cite{gabow1974implementation},
         \item \texttt{GalilMicaliGabowMaximumMatching} – the $O(nm\log n)$ implementation of the blossom algorithm of~\cite{galil1986ev},
         \item \texttt{GabowScalingMatching} – the $O(n^{3/4}m\log N)$ scaling algorithm~\cite{gabow1984scaling},
@@ -16,11 +16,11 @@ The implementations are contained in following files:
     \item \texttt{include/matching/structures} directory contains the implementations of various data structures utilized across the implemented algorithms: \begin{itemize}
         \item \texttt{ArrayPriorityQueue.hpp} – contains the implementation of a simple array priority queue used by the scaling algorithm,
         \item \texttt{ConcatenableQueue.hpp} – contains the implementation of concatenable queues,
-        \item \texttt{FenwickTree.hpp} – contains an implementation of the $addprefixsum$ data strucutre based the Fenwick trees,
+        \item \texttt{FenwickTree.hpp} – contains an implementation of the $\textsc{add-prefixsum}$ data strucutre based the Fenwick trees,
         \item \texttt{HeapWithRemove.hpp} – contains a simple implementation of an array based heap with ability to remove elements, used by the $pq_1$ priority queue implementation,
         \item \texttt{PriorityQueues.hpp} – contains the implementations \texttt{PriorityQueue1} and \texttt{PriorityQueue2} of the $pq_1$ and $pq_2$ priority queues,
-        \item \texttt{SplitFindMin.hpp} – contains the splitting list implementation of the $splitfindmin$ data structure,
-        \item \texttt{UnionFind.hpp} – contains the implementation of the $unionfind$ data structure.
+        \item \texttt{SplitFindMin.hpp} – contains the splitting list implementation of the $\textsc{split-findmin}$ data structure,
+        \item \texttt{UnionFind.hpp} – contains the implementation of the $\textsc{union-find}$ data structure.
     \end{itemize}
     \item \texttt{cpp/matching} contains the implementation of the classes defined in the \texttt{MaximumMatching.hpp} header file,
     \item \texttt{test/testMaximumMatching.cpp} contains simple unit tests for the implemented algorithms,
@@ -93,14 +93,14 @@ $n$ & $m$ & $E$ & $G$ & $M$ & $S$ \\
 
 \begin{figure}[b]
     \centering
-    \includegraphics*[width=0.4\textwidth]{figures/sparse.png}
-    \includegraphics*[width=0.4\textwidth]{figures/dense.png}
+    \includegraphics*[width=0.49\textwidth]{figures/sparse.png}
+    \includegraphics*[width=0.49\textwidth]{figures/dense.png}
     \caption{Running time of tested algorithms on sparse and dense random instances.}\label{fig:sparse_dense}
 \end{figure}
 
 \subsubsection*{Perfect matching}
 
-We repeat the same tests, this time running the perfect matching versions of our implementations. The tests are generated similarly as in the previous section, with the difference that we make sure that the generated instances contain perfect matchings by running our implementation of the Micali-Vazirani maximum cardinality algorithm. The approach was infeasible for some larger sparse instances, in which case we've used our own random test generator that ensures that the generated graph contains a perfect matching by first generating a random permutation of vertices $[1, n]$ $v_1, v_2, \dots v_n$ and adding edges $v_1v_2, v_3v_4, \dots, v_{n-1}v_n$, with the rest of edges chosen randomly.
+We repeat the same tests, this time running the perfect matching versions of our implementations. The tests are generated similarly as in the previous section, with the difference that we make sure that the generated instances contain perfect matchings by running our implementation of the Micali-Vazirani maximum cardinality algorithm. The approach was infeasible for some larger sparse instances, in which case we've used our own random test generator that ensures that the generated graph contains a perfect matching by first generating a random permutation $v_1, v_2, \dots v_n$ of vertices $[1, n]$  and adding edges $v_1v_2, v_3v_4, \dots, v_{n-1}v_n$, with the rest of edges chosen randomly.
 
 We've tested our blossom algorithm implementation with both the empty and greedy initialization strategies. The results using the greedy initialization are marked with a $G$ subscript. Additionally, all algorithms are marked with $^*$ to indicate that the perfect matching variant is used.
 
@@ -164,49 +164,49 @@ ccc|cc|cc}
 $n$ & $m$ & $N$ & $E$ & $S$ & $E^*_G$ & $S^*$ \\
 \hline
 1000 & 4000 & 1 & 0.07 & \textbf{0.01} & \textbf{0.01} & \textbf{0.01} \\
-1000 & 4000 & 10 & 0.06 & 0.07 & \textbf{0.03} & 0.04 \\
-1000 & 4000 & 100 & 0.08 & 0.11 & 0.07 & \textbf{0.06} \\
-1000 & 4000 & 1000 & 0.19 & 0.16 & 0.17 & \textbf{0.09} \\
-1000 & 4000 & 10000 & 0.28 & 0.21 & 0.23 & \textbf{0.11} \\
-1000 & 4000 & 100000 & 0.29 & 0.24 & 0.24 & \textbf{0.12} \\
-1000 & 4000 & 1000000 & 0.30 & 0.26 & 0.29 & \textbf{0.15} \\
-1000 & 4000 & 10000000 & 0.29 & 0.33 & 0.22 & \textbf{0.16} \\
+1000 & 4000 & 10 & \textbf{0.06} & 0.07 & \textbf{0.03} & 0.04 \\
+1000 & 4000 & 100 & \textbf{0.08} & 0.11 & 0.07 & \textbf{0.06} \\
+1000 & 4000 & 1000 & 0.19 & \textbf{0.16} & 0.17 & \textbf{0.09} \\
+1000 & 4000 & 10000 & 0.28 & \textbf{0.21} & 0.23 & \textbf{0.11} \\
+1000 & 4000 & 100000 & 0.29 & \textbf{0.24} & 0.24 & \textbf{0.12} \\
+1000 & 4000 & 1000000 & 0.30 & \textbf{0.26} & 0.29 & \textbf{0.15} \\
+1000 & 4000 & 10000000 & \textbf{0.29} & 0.33 & 0.22 & \textbf{0.16} \\
 \hline
-2000 & 8000 & 1 & 0.27 & 0.03 & \textbf{0.02} & \textbf{0.02} \\
-2000 & 8000 & 10 & 0.23 & 0.15 & 0.11 & \textbf{0.09} \\
-2000 & 8000 & 100 & 0.25 & 0.27 & 0.22 & \textbf{0.15} \\
-2000 & 8000 & 1000 & 0.55 & 0.41 & 0.54 & \textbf{0.24} \\
-2000 & 8000 & 10000 & 1.05 & 0.50 & 0.85 & \textbf{0.25} \\
-2000 & 8000 & 100000 & 1.17 & 0.59 & 0.90 & \textbf{0.29} \\
-2000 & 8000 & 1000000 & 1.19 & 0.68 & 1.02 & \textbf{0.33} \\
-2000 & 8000 & 10000000 & 1.20 & 0.70 & 1.06 & \textbf{0.36} \\
+2000 & 8000 & 1 & 0.27 & \textbf{0.03} & \textbf{0.02} & \textbf{0.02} \\
+2000 & 8000 & 10 & 0.23 & \textbf{0.15} & 0.11 & \textbf{0.09} \\
+2000 & 8000 & 100 & \textbf{0.25} & 0.27 & 0.22 & \textbf{0.15} \\
+2000 & 8000 & 1000 & 0.55 & \textbf{0.41} & 0.54 & \textbf{0.24} \\
+2000 & 8000 & 10000 & 1.05 & \textbf{0.50} & 0.85 & \textbf{0.25} \\
+2000 & 8000 & 100000 & 1.17 & \textbf{0.59} & 0.90 & \textbf{0.29} \\
+2000 & 8000 & 1000000 & 1.19 & \textbf{0.68} & 1.02 & \textbf{0.33} \\
+2000 & 8000 & 10000000 & 1.20 & \textbf{0.70} & 1.06 & \textbf{0.36} \\
 \hline
-4000 & 16000 & 1 & 1.12 & 0.07 & 0.09 & \textbf{0.04} \\
-4000 & 16000 & 10 & 0.90 & 0.42 & 0.44 & \textbf{0.26} \\
-4000 & 16000 & 100 & 0.91 & 0.78 & 0.68 & \textbf{0.36} \\
-4000 & 16000 & 1000 & 1.64 & 1.14 & 1.65 & \textbf{0.50} \\
-4000 & 16000 & 10000 & 3.75 & 1.51 & 3.17 & \textbf{0.63} \\
-4000 & 16000 & 100000 & 4.72 & 1.75 & 3.96 & \textbf{0.75} \\
-4000 & 16000 & 1000000 & 4.79 & 1.97 & 4.04 & \textbf{0.83} \\
-4000 & 16000 & 10000000 & 4.74 & 2.33 & 3.82 & \textbf{0.87} \\
+4000 & 16000 & 1 & 1.12 & \textbf{0.07} & 0.09 & \textbf{0.04} \\
+4000 & 16000 & 10 & 0.90 & \textbf{0.42} & 0.44 & \textbf{0.26} \\
+4000 & 16000 & 100 & 0.91 & \textbf{0.78} & 0.68 & \textbf{0.36} \\
+4000 & 16000 & 1000 & 1.64 & \textbf{1.14} & 1.65 & \textbf{0.50} \\
+4000 & 16000 & 10000 & 3.75 & \textbf{1.51} & 3.17 & \textbf{0.63} \\
+4000 & 16000 & 100000 & 4.72 & \textbf{1.75} & 3.96 & \textbf{0.75} \\
+4000 & 16000 & 1000000 & 4.79 & \textbf{1.97} & 4.04 & \textbf{0.83} \\
+4000 & 16000 & 10000000 & 4.74 & \textbf{2.33} & 3.82 & \textbf{0.87} \\
 \hline
-8000 & 32000 & 1 & 4.76 & 0.24 & 0.36 & \textbf{0.12} \\
-8000 & 32000 & 10 & 3.68 & 1.23 & 1.90 & \textbf{0.73} \\
-8000 & 32000 & 100 & 3.55 & 2.35 & 2.67 & \textbf{1.07} \\
-8000 & 32000 & 1000 & 5.19 & 3.45 & 6.93 & \textbf{1.58} \\
-8000 & 32000 & 10000 & 13.16 & 4.49 & 13.62 & \textbf{1.70} \\
-8000 & 32000 & 100000 & 18.89 & 5.28 & 14.74 & \textbf{2.05} \\
-8000 & 32000 & 1000000 & 19.66 & 6.06 & 16.81 & \textbf{2.36} \\
-8000 & 32000 & 10000000 & 19.70 & 6.76 & 16.62 & \textbf{2.75} \\
+8000 & 32000 & 1 & 4.76 & \textbf{0.24} & 0.36 & \textbf{0.12} \\
+8000 & 32000 & 10 & 3.68 & \textbf{1.23} & 1.90 & \textbf{0.73} \\
+8000 & 32000 & 100 & 3.55 & \textbf{2.35} & 2.67 & \textbf{1.07} \\
+8000 & 32000 & 1000 & 5.19 & \textbf{3.45} & 6.93 & \textbf{1.58} \\
+8000 & 32000 & 10000 & 13.16 & \textbf{4.49} & 13.62 & \textbf{1.70} \\
+8000 & 32000 & 100000 & 18.89 & \textbf{5.28} & 14.74 & \textbf{2.05} \\
+8000 & 32000 & 1000000 & 19.66 & \textbf{6.06} & 16.81 & \textbf{2.36} \\
+8000 & 32000 & 10000000 & 19.70 & \textbf{6.76} & 16.62 & \textbf{2.75} \\
 \end{tabular}
 \caption{Results on random graphs with varying maximum weights for both perfect and non-perfect variants}\label{tab:weight}
 \end{table}
 
-\begin{figure}[b]
+\begin{figure}
     \centering
-    \includegraphics*[width=0.4\textwidth]{figures/Nweight.png}
-    \includegraphics*[width=0.4\textwidth]{figures/Eweight.png}
-    \caption{Running time of the scaling algorithm and the Edmond's algorithm in relation to the maximum edge weight $N$.}\label{fig:weight}
+    \includegraphics*[width=0.49\textwidth]{figures/Nweight.png}
+    \includegraphics*[width=0.49\textwidth]{figures/Eweight.png}
+    \caption{Running time of the scaling algorithm and the Edmonds' algorithm in relation to the maximum edge weight $N$.}\label{fig:weight}
 \end{figure}
 
 \subsubsection*{DIMACS instances}
@@ -216,7 +216,7 @@ We next turn to more structured instances. The tests were generated using the fo
 \begin{itemize}
     \item \texttt{t.f} written by N. Ritchey and B. Mattingly. For a parameter $k$ it generates a sequence of $k$ triangles. Consecutive triangles are connected with a single edge. The configuration tends to generate a lot of blossoms according to the comments provided with the generators.
     \item \texttt{tt.f} written by N. Ritchey and B. Mattingly. Similar to \texttt{t.f} with the difference that each pair of consecutive triangles is connected with $3$ separate edges.
-    \item \texttt{hardcard.f} written by B. Mattingly. It generates graphs that have been shown in~\cite{gabow1976efficient} to be hard for Edmond's maximum cardinality matching algorithm.
+    \item \texttt{hardcard.f} written by B. Mattingly. It generates graphs that have been shown in~\cite{gabow1976efficient} to be hard for Edmonds' maximum cardinality matching algorithm.
 \end{itemize}
 
 All of these instances contain perfect matching, so we've run both variants of the algorithms. For perfect matching we've opted to only test with greedy initialization. We ran each algorithm $3$ times and average the time spent.
@@ -273,3 +273,4 @@ $k$ & $n$ & $m$ & $E^*_G$ & $G^*_G$ & $M^*_G$ & $S^*$ \\
 \caption{Results on the \texttt{hardcard.f} DIMACS instances with varying $k$}\label{tab:hardcard}
 \end{table}
 
+TODO conclusions

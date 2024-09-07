@@ -1,7 +1,7 @@
 
 One of the limiting factors in the running time of algorithms based on the Blossom algorithm is the fact that they find augmenting path one at a time. The most efficient maximum cardinality matching algorithms do so in batches. One technique that has been successfully used to achieve that is \textit{scaling} first introduced in~\cite{edmonds1972theoretical} and has been applied to among others to weighted bipartite matching in~\cite{gabow1989faster} and various geometric problems in~\cite{gabow1984scaling}. 
 
-The idea of the scaling approach is to recursively solve the problems for reduced weights, representing $i$ most significant binary digits, and use the returned solution to more efficiently solve the original instance. It has been first used in~\cite{gabow1985scaling} to achieve a running time of $O(n^{3/4}m \log N)$. The algorithm works in $O(\log N)$ phases each of which finds the maximum weight perfect matching. Later work from~\cite{gabow1991faster} showed that it is enough to find $\pm O(n)$-approximate maximum weight perfect matching provided $O(\log nN)$ scales are executed, each of which runs in $O(m\sqrt{n \alpha(m,n)\log n})$ time. The algorithm of~\cite{duan2018scaling} further reduces the requirements by finding near-optimal and near-perfect matching in each scale to achieve a running time of $O(m \sqrt{n} \log nN)$. We take a closer look and describe an implementation of the $O(n^{3/4}\log N)$ algorithm from~\cite{gabow1985scaling}.
+The idea of the scaling approach is to recursively solve the problems for reduced weights, representing $i$ most significant binary digits, and use the returned solution to more efficiently solve the original instance. It has been first used in~\cite{gabow1985scaling} to achieve a running time of $O(n^{3/4}m \log N)$. The algorithm works in $O(\log N)$ phases each of which finds the maximum weight perfect matching. Later work from~\cite{gabow1991faster} showed that it is enough to find $\pm O(n)$-approximate maximum weight perfect matching provided $O(\log(nN))$ scales are executed, each of which runs in $O(m\sqrt{n \alpha(m,n)\log n})$ time. The algorithm of~\cite{duan2018scaling} further reduces the requirements by finding near-optimal and near-perfect matching in each scale to achieve a running time of $O(m \sqrt{n} \log(nN))$. We take a closer look and describe an implementation of the $O(n^{3/4}\log N)$ algorithm from~\cite{gabow1985scaling}.
 
 \section{Gabow's scaling algorithm}
 
@@ -15,22 +15,30 @@ yz(S) = \sum_{v \in S} y_v + \sum_{B \subset S} z_B \floor{\frac{1}{2}n_B} + \su
 
 Notice that $yz(V)$ corresponds to the dual program's objective function and $yz(e) = slack(e)$.
 
-The algorithm works using recursion. Given even weights $w(e)$, we first calculate smaller weights $w'(e) = 2\floor{ w(e)/4 }$ that remain even. We then perform for $w'$ which we call $M'$, dual weights $y$ and $z$ along with a blossom tree $T'$. The root of the tree $T'$ is $G$ which is not a blossom and has no weight. We than use the returned values to help us solve the problem for the original weights $w(e)$.
+\begin{defn}[blossom tree]
+    For a matching $M$ on a graph $G$ with corresponding weights $y$ and $z$ and proper blossoms $B_1, \dots, B_k$, we define its \emph{blossom tree} to be a tree whose root is $G$ with children $T_1, \dots, T_k$ where $T_i$ is the structure tree of $B_i$ for $i = 1, \dots, k$.
+\end{defn}
 
-\renewcommand{\labelenumi}{\textbf{\arabic{enumi}}.}
-\paragraph*{Function $scale(w)$}
-\begin{enumerate}
-    \item If $w(e) = 0$ for all $e \in E$ then return perfect matching $M$, dual weights $y_v = 0$ and no blossoms
-    \item Calculate $w'(e) \gets 2\floor{ w(e)/4 }$ for all $e \in E$
-    \item Call $scale(w')$ to get dual weights $y'$ and $z'$ and old blossom tree $T'$
-    \item Calculate dual weights
-    \begin{align*}
-        y^0_v &\gets 2y'_v + 1 && \text{for all $v \in V$} \\
-        z^0_B &\gets 2z'_B && \text{for all old blossoms $B \in T'$}
-    \end{align*}
-    \item Call $match(y^0, z^0, T')$ to calculate a perfect matching $M$
-    \item Return $M$ along with corresponding dual weights $y$ and $z$ and blossom tree $T$
-\end{enumerate}
+The algorithm works using recursion. The $\textsc{scale}(w)$ procedure receives even weights $w(e)$ and returns a maximum weight perfect matching for $w$ along with corresponding dual weights and blossom tree. We first calculate smaller weights $w'(e) = 2\floor{ w(e)/4 }$ that remain even. We then perform a recursive call $\textsc{scale}(w')$ which returns a perfect matching $M'$ with dual weights $y'$ and $z'$ along with a blossom tree $T'$. The returned values are used to solve the problem for the original weights $w(e)$. We start by calculating new weights $y^0$ and $z^0$ which are then used by the $\textsc{Match}$ procedure.
+
+\begin{algorithm}
+\caption{The \textsc{scale} procedure}\label{alg:scale}
+\begin{algorithmic}[1]
+\Procedure{scale}{$w$}
+\If{$w(e) = 0$ for all $e \in E$}
+\State{\Return{perfect matching $M$, dual weights $y_v = 0$ and no blossoms}}
+\EndIf
+\State{$w'(e) \gets 2\floor{ w(e)/4 }$ for all $e \in E$}
+\State{$M', y', z', T' \gets \textsc{scale}(w')$}
+\State{$y^0_v \gets 2y'_v + 1$ for all $v \in V$}
+\State{$z^0_B \gets 2z'_B$ for all old blossoms $B \in T'$}
+\State{$\textsc{Match}(y^0, z^0, T')$}
+\State{\Return{perfect matching $M$ with weights $y$, $z$ and blossom tree $T$}}
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+The base case of the recursion happens when $w(e) = 0$ for all $e \in E$. The algorithm returns a perfect matching $M$ which can be found by a maximum cardinality matching algorithm. Technically, unless all weights in the graph are zero, the matching gets immediately discarded. Along with the matching we return dual weights $y_v = 0$ and an empty blossom tree (consisting only of root $G$).
 
 The depth of recursion is $O(\log N)$. The formula $y^0_v \gets 2y'_v + 1$ accounts for the bit lost in calculating $w'$. The weights $y^0$ and $z^0$ are feasible and close to optimal, which is show by a following fact:
 
@@ -59,51 +67,62 @@ The match procedure starts with an empty matching and weights $y^0$ and $z^0$ an
 
 In order to efficiently dissolve old blossoms the algorithm uses heavy path decomposition. Let $B$ be a blossom in a blossom tree $T$. We call a subblossom $C$ of $B$ its \textit{heavy child} if $n_C > \frac{n_B}{2}$. Any blossom has at most one heavy child. We can partition $T$ into \textit{heavy paths} which are maximal paths in $T$ in which the next blossom on the path is the previous blossom's heavy child. If a blossom is not its parent's heavy child (or it's the root of the tree) it is a root of its own heavy path.
 
-The $match$ function works by partitioning the old blossom tree $T'$ into heavy paths and then calling $path(B)$ on roots $B$ of heavy path in postorder.
+The $match$ function works by partitioning the old blossom tree $T'$ into heavy paths and then calling $\textsc{path}(B)$ on roots $B$ of heavy path in postorder.
 
-Additionally, in order to maintain the dominance on the edges outgoing from the currently processed old blossom, the algorithm maintains the following invariant for all vertices $v \in G$.
-
-\begin{equation}\label{eq:4}
-    y_v \geq y^0_v
-\end{equation}
+Additionally, in order to maintain the dominance on the edges outgoing from the currently processed old blossom, the algorithm maintains the invariant $y_v \geq y^0_v$ for all vertices $v \in G$.
 
 \section{Path procedure}
 
 We first define the notion of a \textit{shell}. Consider a perfect structured matching with blossom $B$ and its descendant $C$ we call the graph induced by $B \setminus C$ a shell.
 
-The procedure $path(B)$ takes as an input a root $B$ of a heavy path $P_B$. All old blossoms contained in $B$ that aren't a part of $P_B$ have been dissolved prior to calling $path(B)$. 
+The procedure $\textsc{path}(B)$ takes as an input a root $B$ of a heavy path $P_B$. All old blossoms contained in $B$ that are not a part of $P_B$ have been dissolved prior to calling $\textsc{path}(B)$. 
 
 Two consecutive blossoms on $P_B$ form a shell. All the undissolved blossoms on path $P_B$ form a sequence of shells. We also include the deepest blossom $C$ in $P_B$ which corresponds to a shell $C \setminus \emptyset$. This is not a shell as we have previously defined them and as such has different properties. 
 
 The procedure dissolves all old blossoms on $P_B$ while building up the current matching and associated blossoms and maintaining the optimality constraints. Over time as the old blossoms are dissolved the shells merge together. One exception is when $B = G$, in which case the top shell $G \setminus C$ never dissolves. The procedure ends when all the old blossoms are dissolved or when $B = G$ and the current matching is perfect.
 
-\textbf{Function $path(B)$}
+\begin{algorithm}
+\caption{The \textsc{path} procedure}
+\begin{algorithmic}[1]
+\Procedure{path}{$B$}
+\While{there are undissolved blossoms in $P_B$ or $B = G$ and $M$ is not perfect}
+    \State{$\textsc{augment\_paths}()$}
+    \State{Let $L$ be a list of shells with at least 1 exposed vertex}
+    \State{Sort shells in $L$ according to descending number of exposed vertices}
+    \For{each shell $S$ in $L$}
+        \If{$S$ has not been searched or dissolved}
+        \State{$\textsc{shell\_search}(S)$}
+        \EndIf
+    \EndFor
+\EndWhile
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
 
-Repeat until all blossoms in $P_B$ have been dissolved or if $B = G$ when the current matching is perfect:
-\begin{enumerate}
-    \item Build a graph $G'$ by shrinking current blossoms and using only tight edges contained within a single shell. Utilizing the current matching $M$ as the starting point, find the maximum cardinality matching in $G'$ using the MV algorithm. Use the found matching to augment $M$.
-    \item Sort the shells by the number of exposed vertices in descending order.
-    \item Call $shellsearch$ on the shells of $P_B$ in the calculated order if they haven't been dissolved or searched already.
-\end{enumerate}
+\subsubsection{The path augmentation procedure}
 
-To perform path augmentations we make use of a maximum cardinality matching algorithm. In our case it is specifically the Micali-Vazirani algorithm with time complexity $O(\sqrt{n}m)$ introduced in~\cite{micali1980v} which we will refer to as the MV algorithm. To efficiently contract the blossoms and create a new graph we need some information about the shells and blossoms. For each shell we maintain a list of proper blossom contained within it and a list of vertices. These lists get concatenated as old blossoms dissolve. At the start of the iteration we record for each vertex its current shell and blossom in an array to be able to efficiently check it. We don't delete the structure for the root of the path even after it was dissolved, we just mark it as such. At the end of the $path$ procedure, after all the old blossoms have been dissolved it will contain a list of all blossoms and vertices in the path. These lists are than concatenated to the lists of $B$'s parent in the blossom tree, so that it contains the information about current blossoms.
+The matching is augmented by the \textsc{augment\_paths} procedure. The procedure builds a graph $G'$ by shrinking current blossoms and using only tight edges contained within a single shell as edges. It translates the current matching $M$ to a matching $M'$ on $G'$. Using $M'$ as a starting point, it finds the maximum cardinality matching in $G'$ by calling a maximum cardinality matching algorithm. The resulting matching is used to augment the matching $M$ on $G$.
 
-We also need to efficiently calculate a slack of an edge to check whether it's tight. Notice that we only need to check an edge's slack if it's contained in a single shell and connects vertices in different blossoms. If we want to calculate the slack of such an edge $uv$, we only need to know $y_u$, $y_v$, $w(uv)$ and the sum of dual weights of all old blossoms that contain it. For each blossom $B$ on the current path we define $z_{path}(B)$ as a sum of dual weights $z_P$ for all ancestors $P$ of $B$ on the current path including $B$. Before starting $path(B)$ we also calculate the value $z_{outer}$ which is the sum of dual weights for all old blossoms containing $B$ in the old blossom tree. We do that while performing the heavy path decomposition by summing up the values along the way. Let $B$ be the smallest old blossom one $P_B$ that contains $uv$. We can calculate the slack of $uv$ as
+In the \textsc{augment\_paths} procedure we make use of a maximum cardinality matching algorithm. In our case it is specifically the Micali-Vazirani algorithm introduced in~\cite{micali1980v} which we will refer to as the MV algorithm. To efficiently contract the blossoms and create a new graph we need some information about the shells and blossoms. For each shell we maintain a list of proper blossoms contained within it and a list of vertices. These lists get concatenated as old blossoms dissolve. At the start of the iteration we record for each vertex its current shell and blossom in an array to be able to efficiently check it. We do not delete the structure for the root of the path even after it was dissolved, we just mark it as such. At the end of the $\textsc{path}$ procedure, after all the old blossoms have been dissolved it will contain a list of all blossoms and vertices in the path. These lists are then concatenated to the lists of $B$'s parent in the blossom tree, so that it contains the information about current blossoms.
+
+We also need to efficiently calculate a slack of an edge to check whether it's tight. Notice that we only need to check an edge's slack if it's contained in a single shell and connects vertices in different blossoms. If we want to calculate the slack of such an edge $uv$, we only need to know $y_u$, $y_v$, $w(uv)$ and the sum of dual weights of all old blossoms that contain it. For each blossom $B$ on the current path we define $z_{path}(B)$ as a sum of dual weights $z_P$ for all ancestors $P$ of $B$ on the current path including $B$. Before starting $\textsc{path}(B)$ we also calculate the value $z_{outer}$ which is the sum of dual weights for all old blossoms containing $B$ in the old blossom tree. We do that while performing the heavy path decomposition by summing up the values along the way. Let $B$ be the smallest old blossom one $P_B$ that contains $uv$. We can calculate the slack of $uv$ as
 
 \[ slack(uv) = y_v + y_u - w(uv) + z_{path}(B) + z_{outer} \]
 
 We explicitly build the shrunk graph $G'$ before passing it to the MV algorithm. To do that, we iterate over all blossoms and associate them with consecutive integers. When adding edges, we remember which original edge they come from. The MV algorithm returns the matching as a mapping from a vertex to its mate. We iterate over the returned matching and augment our current matching according to it. If a blossom $B$ was matched to $C$ by the MV algorithm, we first iterate over $B$'s adjacency list in $G'$ to find the original edge through which the two were matched. Just like in the Blossom algorithm, the augmentation is lazy – we only change the bases of $B$ and $C$ (along with some other indicators that describe the matching).
 
-The main part of the procedure consists of calls to the $shellsearch(B \setminus C)$ procedure, which takes as an input a shell and executes a variant of the blossom algorithm search. We search for an augmenting path over tight edges in the shell defined by two consecutive undissolved old blossoms. We call these two old blossoms the \textit{boundaries} of the searched shell and refer to them as \textit{outer} or \textit{inner} where the outer blossom contains the inner one. During the search some of these old blossoms might get dissolved. When that happens the boundaries of the shell change and the searched graph grows. When searching the innermost shell the inner boundary doesn't exist. Apart from blossom dissolution the high level search algorithm is almost identical.
+\subsubsection{The shell search procedure}
 
-The main difference is in the dual weight adjustment step. When calculating $\delta$ we no longer use $\delta_1$ as the dual variables $y_v$ are unrestricted in the perfect matching version of the dual linear program. We do have to take into the account the weight corresponding to the inner and outer blossom of the shell. When adjusting dual weights by $\delta$ we distribute $2\delta$ units for the two boundaries of the shell. The two exceptions are when the inner blossom doesn't exist and when the outer blossom is the whole graph $G$ for which we don't perform any distributions. When calculating $\delta$ we make sure that the distribution doesn't decrease the dual weight of a boundary below $0$.
+The main part of the procedure consists of calls to the $\textsc{shell\_search}(B \setminus C)$ procedure, which takes as an input a shell and executes a variant of the blossom algorithm search. We search for an augmenting path over tight edges in the shell defined by two consecutive undissolved old blossoms. We call these two old blossoms the \textit{boundaries} of the searched shell and refer to them as \textit{outer} or \textit{inner} where the outer blossom contains the inner one. During the search some of these old blossoms might get dissolved. When that happens the boundaries of the shell change and the searched graph grows. When searching the innermost shell the inner boundary doesn't exist. Apart from blossom dissolution the high level search algorithm is almost identical to the search procedure of the perfect matching version of the blossom algorithm.
+
+The main difference is in the dual weight adjustment step. When calculating $\delta$ we have to take into the account the weight corresponding to the inner and outer blossom of the shell. When adjusting dual weights by $\delta$ we distribute $2\delta$ units for the two boundaries of the shell. The two exceptions are when the inner blossom does not exist and when the outer blossom is the whole graph $G$ for which we do not perform any distributions. When calculating $\delta$ we make sure that the distribution does not decrease the dual weight of a boundary below $0$.
 
 After dual weight adjustment the dual weight corresponding to one of the boundaries might be brought down to $0$. When that happens that old blossom is dissolved and the boundaries are moved. When the outer blossom is dissolved we move the boundary to its parent in the path $P_B$ and when it's the inner one, we move the boundary to its child. We say that the current shell \textit{dissolves into} the shell defined by the dissolved boundary and the new boundary. If said shell has already been involved in a previous shell search during this iteration, we finish our search. When the outer boundary is dissolves, and it happens to be the outermost non-dissolved blossom in $P_B$, we also halt our search. If none of these cases happen the search finishes when it finds an augmenting path over tight edges.
 
-The details of implementing the $shellsearch$ procedure differ in major ways from the previously described approaches and are described in the next section.
+The details of implementing the $\textsc{shell\_search}$ procedure differ in major ways from the previously described approaches and are described in the next section.
 
 \begin{lemma}\label{lem:search_correctness}
-    The $shellsearch$ procedure maintains the dominance on all edges, tightness on blossom edges and the property~\ref{eq:4}.
+    The $\textsc{shell\_search}$ procedure maintains the dominance on all edges, tightness on blossom edges and the property $y_v \geq y^0_v$.
 \end{lemma}
 
 \begin{proof}
@@ -111,90 +130,92 @@ The details of implementing the $shellsearch$ procedure differ in major ways fro
     
     The distributions on $C$ and $D$ maintain the dominance and tightness on edges contained within $C \setminus D$ as the decrease of $z_C$ cancels out the increase of $y$. 
     
-    For edges $uv$ such that $u \in C \setminus D$ and $v \in D$ only dominance needs to be maintained, as they are not part of the matching. The slack of such an edge $uv$ changes by $-2\delta$ from the change to $z_C$, by $\delta$ and $2\delta$ from distributions to $y_u$ and $y_v$ and at the worst by $-\delta$ from a dual adjustment to $y_u$, depending on $u$'s label. This means that the slack of $uv$ doesn't decrease and remains non-negative.
+    For edges $uv$ such that $u \in C \setminus D$ and $v \in D$ only dominance needs to be maintained, as they are not part of the matching. The slack of such an edge $uv$ changes by $-2\delta$ from the change to $z_C$, by $\delta$ and $2\delta$ from distributions to $y_u$ and $y_v$ and at the worst by $-\delta$ from a dual adjustment to $y_u$, depending on $u$'s label. This means that the slack of $uv$ does not decrease and remains non-negative.
 \end{proof}
 
 Similar investigation of dual adjustments shows how the value of the $yz$ function changes with each adjustment:
 
 \begin{lemma}\label{lem:search_duals}
-    If $C \setminus D$ is not the last shell of $B$, a dual adjustment of $\delta$ decreases $yz(B)$ by $\delta(f-2)$ and $yz(C \setminus D)$ by $\delta f$. In the search of the last shell $C \setminus \emptyset$, both $yz(B)$ and $yz(C)$ are decreased by $\delta(f-1)$.
+    If $C \setminus D$ is not the last shell of $B$, a dual adjustment with the value of $\delta$ decreases $yz(B)$ by $\delta(f-2)$ and $yz(C \setminus D)$ by $\delta f$. In the search of the last shell $C \setminus \emptyset$, both $yz(B)$ and $yz(C)$ are decreased by $\delta(f-1)$.
 \end{lemma}
 
 \section{Shell search implementation}
 
-The authors of the algorithm leave out the details of the $shellsearch$ procedure's implementation except for key data structures used. We've relied on a description presented in~\cite{duan2018scaling} with some additions.
+The authors of the algorithm leave out the details of the $\textsc{shell\_search}$ procedure's implementation except for key data structures used. We rely on a description presented in~\cite{duan2018scaling} with some additions.
 
 To take advantage of integer weights instead of employing tree based priority queues that work in logarithmic time we can make use of an array based queue. It is convenient for us to reframe the dual adjustment in terms of \textit{time}. We call steps of the search algorithm \textit{events}. We say that an event happens at time $t$ if happens after the sum of dual adjustments reaches $t$. A simple implementation of an array queue stores events in an array of linked lists and supports scheduling events at set times. It stores the current time and a pointer to current event. To retrieve the next event it moves the pointer to the next event in the current list or moves the time counter until the corresponding list is non-empty.
 
 There are 4 types of events that happen during the search:
 
 \begin{itemize}
-    \item $grow(w, e)$ – happens when the blossom $B_v$ containing the vertex $v$ is added to the search structure through edge $e$. The value of $e$ might be empty, which happens when $B_v$ is exposed and it becomes the root of a new search tree,
+    \item $grow(v, e)$ – happens when the blossom $B_v$ containing the vertex $v$ is added to the search structure through edge $e$. The value of $e$ can be equal to $\emptyset$, which happens when $B_v$ is exposed and it becomes the root of a new search tree,
     \item $blossom(e)$ – happens when a new blossom is created after the addition of edge $e$ to the search structure,
     \item $dissolve(B)$ – happens when an odd blossom $B$ expands after its corresponding dual weight $z_B$ reaches $0$,
-    \item $dissolveShell(B)$ – happens when one of the boundaries of the search dissolves after its weight reaches $0$. 
+    \item $dissolve\_shell(B)$ – happens when one of the boundaries of the search dissolves after its weight reaches $0$. 
 \end{itemize}
 
 Another problem we need to solve is maintaining vertices' membership to blossoms. We have previously used concatenable queues which we split and concatenated as blossom were created and expanded. We can do better by taking advantage of the order blossoms change. Notice that once a blossom becomes even it can no longer expand and stays even, it can only become a part of a new even blossom. Only odd blossoms expand after which some of their subblossoms become even, odd and free. A free blossom can either become even or odd as it gets added to the search structure. We can model this behavior using two data structures – one for splitting and one for joining sets of vertices.
 
-The first data structure used is the well known $union-find$, which operates on a universe of elements from $\{ 0, 1, \dots, n-1 \}$. The elements are divided into sets. Each set additionally has an ID\@. It supports the following operations:
+The first data structure used is the well known $\textsc{union-find}$, which operates on a universe of elements from $\{ 0, 1, \dots, n-1 \}$. The elements are divided into sets. Each set additionally has an ID\@. It supports the following operations:
 
 \begin{itemize}
-    \item $init(u, id)$ – initializes $u$'s set to a singleton $\{u\}$ with the provided ID,
-    \item $join(u, v)$ – joins the sets containing $u$ and $v$ into a new set with the provided ID,
-    \item $find(u)$ – returns the ID of $u$'s set.
+    \item $\textsc{init}(u, id)$ – initializes $u$'s set to a singleton $\{u\}$ with the provided ID,
+    \item $\textsc{join}(u, v)$ – joins the sets containing $u$ and $v$ into a new set with the provided ID,
+    \item $\textsc{find}(u)$ – returns the ID of $u$'s set.
 \end{itemize}
 
-The last data structure we need is the $splitfindmin$ data structure also called the splitting list data structure introduced in~\cite{gabow1985scaling}. In the next section we described in detail its implementation. The splitting list data structure operates on a universe of elements from $\{0, 1, \dots, n\}$. Every element $x$ can be contained in at most one list $L(x)$ and has an associated cost $c(x)$ which can be infinite. The cost $c(L)$ of a list is the smallest cost of an element in $L$. Every list has an id. It supports the following operations:
+The last data structure we need is the $\textsc{split-findmin}$ data structure also called the splitting list data structure introduced in~\cite{gabow1985scaling}. In the next section we described in detail its implementation. The splitting list data structure operates on a universe of elements from $\{0, 1, \dots, n\}$. Every element $x$ can be contained in at most one list $L(x)$ and has an associated cost $c(x)$ which can be infinite. The cost $c(L)$ of a list is the smallest cost of an element in $L$. Every list has an id. It supports the following operations:
 
-\begin{enumerate}
-    \item $initialize(x_1, \dots, x_l)$ initializes a list of elements
-    \item $decreasecost(x, d)$ update $c(x)$ to $\min(d, c(x))$
-    \item $split(x)$ split $L(X)$ into two lists $L_1$ and $L_2$ where $L_1$ contains all elements of $L(x)$ until and including $x$ and $L_2$ contains the remaining elements in the order they appear in $L(x)$
-    \item $findmin(L)$ return $c(L)$ and the element of $L$ which achieves the minimum
-    \item $findlist(x)$ return $x$'s current list
-\end{enumerate}
+\begin{itemize}
+    \item $\textsc{initialize}(x_1, \dots, x_l)$ initializes a list of elements,
+    \item $\textsc{decrease\_cost}(x, d)$ update $c(x)$ to $\min(d, c(x))$,
+    \item $\textsc{split}(x)$ split $L(X)$ into two lists $L_1$ and $L_2$ where $L_1$ contains all elements of $L(x)$ until and including $x$ and $L_2$ contains the remaining elements in the order they appear in $L(x)$,
+    \item $\textsc{find\_min}(L)$ return $c(L)$ and the element of $L$ which achieves the minimum,
+    \item $\textsc{find\_list}(x)$ return $x$'s current list.
+\end{itemize}
 
-With these two data structure we can keep track of which blossom each vertex belongs to. Each even blossom will correspond to a set in the $union-find$ data structure. Meanwhile, each non-even blossom will correspond to a list in the $splitfindmin$ data structure. When a blossom is no longer proper $L(v)$ will correspond to the last proper blossom $x$ was a part of before it became even.
+With these two data structures we can keep track of which blossom each vertex belongs to. Each even blossom will correspond to a set in the $\textsc{union-find}$ data structure. Meanwhile, each non-even blossom will correspond to a list in the $\textsc{split-findmin}$ data structure. When a blossom is no longer proper $L(v)$ will correspond to the last proper blossom $x$ was a part of before it became even.
 
-When a blossom is labeled as even through a grow step or after becoming a root of a search tree, we iterate over its vertices to join them into a single set with ID pointing to the blossom. After a new blossom with base $b$ is created we iterate over all newly even vertices $v$ and call $join(b, v)$. For all even subblossoms with base $c$ we call $join(b, c)$. After these join operations all vertices of the new blossom are in a single set with ID corresponding to the blossom. It is important for us to change the label of odd subblossoms to even. At the beginning of the search and after the searched graph expands we create lists in the $splitfindmin$ for all blossoms with their vertices in the blossom order. When an odd blossom expands we call $split$ to divide its list into lists corresponding to the new blossoms. In order to find which blossom a vertex $v$ belongs to we first call $findlist(v)$. If the blossom corresponding to the returned list is non-even it is $v$'s blossom. If the blossom is even we need to call $find(v)$. Additionally, we will store costs associated with all non-even vertices which we will describe later.
+When a blossom is labeled as even through a grow step or after becoming a root of a search tree, we iterate over its vertices to join them into a single set with ID pointing to the blossom. After a new blossom with base $b$ is created we iterate over all newly even vertices $v$ and call $\textsc{join}(b, v)$. For all even subblossoms with base $c$ we call $\textsc{join}(b, c)$. After these join operations all vertices of the new blossom are in a single set with ID corresponding to the blossom. It is important for us to change the label of odd subblossoms to even. At the beginning of the search and after the searched graph expands we create lists in the $\textsc{split-findmin}$ for all blossoms with their vertices in the blossom order. When an odd blossom expands we call $\textsc{split}$ to divide its list into lists corresponding to the new blossoms. In order to find which blossom a vertex $v$ belongs to we first call $\textsc{findlist}(v)$. If the blossom corresponding to the returned list is non-even it is $v$'s blossom. If the blossom is even we need to call $\textsc{find}(v)$. Additionally, we will store costs associated with all non-even vertices which we will describe later.
 
 During the search we maintain the following values:
 
 \begin{itemize}
-    \item $t_{now}$ – the current time, maintained by the array queue
-    \item $z_0(B)$ – the value of $z_B$ at the time it became a proper blossom
-    \item $t_{proper}(B)$ – the time $B$ became a proper blossom
-    \item $t_{even}(B)$ – the time $B$ became an even blossom
-    \item $t_{odd}(B)$ – the time $B$ became an odd blossom
-    \item $\Delta(B)$ – the sum of dual weight adjustment experienced by the vertices of $B$ when they were a part of an odd blossom before $B$ became proper or even
-    \item $y_0(v)$ – the value of $y_v$ before all searches
+    \item $t_{now}$ – the current time, maintained by the array queue,
+    \item $z_0(B)$ – the value of $z_B$ at the time it became a proper blossom,
+    \item $t_{proper}(B)$ – the time $B$ became a proper blossom,
+    \item $t_{even}(B)$ – the time $B$ became an even blossom,
+    \item $t_{odd}(B)$ – the time $B$ became an odd blossom,
+    \item $\Delta(B)$ – the sum of dual weight adjustment experienced by the vertices of $B$ when they were a part of an odd blossom before $B$ became proper or even,
+    \item $y_0(v)$ – the value of $y_v$ before all searches,
     \item $t_{search}(v)$ – the time the vertex $v$ was added to the searched graph
-    \item $\Delta(v)$ – the sum of distributions to vertex $v$ before it was added to a search graph
-    \item $t_{outer}$ – the time the current outer boundary became the boundary
-    \item $t_{inner}$ – the time the current inner boundary became the boundary
-    \item $t_{whole}$ – the time the outer boundary became $G$ – a special case
-    \item $z_{boundary}$ – the sum of weights of old blossom on the path containing the outer boundary (including itself) at the time it became the boundary
+    \item $\Delta(v)$ – the sum of distributions to vertex $v$ before it was added to a s,earch graph,
+    \item $t_{outer}$ – the time the current outer boundary became the boundary,
+    \item $t_{inner}$ – the time the current inner boundary became the boundary,
+    \item $t_{whole}$ – the time the outer boundary became $G$ – a special case,
+    \item $z_{boundary}$ – the sum of weights of old blossom on the path containing the outer boundary (including itself) at the time it became the boundary.
 \end{itemize}
 
 For each shell we maintain a list of blossoms contained inside it to allow us to iterate over them. Each proper blossom has a pointer to its position in said list. We remove and add blossoms from said list whenever dissolve and blossom events happen. When a shell dissolves into another we join their lists.
 
 With these values we can calculate the values of $y_v$ and $z_B$ at a time $t_{now}$. Let 
 \[ D(v) = \Delta(v) + \max(0, \min(t_{now}, t_{whole}) - t_{search}(v)) \] 
-be the sum of old blossom distributions to $v$ since the beginning of the iteration – consisting of distributions before it was added to search graph $\Delta(v)$ and distributions from the outer boundary after $v$ was added to the search graph. Assuming $B_v = findlist(v)$, we can calculate
+be the sum of old blossom distributions to $v$ since the beginning of the iteration – consisting of distributions before it was added to search graph $\Delta(v)$ and distributions from the outer boundary after $v$ was added to the search graph. Assuming $B_v = \textsc{findlist}(v)$, we can calculate
 
 \begin{align*}
-    y(v) &= y_0(v) + D(v) &+ 
-    &\begin{cases}
-        \Delta(B) + t_{now} - t_{odd}(B) & \text{if $B_v$ is odd} \\
-        \Delta(B) - (t_{now} - t_{even}(B)) & \text{if $B_v$ is even} \\
-        \Delta(B) & \text{if $B_v$ is free} \\
-    \end{cases} \\
-    z(B) &= z_0(B) &+ 
-    &\begin{cases}
-        -2(t_{now} - t_{odd}(B)) & \text{if $B$ is odd} \\
-        2(t_{now} - t_{even}(B)) & \text{if $B$ is even} \\
-        0 & \text{if $B$ is free} \\
+    y(v) = y_0(v) + D(v) + 
+    \begin{cases}
+        \Delta(B) + t_{now} - t_{odd}(B) & \text{if $B_v$ is odd,} \\
+        \Delta(B) - (t_{now} - t_{even}(B)) & \text{if $B_v$ is even,} \\
+        \Delta(B) & \text{if $B_v$ is free.} \\
+    \end{cases}
+\end{align*}
+\begin{align*}
+    z(B) = z_0(B) + 
+    \begin{cases}
+        -2(t_{now} - t_{odd}(B)) & \text{if $B$ is odd,} \\
+        2(t_{now} - t_{even}(B)) & \text{if $B$ is even,} \\
+        0 & \text{if $B$ is free.} \\
     \end{cases}
 \end{align*}
 
@@ -202,115 +223,192 @@ When calculating the slack of an edge in the search graph not contained within a
 
 \begin{align*}
     z_{old} &= z_{outer} + \begin{cases}
-        0 & \text{if $G$ is the boundary} \\
-        z_{boundary} - 2(t_{now} - t_{outer}) & \text{otherwise}
+        0 & \text{if $G$ is the boundary,} \\
+        z_{boundary} - 2(t_{now} - t_{outer}) & \text{otherwise.}
     \end{cases} \\
     slack(uv) &= y(u) + y(v) - w(uv) + z_{old}
 \end{align*}
 
-During each iteration, the shells are searched in descending order based on the number of exposed vertices they contain. Distributions from old blossom higher in the path influence the vertices of all lower blossoms. To calculate $\Delta(v)$ we need to know the sum of all distributions from old blossom containing $v$ in previous searches. We use a data structure $addprefixsum$ capable of calculating a prefix sum of an array and adding a value to an element at a specified index. In our case it is implemented as a Fenwick tree~\cite{Fenwick1994AND}, which accomplishes both of these operations in $O(\log n)$ for an array of size $n$. 
+During each iteration, the shells are searched in descending order based on the number of exposed vertices they contain. Distributions from old blossom higher in the path influence the vertices of all lower blossoms. To calculate $\Delta(v)$ we need to know the sum of all distributions from old blossom containing $v$ in previous searches. We use a data structure $\textsc{add-prefixsum}$ capable of calculating a prefix sum of an array and adding a value to an element at a specified index. In our case it is implemented as a Fenwick tree~\cite{Fenwick1994AND}, which accomplishes both of these operations in $O(\log n)$ for an array of size $n$. 
 
-Before performing any searches we index undissolved shells with consecutive integers $0, 1, \dots$ which we use as indices in the $addprefixsum$ data structure. We denote the number of all distributions done to $B$ and its ancestors on the current path since the start of the current iteration as $dist(B)$.
+Before performing any searches we index undissolved shells with consecutive integers $0, 1, \dots$ which we use as indices in the $\textsc{add-prefixsum}$ data structure. We denote the number of all distributions done to $B$ and its ancestors on the current path since the start of the current iteration as $dist(B)$.
 
-The costs in the $splitfindmin$ data structure will help us maintain the slack of edges between even and non-even vertices. We want to keep the invariant that for each non-even vertex $v$ the value $c(v)$ is equal to $\min_{u \text{even}} slack(vu)$ shifted by some offset shared by all vertices of the blossom $B = L(v)$. Specifically, for each non-even vertex $u$ in blossom $B = L(v)$ we maintain the following invariant:
+The costs in the $\textsc{split-findmin}$ data structure will help us maintain the slack of edges between even and non-even vertices. We want to keep the invariant that for each non-even vertex $v$ the value $c(v)$ is equal to $\min_{u\text{ - even}} slack(vu)$ shifted by some offset shared by all vertices of the blossom $B = L(v)$. Specifically, for each non-even vertex $u$ in blossom $B = L(v)$ we maintain the following invariant:
 
 \[ 
-\min_{u \text{even}} slack(vu) = \begin{cases}
+\min_{u \text{ - even}} slack(vu) = \begin{cases}
     c(v) - (t_{odd}(B) - \Delta(B)) & \text{if $B$ is odd} \\
     c(v) - (t_{now} - \Delta(B)) & \text{if $B$ is free}
 \end{cases}
 \]
 
-When $v$ is odd the slack of edges connecting it to even vertices doesn't change with dual adjustments and when $v$ is free it decreases by $1$ with each dual adjustment, meaning that the invariant is maintained after dual adjustment without making changes to $c(v)$. We additionally remember which edge is responsible for the current cost $c(v)$.
+When $v$ is odd the slack of edges connecting it to even vertices does not change with dual adjustments and when $v$ is free it decreases by $1$ with each dual adjustment, meaning that the invariant is maintained after dual adjustment without making changes to $c(v)$. We additionally remember which edge is responsible for the current cost $c(v)$.
 
 We show how to update all the counters and data structures throughout the search starting with the beginning of the search. 
 
-\paragraph*{At the start of the search} First we calculate $z_{boundary}$. Let $B$ be the outer boundary. We already know the sum of the dual weight before any searches and it is equal to $z_{path}(B)$. To include the distributions that happened to $B$'s ancestors in any searches that took place since then, we query the $addprefixsum$ data structure and call the result $\Delta$. The value of $z_{boundary}$ is equal to $z_{path}(B) - 2\Delta$. 
+\subsubsection*{The start of the search}
+First we calculate $z_{boundary}$. Let $B$ be the outer boundary. We already know the sum of the dual weight before any searches and it is equal to $z_{path}(B)$. To include the distributions that happened to $B$'s ancestors in any searches that took place since then, we query the $\textsc{add-prefixsum}$ data structure and call the result $\Delta$. The value of $z_{boundary}$ is equal to $z_{path}(B) - 2\Delta$. 
 
-We iterate over all blossom $B$ in the searched graph to initialize their lists in the $splitfindmin$ data structure and set $\Delta(B) \gets 0$. If $B$ is exposed we schedule a $grow(v, -)$ event at time $0$ for the base $v$ of $B$. For all vertices $v$ we set $t_{search}(v) \gets 0$ and $\Delta(v) \gets \Delta$. For each boundary $B$ we queue up the $dissolveShell(B)$ event at time $z_B / 2$ as each dual adjustment decreases the value of $z_B$ by $2$. We don't do that if the inner boundary does not exist or the outer boundary is the whole graph $G$. This is also when we set $t_{whole} = 0$, which is otherwise initialized to $\infty$.
+We iterate over all blossom $B$ in the searched graph to initialize their lists in the $\textsc{split-findmin}$ data structure and set $\Delta(B) \gets 0$. If $B$ is exposed we schedule a $grow(v, \emptyset)$ event at time $0$ for the base $v$ of $B$. For all vertices $v$ we set $t_{search}(v) \gets 0$ and $\Delta(v) \gets \Delta$. For each boundary $B$ we queue up the $dissolve\_shell(B)$ event at time $z_B / 2$ as each dual adjustment decreases the value of $z_B$ by $2$. We do not do that if the inner boundary does not exist or the outer boundary is the whole graph $G$. If the outer boundary is $G$, we set $t_{whole} = 0$, otherwise we initialize it to $\infty$.
 
-\paragraph*{The $grow(v, e)$ event}
-
-Let $B$ be $v$'s current blossom. If $B$ is not free, it is already in the search structure, and we have nothing else to do. We proceed based on whether $e$ is in the current matching.
+\subsubsection*{The $grow(v, e)$ event}
+Let $B$ be the current blossom of $v$. If $B$ is not free, it is already in the search structure, and we have nothing else to do. We proceed based on whether $e$ is in the current matching.
 
 If $e$ is not provided or if it's currently part of the matching, $B$ becomes even. We set $e$ to be $B$'s backtrack edge and assign
 
 \[ t_{root}(B), t_{even}(B) \gets t_{now} \]
 
-In the $unionfind$ data structure, we link all vertices of $B$ to $v$, which is the base of $B$ according to our definition of the grow event. For every $B \in u$ we call $schedule(u)$ to queue up event associated with these vertices.
+In the $\textsc{union-find}$ data structure, we link all vertices of $B$ to $v$, which is the base of $B$ according to our definition of the grow event. For every $u \in B$ we call $\textsc{schedule}(u)$ to queue up event associated with these vertices.
 
-If $e$ is known and it is not matched, $B$ becomes odd and the values become
+If $e$ is not $\emptyset$ and it is not in the matching, we label $B$ as odd and the set values
 
 \[ t_{root}(B), t_{odd}(B) \gets t_{now} \]
 
-After which we call $schedule(u)$ where $u$ is the base of $B$. 
+After which we call $\textsc{schedule}(u)$ where $u$ is the base of $B$.
 
-\paragraph*{The $schedule(u)$ procedure}
-
-This function schedules events associated with a vertex $u$ which is either even or a base of an odd blossom. Let $B_u$ be the blossom containing $u$. 
+\subsubsection*{The schedule procedure}
+The $\textsc{schedule}(u)$ procedure schedules events associated with a vertex $u$ which is either even or a base of an odd blossom. Let $B_u$ be the blossom containing $u$. 
 
 If $u$ is odd, we schedule the $dissolve(B_u)$ event at time $t_{now} + z(B_u) / 2$, which is when $z_B$ reaches $0$. As $B_u$ is odd, it's not exposed and as such $u$ is matched to some vertex $v$ belonging to $B_v$. We can continue the search by scheduling either a $grow(v, uv)$ or $blossom(uv)$ event based on whether $v$ is free or even.
 
-Now assume that $u$ is even. We iterate over all neighbors $v$ of $u$. Let $B_v$ be $v$'s current blossom. If $v$ is even we schedule an event $blossom(uv)$ at time $t_{now} + slack(uv)/2$ as that is when $uv$ becomes tight. If $v$ is odd, we update the cost $c(v)$ in the $splitfindmin$ by calling $decreasecost(v, slack(uv) + (t_{odd}(B_v) - \Delta(B_v)))$. When $v$ is free, we try to decrease $c(v)$ to $slack(uv) + (t_{now} - \Delta(B_v))$ and if we're successful, we schedule $grow(v, uv)$ at $t_{now} + slack(uv)$ as that is when $uv$ becomes tight and the search tree can be extended to $B_v$.
+Now assume that $u$ is even. We iterate over all neighbors $v$ of $u$. Let $B_v$ be $v$'s current blossom. We do different things depend on how $u$ is labeled.
+\begin{itemize}
+    \item If $v$ is even we schedule an event $blossom(uv)$ at time $t_{now} + slack(uv)/2$ as that is when $uv$ becomes tight.
+    \item If $v$ is odd, we update the cost $c(v)$ in the $\textsc{split-findmin}$ by calling $\textsc{decrease\_cost}(v, slack(uv) + (t_{odd}(B_v) - \Delta(B_v)))$.
+    \item When $v$ is free, we try to decrease $c(v)$ to $slack(uv) + (t_{now} - \Delta(B_v))$ and if we're successful, we schedule $grow(v, uv)$ at $t_{now} + slack(uv)$ as that is when $uv$ becomes tight and the search tree can be extended to $B_v$.
+\end{itemize}
 
-\paragraph*{The $blossom(e)$ event}
+An implementation of $\textsc{schedule}(u)$ is presented in~\Cref{alg:schedule}.
 
-We follow the backtrack edges the same way we did in the blossom algorithm by simultaneously moving two pointers until we either visit the same blossom twice or reach two distinct roots. If we reached different roots, an augmenting path is found and the $shellsearch$ procedure is finished. If not, a new blossom is created. 
+\begin{algorithm}
+\caption{The \textsc{schedule} procedure}\label{alg:schedule}
+\begin{algorithmic}[1]
+\Procedure{schedule}{$u$}
+    \If{$u$ is odd}
+        \State{Let $B_u$ be the current blossom of $u$}
+        \If{$B_u$ is not trivial}
+            \State{Schedule $dissolve(B_u)$ at time $t_{now} + z(B_u) / 2$}
+        \EndIf
+        \State{$v \gets mate[v]$}
+        \If{$v$ is free}
+            \State{Schedule $grow(v, (u, v))$ at time $t_{now}$}
+        \Else
+            \State{Schedule $blossom(\{u, v\})$ at time $t_{now}$}
+        \EndIf
+    \Else \Comment{$u$ is even}
+        \For{neighbors $v$ of $u$ in the shell search graph}
+            \If{$\textsc{find}(u) = \textsc{find}(v)$}
+                \State{\textbf{continue}}\Comment{$u$ and $v$ are in the same even blossom}
+            \EndIf
+            \State{$edge\_slack \gets slack(uv)$}
+            \If{$v$ is even}
+                \State{Schedule $blossom(\{u, v\})$ at time $t_{now} + edge\_slack/2$}
+            \ElsIf{$v$ is odd}
+                \State{$\textsc{decrease\_cost}(v, edge\_slack + (t_{odd}(B_v) - \Delta(B_v)))$}
+            \Else
+                \State{Let $B_v$ be the current blossom of $v$}
+                \State{$min\_slack \gets \textsc{find\_min(B_v)}$}
+                \If{$edge\_slack < min\_slack$}
+                    \State{$\textsc{decrease\_cost}(v,slack(uv) + (t_{now} - \Delta(B_v)))$}
+                    \State{Schedule $grow(v, (u, v))$ at time $t_{now} + edge\_slack$}
+                \EndIf
+            \EndIf
+        \EndFor
+    \EndIf
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
 
-Let $B$ be the new blossom and $B_1, \dots, B_k$ its subblossoms.
-For each subblossom $B_i$ we store its current dual weight which will be its starting weight when it becomes proper by setting $z_0(B_i) \gets z(B_i)$. For previously odd subblossoms $B_i$ we set $t_{even}(B_i) \gets t_{now}$ and update the number of dual adjustment while its vertices were odd $\Delta(B_i) \gets \Delta(B_i) + (t_{now} - t_{odd}(B_i))$. We link all vertices of $B_i$ to its base and the base to the new base of $B$ in the $unionfind$ data structure. For all vertices $v$ of $B_i$, which become even for the first time, we call $schedule(v)$ after updating all counters and data structures.
+\subsubsection*{The $blossom(e)$ event}
+The $\textsc{blosssom}(e)$ procedure is presented in~\Cref{alg:blossom}. We follow the backtrack edges the same way we did in the blossom algorithm by simultaneously moving two pointers until we either visit the same blossom twice or reach two distinct roots. If we reached different roots, an augmenting path is found and the $\textsc{shell\_search}$ procedure is finished. If not, a new blossom is created. 
 
-\paragraph*{The $dissolve(B)$ event} 
+Let $B$ be the new blossom and $B_1, \dots, B_k$ its subblossoms. For each subblossom $B_i$ we store its current dual weight which will be its starting weight when it becomes proper by setting $z_0(B_i) \gets z(B_i)$. For previously odd subblossoms $B_i$ we set $t_{even}(B_i) \gets t_{now}$ and update the value $\Delta(B_i)$ by adding to it $(t_{now} - t_{odd}(B_i))$, which is how much time past since $B_i$ last became odd. We link all vertices of $B_i$ to its base and the base to the new base of $B$ in the $\textsc{union-find}$ data structure. We call $schedule(v)$ for all vertices $v$ of $B_i$ which become even for the first time but only after updating all counters and data structures.
 
-We split the lists in the $splitfindmin$ data structure so that they correspond to the vertices of $B$'s subblossoms. The subblossoms are label and incorporated into the search tree the same way as we've done in the blossom algorithm search. Let $C$ be a subblossom of $B$ that now becomes proper. We set $t_{proper}(C) \gets t_{now}$ and update the count $\Delta(C) \gets \Delta(B) + (t_{now} - t_{odd}(B))$ to account for the dual adjustments while $B$ was a proper odd blossom. We set $t_{odd}$ or $t_{even}$ to $t_{now}$ if $b$ was labeled accordingly. 
+\begin{algorithm}
+\caption{The blossom event implementation}\label{alg:blossom}
+\begin{algorithmic}[1]
+\Procedure{blossom}{$\{u, v\}$}
+    \State{backtrack from $u$ and $v$}
+    \If{an augmenting path has been found}
+        \State{Finish the \textsc{shell\_search} procedure}
+    \EndIf
+    \State{Otherwise a new blossom with subblossoms $B_1, \dots, B_k$ has been found}
+    \State{Let $B$ be the new blossom formed from $B_1, \dots, B_k$}
+    \State{Let $b$ be the base of $B$}
+    \State{Let $to\_schedule$ be an empy list}
+    \For{each $B_i$}
+        \State{$z_0(B_i) \gets z(B)$}
+        \State{$t_{even}(B_i) \gets t_{now}$}
+        \State{Let $b_i$ be the base of $B_i$}
+        \If{$B_i$ is odd}
+            \State{Label $B_i$ as even}
+            \State{$\Delta(B_i) \gets \Delta(B_i) + (t_{now} - t_{odd}(B_i))$}
+            \For{each $v \in B$}
+                \State{add $v$ to  $to\_schedule$}
+                \State{$\textsc{link}(v, b_i)$}
+            \EndFor
+        \EndIf
+        \State{$\textsc{link}(b_i, b)$}
+    \EndFor
+    \For{each $v$ in $to\_schedule$}
+        \State{$\textsc{schedule}(v)$}
+    \EndFor
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
 
-If $C$ has become odd, we schedule a $dissolve(b)$ event at $t_{now} + z_0(b) / 2$. If it was labeled as even, we link all vertices $v$ of $C$ to its base in the $union-find$ data structure and call $schedule(v)$ to queue event associated with the newly even vertices. We do that at the end for all even vertices after updating counters and data structures for all new proper blossoms. If $C$ has become free we find the edge with the smallest slack connecting a vertex $v$ of $C$ to some even vertex $u$ using the $splitfindmin$ data structure. According to our invariant we can calculate $slack(uv) = c(v) - (t_{now} - \Delta(C))$. With that we can schedule a $grow(v, uv)$ event at time $t_{now} + slack(uv)$. 
+\subsubsection*{The $dissolve(B)$ event} 
+We split the lists in the $\textsc{split-findmin}$ data structure so that they correspond to the vertices of $B$'s subblossoms. The subblossoms are label and incorporated into the search tree the same way as we've done in the blossom algorithm search. Let $C$ be a subblossom of $B$ that now becomes proper. We set $t_{proper}(C) \gets t_{now}$ and update the count $\Delta(C) \gets \Delta(B) + (t_{now} - t_{odd}(B))$ to account for the dual adjustments while $B$ was a proper odd blossom. We set $t_{odd}$ or $t_{even}$ to $t_{now}$ if $b$ was labeled accordingly. 
 
-\paragraph*{The $dissolveShell(B)$ event}
+If $C$ has become odd, we schedule a $dissolve(b)$ event at $t_{now} + z_0(b) / 2$. If it was labeled as even, we link all vertices $v$ of $C$ to its base in the $\textsc{union-find}$ data structure and call $schedule(v)$ to queue event associated with the newly even vertices. We do that at the end for all even vertices after updating counters and data structures for all new proper blossoms. If $C$ has become free we find the edge with the smallest slack connecting a vertex $v$ of $C$ to some even vertex $u$ using the $\textsc{split-findmin}$ data structure. According to our invariant we can calculate $slack(uv) = c(v) - (t_{now} - \Delta(C))$. With that we can schedule a $grow(v, uv)$ event at time $t_{now} + slack(uv)$. 
 
-Assume that $B$ is the outer boundary. The steps for the inner boundary are analogous except for a few corner cases. We start by recording the distributions to $B$ in the $addprefixsum$ data structure by adding $t_{now} - t_{outer}$ at $B$'s index.
+\subsubsection*{The $dissolve\_shell(B)$ event}
+Assume that $B$ is the outer boundary. The steps for the inner boundary are analogous except for a few corner cases. We start by recording the distributions to $B$ in the $\textsc{add-prefixsum}$ data structure by adding $t_{now} - t_{outer}$ at $B$'s index.
 
-The old blossom $B$ is marked as dissolved, so it can be deleted at the end of the iteration. We check if $B$ is the outermost undissolved old blossom. To be able to do that we maintain a pointer to said blossom. If $B$ matches that pointer, the $shellsearch$ procedure is done. We follow the heavy children along the current path to find the new highest undissolved blossom and update our pointer.
+The old blossom $B$ is marked as dissolved, so it can be deleted at the end of the iteration. We check if $B$ is the outermost undissolved old blossom. To be able to do that we maintain a pointer to said blossom. If $B$ matches that pointer, the $\textsc{shell\_search}$ procedure is done. We follow the heavy children along the current path to find the new highest undissolved blossom and update our pointer.
 
 Assume now that $B$ has an undissolved ancestor $C$ in the path. If the shell $C \setminus B$ has already been searched, we finish the search. If it's not the case, we expand the searched graph by adding vertices of $C \setminus B$. For each vertex $v \in C \setminus B$, we set $t_{search}(v) \gets t_{now}$ and $\Delta(v) \gets dist(C)$.
 
-For all blossom $D$ contained in $C \setminus B$ we set $\Delta(D) \gets 0$ and create a corresponding list in the $splitfindmin$ data structure.
+For all blossom $D$ contained in $C \setminus B$ we set $\Delta(D) \gets 0$ and create a corresponding list in the $\textsc{split-findmin}$ data structure.
 
-Each exposed vertex $v$ of $C \setminus B$ results in a $grow(v, -)$ event that happens at current time and establishes $v$'s blossom as a new root in the search tree.
+For each exposed vertex $v$ of $C \setminus B$ we schedule in a $grow(v, \emptyset)$ event that happens at current time and establishes $v$'s blossom as a root of a new search tree.
 
 Next we scan all new edges $vu$ where $v \in B \setminus C$ and $u$ is already a part of the  searched graph. If $u$ is even we schedule a $grow(v, uv)$ event that happens at time $t_{now} + slack(uv)$, which is when $uv$ becomes tight. 
 
-If $C$ is not equal to $G$, we schedule a $dissolveShell(C)$ event at time $t_{now} + z_C / 2$. Otherwise, we set $t_{whole} \gets t_{now}$. We set $t_{outer} \gets t_{now}$ and recalculate $z_{boundary}$ as described above.
+If $C$ is not equal to $G$, we schedule a $dissolve\_shell(C)$ event at time $t_{now} + z_C / 2$. Otherwise, we set $t_{whole} \gets t_{now}$. We set $t_{outer} \gets t_{now}$ and recalculate $z_{boundary}$ as described above.
 
 No matter which of the above cases happens, we append $B$'s list of shell vertices and blossoms to $C$'s. We also remove $B$ from the path by reassigning heavy child/parent pointers.
 
-\paragraph*{At the end of the search} For each vertex $v$, we store the current value of $y_v$ by setting $y'(v) \gets y(v)$. This value might no longer be accurate by the end of the iteration, as more distributions take place in subsequent searches. To take that into the account we store the current value $\Delta(v) \gets (\min(t_{now}, t_{whole}) - t_{search}(v))$. When all the searches have finished we can calculate the final value $y_v \gets y'(v) + dist(B) - \Delta(v)$, where $B$ is the lowest old blossom containing $v$ at the start of the iteration.
+\subsubsection*{The end of the search} 
+For each vertex $v$, we store the current value of $y_v$ by setting $y'(v) \gets y(v)$. This value might no longer be accurate by the end of the iteration, as more distributions take place in subsequent searches. To take that into the account we store the current value $\Delta(v) \gets (\min(t_{now}, t_{whole}) - t_{search}(v))$. When all the searches have finished we can calculate the final value $y_v \gets y'(v) + dist(B) - \Delta(v)$, where $B$ is the lowest old blossom containing $v$ at the start of the iteration.
 
-For each blossom $B$ we delete its corresponding list in the $splitfindmin$ data structure and store the final value $z_B \gets z(B)$. If a blossom's dual weight $z_B$ is equal to $0$, we expand it.
+For each blossom $B$ we delete its corresponding list in the $\textsc{split-findmin}$ data structure and store the final value $z_B \gets z(B)$. If a blossom's dual weight $z_B$ is equal to $0$, we expand it.
 
-We update the dual weights for the current boundaries to reflect the distributions that took place. For the current outer boundary $B$, we update $z_B \gets z_B - 2(t_{now} - t_{outer})$ and add $t_{now} - t_{outer}$ at $B$'s index in the $addprefixsum$ data structure. We do the same for the inner boundary.
+We update the dual weights for the current boundaries to reflect the distributions that took place. For the current outer boundary $B$, we update $z_B \gets z_B - 2(t_{now} - t_{outer})$ and add $t_{now} - t_{outer}$ at $B$'s index in the $\textsc{add-prefixsum}$ data structure. We do the same for the inner boundary.
 
-\paragraph*{Running time analysis} The $splitfindmin$ data structure can perform $m$ $decreasecost$ operations in $O(m\alpha(m,n))$ time as we will show in~\ref{thm:sfm_time}.
+\subsubsection*{Time complexity} 
 
-The running time of the array priority queue with $k$ events and maximum time $t_{\max}$ is trivially $O(k + t_{\max})$. It can be shown that a search of shell $C \setminus D$ decreases the value $yz(C \setminus D)$ by $n_c - n_D$ with a proof similar to that of~\ref{lem:pathyz}. Together with~\ref{lem:search_duals} this shows that $t_{\max} = O(n_C - n_D)$. 
+The $\textsc{split-findmin}$ data structure can perform $m$ $\textsc{decrease\_cost}$ operations in $O(m\alpha(m,n))$ time as we will show in~\Cref{thm:sfm_time}.
 
-The time needed to maintain the $addprefixsum$ data structure during a single iteration of $path(B)$ is $O(n_B \log n_B)$, which is enough for the desired time bound. This time is not included in the original analysis~\cite{gabow1984scaling} suggesting the author had a different implementation in mind. I suspect such an algorithm most likely takes advantage of the fact that a distribution of an old blossom keeps the slack of edges it contains the same while increasing the slack of edges that cross between the inside of the blossom and outside. Each shell is only searched once during an iteration and during a single execution of the $shellsearch$ procedure, we only check the slack of edges within some set of consecutive shells. Instead of calculating how the exact value of $y$ changes as a result of distributions, we can calculate the slack of an edge by checking how much time it spent connecting a vertex of the current graph and one outside it. We can do that using the $t_{search}$ values while also accounting for the case when $G$ is the outer boundary. Personally, I've found my approach using $addprefixsum$ easier to follow.
+The running time of the array priority queue with $k$ events and maximum time $t_{\max}$ is trivially $O(k + t_{\max})$. It can be shown that a search of shell $C \setminus D$ decreases the value $yz(C \setminus D)$ by $n_c - n_D$ with a proof similar to that of~\Cref{lem:pathyz}. Together with~\Cref{lem:search_duals} this shows that $t_{\max} = O(n_C - n_D)$. 
 
-With that in mind the searches of all shells in a single iteration of $path(B)$ except for the innermost shell $C \setminus \emptyset$ can be done $O(m_B \alpha(m_B, n_B))$. 
+The time needed to maintain the $\textsc{add-prefixsum}$ data structure during a single iteration of $\textsc{path}(B)$ is $O(n_B \log n_B)$, which is enough for the desired time bound. This time is not included in the original analysis~\cite{gabow1984scaling} suggesting the author had a different implementation in mind. I suspect such an algorithm most likely takes advantage of the fact that a distribution of an old blossom keeps the slack of edges it contains the same while increasing the slack of edges that cross between the inside of the blossom and outside. Each shell is only searched once during an iteration and during a single execution of the $\textsc{shell\_search}$ procedure, we only check the slack of edges within some set of consecutive shells. Instead of calculating how the exact value of $y$ changes as a result of distributions, we can calculate the slack of an edge by checking how much time it spent connecting a vertex of the current graph and one outside it. We can do that using the $t_{search}$ values while also accounting for the case when $G$ is the outer boundary. Personally, I have found this approach using $\textsc{add-prefixsum}$ easier to follow as it explicitly calculates the current values of $y$.
 
-All that remains is the time needed to search the innermost shell $C \setminus \emptyset$. When it has at least 2 exposed vertices the same array priority queue is sufficient. When that number is equal to one, similar calculations as in~\ref{lem:pathyz} show the blossom $C$ dissolves after $n_C$ dual adjustments. As the number of old blossoms can reach $O(n_B)$, it results in quadratic running time in the worst case. When $m = \Omega(n^{5/4})$ this is enough for our desired time bound. In general, it is enough to perform the search of the $C \setminus \emptyset$ shell in $O(\sqrt{n}m \alpha(m,n))$ which can be with search procedures of various Blossom algorithm variants. For simplicity, our implementation omits this case and uses the same simple array priority queue in all searches.
+With that in mind the searches of all shells in a single iteration of $\textsc{path}(B)$ except for the innermost shell $C \setminus \emptyset$ can be done $O(m_B \alpha(m_B, n_B))$. 
+
+All that remains is the time needed to search the innermost shell $C \setminus \emptyset$. When it has at least 2 exposed vertices the same array priority queue is sufficient. When that number is equal to one, similar calculations as in~\Cref{lem:pathyz} show the blossom $C$ dissolves after $n_C$ dual adjustments. As the number of old blossoms can reach $O(n_B)$, it results in quadratic running time in the worst case. When $m = \Omega(n^{5/4})$ this is enough for our desired time bound. In general, it is enough to perform the search of the $C \setminus \emptyset$ shell in $O(\sqrt{n}m \alpha(m,n))$ which can be done with search procedures of various blossom algorithm implementations. For simplicity, our implementation omits this case and uses the same simple array priority queue in all searches.
 
 \section{Splitting list}
 
-We now present an implementation of the previously used splitting list data structure as described by~\cite{gabow1985scaling}. Remember that the splitting list data structure operates on elements from a universe $\{0, 1, \dots, n\}$. Every element $x$ can be contained in at most one list $L(x)$ and has an associated cost $c(x)$, which can be infinite. The cost $c(L)$ of a list is the smallest cost of an element in $L$. It supports following operations:
+We now present an implementation of the previously used splitting list data structure as described by~\cite{gabow1985scaling}. Remember that the splitting list data structure operates on elements from a set $\{0, 1, \dots, n\}$. Every element $x$ can be contained in at most one list $L(x)$ and has an associated cost $c(x)$, which can be infinite. The cost $c(L)$ of a list is the smallest cost of an element in $L$. It supports following operations:
 
-\begin{enumerate}
-    \item $initialize(x_1, \dots, x_l)$ initializes a list of elements,
-    \item $decreasecost(x, d)$ update $c(x)$ to $\min(d, c(x))$,
-    \item $split(x)$ split $L(X)$ into two lists $L_1$ and $L_2$ where $L_1$ contains all elements of $L(x)$ until and including $x$ and $L_2$ contains the remaining elements in the order they appear in $L(x)$,
-    \item $findmin(L)$ return $c(L)$ and the element of $L$ which achieves the minimum,
-    \item $findlist(x)$ return $x$'s current list.
-\end{enumerate}
+\begin{itemize}
+    \item $\textsc{initialize}(x_1, \dots, x_l)$ initialize a list of elements,
+    \item $\textsc{decrease\_cost}(x, d)$ update $c(x)$ to $\min(d, c(x))$,
+    \item $\textsc{split}(x)$ split $L(X)$ into two lists $L_1$ and $L_2$ where $L_1$ contains all elements of $L(x)$ until and including $x$ and $L_2$ contains the remaining elements in the order they appear in $L(x)$,
+    \item $\textsc{find\_min}(L)$ return $c(L)$ and the element of $L$ which achieves the minimum,
+    \item $\textsc{find\_list}(x)$ return $x$'s current list.
+\end{itemize}
 
 For our analysis, we define the Ackermann's function $A(i,j)$ along with inverse functions $a(i,n)$ and $\alpha(m, n)$ as follows:
 
@@ -333,56 +431,56 @@ Along with the size $n$ of the universe of elements, when initializing the split
 For every list we store:
 
 \begin{itemize}
-    \item the lists ID for top level lists
-    \item its level
-    \item the list of all its elements
-    \item its current cost $c(L)$
-    \item two lists of sublists for the head and tail
-    \item two lists of singletons without superelement in the head and tail
-    \item pointer to a sublist if it corresponds to one
+    \item the lists ID for top level lists,
+    \item its level,
+    \item the list of all its elements,
+    \item its current cost $c(L)$,
+    \item two lists of sublists for the head and tail,
+    \item two lists of singletons without superelement in the head and tail,
+    \item pointer to a sublist if it corresponds to one.
 \end{itemize}
 
 For every sublist we store:
 
 \begin{itemize}
-    \item its rank
-    \item pointer to its list
-    \item the splitting list containing its superelements
-    \item pointer to the position in its list's sublist list
+    \item its rank,
+    \item pointer to its list,
+    \item the splitting list containing its superelements,
+    \item pointer to the position in its list's sublist list.
 \end{itemize}
 
-In order to index arrays using superelements we associate them with one of their elements (in the head it is their last element and in the tail the first one). We make use of two-dimensional arrays of size $i_{\max} \times n$. For each element $x$ at its corresponding level we store:
+In order to index arrays using superelements we associate them with one of their elements (in the head it is their last element and in the tail the first one). We make use of two-dimensional arrays of size $i_{\max} \cdot n$. For each element $x$ at its corresponding level we store:
 
 \begin{itemize}
-    \item the value $e(x)$ of its superelement if it belongs to one or $-1$ if $x$ is a singleton
-    \item the cost $c(x)$ of the element – for superelement this is the minimum cost of one of its elements
-    \item the pointer to $x$'s list $L(x)$ if $x$ is a singleton
-    \item a doubly-linked list of all elements comprising the superelement if $x$ corresponds to one
+    \item the value $e(x)$ of its superelement if it belongs to one or $-1$ if $x$ is a singleton,
+    \item the cost $c(x)$ of the element – for superelement this is the minimum cost of one of its elements,
+    \item the pointer to $x$'s list $L(x)$ if $x$ is a singleton,
+    \item a doubly-linked list of all elements comprising the superelement if $x$ corresponds to one.
 \end{itemize}
 
-We maintain the value of $c(L)$ so that it is always correct, allowing us to execute $findmin(L)$ in constant time.
+We maintain the value of $c(L)$ so that it is always correct, allowing us to execute $\textsc{find\_min}(L)$ in constant time.
 
-We now describe how to implement the splitting list operations. The function $findlist(x)$ for an element of a level $i$ list checks if $x$ is a singleton in which case it has a pointer to its list. If $x$ is part of a superelement we recursively call $findlist(e(x))$ at level $i-1$. The returned list has a pointer to $e(x)$'s sublist which itself points to $x$'s list. Total time taken is $O(i_{\max})$.
+We now describe how to implement the splitting list operations. The function $\textsc{find\_list}(x)$ for an element of a level $i$ list checks if $x$ is a singleton in which case it has a pointer to its list. If $x$ is part of a superelement we recursively call $\textsc{find\_list}(e(x))$ at level $i-1$. The returned list has a pointer to $e(x)$'s sublist which itself points to $x$'s list. Total time taken is $O(i_{\max})$.
 
-The function $decreasecost(x, d)$ works similarly to $findlist(x)$ – it returns the list containing $x$. If $x$ is a singleton it simply updates $c(x)$ and $c(L(x))$. When $x$ is a part of a superelement $e(x)$ it calls $decreasecost(e(x), d)$ recursively and uses the returned pointer to $L(x)$ to update the costs. The time complexity is again $O(i_{\max})$.
+The function $\textsc{decrease\_cost}(x, d)$ works similarly to $\textsc{find\_list}(x)$ – it returns the list containing $x$. If $x$ is a singleton it simply updates $c(x)$ and $c(L(x))$. When $x$ is a part of a superelement $e(x)$ it calls $\textsc{decrease\_cost}(e(x), d)$ recursively and uses the returned pointer to $L(x)$ to update the costs. The time complexity is again $O(i_{\max})$.
 
-To initialize a list $L$ one of two internal functions can be used – $initializehead$ or $initializetail$. The function $initializehead$ works by scanning elements from the right to left and dividing them into superelements of maximum rank. These superelements are than divided into sublists which are initialized by recursively calling $initializehead$ at the lower level. The scan at one level can be done in linear time. If the list has $l$ elements than all of its sublists have no more than $\frac{l}{4}$ elements which means the total time for $initializehead(L)$ is $O(l)$. The $initializetail$ function works similarly with the exception that the scan proceeds from left to right.
+One of two internal functions $\textsc{initialize\_head}$ or $\textsc{initialize\_tail}$ can be used to initialize a list $L$. The function $\textsc{initialize\_head}$ works by scanning elements from the right to left and dividing them into superelements of maximum rank. These superelements are then divided into sublists which are initialized by recursively calling $\textsc{initialize\_head}$ at the lower level. The scan at one level can be done in linear time. If the list has $l$ elements, then all of its sublists have no more than $\frac{l}{4}$ elements which means the total time for $\textsc{initialize\_head}(L)$ is $O(l)$. The $\textsc{initialize\_tail}$ function works similarly with the exception that the scan proceeds from left to right.
 
-The last operation to implement is $split(x)$. If $x$ is a singleton, we first check if it's in the head or tail. Assume $x$ is a head singleton. We split the head singleton list at $x$ and create a new list which consists solely of head singletons up to $x$. Similarly, if $x$ is a tail singleton, we create a new list with just tail singletons.
+The last operation to implement is $\textsc{split}(x)$. If $x$ is a singleton, we first check if it's in the head or tail. Assume $x$ is a head singleton. We split the head singleton list at $x$ and create a new list which consists solely of head singletons up to $x$. Similarly, if $x$ is a tail singleton, we create a new list with just tail singletons.
 
-Assume now that $x$ is not a singleton in a level $i$ list and belongs to a superelement $e(x)$ in sublist $S$ inside the list $L$. We perform two splits on $S$ to divide it into three parts: $S_1$ containing superelements before $e(x)$, $S_2$ containing elements after $e(x)$ and a sublist containing solely $e(x)$ which we can discard. Assume $S$ is in the head, the case when $S$ is part of the tail is analogous. We create two new lists $L_1$ and $L_2$. The head of $L_1$ consists of the sublists in $L$'s head before $S$ along with $S_1$. The tail of $L_1$ is created by calling $initializetail$ on elements of $e(x)$ until $x$. The tail of $L_2$ is just the tail of $L$ and its head is initialized with a call to $initializehead$ on elements of $e(x)$ after $x$. We than update the cost of $L_1$ and $L_2$ by checking costs of all sublists and singletons. It is easy to see that the new lists are partitioned consistently with the previously described rules.
+Assume now that $x$ is not a singleton in a level $i$ list and belongs to a superelement $e(x)$ in sublist $S$ inside the list $L$. We perform two splits on $S$ to divide it into three parts: $S_1$ containing superelements before $e(x)$, $S_2$ containing elements after $e(x)$ and a sublist containing solely $e(x)$ which we can discard. Assume $S$ is in the head, the case when $S$ is part of the tail is analogous. We create two new lists $L_1$ and $L_2$. The head of $L_1$ consists of the sublists in $L$'s head before $S$ along with $S_1$. The tail of $L_1$ is created by calling $\textsc{initialize\_tail}$ on elements of $e(x)$ until $x$. The tail of $L_2$ is just the tail of $L$ and its head is initialized with a call to $\textsc{initialize\_head}$ on elements of $e(x)$ after $x$. We then update the cost of $L_1$ and $L_2$ by checking costs of all sublists and singletons. It is easy to see that the new lists are partitioned consistently with the previously described rules.
 
 \begin{theorem}
-    The time taken to perform all $split$ operations is $O(na(i,n))$
+    The time taken to perform all $split$ operations is $O(na(i,n))$.
 \end{theorem}
 
 \begin{proof}
-    First we estimate the time at the top level. A single list has at most $a(i,n)$ sublists as each has a stores superelements of different ranks and $a(i,n)$ is the maximum rank possible. The number of singletons in a list is at most $6$. Using the maintained pointers splits on sublist lists, element lists take constant time. Updating pointers in sublists and calculating cost for new lists takes time $a(i,n)$. All that remains is the time spent in $initializehead$ and $initializetail$ and on splitting lists of elements comprising superelements. We perform the split in linear time by finding $x$ in $e(x)$'s list. The initialization also takes linear time. Each time an element $x$ is in an initialization the rank of its superelement decreases or it becomes a singleton meaning time needed for all initialization calls is $O(na(i,n))$.
+    First we estimate the time at the top level. A single list has at most $a(i,n)$ sublists as each has a stores superelements of different ranks and $a(i,n)$ is the maximum rank possible. The number of singletons in a list is at most $6$. Using the maintained pointers splits on sublist lists, element lists take constant time. Updating pointers in sublists and calculating cost for new lists takes time $a(i,n)$. All that remains is the time spent in $\textsc{initialize\_head}$ and $\textsc{initialize\_tail}$ and on splitting lists of elements comprising superelements. We perform the split in linear time by finding $x$ in $e(x)$'s list. The initialization also takes linear time. Each time an element $x$ is in an initialization the rank of its superelement decreases or it becomes a singleton meaning time needed for all initialization calls is $O(na(i,n))$.
 
     We show by induction that time needed for splits on level $i$ lists on a universe of $k$ elements is $O(ka(i,k))$. For $i=1$ all sublists contain at most one superelement, so every recursive split takes constant time, meaning the total time for all splits is $O(ka(1,k))$.
 
     Suppose $i > 1$. A rank $j$ sublist of a level $i$ list contains at most 
-    \[2A(i,j+1) / 2A(i,j) \leq A(i,j+1)\]
+    \[\frac{2A(i,j+1)}{2A(i,j)} \leq A(i,j+1)\]
     as there are fewer than $2A(i,j+1)$ elements remaining at the time of partition as otherwise a rank $j+1$ elements would have been created. The time spent in recursive calls per a level $j$ superelement is
 
     \begin{align*}
@@ -395,31 +493,33 @@ Assume now that $x$ is not a singleton in a level $i$ list and belongs to a supe
 \end{proof}
 
 \begin{theorem}\label{thm:sfm_time}
-    Assuming we know the number $m \geq n$ of $decreasecost$ operations on universe of $n$ elements in advance, we can choose the value $i_{\max}$ such that the total running time of the splitting list data structure is $O(m\alpha(m,n))$.
+    Assuming we know the number $m \geq n$ of $\textsc{decrease\_cost}$ operations on universe of $n$ elements in advance, we can choose the value $i_{\max}$ such that the total running time of the splitting list data structure is $O(m\alpha(m,n))$.
 \end{theorem}
 
 \begin{proof}
     Choose $i_{\max} = \alpha(m,n)$. Total time needed is $O(mi_{\max} + na(i_{\max},n))$. From the definition of $\alpha$, we know that $A(\alpha(m,n), \floor{\frac{m}{n}}) \geq n$. This means that $a(i_{\max},n) = \max \{ j: 2A(\alpha(m,n), j) \leq n \} < \floor{\frac{m}{n}}$ and the final complexity is $O(m\alpha(m,n))$.
 \end{proof}
 
-Our splitting list data structure implementation differs from the one described here in that it stores an additional value associated with a cost that can be specified during a $decreasecost$ operation and is returned in $findmin$ instead of the element. In our case the value corresponds to some edge and the cost is determined by its slack.
+Our splitting list data structure implementation differs from the one described here in that it stores an additional value associated with a cost that can be specified during a $\textsc{decrease\_cost}$ operation and is returned in $\textsc{find\_min}$ instead of the element. In our case the value corresponds to some edge and the cost is determined by its slack.
 
 % TODO figure maybe
 
-Solutions to the $splitfindmin$ problem with better theoretical running time exist. The data structure from~\cite{pettie2005sensitivity} works in $O(m \log \alpha(m, n) + n)$ and~\cite{thorup2007equivalence} solves it in $O(m + n)$ for integer costs.
+Solutions to the $\textsc{split-findmin}$ problem with better theoretical running time exist. The data structure from~\cite{pettie2005sensitivity} works in $O(m \log \alpha(m, n) + n)$ and~\cite{thorup2007equivalence} solves it in $O(m + n)$ for integer costs.
 
 \section{Complexity}
 
 \begin{theorem}
-    The time complexity of $match$ is $O(n^{3/4}m)$.
+    The time complexity of the $\textsc{Match}$ procedure is $O(n^{3/4}m)$.
 \end{theorem}
 
 \begin{proof}
 
-    We first show the time complexity for $path(B)$. To do that we need a few lemmas with the first one describing a special property of shells.
+    We first show the time complexity for $\textsc{path}(B)$. To do that we need a few lemmas with the first one describing a special property of shells.
+
+    We refer to a matching $M$ with weights dual weight $y$ and $z$ and blossoms that meet conditions (1), (2) and (4) of~\Cref{thm:conditions_perfect} as a \emph{structured matching}.
 
 \begin{lemma}{(Shell lemma)}\label{lem:shell}
-    Assume we have a complete structured matching with dual weights $y$ and $z$. Let $B \setminus C$ be a shell.
+    Assume we have a perfect structured matching with dual weights $y$ and $z$. Let $B \setminus C$ be a shell.
 
     The maximum weight perfect matching in a shell $B \setminus C$ exists and has weight $yz(B) - yz(C)$. If $C$ is a subblossom of $B$ then $yz(B) - yz(C) = yz(B \setminus C)$. 
 \end{lemma}
@@ -427,18 +527,18 @@ Solutions to the $splitfindmin$ problem with better theoretical running time exi
 \begin{proof}
     First assume that $C$ is a trivial blossom for vertex $v$. Construct a graph $B'$ by adding a vertex $v'$ to $B$ connected with an edge $vv'$ with zero weight. 
     
-    The structured matching implies that there exists a complete matching on $B \setminus v$ which can be obtained by changing $B$'s base to $v$. We can extend it to $B'$ by adding $vv'$. Call the resulting matching $M'$.
+    The structured matching implies that there exists a perfect matching on $B \setminus v$ which can be obtained by changing $B$'s base to $v$. We can extend it to $B'$ by adding $vv'$. Call the resulting matching $M'$.
 
     We construct weights $y'$ and $z'$ which are identical to $y$ and $z$ with the exception that:
 
     \[y'_{v'} = -y_v \]
     \[z'_B = \sum_{B \subseteq D} z_D \]
 
-    The new duals are tight and dominating and with $M'$ constitute a complete structured matching on $B'$, meaning that $M'$ is a maximum weight perfect matching on $B'$ with weight $y'z'(B') = yz(B) - y_v$. By removing $vv'$ from $M'$ we obtain a complete matching $M$ on $B \setminus v$ which is a maximum weight perfect matching (otherwise we could find a complete matching on $B'$ which weighs more than $M'$).
+    The new duals are tight and dominating and with $M'$ constitute a perfect structured matching on $B'$, meaning that $M'$ is a maximum weight perfect matching on $B'$ with weight $y'z'(B') = yz(B) - y_v$. By removing $vv'$ from $M'$ we obtain a perfect matching $M$ on $B \setminus v$ which is a maximum weight perfect matching (otherwise we could find a perfect matching on $B'$ which weighs more than $M'$).
 
-    In case when $C$ is non-trivial start by choosing a vertex $v \in C$. We can again obtain a complete matching on $B \setminus v$ by using the blossom structure. The resulting matching is also complete on $C \setminus v$ and $B \setminus C$ which can be seen by examining the matching after changing $B$'s base to $v$ – no matched edges cross between $C$ and $B \setminus C$ and $v$ is not matched to any of vertices in $B$.
+    In case when $C$ is non-trivial start by choosing a vertex $v \in C$. We can again obtain a perfect matching on $B \setminus v$ by using the blossom structure. The resulting matching is also perfect on $C \setminus v$ and $B \setminus C$ which can be seen by examining the matching after changing $B$'s base to $v$ – no matched edges cross between $C$ and $B \setminus C$ and $v$ is not matched to any of vertices in $B$.
 
-    The resulting complete matching on $B \setminus C$ weighs
+    The resulting perfect matching on $B \setminus C$ weighs
 
     \[ (yz(B) - y_v) - (yz(C) - y_v) = yz(B) - yz(C) \]
 
@@ -446,26 +546,26 @@ Solutions to the $splitfindmin$ problem with better theoretical running time exi
 
     If $C$ is a child of $B$ then
     \begin{align*}
-    yz(B) - yz(C) =& 
-      \left(\sum_{v \in B} y_v + \sum_{S \subset B} z_S \floor{\frac{n_S}{2}} + \sum_{S \supseteq B} z_S \floor{\frac{n_B}{2}}\right) - \\
-    & \left(\sum_{v \in C} y_v + \sum_{S \subset C} z_S \floor{\frac{n_S}{2}} + \sum_{S \supseteq C} z_S \floor{\frac{n_C}{2}}\right)  \\
-    =& \sum_{v \in B \setminus C} y_v + \sum_{S \subset B \setminus C} z_S \floor7 {\frac{n_S}{2}} + z_C\floor{\frac{n_C}{2}} + \\
-    & \sum_{S \supseteq B \setminus C} z_S \floor{\frac{n_{B \setminus C}}{2}} - z_C\floor{\frac{n_C}{2}} \\
-    =& yz(B \setminus C)
+    yz(B) - yz(C) =
+      &\left(\sum_{v \in B} y_v + \sum_{S \subset B} z_S \floor{\frac{n_S}{2}} + \sum_{S \supseteq B} z_S \floor{\frac{n_B}{2}}\right) - \\
+    &\left(\sum_{v \in C} y_v + \sum_{S \subset C} z_S \floor{\frac{n_S}{2}} + \sum_{S \supseteq C} z_S \floor{\frac{n_C}{2}}\right)  \\
+    = &\sum_{v \in B \setminus C} y_v + \sum_{S \subset B \setminus C} z_S \floor{\frac{n_S}{2}} + z_C\floor{\frac{n_C}{2}} + \\
+    &\sum_{S \supseteq B \setminus C} z_S \floor{\frac{n_{B \setminus C}}{2}} - z_C\floor{\frac{n_C}{2}} \\
+    = &yz(B \setminus C)
     \end{align*}
 \end{proof}
 
 \begin{lemma}\label{lem:pathyz}
-    During the execution of $path(B)$ the value of $yz(B)$ decreases by at most $n_B$.
+    During the execution of $\textsc{path}(B)$ the value of $yz(B)$ decreases by at most $n_B$.
 \end{lemma}
 
 \begin{proof}
-    If $B = G$, it follows from the fact that the duals are almost optimal as shown by~\ref{eq:3}.
-    Assume now that $B$ is an old blossom. The dual objective never increases according to~\ref{lem:search_correctness}. At the start of $path(B)$ the value of $yz(B)$ is at most $y^0z^0(B)$. It's sufficient for us to show that at the end of $path(B)$ the dual weight satisfy:
+    If $B = G$, it follows from the fact that the duals are almost optimal as shown by~\Cref{eq:3}.
+    Assume now that $B$ is an old blossom. The dual objective never increases according to~\Cref{lem:search_correctness}. At the start of $\textsc{path}(B)$ the value of $yz(B)$ is at most $y^0z^0(B)$. It's sufficient for us to show that at the end of $\textsc{path}(B)$ the dual weight satisfy:
     \[ yz(B) \geq y^0z^0(B) - n_B \]
     We choose a vertex $v \in B$. Let $M^*$ be a maximum weight perfect matching on the shell $B \setminus v$. We get
     \[ w(M^*) \geq y^0z^0(B) - y^0_v - n_B \]
-    which follows from the~\ref{lem:shell} and reasoning analogous to proof of~\ref{eq:3}. By constructing dual weights similarly to the proof of~\ref{lem:shell} it can be shown that
+    which follows from the~\Cref{lem:shell} and reasoning analogous to proof of~\Cref{eq:3}. By constructing dual weights similarly to the proof of~\Cref{lem:shell} it can be shown that
     \[ yz(B) - y_v \geq w(M^*) \]
     Using the fact that $y_v \geq y_v^0$ we get
     \[ yz(B) - y_v \geq w(M^*) \geq y^0z^0(B) - y^0_v - n_B \geq y^0z^0(B) - y_v - n_B \]
@@ -473,41 +573,47 @@ Solutions to the $splitfindmin$ problem with better theoretical running time exi
 \end{proof}
 
 \begin{lemma}\label{lem:epsilon}
-    For any $\varepsilon > 0$ the number of iterations in $path(B)$ with at least $n_B^\varepsilon$ exposed vertices after the first step is $O(n_B^{1-\varepsilon})$.
+    For any $\varepsilon > 0$ the number of iterations in $\textsc{path}(B)$ with at least $n_B^\varepsilon$ exposed vertices after the $\textsc{augment\_paths}$ procedure is $O(n_B^{1-\varepsilon})$.
 \end{lemma}
 
 \begin{proof}
-    Assume $B$ is a blossom. Let $f$ be the number of exposed vertices after the first step of an iteration. We call a shell \textit{small} when it has at most $2$ exposed vertices and \textit{big} otherwise. We consider an iteration with $f \geq n_B^\varepsilon$.
+    Assume $B$ is a blossom. Let $f$ be the number of exposed vertices after the $\textsc{augment\_paths}$ procedure of an iteration. We call a shell \textit{small} when it has at most $2$ exposed vertices and \textit{big} otherwise. We consider an iteration with $f \geq n_B^\varepsilon$.
 
-    If at least $\frac{1}{2}f$ exposed vertices are in big shells. There are no augmenting paths in any of the shells after the first step. This means that any search that finds an augmenting path performs at least one dual adjustment. This adjustment decreases the dual weight of all exposed vertices. A shell might not have the dual weights of its exposed vertices adjusted if another shell dissolved into after the same dual adjustment that found an augmenting path. Because we search the shell in the order of decreasing number of exposed vertices, such a shell has to be adjacent to a shell with at least as many exposed vertices that has been found to contain an augmenting path. This means that at least one third of exposed vertices in big shells had their dual weights adjusted by at least 1. The big shells where dual adjustments took place contain at least $\frac{1}{6}f$ exposed vertices. By~\ref{lem:search_duals}, the function $yz(B)$ decreases by at least $\frac{1}{12}f \geq \frac{1}{12}n_B^e$. By~\ref{lem:pathyz}, the number of such iterations is at most $O(n_B^{1-e})$.
+    If at least $\frac{1}{2}f$ exposed vertices are in big shells. There are no augmenting paths in any of the shells after the $\textsc{augment\_paths}$ procedure. This means that any search that finds an augmenting path performs at least one dual adjustment. This adjustment decreases the dual weight of all exposed vertices. A shell might not have the dual weights of its exposed vertices adjusted if another shell dissolved into after the same dual adjustment that found an augmenting path. Because we search the shell in the order of decreasing number of exposed vertices, such a shell has to be adjacent to a shell with at least as many exposed vertices that has been found to contain an augmenting path. This means that at least one third of exposed vertices in big shells had their dual weights adjusted by at least 1. The big shells where dual adjustments took place contain at least $\frac{1}{6}f$ exposed vertices. By~\Cref{lem:search_duals}, the function $yz(B)$ decreases by at least $\frac{1}{12}f \geq \frac{1}{12}n_B^\varepsilon$. By~\Cref{lem:pathyz}, the number of such iterations is at most $O(n_B^{1-\varepsilon})$.
 
-    In the remaining case, at lest $\frac{1}{2}f$ exposed vertices are in small shells – those with at most 2 exposed vertices. Assume that we're not considering the first iteration. Any shell that had exposed vertices at the start of the iteration had to contain an augmenting path by the stopping condition of $shellsearch$. The procedure ends when an augmenting path is found or the shell dissolves either into another one that has already been searched or the outer boundary is the outermost undissolved old blossom and the shell ceases to exist. This means that all the shells with exposed vertices had their number of exposed vertices decreased by at least 2. There are no less than $\frac{1}{4}f$ such shells. This means that at least $\frac{1}{2}f$ were matched in the first step. Meaning the number of exposed vertices was multiplied by a number less than $\frac{2}{3}$. This means that the number of such iterations is $O(\log n_B)$.
+    In the remaining case, at least $\frac{1}{2}f$ exposed vertices are in small shells – those with at most 2 exposed vertices. Assume that that the iteration we're considering is not the first iteration. Any shell that had exposed vertices at the start of the iteration had to contain an augmenting path by the stopping condition of $\textsc{shell\_search}$. The procedure ends when an augmenting path is found or the shell dissolves either into another one that has already been searched or the outer boundary is the outermost undissolved old blossom and the shell ceases to exist. This means that all the shells with exposed vertices had their number of exposed vertices decreased by at least 2. There are no less than $\frac{1}{4}f$ such shells. This means that at least $\frac{1}{2}f$ were matched in the $\textsc{augment\_paths}$ procedure. Meaning the number of exposed vertices was multiplied by a number less than $\frac{2}{3}$. This means that the number of such iterations is $O(\log n_B)$.
 \end{proof}
 
-We can now show how much time is needed for $path(B)$.
+We can now show how much time is needed for $\textsc{path}(B)$.
 
 \begin{lemma}\label{lem:pathcompl}
-    The time complexity of $path(B)$ is $O(n_B^{3/4}m_B)$.
+    The time complexity of $\textsc{path}(B)$ is $O(n_B^{3/4}m_B)$.
 \end{lemma}
 
 \begin{proof}
-    The algorithm executes $O(\sqrt{n_B})$ iterations. From the~\ref{lem:epsilon} there are $O(\sqrt{n_B})$ iterations with at least $\sqrt{n_B}$ exposed vertices. Since each iteration matches at least one edge there are $O(\sqrt{n_B})$ iterations with fewer than $\sqrt{n_B}$ exposed vertices. As we've discussed before, all executions of the $shellsearch$ procedure can be accomplished in $O(m_B \alpha(m_B, n_B))$ per iteration except the last shell, which itself can be dissolved in desired time.
+    The algorithm executes $O(\sqrt{n_B})$ iterations. From the~\Cref{lem:epsilon} there are $O(\sqrt{n_B})$ iterations with at least $\sqrt{n_B}$ exposed vertices. Since each iteration matches at least one edge there are $O(\sqrt{n_B})$ iterations with fewer than $\sqrt{n_B}$ exposed vertices. As we've discussed before, all executions of the $\textsc{shell\_search}$ procedure can be accomplished in $O(m_B \alpha(m_B, n_B))$ per iteration except the last shell, which itself can be dissolved in desired time.
 
-    We now focus on the augmentation step. The contraction of the graph and augmentation can be done in $O(n_B + m_B)$ the way we've described. According to~\ref{lem:epsilon} there are $O(n_B^{1/4})$ iterations with at least $n_B^{3/4}$ exposed vertices. With the MV algorithm's running time of $O(\sqrt{n}m)$ this means that we spend $O(n_B^{3/4}m_B)$ time in these iterations. In the iterations with less than $n_B^{3/4}$ exposed vertices less than $n_B^{3/4}$ new vertices are matched. We make use of the fact that the MV algorithm works in phases each of which takes $O(m)$ time and matches at least $1$ new vertex. By providing a partial matching consistent with current matching, we can complete augmentation in these cases in $O(n_B^{3/4}m_B)$.
+    We now focus on the augmentation step. The contraction of the graph and augmentation can be done in $O(n_B + m_B)$ the way we've described. According to~\Cref{lem:epsilon} there are $O(n_B^{1/4})$ iterations with at least $n_B^{3/4}$ exposed vertices. The MV algorithms runs in $O(\sqrt{n}m)$ time~\cite{micali1980v}. This means that we spend $O(n_B^{3/4}m_B)$ time in these iterations. In the iterations with less than $n_B^{3/4}$ exposed vertices less than $n_B^{3/4}$ new vertices are matched. We make use of the fact that the MV algorithm works in phases each of which takes $O(m)$ time and matches at least $1$ new vertex. By providing a partial matching consistent with current matching, we can complete augmentation in these cases in $O(n_B^{3/4}m_B)$.
 \end{proof}
 
-Knowing that the execution of $path(B)$ takes $O(n_B^{3/4}m_B)$ time we show that the $match$ procedure runs in $O(n^{3/4}m)$ time.
+Knowing that the execution of $\textsc{path}(B)$ takes $O(n_B^{3/4}m_B)$ time we show that the $match$ procedure runs in $O(n^{3/4}m)$ time.
 
 Let $i$ be a non-negative integer. Consider the set $\mathcal{B}_i$ of the roots $B$ of major paths in $T'$ such that $\frac{n}{2^{i-1}} > n_B \geq \frac{n}{2^i}$. 
 
 There are no two roots $C$ and $D$ in $\mathcal{B}_i$ such that $D$ is a descendant of $C$. Assume otherwise and let $P_C$ be the heavy path starting in $C$. $D$ has to be a descendant of a non-heavy child of some blossom $C'$ in $P_C$ so $n_D \leq \frac{n_{C'}}{2} \leq \frac{n_C}{2} < \frac{n}{2^i}$ which contradicts the definition of $\mathcal{B}_i$. 
 
-This means that any vertex $v$ belongs to at most one blossom in $\mathcal{B}_i$ and any edge is contained in at most one of such blossoms so $\sum_{B \in \mathcal{B}_i} m_B \leq m$. We sum up the time spent in $path(B)$ for all $B \in \mathcal{B}_i$:
+This means that any vertex $v$ belongs to at most one blossom in $\mathcal{B}_i$ and any edge is contained in at most one of such blossoms so $\sum_{B \in \mathcal{B}_i} m_B \leq m$. We sum up the time spent in $\textsc{path}(B)$ for all $B \in \mathcal{B}_i$:
 
 % TODO Better wording
 
 \[\sum_{B \in \mathcal{B}_i} n_B^{3/4}m_B < \sum_{B \in \mathcal{B}_i} \frac{n^{3/4}}{2^{3(i-1)/4}}m_B = \frac{n^{3/4}}{2^{3(i-1)/4}} \sum_{B \in \mathcal{B}_i} m_B \leq \frac{n^{3/4}m}{2^{3(i-1)/4}}\]
 
 By summing over $i$ we obtain the final complexity $O(n^{3/4}m)$.
+
+\section{Correctness}
+
+The $\textsc{match}$ procedure finishes when all old blossoms have been dissolved and the current matching $M$ is perfect. It also produces dual weights $y$ and $z$ with corresponding blossoms that together meet the conditions of~\Cref{thm:conditions_perfect}, meaning $M$ is a maximum weight perfect matching.
+
+To show that $\textsc{match}$ terminates it is enough to show that each call to $\textsc{path}(B)$ terminates. We show that all old blossoms on the heavy path $P_B$ dissolve. Each shell that contains exposed vertices gets searched. The search ends when it is found to contain an augmenting path, dissolves into another shell with an augmenting path or dissolves as the outermost undissolved shell. The shells with augmenting paths have their number of exposed vertices decreased in the next iteration by the $\textsc{augment\_paths}$ procedure. Because the edges of the matching are contained within blossoms and each blossom has an odd number of vertices, as long as there are undissolved old blossoms, there are exposed vertices. This means that in each iteration of $\textsc{path}$ some shell search takes place that results in either old blossoms dissolving or the number of exposed vertices decreasing. As there is a finite number of old blossoms and vertices, this can not go on forever and $\textsc{path}$ has to finish.
 
 \end{proof}

@@ -66,11 +66,11 @@ A set of vertices (edges) is \emph{independent} if no two elements of it are adj
     A set of independent edges is called a \emph{matching}. A matching $M$ is \emph{perfect} if every vertex is adjacent to exactly one edge in $M$.
 \end{defn}
 
-\begin{defn}[matched vertex/edge]
-    A vertex $v$ is \emph{exposed} for a matching $M$ if it's not adjacent to any edge in $M$. If a vertex is not exposed it is \emph{matched}. Similarly, we say that an edge $e$ is \emph{matched} if $e \in M$.
+\begin{defn}[exposed vertices]
+    A vertex $v$ is \emph{exposed} for a matching $M$ if it's not adjacent to any edge in $M$. If a vertex is not exposed it is \emph{matched}.
 \end{defn}
 
-If a vertex $v$ is matched in a matching $M$, then we call the vertex $u$, such that $uv \in M$, the \emph{mate} or \emph{matched vertex} of $v$.
+If a vertex $v$ is matched in a matching $M$, then we call the vertex $u$, such that $uv \in M$, the \emph{mate} or \emph{matched vertex} of $v$ and the edge $\{u, v\}$ the \emph{matched edge} of $v$.
 
 \begin{defn}[alternating path]
     A path $P = x_0x_1\dots x_l$ is alternating for a matching $M$ if for each $i \in \{0, \dots, l - 2\}$, $x_i x_{i+1} \in M$ if and only if $x_{i+1}x_{i+2} \notin M$.
