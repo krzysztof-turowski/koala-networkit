@@ -105,9 +105,9 @@ The matching is augmented by the \textsc{augment\_paths} procedure. The procedur
 
 In the \textsc{augment\_paths} procedure we make use of a maximum cardinality matching algorithm. In our case it is specifically the Micali-Vazirani algorithm introduced in~\cite{micali1980v} which we will refer to as the MV algorithm. To efficiently contract the blossoms and create a new graph we need some information about the shells and blossoms. For each shell we maintain a list of proper blossoms contained within it and a list of vertices. These lists get concatenated as old blossoms dissolve. At the start of the iteration we record for each vertex its current shell and blossom in an array to be able to efficiently check it. We do not delete the structure for the root of the path even after it was dissolved, we just mark it as such. At the end of the $\textsc{path}$ procedure, after all the old blossoms have been dissolved it will contain a list of all blossoms and vertices in the path. These lists are then concatenated to the lists of the parent of $B$ in the blossom tree, so that it contains the information about current blossoms.
 
-We also need to efficiently calculate a slack of an edge to check whether it is tight. Notice that we only need to check an edge's slack if it is contained in a single shell and connects vertices in different blossoms. If we want to calculate the slack of such an edge $uv$, we only need to know $y_u$, $y_v$, $w(uv)$ and the sum of dual weights of all old blossoms that contain it. For each blossom $B$ on the current path we define $z_{path}(B)$ as a sum of dual weights $z_P$ for all ancestors $P$ of $B$ on the current path including $B$. Before starting $\textsc{path}(B)$ we also calculate the value $z_{outer}$ which is the sum of dual weights for all old blossoms containing $B$ in the old blossom tree. We do that while performing the heavy path decomposition by summing up the values along the way. Let $B$ be the smallest old blossom one $P_B$ that contains $uv$. We can calculate the slack of $uv$ as
+We also need to efficiently calculate a slack of an edge to check whether it is tight. Notice that we only need to check an edge's slack if it is contained in a single shell and connects vertices in different blossoms. If we want to calculate the slack of such an edge $\{u, v\}$, we only need to know $y_u$, $y_v$, $w(\{u, v\})$ and the sum of dual weights of all old blossoms that contain it. For each blossom $B$ on the current path we define $z_{path}(B)$ as a sum of dual weights $z_P$ for all ancestors $P$ of $B$ on the current path including $B$. Before starting $\textsc{path}(B)$ we also calculate the value $z_{outer}$ which is the sum of dual weights for all old blossoms containing $B$ in the old blossom tree. We do that while performing the heavy path decomposition by summing up the values along the way. Let $B$ be the smallest old blossom one $P_B$ that contains $\{u, v\}$. We can calculate the slack of $\{u, v\}$ as
 
-\[ slack(uv) = y_v + y_u - w(uv) + z_{path}(B) + z_{outer} \]
+\[ slack(\{u, v\}) = y_v + y_u - w(\{u, v\}) + z_{path}(B) + z_{outer} \]
 
 We explicitly build the shrunk graph $G'$ before passing it to the MV algorithm. To do that, we iterate over all blossoms and associate them with consecutive integers. When adding edges, we remember which original edge they come from. The MV algorithm returns the matching as a mapping from a vertex to its mate. We iterate over the returned matching and augment our current matching according to it. If a blossom $B$ was matched to $C$ by the MV algorithm, we first iterate over the adjacency list of $B$ in $G'$ to find the original edge through which the two were matched. Just like in the Blossom algorithm, the augmentation is lazy – we only change the bases of $B$ and $C$ (along with some other indicators that describe the matching).
 
@@ -130,7 +130,7 @@ The details of implementing the $\textsc{shell\_search}$ procedure differ in maj
     
     The distributions on $C$ and $D$ maintain the dominance and tightness on edges contained within $C \setminus D$ as the decrease of $z_C$ cancels out the increase of $y$. 
     
-    For edges $uv$ such that $u \in C \setminus D$ and $v \in D$ only dominance needs to be maintained, as they are not part of the matching. The slack of such an edge $uv$ changes by $-2\delta$ from the change to $z_C$, by $\delta$ and $2\delta$ from distributions to $y_u$ and $y_v$ and at the worst by $-\delta$ from a dual adjustment to $y_u$, depending on the label of $u$. This means that the slack of $uv$ does not decrease and remains non-negative.
+    For edges $\{u, v\}$ such that $u \in C \setminus D$ and $v \in D$ only dominance needs to be maintained, as they are not part of the matching. The slack of such an edge $\{u, v\}$ changes by $-2\delta$ from the change to $z_C$, by $\delta$ and $2\delta$ from distributions to $y_u$ and $y_v$ and at the worst by $-\delta$ from a dual adjustment to $y_u$, depending on the label of $u$. This means that the slack of $\{u, v\}$ does not decrease and remains non-negative.
 \end{proof}
 
 Similar investigation of dual adjustments shows how the value of the $yz$ function changes with each adjustment:
@@ -226,7 +226,7 @@ When calculating the slack of an edge in the search graph not contained within a
         0 & \text{if $G$ is the boundary,} \\
         z_{boundary} - 2(t_{now} - t_{outer}) & \text{otherwise.}
     \end{cases} \\
-    slack(uv) &= y(u) + y(v) - w(uv) + z_{old}
+    slack(\{u, v\}) &= y(u) + y(v) - w(\{u, v\}) + z_{old}
 \end{align*}
 
 During each iteration, the shells are searched in descending order based on the number of exposed vertices they contain. Distributions from old blossom higher in the path influence the vertices of all lower blossoms. To calculate $\Delta(v)$ we need to know the sum of all distributions from old blossom containing $v$ in previous searches. We use a data structure $\textsc{add-prefixsum}$ capable of calculating a prefix sum of an array and adding a value to an element at a specified index. In our case it is implemented as a Fenwick tree~\cite{Fenwick1994AND}, which accomplishes both of these operations in $O(\log n)$ for an array of size $n$. 
@@ -269,14 +269,14 @@ After which we call $\textsc{schedule}(u)$ where $u$ is the base of $B$.
 \subsubsection*{The schedule procedure}
 The $\textsc{schedule}(u)$ procedure schedules events associated with a vertex $u$ which is either even or a base of an odd blossom. Let $B_u$ be the blossom containing $u$. 
 
-If $u$ is odd, we schedule the $dissolve(B_u)$ event at time $t_{now} + z(B_u) / 2$, which is when $z_B$ reaches $0$. As $B_u$ is odd, it is not exposed and as such $u$ is matched to some vertex $v$ belonging to $B_v$. We can continue the search by scheduling either a $grow(v, uv)$ or $blossom(uv)$ event based on whether $v$ is free or even.
+If $u$ is odd, we schedule the $dissolve(B_u)$ event at time $t_{now} + z(B_u) / 2$, which is when $z_B$ reaches $0$. As $B_u$ is odd, it is not exposed and as such $u$ is matched to some vertex $v$ belonging to $B_v$. We can continue the search by scheduling either a $grow(v, \{u, v\})$ or $blossom(\{u, v\})$ event based on whether $v$ is free or even.
 
 Now assume that $u$ is even. We iterate over all neighbors $v$ of $u$. Let $B_v$ be the current blossom of 
 $v$. We do different things depend on how $u$ is labeled.
 \begin{itemize}
-    \item If $v$ is even we schedule an event $blossom(uv)$ at time $t_{now} + slack(uv)/2$ as that is when $uv$ becomes tight.
-    \item If $v$ is odd, we update the cost $c(v)$ in the $\textsc{split-findmin}$ by calling $\textsc{decrease\_cost}(v, slack(uv) + (t_{odd}(B_v) - \Delta(B_v)))$.
-    \item When $v$ is free, we try to decrease $c(v)$ to $slack(uv) + (t_{now} - \Delta(B_v))$ and if we're successful, we schedule $grow(v, uv)$ at $t_{now} + slack(uv)$ as that is when $uv$ becomes tight and the search tree can be extended to $B_v$.
+    \item If $v$ is even we schedule an event $blossom(\{u, v\})$ at time $t_{now} + slack(\{u, v\})/2$ as that is when $\{u, v\}$ becomes tight.
+    \item If $v$ is odd, we update the cost $c(v)$ in the $\textsc{split-findmin}$ by calling $\textsc{decrease\_cost}(v, slack(\{u, v\}) + (t_{odd}(B_v) - \Delta(B_v)))$.
+    \item When $v$ is free, we try to decrease $c(v)$ to $slack(\{u, v\}) + (t_{now} - \Delta(B_v))$ and if we're successful, we schedule $grow(v, \{u, v\})$ at $t_{now} + slack(\{u, v\})$ as that is when $\{u, v\}$ becomes tight and the search tree can be extended to $B_v$.
 \end{itemize}
 
 An implementation of $\textsc{schedule}(u)$ is presented in~\Cref{alg:schedule}.
@@ -301,7 +301,7 @@ An implementation of $\textsc{schedule}(u)$ is presented in~\Cref{alg:schedule}.
         \If{$\textsc{find}(u) = \textsc{find}(v)$}
             \State{\textbf{continue}}\Comment{$u$ and $v$ are in the same even blossom}
         \EndIf
-        \State{$edge\_slack \gets slack(uv)$}
+        \State{$edge\_slack \gets slack(\{u, v\})$}
         \If{$v$ is even}
             \State{Schedule $blossom(\{u, v\})$ at time $t_{now} + edge\_slack/2$}
         \ElsIf{$v$ is odd}
@@ -361,7 +361,7 @@ Let $B$ be the new blossom and $B_1, \dots, B_k$ its subblossoms. For each subbl
 \subsubsection*{The $dissolve(B)$ event} 
 We split the lists in the $\textsc{split-findmin}$ data structure so that they correspond to the vertices of subblossoms of $B$. The subblossoms are label and incorporated into the search tree the same way as we've done in the blossom algorithm search. Let $C$ be a subblossom of $B$ that now becomes proper. We set $t_{proper}(C) \gets t_{now}$ and update the count $\Delta(C) \gets \Delta(B) + (t_{now} - t_{odd}(B))$ to account for the dual adjustments while $B$ was a proper odd blossom. We set $t_{odd}$ or $t_{even}$ to $t_{now}$ if $b$ was labeled accordingly. 
 
-If $C$ has become odd, we schedule a $dissolve(b)$ event at $t_{now} + z_0(b) / 2$. If it was labeled as even, we link all vertices $v$ of $C$ to its base in the $\textsc{union-find}$ data structure and call $schedule(v)$ to queue event associated with the newly even vertices. We do that at the end for all even vertices after updating counters and data structures for all new proper blossoms. If $C$ has become free we find the edge with the smallest slack connecting a vertex $v$ of $C$ to some even vertex $u$ using the $\textsc{split-findmin}$ data structure. According to our invariant we can calculate $slack(uv) = c(v) - (t_{now} - \Delta(C))$. With that we can schedule a $grow(v, uv)$ event at time $t_{now} + slack(uv)$. 
+If $C$ has become odd, we schedule a $dissolve(b)$ event at $t_{now} + z_0(b) / 2$. If it was labeled as even, we link all vertices $v$ of $C$ to its base in the $\textsc{union-find}$ data structure and call $schedule(v)$ to queue event associated with the newly even vertices. We do that at the end for all even vertices after updating counters and data structures for all new proper blossoms. If $C$ has become free we find the edge with the smallest slack connecting a vertex $v$ of $C$ to some even vertex $u$ using the $\textsc{split-findmin}$ data structure. According to our invariant we can calculate $slack(\{u, v\}) = c(v) - (t_{now} - \Delta(C))$. With that we can schedule a $grow(v, \{u, v\})$ event at time $t_{now} + slack(\{u, v\})$. 
 
 \subsubsection*{The $dissolve\_shell(B)$ event}
 Assume that $B$ is the outer boundary. The steps for the inner boundary are analogous except for a few corner cases. We start by recording the distributions to $B$ in the $\textsc{add-prefixsum}$ data structure by adding $t_{now} - t_{outer}$ at the index corresponding to $B$.
@@ -374,7 +374,7 @@ For all blossom $D$ contained in $C \setminus B$ we set $\Delta(D) \gets 0$ and 
 
 For each exposed vertex $v$ of $C \setminus B$ we schedule a $grow(v, \emptyset)$ event that happens at current time and establishes the blossom of $v$ as a root of a new search tree.
 
-Next we scan all new edges $vu$ where $v \in B \setminus C$ and $u$ is already a part of the  searched graph. If $u$ is even we schedule a $grow(v, uv)$ event that happens at time $t_{now} + slack(uv)$, which is when $uv$ becomes tight. 
+Next we scan all new edges $vu$ where $v \in B \setminus C$ and $u$ is already a part of the  searched graph. If $u$ is even we schedule a $grow(v, \{u, v\})$ event that happens at time $t_{now} + slack(\{u, v\})$, which is when $\{u, v\}$ becomes tight. 
 
 If $C$ is not equal to $G$, we schedule a $dissolve\_shell(C)$ event at time $t_{now} + z_C / 2$. Otherwise, we set $t_{whole} \gets t_{now}$. We set $t_{outer} \gets t_{now}$ and recalculate $z_{boundary}$ as described above.
 

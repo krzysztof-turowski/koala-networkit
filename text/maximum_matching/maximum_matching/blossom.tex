@@ -93,7 +93,7 @@ The primal linear program $(\textsc{MWM})$ has a corresponding dual program with
 \begin{align*}
 (\overline{\textsc{MWM}})
 && \text{minimize }   & \sum_{v\in V}y_v + \sum_{B} z_B \floor{\frac{1}{2}n_B} \\
-&& \text{subject to } & y_u + y_v + \sum_{u, v \in B} z_B \geq w(uv) &&\text{for each $uv \in E$} \\
+&& \text{subject to } & y_u + y_v + \sum_{u, v \in B} z_B \geq w(\{u, v\}) &&\text{for each $\{u, v\} \in E$} \\
 &&                    & z_B \geq 0 &&\text{for each $B \in \mathcal{O}$} \\
 &&                    & y_v \geq 0 &&\text{for each $v \in V$}
 \end{align*}
@@ -120,9 +120,9 @@ Given dual variables $y$ and $z$, a matching $M$ is a maximum weight matching if
 \begin{proof}
 Consider an arbitrary matching $M'$. We show that $M$ has a higher weight:
 \begin{align*}
-    \sum_{e \in M'} w(e) &= \sum_{uv \in M'} \left( y_u + y_v + \sum_{u, v \in B} z_B \right) && \text{from } \pi_{uv} \geq 0 \\
+    \sum_{e \in M'} w(e) &= \sum_{\{u, v\} \in M'} \left( y_u + y_v + \sum_{u, v \in B} z_B \right) && \text{from } \pi_{uv} \geq 0 \\
     &\leq \sum_{v \in V} y_v + \sum_{B \in \mathcal{O}} z_B\floor{\frac{1}{2}n_B} && \text{from } y_v, z_B \geq 0 \\
-    &= \sum_{uv \in M} \left( y_u + y_v + \sum_{u, v \in B} z_B \right) && \text{from (2) and (3)}\\
+    &= \sum_{\{u, v\} \in M} \left( y_u + y_v + \sum_{u, v \in B} z_B \right) && \text{from (2) and (3)}\\
     &= \sum_{e \in M} w(e) && \text{from (1)}\\
 \end{align*}
 \end{proof}
@@ -148,7 +148,7 @@ Besides the label, for each blossom we remember the edge by which the blossom ha
 In order to expand the search structure we will look for so-called \emph{useful edges}.
 
 \begin{defn}[useful edges]
-    An edge $uv \in E$ is called \emph{useful} if it is tight meaning $slack(e) = 0$ and one of following hold:
+    An edge $\{u, v\} \in E$ is called \emph{useful} if it is tight meaning $slack(e) = 0$ and one of following hold:
 
     \begin{itemize}
         \item $u$ is even and $v$ is free,
@@ -171,18 +171,18 @@ Based on which of the two conditions hold and whether the search trees of the tw
 \EndFor
 \State
 \While{an augmenting path has not been found}
-    \While{a useful edge $uv$ exists}
-        \State{$\textsc{consider\_edge}(uv)$}
+    \While{a useful edge $\{u, v\}$ exists}
+        \State{$\textsc{consider\_edge}(\{u, v\})$}
     \EndWhile
     \State{$\textsc{DualWeightAdjustment}()$}
 \EndWhile
 \EndProcedure
 \State
-\Procedure{consider\_edge}{$uv$}
+\Procedure{consider\_edge}{$\{u, v\}$}
 \If{$v$ is \emph{free}}\Comment{$u$ is \emph{even} from definition of useful edges}
-    \State{\textsc{Grow}($uv$)}
+    \State{\textsc{Grow}($\{u, v\}$)}
 \Else\Comment{$v$ is \emph{even}}
-    \State{\textsc{backtrack}($uv$)}
+    \State{\textsc{backtrack}($\{u, v\}$)}
 \EndIf
 \EndProcedure
 \end{algorithmic}
@@ -190,12 +190,12 @@ Based on which of the two conditions hold and whether the search trees of the tw
 
 \subsubsection*{Grow step}
 
-In the case when the useful edge connects an even vertex $u$ to a free vertex $v$, the grow step takes place. Let $B_v$ be the blossom of $v$. We mark $B_v$ as odd and set its backtrack edge to $uv$. Let $p$ be the base of $B_v$. Because $B_v$ was previously free, $p$ has to be matched to some vertex $q$ and its blossom $B_q$. We mark $B_q$ as even and set its backtrack edge to $pq$. Vertices of $B_q$ become even for the first time so some of their adjacent edges might become useful.
+In the case when the useful edge connects an even vertex $u$ to a free vertex $v$, the grow step takes place. Let $B_v$ be the blossom of $v$. We mark $B_v$ as odd and set its backtrack edge to $\{u, v\}$. Let $p$ be the base of $B_v$. Because $B_v$ was previously free, $p$ has to be matched to some vertex $q$ and its blossom $B_q$. We mark $B_q$ as even and set its backtrack edge to $pq$. Vertices of $B_q$ become even for the first time so some of their adjacent edges might become useful.
 
 \begin{algorithm}
 \caption{The grow step procedure}\label{alg:grow_step}
 \begin{algorithmic}[1]
-\Procedure{Grow}{$uv$}
+\Procedure{Grow}{$\{u, v\}$}
 \State{Let $B_v$ be the current blossom of $v$}
 \State{$b \gets base(B_v)$}
 \State{$c \gets \texttt{mate}[b]$}
@@ -243,8 +243,8 @@ We choose a maximum value of $\delta$ that preserves the (1), (2) and (4) constr
 
 \begin{itemize}
     \item $\delta_1 = \min_{u} y_u$ for even vertices $u$ to preserve $y_u \geq 0$,
-    \item $\delta_2 = \min_{uv} \pi_{uv}$ for edges $\{u, v\} \in E$ with even $u$ and free $v$ to preserve $\pi_{uv} \geq 0$,
-    \item $\delta_3 = \min_{uv} \frac{1}{2}\pi_{uv}$ for edges $\{u, v\} \in E$ with even vertices $u$ and $v$ to preserve $\pi_{uv} \geq 0$,
+    \item $\delta_2 = \min_{\{u, v\}} \pi_{uv}$ for edges $\{u, v\} \in E$ with even $u$ and free $v$ to preserve $\pi_{uv} \geq 0$,
+    \item $\delta_3 = \min_{\{u, v\}} \frac{1}{2}\pi_{uv}$ for edges $\{u, v\} \in E$ with even vertices $u$ and $v$ to preserve $\pi_{uv} \geq 0$,
     \item $\delta_4 = \min_{B} \frac{1}{2} z_B$ for odd blossoms $B$ to preserve $z_B \geq 0$.
 \end{itemize}
 
@@ -254,7 +254,7 @@ When $\delta = \delta_1$, all even vertices $v$ have their dual variables reduce
 
 When $\delta = \delta_2$ or $\delta = \delta_3$ the edges for which the minimum was achieved become tight as their slack reaches $0$, meaning they're now useful and we can continue with the search.
 
-When $\delta = \delta_4$ we expand all odd blossoms $B$ for which $z_B = 0$ after the dual weight adjustment. Let $b$ be the base of $B$ and $uv$ be $B$ the backtrack edge of $B$. Let $B_v$ be the subblossom of $B$ that contains $v$ and $B_0$ the one that contains the base $b$. We find an alternating path of even length over subblossoms of $B$ from $B_0$ to $B_v$ and label the subblossom on the path even and odd in turns while setting their backtrack edges accordingly. The remaining subblossoms become free. An example expansion is pictured in~\Cref{fig:odd_expansion}. As some vertices become even for the first time, some edges might become useful as a result of this process.
+When $\delta = \delta_4$ we expand all odd blossoms $B$ for which $z_B = 0$ after the dual weight adjustment. Let $b$ be the base of $B$ and $\{u, v\}$ be $B$ the backtrack edge of $B$. Let $B_v$ be the subblossom of $B$ that contains $v$ and $B_0$ the one that contains the base $b$. We find an alternating path of even length over subblossoms of $B$ from $B_0$ to $B_v$ and label the subblossom on the path even and odd in turns while setting their backtrack edges accordingly. The remaining subblossoms become free. An example expansion is pictured in~\Cref{fig:odd_expansion}. As some vertices become even for the first time, some edges might become useful as a result of this process.
 
 At the end of the stage all even blossoms $B$ with $z_B = 0$ are expanded to preserve the constraint (4).
 
@@ -277,19 +277,19 @@ Once a vertex becomes even, it stays that way, so we only need to scan its edges
 
 \subsection{Numerical accuracy}
 
-The algorithm is defined for real numbers, but for practical reasons we would like to use integer data types. This is complicated by the presence of division which we do at two points – when calculating the starting values of $y$ and when finding $\delta_3$. In~\cite{gabow1974implementation}, it is shown that if the weights $w(e)$ are even for all edges $e\in E$ all of these calculations yield integer values.
+The algorithm is defined for rational numbers, but for practical reasons we would like to use integer data types. This is complicated by the presence of division which we do at two points – when calculating the starting values of $y$ and when finding $\delta_3$. In~\cite{gabow1974implementation}, it is shown that if the weights $w(e)$ are even for all edges $e\in E$ all of these calculations yield integer values.
 
 At the start of the algorithm, we initialize the dual weight $y_v$ for all $v$ to the same value $\frac{1}{2}\max_{e \in E} w(e)$, which is obviously an integer when all weights are even.
 
 Remember that we defined
 
-\[\delta_3=\frac{1}{2}\min_{\substack{uv\in E \\ \text{$u, v$ even}}} \pi_{uv} = \frac{1}{2}\min_{\substack{uv\in E \\ \text{$u, v$ even}}} \left(y_u + y_v - w(e) + \sum_{u, v \in B} z_B\right)\] 
+\[\delta_3=\frac{1}{2}\min_{\substack{\{u, v\}\in E \\ \text{$u, v$ even}}} \pi_{uv} = \frac{1}{2}\min_{\substack{\{u, v\}\in E \\ \text{$u, v$ even}}} \left(y_u + y_v - w(e) + \sum_{u, v \in B} z_B\right)\] 
 
 As dual variables $z_B$ start at $0$ and are changed by $2\delta$ during dual weight adjustment, we can ignore them along with the edge weights. It is then sufficient to prove that weights $y_v$ are of the same parity for all even vertices $v$. All exposed vertices start with the same dual weights which are adjusted by $-\delta$ with each dual weight adjustment, so their dual weight are all equal. It is enough for us to show that for any even $v \in V$ the parity of $y_v$ is the same as $y_u$ where $u$ is the base of the exposed blossom at the root of $v$'s search tree. 
 
 Let $B_v$ and $B_u$ be the current blossoms of $u$ and $v$. There exist an even length alternating path $P$ between $v$ and $u$. This path can be obtained by finding the even length path from $B_v$ to $B_u$ that follows backtrack edges. The path is then expanded in similar way to how finding an even length path from a vertex to its blossom base. Let $M$ be the current matching. We can swap edges along $P$ and obtain a new matching $M'$. All edges in $P$ are tight, so we can write the weight of $M$ as
 
-\[\sum_{uv \in M} w(uv) = \sum_{uv \in M} y_u + y_v + \sum_{u, v \in B} z_B\]
+\[\sum_{\{u, v\} \in M} w(\{u, v\}) = \sum_{\{u, v\} \in M} y_u + y_v + \sum_{u, v \in B} z_B\]
 
 We can ignore the weights $z_B$ as they're all even. The sums for $M$ and $M'$ share all vertices except for $u$ and $v$ so the difference between the weights of $M$ and $M'$ is of the same parity as $y_u - y_v$. As all edge weights are even, so are the weights of the two matchings meaning that $y_u - y_v$ is even and $y_u$ and $y_v$ are of the same parity.
 
@@ -324,7 +324,7 @@ Naturally, the corresponding dual program is also very close to ($\overline{\tex
 \begin{align*}
 (\overline{\textsc{MWPM}})
 && \text{minimize }   & \sum_{v\in V}y_v + \sum_{B} z_B \floor{\frac{1}{2}n_B} \\
-&& \text{subject to } & y_u + y_v + \sum_{u, v \in B} z_B \geq w(uv) && \text{for each $uv \in E$} \\
+&& \text{subject to } & y_u + y_v + \sum_{u, v \in B} z_B \geq w(\{u, v\}) && \text{for each $\{u, v\} \in E$} \\
 &&                    & z_B \geq 0                                   && \text{for each $B \in \mathcal{O}$}
 \end{align*}
 
@@ -343,7 +343,7 @@ The conditions need for a matching to be the maximum weight perfect matching are
 
 The algorithm again maintains conditions (1), (2) and (4) and runs until the matching $M$ is perfect. Each stage increases the number of edges in $M$. The only difference from the maximum weight matching algorithm is that we no longer calculate $\delta_1 = \min_{\text{even } u} y_u$ as the dual weights $y_u$ are unrestricted.
 
-The lack of restriction on $y_u$ allows us more freedom in choosing initial weights. This was not possible in the described maximum weight matching algorithm, as it relies on the fact that all exposed vertices have the same dual weight. If the weights differed, at some point one of the exposed vertices $v$ would reach $y_v = 0$ while others would still be positive. In this case, we would not be able to perform dual weight adjustment as we've described it. One initialization strategy is the \emph{greedy} initialization. We start by assigning to each weight $y_v$ half of the maximum weight of any edges adjacent to $v$. We then iterate over all the edges and add any tight edge to the initial matching $M$ (only if none of its endvertices have been matched).
+The lack of restriction on $y_u$ allows us more freedom in choosing initial weights. This was not possible in the described maximum weight matching algorithm, as it relies on the fact that all exposed vertices have the same dual weight. If the weights differed, at some point one of the exposed vertices $v$ would reach $y_v = 0$ while others would still be positive. In this case, we would not be able to perform dual weight adjustment as we've described it. One initialization strategy is the \emph{greedy} initialization. We start by assigning to each weight $y_v$ half of the maximum weight of any edges adjacent to $v$. We then iterate over all the edges and add any tight edge to the initial matching $M$ (only if none of its endvertices have been matched). This brings some problems with numerical accuracy. To ensure that all weights for even vertices start out with the same parity, we multiply the weights by $4$ instead of $2$.
 
 \section{Gabow's algorithm}
 
@@ -355,9 +355,9 @@ For each even blossom $B$ we maintain a list $edges(B)$ consisting of edges $\{v
 
 With those values we can perform a dual weight adjustment in time $O(V)$ by calculating:
 
-\[\delta_2=\min_{\substack{uv\in E \\ \text{$u$ even, $v$ free}}} slack(uv) = \min_{\substack{u \text{ even}}} slack(edge(u))\] 
+\[\delta_2=\min_{\substack{\{u, v\}\in E \\ \text{$u$ even, $v$ free}}} slack(\{u, v\}) = \min_{\substack{u \text{ even}}} slack(edge(u))\] 
 
-\[\delta_3=\min_{\substack{uv\in E \\ \text{$u, v$ even}}} \frac{1}{2}slack(uv) = \min_{\substack{B \text{ even}}} \frac{1}{2}slack(edge(B))\] 
+\[\delta_3=\min_{\substack{\{u, v\}\in E \\ \text{$u, v$ even}}} \frac{1}{2}slack(\{u, v\}) = \min_{\substack{B \text{ even}}} \frac{1}{2}slack(edge(B))\] 
 
 We can find new useful edges after a dual weight adjustment in $O(n)$ by checking which edges achieved the minimum. Notice that the minimum edge in $edge(v)$ and $edge(B)$ does not change with a weight adjustment as all relevant edges have their slack changed by the same amount.
 
@@ -428,7 +428,7 @@ To maintain dual weights $y_v$ we make use of two queues $pq_1$ we call $y_{even
 
 In order to calculate the value of $\delta_3$, we use a $pq_1$ called $Q_{good}$ in which we store edges $\{u, v\}$ between two different even blossoms which we refer to as \textit{good edges}. The priority of each edge in $Q_{good}$ corresponds to its current slack. Over the course of the algorithm, as new even blossoms are created, some of those edges might become contained within a single even blossom. We do not have enough time to detect it at the time it happens, so instead we remove them in a lazy manner each time we want to check the minimum by removing the smallest edge as long as it is no longer good.
 
-To calculate the value of $\delta_2$ efficiently we make use of a $pq_2$ called $Q_{even}$. Each non-even blossom $B$ has a corresponding group $g_B$. The elements of $g_B$ are vertices of $B$ stored in blossom order. The priority of $v \in B$ in $Q_{even}$ corresponds to the minimum slack of an edge $uv \in E$ such that $u$ is even. We also remember the edge for which the minimum is achieved. Group $g_B$ is active when $B$ is free and inactive when it is odd. Free blossoms may become odd and odd blossoms might be expanded into even, odd or free subblossoms, so we need to change the status of a group and perform splits whenever necessary.
+To calculate the value of $\delta_2$ efficiently we make use of a $pq_2$ called $Q_{even}$. Each non-even blossom $B$ has a corresponding group $g_B$. The elements of $g_B$ are vertices of $B$ stored in blossom order. The priority of $v \in B$ in $Q_{even}$ corresponds to the minimum slack of an edge $\{u, v\} \in E$ such that $u$ is even. We also remember the edge for which the minimum is achieved. Group $g_B$ is active when $B$ is free and inactive when it is odd. Free blossoms may become odd and odd blossoms might be expanded into even, odd or free subblossoms, so we need to change the status of a group and perform splits whenever necessary.
 
 \subsubsection*{Beginning of a stage}
 For free blossom we initialize groups in $Q_{even}$ and set all priorities to $\inf$. For even blossoms we  scan outgoing edges to update $Q_{even}$ and $Q_{good}$ and start tracking the dual variables for even vertices using $y_{even}$.
