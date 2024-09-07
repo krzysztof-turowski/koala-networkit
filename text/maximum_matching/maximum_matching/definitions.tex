@@ -67,7 +67,7 @@ A set of vertices (edges) is \emph{independent} if no two elements of it are adj
 \end{defn}
 
 \begin{defn}[exposed vertices]
-    A vertex $v$ is \emph{exposed} for a matching $M$ if it's not adjacent to any edge in $M$. If a vertex is not exposed it is \emph{matched}.
+    A vertex $v$ is \emph{exposed} for a matching $M$ if it is not adjacent to any edge in $M$. If a vertex is not exposed it is \emph{matched}.
 \end{defn}
 
 If a vertex $v$ is matched in a matching $M$, then we call the vertex $u$, such that $uv \in M$, the \emph{mate} or \emph{matched vertex} of $v$ and the edge $\{u, v\}$ the \emph{matched edge} of $v$.
@@ -100,7 +100,7 @@ The algorithms for the maximum matching problems are usually divided into groups
 The \textsc{MWM} and \textsc{MWPM} problems are reducible to each other.
 
 \begin{proof}
-    For an instance $G=(V, E)$ of \textsc{MWM}, define a new graph $G' = (V', E')$ where $V' = V_1 \cup V_2$ consists of two copies of $V$ and the edge set $E'$ contains two copies of $E$ along with zero-weight edges between each corresponding pair of vertices in the two copies of $V$. A maximum weight perfect matching $M'$ on $G'$ can be used to obtain a maximum weight matching $M$ on $G$ by restricting the matching to only edges contained in $V_1$. If a vertex in $V_1$ is matched to its copy in $V_2$, it is unmatched in $M$. It's easy to see that $M$ is a maximum weight matching on $G$ as a matching with higher weight could be used to create a perfect matching on $G'$ with weight higher than $M'$. 
+    For an instance $G=(V, E)$ of \textsc{MWM}, define a new graph $G' = (V', E')$ where $V' = V_1 \cup V_2$ consists of two copies of $V$ and the edge set $E'$ contains two copies of $E$ along with zero-weight edges between each corresponding pair of vertices in the two copies of $V$. A maximum weight perfect matching $M'$ on $G'$ can be used to obtain a maximum weight matching $M$ on $G$ by restricting the matching to only edges contained in $V_1$. If a vertex in $V_1$ is matched to its copy in $V_2$, it is unmatched in $M$. It is easy to see that $M$ is a maximum weight matching on $G$ as a matching with higher weight could be used to create a perfect matching on $G'$ with weight higher than $M'$. 
     
     In the other direction, let a graph $G=(V, E)$ with weight function $w$ be an instance of \textsc{MWPM}. Construct a weight function $w'(e) = w(e) + nN$. A maximum weight matching on the graph $G' = G$ with weight function $w'$ must have the maximum possible number of edges as the $nN$ term in the definition $w'$ ensures that any matching with more edges has a higher weight.    
 \end{proof}
