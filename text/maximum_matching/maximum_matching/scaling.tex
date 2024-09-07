@@ -284,37 +284,37 @@ An implementation of $\textsc{schedule}(u)$ is presented in~\Cref{alg:schedule}.
 \caption{The \textsc{schedule} procedure}\label{alg:schedule}
 \begin{algorithmic}[1]
 \Procedure{schedule}{$u$}
-    \If{$u$ is odd}
-        \State{Let $B_u$ be the current blossom of $u$}
-        \If{$B_u$ is not trivial}
-            \State{Schedule $dissolve(B_u)$ at time $t_{now} + z(B_u) / 2$}
-        \EndIf
-        \State{$v \gets mate[v]$}
-        \If{$v$ is free}
-            \State{Schedule $grow(v, (u, v))$ at time $t_{now}$}
-        \Else
-            \State{Schedule $blossom(\{u, v\})$ at time $t_{now}$}
-        \EndIf
-    \Else \Comment{$u$ is even}
-        \For{neighbors $v$ of $u$ in the shell search graph}
-            \If{$\textsc{find}(u) = \textsc{find}(v)$}
-                \State{\textbf{continue}}\Comment{$u$ and $v$ are in the same even blossom}
-            \EndIf
-            \State{$edge\_slack \gets slack(uv)$}
-            \If{$v$ is even}
-                \State{Schedule $blossom(\{u, v\})$ at time $t_{now} + edge\_slack/2$}
-            \ElsIf{$v$ is odd}
-                \State{$\textsc{decrease\_cost}(v, edge\_slack + (t_{odd}(B_v) - \Delta(B_v)))$}
-            \Else
-                \State{Let $B_v$ be the current blossom of $v$}
-                \State{$min\_slack \gets \textsc{find\_min(B_v)}$}
-                \If{$edge\_slack < min\_slack$}
-                    \State{$\textsc{decrease\_cost}(v,slack(uv) + (t_{now} - \Delta(B_v)))$}
-                    \State{Schedule $grow(v, (u, v))$ at time $t_{now} + edge\_slack$}
-                \EndIf
-            \EndIf
-        \EndFor
+\If{$u$ is odd}
+    \State{Let $B_u$ be the current blossom of $u$}
+    \If{$B_u$ is not trivial}
+        \State{Schedule $dissolve(B_u)$ at time $t_{now} + z(B_u) / 2$}
     \EndIf
+    \State{$v \gets mate[v]$}
+    \If{$v$ is free}
+        \State{Schedule $grow(v, (u, v))$ at time $t_{now}$}
+    \Else
+        \State{Schedule $blossom(\{u, v\})$ at time $t_{now}$}
+    \EndIf
+\Else \Comment{$u$ is even}
+    \For{neighbors $v$ of $u$ in the shell search graph}
+        \If{$\textsc{find}(u) = \textsc{find}(v)$}
+            \State{\textbf{continue}}\Comment{$u$ and $v$ are in the same even blossom}
+        \EndIf
+        \State{$edge\_slack \gets slack(uv)$}
+        \If{$v$ is even}
+            \State{Schedule $blossom(\{u, v\})$ at time $t_{now} + edge\_slack/2$}
+        \ElsIf{$v$ is odd}
+            \State{$\textsc{decrease\_cost}(v, edge\_slack + (t_{odd}(B_v) - \Delta(B_v)))$}
+        \Else
+            \State{Let $B_v$ be the current blossom of $v$}
+            \State{$min\_slack \gets \textsc{find\_min}(B_v) - (t_{now} - \Delta(B_v))$}
+            \If{$edge\_slack < min\_slack$}
+                \State{$\textsc{decrease\_cost}(v, edge\_slack + (t_{now} - \Delta(B_v)))$}
+                \State{Schedule $grow(v, (u, v))$ at time $t_{now} + edge\_slack$}
+            \EndIf
+        \EndIf
+    \EndFor
+\EndIf
 \EndProcedure
 \end{algorithmic}
 \end{algorithm}
@@ -392,11 +392,13 @@ The $\textsc{split-findmin}$ data structure can perform $m$ $\textsc{decrease\_c
 
 The running time of the array priority queue with $k$ events and maximum time $t_{\max}$ is trivially $O(k + t_{\max})$. It can be shown that a search of shell $C \setminus D$ decreases the value $yz(C \setminus D)$ by $n_c - n_D$ with a proof similar to that of~\Cref{lem:pathyz}. Together with~\Cref{lem:search_duals} this shows that $t_{\max} = O(n_C - n_D)$. 
 
-The time needed to maintain the $\textsc{add-prefixsum}$ data structure during a single iteration of $\textsc{path}(B)$ is $O(n_B \log n_B)$, which is enough for the desired time bound. This time is not included in the original analysis~\cite{gabow1984scaling} suggesting the author had a different implementation in mind. I suspect such an algorithm most likely takes advantage of the fact that a distribution of an old blossom keeps the slack of edges it contains the same while increasing the slack of edges that cross between the inside of the blossom and outside. Each shell is only searched once during an iteration and during a single execution of the $\textsc{shell\_search}$ procedure, we only check the slack of edges within some set of consecutive shells. Instead of calculating how the exact value of $y$ changes as a result of distributions, we can calculate the slack of an edge by checking how much time it spent connecting a vertex of the current graph and one outside it. We can do that using the $t_{search}$ values while also accounting for the case when $G$ is the outer boundary. Personally, I have found this approach using $\textsc{add-prefixsum}$ easier to follow as it explicitly calculates the current values of $y$.
+The time needed to maintain the $\textsc{add-prefixsum}$ data structure during a single iteration of $\textsc{path}(B)$ is $O(n_B \log n_B)$, which is enough for the desired time bound. This time is not included in the original analysis~\cite{gabow1984scaling} suggesting the author had a different implementation in mind. I suspect such an algorithm most likely takes advantage of the fact that a distribution of an old blossom keeps the slack of edges it contains the same while increasing the slack of edges that cross between the inside of the blossom and outside. Each shell is only searched once during an iteration and during a single execution of the $\textsc{shell\_search}$ procedure, we only check the slack of edges within some set of consecutive shells. Instead of calculating how the exact value of $y$ changes as a result of distributions, we can calculate the slack of an edge by checking how much time it spent connecting a vertex of the current graph and one outside it. We can do that using the $t_{search}$ values while also accounting for the case when $G$ is the outer boundary. The actual value of $y$ is only calculated at the end of iteration. Distributions to shells are stored in an array for which prefix sums are calculated. Those sums are used to update the value of $y$. Personally, I have found approach using $\textsc{add-prefixsum}$ easier to follow as it explicitly calculates the current values of $y$.
 
-With that in mind the searches of all shells in a single iteration of $\textsc{path}(B)$ except for the innermost shell $C \setminus \emptyset$ can be done $O(m_B \alpha(m_B, n_B))$. 
+With that in mind the searches of all shells in a single iteration of $\textsc{path}(B)$ except for the innermost shell $C$ can be done $O(m_B \alpha(m_B, n_B))$. 
 
-All that remains is the time needed to search the innermost shell $C \setminus \emptyset$. When it has at least 2 exposed vertices the same array priority queue is sufficient. When that number is equal to one, similar calculations as in~\Cref{lem:pathyz} show the blossom $C$ dissolves after $n_C$ dual adjustments. As the number of old blossoms can reach $O(n_B)$, it results in quadratic running time in the worst case. When $m = \Omega(n^{5/4})$ this is enough for our desired time bound. In general, it is enough to perform the search of the $C \setminus \emptyset$ shell in $O(\sqrt{n}m \alpha(m,n))$ which can be done with search procedures of various blossom algorithm implementations. For simplicity, our implementation omits this case and uses the same simple array priority queue in all searches.
+All that remains is the time needed to search the innermost shell $C$. When it has at least 2 exposed vertices the same array priority queue is sufficient. When that number is equal to one, similar calculations as in~\Cref{lem:pathyz} show the blossom $C$ dissolves after $n_C$ dual adjustments. As the number of old blossoms can reach $O(n_B)$, it results in quadratic running time in the worst case. When $m = \Omega(n^{5/4})$ this is enough for our desired time bound. In general, it is enough to perform the search of the $C$ shell in $O(\sqrt{n}m \alpha(m,n))$ which can be done with search procedures of various blossom algorithm implementations.
+
+For simplicity, our implementation omits this case and uses the same simple array priority queue in all searches. This introduces some issues with setting the size of the array. Initially, we have used a dynamic array which resizes when events at later times are scheduled. Experiments have shown that this approach causes large running time spikes at higher values of $N$ as times can get quite large. The events at larger times never happen as the search finishes earlier. Another idea is to use the mentioned bounds on the number of steps to limit the size of the array, but we have been unsuccessful in doing so. Instead, we divide events into buckets based on their time. The $i$-th bucket contains events with times from $[(i-1)n, in-1]$. We move from bucket to bucket as needed. The events from the current bucket are put into an array of size at most $n$ just like in the simple array queue. When we reach the end of the current bucket, we clear it and fill it with events from the next bucket. This approach proved to be faster and the running time no longer spiked at higher values of $N$, instead it scaled with $\log N$ as we expected.
 
 \section{Splitting list}
 
