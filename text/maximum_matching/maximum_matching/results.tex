@@ -6,11 +6,11 @@ The implementations are contained in following files:
     \item \texttt{include/matching/MaximumMatching.hpp} contains declarations of classes corresponding to maximum matching algorithms, namely: \begin{itemize}
         \item \texttt{MaximumWeightMatching} – the base class for \textsc{MWM} and \textsc{MWPM} algorithms,
         \item \texttt{BlossomMaximumMatching} – an abstract base class for implementations of the blossom algorithm. Responsible for the common operations shared by all implementations – building the search tree, creating blossoms, augmenting paths, expanding blossom and others. It relies on call virtual methods implemented by children classes to perform implementation-specific parts of the algorithm. One such part is calculating the $\delta_i$ values during dual weight adjustment. Another one is finding useful edges to perform the next step. After each step of the algorithm, specific virtual methods are called to allow the implementations to update their specific data structures.
-        \item \texttt{EdmondsMaximumMatching} – the Edmonds' original $O(n^m)$ version of the blossom algorithm~\cite{edmonds1965maximum},
+        \item \texttt{EdmondsMaximumMatching} – the Edmonds' original $O(n^2m)$ version of the blossom algorithm~\cite{edmonds1965maximum},
         \item \texttt{GabowMaximumMatching} – the Gabow's $O(n^3)$ implementation of the blossom algorithm~\cite{gabow1974implementation},
         \item \texttt{GalilMicaliGabowMaximumMatching} – the $O(nm\log n)$ implementation of the blossom algorithm of~\cite{galil1986ev},
         \item \texttt{GabowScalingMatching} – the $O(n^{3/4}m\log N)$ scaling algorithm~\cite{gabow1984scaling},
-        \item \texttt{MaximumCardinalityMatching} – base class for \textsc{MCM} algorithms,
+        \item \texttt{MaximumCardinalityMatching} – the base class for \textsc{MCM} algorithms,
         \item \texttt{MicaliVaziraniMatching} – the class for the implementation of the Micali-Vazirani maximum cardinality matching algorithm~\cite{micali1980v}.
     \end{itemize}
     \item \texttt{include/matching/structures} directory contains the implementations of various data structures utilized across the implemented algorithms: \begin{itemize}
@@ -66,7 +66,7 @@ $n$ & $m$ & $E$ & $G$ & $M$ & $S$ \\
 32000 & 128000 & 414.49 & 1026.40 & 790.05 & \textbf{52.79} \\
 32000 & 256000 & 611.80 & 1652.81 & 1355.59 & \textbf{125.09} \\
 \end{tabular}
-\caption{Results on random sparse graphs}\label{tab:sparse}
+\caption{Results on random sparse graphs.}\label{tab:sparse}
 \end{table}
 
 \begin{table}
@@ -88,13 +88,13 @@ $n$ & $m$ & $E$ & $G$ & $M$ & $S$ \\
 4000 & 3200000 & 151.17 & 505.38 & 503.95 & \textbf{38.57} \\
 4000 & 4800000 & 233.07 & 700.78 & 775.19 & \textbf{99.25} \\
 \end{tabular}
-\caption{Results on random dense graphs}\label{tab:dense}
+\caption{Results on random dense graphs.}\label{tab:dense}
 \end{table}
 
 \begin{figure}[b]
     \centering
-    \includegraphics*[width=0.49\textwidth]{figures/sparse.png}
-    \includegraphics*[width=0.49\textwidth]{figures/dense.png}
+    \includegraphics*[width=0.8\textwidth]{figures/sparse.png}
+    \includegraphics*[width=0.8\textwidth]{figures/dense.png}
     \caption{Running time of tested algorithms on sparse and dense random instances.}\label{fig:sparse_dense}
 \end{figure}
 
@@ -104,7 +104,7 @@ We repeat the same tests, this time running the perfect matching versions of our
 
 We've tested our blossom algorithm implementation with both the empty and greedy initialization strategies. The results using the greedy initialization are marked with a $G$ subscript. Additionally, all algorithms are marked with $^*$ to indicate that the perfect matching variant is used.
 
-The results of our experiments on random sparse and dense graphs containing perfect matchings are presented in~\Cref{tab:perfect_sparse} and~\Cref{tab:perfect_dense} respectively. As in the case of non-perfect matchings, the scaling algorithm $S$ comes out on top. The margin is even larger most likely to the fact it is designed to find maximum perfect matching and finding a non-perfect matching requires a reduction that doubles the number of nodes and edges. For all blossom algorithm implementations, the greedy initialization resulted in a shorter running time. The speedup ranged from around $30\%$ for the $E$ algorithm and as much as 2-4 times for the $G$ and $M$ implementations.
+The results of our experiments on random sparse and dense graphs containing perfect matchings are presented in~\Cref{tab:perfect}. As in the case of non-perfect matchings, the scaling algorithm $S$ comes out on top. The margin is even larger most likely to the fact it is designed to find maximum perfect matching and finding a non-perfect matching requires a reduction that doubles the number of nodes and edges. For all blossom algorithm implementations, the greedy initialization resulted in a shorter running time. The speedup ranged from around $30\%$ for the $E$ algorithm and as much as 2-4 times for the $G$ and $M$ implementations.
 
 \begin{table}
 \centering
@@ -125,16 +125,7 @@ $n$ & $m$ & $E^*$ & $E^*_G$ & $G^*$ & $G^*_G$ & $M^*$ & $M^*_G$ & $S^*$ \\
 16000 & 128000 & 156.35 & 106.55 & 298.43 & 107.97 & 266.19 & 93.96 & \textbf{11.38} \\
 32000 & 128000 & 512.00 & 354.36 & 1166.83 & 594.43 & 767.65 & 283.84 & \textbf{26.70} \\
 32000 & 256000 & 707.58 & 542.16 & 1655.12 & 727.57 & 1381.63 & 528.16 & \textbf{21.80} \\
-\end{tabular}
-}
-\caption{Results on random sparse graphs when looking for a perfect matching}\label{tab:perfect_sparse}
-\end{table}
-
-\begin{table}
-\centering
-\rotatebox{90} {
-\begin{tabular}{
-cc|ccccccc}
+\midrule
 $n$ & $m$ & $E^*$ & $E^*_G$ & $G^*$ & $G^*_G$ & $M^*$ & $M^*_G$ & $S^*$ \\
 \hline
 1000 & 100000 & 4.79 & 3.75 & 3.54 & 0.74 & 4.21 & 1.27 & \textbf{0.41} \\
@@ -148,7 +139,7 @@ $n$ & $m$ & $E^*$ & $E^*_G$ & $G^*$ & $G^*_G$ & $M^*$ & $M^*_G$ & $S^*$ \\
 4000 & 4800000 & 218.07 & 143.22 & 718.58 & 180.23 & 786.43 & 227.36 & \textbf{32.61} \\
 \end{tabular}
 }
-\caption{Results on random dense graphs when looking for a perfect matching}\label{tab:perfect_dense}
+\caption{Results on random sparse and dense graphs when looking for a perfect matching.}\label{tab:perfect}
 \end{table}
 
 \subsubsection*{The influence of edge weight ranges}
@@ -199,13 +190,13 @@ $n$ & $m$ & $N$ & $E$ & $S$ & $E^*_G$ & $S^*$ \\
 8000 & 32000 & 1000000 & 19.66 & \textbf{6.06} & 16.81 & \textbf{2.36} \\
 8000 & 32000 & 10000000 & 19.70 & \textbf{6.76} & 16.62 & \textbf{2.75} \\
 \end{tabular}
-\caption{Results on random graphs with varying maximum weights for both perfect and non-perfect variants}\label{tab:weight}
+\caption{Results on random graphs with varying maximum weights for both perfect and non-perfect variants.}\label{tab:weight}
 \end{table}
 
 \begin{figure}
     \centering
-    \includegraphics*[width=0.49\textwidth]{figures/Nweight.png}
-    \includegraphics*[width=0.49\textwidth]{figures/Eweight.png}
+    \includegraphics*[width=0.8\textwidth]{figures/Nweight.png}
+    \includegraphics*[width=0.8\textwidth]{figures/Eweight.png}
     \caption{Running time of the scaling algorithm and the Edmonds' algorithm in relation to the maximum edge weight $N$.}\label{fig:weight}
 \end{figure}
 
@@ -247,13 +238,12 @@ $k$ & $n$ & $m$ & $E^*_G$ & $G^*_G$ & $M^*_G$ & $S^*_G$ \\
 2000 & 6000 & 7999 & 0.19 & 0.40 & 0.74 & \textbf{0.06} \\
 4000 & 12000 & 15999 & 0.74 & 1.76 & 4.29 & \textbf{0.20} \\
 \end{tabular}
-\caption{Results on the \texttt{t.f} DIMACS instances with varying $k$}\label{tab:t}
+\caption{Results on the \texttt{t.f} DIMACS instances with varying $k$.}\label{tab:t}
 \end{table}
 
 \begin{table}
 \centering
-\begin{tabular}{
-ccc|cccc}
+\begin{tabular}{ccc|cccc}
 $k$ & $n$ & $m$ & $E$ & $G$ & $M$ & $S$ \\
 \hline
 50 & 300 & 20000 & 0.11 & 0.08 & 0.10 & \textbf{0.02} \\
@@ -270,7 +260,13 @@ $k$ & $n$ & $m$ & $E^*_G$ & $G^*_G$ & $M^*_G$ & $S^*$ \\
 400 & 2400 & 1280000 & 19.67 & 5.43 & 23.45 & \textbf{0.55} \\
 800 & 4800 & 5120000 & 139.87 & 41.25 & 244.50 & \textbf{2.28} \\
 \end{tabular}
-\caption{Results on the \texttt{hardcard.f} DIMACS instances with varying $k$}\label{tab:hardcard}
+\caption{Results on the \texttt{hardcard.f} DIMACS instances with varying $k$.}\label{tab:hardcard}
 \end{table}
 
-TODO conclusions
+\subsection{Conclusions}
+
+We have found our implementation of the scaling algorithm to be superior to our various implementations of the blossom algorithm.  We have found that better theoretical running time doesn't necessarily result in faster execution in practice. The asymptotic time of of the blossom implementation is better than the theoretical one, suggesting the worst cases rarely happen. 
+
+Our implementations of the various iterations of the blossom algorithm are reasonably close to how they were described originally. The variants of the blossom algorithm mainly differ by how they implement distinct aspects of the search procedure: representing blossoms, maintaining dual weights, performing adjustments and finding tight edges. One method that was found to lead to good performance is the variable $\delta$ approach introduced in~\cite{cook1999computing} that perform dual adjustment by choosing a different value of $\delta$ for each search tree using a heuristic. The authors of~\cite{mehlhorn2002implementation} showed an efficient variant of the $O(nm \log n)$ algorithm that uses a combination of concatenable queues and union-find similarly to how splitting lists and union-find are used by us in the scaling algorithm. The current best performing implementation is due to~\cite{kolmogorov2009blossom} is based on the variable $\delta$ approach and uses priority queues to maintain edge slacks. The authors don't give a proof of a theoretical time complexity but believe the worst-case to be $O(n^3m)$.
+
+We compared the performance of our scaling algorithm implementation to the implementation of~\cite{kolmogorov2009blossom} and found it to be significantly slower. While there are some ideas from existing blossom algorithm implementations that could improve the performance of our scaling algorithm, we doubt it would be enough to outperform the best implementations of the blossom algorithm. The main disadvantages of the scaling approach is that it is sensitive to sizes of weight and does a lot of repeated work by finding a new matching in each scale.
