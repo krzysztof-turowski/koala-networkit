@@ -1,4 +1,6 @@
-All the algorithms described in the previous chapter have been implemented as part of the KOALA library~\cite{koala-networkit} built on top of NetworKit(TODO cite). 
+\section{Code structure}
+
+All described algorithms have been implemented as part of the KOALA library~\cite{koala-networkit} built on top of NetworKit~\cite{networkit}. 
 
 The implementations are contained in following files:
 
@@ -31,7 +33,9 @@ All tests were conducted on a personal computer equipped with an Intel Core i7-6
 
 We've made use of test generators provided as part of the 1st DIMACS implementation challenge~\cite{rutgersDIMACSImplementation}.
 
-\subsubsection*{Random instances}
+\section{Tests}
+
+\subsection{Random instances}
 
 The first class of graphs we've tested are random sparse and dense graphs generated using the \texttt{random.c} generator from the DIMACS challenge written by C. McGeoch. The program generates a random graph with a provided number of nodes and edges with weights uniformly chosen from a specified range $[1, N]$. It is also possible to specify a seed used to generate random numbers. For all of our test we've set the maximum cost at $2^{16}$. For each pair of values $n$ and $m$ we've generated $3$ different graphs using random seeds and then average the running time.
 
@@ -142,7 +146,7 @@ $n$ & $m$ & $E^*$ & $E^*_G$ & $G^*$ & $G^*_G$ & $M^*$ & $M^*_G$ & $S^*$ \\
 \caption{Results on random sparse and dense graphs when looking for a perfect matching.}\label{tab:perfect}
 \end{table}
 
-\subsubsection*{The influence of edge weight ranges}
+\subsection{Influence of edge weights}
 
 The previous tests have neglected to account for one of the main contributing factors in the running time of the scaling algorithm - the maximum edge weight $N$. To test how different values of $N$ affect the running time of the $S$ algorithm, we've conducted a series of tests on random sparse graphs with $m = 4n$ and values of $N$ ranging from $1$ to $10^7$. We've compared both the perfect and non-perfect variant of $S$ to the $E$ algorithm. 
 
@@ -200,7 +204,7 @@ $n$ & $m$ & $N$ & $E$ & $S$ & $E^*_G$ & $S^*$ \\
     \caption{Running time of the scaling algorithm and the Edmonds' algorithm in relation to the maximum edge weight $N$.}\label{fig:weight}
 \end{figure}
 
-\subsubsection*{DIMACS instances}
+\subsection{DIMACS instances}
 
 We next turn to more structured instances. The tests were generated using the following programs:
 
@@ -263,7 +267,7 @@ $k$ & $n$ & $m$ & $E^*_G$ & $G^*_G$ & $M^*_G$ & $S^*$ \\
 \caption{Results on the \texttt{hardcard.f} DIMACS instances with varying $k$.}\label{tab:hardcard}
 \end{table}
 
-\subsection{Conclusions}
+\section{Conclusions}
 
 We have found our implementation of the scaling algorithm to be superior to our various implementations of the blossom algorithm.  We have found that better theoretical running time doesn't necessarily result in faster execution in practice. The asymptotic time of of the blossom implementation is better than the theoretical one, suggesting the worst cases rarely happen. 
 
