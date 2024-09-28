@@ -160,16 +160,6 @@ MaximumWeightMatching::weight EdmondsMaximumMatching::calc_delta3() {
         }
     });
 
-    graph.forEdges([this, &res] (NetworKit::node u, NetworKit::node v, NetworKit::edgeid id) {
-        Blossom* u_blossom = get_blossom(u);
-        Blossom* v_blossom = get_blossom(v);
-        if (u_blossom != v_blossom && u_blossom->label == even && v_blossom->label == even) {
-            if (slack(id) / 2 == res) {
-                std::cerr << "min slack on (" << u << ", " << v << ")" << std::endl;
-            }
-        }
-    });
-
     return res;
 }
 
