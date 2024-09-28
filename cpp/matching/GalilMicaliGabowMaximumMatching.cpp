@@ -6,6 +6,7 @@ GalilMicaliGabowMaximumMatching::GalilMicaliGabowMaximumMatching(
     NetworKit::Graph &graph, bool perfect, InitializationStrategy initialization):
         BlossomMaximumMatching(graph, perfect, initialization),
         y_even(graph.upperNodeIdBound()),
+        y_odd(graph.upperNodeIdBound()),
         z_even(graph.upperNodeIdBound()),
         z_odd(graph.upperNodeIdBound()),
         good_edges(graph.upperEdgeIdBound()),
@@ -25,6 +26,7 @@ GalilMicaliGabowMaximumMatching::get_data(Blossom* b) {
 void GalilMicaliGabowMaximumMatching::initialize_stage() {
     edge_queue = {};
     y_even.clear();
+    y_odd.clear();
     good_edges.clear();
     z_even.clear();
     z_odd.clear();
@@ -50,11 +52,6 @@ void GalilMicaliGabowMaximumMatching::initialize_stage() {
             // Track weights for even vertices
             for (auto v : blossom->nodes) {
                 y_even.insert(v, v, y[v]);
-            }
-        } else {
-            auto group = get_data(blossom)->node_group;
-            for (auto v : blossom->nodes) {
-                even_edges.set_element_priority(v, y[v], group);
             }
         }
     }
@@ -85,10 +82,9 @@ void GalilMicaliGabowMaximumMatching::finish_stage() {
             blossom->z = z_odd.current_priority(blossom->initial_base);
         }
 
-        if (blossom->label != even) {
-            auto group = get_data(blossom)->node_group;
+        if (blossom->label == odd) {
             for (auto v : blossom->nodes) {
-                y[v] = even_edges.current_element_priority(v, group);
+                y[v] = y_odd.current_priority(v);
             }
         }
     }
@@ -96,12 +92,7 @@ void GalilMicaliGabowMaximumMatching::finish_stage() {
     for (auto b : to_expand) expand_even_blossom(b);
 }
 
-void GalilMicaliGabowMaximumMatching::initialize_substage() {
-    // std::cerr << "y:\n";
-    // graph.forNodes([this] (NetworKit::node v) {
-    //     std::cerr << v << ": " << current_y(v) << std::endl;
-    // });
-}
+void GalilMicaliGabowMaximumMatching::initialize_substage() {}
 
 bool GalilMicaliGabowMaximumMatching::has_useful_edges() {
     clear_not_good_edges();
@@ -137,9 +128,9 @@ GalilMicaliGabowMaximumMatching::Edge GalilMicaliGabowMaximumMatching::get_usefu
 
 void GalilMicaliGabowMaximumMatching::handle_grow(Blossom* odd_blossom, Blossom* even_blossom) {
     // Begin tracking dual weights for newly odd vertices
-    // for (auto v : odd_blossom->nodes) {
-    //     even_edges.set_element_priority(v, y[v], get_data(odd_blossom)->node_group);
-    // }
+    for (auto v : odd_blossom->nodes) {
+        y_odd.insert(v, v, y[v]);
+    }
     if (!odd_blossom->is_trivial()) {
         // Track dual weight for the newly odd blossom
         z_odd.insert(odd_blossom->initial_base, odd_blossom, odd_blossom->z);
@@ -151,7 +142,7 @@ void GalilMicaliGabowMaximumMatching::handle_grow(Blossom* odd_blossom, Blossom*
 
     // Begin tracking dual weights for newly even vertices
     for (auto v : even_blossom->nodes) {
-        auto y_v = even_edges.current_element_priority(v, get_data(even_blossom)->node_group);
+        auto y_v = y[v];
         y_even.insert(v, v, y_v);
     }
     if (!even_blossom->is_trivial()) {
@@ -221,8 +212,9 @@ void GalilMicaliGabowMaximumMatching::handle_new_blossom(Blossom* new_blossom) {
 
             for (auto v : b->nodes) {
                 // Change which priority queue handles the dual weight for a previously odd vertex
-                auto u = even_edges.current_element_priority(v, group_b);
-                y_even.insert(v, v, u);
+                auto dual = y_odd.current_priority(v);
+                y_odd.remove(v);
+                y_even.insert(v, v, dual);
             }
         }
 
@@ -287,8 +279,14 @@ void GalilMicaliGabowMaximumMatching::handle_odd_blossom_expansion(Blossom* blos
         // they're tracked by
         if (b->label == even) {
             for (auto v : b->nodes) {
-                auto dual = even_edges.current_element_priority(v, group_b);
+                auto dual = y_odd.current_priority(v);
+                y_odd.remove(v);
                 y_even.insert(v, v, dual);
+            }
+        } else if (b->label == free) {
+            for (auto v : b->nodes) {
+                y[v] = y_odd.current_priority(v);
+                y_odd.remove(v);
             }
         }
 
@@ -315,6 +313,7 @@ void GalilMicaliGabowMaximumMatching::handle_even_blossom_expansion(Blossom* blo
 void GalilMicaliGabowMaximumMatching::adjust_by_delta(MaximumWeightMatching::weight delta) {
     // Update dual weights for even and odd vertices
     y_even.decrease_all_priorities(delta);
+    y_odd.decrease_all_priorities(-delta);
 
     // Update dual weights for even and odd blossoms
     z_even.decrease_all_priorities(-2 * delta);
@@ -380,8 +379,9 @@ MaximumWeightMatching::weight GalilMicaliGabowMaximumMatching::current_y(NetworK
         case even:
             return y_even.current_priority(v);
         case free:
+            return y[v];
         case odd:
-            return even_edges.current_element_priority(v, get_data(b)->node_group);
+            return y_odd.current_priority(v);
     }
     return 0;
 }

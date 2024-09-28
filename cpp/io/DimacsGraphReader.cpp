@@ -64,8 +64,8 @@ void read_edge(std::ifstream &graphFile, NetworKit::Graph &graph, const std::str
     }
 }
 
-NetworKit::Graph DimacsGraphReader::read(const std::string &path) {
-    return std::get<0>(read_all(path));
+NetworKit::Graph DimacsGraphReader::read(std::string_view path) {
+    return std::get<0>(read_all(std::string{path}));
 }
 
 std::tuple<NetworKit::Graph, NetworKit::node, NetworKit::node> DimacsGraphReader::read_all(

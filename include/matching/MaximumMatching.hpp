@@ -75,7 +75,7 @@ class BlossomMaximumMatching :  public MaximumWeightMatching {
      */
     void run();
 
- protected:
+//  protected:
     virtual ~BlossomMaximumMatching();
 
     struct Edge {
@@ -111,9 +111,6 @@ class BlossomMaximumMatching :  public MaximumWeightMatching {
 
         // Last node in the blossom order
         NetworKit::node last_node;
-
-        // List of the descendants containg the base, used for lazy augmentation
-        std::list<Blossom*> base_blossoms;
 
         // Subblossoms of the blossom
         SubblossomList subblossoms;
@@ -212,8 +209,7 @@ class BlossomMaximumMatching :  public MaximumWeightMatching {
             std::vector<BacktrackInfo>& u_path, std::vector<BacktrackInfo>& v_path);
 
     void swap_edges_on_even_path(Blossom* blossom, NetworKit::node u, NetworKit::node v);
-    void swap_edges_on_even_path(Blossom* blossom, NetworKit::node out_vertex,
-        std::list<Blossom*>&& base_blossoms);
+    void swap_edges_on_even_path(Blossom* blossom, NetworKit::node out_vertex);
 
     void lazy_augment_path_in_blossom(Blossom* blossom);
 
@@ -407,6 +403,7 @@ class GalilMicaliGabowMaximumMatching final :  public BlossomMaximumMatching {
 
     // Used to maintain dual variables for vertices
     PriorityQueue1<NetworKit::node, MaximumWeightMatching::weight, NetworKit::node> y_even;
+    PriorityQueue1<NetworKit::node, MaximumWeightMatching::weight, NetworKit::node> y_odd;
     MaximumWeightMatching::weight current_y(NetworKit::node v);
 
     // Used to maintain dual variables for blossoms

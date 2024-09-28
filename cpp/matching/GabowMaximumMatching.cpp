@@ -118,15 +118,15 @@ void GabowMaximumMatching::handle_new_blossom(Blossom* new_blossom) {
     }
 }
 
-void GabowMaximumMatching::handle_nodes_split(Blossom* blossom) {}
-
-void GabowMaximumMatching::handle_odd_blossom_expansion(Blossom* blossom) {
+void GabowMaximumMatching::handle_nodes_split(Blossom* blossom) {
     for (auto [b, e] : blossom->subblossoms) {
         for (auto v : b->nodes) {
             current_blossom[v] = b;
         }
     }
+}
 
+void GabowMaximumMatching::handle_odd_blossom_expansion(Blossom* blossom) {
     // Scan edges for newly even vertices
     for (auto [b, e] : blossom->subblossoms) {
         if (b->label == even) {
@@ -135,11 +135,7 @@ void GabowMaximumMatching::handle_odd_blossom_expansion(Blossom* blossom) {
     }
 }
 
-void GabowMaximumMatching::handle_even_blossom_expansion(Blossom* blossom) {
-    for (auto [b, e] : blossom->subblossoms) {
-        for (auto v : b->nodes) current_blossom[v] = b;
-    }
-}
+void GabowMaximumMatching::handle_even_blossom_expansion(Blossom* blossom) {}
 
 void GabowMaximumMatching::adjust_by_delta(MaximumWeightMatching::weight delta) {
     graph.forNodes([this, delta] (NetworKit::node v) {

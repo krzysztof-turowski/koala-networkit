@@ -74,26 +74,50 @@ void EdmondsMaximumMatching::handle_new_blossom(Blossom* new_blossom) {
     }
 }
 
-void EdmondsMaximumMatching::handle_nodes_split(Blossom* blossom) {}
-
-void EdmondsMaximumMatching::handle_odd_blossom_expansion(Blossom* blossom) {
+void EdmondsMaximumMatching::handle_nodes_split(Blossom* blossom) {
     for (auto [b, e] : blossom->subblossoms) {
         for (auto v : b->nodes)
             current_blossom[v] = b;
+    }
+}
 
+void EdmondsMaximumMatching::handle_odd_blossom_expansion(Blossom* blossom) {
+    for (auto [b, e] : blossom->subblossoms) {
         if (b->label == even)
             scan_edges(b);
     }
 }
 
-void EdmondsMaximumMatching::handle_even_blossom_expansion(Blossom* blossom) {
-    for (auto [b, e] : blossom->subblossoms) {
-        for (auto v : b->nodes)
-            current_blossom[v] = b;
-    }
+void EdmondsMaximumMatching::handle_even_blossom_expansion(Blossom* blossom) {}
+
+void print_blossom2(BlossomMaximumMatching::Blossom* blossom) {
+    std::cerr << "(";
+    blossom->for_nodes([](NetworKit::node v) {
+        std::cerr << v << " ";
+    });
+    std::cerr << ": " << blossom->base << ")";
 }
 
 void EdmondsMaximumMatching::adjust_by_delta(MaximumWeightMatching::weight delta) {
+    std::cerr << "------ BEFORE -----\n";
+    std::cerr << "VERTICES:\n";
+    for (auto v = 0; v < graph.upperNodeIdBound(); ++ v) {
+        auto label = current_blossom[v]->label;
+        std::string lbl = label == even ? "S" : (label == odd ? "T" : "-");
+        std::cerr << v << ": " << y[v] << " " << lbl << " : " << matched_vertex[v] << std::endl;
+    }
+    std::cerr << "BLOSSOMS:\n";
+    for (auto b : blossoms) {
+        if (b->is_trivial()) continue;
+        print_blossom2(b);
+        std::cerr << ": " << b->z << std::endl;
+    }
+    std::cerr << "EDGES:\n";
+    graph.forEdges([this] (NetworKit::node u, NetworKit::node v, NetworKit::edgeid e) {
+        if (current_blossom[u] == current_blossom[v]) return;
+        std::cerr << "(" << u << ", " << v << ") : " << slack(e) << std::endl;
+    });
+
     graph.forNodes([this, delta] (NetworKit::node v) {
         Blossom* v_blossom = get_blossom(v);
         if (v_blossom->label == even) {
@@ -110,6 +134,39 @@ void EdmondsMaximumMatching::adjust_by_delta(MaximumWeightMatching::weight delta
             blossom->z -= 2 * delta;
         }
     }
+
+    graph.forEdges([this] (NetworKit::node u, NetworKit::node v, NetworKit::edgeid e) {
+        auto B_v = current_blossom[v];
+        auto B_u = current_blossom[u];
+        if (B_u == B_v) return;
+        if (!is_tight(u, v, e)) return;
+        if (
+            (B_u->label == even && B_v->label == free) || 
+            (B_u->label == free && B_v->label == even) ||
+            (B_u->label == even && B_v->label == even))
+            edge_queue.push({u, v, e});
+    });
+
+    std::cerr << "------ AFTER -----\n";
+    std::cerr << "VERTICES:\n";
+    for (auto v = 0; v < graph.upperNodeIdBound(); ++ v) {
+        auto label = current_blossom[v]->label;
+        std::string lbl = label == even ? "S" : (label == odd ? "T" : "-");
+        std::cerr << v << ": " << y[v] << " " << lbl << " : " << matched_vertex[v] << std::endl;
+    }
+    std::cerr << "BLOSSOMS:\n";
+    for (auto b : blossoms) {
+        if (b->is_trivial()) continue;
+        print_blossom2(b);
+        std::cerr << ": " << b->z << std::endl;
+    }
+    std::cerr << "EDGES:\n";
+    graph.forEdges([this] (NetworKit::node u, NetworKit::node v, NetworKit::edgeid e) {
+        if (current_blossom[u] == current_blossom[v]) return;
+        std::cerr << "(" << u << ", " << v << ") : " << slack(e) << std::endl;
+    });
+    std::cerr << "QUEUE SIZE = " << edge_queue.size() << std::endl;
+    std::cerr << "------------------\n";
 }
 
 MaximumWeightMatching::weight EdmondsMaximumMatching::calc_delta1() {
@@ -150,6 +207,17 @@ MaximumWeightMatching::weight EdmondsMaximumMatching::calc_delta3() {
             res = std::min(res, slack(id) / 2);
         }
     });
+
+    graph.forEdges([this, &res] (NetworKit::node u, NetworKit::node v, NetworKit::edgeid id) {
+        Blossom* u_blossom = get_blossom(u);
+        Blossom* v_blossom = get_blossom(v);
+        if (u_blossom != v_blossom && u_blossom->label == even && v_blossom->label == even) {
+            if (slack(id) / 2 == res) {
+                std::cerr << "min slack on (" << u << ", " << v << ")" << std::endl;
+            }
+        }
+    });
+
     return res;
 }
 

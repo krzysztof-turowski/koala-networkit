@@ -229,8 +229,7 @@ class PriorityQueue2 {
         no_value(no_value),
         infinite_priority(infinite_priority),
         group_minima(size),
-        elements(size, nullptr),
-        element_priority(size) {}
+        elements(size, nullptr) {}
 
     /**
      * Append an element with given priority to the end group
@@ -470,24 +469,6 @@ class PriorityQueue2 {
         return elements[element]->find_queue()->root_id->id;
     }
 
-    void set_element_priority(Element element, Priority priority) {
-        set_element_priority(element, priority, elements[element]->find_queue()->root_id);
-    }
-
-    void set_element_priority(Element element, Priority priority, Group* group) {
-        group->update_Delta(Delta);
-        element_priority[element] = priority - Delta + group->Delta_group;
-    }
-
-    Priority current_element_priority(Element element, Group* group) {
-        group->update_Delta(Delta);
-        return element_priority[element] + Delta - group->Delta_group;
-    }
-
-    Priority current_element_priority(Element element) {
-        return current_element_priority(element, elements[element]->find_queue()->root_id);
-    }
-
  private:
     std::tuple<Element, Value, Priority> group_minimum(Group* group) {
         return is_empty(group) ?
@@ -500,7 +481,6 @@ class PriorityQueue2 {
     Priority infinite_priority;
     PriorityQueue1<Element, Priority, Value> group_minima;
     std::vector<typename Group::ElementQueue::handle_type> elements;
-    std::vector<Priority> element_priority;
 };
 
 } /* namespace Koala */

@@ -14,8 +14,8 @@
 
 namespace Koala {
 
-NetworKit::Graph DimacsBinaryGraphReader::read(const std::string &path) {
-    std::ifstream graphFile(path, std::ios::binary);
+NetworKit::Graph DimacsBinaryGraphReader::read(std::string_view path) {
+    std::ifstream graphFile(std::string{path}, std::ios::binary);
     Aux::enforceOpened(graphFile);
 
     int preamble_size = 0;
