@@ -2,14 +2,6 @@
 
 namespace Koala {
 
-void print_blossom(BlossomMaximumMatching::Blossom* blossom) {
-    std::cerr << "(";
-    blossom->for_nodes([](NetworKit::node v) {
-        std::cerr << v << " ";
-    });
-    std::cerr << ": " << blossom->base << ")";
-}
-
 BlossomMaximumMatching::BlossomMaximumMatching(
     NetworKit::Graph &graph, bool perfect, InitializationStrategy initialization):
         MaximumWeightMatching(graph, perfect),
@@ -85,14 +77,6 @@ void BlossomMaximumMatching::initialize(
 }
 
 void BlossomMaximumMatching::run() {
-    graph.forNodes([this] (NetworKit::node v) {
-        std::cerr << v << ": ";
-        graph.forEdgesOf(v, [] (NetworKit::node v, NetworKit::node u) {
-            std::cerr << u << " ";
-        });
-        std::cerr << std::endl;
-    });
-
     while (!finished) {
         run_stage();
     }
@@ -115,8 +99,6 @@ void BlossomMaximumMatching::run_stage() {
         finished = true;
         return;
     }
-
-    std::cerr << "=============== STAGE ===============\n";
 
     initialize_stage();
 
@@ -162,8 +144,6 @@ bool BlossomMaximumMatching::consider_edge(Edge edge) {
         std::swap(u_blossom, v_blossom);
     }
 
-    std::cerr << ">>> CONSIDER (" << u << ", " << v << ")\n";
-
     if (v_blossom->label == free) {
         // Useful edge to a free blossom
         // Label it and the blossom matched to it's base
@@ -178,12 +158,6 @@ bool BlossomMaximumMatching::consider_edge(Edge edge) {
 
         c_blossom->label = even;
         c_blossom->backtrack_edge = { b, c, matched_edge[b] };
-        
-        std::cerr << "GROW ";
-        print_blossom(v_blossom);
-        std::cerr << " - ";
-        print_blossom(c_blossom);
-        std::cerr << std::endl;
 
         handle_grow(v_blossom, c_blossom);
     } else if (v_blossom->label == even) {
@@ -311,10 +285,6 @@ void BlossomMaximumMatching::create_new_blossom(
         nodes.splice(nodes.end(), std::move(b->nodes));
     }
     new_blossom->nodes = std::move(nodes);
-
-    std::cerr << "NEW BLOSSOM ";
-    print_blossom(new_blossom);
-    std::cerr << std::endl;
 }
 
 void BlossomMaximumMatching::swap_edge_in_matching(NetworKit::edgeid edge) {
@@ -347,21 +317,6 @@ void BlossomMaximumMatching::check_edge_in_matching(NetworKit::edgeid edge) {
 void BlossomMaximumMatching::augment_path(
         Blossom* u, Blossom* v, Edge edge,
         std::vector<BacktrackInfo>& u_path, std::vector<BacktrackInfo>& v_path) {
-
-    std::cerr << "AUGMENT\n";
-    for (auto [b, e] : u_path) {
-        print_blossom(b); 
-        std::cerr << " [" << e.u << ", " << e.v << "] ";
-    }
-    print_blossom(u); std::cerr << " ";
-    std::cerr << "[" << edge.u << ", " << edge.v << "] ";
-    print_blossom(v); std::cerr << " ";
-    for (auto [b, e] : v_path) {
-        std::cerr << " [" << e.u << ", " << e.v << "] ";
-        print_blossom(b); 
-    }
-    std::cerr << std::endl;
-
     for (auto [b, e] : u_path) swap_edge_in_matching(e.id);
     for (auto [b, e] : v_path) swap_edge_in_matching(e.id);
     swap_edge_in_matching(edge.id);
@@ -388,7 +343,8 @@ void BlossomMaximumMatching::augment_path(
     }
 }
 
-void BlossomMaximumMatching::swap_edges_on_even_path(Blossom* blossom, NetworKit::node u, NetworKit::node v) {
+void BlossomMaximumMatching::swap_edges_on_even_path(
+        Blossom* blossom, NetworKit::node u, NetworKit::node v) {
     if (blossom->is_trivial() || u == v) return;
     auto out_vertex = u == blossom->base ? v : u;
     blossom->base = out_vertex;
@@ -462,13 +418,6 @@ void BlossomMaximumMatching::adjust_dual_variables() {
 
     auto delta = std::min(delta1, std::min(delta2, std::min(delta3, delta4)));
 
-    std::cerr << "DUAL ADJUSTMENT\n";
-    std::cerr << "d_1 = " << delta1 << std::endl;
-    std::cerr << "d_2 = " << delta2 << std::endl;
-    std::cerr << "d_3 = " << delta3 << std::endl;
-    std::cerr << "d_4 = " << delta4 << std::endl;
-    std::cerr << "ADJUST BY " << delta << std::endl;
-
     adjust_by_delta(delta);
 
     if (!perfect && delta == delta1) {
@@ -487,10 +436,6 @@ void BlossomMaximumMatching::adjust_dual_variables() {
 
 void BlossomMaximumMatching::expand_odd_blossom(Blossom* blossom) {
     if (blossom->is_trivial()) return;
-
-    std::cerr << "EXPAND ODD ";
-    print_blossom(blossom);
-    std::cerr << std::endl;
 
     for (auto [b, e] : blossom->subblossoms) {
         b->nodes.splice(b->nodes.end(), blossom->nodes,
@@ -538,10 +483,6 @@ void BlossomMaximumMatching::expand_odd_blossom(Blossom* blossom) {
 
 void BlossomMaximumMatching::expand_even_blossom(Blossom* blossom) {
     if (blossom->is_trivial()) return;
-
-    std::cerr << "EXPAND EVEN ";
-    print_blossom(blossom);
-    std::cerr << std::endl;
 
     for (auto [b, e] : blossom->subblossoms) {
         b->nodes.splice(b->nodes.end(), blossom->nodes,

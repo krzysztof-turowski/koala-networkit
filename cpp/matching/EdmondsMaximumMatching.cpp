@@ -90,34 +90,7 @@ void EdmondsMaximumMatching::handle_odd_blossom_expansion(Blossom* blossom) {
 
 void EdmondsMaximumMatching::handle_even_blossom_expansion(Blossom* blossom) {}
 
-void print_blossom2(BlossomMaximumMatching::Blossom* blossom) {
-    std::cerr << "(";
-    blossom->for_nodes([](NetworKit::node v) {
-        std::cerr << v << " ";
-    });
-    std::cerr << ": " << blossom->base << ")";
-}
-
 void EdmondsMaximumMatching::adjust_by_delta(MaximumWeightMatching::weight delta) {
-    std::cerr << "------ BEFORE -----\n";
-    std::cerr << "VERTICES:\n";
-    for (auto v = 0; v < graph.upperNodeIdBound(); ++ v) {
-        auto label = current_blossom[v]->label;
-        std::string lbl = label == even ? "S" : (label == odd ? "T" : "-");
-        std::cerr << v << ": " << y[v] << " " << lbl << " : " << matched_vertex[v] << std::endl;
-    }
-    std::cerr << "BLOSSOMS:\n";
-    for (auto b : blossoms) {
-        if (b->is_trivial()) continue;
-        print_blossom2(b);
-        std::cerr << ": " << b->z << std::endl;
-    }
-    std::cerr << "EDGES:\n";
-    graph.forEdges([this] (NetworKit::node u, NetworKit::node v, NetworKit::edgeid e) {
-        if (current_blossom[u] == current_blossom[v]) return;
-        std::cerr << "(" << u << ", " << v << ") : " << slack(e) << std::endl;
-    });
-
     graph.forNodes([this, delta] (NetworKit::node v) {
         Blossom* v_blossom = get_blossom(v);
         if (v_blossom->label == even) {
@@ -141,32 +114,11 @@ void EdmondsMaximumMatching::adjust_by_delta(MaximumWeightMatching::weight delta
         if (B_u == B_v) return;
         if (!is_tight(u, v, e)) return;
         if (
-            (B_u->label == even && B_v->label == free) || 
+            (B_u->label == even && B_v->label == free) ||
             (B_u->label == free && B_v->label == even) ||
             (B_u->label == even && B_v->label == even))
             edge_queue.push({u, v, e});
     });
-
-    std::cerr << "------ AFTER -----\n";
-    std::cerr << "VERTICES:\n";
-    for (auto v = 0; v < graph.upperNodeIdBound(); ++ v) {
-        auto label = current_blossom[v]->label;
-        std::string lbl = label == even ? "S" : (label == odd ? "T" : "-");
-        std::cerr << v << ": " << y[v] << " " << lbl << " : " << matched_vertex[v] << std::endl;
-    }
-    std::cerr << "BLOSSOMS:\n";
-    for (auto b : blossoms) {
-        if (b->is_trivial()) continue;
-        print_blossom2(b);
-        std::cerr << ": " << b->z << std::endl;
-    }
-    std::cerr << "EDGES:\n";
-    graph.forEdges([this] (NetworKit::node u, NetworKit::node v, NetworKit::edgeid e) {
-        if (current_blossom[u] == current_blossom[v]) return;
-        std::cerr << "(" << u << ", " << v << ") : " << slack(e) << std::endl;
-    });
-    std::cerr << "QUEUE SIZE = " << edge_queue.size() << std::endl;
-    std::cerr << "------------------\n";
 }
 
 MaximumWeightMatching::weight EdmondsMaximumMatching::calc_delta1() {

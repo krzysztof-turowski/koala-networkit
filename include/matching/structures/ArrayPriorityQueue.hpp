@@ -9,7 +9,7 @@ namespace Koala {
 template<typename Event>
 class ArrayPriorityQueue {
  public:
-    ArrayPriorityQueue(NetworKit::count bucket_size): bucket_size(bucket_size) { reset(); }
+    explicit ArrayPriorityQueue(NetworKit::count bucket_size): bucket_size(bucket_size) { reset(); }
 
     void scheduleEvent(NetworKit::index event_time, Event event) {
         if (event_time < timeNow()) return;
@@ -25,8 +25,8 @@ class ArrayPriorityQueue {
         return event_queue[time][it];
     }
 
-    int timeNow() const { 
-        return current_bucket * bucket_size + time; 
+    int timeNow() const {
+        return current_bucket * bucket_size + time;
     }
 
     void reset() {
