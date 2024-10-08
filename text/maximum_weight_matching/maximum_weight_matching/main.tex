@@ -1,0 +1,36 @@
+\documentclass{report}
+\usepackage{import}
+
+\import{.}{preamble.tex}
+
+\title{Comparison of maximum weight matching algorithms on general graphs}
+\author{Rafał Kilar}
+
+\begin{document}
+
+\include{titlepage}
+\pagebreak
+
+% Abstract
+% The graph matching problem is among the most extensively researched topics in combinatorial optimization. Matching algorithms have been used as subroutines of various optimization algorithms. In this work, we explore some notable algorithms for maximum weight matching on general graphs, discussing how work and how to implement them. We provide implementations, along with performance comparisons based on test results.
+
+\tableofcontents
+\pagebreak
+
+\chapter{Introduction}
+\input{introduction.tex}
+\input{definitions.tex}
+\input{algorithms.tex}
+
+\chapter{The Blossom Algorithm}\label{chap:blossom}
+\input{blossom.tex}
+
+\chapter{Scaling algorithms}\label{chap:scaling}
+\input{scaling.tex}
+
+\chapter{Experimental results}\label{chap:results}
+\input{results.tex}
+
+\printbibliography
+
+\end{document}

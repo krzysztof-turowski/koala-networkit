@@ -27,7 +27,7 @@ class G6GraphWriter final : public NetworKit::GraphWriter {
      * @param[in]  G     input graph
      * @param[in]  path  output file path
      */
-    void write(const NetworKit::Graph &G, const std::string &path) override;
+    void write(const NetworKit::Graph &G, std::string_view path) override;
 
     /**
      * Given a graph, find its graph6 representation.
