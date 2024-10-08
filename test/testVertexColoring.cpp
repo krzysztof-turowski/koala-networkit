@@ -4,6 +4,7 @@
 
 #include <coloring/ExactVertexColoring.hpp>
 #include <coloring/GreedyVertexColoring.hpp>
+#include <coloring/CographVertexColoring.hpp>
 #include <coloring/PerfectGraphVertexColoring.hpp>
 
 #include "helpers.hpp"
@@ -29,9 +30,6 @@ class SaturatedLargestFirstVertexColoringTest
 class GreedyIndependentSetVertexColoringTest
     : public testing::TestWithParam<VertexColoringParameters> { };
 
-class PerfectGraphVertexColoringTest
-    : public testing::TestWithParam<VertexColoringParameters> { };
-
 class BrownEnumerationVertexColoringTest
     : public testing::TestWithParam<VertexColoringParameters> { };
 
@@ -42,6 +40,12 @@ class BrelazEnumerationVertexColoringTest
     : public testing::TestWithParam<VertexColoringParameters> { };
 
 class KormanEnumerationVertexColoringTest
+    : public testing::TestWithParam<VertexColoringParameters> { };
+
+class CographVertexColoringTest
+    : public testing::TestWithParam<VertexColoringParameters> { };
+
+class PerfectGraphVertexColoringTest
     : public testing::TestWithParam<VertexColoringParameters> { };
 
 auto test_set_exact = testing::Values(
@@ -205,22 +209,6 @@ INSTANTIATE_TEST_SUITE_P(
                  {5, 6}, {5, 7}, {5, 8}, {5, 9}, {6, 9}, {7, 9}, {8, 9}}, 5}
 ));
 
-TEST_P(PerfectGraphVertexColoringTest, test) {
-    VertexColoringParameters const& parameters = GetParam();
-    NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
-    auto algorithm = Koala::PerfectGraphVertexColoring(G);
-    algorithm.run();
-    check(parameters, algorithm.getColoring());
-}
-
-INSTANTIATE_TEST_SUITE_P(
-    test_example, PerfectGraphVertexColoringTest, testing::Values(
-        VertexColoringParameters{
-            6, {{0, 1}, {0, 2}, {1, 2}, {0, 3}, {1, 4}, {2, 5}}, 3},
-        VertexColoringParameters{
-            6, {{0, 1}, {0, 2}, {1, 2}, {0, 3}, {1, 4}, {2, 5}, {3, 4}, {3, 5}, {4, 5}}, 3}
-));
-
 TEST_P(BrownEnumerationVertexColoringTest, test) {
     VertexColoringParameters const& parameters = GetParam();
     NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
@@ -260,3 +248,39 @@ TEST_P(KormanEnumerationVertexColoringTest, test) {
 }
 
 INSTANTIATE_TEST_SUITE_P(test_example, KormanEnumerationVertexColoringTest, test_set_exact);
+
+TEST_P(PerfectGraphVertexColoringTest, test) {
+    VertexColoringParameters const& parameters = GetParam();
+    NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
+    auto algorithm = Koala::PerfectGraphVertexColoring(G);
+    algorithm.run();
+    check(parameters, algorithm.getColoring());
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    test_example, PerfectGraphVertexColoringTest, testing::Values(
+        VertexColoringParameters{
+            6, {{0, 1}, {0, 2}, {1, 2}, {0, 3}, {1, 4}, {2, 5}}, 3},
+        VertexColoringParameters{
+            6, {{0, 1}, {0, 2}, {1, 2}, {0, 3}, {1, 4}, {2, 5}, {3, 4}, {3, 5}, {4, 5}}, 3}
+));
+
+TEST_P(CographVertexColoringTest, test) {
+    VertexColoringParameters const &parameters = GetParam();
+    NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
+    auto recognition = Koala::HabibPaulCographRecognition(G);
+    recognition.run();
+    if (recognition.isCograph()) {
+        auto algorithm = Koala::CographVertexColoring(G, recognition.cotree);
+        algorithm.run();
+        check(parameters, algorithm.getColoring());
+    } else {
+        EXPECT_TRUE(false);
+    }
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    test_example, CographVertexColoringTest, testing::Values(
+    VertexColoringParameters{
+        6, {{0, 2}, {0, 3}, {0, 4}, {0, 1}, {5, 1}, {5, 2}, {5, 3}, {5, 4}}, 1}
+));

@@ -1,0 +1,117 @@
+\section{Karger-Stein algorithm}0
+\label{sec:kargerStein}
+
+    \subsection{Idea}
+    Karger-Stein algorithm is an extension of Karger's original randomized min-cut algorithm. The primary goal of both algorithms is to find the minimum cut in an undirected graph, but Karger-Stein version improves upon the basic method by incorporating a more sophisticated recursive approach that enhances the probability of finding the true minimum cut.
+
+    The innovative aspect of Karger-Stein algorithm lies in its recursive structure. Instead of contracting edges until only two vertices are left, the algorithm splits the graph into smaller subproblems. Specifically, it randomly selects an edge and contracts it, then applies the algorithm recursively to the resulting graph. This splitting is done until the graph is sufficiently small (a threshold defined by the algorithm), at which point a simpler base case method, such as Karger's original algorithm, is applied to find the minimum cut of the smaller graphs.
+
+    Here is a step-by-step breakdown of the algorithm's idea:
+    \begin{enumerate}
+        \item \textbf{Recursive Splitting:} Begin with the original graph \( G \). Randomly choose an edge \( e \) and contract it, resulting in a smaller graph \( G' \).
+        \item \textbf{Recursive Call:} Recursively apply Karger-Stein algorithm to \( G' \). This recursion continues, effectively breaking down the problem into smaller subproblems.
+        \item \textbf{Threshold Base Case:} Once the graph \( G' \) reaches a predetermined size threshold, switch to a simpler min-cut algorithm (e.g., Karger's original algorithm) to find the minimum cut.
+        \item \textbf{Combining Results:} Compare the minimum cuts obtained from the recursive calls and select the smallest one as the final result.
+    \end{enumerate}
+
+    The recursive nature of the algorithm significantly boosts the probability of accurately finding the minimum cut compared to the original algorithm. By leveraging multiple recursive calls and combining their results, Karger-Stein approach mitigates the randomness of single edge contractions and achieves a more reliable outcome.
+
+    In essence, Karger-Stein algorithm elegantly combines randomness with recursion to enhance the efficiency and reliability of finding the minimum cut in undirected graphs. This blend of probabilistic and recursive techniques forms the core intuition behind the algorithm and underpins its effectiveness in solving the min-cut problem.
+
+
+
+\subsection{Implementation}
+First, the \texttt{run} function oversees the overall execution of the algorithm. It repeatedly calls the \texttt{runOnce} function to perform the algorithm multiple times, as each run provides a probabilistic chance of identifying the minimum cut. By running the algorithm several times, we ensure a higher probability of finding the optimal minimum cut.
+
+\begin{minted}[linenos]{cpp}
+void KargerSteinMinCut::run() {
+    double bestMinCutValue = INT_MAX;
+    for (int i = 0; i < repeat; ++i) {
+        runOnce();
+        bestMinCutValue = std::min(bestMinCutValue, minCutValue);
+    }
+    minCutValue = bestMinCutValue;
+}
+\end{minted}
+
+Next, the \texttt{recursiveMinCut} function embodies the recursive nature of Karger-Stein algorithm. It takes the current number of vertices as an argument and applies the recursive contraction method until the graph is sufficiently small. This function starts by checking if the number of vertices is less than or equal to a small threshold (equal to 6 in this case). If so, a simpler \texttt{standardMinCut} algorithm is applied. Otherwise, the function calculates a threshold \( T \) based on the current number of vertices. The threshold \( T \) is determined as the current number of vertices divided by the square root of 2, ensuring a gradual reduction in graph size while preserving the structure necessary for accurate min-cut determination.
+
+This function initiates by setting up the union-find data structures to manage the contracted vertices. It then iteratively contracts edges chosen randomly, reducing the graph until the number of vertices is reduced to \( T \). Each edge contraction merges two vertices into one, thereby decrementing the vertex count and updating the total weight of the graph. The algorithm continues contracting edges until the graph is small enough, at which point the recursive calls are made to further reduce the graph size to the threshold. By recursively applying the min-cut algorithm to smaller subgraphs and comparing the results, the algorithm ensures a higher probability of accurately determining the minimum cut.
+
+
+\begin{minted}[linenos]{cpp}
+int KargerSteinMinCut::recursiveMinCut(int currentV) {
+    if (currentV <= 6) {
+        return standardMinCut();
+    }
+    int T = static_cast<int>(std::ceil(currentV / std::sqrt(2)));
+    std::vector<int> parent(currentV), rank(currentV, 0);
+    for (int i = 0; i < currentV; ++i) {
+        parent[i] = i;
+    }
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    double totalWeight = 0;
+    std::vector<WeightedEdge> weightedEdges;
+    graph->forEdges([&](node u, node v, edgeweight weight) {
+        weightedEdges.emplace_back(u, v, weight);
+        totalWeight += weight;
+    });
+    int vertices = currentV;
+    std::uniform_real_distribution<> dis(0.0, totalWeight);
+    while (vertices > T) {
+        double pick = dis(gen);
+        double cumulativeWeight = 0;
+        int selectedEdge = -1;
+        for (int i = 0; i < weightedEdges.size(); ++i) {
+            cumulativeWeight += weightedEdges[i].weight;
+            if (cumulativeWeight >= pick) {
+                selectedEdge = i;
+                break;
+            }
+        }
+        int subset1 = find(parent, weightedEdges[selectedEdge].u);
+        int subset2 = find(parent, weightedEdges[selectedEdge].v);
+        if (subset1 != subset2) {
+            unionSub(parent, rank, subset1, subset2);
+            vertices--;
+            totalWeight -= weightedEdges[selectedEdge].weight;
+        }
+    }
+    return std::min(recursiveMinCut(T), recursiveMinCut(T));
+}
+\end{minted}
+
+
+\subsection{Correctness}
+
+Karger-Stein algorithm for finding the minimum cut of a graph is a probabilistic algorithm that builds on Karger's basic min-cut algorithm by recursively contracting edges in a graph. The correctness of the algorithm relies on the observation that the minimum cut survives in the contracted graph with high probability.
+
+\begin{lemma}
+    [Lemma 4.3 from \cite{karger1996new}] The probability that Karger-Stein algorithm finds the minimum cut is at least \(\Omega\left(\frac{1}{\log |V|}\right)\).
+\end{lemma}
+\noindent
+By running the algorithm \( \log^2 |V| \) times, the probability of failing each time is:
+
+\[
+\left(1 - \frac{1}{\log |V|}\right)^{\log^2 |V|}
+\]
+We use for small \(x\) the approximation of \( (1 - x)^y \leq e^{-xy} \):
+
+\[
+\left(1 - \frac{1}{\log |V|}\right)^{\log^2 |V|} \leq e^{-\log^2 |V| / \log |V|} = e^{-\log |V|} = \frac{1}{|V|}
+\]
+
+Thus, the probability that the algorithm fails every time is at most \( \frac{1}{|V|} \). Therefore, the probability of at least one success after \( \log^2 |V| \) independent runs is at least \( 1 - \frac{1}{|V|} \).
+
+\subsection{Time complexity}
+
+The time complexity of the Karger-Stein min-cut algorithm can be proved directly from the recursive nature of the algorithm. Each step involves contracting approximately half of the nodes in the graph. Let \( T(|V|) \) be the time complexity for a graph with \( |V| \) nodes. The recurrence relation for the Karger-Stein algorithm is:
+
+\[
+T(n) = 2T\left(\frac{|V|}{\sqrt{2}}\right) + O(|V|^2)
+\]
+
+This follows because the algorithm makes two recursive calls on a graph with \( \frac{|V|}{\sqrt{2}} \) nodes, and each contraction step takes \( O(|V|^2) \) time. Solving this recurrence relation using the Master Theorem for divide-and-conquer recurrences gives us the overall time complexity of \( T(|V|) = O(|V|^2 \cdot \log |V|) \).
+
+In conclusion, the Karger-Stein algorithm correctly finds the minimum cut of a graph with high probability. By running the algorithm \( O(\log^2 |V|) \) times, the probability of finding the minimum cut becomes \( 1 - O\left(\frac{1}{|V|}\right) \). The time complexity of each run of the algorithm is \( O(|V|^2 \cdot \log |V|) \), making it efficient for practical purposes.

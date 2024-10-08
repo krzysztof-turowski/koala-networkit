@@ -1,0 +1,151 @@
+\section{Equivalence of min-cut and max-flow}
+\label{sec:mincut-maxflow}
+
+\subsection{Definitions}
+
+Suppose we are given a directed graph \( G \) (\Cref{def:directedGraph}), with two distinguished types of vertices: the \emph{source} and the \emph{sink}. The source is a designated vertex from which edges solely emanate, meaning all outgoing edges originate from this vertex. Conversely, the sink is a designated vertex into which edges solely converge, indicating that all incoming edges terminate at this vertex.
+
+\begin{definition}[Capacity function]
+    Denoted by \( c \), this function maps each edge to a positive integer, representing the capacity of the respective edge, \( c: E \to \mathbb{N}^+ \).
+\end{definition}
+
+\begin{definition}[Integer flow]
+    A function \( f \) that assigns a non-negative integer to each edge, \( f: E \to \mathbb{N} \), such that \( f(u, v) \leq c(u, v) \) for all \( (u, v) \in E \). For any vertex \( v \) that is neither the source nor the sink, the sum of the flows into \( v \) equals the sum of the flows out of \( v \):
+    \[
+    \sum_{u \in N(v)} f(u, v) = \sum_{u \in N(v)} f(v, u),
+    \]
+\end{definition}
+
+\begin{definition}[Cut capacity]
+    Denoted by \( c(S, T) \), the cut capacity is the sum of the capacities of the edges from \( S \) to \( T \):
+    \[
+    c(S, T) = \sum_{(u, v) \in E : u \in S, v \in T} c(u, v).
+    \]
+    A minimum \(s\)-\(t\) cut is a cut with the minimum capacity among all possible cuts.
+\end{definition}
+
+\begin{definition}[Flow through a cut]
+    Defined as the sum of the flows of the edges from \( S \) to \( T \) minus the sum of the flows of the edges from \( T \) to \( S \):
+    \[
+    f(S, T) = \sum_{(u, v) \in E : u \in S, v \in T} f(u, v) - \sum_{(u, v) \in E : u \in T, v \in S} f(u, v).
+    \]
+\end{definition}
+
+\begin{definition}[Residual graph]
+    Given a flow \( f \) on a graph \( G \), the \emph{residual graph} \( G_f \) is constructed by assigning each edge \( (u, v) \) a residual capacity \( c_f(u, v) = c(u, v) - f(u, v) \). If \( f(u, v) > 0 \), the edge \( (v, u) \) is also included in the residual graph with a residual capacity \( c_f(v, u) = f(u, v) \).
+\end{definition}
+
+\begin{definition}[Augmenting path]
+    A sequence of edges forming a path from the source to the sink in the residual graph. In an augmenting path, a \emph{forward'} edge must have residual capacity (i.e., \( f(u, v) < c(u, v) \)), and a \emph{backward} edge must have flow (i.e., \( f(u, v) > 0 \)). By increasing the flow along forward edges and decreasing it along backward edges, the overall flow from the source to the sink can be increased.    
+\end{definition}
+
+
+\noindent Sometimes, the value of a flow \( f \) is denoted as \( \mathrm{val}(f) = \sum_{(v, t) \in E} f(v, t)\), representing the total flow into the sink, which we aim to maximize. 
+
+
+\subsection{Proof}
+
+\begin{lemma}[First Lemma about Cuts]
+    For any flow \( f \) in a flow network and for any cut \( (S, T) \), the flow through the cut is less than or equal to its capacity, i.e., \( f(S, T) \leq c(S, T) \).
+\end{lemma}
+
+\begin{proof}
+    Consider the cut \( (S, T) \) in a flow network. The flow through the cut \( (S, T) \) is given by:
+    \[
+    f(S, T) = \sum_{(u, v) \in E : u \in S, v \in T} f(u, v) - \sum_{(u, v)\in E : u \in S, v \in T} f(v, u).
+    \]
+    By definition, the capacity of the cut \( (S, T) \) is:
+    \[
+    c(S, T) = \sum_{(u, v) \in E : u \in S, v \in T} c(u, v).
+    \]
+    Since \( f(u, v) \leq c(u, v) \) for all edges \( (u, v) \in E \), we have:
+    \[
+    \sum_{(u, v) \in E : u \in S, v \in T} f(u, v) \leq \sum_{(u, v) \in E : u \in S, v \in T} c(u, v).
+    \]
+    Additionally, since \( f(u, v) \geq 0 \) for all edges \( (u, v) \in E \), we have:
+    \[
+    \sum_{(u, v) \in E : u \in S, v \in T} f(v, u) \geq 0.
+    \]
+    Therefore, combining these inequalities, we obtain:
+    \begin{align*}
+        f(S, T) &= \sum_{(u, v) \in E : u \in S, v \in T} f(u, v) - \sum_{(u, v) \in E : u \in S, v \in T} f(v, u) \\
+        &\leq \sum_{(u, v) \in E : u \in S, v \in T} c(u, v) = c(S, T).
+    \end{align*}
+    Hence, the flow through the cut \( (S, T) \) is less than or equal to its capacity, which completes the proof.
+\end{proof}
+
+
+\begin{lemma}[Second Lemma about Cuts]
+\label{lemma:second-cut}
+    The flow through each cut of the network is the same and equals $\mathrm{val}(f)$.
+\end{lemma}
+
+\begin{proof}
+    We proceed by induction on the number of vertices in the set \( S \) of the cut \( (S, T) \) with \(s \in S\). 
+
+    \noindent \textbf{Base Case:} When \( |S| = 1 \), then \( S = \{s\}\). Since there are no edges from the source to itself, the flow through this trivial cut is zero, which equals $\mathrm{val}(f)$.
+
+    \noindent \textbf{Inductive Step:} Assume that for any cut \( (S', T') \) where \( |S'| < |S| \), the flow through the cut is exact $\mathrm{val}(f)$. 
+
+    Consider a cut \( (S, T) \) with \( |S| = k \). Select a vertex \( x \in S \) such that \( x \) is not the source. Construct a new cut \( (S', T') \) by moving \( x \) from \( S \) to \( T \), i.e., \( S' = S \setminus \{x\} \) and \( T' = T \cup \{x\} \). By the inductive hypothesis, the flow through \( (S', T') \) is $\mathrm{val}(f)$.
+
+    We now express the flows through \( (S, T) \) and \( (S', T') \):
+    \begin{align*}
+        f(S, T) &= \sum_{(u, v) \in E: u \in S, v \in T} f(u, v) - \sum_{(v, u) \in E: u \in S, v \in T} f(v, u), \\
+        f(S', T') &= \sum_{(u, v) \in E: u \in S', v \in T'} f(u, v) - \sum_{(v, u) \in E: u \in S', v \in T'} f(v, u).
+    \end{align*}
+    
+    Since \( S' = S \setminus \{x\} \) and \( T' = T \cup \{x\} \), the sums can be rewritten as:
+    \begin{align*}
+        f(S, T) &= \sum_{(u, v) \in E: u \neq x, u \in S, v \in T} f(u, v) + \sum_{(x, v) \in E: v \in T} f(x, v) \\
+        &\quad - \sum_{(v, u) \in E: u \neq x, u \in S, v \in T} f(v, u) - \sum_{(v, x) \in E: v \in T} f(v, x), \\
+        f(S', T') &= \sum_{(u, v) \in E: u \in S', v \neq x, v \in T'} f(u, v) + \sum_{(u, x) \in E: u \in S'} f(u, x) \\
+        &\quad - \sum_{(v, u) \in E: u \in S', v \neq x, v \in T'} f(v, u) - \sum_{(x, u) \in E: u \in S'} f(x, u).
+    \end{align*}
+
+    Notice that for any vertex \( v \neq x \), \( v \in T' \) if and only if \( v \in T \), and for any vertex \( u \neq x \), \( u \in S' \) if and only if \( u \in S \). Thus, we can simplify:
+    \begin{align*}
+        f(S', T') &= \sum_{(u, v) \in E: u \in S, v \neq x, v \in T} f(u, v) + \sum_{(u, x) \in E: u \in S} f(u, x) \\
+        &\quad - \sum_{(v, u) \in E: u \in S, v \neq x, v \in T} f(v, u) - \sum_{(x, u) \in E: u \in S} f(x, u).
+    \end{align*}
+
+    Thus, the difference between \( f(S, T) \) and \( f(S', T') \) is:
+    \begin{align*}
+        f(S, T) - f(S', T') &= \left( \sum_{(x, v) \in E: v \in T} f(x, v) - \sum_{(v, x) \in E: v \in T} f(v, x) \right) \\
+        &\quad - \left( \sum_{(u, x) \in E: u \in S} f(u, x) - \sum_{(x, u) \in E: u \in S} f(x, u) \right).
+    \end{align*}
+
+    Since the total flow into \( x \) equals the total flow out of \( x \):
+    \[
+    \sum_{(u, x) \in E} f(u, x) = \sum_{(x, v) \in E} f(x, v),
+    \]
+    we have:
+    \[
+    f(S, T) - f(S', T') = 0.
+    \]
+
+    Hence, \( f(S, T) = f(S', T') \). By the inductive hypothesis, \( f(S', T') = \mathrm{val}(f) \). Therefore, \( f(S, T) = \mathrm{val}(f) \), completing the proof.
+\end{proof}
+
+Now we will try to proof  the max-flow minimum cut theorem, where the value of the maximum flow from the source to the sink is equal to the capacity of the minimum cut. To be more specific:
+
+\begin{theorem}
+    The following conditions are equivalent:
+    \begin{enumerate}
+        \item $f$ is a maximum flow.
+        \item There is no augmenting path from the source to the sink in the residual graph.
+        \item The cut $(S,T)$, where $S$ includes all vertices that can be reached by an augmenting path from the source, is a well-defined cut, satisfying the condition $f(S,T) = c(S,T)$.
+    \end{enumerate}
+\end{theorem}
+
+\begin{proof}
+    The third condition might sound daunting, but it really isn't. Let's address the individual implications to prove the equivalence:
+    \begin{description}
+        \item [$(1) \implies (2)$] If $f$ were a maximum flow and there existed an augmenting path from the source to the sink, then the flow value could be increased by 1 using this path, which would mean that the flow was not maximum.
+        \item [$(2) \implies (3)$] The idea is that the correctness of the cut stated in $(3)$ follows from $(2)$ because there is no augmenting path from the source to the sink, hence the sink must definitely be in $T$. The source will obviously be in $S$. The remaining conditions for the cut will naturally be met, so we have that $(S,T)$ is a well-defined cut. Now, looking at all edges entering and leaving $S$, we discover that since there is no augmenting path that could extend beyond $S$, all outgoing edges must be fully saturated and all incoming ones depleted (otherwise, we could add a vertex from $T$ to $S$, according to our cut definition). Thus, we have that $f(S,T) = c(S,T)$; in other words, the flow through the cut equals its capacity.
+        \item [$(3) \implies (1)$] Since $\mathrm{val}(f)$ must be less than the capacity of any cut, as we noticed at the stage of defining the terms (and formalists hopefully have proven, unless they are still pondering what an even number is), and from $(3)$ we have that the cut $(S,T)$ satisfies $f(S,T) = c(S,T)$, then we have that this flow is maximum (i.e., it is not possible to achieve a greater flow since we have just reached the limit).
+        
+    \end{description}
+
+    From the above proof, it also follows that the capacity of the minimum cut equals $\mathrm{val}(f)$.
+\end{proof}

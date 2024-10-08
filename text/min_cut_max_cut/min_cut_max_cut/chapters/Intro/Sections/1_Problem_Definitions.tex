@@ -1,0 +1,85 @@
+\section{Problem definitions}
+
+Before diving into the intricacies of the min-cut and max-cut problems, it is essential to outline a common understanding of the fundamental graph theoretical concepts that underpin our analysis. This section introduces the necessary definitions, primarily derived from standard texts in graph theory such as Cormen et al.'s \emph{''Introduction to Algorithms''} \cite{cormen2022introduction} and Bollobás's \emph{''Modern Graph Theory''} \cite{bollobas1998modern}.
+
+\begin{definition}[undirected graph]
+    \label{def:graph}
+    A \emph{graph} \( G = (V, E) \) consists of a set \( V \), which is a nonempty collection of \emph{vertices}, and a set \( E \), comprised of \emph{edges}. Each edge is a 2-element subset of \( V \), denoted as \(\{u, v\}\), indicating a bidirectional connection between vertices \( u \) and \( v \).
+\end{definition}
+
+\begin{definition}[directed graph]
+    \label{def:directedGraph}
+    A \emph{directed graph} \( G = (V, E) \) consists of a set \( V \) of vertices and a set \( E \) of edges. Each edge in a \emph{directed graph} is an ordered pair of vertices, denoted as \((u, v)\), indicating a directed connection from vertex \( u \) to vertex \( v \). 
+\end{definition}
+
+\noindent
+Additionally, edges can be \emph{parallel} (multiple edges with the same ordered pair of vertices) and can also include \emph{loops} (edges that connect a vertex to itself, i.e., \((u, u)\)).
+
+
+\begin{definition}[adjacency]
+    \label{def:adjacency}
+    Two vertices \( u \) and \( v \) in a graph \( G = (V, E) \) are \emph{adjacent} if there exists an edge \( e \in E \) that connects \( u \) and \( v \). This edge \( e \) is said to be \emph{incident} to both \( u \) and \( v \).
+\end{definition}
+
+\begin{definition}[degree]
+    \label{def:degree}
+    The \emph{degree} of a vertex \( v \) denoted by \( \deg(v) \) in graph \( G = (V, E) \) is the number of edges incident to \( v \).
+\end{definition}
+
+\begin{definition}[subgraph]
+    \label{def:subgraph}
+    A \emph{subgraph} of a graph \( G = (V, E) \) is a graph \( G' = (V', E') \) such that \( V' \subseteq V \) and \( E' \subseteq E \).
+\end{definition}
+
+\begin{definition}[weighted graph]
+    \label{def:weightedGraph}
+    A \emph{weighted graph} \( G = (V, E, w) \) is a graph in which each edge \( e \in E \) has an associated \emph{weight} \( w(e) \). The weight function \( w: E \rightarrow \mathbb{R}^+ \) assigns a positive real number to each edge.
+\end{definition}
+
+\begin{definition}[induced subgraph]
+    \label{def:inducedSubgraph}
+    An \emph{induced subgraph} \( G[V'] \) of a graph \( G = (V, E) \) is defined by a subset \( V' \subseteq V \). The subgraph \( G[V'] \) includes all the edges in \( E \) that have both endpoints in \( V' \).
+\end{definition}
+
+\noindent
+Since we will be discussing not only exact algorithms, but also approximate ones, it is useful to recall the definitions of approximation ratio and APX class:
+
+\begin{definition}[approximation ratio]
+    \label{def:approx_ratio}
+    The \emph{approximation ratio} of an algorithm \(\mathcal{A}\) for an optimization problem \(\Pi\) is a constant \(\alpha \leq 1\) such that for every instance \(I\) of \(\Pi\), the solution \(\mathcal{A}(I)\) produced by \(\mathcal{A}\) satisfies the inequality \( \mathcal{A}(I) \geq \alpha \cdot \mathrm{OPT}(I) \), where \(\mathrm{OPT}(I)\) denotes the optimal solution value for instance \(I\).
+\end{definition}
+
+\begin{definition}[APX class]
+    \label{def:APX}
+    The \emph{APX class} is the set of all optimization problems for which there exists a polynomial-time approximation algorithm with a bounded approximation ratio. Formally, a problem \( \Pi \) is in APX if there exists a polynomial-time algorithm \(\mathcal{A}\) and a constant \(\alpha \leq 1\) such that for every instance \(I\) of \(\Pi\), the solution \(\mathcal{A}(I)\) produced by \(\mathcal{A}\) satisfies the inequality \( \mathcal{A}(I) \geq \alpha \cdot \mathrm{OPT}(I) \).
+\end{definition}
+
+
+\noindent
+The following definitions are specific to the cut problem:
+
+\begin{definition}[cut]
+    \label{def:cut}
+    A \emph{cut} in a graph \( G = (V, E) \) is a partition of \( V \) into two non-empty subsets \( S \) and \( T \) such that \( S \cup T = V \) and \( S \cap T = \emptyset \). The \emph{cut-set} of a cut \( (S, T) \) is the set of all edges that have one endpoint in \( S \) and the other in \( T \).
+\end{definition}
+
+\begin{definition}[capacity of a cut]
+    \label{def:capacityCut}
+    The \emph{capacity} of a cut \( (S, T) \) in a weighted graph \( G = (V, E, w) \) is defined as the sum of the weights of the edges in the cut-set of \( (S, T) \), where \( w: E \rightarrow \mathbb{R}^+ \) is the function assigning weights to the edges.
+\end{definition}
+
+\begin{definition}[max-cut problem]
+    \label{def:maxCut}
+    The \emph{max-cut problem} involves finding a cut \( (S, T) \) in a weighted graph \( G = (V, E, w) \) such that the capacity of the cut is maximized.
+\end{definition}
+
+\begin{definition}[\( s \)-\( t \) cut]
+An \(s\)-\(t\) \emph{cut} in a graph \( G = (V, E) \) is a partition of \( V \) into two non-empty subsets \( S \) and \( T \) such that \( S \cup T = V \) and \( S \cap T = \emptyset \). The \emph{cut-set} of a cut \( (S, T) \) is the set of all edges that \(s \in S \) and \(t \in T \).
+    
+\end{definition}
+
+\begin{definition}[min-cut problem]
+    \label{def:minCut}
+    The \emph{min-cut problem} seeks to determine a cut \( (S, T) \) in a weighted graph \( G = (V, E, w) \) that minimizes the capacity of the cut. The value of the cut is equivalent to minimum out of all \( s \)-\( t \) cuts, considering all possible pairs of \( s \) and \( t \).
+\end{definition}
+The definitions provided above set the stage for a detailed exploration of max-cut and min-cut problems.
