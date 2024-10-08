@@ -34,6 +34,6 @@ koala_make_benchmark(
     benchmarkMaximumMatching.sh)
 
 koala_make_benchmark(
-    benchmark_mv
-    benchmarkMicaliVazirani.cpp
-    benchmarkMicaliVazirani.sh)
+    benchmark_maximum_weight_matching
+    benchmarkMaximumWeightMatching.cpp
+    benchmarkMaximumWeightMatching.sh)

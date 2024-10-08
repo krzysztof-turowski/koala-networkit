@@ -1,1 +1,1 @@
-echo "benchmarkMaximumMatching.sh $@"
+echo "benchmarkMicaliVazirani.sh $@"

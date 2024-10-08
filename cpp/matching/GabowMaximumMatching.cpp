@@ -3,7 +3,7 @@
 namespace Koala {
 
 GabowMaximumMatching::GabowMaximumMatching(
-    NetworKit::Graph &graph, bool perfect, InitializationStrategy initialization):
+    NetworKit::Graph &graph, bool perfect, InitializationStrategy initialization) :
         BlossomMaximumMatching(graph, perfect, initialization),
         current_blossom(graph.upperNodeIdBound(), nullptr),
         best_edge(graph.upperNodeIdBound(), no_edge) {

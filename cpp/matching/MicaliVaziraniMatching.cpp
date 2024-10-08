@@ -16,23 +16,22 @@ MicaliVaziraniMatching::MicaliVaziraniMatching(NetworKit::Graph &graph):
         candidates(graph.numberOfNodes()),
         bridges(2 * graph.numberOfNodes() + 1),
         bloom_bases(graph.upperNodeIdBound()) {
-            graph.forNodes([this] (NetworKit::node vertex) {
-                V[vertex].match = NetworKit::none;
-            });
-        }
+    graph.forNodes([this] (NetworKit::node vertex) {
+        V[vertex].match = NetworKit::none;
+    });
+}
 
 MicaliVaziraniMatching::MicaliVaziraniMatching(
     NetworKit::Graph &graph, const std::vector<NetworKit::node>& initial_matching):
         MaximumCardinalityMatching(graph),
-        V(graph.upperNodeIdBound()),
-        E(graph.upperEdgeIdBound()),
+        V(graph.upperNodeIdBound()), E(graph.upperEdgeIdBound()),
         candidates(graph.numberOfNodes()),
         bridges(2 * graph.numberOfNodes() + 1),
         bloom_bases(graph.upperNodeIdBound()) {
-            graph.forNodes([this, &initial_matching] (NetworKit::node vertex) {
-                V[vertex].match = initial_matching[vertex];
-            });
-        }
+    graph.forNodes([this, &initial_matching] (NetworKit::node vertex) {
+        V[vertex].match = initial_matching[vertex];
+    });
+}
 
 void MicaliVaziraniMatching::reset() {
     augmentation_happened = false;

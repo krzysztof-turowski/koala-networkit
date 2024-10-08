@@ -3,12 +3,10 @@
 namespace Koala {
 
 GalilMicaliGabowMaximumMatching::GalilMicaliGabowMaximumMatching(
-    NetworKit::Graph &graph, bool perfect, InitializationStrategy initialization):
+    NetworKit::Graph &graph, bool perfect, InitializationStrategy initialization) :
         BlossomMaximumMatching(graph, perfect, initialization),
-        y_even(graph.upperNodeIdBound()),
-        y_odd(graph.upperNodeIdBound()),
-        z_even(graph.upperNodeIdBound()),
-        z_odd(graph.upperNodeIdBound()),
+        y_even(graph.upperNodeIdBound()), y_odd(graph.upperNodeIdBound()),
+        z_even(graph.upperNodeIdBound()), z_odd(graph.upperNodeIdBound()),
         good_edges(graph.upperEdgeIdBound()),
         even_edges(graph.upperNodeIdBound(), NetworKit::none, NetworKit::none, infinite_weight) {
     for (auto b : trivial_blossom) {
