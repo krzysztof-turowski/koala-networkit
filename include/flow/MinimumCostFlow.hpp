@@ -7,38 +7,40 @@
 
 namespace Koala {
 
-struct MinCostFlowEdgeParams{ 
+struct MCFEdgeParams{ 
     int capacity;
     int cost;
 };
 
-typedef std::map<std::pair<NetworKit::node, NetworKit::node>, MinCostFlowEdgeParams> edge_map;
-typedef std::map<NetworKit::node, int> node_map;
+template<typename T> 
+using edge_map = std::map<std::pair<NetworKit::node, NetworKit::node>, T>;
 
-struct MinCostFlowParameters{
-    NetworKit::Graph graph;
-    NetworKit::node s;
-    NetworKit::node t;
-    edge_map edge_params;
-    node_map supply;
-};
+typedef std::map<NetworKit::node, int> node_map;
 
 class MinimumCostFlow : public NetworKit::Algorithm {
 public:
-    MinimumCostFlow(MinCostFlowParameters params);
     MinimumCostFlow();
-    
-    void addEdge(const std::pair<NetworKit::node, NetworKit::node>&, MinCostFlowEdgeParams);
-    MinCostFlowEdgeParams getEdgeParams(const std::pair<NetworKit::node, NetworKit::node>&) const;
-    void setEdgeParams(const std::pair<NetworKit::node, NetworKit::node>&, MinCostFlowEdgeParams);
+    MinimumCostFlow(NetworKit::Graph&);
+    MinimumCostFlow(NetworKit::Graph&, edge_map<MCFEdgeParams>&, node_map&);
 
-    int getSupply(const NetworKit::node&) const;
-    void setSupply(const NetworKit::node&);
+    NetworKit::Graph& getGraph();
+    MCFEdgeParams getEdgeParams(const std::pair<NetworKit::node, NetworKit::node>&);
+    void setEdgeParams(const std::pair<NetworKit::node, NetworKit::node>&, MCFEdgeParams);
+
+    int getSupply(const NetworKit::node&);
+    void setSupply(const NetworKit::node&, int);
 
     virtual void run();
-    int getFlow(const std::pair<NetworKit::node, NetworKit::node>&) const;
+    int getFlow(const std::pair<NetworKit::node, NetworKit::node>&);
 
     int getMinCost() const;
+
+protected:
+    NetworKit::Graph graph;
+    edge_map<MCFEdgeParams> edge_params;
+    node_map supply;
+    edge_map<int> flow;
+    int min_cost{0};
 };
 
 }
