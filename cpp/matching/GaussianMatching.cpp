@@ -1,12 +1,17 @@
 #include <matching/GaussianMatching.hpp>
 
+#include<iostream>
+
 using namespace Eigen;
 using namespace NetworKit;
 
+int generateRandom(int min, int max);
+bool eq(double a, double b);
+
 namespace Koala {
 
-    GaussianMatching::GaussianMatching(Graph& graph, bool bipartite=false):
-        bipartite(bipartite) {
+    GaussianMatching::GaussianMatching(Graph& graph, bool bipartite = false) :
+        graph(graph), bipartite(bipartite) {
         int n = graph.numberOfNodes();
         AG = ArrayXXd::Zero(n, n);
 
@@ -21,15 +26,21 @@ namespace Koala {
     }
 
     Matching GaussianMatching::getMatching() {
+        return M;
+    }
+
+    void GaussianMatching::run() {
         int n = graph.numberOfNodes();
+        M = {};
+
+        double det = AG.determinant();
+        if (eq(det, 0)) return;
 
         MatrixXd B = AG.inverse();
-        Matching M = {};
-
         for (int c = 0; c < n; ++c) {
             int r;
             for (r = 0; r < n; ++r) {
-                if (eq0(B(r, c)) || eq0(AG(c,r))) continue;
+                if (eq(B(r, c), 0) || eq(AG(c, r), 0)) continue;
 
                 bool eliminated = true;
                 for (int i = 0; i < n; ++i) {
@@ -41,19 +52,30 @@ namespace Koala {
                 }
                 if (!eliminated) break;
             }
+            if (r == n) return;
 
-            B -= B.col(c) * B.row(r) / B(c,r);
+            B -= B.col(c) * B.row(r) / B(r, c);
             if (!bipartite) {
-                B -= B.col(r) * B.row(c) / B(r,c);
-            }    
+                B -= B.col(r) * B.row(c) / B(c, r);
+            }
 
-            M.push_back({c,r});
+            M.push_back({ c + 1, r + 1 });
         }
-
-        return M;
     }
+}
 
-    void GaussianMatching::run() {
-        
-    }
+
+// TODO: move to some utils
+
+int generateRandom(int min, int max) {
+    std::random_device dev;
+    std::mt19937 rng(dev());
+    std::uniform_int_distribution<std::mt19937::result_type> dist6(min, max);
+
+    return (int)dist6(rng);
+}
+
+constexpr double EPS = 1e-8;
+bool eq(double a, double b) {
+    return fabs(a - b) <= EPS;
 }

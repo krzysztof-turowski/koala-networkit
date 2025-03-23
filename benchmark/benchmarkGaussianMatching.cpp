@@ -18,14 +18,20 @@ int main(int argc, char** argv) {
 
     auto G = Koala::DimacsGraphReader().read(path);
     G.indexEdges(true);
-    Koala::GaussianMatching Gmatching(G);
+    Koala::GaussianMatching Gmatching(G, true);
     Gmatching.run();
+
     auto matching = Gmatching.getMatching();
-    int size = 0;
+    int size = matching.size();
+    if (size >= G.numberOfNodes()) {
+        std::cout << "Perfect match (" << size << ")" << std::endl;
+    } else {
+        std::cout << "Maximum match (" << size << ")" << std::endl;
+    }
+    
     for (auto [u, v] : matching) {
         std::cout << u << " " << v << std::endl;
     }
-    std::cout << size << std::endl;
 
     return 0;
 }

@@ -25,21 +25,6 @@ namespace Koala {
         NetworKit::Graph graph;
 
         Eigen::MatrixXd AG;
+        Matching M;
     };
-}
-
-
-// TODO: move to some utils
-
-int generateRandom(int min, int max) {
-    std::random_device dev;
-    std::mt19937 rng(dev());
-    std::uniform_int_distribution<std::mt19937::result_type> dist6(min, max);
-
-    return (int)dist6(rng);
-}
-
-constexpr double EPS = 1e-8;
-bool eq0(double a) {
-    return -EPS <= a && a <= EPS;
 }
