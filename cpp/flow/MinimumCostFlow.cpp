@@ -38,4 +38,8 @@ int MinimumCostFlow::getMinCost() const{
     return min_cost;
 } 
 
+bool MinimumCostFlow::isOk() const{
+    return feasible;
+}
+
 } /* namespace Koala */
