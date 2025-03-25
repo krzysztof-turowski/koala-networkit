@@ -5,7 +5,7 @@
 
 namespace Koala{
 
-class SuccessiveApproxMCF final : public MinimumCostFlow {
+class SuccessiveApproxMCC final : public MinimumCostFlow {
     using MinimumCostFlow::MinimumCostFlow;
     private:
     void runImpl();

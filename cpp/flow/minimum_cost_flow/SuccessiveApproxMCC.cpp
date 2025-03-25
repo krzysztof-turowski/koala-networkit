@@ -1,16 +1,16 @@
-#include <flow/minimum_cost_flow/SuccessiveApproxMCF.hpp>
+#include <flow/minimum_cost_flow/SuccessiveApproxMCC.hpp>
 #include <climits>
 namespace Koala {
 
-inline int SuccessiveApproxMCF::cp(NetworKit::node const& v, NetworKit::node const& w){
+inline int SuccessiveApproxMCC::cp(NetworKit::node const& v, NetworKit::node const& w){
     return edge_params[{v,w}].cost - price[v] + price[w];
 } 
 
-inline int SuccessiveApproxMCF::uf(NetworKit::node const& v, NetworKit::node const& w){
+inline int SuccessiveApproxMCC::uf(NetworKit::node const& v, NetworKit::node const& w){
     return edge_params[{v,w}].capacity - flow[{v,w}];
 }
 
-void SuccessiveApproxMCF::force_flow(NetworKit::node const& v, NetworKit::node const& w, int f){
+void SuccessiveApproxMCC::force_flow(NetworKit::node const& v, NetworKit::node const& w, int f){
     flow[{v,w}]+=f;
     flow[{w,v}]-=f;
     excess[v] -= f;
@@ -24,14 +24,14 @@ void SuccessiveApproxMCF::force_flow(NetworKit::node const& v, NetworKit::node c
 
 
 
-void SuccessiveApproxMCF::push(NetworKit::node const& v, NetworKit::node const& w){
+void SuccessiveApproxMCC::push(NetworKit::node const& v, NetworKit::node const& w){
     MCFEdgeParams edge = edge_params[{v, w}];
     int res = edge.capacity - flow[{v,w}];
     int change = std::min(res, excess[v]);
     force_flow(v,w, change);
 }
 
-void SuccessiveApproxMCF::relabel(NetworKit::node const& v){
+void SuccessiveApproxMCC::relabel(NetworKit::node const& v){
     double mi = INFINITY;
     graph.forEdgesOf(
         v,
@@ -46,7 +46,7 @@ void SuccessiveApproxMCF::relabel(NetworKit::node const& v){
     price[v] = mi;
 }
 
-void SuccessiveApproxMCF::push_relabel(NetworKit::node const& v){
+void SuccessiveApproxMCC::push_relabel(NetworKit::node const& v){
     int id = pr_id[v];
     NetworKit::node w = graph.getIthNeighbor(v, id);
     if(uf(v,w) > 0 && cp(v,w) < 0){
@@ -63,7 +63,7 @@ void SuccessiveApproxMCF::push_relabel(NetworKit::node const& v){
     }
 }
 
-void SuccessiveApproxMCF::refine(){
+void SuccessiveApproxMCC::refine(){
     epsi /= 2;
     graph.forEdges(
         [&](NetworKit::node v, NetworKit::node w) {
@@ -79,7 +79,7 @@ void SuccessiveApproxMCF::refine(){
     }
 }
 
-void SuccessiveApproxMCF::initialize(){
+void SuccessiveApproxMCC::initialize(){
     price.clear();
     flow.clear();
     active.clear();
@@ -97,7 +97,7 @@ void SuccessiveApproxMCF::initialize(){
     epsi = (double)mx;
 }
 
-void SuccessiveApproxMCF::runImpl(){
+void SuccessiveApproxMCC::runImpl(){
     initialize();
 
     if(epsi >= 1.0/graph.numberOfNodes()){
