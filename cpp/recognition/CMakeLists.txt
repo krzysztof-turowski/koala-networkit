@@ -4,19 +4,9 @@ koala_add_module(recognition
     perfect/Jewels.cpp
     perfect/Pyramids.cpp
     perfect/NearCleaners.cpp
+    planar/PlanarGraphRecognition.cpp
+    planar/HopcroftTarjan.cpp
 )
-
-
-koala_add_module(recognition
-        PerfectGraphRecognition.cpp
-        perfect/OddHoles.cpp
-        perfect/Jewels.cpp
-        perfect/Pyramids.cpp
-        perfect/NearCleaners.cpp
-
-        planar/IPlanarGraphRecognition.cpp
-        planar/HopcroftTarjan.cpp
-        )
 
 koala_add_module(cograph
     CographRecognition.cpp
