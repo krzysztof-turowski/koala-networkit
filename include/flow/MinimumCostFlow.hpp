@@ -13,6 +13,8 @@ struct MCFEdgeParams{
     int cost;
 };
 
+using edge = std::pair<NetworKit::node, NetworKit::node>;
+
 template<typename T> 
 using edge_map = std::map<std::pair<NetworKit::node, NetworKit::node>, T>;
 
@@ -21,17 +23,13 @@ using node_map = std::map<NetworKit::node, T>;
 
 class MinimumCostFlow : public NetworKit::Algorithm {
 public:
-    MinimumCostFlow();
-    MinimumCostFlow(NetworKit::Graph&);
+    
+    //flow
+    MinimumCostFlow(NetworKit::Graph&, edge_map<MCFEdgeParams>&, NetworKit::node, NetworKit::node, int);
+    //flow
     MinimumCostFlow(NetworKit::Graph&, edge_map<MCFEdgeParams>&, node_map<int>&);
-
-    NetworKit::Graph& getGraph();
-    MCFEdgeParams getEdgeParams(const std::pair<NetworKit::node, NetworKit::node>&);
-    void setEdgeParams(const std::pair<NetworKit::node, NetworKit::node>&, MCFEdgeParams);
-
-    int getSupply(const NetworKit::node&);
-    void setSupply(const NetworKit::node&, int);
-   
+    //circulation
+    MinimumCostFlow(NetworKit::Graph&, edge_map<MCFEdgeParams>&);
 
     void run() {
         hasRun = false;
@@ -40,7 +38,7 @@ public:
     }
     bool isOk() const;
 
-    int getFlow(const std::pair<NetworKit::node, NetworKit::node>&);
+    int getFlow(const edge&);
     int getMinCost() const;
 
 protected:
@@ -48,7 +46,7 @@ protected:
 
     NetworKit::Graph graph;
     edge_map<MCFEdgeParams> edge_params;
-    node_map<int> supply;
+    node_map<int> excess;
     edge_map<int> flow;
     int min_cost{0};
     bool feasible{true};
