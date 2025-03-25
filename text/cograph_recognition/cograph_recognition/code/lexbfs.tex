@@ -1,0 +1,23 @@
+\begin{minted}[
+frame=lines,
+framesep=2mm,
+baselinestretch=1.2,
+fontsize=\footnotesize,
+linenos
+]{c++}
+LexBFS (G, a) {
+  L = a; // L is list of groups of vertices
+  i = 0;
+  while (L.not_empty()) {
+    x = L[0][0]; // the leftmost vertex in the leftmost group 
+    ans[x] = i++; // the number of x in final permutation is i
+    for (g in L) {
+      q = neigbours of x in g;
+      remove all vertices of q from g;
+      insert q in L before g;
+    }
+    remove x from L[0];
+  }
+  return ans;
+}
+\end{minted}

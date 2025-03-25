@@ -1,0 +1,150 @@
+\section{Burer algorithm}
+\label{sec:burer}
+
+    \subsection{Idea and correctness}
+
+The Burer algorithm introduced in \cite{burer2002rank} is a heuristic method designed to find an approximate solution to the max-cut problem.
+
+\subsubsection{Formulation and Relaxation}
+
+The Max-Cut problem can be formulated as the following binary quadratic program:
+\[
+\text{maximize} \quad \frac{1}{2} \sum_{i < j} w(i, j) \cdot (1 - x_i x_j) \quad \text{subject to} \quad x_i \in \{-1, 1\}, \text{ for all } i,
+\]
+where \( w(i, j)\) represents the weight of the edge between vertices \(i\) and \(j\), and \(x_i\) is a binary variable indicating the subset to which vertex \(i\) belongs.
+
+This problem can be equivalently written as:
+\[
+\text{minimize} \quad \sum_{i < j} w(i, j) \cdot x_i x_j \quad \text{subject to} \quad x_i \in \{-1, 1\}, \text{ for all } i,
+\]
+
+Further, this can be relaxed into a semidefinite programming (SDP) problem:
+\[
+\text{minimize} \quad \frac{1}{2} W \cdot X \quad \text{subject to} \quad X_{ii} = 1 \text{ for } i = 1, \ldots, n, \quad X \succeq 0
+\]
+where \(W\) is the matrix of weights \( w(i, j)\), \(X\) is a positive semidefinite matrix, which means that it can be represented as \(X = V^T V\) for some matrix \(V\). This property ensures that all eigenvalues of \(X\) are non-negative and implies that \(X\) does not have any negative quadratic forms.
+
+
+\subsubsection{ Rank-Two Relaxation }
+
+Instead of solving the full SDP relaxation, Burer et al. propose a rank-two relaxation:
+\[
+\text{minimize} \quad f(\theta) = \frac{1}{2} W \cdot \cos(T(\theta)) \quad \text{where} \quad T_{ij}(\theta) = \theta_i - \theta_j
+\]
+In this formulation, each variable \(x_i\) is represented by an angle \(\theta_i\) on the unit circle. The matrix \(T(\theta)\) contains the pairwise differences of these angles.
+
+Using polar coordinates, each \(x_i\) is mapped to \(\theta_i\) such that:
+\[
+v_i = \begin{pmatrix} \cos(\theta_i) \\ \sin(\theta_i) \end{pmatrix}
+\]
+and the inner product \(x_i x_j\) is represented as \(\cos(\theta_i - \theta_j)\).
+
+\subsubsection{ Algorithmic Insight }
+
+The core of the Burer algorithm involves the following steps:
+
+\begin{enumerate}
+    \item Start with an initial guess for \(\theta\).
+    \item Use a gradient descent method to minimize the function \(f(\theta)\). The gradient \(\nabla f(\theta)\) is given by:
+    \[
+    \frac{\partial f(\theta)}{\partial \theta_j} = \sum_{k}  w(k, j) \cdot \sin(\theta_k - \theta_j).
+    \]
+    \item Once a local minimum \(\theta\) is found, generate a cut using the \texttt{procedureCut}. This involves partitioning the unit circle at various angles to find the best cut.
+\end{enumerate}
+
+
+\subsubsection{ ProcedureCut }
+\label{burer:procedureCut}
+The \texttt{procedureCut} is an efficient method to generate the best possible cut from a given angle configuration \(\theta\) (see Section 4 in \cite{burer2002rank}). Here’s how it works:
+
+\begin{enumerate}
+    \item Given \(\theta\), sort the angles \(\theta_i\) such that \(\theta_1 \leq \theta_2 \leq \ldots \leq \theta_n\).
+    \item Initialize \(\alpha = 0\), \(\Gamma = -\infty\), and set \(i = 1\).
+    \item Let \(j\) be the smallest index such that \(\theta_j > \pi\). If there is no such \(j\), set \(j = n + 1\).
+    \item While \(\alpha \leq \pi\):
+    \begin{enumerate}
+        \item Generate a cut \(x\) by setting:
+        \[
+        x_i = \begin{cases} 
+        +1 & \text{if } \theta_i \in [\alpha, \alpha + \pi) \\
+        -1 & \text{otherwise}
+        \end{cases}
+        \]
+        \item Compute the cut value \(\gamma(x)\).
+        \item If \(\gamma(x) > \Gamma\), update \(\Gamma = \gamma(x)\) and \(x^* = x\).
+        \item Adjust \(\alpha\):
+        \[
+        \alpha = \begin{cases} 
+        \theta_i & \text{if } \theta_i \leq \theta_j - \pi \\
+        \theta_j - \pi & \text{otherwise}
+        \end{cases}
+        \]
+        \item Increment \(i\) or \(j\) accordingly - in the first case above increment \(j\), otherwise \(i\).
+    \end{enumerate}
+    \item Return the best cut \(x^*\).
+\end{enumerate}.
+
+
+
+\subsection{Implementation}
+
+The \texttt{run} method orchestrates the entire process of finding the maximum cut. First we call \texttt{perturbTheta} which is responsible for distributing angle values uniformly and then performing gradient descent.
+
+After that we calculate \texttt{procedureCut} which we discussed in \Cref{burer:procedureCut}, which calculates the minimum cut.
+
+\begin{minted}[linenos]{cpp}
+void RankTwoRelaxationMaxCut::run() {
+    theta.resize(graph->numberOfNodes());
+    distributeThetaEvenly();
+    perturbTheta();
+    maxCutSet = procedureCut();
+    maxCutValue = calculateCutValue(maxCutSet);
+    if (maxCutSet[graph->numberOfNodes() - 1] == true) {
+        maxCutSet[graph->numberOfNodes() - 1] = false;
+        double candidateValue = calculateCutValue(maxCutSet);
+        if (candidateValue > maxCutValue) {
+            maxCutValue = candidateValue;
+        }
+    }
+}
+\end{minted}
+
+\texttt{procedureCut} implementation:
+
+\begin{minted}[linenos]{cpp}
+std::vector<bool> RankTwoRelaxationMaxCut::procedureCut() {
+    double bestValue = -std::numeric_limits<double>::infinity();
+    std::vector<bool> bestCut(graph->numberOfNodes()), x(graph->numberOfNodes());
+    for (double alpha = 0; alpha <= M_PI; alpha += 0.01) {
+        for (int i = 0; i < graph->numberOfNodes(); ++i) {
+            x[i] = (theta[i] >= alpha && theta[i] < alpha + M_PI) ? true : false;
+        }
+        double value = calculateCutValue(x);
+        if (value > bestValue) {
+            bestValue = value;
+            bestCut = x;
+        }
+    }
+    return bestCut;
+}
+\end{minted}
+
+\subsection{Time complexity}
+
+Let \( T \) be the number of gradient descent iterations and \( k \) the number of partitions in \texttt{procedureCut}.
+
+Combining all components, the overall time complexity of the Burer Algorithm can be summarized as follows:
+
+\begin{itemize}
+    \item \textbf{Initialization:} \(\mathcal{O}(|V|)\)
+    \item \textbf{Gradient Descent:} \(\mathcal{O}(T \cdot |V|^2)\)
+    \item \textbf{Cut Evaluation:} \(\mathcal{O}(|V|^2)\)
+    \item \textbf{Procedure-CUT:} \(\mathcal{O}(k \cdot |V|^2)\), where \(k\) is the number of partitions.
+\end{itemize}
+
+Thus, the total time complexity of the Burer Algorithm is dominated by the gradient descent and \texttt{procedureCut} steps, yielding:
+\[
+\mathcal{O}(T \cdot |V|^2 + k \cdot |V|^2) = \mathcal{O}((T + k) \cdot |V|^2)
+\]
+
+In practical scenarios, \(T\) and \(k\) are constants or logarithmic relative to \(|V|\), making the algorithm efficient for large graphs.

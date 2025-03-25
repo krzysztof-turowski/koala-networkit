@@ -1,0 +1,53 @@
+\section{Historical background}
+
+The exploration of the max-cut and min-cut problems within graph theory presents a historical journey through computational complexity and algorithmic development.
+
+\textbf{Origins and Early Developments:}
+The study of cuts in graphs initially arose from the fields of network design and operations research in the mid-20th century. The min-cut problem, in particular, gained prominence through its association with network reliability. Early solutions to the min-cut problem leveraged the duality between minimum cuts and maximum flows, a relationship formalized by the Ford and Fulkerson's max-flow min-cut theorem in 1956 \cite{ford1956maximal}. This theorem provided not only a foundational theoretical result but also efficient polynomial-time algorithms for finding minimum cuts in networks, such as the Edmonds-Karp algorithm \cite{edmonds1972theoretical}, which emerged as an implementation of the Ford-Fulkerson method.
+
+\textbf{The Rise of NP-Completeness:}
+The concept of NP-completeness introduced by Stephen Cook in 1971 and independently by Leonid Levin in 1973 reshaped the landscape of computational theory. The max-cut problem was among the first problems to be classified as NP-complete by Richard Karp in his seminal 1972 paper \cite{karp1972reducibility}. This classification underlined the computational difficulty of the problem and sparked an extensive search for efficient heuristic and approximation algorithms, given the lack of polynomial-time solutions for NP-complete problems in general.
+
+\textbf{Seminal Approximations and Innovations:}
+A significant milestone in the study of the max-cut problem was the introduction of the Goemans-Williamson algorithm in 1995 \cite{goemans1995improved}. This algorithm marked a breakthrough in approximation techniques, utilizing semidefinite programming to achieve a performance guarantee significantly better than any previous approach. The Goemans-Williamson algorithm demonstrated that it was possible to approximate NP-hard problems like max-cut to within about 0.878 of the optimal solution, assuming the Unique Games Conjecture \cite{khot2007optimal}. This result not only advanced theoretical understanding but also influenced subsequent research in algorithmic approximations for other NP-hard problems.
+
+\textbf{Development of Min-Cut Algorithms:}
+Parallel to the developments in the max-cut problem, significant advancements were made in algorithms for the min-cut problem. The Stoer-Wagner algorithm, introduced in 1997 \cite{stoer1997simple}, is a notable example that offers an efficient and practical method for finding the minimum cut in undirected graphs. Its simplicity and effectiveness have made it a standard approach in various applications.
+
+On the more randomized side of algorithm design, Karger's algorithm and its refined version, Karger-Stein algorithm, introduced in the late 1990s \cite{karger1996new}, provided a probabilistic method to compute minimum cuts with high probability, enhancing the understanding of how randomness can be leveraged to solve deterministic problems effectively.
+
+\textbf{Further Algorithmic Contributions:}
+Algorithms like the Hao-Orlin algorithm \cite{hao1994faster} further refined the ability to compute minimum cuts, offering more efficient ways to handle larger and more complex network structures. On the heuristic side, algorithms such as the Burer algorithm \cite{burer2002rank} contributed to the toolbox available for tackling the max-cut problem, particularly in specific graph classes where approximation could be more effectively achieved.
+
+
+
+\vspace{40pt}
+
+\begin{table}[ht]
+    \centering
+    \begin{tabular}{c|c|c|c|c}
+        \textbf{Authors} & \textbf{Year} & \textbf{Time} & \textbf{Approx. ratio} & \textbf{Refs} \\ \hline
+        \textbf{Sahni \& Gonzales} & \textbf{1976} & $O(|V| \cdot |E|^2)$ & \textbf{0.5} & \cite{sahni1976p} \\
+        \textbf{Branch and Bound} & \textbf{N/A} & $O(2^{|V|} \cdot |E|))$ & \textbf{exact} & \textbf{folklore} \\
+        \textbf{Burer et al.} & \textbf{1990} & $O((T + k) \cdot |V|^2)$ & \textbf{heuristic} & \cite{burer2002rank} \\
+        \textbf{Goemans \& Williamson} & \textbf{1995} & $polynomial$ & \textbf{\textbf{0.878}} & \cite{goemans1995improved} \\
+    \end{tabular}
+    \caption{Table of significant max-cut algorithms (implemented algorithms in bold).}
+\end{table}
+
+\vspace{20pt}
+
+\begin{table}[ht]
+    \centering
+    \begin{tabular}{c|c|c|c}
+        \textbf{Authors} & \textbf{Year} & \textbf{Time} & \textbf{Refs}\\ \hline
+        Ford \& Fulkerson & 1956 & $O(|E| \cdot f)$ & \cite{ford1956maximal} \\
+        Edmonds \& Karp & 1972 & $O(|V| \cdot |E|^2)$ & \cite{karp1972reducibility} \\
+        \textbf{Karger} & \textbf{1993} & \textbf{$O(|V|^2 \cdot |E|)$} & \cite{karger1993global} \\
+        \textbf{Hao \& Orlin} & \textbf{1994} & \textbf{$O(|V|^2 \cdot |E|)$} & \cite{hao1994faster} \\
+        \textbf{Karger \& Stein} & \textbf{1996} & \textbf{$O(|V|^2 \cdot \log^3 |V|)$} & \cite{karger1996new} \\
+        \textbf{Stoer \& Wagner} & \textbf{1997} & \textbf{$O(|V| \cdot |E| + |V|^2 \cdot \log|V|)$} & \cite{stoer1997simple} \\
+    \end{tabular}
+    \caption{Table of significant min-cut algorithms (implemented algorithms in bold).}
+\end{table}
+

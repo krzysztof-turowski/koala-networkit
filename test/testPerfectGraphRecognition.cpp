@@ -2,6 +2,8 @@
 
 #include <list>
 
+#include <recognition/CographRecognition.hpp>
+#include <recognition/CographRecognitionOther.hpp>
 #include <recognition/PerfectGraphRecognition.hpp>
 
 #include "helpers.hpp"
@@ -12,11 +14,19 @@ struct GraphRecognitionParameters {
     bool is_recognized;
 };
 
+auto perfect_graphs = testing::Values(
+    GraphRecognitionParameters{4, {{0, 1}, {0, 2}, {1, 3}, {2, 3}}, true},
+    GraphRecognitionParameters{5, {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {4, 0}}, false},
+    GraphRecognitionParameters{5, {{0, 1}, {0, 2}, {0, 3}, {3, 1}, {4, 3}}, true},
+    GraphRecognitionParameters{7, {{0, 1}, {1, 2}, {2, 4}, {4, 5}, {5, 6}, {2, 6}, {2, 3}, {3, 4},
+                                   {0, 2}, {1, 4}}, true}
+);
+
 class PerfectGraphRecognitionTest
     : public testing::TestWithParam<GraphRecognitionParameters> { };
 
-TEST_P(PerfectGraphRecognitionTest, test) {
-    GraphRecognitionParameters const& parameters = GetParam();
+TEST_P(PerfectGraphRecognitionTest, test_perfect_graphs) {
+    auto parameters = GetParam();
     NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
     auto algorithm = Koala::PerfectGraphRecognition(G);
     algorithm.run();
@@ -26,7 +36,57 @@ TEST_P(PerfectGraphRecognitionTest, test) {
 }
 
 INSTANTIATE_TEST_SUITE_P(
-    test_example, PerfectGraphRecognitionTest, testing::Values(
-        GraphRecognitionParameters{4, {{0, 1}, {0, 2}, {1, 3}, {2, 3}}, true},
-        GraphRecognitionParameters{5, {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {4, 0}}, false}
-));
+    test_perfect_graphs_example, PerfectGraphRecognitionTest, perfect_graphs);
+
+auto cographs = testing::Values(
+    GraphRecognitionParameters{4, {{0, 2}, {0, 3}, {1, 3}, {2, 3}}, true},
+    GraphRecognitionParameters{5, {{0, 3}, {0, 4}, {3, 4}, {1, 3}, {2, 4}}, false},
+    GraphRecognitionParameters{3, {{0, 1}, {0, 2}}, true},
+    GraphRecognitionParameters{5, {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {2, 4}}, false},
+    GraphRecognitionParameters{5, {{0, 1}, {1, 2}, {3, 4}}, true},
+    GraphRecognitionParameters{5, {{0, 1}, {0, 2}, {0, 3}, {1, 3}, {3, 4}}, false},
+    GraphRecognitionParameters{5, {{0, 1}, {1, 2}, {2, 3}, {1, 4}, {2, 4}}, false},
+    GraphRecognitionParameters{7, {{0, 1}, {1, 2}, {0, 2}, {1, 4}, {2, 4}, {3, 2}, {3, 4},
+                                   {4, 5}, {5, 6}, {2, 6}}, false},
+    GraphRecognitionParameters{7, {{0, 1}, {1, 2}, {0, 2}, {1, 4}, {2, 4}, {3, 2}, {3, 4},
+                                   {4, 5}, {5, 6}}, false}
+);
+
+template <typename Algorithm>
+void CographRecognitionTest(GraphRecognitionParameters parameters) {
+    NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
+    auto algorithm = Algorithm(G);
+    algorithm.run();
+
+    auto is_cograph = algorithm.isCograph();
+    EXPECT_EQ(is_cograph, parameters.is_recognized);
+}
+
+class CographBCHPRecognitionTest : public testing::TestWithParam<GraphRecognitionParameters> { };
+class CographCSPRecognitionTest : public testing::TestWithParam<GraphRecognitionParameters> { };
+class CographDahlhausRecognitionTest
+    : public testing::TestWithParam<GraphRecognitionParameters> { };
+class CographHabibPaulRecognitionTest
+    : public testing::TestWithParam<GraphRecognitionParameters> { };
+
+TEST_P(CographBCHPRecognitionTest, test_cographs) {
+    CographRecognitionTest<Koala::BretscherCorneilHabibPaulCographRecognition>(GetParam());
+}
+
+TEST_P(CographCSPRecognitionTest, test_cographs) {
+    CographRecognitionTest<Koala::CorneilStewartPerlCographRecognition>(GetParam());
+}
+
+TEST_P(CographDahlhausRecognitionTest, test_cographs) {
+    CographRecognitionTest<Koala::DahlhausCographRecognition>(GetParam());
+}
+
+TEST_P(CographHabibPaulRecognitionTest, test_cographs) {
+    CographRecognitionTest<Koala::HabibPaulCographRecognition>(GetParam());
+}
+
+INSTANTIATE_TEST_SUITE_P(test_cographs_bchp_example, CographBCHPRecognitionTest, cographs);
+INSTANTIATE_TEST_SUITE_P(test_cographs_csp_example, CographCSPRecognitionTest, cographs);
+INSTANTIATE_TEST_SUITE_P(test_cographs_dahlhaus_example, CographDahlhausRecognitionTest, cographs);
+INSTANTIATE_TEST_SUITE_P(
+    test_cographs_habib_paul_example, CographHabibPaulRecognitionTest, cographs);
