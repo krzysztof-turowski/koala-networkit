@@ -37,7 +37,7 @@ TEST_P(SuccessiveApproxMCCTest, test) {
 INSTANTIATE_TEST_SUITE_P(
     test_example, SuccessiveApproxMCCTest, testing::Values(
         MinimumCostCirculationParameters{
-            5, {{0, 1, 10, 2}, {1,3,4,3},{3,1,-2,0},{0, 2, 15, 1}, {2, 3, 3, -3}, {3, 0, 10, 0}} , 
+            5, {{0, 1, 10, 2}, {1,3,4,3}, {3,1,-2,0}, {0, 2, 15, 1}, {2, 3, 3, -3}, {3, 0, 10, 0}}, -6
         }
         
 ));

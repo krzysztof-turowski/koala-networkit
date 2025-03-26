@@ -43,7 +43,7 @@ class MinimumCostFlow : public NetworKit::Algorithm {
     int getMinCost() const;
 
  protected:
-    virtual void runImpl();
+    virtual void runImpl() {}
 
     NetworKit::Graph graph;
     edge_map<MCFEdgeParams> edge_params;
