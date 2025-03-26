@@ -7,4 +7,6 @@ koala_add_module(flow
     PushRelabel.cpp
     MalhotraKumarMaheshwariFlow.cpp
     BoykovKolmogorovFlow.cpp
+    MinimumCostFlow.cpp
+    minimum_cost_flow/SuccessiveApproxMCC.cpp
 )
