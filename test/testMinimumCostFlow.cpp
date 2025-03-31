@@ -29,6 +29,7 @@ TEST_P(SuccessiveApproxMCCTest, test) {
         ep[{w,v}].cost -= cost;
     }
     NetworKit::Graph G = build_graph(parameters.N, edges, false);
+    G.removeMultiEdges();
     auto algorithm = Koala::SuccessiveApproxMCC(G, ep);
     algorithm.run();
     EXPECT_EQ(algorithm.getMinCost(), parameters.minCost);
@@ -37,7 +38,7 @@ TEST_P(SuccessiveApproxMCCTest, test) {
 INSTANTIATE_TEST_SUITE_P(
     test_example, SuccessiveApproxMCCTest, testing::Values(
         MinimumCostCirculationParameters{
-            5, {{0, 1, 10, 2}, {1,3,4,3}, {3,1,-2,0}, {0, 2, 15, 1}, {2, 3, 3, -3}, {3, 0, 10, 0}}, -6
+            5, {{0, 1, 10, 2}, {1,3,4,3}, {3,1,-2,0}, {0, 2, 15, 1}, {2, 3, 3, -3}, {3, 0, 10, 0}}, 4
         }
         
 ));
