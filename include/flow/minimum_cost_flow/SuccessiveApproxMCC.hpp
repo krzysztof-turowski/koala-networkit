@@ -17,7 +17,7 @@ class SuccessiveApproxMCC final : public MinimumCostFlow {
     void relabel(NetworKit::node const&);
     void refine();
 
-    int cp(NetworKit::node const&, NetworKit::node const&);
+    double cp(NetworKit::node const&, NetworKit::node const&);
     int uf(NetworKit::node const&, NetworKit::node const&);
     void force_flow(NetworKit::node const&, NetworKit::node const&, int);
     node_map<double> price;
