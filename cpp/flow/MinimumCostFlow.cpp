@@ -27,4 +27,25 @@ bool MinimumCostFlow::isOk() const {
     return feasible;
 }
 
+void MinimumCostFlow::constructCirculation() {
+    NetworKit::node n = graph.addNode();
+    graph.forNodes(
+        [&](NetworKit::node v) {
+            if (excess[v] > 0) {
+                graph.addEdge(n, v);
+                edge_params[{n,v}].capacity = excess[v];
+                edge_params[{v,n}].capacity = -excess[v];
+            }
+            if (excess[v] < 0) {
+                graph.addEdge(v, n);
+                edge_params[{n,v}].capacity = excess[v];
+                edge_params[{v,n}].capacity = -excess[v];
+            }
+        });
+}
+
+void MinimumCostFlow::constructFlow() {
+    // TODO
+}
+
 } /* namespace Koala */
