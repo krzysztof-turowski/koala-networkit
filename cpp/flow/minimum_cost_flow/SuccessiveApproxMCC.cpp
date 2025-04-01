@@ -4,6 +4,17 @@ namespace Koala {
 
 static void print_flows(edge_map<int> &printable);
 
+SuccessiveApproxMCC::SuccessiveApproxMCC(NetworKit::Graph& g,
+    edge_map<MCFEdgeParams>& ep, node_map<int>& excess)
+    : MinimumCostFlow(g,ep,excess) {
+    constructCirculation();
+}
+
+SuccessiveApproxMCC::SuccessiveApproxMCC(NetworKit::Graph& g, 
+    edge_map<MCFEdgeParams>& ep, NetworKit::node s, NetworKit::node t, int flow)
+    : MinimumCostFlow(g, ep, s, t, flow) {
+    constructCirculation();
+}
 
 inline double SuccessiveApproxMCC::cp(NetworKit::node const& v,
     NetworKit::node const& w) {
@@ -97,12 +108,17 @@ void SuccessiveApproxMCC::refine() {
 
 void SuccessiveApproxMCC::initialize() {
     price.clear();
+    excess.clear();
     flow.clear();
     active.clear();
-    excess.clear();
     pr_id.clear();
     feasible = true;
     // std::cerr<<"INIT"<<"\n";
+    for (auto [v,e] : excess) {
+        if (e > 0) {
+            active.insert(v);
+        }
+    }
 
     int mx = 0;
     for (auto [a, b] : edge_params) {
