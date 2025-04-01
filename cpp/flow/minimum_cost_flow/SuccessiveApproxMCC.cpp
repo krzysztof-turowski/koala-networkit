@@ -66,25 +66,24 @@ void SuccessiveApproxMCC::relabel(NetworKit::node const& v) {
     price[v] = mi;
 }
 
-void SuccessiveApproxMCC::push_relabel(NetworKit::node const& v) {
+bool SuccessiveApproxMCC::push_relabel(NetworKit::node const& v) {
     // std::cerr << "PUSH RELABEL NODE " << v << "\n"; 
-    while (excess[v] > 0) {
-        int id = pr_id[v];
-        NetworKit::node w = graph.getIthNeighbor(v, id);
-        if (uf(v, w) > 0 && cp(v, w) < 0) {
-            // std::cerr<<"PUSH {" << v<< ", " << w << "} << \n";
-            push(v, w);
+    int id = pr_id[v];
+    NetworKit::node w = graph.getIthNeighbor(v, id);
+    if (uf(v, w) > 0 && cp(v, w) < 0) {
+        // std::cerr<<"PUSH {" << v<< ", " << w << "} << \n";
+        push(v, w);
+    } else {
+        if (graph.degreeOut(v) != id+1) {
+            pr_id[v]++;
         } else {
-            if (graph.degreeOut(v) != id+1) {
-                pr_id[v]++;
-            } else {
-                // std::cerr<<"RELABEL {" << v << "}\n";
-
-                pr_id[v] = 0;
-                relabel(v);
-            }
+            // std::cerr<<"RELABEL {" << v << "}\n";
+            pr_id[v] = 0;
+            relabel(v);
+            return true;
         }
     }
+    return false;
 }
 
 void SuccessiveApproxMCC::refine() {
@@ -98,12 +97,33 @@ void SuccessiveApproxMCC::refine() {
                 force_flow(v, w, add);
             }
         }
-    
     }
 
     while (active.size()) {
         push_relabel(*active.begin());
     }
+}
+
+void SuccessiveApproxMCC::wave() {
+    DischargeList list = ToposortList(*this);
+
+    NetworKit::node v = list.getNext();
+    while (active.size()) {
+        if (excess[v] > 0) {
+            bool relabeled = discharge(v);
+            if (relabeled) {
+                list.moveToStart();
+            }
+        }
+        v = list.getNext();
+    }
+
+}
+
+bool SuccessiveApproxMCC::discharge(NetworKit::node const& v) {
+    bool relabeled{false};
+    while (excess[v] > 0 && !(relabeled = push_relabel(v))) {}
+    return relabeled;
 }
 
 void SuccessiveApproxMCC::initialize() {
@@ -133,6 +153,7 @@ void SuccessiveApproxMCC::initialize() {
 void SuccessiveApproxMCC::runImpl() {
     initialize();
     // std::cerr << "RUN IMPL" <<"\n";
+    /*
     if (epsi >= 1.0/graph.numberOfNodes()) {
         refine();
         for (auto [v, e] : excess) {
@@ -143,10 +164,10 @@ void SuccessiveApproxMCC::runImpl() {
         }
     }
     print_flows(flow);
-
+    */
 
     while (epsi >= 1.0/graph.numberOfNodes()) {
-        refine();
+        wave();
         print_flows(flow);
     }
 
@@ -160,6 +181,47 @@ void SuccessiveApproxMCC::runImpl() {
     }
 
     min_cost/=2;
+}
+
+
+SuccessiveApproxMCC::ToposortList::ToposortList(
+    SuccessiveApproxMCC &approx) : approx(approx) {
+    for (auto v : approx.graph.nodeRange()) {
+        dfs(v);
+    }
+    it2 = nodes.begin();
+}
+
+void SuccessiveApproxMCC::ToposortList::dfs(NetworKit::node v){
+    vis[v] = true;
+    
+    for (auto w : approx.graph.neighborRange(v)) {
+        if (approx.cp(v,w) < 0 && approx.uf(v,w) > 0) {
+            if (!vis[w]) {
+                dfs(w);
+            }
+        }
+    }
+    nodes.push_front(v);
+}
+
+NetworKit::node SuccessiveApproxMCC::ToposortList::getNext() {
+    if (it2 != nodes.end()) {
+        it1 = it2;
+        it2++;
+    } else {
+        it2 = nodes.begin();
+        it1 = it2++;
+    }
+    return *it1;
+}
+
+void SuccessiveApproxMCC::ToposortList::moveToStart() {
+    if (it1 != nodes.end()) {
+        NetworKit::node value = *it1;
+        nodes.erase(it1);
+        nodes.push_front(value);
+    }
 }
 
 static void print_flows(edge_map<int> &printable) {
