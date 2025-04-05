@@ -84,7 +84,8 @@ add_subdirectory(cpp)
 
 function(koala_make_test testname testfile)
     add_executable(${testname} ${CMAKE_CURRENT_LIST_DIR}/${testfile})
-    target_link_libraries(${testname} ${PROJECT_NAME} gtest gtest_main)
+    target_link_libraries(${testname} ${PROJECT_NAME} ${GTEST_LIB_DIR}/libgtest.a ${GTEST_LIB_DIR}/libgtest_main.a pthread)
+
     set_target_properties(${testname} PROPERTIES
         COMPILE_FLAGS ${KOALA_CXX_FLAGS}
         LINK_FLAGS ${KOALA_LINKER_FLAGS})
@@ -103,6 +104,14 @@ endfunction()
 
 if(KOALA_BUILD_TESTS)
     enable_testing()
+
+    set(GTEST_ROOT /home/z1194174/gtest_local)
+    set(GTEST_INCLUDE_DIR ${GTEST_ROOT}/include)
+    set(GTEST_LIB_DIR ${GTEST_ROOT}/lib)
+
+    include_directories(${GTEST_INCLUDE_DIR})
+    link_directories(${GTEST_LIB_DIR})
+
     add_subdirectory(test)
 endif()
 
