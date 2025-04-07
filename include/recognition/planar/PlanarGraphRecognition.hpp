@@ -110,4 +110,21 @@ namespace Koala {
         PlanarGraphRecognition::State planar();
     };
 
+    class BoyerMyrvold : public PlanarGraphRecognition {
+    public:
+        BoyerMyrvold::BoyerMyrvold(NetworKit::Graph &graph, bool embedding);
+        void run() override;
+        
+    private:
+        NetworKit::count N;
+        
+        void dfs_in_reorder(NetworKit::Graph &g, NetworKit::node v,
+                               std::vector<NetworKit::Edge> &Add, int &dfs_count,
+                               std::vector<bool> &reached,
+                               std::vector<NetworKit::node> &dfsnum,
+                               std::vector<NetworKit::node> &lowpt,
+                               std::vector<NetworKit::node> &lowpt2,
+                               std::vector<NetworKit::node> &parent);
+    };
+
 } /* namespace Koala */

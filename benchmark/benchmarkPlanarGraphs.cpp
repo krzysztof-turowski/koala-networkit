@@ -20,7 +20,9 @@ int main() {
 
         NetworKit::Graph G = Koala::G6GraphReader().readline(line);
 
-        auto recognize = Koala::HopcroftTarjan(G, false);
+       //auto recognize = Koala::HopcroftTarjan(G, false);
+       // recognize.run();
+        auto recognize = Koala::BoyerMyrvold(G, false);
         recognize.run();
         classification[recognize.isPlanar() == Koala::PlanarGraphRecognition::State::PLANAR ? 1 : 0]++;
     }
