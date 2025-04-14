@@ -6,7 +6,11 @@
 #include <utility>
 #include <networkit/graph/GraphTools.hpp>
 #include <networkit/graph/BFS.hpp>
+#include <networkit/graph/DFS.hpp>
 #include <stdexcept>
+#include <cmath>
+
+using graphDivision_t = std::vector<std::vector<NetworKit::node>>;
 
 namespace Koala {
 
@@ -83,55 +87,6 @@ namespace Koala {
         return { inside, cycle };
     }
 
-    std::vector<std::vector<NetworKit::node>> postProcesing(Separator& sep, NetworKit::Graph& G) {
-        auto [A, B, C] = sep;
-        std::unordered_set<NetworKit::node> Cprime;
-        std::unordered_set<NetworKit::node> Cbis;
-        NetworKit::Graph copyG(G);
-
-        for (auto c : C) {
-            bool isBis = true;
-            for (auto x : G.neighborRange(c)) {
-                if (A.find(x) != A.end() || B.find(x) != B.end()) {
-                    isBis = false;
-                    Cprime.insert(c);
-                    break;
-                }
-            }
-
-            if (isBis) {
-                Cbis.insert(c);
-                for (auto x : G.neighborRange(c)) {
-                    copyG.removeEdge(c, x);
-                }
-            }
-        }
-        NetworKit::ConnectedComponents cc(copyG);
-        cc.run();
-        std::vector<std::vector<NetworKit::node>> components = cc.getComponents();
-
-        for (auto c : Cbis) {
-            bool canBeAdded = true;
-            auto lastComponent = cc.componentOfNode(*(G.neighborRange(c).begin()));
-
-            for (auto x : G.neighborRange(c)) {
-                if (lastComponent != cc.componentOfNode(x)) {
-                    canBeAdded = false;
-                    break;
-                }
-                lastComponent = cc.componentOfNode(x);
-            }
-
-            if (canBeAdded) {
-                Cbis.erase(c);
-                components[cc.componentOfNode(*(G.neighborRange(c).begin()))].push_back(c);
-            }
-        }
-        components.push_back(std::vector<NetworKit::node> {Cbis.begin(), Cbis.end()});
-
-        return components;
-    }
-
     Separator findSeparator(NetworKit::Graph& G) {
         NetworKit::Graph maximalGraph = makeMaximalPlanar(G);
         NetworKit::count numOfNodes = maximalGraph.numberOfNodes();
@@ -188,12 +143,6 @@ namespace Koala {
         }
 
         throw std::runtime_error("Acording to Lipton and Tarjan Lemma 2 Should not have happened!!!");
-    }
-
-    std::vector<std::vector<NetworKit::node>> createConnectedSets(NetworKit::Graph& subGraph) {
-        auto separator = findSeparator(subGraph);
-
-        return postProcesing(separator, subGraph);
     }
 
     NetworKit::Graph convertToMaxDegree3(NetworKit::Graph& G) {
@@ -255,20 +204,236 @@ namespace Koala {
         return result;
     }
 
+    std::vector<std::vector<NetworKit::node>> postProcesing(Separator& sep, NetworKit::Graph& G) {
+        auto [A, B, C] = sep;
+        std::unordered_set<NetworKit::node> Cprime;
+        std::unordered_set<NetworKit::node> Cbis;
+        NetworKit::Graph copyG(G);
+
+        for (auto c : C) {
+            bool isBis = true;
+            for (auto x : G.neighborRange(c)) {
+                if (A.find(x) != A.end() || B.find(x) != B.end()) {
+                    isBis = false;
+                    Cprime.insert(c);
+                    break;
+                }
+            }
+
+            if (isBis) {
+                Cbis.insert(c);
+                for (auto x : G.neighborRange(c)) {
+                    copyG.removeEdge(c, x);
+                }
+            }
+        }
+        NetworKit::ConnectedComponents cc(copyG);
+        cc.run();
+        std::vector<std::vector<NetworKit::node>> components = cc.getComponents();
+
+        for (auto c : Cbis) {
+
+            for (auto x : G.neighborRange(c)) {
+                NetworKit::count componentNumber = cc.componentOfNode(x);
+                if (components[componentNumber].back() != c) {
+                    components[cc.componentOfNode(x)].push_back(c);
+                }
+            }
+        }
+        return components;
+    }
+
+    std::vector<std::vector<NetworKit::node>> createConnectedSets(NetworKit::Graph& subGraph) {
+        auto separator = findSeparator(subGraph);
+
+        return postProcesing(separator, subGraph);
+    }
+
+    std::vector<std::unordered_set<NetworKit::node>> makeSuitableGraphDivision(const NetworKit::Graph& Graph, int r) {
+        std::vector<std::vector<NetworKit::node>> smallSets;
+        std::vector<std::vector<NetworKit::node>> smallAndAloneSets;
+        std::vector<std::vector<NetworKit::node>> result;
+
+        std::queue<std::vector<NetworKit::node>> queue;
+        queue.push(std::vector<NetworKit::node> { Graph.nodeRange().begin(), Graph.nodeRange().end() });
+
+        while (!queue.empty()) {
+            auto nodeSet = queue.front();
+            queue.pop();
+
+            std::unordered_set<NetworKit::node> set{ nodeSet.begin(), nodeSet.end() };
+            auto subGraph = NetworKit::GraphTools::subgraphFromNodes(Graph, set);
+            auto sets = createConnectedSets(subGraph);
+            for (auto& s : sets) {
+                if (s.size() > r) {
+                    queue.emplace(s);
+                }
+                else {
+                    smallSets.push_back(s);
+                }
+            }
+        }
+
+        std::vector<std::vector<NetworKit::count>> componentsPerNode(Graph.numberOfNodes());
+        std::vector<int> used(Graph.numberOfNodes(), 0);
+
+        for (int i = 0; i < smallSets.size(); i++) {
+            if (smallSets[i].size() > r / 2) {
+                result.push_back(smallSets[i]);
+                continue;
+            }
+            for (auto& x : smallSets[i]) {
+                componentsPerNode[x].push_back(i);
+            }
+        }
+
+        for (auto components : componentsPerNode) {
+            assert(components.size() > 0 && components.size() < 4);
+
+            if (components.size() == 1) {
+                auto c = components[0];
+                if (used[c]) continue;
+                if (smallSets[c].size() > r / 2) {
+                    result.push_back(smallSets[c]);
+                }
+                else {
+                    smallAndAloneSets.push_back(smallSets[c]);
+                }
+            };
+
+
+            if (components.size() == 2) {
+                auto c0 = components[0];
+                auto c1 = components[1];
+
+            }
+
+            if (components.size() == 3) {
+
+            }
+        }
+
+        //TODO finish section 3
+    }
+
+
+    //FIND_CLUSTERS from [F1]
+    graphDivision_t findClusterResult;
+    std::vector<int> visited;
+
+    std::vector<NetworKit::node> csearch(NetworKit::node v, int z, NetworKit::Graph& Graph) {
+        if (visited[v]) {
+            return {};
+        }
+        std::vector<NetworKit::node> clust(1, v);
+
+        for (auto neigh : Graph.neighborRange(v)) {
+            auto neighClust = csearch(neigh, z, Graph);
+            for (auto n : neighClust) {
+                clust.push_back(n);
+            }
+        }
+        if (clust.size() < z) {
+            return clust;
+        }
+        else {
+            findClusterResult.push_back(clust);
+            return {};
+        }
+    }
+
+    graphDivision_t findClusters(NetworKit::Graph& Graph, int z) {
+        findClusterResult.clear();
+        visited.assign(Graph.numberOfNodes(), 0);
+
+        auto csearchResult = csearch(*Graph.nodeRange().begin(), z, Graph);
+
+        for (auto node : csearchResult) {
+            findClusterResult.back().push_back(node);
+        }
+
+        return findClusterResult;
+    }
+
+    graphDivision_t getDivisionOfFromClusters(graphDivision_t& clusters, NetworKit::Graph& Graph, int r) {
+        //build new shrinked graph based on clusters
+        NetworKit::Graph ShrinkedGraph(clusters.size() + 1);
+
+        Graph.forNodes([&](auto v) {
+            for (auto& u : Graph.neighborRange(v)) {
+                if (clusterNum[v] != clusterNum[u]) {
+                    ShrinkedGraph.addEdge(clusterNum[v], clusterNum[u]);
+                }
+            }
+            });
+        ShrinkedGraph.removeMultiEdges();
+
+        auto division = makeSuitableGraphDivision(ShrinkedGraph, r);
+
+        std::vector<int> regionOfNode(ShrinkedGraph.numberOfNodes(), -1);
+        std::vector<int> countRegionsOfNode(ShrinkedGraph.numberOfNodes(), 0);
+
+        for (int i = 0; i < division.size(); i++) {
+            for (auto& node : division[i]) {
+                countRegionsOfNode[node] += 1;
+                regionOfNode[node] = i;
+            }
+        }
+
+        graphDivision_t result(division.size(), std::vector<NetworKit::node> {});
+
+        //Un Shrink the graph
+        for (int i = 0; i < countRegionsOfNode.size(); i++) {
+            assert(regionOfNode[i] > -1);
+            //boundry vertex
+            if (countRegionsOfNode[i] >= 2) {
+                result.push_back({});
+                for (auto node : clusters[i]) {
+                    result.back().push_back(node);
+                }
+            }
+            else {//interior
+                for (auto node : clusters[i]) {
+                    result[regionOfNode[i]].push_back(node);
+                }
+            }
+        }
+
+        return result;
+    }
+
+    void fixGraphDivision(graphDivision_t& division, NetworKit::Graph& Graph) {
+        //TODO implement infering boundy nodes
+    }
+
+    //create suitable r-division quickly.
+    graphDivision_t  findSuitableRDivision(NetworKit::Graph Graph, int r) {
+        int rSqrt = sqrt(r);
+
+        auto clusters = findClusters(Graph, rSqrt);
+        std::vector<NetworKit::count> clusterNum(Graph.numberOfNodes());
+        for (int i = 0; i < clusters.size(); i++) {
+            for (auto node : clusters[i]) {
+                clusterNum[node] = i;
+            }
+        }
+
+        graphDivision_t division = getDivisionOfFromClusters(clusters, Graph, r);
+        //infer boundry nodes - whatever that means...
+        fixGraphDivision(division, Graph);
+
+        //TODO
+        //run make Suitable Graph Divison from given regions
+    }
+
     void FredericksonPlanarSSSP::run() {
-
-        // NetworKit::Graph subgraph = NetworKit::GraphTools::subgraphFromNodes(graph, { 2,3 });
-
-        // std::cout << subgraph.numberOfNodes() << std::endl;
-
-        // for (auto x : subgraph.nodeRange()) {
-        //     std::cout << x << " ";
-        // }std::cout << std::endl;
 
         printGraph(graph);
 
         normal_graph = convertToMaxDegree3(graph);
         printGraph(normal_graph);
+
+
 
         std::cout << "------------------------------------------" << std::endl;
         auto [a, b, c] = findSeparator(normal_graph);
