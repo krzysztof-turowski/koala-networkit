@@ -261,7 +261,8 @@ namespace Koala {
         return false;
     }
 
-    nodeSubsets_t makeSuitableGraphDivisionFromQueue(std::queue<std::vector<NetworKit::node>> queue, NetworKit::Graph Graph, int r) {
+    //It requires isBoundry to be set correctly
+    nodeSubsets_t makeSuitableGraphDivisionFromQueue(std::queue<std::vector<NetworKit::node>>& queue, NetworKit::Graph& Graph, int r) {
         int sqr = sqrt(r);
         nodeSubsets_t smallSets;
         nodeSubsets_t result;
@@ -269,14 +270,24 @@ namespace Koala {
 
         // dividing graph into small overlaping sets of nodes
         while (!queue.empty()) {
-            auto nodeSet = queue.front();
+            auto nodeSet = std::move(queue.front());
             queue.pop();
+
+            int numOfBoundryNodes = 0;
+            for (auto node : nodeSet) {
+                if (isBoundry[node]) {
+                    numOfBoundryNodes++;
+                }
+            }
+            if (nodeSet.size() < r && numOfBoundryNodes < c * sqr) {
+                smallSets.push_back(std::move(nodeSet));
+            }
 
             std::unordered_set<NetworKit::node> set{ nodeSet.begin(), nodeSet.end() };
             auto subGraph = NetworKit::GraphTools::subgraphFromNodes(Graph, set);
             auto sets = createConnectedSets(subGraph);
             for (auto& s : sets) {
-                int numOfBoundryNodes = 0;
+                numOfBoundryNodes = 0;
                 for (auto node : s) {
                     if (isBoundry[node]) {
                         numOfBoundryNodes++;
@@ -425,7 +436,8 @@ namespace Koala {
     }
 
     // we need two different starting points for algorithm extra abstract layer allows for that
-    nodeSubsets_t makeSuitableGraphDivision(const NetworKit::Graph& Graph, int r) {
+    nodeSubsets_t makeSuitableGraphDivision(NetworKit::Graph& Graph, int r) {
+        isBoundry.assign(Graph.numberOfNodes(), 0);
         std::queue<std::vector<NetworKit::node>> queue;
         auto nodeRange = Graph.nodeRange();
         queue.push(std::vector<NetworKit::node> { nodeRange.begin(), nodeRange.end() });
@@ -442,6 +454,7 @@ namespace Koala {
         if (visited[v]) {
             return {};
         }
+        visited[v] = 1;
         std::vector<NetworKit::node> clust(1, v);
 
         for (auto neigh : Graph.neighborRange(v)) {
@@ -472,7 +485,7 @@ namespace Koala {
         return findClusterResult;
     }
 
-    nodeSubsets_t getDivisionOfFromClusters(nodeSubsets_t& clusters, NetworKit::Graph& Graph, int r) {
+    nodeSubsets_t getDivisionFromClusters(nodeSubsets_t& clusters, NetworKit::Graph& Graph, int r) {
         std::vector<NetworKit::count> clusterNum(Graph.numberOfNodes());
         for (int i = 0; i < clusters.size(); i++) {
             for (auto node : clusters[i]) {
@@ -526,45 +539,75 @@ namespace Koala {
     }
 
     void fixGraphDivision(nodeSubsets_t& division, NetworKit::Graph& Graph) {
-        //TODO implement infering boundy nodes
+        // The procedure is not described in the paper "Infer boundary vertices and slightly expanded(sic!) regions
+        // that share these vertices". So I guess we can do it in a greedy fashion.
+
+        std::vector<std::array<int, 3> > region(Graph.numberOfNodes(), { -1,-1,-1 });
+        for (int i = 0; i < division.size(); i++) {
+            for (auto& node : division[i]) {
+                region[node][0] = i;
+            }
+        }
+
+        Graph.forEdges([&](NetworKit::node u, NetworKit::node v) {
+            if (isBoundry[u] && isBoundry[v]) return;
+            if (isBoundry[u] || isBoundry[v]) {
+                if (isBoundry[v]) std::swap(u, v);
+                if (region[u][1] == -1) {
+                    region[u][1] = region[v][0];
+                }
+                if (region[u][1] != region[v][0]) {
+                    region[u][2] = region[v][0];
+                }
+                return;
+            }
+            if (region[u][0] == region[v][0]) return;
+
+            isBoundry[u] = 1;
+            region[u][1] = region[v][0];
+            });
     }
 
     //create suitable r-division quickly.
-    nodeSubsets_t  findSuitableRDivision(NetworKit::Graph Graph, int r) {
+    nodeSubsets_t  findSuitableRDivision(NetworKit::Graph& Graph, int r) {
         int rSqrt = sqrt(r);
 
         auto clusters = findClusters(Graph, rSqrt);
 
-        nodeSubsets_t division = getDivisionOfFromClusters(clusters, Graph, r);
-        //infer boundry nodes - whatever that means...
+        nodeSubsets_t division = getDivisionFromClusters(clusters, Graph, r);
+
+        isBoundry.assign(Graph.numberOfNodes(), 0);
         fixGraphDivision(division, Graph);
 
-        //TODO
-        //run make Suitable Graph Divison from given regions
+        std::queue<std::vector<NetworKit::node>> queue;
+        for (auto& region : division) {
+            queue.push(std::move(region));
+        }
+
+        return makeSuitableGraphDivisionFromQueue(queue, Graph, r);
     }
 
-    void getDistancebetweenBoundryNodes(NetworKit::Graph Graph, nodeSubsets_t division) {
+    using pairDistance_t = std::vector<std::vector<NetworKit::count>>;
+    std::vector<pairDistance_t>  getDistancebetweenBoundryNodesLevel2(NetworKit::Graph Graph, nodeSubsets_t division) {
 
     }
 
-    void mainThrust(NetworKit::Graph& Graph, int s, int t) {
+    int mainThrust(NetworKit::Graph& Graph, int s, int t) {
 
     }
 
     void FredericksonPlanarSSSP::run() {
-
         printGraph(graph);
         normal_graph = convertToMaxDegree3(graph);
         printGraph(normal_graph);
         isBoundry.assign(normal_graph.numberOfNodes(), 0);
-
         int r = log(normal_graph.numberOfNodes());
         auto division = findSuitableRDivision(normal_graph, r);
+        isBoundry.assign(normal_graph.numberOfNodes(), 0);
 
-        getDistancebetweenBoundryNodes(graph, division);
+        getDistancebetweenBoundryNodesLevel2(graph, division);
 
-        int s = 0, t = normal_graph.numberOfNodes();
-        mainThrust(normal_graph, s, t);
+        distanceToTarget = mainThrust(normal_graph, source, target);
 
         hasRun = true;
         distanceToTarget = 5;
