@@ -264,9 +264,10 @@ namespace Koala {
     nodeSubsets_t makeSuitableGraphDivisionFromQueue(std::queue<std::vector<NetworKit::node>> queue, NetworKit::Graph Graph, int r) {
         int sqr = sqrt(r);
         nodeSubsets_t smallSets;
-        nodeSubsets_t smallAndAloneSets;
         nodeSubsets_t result;
 
+
+        // dividing graph into small overlaping sets of nodes
         while (!queue.empty()) {
             auto nodeSet = queue.front();
             queue.pop();
@@ -290,6 +291,7 @@ namespace Koala {
             }
         }
 
+        //merging to small components
         std::vector<std::vector<NetworKit::count>> componentsPerNode(Graph.numberOfNodes());
         std::vector<int> isSetUsed(smallSets.size(), 0);
         std::vector<int> numOfBoundryNodes(smallSets.size(), 0);
@@ -308,81 +310,125 @@ namespace Koala {
             }
         }
 
+        auto isComponentMergable = [&](int c) {
+            if (isSetUsed[c]) return false;
+            if (2 * smallSets[c].size() > r || 2 * numOfBoundryNodes[c] > c * sqr) return false;
+            return true;
+            };
+
         auto tryMergeComponents = [&](int c1, int c2) {
-            if (isSetUsed[c1] || isSetUsed[c2]) return;
-            if (smallSets[c1].size() > r / 2 || numOfBoundryNodes[c1] > c * sqr) return;
-            if (smallSets[c2].size() > r / 2 || numOfBoundryNodes[c2] > c * sqr) return;
+            if (!isComponentMergable(c1)) return -1;
+            if (!isComponentMergable(c2)) return -1;
+
+            //importat to merge smaller component to the bigger
             if (smallSets[c1].size() < smallSets[c2].size()) std::swap(c1, c2);
             isSetUsed[c2] = true;
             int goodBoundryNodes = 0;
             for (auto node : smallSets[c2]) {
-                if (std::find(componentsPerNode[node].begin(), componentsPerNode[node].end(), c1) == componentsPerNode[node].end()) {
+                auto& nodeComponents = componentsPerNode[node];
+                if (std::find(nodeComponents.begin(), nodeComponents.end(), c1) == nodeComponents.end()) {
                     smallSets[c1].push_back(node);
-                    if (componentsPerNode[node].size() > 1) {
+                    if (nodeComponents.size() > 1) {
                         goodBoundryNodes++;
                     }
-                    std::replace(componentsPerNode[node].begin(), componentsPerNode[node].end(), c2, c1);
+                    std::replace(nodeComponents.begin(), nodeComponents.end(), c2, c1);
                 }
-                //componentsPerNode[node] can be fixed here to maybe speed up the function
+                else {//boundry between c1 and c2
+                    goodBoundryNodes += nodeComponents.size() == 2 ? -1 : 1;
+                    nodeComponents.erase(find(nodeComponents.begin(), nodeComponents.end(), c2));
+                }
+
             }
             numOfBoundryNodes[c1] += goodBoundryNodes;
+            assert(numOfBoundryNodes[c1] >= 0);
+            return c1;
             };
 
-        //mergin components with common boundy nodes
+        //mergin components with common boundry nodes
         for (auto& components : componentsPerNode) {
             assert(components.size() > 0 && components.size() < 4);
-            if (components.size() == 1) continue;
+            if (components.size() == 1) continue; //interior node
 
-            if (components.size() == 2) {
-                tryMergeComponents(components[0], components[1]);
+            tryMergeComponents(components[0], components[1]);
+            if (components.size() == 2) {// boundry node of two regions
                 continue;
             }
+            // boundy node of threee regions
             tryMergeComponents(components[0], components[2]);
             tryMergeComponents(components[1], components[2]);
         }
-        //filter sets that still can be matched
 
-        for (int i = 0; i < componentsPerNode.size(); i++) {
-            componentsPerNode[i].clear();
-        }
+        std::vector<std::tuple<int, int, int>> regionsToMerge;
+
         for (int i = 0; i < smallSets.size(); i++) {
             if (isSetUsed[i]) continue;
-            for (auto& x : smallSets[i]) {
-                componentsPerNode[x].push_back(i);
-            }
-        }
-        for (int i = 0; i < smallSets.size(); i++) {
-            if (isSetUsed[i]) continue;
-            if (smallSets[i].size() > r / 2 || numOfBoundryNodes[i] > c * sqr) {
-                result.push_back(std::move(smallSets[i]));
-            }
-            else {
-                smallAndAloneSets.push_back(std::move(smallSets[i]));
-            }
-        }
-
-        std::vector<std::vector<int>> neighbours(smallAndAloneSets.size());
-
-        for (int i = 0; i < smallAndAloneSets.size(); i++) {
-            std::unordered_set<int> neighboursUS;
-            for (auto node : smallAndAloneSets[i]) {
-                for (auto n : componentsPerNode[node]) {
-                    neighboursUS.insert(n);
+            std::unordered_set<int> regionNeighbours;
+            for (auto node : smallSets[i]) {
+                for (auto c : componentsPerNode[node]) {
+                    regionNeighbours.insert(c);
                 }
             }
-            if (neighboursUS.size() > 2) {
-                result.push_back(std::move(smallAndAloneSets[i]));
+            if (regionNeighbours.size() > 2) {
+                // regions with more than two neighbours can be moved straight to the result
+                // we can delay that to simplify the logic as the sets are still good to use
+                continue;
             }
-            neighbours[i].assign(neighboursUS.begin(), neighboursUS.end());
+
+            assert(regionNeighbours.size() > 0); //there should NOT be a region without any neighbours
+
+            int first, second;
+            auto it = regionNeighbours.begin();
+            first = *it;
+            it++;
+            second = it == regionNeighbours.end() ? -1 : *it;
+
+            regionsToMerge.push_back({ first, second, i });
         }
 
-        //TODO: merge components same set of neighbouring components
+        sort(regionsToMerge.begin(), regionsToMerge.end());//TODO: swap std::sort for an linear or nsqrt(logn) sort
+
+        //greedy merging of regions with the same sets of either one or two regions.
+
+        int lastComponent = -1;
+        std::pair<int, int> lastPair = { -1,-1 };
+        for (auto [f, s, i] : regionsToMerge) {
+            if (!isComponentMergable(i)) continue;
+            if (lastComponent = -1) {
+                lastComponent = i;
+                lastPair = { f, s };
+                continue;
+            }
+            if (std::make_pair(f, s) != lastPair) {
+                lastComponent = i;
+                lastPair = { f,s };
+                continue;
+            }
+
+            int merged = tryMergeComponents(lastComponent, i);
+            if (!isComponentMergable(merged)) {
+                lastComponent = -1;
+                continue;
+            }
+            if (merged == lastComponent) {
+                continue;
+            }
+            lastComponent = merged;
+            lastPair = { f,s };
+        }
+
+        for (int i = 0; i < smallSets.size(); i++) {
+            if (isSetUsed[i]) continue;
+            result.push_back(std::move(smallSets[i]));
+        }
+
         return result;
     }
 
+    // we need two different starting points for algorithm extra abstract layer allows for that
     nodeSubsets_t makeSuitableGraphDivision(const NetworKit::Graph& Graph, int r) {
         std::queue<std::vector<NetworKit::node>> queue;
-        queue.push(std::vector<NetworKit::node> { Graph.nodeRange().begin(), Graph.nodeRange().end() });
+        auto nodeRange = Graph.nodeRange();
+        queue.push(std::vector<NetworKit::node> { nodeRange.begin(), nodeRange.end() });
 
         return makeSuitableGraphDivisionFromQueue(queue, Graph, r);
     }
@@ -459,7 +505,7 @@ namespace Koala {
 
         nodeSubsets_t result(division.size(), std::vector<NetworKit::node> {});
 
-        //Un Shrink the graph
+        //Unshrink the graph
         for (int i = 0; i < countRegionsOfNode.size(); i++) {
             assert(regionOfNode[i] > -1);
             //boundry vertex
