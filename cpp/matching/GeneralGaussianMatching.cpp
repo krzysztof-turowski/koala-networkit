@@ -1,6 +1,5 @@
 #include <matching/GeneralGaussianMatching.hpp>
 #include <matching/GaussElimination.hpp>
-#include <matching/DynamicComponents.hpp>
 #include <matching/utils.hpp>
 #include <matching/BipartiteGaussianMatching.hpp>
 
@@ -15,7 +14,7 @@ using namespace NetworKit;
 
 namespace Koala {
     struct Partition {
-        vector<DynamicComponents> subgraphs;
+        vector<Graph> subgraphs;
         vector<pair<int, int>> componentMap; // v -> c,i
         vector<vector<int>> components;
 
@@ -28,23 +27,22 @@ namespace Koala {
         }
     };
 
-    Partition partitionGraph(const DynamicComponents& graph, vector<set<int>>& components);
-    vector<set<int>> getSimpleComponents(const DynamicComponents& graph);
-    vector<set<int>> getConnectedComponents(const DynamicComponents& graph, vector<bool> visited);
-    set<int> getNontrivialClass(const DynamicComponents& graph);
+    Partition partitionGraph(const Graph& graph, vector<set<int>>& components);
+    vector<set<int>> getSimpleComponents(const Graph& graph, const MatrixXd& AG);
+    vector<set<int>> getConnectedComponents(const Graph& graph, vector<bool> visited);
+    set<int> getNontrivialClass(const MatrixXd& AG);
 
     Matching greedyMatching(const Graph& G);
     Matching generalMatching(const Graph& G, const MatrixXd& AG);
     Matching partition(const Graph& graph, const MatrixXd& AG);
-    Matching simplePartition(const DynamicComponents& graph);
+    Matching simplePartition(const Graph& graph, const MatrixXd& AG);
     MatrixXd generateMatrix(const Graph& G);
 
     GeneralGaussianMatching::GeneralGaussianMatching(const Graph& G) : G(G) {};
 
     void GeneralGaussianMatching::run() {
         MatrixXd AG = generateMatrix(G);
-        MatrixXd B = AG.inverse();
-        M = generalMatching(G, B);
+        M = generalMatching(G, AG);
     }
 
     Matching GeneralGaussianMatching::getMatching() {
@@ -103,18 +101,17 @@ namespace Koala {
         return M1;
     }
 
-    Matching partition(const Graph& graph, const MatrixXd& AG) {
+    Matching partition(const Graph& G, const MatrixXd& AG) {
         int n = AG.cols();
 
-        auto dynamicComponents = DynamicComponents(graph, AG);
-        auto components = getSimpleComponents(dynamicComponents);
-        auto partition = partitionGraph(dynamicComponents, components);
+        auto components = getSimpleComponents(G, AG);
+        auto partition = partitionGraph(G, components);
 
         Matching M;
         for (int c = 0; c < partition.subgraphs.size(); ++c) {
-            auto subgraph = partition.subgraphs[c];
-            // cout << "SIMPLE: " << subgraph.size() << endl;
-            auto M1 = simplePartition(subgraph);
+            auto Gc = partition.subgraphs[c];
+            auto AGc = generateMatrix(Gc);
+            auto M1 = simplePartition(Gc, AGc);
             for (auto [ui, vi] : M1) {
                 int u = partition.getLabel(c, ui);
                 int v = partition.getLabel(c, vi);
@@ -125,28 +122,28 @@ namespace Koala {
         return M;
     }
 
-    Matching simplePartition(const DynamicComponents& graph) {
-        auto Sv = getNontrivialClass(graph);
+    Matching simplePartition(const Graph& G, const MatrixXd& AG) {
+        auto Sv = getNontrivialClass(AG);
         if (Sv.size() == 0) {
-            return greedyMatching(graph.G); // TODO
+            return greedyMatching(G); // TODO
         }
-        vector<bool> isInS(graph.size(), false);
+        vector<bool> isInS(G.numberOfNodes(), false);
         for (auto v : Sv) {
             isInS[v] = true;
         }
 
         // Components of C1...Ck of G-S and S
-        auto components = getConnectedComponents(graph, isInS);
+        auto components = getConnectedComponents(G, isInS);
         components.push_back(Sv);
-        auto partition = partitionGraph(graph, components);
+        auto partition = partitionGraph(G, components);
 
         auto S = partition.subgraphs.back();
-        assert(S.size() == partition.subgraphs.size() - 1); // |{C1, C2, ...}| = sSize = |S|
+        int sSize = S.numberOfNodes();
+        assert(sSize == partition.subgraphs.size() - 1); // |{C1, C2, ...}| = sSize = |S|
 
         // Contract Ci to single vertex
-        cerr << "DEBUG: " << "SIMPLE_PARTITION: " << "contract" << endl;
-        S.addVertex(S.size());
-        graph.G.forEdges([&](node u, node v) {
+        S.addNodes(sSize);
+        G.forEdges([&](node u, node v) {
             if (isInS[u] && isInS[v]) {
                 auto [cu, ui] = partition.getComponent(u);
                 auto [cv, vi] = partition.getComponent(v);
@@ -157,12 +154,12 @@ namespace Koala {
 
                 auto [cw, wi] = partition.getComponent(w);
                 auto [sw, si] = partition.getComponent(s);
-                S.addEdge(si, S.size() / 2 + cw);
+                S.addEdge(si, sSize + cw);
             }
             });
 
         // Get the matching of S and contracted ci
-        auto bpMatch = BipartiteGaussianMatching(S.G);
+        auto bpMatch = BipartiteGaussianMatching(S);
         bpMatch.run();
         auto matchS = bpMatch.getMatching();
 
@@ -170,12 +167,12 @@ namespace Koala {
         for (auto [si, ci] : matchS) {
             // si has lower index than a contracted vertex ci
             if (si > ci) swap(si, ci);
-            int c = ci - S.size() / 2;
-            int s = partition.getLabel(S.size() / 2, si);
+            int s = partition.getLabel(sSize, si);
+            int c = ci - sSize;
 
             // get some neighbor of s from component c
             int v = -1;
-            graph.G.forEdgesOf(s, [&](node u) {
+            G.forEdgesOf(s, [&](node u) {
                 if (partition.getComponent(u).first == c) {
                     v = u;
                 }
@@ -184,7 +181,8 @@ namespace Koala {
 
             M.insert({ s,v });
 
-            if (partition.subgraphs[c].size() == 1)
+            auto Gc = partition.subgraphs[c];
+            if (Gc.numberOfNodes() == 1)
                 continue;
 
             // Swap v and the last node for quick delete
@@ -192,14 +190,14 @@ namespace Koala {
             int ui = partition.components[c].size() - 1;
             int u = partition.getLabel(c, ui);
 
-            partition.subgraphs[c].G.forEdgesOf(vi, [&](int wi) {
-                partition.subgraphs[c].G.removeEdge(vi, wi);
+            Gc.forEdgesOf(vi, [&](int wi) {
+                Gc.removeEdge(vi, wi);
                 });
-            partition.subgraphs[c].G.forEdgesOf(ui, [&](int wi) {
+            Gc.forEdgesOf(ui, [&](int wi) {
                 if (vi == wi) return;
-                partition.subgraphs[c].G.addEdge(vi, wi);
+                Gc.addEdge(vi, wi);
                 });
-            partition.subgraphs[c].G.removeNode(ui);
+            Gc.removeNode(ui);
 
             partition.components[c][vi] = u;
             partition.components[c].pop_back();
@@ -207,7 +205,7 @@ namespace Koala {
             partition.componentMap[v] = { -1, -1 };
 
             // Match the rest of component c
-            auto genMatch = GeneralGaussianMatching(partition.subgraphs[c].G);
+            auto genMatch = GeneralGaussianMatching(Gc);
             genMatch.run();
             auto matchC = genMatch.getMatching();
 
@@ -239,8 +237,9 @@ namespace Koala {
             }
         }
 
-        auto part = partitionGraph(DynamicComponents(G, AG), components);
-        auto& [G1, AG1] = part.subgraphs[1];
+        auto part = partitionGraph(G, components);
+        auto G1 = part.subgraphs[1];
+        auto AG1 = generateMatrix(G1);
 
         Matching M2;
         if (8 * M1.size() >= n) {
@@ -267,15 +266,15 @@ namespace Koala {
         }
     };
 
-    vector<set<int>> getSimpleComponents(const DynamicComponents& graph) {
-        int n = graph.size();
+    vector<set<int>> getSimpleComponents(const Graph& G, const MatrixXd& AG) {
+        int n = G.numberOfNodes();
 
         vector<bool> visited(n, false);
         vector<set<int>> connected;
         function<vector<int>(int)> edgesOf = [&](int u) {
             vector<int> edges;
             for (int v = 0; v < n; ++v) {
-                if (graph.G.hasEdge(u, v) && !eq(graph.AG(u, v), 0)) {
+                if (G.hasEdge(u, v) && !eq(AG(u, v), 0)) {
                     edges.push_back(v);
                 }
             }
@@ -290,13 +289,13 @@ namespace Koala {
         return connected;
     }
 
-    vector<set<int>> getConnectedComponents(const DynamicComponents& graph, vector<bool> visited) {
-        int n = graph.size();
+    vector<set<int>> getConnectedComponents(const Graph& G, vector<bool> visited) {
+        int n = G.numberOfNodes();
 
         vector<set<int>> connected;
         function<vector<int>(int)> edgesOf = [&](int u) {
             vector<int> edges;
-            graph.G.forEdgesOf(u, [&](int v) {
+            G.forEdgesOf(u, [&](int v) {
                 edges.push_back(v);
                 });
             return edges;
@@ -310,15 +309,15 @@ namespace Koala {
         return connected;
     }
 
-    set<int> getNontrivialClass(const DynamicComponents& graph) {
-        int n = graph.size();
+    set<int> getNontrivialClass(const MatrixXd& AG) {
+        int n = AG.cols();
 
         vector<bool> visited(n, false);
         set<int> S;
         function<vector<int>(int)> edgesOf = [&](int u) {
             vector<int> edges;
             for (int v = 0; v < n; ++v) {
-                if (eq(graph.AG(u, v), 0)) {
+                if (eq(AG(u, v), 0)) {
                     edges.push_back(v);
                 }
             }
@@ -327,7 +326,7 @@ namespace Koala {
 
         for (int u = 0; u < n; ++u) {
             for (int v = u + 1; v < n; ++v) {
-                if (eq(graph.AG(u, v), 0)) {
+                if (eq(AG(u, v), 0)) {
                     dfs(u, visited, S, edgesOf);
                     return S;
                 }
@@ -336,8 +335,8 @@ namespace Koala {
         return {};
     }
 
-    Partition partitionGraph(const DynamicComponents& graph, vector<set<int>>& components) {
-        int n = graph.size();
+    Partition partitionGraph(const Graph& G, vector<set<int>>& components) {
+        int n = G.numberOfNodes();
         int m = components.size();
 
         Partition partition;
@@ -356,23 +355,17 @@ namespace Koala {
                 i++;
             }
 
-            partition.subgraphs[c] = DynamicComponents(Graph(nc, false, false), MatrixXd::Zero(nc, nc));
+            partition.subgraphs[c] = Graph(nc, false, false);
         }
 
         // copy G
-        graph.G.forEdges([&](node u, node v) {
+        G.forEdges([&](node u, node v) {
             auto [cu, ui] = partition.componentMap[u];
             auto [cv, vi] = partition.componentMap[v];
             if (cu == cv) {
-                partition.subgraphs[cu].G.addEdge(ui, vi);
+                partition.subgraphs[cu].addEdge(ui, vi);
             }
             });
-
-        // create new AG
-        for (auto& subgraph : partition.subgraphs) {
-            MatrixXd AG = generateMatrix(subgraph.G);
-            subgraph.AG = AG.inverse();
-        }
 
         return partition;
     }
@@ -386,7 +379,7 @@ namespace Koala {
             AG(u, v) = Xuv;
             AG(v, u) = -Xuv;
             });
-        return AG;
+        return AG.inverse();
     }
 }
 

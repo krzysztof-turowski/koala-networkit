@@ -20,6 +20,5 @@ namespace Koala {
         int getLabel(int i) const;
 
         NetworKit::Graph G;
-        Eigen::MatrixXd AG;
     };
 }

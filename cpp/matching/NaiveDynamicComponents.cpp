@@ -10,14 +10,10 @@ using namespace std;
 
 namespace Koala {
     DynamicComponents::DynamicComponents() {}
-    DynamicComponents::DynamicComponents(const Graph& G, const MatrixXd& AG) : G(G), AG(AG) {}
+    DynamicComponents::DynamicComponents(const Graph& G, const MatrixXd& AG) : G(G) {}
 
     void DynamicComponents::addVertex(int count) {
         G.addNodes(count);
-
-        MatrixXd AG1 = MatrixXd::Zero(AG.rows() + count, AG.cols() + count);
-        AG1.topLeftCorner(AG.rows(), AG.cols()) = AG;
-        swap(AG, AG1);
     }
 
     void DynamicComponents::addVertex() {
@@ -26,25 +22,14 @@ namespace Koala {
 
     void DynamicComponents::removeVertex(int i) {
         G.removeNode(i);
-
-        int r = AG.rows(), c = AG.cols();
-        swap(AG.row(i), AG.row(c-1));
-        swap(AG.col(i), AG.col(r-1));
-        AG = AG.topLeftCorner(r-1, c-1);
     }
 
     void DynamicComponents::addEdge(int u, int v) {
         G.addEdge(node(u), node(v));
-
-        AG(u, v) = generateRandom();
-        AG(v, u) = -AG(u, v);
     }
 
     void DynamicComponents::removeEdge(int u, int v) {
         G.removeEdge(node(u), node(v));
-
-        AG(u, v) = 0;
-        AG(v, u) = 0;
     }
 
     int DynamicComponents::size() const {
