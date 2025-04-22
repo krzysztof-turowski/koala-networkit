@@ -1,8 +1,10 @@
 #include <cassert>
 #include <filesystem>
 #include <iostream>
+#include <ctime>
+#include <random>
 
-#include <matching/GaussianMatching.hpp>
+#include <matching/GeneralGaussianMatching.hpp>
 #include <io/DimacsGraphReader.hpp>
 
 int main(int argc, char** argv) {
@@ -17,20 +19,34 @@ int main(int argc, char** argv) {
     }
 
     auto G = Koala::DimacsGraphReader().read(path);
-    G.indexEdges(true);
-    Koala::GaussianMatching Gmatching(G, true);
-    Gmatching.run();
+    int n = G.numberOfNodes();
 
-    auto matching = Gmatching.getMatching();
-    int size = matching.size();
-    if (size >= G.numberOfNodes()) {
-        std::cout << "Perfect match (" << size << ")" << std::endl;
-    } else {
-        std::cout << "Maximum match (" << size << ")" << std::endl;
+    srand( atoi(argv[2]) );
+    Koala::GeneralGaussianMatching gen(G);
+    gen.run();
+
+    auto M = gen.getMatching();
+    if (M.size() != n / 2) {
+        std::cout << "Matching found size is incorrect: " << M.size() << "(instead of " << n/2 << ")\n";
+        return 1;
     }
-    
-    for (auto [u, v] : matching) {
-        std::cout << u << " " << v << std::endl;
+
+    std::vector<int> counts(n, 0);
+    for (auto [u, v] : M) {
+        counts[u]++;
+        counts[v]++;
+
+        if (!G.hasEdge(u, v)) {
+            std::cout << "Match (" << u << ", " << v << ") is not a correct edge\n";
+            return 2;
+        }
+    }
+
+    for (int v = 0; v < n; ++v) {
+        if (counts[v] != 1) {
+            std::cout << "Vertex " << v << "was matched " << counts[v] << "times\n";
+            return 3;
+        }
     }
 
     return 0;
