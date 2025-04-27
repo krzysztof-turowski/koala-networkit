@@ -2,6 +2,7 @@
 #include <iostream>
 #include <map>
 #include <set>
+#include <string>
 
 #include <networkit/graph/GraphTools.hpp>
 
@@ -19,9 +20,24 @@ NetworKit::edgeweight run_algorithm(NetworKit::Graph &G) {
     return spanning_tree.totalEdgeWeight();
 }
 
+template<>
+NetworKit::edgeweight run_algorithm<Koala::ChazelleRubinfeldTrevisanMinimumSpanningTree>(NetworKit::Graph &G) {
+    auto algorithm = Koala::ChazelleRubinfeldTrevisanMinimumSpanningTree(G);
+    float eps = 0.01;
+
+    int max_w = 0;
+    G.forEdges([&max_w](NetworKit::node, NetworKit::node, NetworKit::edgeweight ew, NetworKit::edgeid) {
+        max_w = std::max(max_w, static_cast<int>(ew));
+    });
+
+    algorithm.run(max_w, eps);
+    std::cout << algorithm.getTreeWeight() << " " << std::flush;
+    return algorithm.getTreeWeight();
+}
+
 std::map<std::string, int> ALGORITHM = {
     { "exact", 0 },
-    { "Kruskal", 1 }, { "Prim", 2 }, { "Boruvka", 3 }, { "KKT", 4 }
+    { "Kruskal", 1 }, { "Prim", 2 }, { "Boruvka", 3 }, { "KKT", 4 }, { "CRT", 5 }
 };
 
 void run_g6_tests(const std::string &path, const std::string &algorithm) {
@@ -60,6 +76,9 @@ void run_g6_tests(const std::string &path, const std::string &algorithm) {
             break;
         case 3:
             run_algorithm<Koala::BoruvkaMinimumSpanningTree>(G);
+            break;
+        case 5:
+            run_algorithm<Koala::ChazelleRubinfeldTrevisanMinimumSpanningTree>(G);
             break;
         }
         std::cout << std::endl;
