@@ -9,6 +9,14 @@
 
 #include <random>
 #include <ranges>
+#include <queue>
+#include <unordered_set>
+#include <algorithm>
+#include <unordered_map>
+#include <utility>
+#include <limits>
+#include <map>
+#include <vector>
 
 #include <networkit/auxiliary/Parallel.hpp>
 #include <networkit/components/ConnectedComponents.hpp>
@@ -434,6 +442,137 @@ void KargerKleinTarjanMinimumSpanningTree::remove_heavy_edges(
             G.removeEdge(u, v);
         }
     }
+}
+
+float ChazelleRubinfeldTrevisanMinimumSpanningTree::calculateApproximateDegree(float eps) const {
+    const int C = 100;
+    int d_est = 0;
+    std::uniform_int_distribution<int> distrib(0, graph->numberOfNodes() - 1);
+
+    for (int i = 0; i < C / eps; ++i) {
+        int v = distrib(generator);
+        d_est = std::max(d_est, static_cast<int>(graph->degreeOut(v)));
+    }
+    return d_est;
+}
+
+float ChazelleRubinfeldTrevisanMinimumSpanningTree::calculateApproximateCCsCount(float eps, int bfs_bound, unsigned int w, unsigned int w_bound) const {
+    int n = graph->numberOfNodes();
+    int r = 1/eps/eps + 1;
+    float estimate = 0;
+
+    float d_est = calculateApproximateDegree(eps);
+    std::uniform_int_distribution<int> distrib(0, n-1);
+
+    for (int i = 0; i < r; ++i) {
+        int u = distrib(generator);
+        float coin_flips = 0;
+        float b = 0;
+        int max_d = 0;
+        int visited_edges = 0;
+        std::unordered_set<int> vis;
+        std::queue<int> q;
+
+        if (graph->degreeOut(u) > d_est) {
+            continue;
+        }
+
+        int d_actual = 0;
+
+        graph->forEdgesOf(u, [this, w_bound, &d_actual](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight ew, NetworKit::edgeid id) {
+            if (ew > w_bound) {
+                return;
+            }
+            d_actual += 1;
+        });
+
+        // isolated vertex
+        if (d_actual == 0) {
+            // self loop
+            estimate += 2;
+            continue;
+        }
+
+
+        vis.insert(u);
+        graph->forEdgesOf(u, [this, w_bound, &visited_edges, &q](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight ew, NetworKit::edgeid id){
+            if (ew > w_bound) {
+                return;
+            }
+            q.push(v);
+            visited_edges += 1;
+        });
+
+        while (vis.size() < bfs_bound && max_d <= d_est) {
+            coin_flips += 1;
+            if (distribution(generator)) {
+                break;
+            }
+
+            int prev_visited_edges = 2*visited_edges;
+            while (!q.empty() && visited_edges <= prev_visited_edges) {
+                int v = q.front();
+                q.pop();
+
+                if (vis.contains(v)) {
+                    continue;
+                }
+                vis.insert(v);
+
+                graph->forEdgesOf(v, [this, w_bound, &visited_edges, &q, &vis](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight ew, NetworKit::edgeid id) {
+                    if (ew > w_bound) {
+                        return;
+                    }
+                    if (vis.contains(v)) {
+                        return;
+                    }
+                    q.push(v);
+                    visited_edges += 1;
+                });
+            }
+            if (q.empty()) {
+                if (visited_edges == 0) {
+                    b = 2;
+                } else {
+                    b = powl(2, coin_flips) * static_cast<float>(d_actual) / static_cast<float>(visited_edges);
+                }
+                break;
+            }
+        }
+
+        estimate += b;
+    }
+
+    return estimate * static_cast<float>(n) / 2.0f / r;
+}
+
+float ChazelleRubinfeldTrevisanMinimumSpanningTree::calculateApproximateTreeWeight(float eps, unsigned int w) const {
+    float approx = graph->numberOfNodes() - static_cast<float>(w);
+
+    for (int w_bound = 1; w_bound < w; ++w_bound) {
+        float ccs = calculateApproximateCCsCount(eps, 4/eps, w, w_bound);
+        approx += ccs;
+    }
+    return approx;
+}
+
+void ChazelleRubinfeldTrevisanMinimumSpanningTree::run() {
+    throw std::runtime_error("this function is a stub, use run with parameters instead.");
+}
+
+void ChazelleRubinfeldTrevisanMinimumSpanningTree::run(unsigned int w, float eps) {
+    assert(0 < eps && eps < 0.5);
+    assert(0 < w);
+
+    treeWeight = calculateApproximateTreeWeight(eps, w);
+}
+
+const NetworKit::Graph& ChazelleRubinfeldTrevisanMinimumSpanningTree::getForest() const {
+    throw std::runtime_error("getForest method not supported for approximate MST algorithm. Try getTreeWeight");
+}
+
+float ChazelleRubinfeldTrevisanMinimumSpanningTree::getTreeWeight() const {
+    return treeWeight;
 }
 
 void MinimumSpanningTree::check() const {

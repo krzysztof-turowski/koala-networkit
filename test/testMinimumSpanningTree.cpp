@@ -31,6 +31,32 @@ class MinimumSpanningTreeTest : public testing::TestWithParam<SpanningTreeParame
         EXPECT_EQ(parameters.N - 1, mst.getForest().numberOfEdges());
         EXPECT_EQ(tree_weight, parameters.treeWeight);
     }
+
+    void test_approximate_mst() {
+        SpanningTreeParameters const& parameters = GetParam();
+        auto G = build_graph(parameters.N, parameters.EW, false);
+        auto mst = Algorithm(G);
+        
+        int max_w = 0;
+        G.forEdges([&max_w](NetworKit::node, NetworKit::node, NetworKit::edgeweight ew, NetworKit::edgeid) {
+            max_w = std::max(max_w, static_cast<int>(ew));
+        });
+        
+        for (float eps : std::array{0.005f, 0.01f, 0.025f, 0.05f, 0.15f, 0.25f, 0.35f, 0.45f}){
+            mst.run(max_w, eps);
+            float tree_weight = mst.getTreeWeight();
+
+            // Logging information as this is an approxmiate algorithm
+            // and the tests may be not pass in rare cases.
+            std::cout << "Approx MST with eps = " << eps << std::endl;
+            std::cout << "expected tree weight: " << parameters.treeWeight << std::endl;
+            std::cout << "algorithm got: " << tree_weight << std::endl;
+            std::cout << "-------------------------------" << std::endl;
+            
+            EXPECT_TRUE(parameters.treeWeight * (1 - eps) <= tree_weight);
+            EXPECT_TRUE(parameters.treeWeight * (1 + eps) >= tree_weight);
+        }
+    }
 };
 
 auto example_trees = testing::Values(
@@ -64,3 +90,12 @@ TEST_P(KargerKleinTarjanMinimumSpanningTreeTest, test_example) {
 }
 
 INSTANTIATE_TEST_SUITE_P(test_example, KargerKleinTarjanMinimumSpanningTreeTest, example_trees);
+
+class ChazelleRubinfeldTrevisanMinimumSpanningTreeTest
+    : public MinimumSpanningTreeTest<Koala::ChazelleRubinfeldTrevisanMinimumSpanningTree> { };
+
+TEST_P(ChazelleRubinfeldTrevisanMinimumSpanningTreeTest, test_example) {
+    test_approximate_mst();
+}
+
+INSTANTIATE_TEST_SUITE_P(test_example, ChazelleRubinfeldTrevisanMinimumSpanningTreeTest, example_trees);
