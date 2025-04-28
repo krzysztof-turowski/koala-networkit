@@ -99,25 +99,23 @@ void SuccessiveApproxMCC::refine() {
         }
     }
 
-    while (active.size()) {
-        push_relabel(*active.begin());
-    }
+    wave();
 }
 
 void SuccessiveApproxMCC::wave() {
-    DischargeList list = ToposortList(*this);
+    DischargeList* list = new ToposortList(*this);
 
-    NetworKit::node v = list.getNext();
+    NetworKit::node v = list->getNext();
     while (active.size()) {
         if (excess[v] > 0) {
             bool relabeled = discharge(v);
             if (relabeled) {
-                list.moveToStart();
+                list->moveToStart();
             }
         }
-        v = list.getNext();
+        v = list->getNext();
     }
-
+    delete list;
 }
 
 bool SuccessiveApproxMCC::discharge(NetworKit::node const& v) {
@@ -167,7 +165,7 @@ void SuccessiveApproxMCC::runImpl() {
     */
 
     while (epsi >= 1.0/graph.numberOfNodes()) {
-        wave();
+        refine();
         print_flows(flow);
     }
 
@@ -186,15 +184,16 @@ void SuccessiveApproxMCC::runImpl() {
 
 SuccessiveApproxMCC::ToposortList::ToposortList(
     SuccessiveApproxMCC &approx) : approx(approx) {
+    vis.clear();
     for (auto v : approx.graph.nodeRange()) {
-        dfs(v);
+        if(!vis[v]) dfs(v);
     }
     it2 = nodes.begin();
 }
 
 void SuccessiveApproxMCC::ToposortList::dfs(NetworKit::node v){
     vis[v] = true;
-    
+
     for (auto w : approx.graph.neighborRange(v)) {
         if (approx.cp(v,w) < 0 && approx.uf(v,w) > 0) {
             if (!vis[w]) {
@@ -206,6 +205,7 @@ void SuccessiveApproxMCC::ToposortList::dfs(NetworKit::node v){
 }
 
 NetworKit::node SuccessiveApproxMCC::ToposortList::getNext() {
+    // std::cerr<<"NEXT\n";
     if (it2 != nodes.end()) {
         it1 = it2;
         it2++;
@@ -218,6 +218,7 @@ NetworKit::node SuccessiveApproxMCC::ToposortList::getNext() {
 
 void SuccessiveApproxMCC::ToposortList::moveToStart() {
     if (it1 != nodes.end()) {
+        
         NetworKit::node value = *it1;
         nodes.erase(it1);
         nodes.push_front(value);

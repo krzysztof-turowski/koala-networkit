@@ -38,15 +38,16 @@ class SuccessiveApproxMCC : public MinimumCostFlow {
 
     class DischargeList {
      public:
-        virtual NetworKit::node getNext();
-        virtual void moveToStart();
+        virtual NetworKit::node getNext() { return 0; }
+        virtual void moveToStart() {}
     };
 
     class ToposortList : public DischargeList {
+     public:
         ToposortList(SuccessiveApproxMCC&);
         
-        NetworKit::node getNext();
-        void moveToStart();
+        NetworKit::node getNext() override;
+        void moveToStart() override;
      private:
         SuccessiveApproxMCC &approx;
         std::list<NetworKit::node> nodes;
