@@ -4,4 +4,6 @@ koala_add_module(flow
     maximum_flow/DynamicTree.cpp
     maximum_flow/dynamic_tree/dyn_tree.cpp
     maximum_flow/dynamic_tree/dyn_splay.cpp
+    MinimumCostFlow.cpp
+    minimum_cost_flow/SuccessiveApproxMCC.cpp
 )
