@@ -1,5 +1,6 @@
 #include "planar_sssp/FredericksonPlanarSSSP.hpp"
 #include "planar_sssp/PlanarUtils.hpp"
+#include "planar_sssp/TopologyBasedHeap.hpp"
 
 #include <set>
 #include <unordered_map>
@@ -7,6 +8,8 @@
 #include <networkit/graph/GraphTools.hpp>
 #include <networkit/graph/BFS.hpp>
 #include <networkit/graph/DFS.hpp>
+#include <networkit/distance/Dijkstra.hpp>
+#include<networkit/distance/MultiTargetDijkstra.hpp>
 #include <stdexcept>
 #include <cmath>
 #include <algorithm>
@@ -587,13 +590,69 @@ namespace Koala {
         return makeSuitableGraphDivisionFromQueue(queue, Graph, r);
     }
 
-    using pairDistance_t = std::vector<std::vector<NetworKit::count>>;
+    using pairDistance_t = std::unordered_map<std::pair<int, int>, int, boost::hash<std::pair<int, int>>>;;
     std::vector<pairDistance_t>  getDistancebetweenBoundryNodesLevel2(NetworKit::Graph Graph, nodeSubsets_t division) {
+        std::vector<pairDistance_t> result;
+
+        std::vector<int> regionCount(Graph.numberOfNodes(), 0);
+
+        for (int i = 0; i < division.size(); i++) {
+            for (auto node : division[i]) {
+                regionCount[node]++;
+            }
+        }
+        for (int i = 0; i < Graph.numberOfNodes(); i++) {
+            if (regionCount[i] > 1) {
+                isBoundry[i] = 1;
+            }
+        }
+
+        for (int r = 0; r < division.size(); r++) {
+            auto& region = division[r];
+            auto subGraph = NetworKit::GraphTools::subgraphFromNodes(Graph,
+                std::unordered_set<NetworKit::node> {region.begin(), region.end()});
+            std::vector<NetworKit::node> boundry;
+
+            for (auto node : region) {
+                if (isBoundry[node]) {
+                    boundry.push_back(node);
+                }
+            }
+
+            for (int i = 0; i < boundry.size(); i++) {
+                NetworKit::MultiTargetDijkstra dij(Graph, boundry[i], boundry.begin(), boundry.end());
+                dij.run();
+                auto map = dij.getTargetIndexMap();
+                auto distances = dij.getDistances();
+                for (int j = 0; j < boundry.size(); j++) {
+                    result[r][{boundry[i], boundry[j]}] = distances[map[boundry[j]]];
+                    result[r][{boundry[j], boundry[i]}] = distances[map[boundry[j]]];
+                }
+            }
+        }
+        return result;
+    }
+
+
+    void mopUp(std::vector<int>& shortestDistance, nodeSubsets_t& regions, int s, int t) {
 
     }
 
-    int mainThrust(NetworKit::Graph& Graph, int s, int t) {
+    int mainThrust(NetworKit::Graph& Graph, nodeSubsets_t& regions, std::vector<pairDistance_t>& distances, int s, int t) {
+        std::vector<int> shortestDistance(Graph.numberOfNodes(), -1);
 
+        TopologyHeap heap(Graph, regions, distances, s);
+
+        while (!heap.empty()) {
+            auto [distance, node] = heap.top();
+            shortestDistance[node] = distance;
+            heap.closeNode(node);
+        }
+
+        mopUp(shortestDistance, regions, s, t);
+
+        //TODO improve the mopUp function to calculate distance to all the nodes
+        return shortestDistance[t];
     }
 
     void FredericksonPlanarSSSP::run() {
@@ -605,9 +664,9 @@ namespace Koala {
         auto division = findSuitableRDivision(normal_graph, r);
         isBoundry.assign(normal_graph.numberOfNodes(), 0);
 
-        getDistancebetweenBoundryNodesLevel2(graph, division);
+        auto distances = getDistancebetweenBoundryNodesLevel2(graph, division);
 
-        distanceToTarget = mainThrust(normal_graph, source, target);
+        distanceToTarget = mainThrust(normal_graph, division, distances, source, target);
 
         hasRun = true;
         distanceToTarget = 5;
