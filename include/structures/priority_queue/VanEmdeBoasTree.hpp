@@ -13,6 +13,7 @@
 #include <vector>
 #include <memory>
 #include <optional>
+#include <type_traits>
 
 namespace Koala {
 
@@ -21,33 +22,37 @@ namespace Koala {
  * 
  * The class implements a priority queue using a Van Emde Boas tree.
  */
-class VanEmdeBoasTree : public PriorityQueue<int> {
+template <class Key, class Compare = std::less<Key>>
+class VanEmdeBoasTree : public PriorityQueue<Key, Compare> {
+    static_assert(std::is_unsigned_v<Key>, "VanEmdeBoasTree only supports unsigned integer keys.");
+
 public:
-    VanEmdeBoasTree(int universeSize)
+    explicit VanEmdeBoasTree(Key universeSize)
         : universeSize(universeSize), 
-          clusterSize(static_cast<int>(std::ceil(std::sqrt(universeSize)))),
-          minValue(-1), maxValue(-1) {
+          clusterSize(static_cast<Key>(std::ceil(std::sqrt(universeSize)))),
+          minValue(std::nullopt), 
+          maxValue(std::nullopt) {
         clusters.resize(clusterSize);
     }
 
-    int pop() override {
+    Key pop() override {
         if (isEmpty()) {
             throw std::runtime_error("Priority queue is empty");
         }
-        int extractedMin = minValue;
-        remove(minValue);
+        Key extractedMin = *minValue;
+        remove(*minValue);
         return extractedMin;
     }
 
-    int peek() const override {
+    Key peek() const override {
         if (isEmpty()) {
             throw std::runtime_error("Priority queue is empty");
         }
-        return minValue;
+        return *minValue;
     }
 
-    void push(const int& key) override {
-        if (key < 0 || key >= universeSize) {
+    void push(const Key& key) override {
+        if (key >= universeSize) {
             throw std::out_of_range("Key is out of range");
         }
         insert(key);
@@ -58,82 +63,74 @@ public:
     }
 
 private:
-    int universeSize;
-    int clusterSize;
-    int minValue, maxValue;
+    const Key universeSize;
+    const Key clusterSize;
+    std::optional<Key> minValue, maxValue;
     std::optional<std::unique_ptr<VanEmdeBoasTree>> summaryTree;
     std::vector<std::optional<std::unique_ptr<VanEmdeBoasTree>>> clusters;
 
-    /**
-     * Returns the high bits (cluster index) of a key.
-     */
-    int high(int x) const {
+    Key high(Key x) const {
         return x / clusterSize;
     }
 
-    /**
-     * Returns the low bits (position within cluster) of a key.
-     */
-    int low(int x) const {
+    Key low(Key x) const {
         return x % clusterSize;
     }
 
-    /**
-     * Combines high and low to form a key.
-     */
-    int index(int high, int low) const {
+    Key index(Key high, Key low) const {
         return high * clusterSize + low;
     }
 
     bool isEmpty() const {
-        return minValue == -1;
+        return !minValue.has_value();
     }
 
-    void insert(int x) {
+    void insert(Key x) {
         if (isEmpty()) {
             minValue = maxValue = x;
             return;
         }
-        
-        if (x < minValue) {
-            std::swap(x, minValue);
+
+        if (x < *minValue) {
+            std::swap(x, *minValue);
         }
-        
+
         if (universeSize > 2) {
-            int clusterIndex = high(x);
-            int position = low(x);
-            
+            Key clusterIndex = high(x);
+            Key position = low(x);
+
             if (!clusters[clusterIndex].has_value()) {
                 clusters[clusterIndex] = std::make_unique<VanEmdeBoasTree>(clusterSize);
             }
-            
+
             if (!summaryTree.has_value()) {
                 summaryTree = std::make_unique<VanEmdeBoasTree>(clusterSize);
             }
-            
+
             if (clusters[clusterIndex].value()->isEmpty()) {
                 summaryTree.value()->insert(clusterIndex);
-                clusters[clusterIndex].value()->minValue = clusters[clusterIndex].value()->maxValue = position;
+                clusters[clusterIndex].value()->minValue = position;
+                clusters[clusterIndex].value()->maxValue = position;
             } else {
                 clusters[clusterIndex].value()->insert(position);
             }
         }
-        
-        if (x > maxValue) {
+
+        if (x > *maxValue) {
             maxValue = x;
         }
     }
 
-    void remove(int x) {
+    void remove(Key x) {
         if (isEmpty()) {
             return;
         }
-        
-        if (minValue == maxValue) {
-            minValue = maxValue = -1;
+
+        if (*minValue == *maxValue) {
+            minValue = maxValue = std::nullopt;
             return;
         }
-        
+
         if (universeSize <= 2) {
             if (x == 0) {
                 minValue = 1;
@@ -143,37 +140,37 @@ private:
             maxValue = minValue;
             return;
         }
-        
-        if (x == minValue) {
-            int firstCluster = summaryTree.value()->minValue;
-            int firstClusterMin = clusters[firstCluster].value()->minValue;
+
+        if (x == *minValue) {
+            Key firstCluster = summaryTree.value()->minValue.value();
+            Key firstClusterMin = clusters[firstCluster].value()->minValue.value();
 
             minValue = index(firstCluster, firstClusterMin);
             clusters[firstCluster].value()->remove(firstClusterMin);
-            
+
             if (clusters[firstCluster].value()->isEmpty()) {
                 summaryTree.value()->remove(firstCluster);
             }
         } else {
-            int clusterIndex = high(x);
-            int position = low(x);
-            
+            Key clusterIndex = high(x);
+            Key position = low(x);
+
             clusters[clusterIndex].value()->remove(position);
-            
+
             if (clusters[clusterIndex].value()->isEmpty()) {
                 summaryTree.value()->remove(clusterIndex);
             }
         }
-        
-        if (x == maxValue) {
+
+        if (x == *maxValue) {
             if (summaryTree.value()->isEmpty()) {
                 maxValue = minValue;
             } else {
-                int lastCluster = summaryTree.value()->maxValue;
-                maxValue = index(lastCluster, clusters[lastCluster].value()->maxValue);
+                Key lastCluster = summaryTree.value()->maxValue.value();
+                maxValue = index(lastCluster, clusters[lastCluster].value()->maxValue.value());
             }
         }
     }
 };
 
-} // namespace Koala
+}  // namespace Koala

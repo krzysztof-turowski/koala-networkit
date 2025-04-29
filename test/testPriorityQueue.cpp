@@ -6,10 +6,10 @@
 #include <memory>
 #include <string>
 
-class IntPriorityQueueTest :
-    public testing::TestWithParam<std::shared_ptr<Koala::PriorityQueue<int>>> {
+class IntegerPriorityQueueTest :
+    public testing::TestWithParam<std::shared_ptr<Koala::PriorityQueue<uint32_t>>> {
  protected:
-    std::shared_ptr<Koala::PriorityQueue<int>> queue;
+    std::shared_ptr<Koala::PriorityQueue<uint32_t>> queue;
 
     void SetUp() override {
         queue = GetParam();
@@ -17,64 +17,66 @@ class IntPriorityQueueTest :
 };
 
 INSTANTIATE_TEST_SUITE_P(
-    IntPriorityQueue,
-    IntPriorityQueueTest,
+    IntegerPriorityQueue,
+    IntegerPriorityQueueTest,
     testing::Values(
-        std::make_shared<Koala::VanEmdeBoasTree>(1024)
-        // TODO: Add X-fast Trie, Y-fast Trie, Fusion Tree
+        std::make_shared<Koala::VanEmdeBoasTree<uint32_t>>(1024)
+        // TODO(jkukowski): Add X-fast Trie, Y-fast Trie, Fusion Tree
     )
 );
 
-TEST_P(IntPriorityQueueTest, PushPopIncreasing) {
-    const int MAX = 1000;
-    for (int i = 0; i < MAX; i++) {
+TEST_P(IntegerPriorityQueueTest, PushPopIncreasing) {
+    const uint32_t MAX = 1000;
+    for (uint32_t i = 0; i < MAX; i++) {
         queue->push(i);
         ASSERT_FALSE(queue->empty());
     }
-    for (int i = 0; i < MAX; i++) {
+    for (uint32_t i = 0; i < MAX; i++) {
         ASSERT_EQ(queue->peek(), i);
         ASSERT_EQ(queue->pop(), i);
     }
     ASSERT_TRUE(queue->empty());
 }
 
-TEST_P(IntPriorityQueueTest, PushPopDecreasing) {
-    const int MAX = 1000;
-    for (int i = MAX - 1; i >= 0; i--) {
+TEST_P(IntegerPriorityQueueTest, PushPopDecreasing) {
+    const uint32_t MAX = 1000;
+    uint32_t i = MAX;
+    do {
+        i--;
         queue->push(i);
         ASSERT_FALSE(queue->empty());
-    }
-    for (int i = 0; i < MAX; i++) {
+    } while (i > 0);
+    for (uint32_t i = 0; i < MAX; i++) {
         ASSERT_EQ(queue->peek(), i);
         ASSERT_EQ(queue->pop(), i);
     }
     ASSERT_TRUE(queue->empty());
 }
 
-TEST_P(IntPriorityQueueTest, PeekEmptyThrows) {
+TEST_P(IntegerPriorityQueueTest, PeekEmptyThrows) {
     ASSERT_TRUE(queue->empty());
     ASSERT_THROW(queue->peek(), std::runtime_error);
 }
 
-TEST_P(IntPriorityQueueTest, PopEmptyThrows) {
+TEST_P(IntegerPriorityQueueTest, PopEmptyThrows) {
     ASSERT_TRUE(queue->empty());
     ASSERT_THROW(queue->pop(), std::runtime_error);
 }
 
-TEST_P(IntPriorityQueueTest, PushPopRandomOrder) {
-    std::vector<int> values = {5, 1, 9, 3, 7};
-    for (int value : values) {
+TEST_P(IntegerPriorityQueueTest, PushPopRandomOrder) {
+    std::vector<uint32_t> values = {5, 1, 9, 3, 7};
+    for (uint32_t value : values) {
         queue->push(value);
     }
     std::sort(values.begin(), values.end());
-    for (int value : values) {
+    for (uint32_t value : values) {
         ASSERT_EQ(queue->peek(), value);
         ASSERT_EQ(queue->pop(), value);
     }
     ASSERT_TRUE(queue->empty());
 }
 
-// TODO: Add generic priority queues (Brodal Queue, Weak Heap)
+// TODO(jkukowski): Add generic priority queues (Brodal Queue, Weak Heap)
 template <typename T>
 class GenericPriorityQueueTest : public testing::Test {
  protected:
