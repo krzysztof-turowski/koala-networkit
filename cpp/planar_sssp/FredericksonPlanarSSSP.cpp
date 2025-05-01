@@ -9,7 +9,7 @@
 #include <networkit/graph/BFS.hpp>
 #include <networkit/graph/DFS.hpp>
 #include <networkit/distance/Dijkstra.hpp>
-#include<networkit/distance/MultiTargetDijkstra.hpp>
+#include <networkit/distance/MultiTargetDijkstra.hpp>
 #include <stdexcept>
 #include <cmath>
 #include <algorithm>
@@ -591,8 +591,9 @@ namespace Koala {
     }
 
     using pairDistance_t = std::unordered_map<std::pair<int, int>, int, boost::hash<std::pair<int, int>>>;;
-    std::vector<pairDistance_t>  getDistancebetweenBoundryNodesLevel2(NetworKit::Graph Graph, nodeSubsets_t division) {
-        std::vector<pairDistance_t> result;
+    pairDistance_t  getDistancebetweenBoundryNodesLevel2(NetworKit::Graph Graph, nodeSubsets_t division) {
+        std::vector<pairDistance_t> resultPerRegion;
+        pairDistance_t result;
 
         std::vector<int> regionCount(Graph.numberOfNodes(), 0);
 
@@ -620,13 +621,24 @@ namespace Koala {
             }
 
             for (int i = 0; i < boundry.size(); i++) {
-                NetworKit::MultiTargetDijkstra dij(Graph, boundry[i], boundry.begin(), boundry.end());
+                NetworKit::MultiTargetDijkstra dij(subGraph, boundry[i], boundry.begin(), boundry.end());
                 dij.run();
                 auto map = dij.getTargetIndexMap();
                 auto distances = dij.getDistances();
                 for (int j = 0; j < boundry.size(); j++) {
-                    result[r][{boundry[i], boundry[j]}] = distances[map[boundry[j]]];
-                    result[r][{boundry[j], boundry[i]}] = distances[map[boundry[j]]];
+                    resultPerRegion[r][{boundry[i], boundry[j]}] = distances[map[boundry[j]]];
+                    resultPerRegion[r][{boundry[j], boundry[i]}] = distances[map[boundry[j]]];
+                }
+            }
+        }
+
+        for (auto pairs : resultPerRegion) {
+            for (auto [p, dist] : pairs) {
+                if (result.contains(p)) {
+                    result[p] = std::min(result[p], dist);
+                }
+                else {
+                    result[p] = dist;
                 }
             }
         }
@@ -638,7 +650,7 @@ namespace Koala {
 
     }
 
-    int mainThrust(NetworKit::Graph& Graph, nodeSubsets_t& regions, std::vector<pairDistance_t>& distances, int s, int t) {
+    int mainThrust(NetworKit::Graph& Graph, nodeSubsets_t& regions, pairDistance_t& distances, int s, int t) {
         std::vector<int> shortestDistance(Graph.numberOfNodes(), -1);
 
         TopologyHeap heap(Graph, regions, distances, s);
@@ -659,12 +671,14 @@ namespace Koala {
         printGraph(graph);
         normal_graph = convertToMaxDegree3(graph);
         printGraph(normal_graph);
+
         isBoundry.assign(normal_graph.numberOfNodes(), 0);
         int r = log(normal_graph.numberOfNodes());
+
         auto division = findSuitableRDivision(normal_graph, r);
         isBoundry.assign(normal_graph.numberOfNodes(), 0);
 
-        auto distances = getDistancebetweenBoundryNodesLevel2(graph, division);
+        auto distances = getDistancebetweenBoundryNodesLevel2(normal_graph, division);
 
         distanceToTarget = mainThrust(normal_graph, division, distances, source, target);
 

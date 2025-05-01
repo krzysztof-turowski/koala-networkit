@@ -17,16 +17,30 @@ namespace Koala {
 
         bool empty();
 
-        TopologyHeap(NetworKit::Graph& graph, nodeSubsets_t& regions, std::vector<pairDistance_t>& distances, int source);
+        TopologyHeap(NetworKit::Graph& graph, nodeSubsets_t& regions, pairDistance_t& distances, int source);
 
     private:
+        void initializeStorage();
+        void batchUpdate(int batch, NetworKit::node node);
+        void fixIndex(int i);
+        void initialDistances();
+
+        static const int INF = std::numeric_limits<int>::max(); //TODO rewrite logic to handle double
+
         NetworKit::node source;
         NetworKit::node target;
-        NetworKit::count distanceToTarget = 0;
+
         NetworKit::Graph& graph;
-        nodeSubsets_t regions;
-        std::vector<pairDistance_t> distances;
+        nodeSubsets_t& regions;
+        pairDistance_t& distances;
+        std::vector<int> nodeStorageIdx;
+        std::vector<std::vector<int>> nodeRegions;
+        std::vector<std::vector<int>> batches;
+        std::vector<std::vector<int>> regionBatches;
+        std::vector<std::vector<int>> sortedBoudryNodeRegions;
+
         int size;
+        int storageSize;
         std::vector <std::pair<NetworKit::count, NetworKit::node>> storage;
     };
 
