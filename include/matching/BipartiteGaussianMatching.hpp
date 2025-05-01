@@ -8,19 +8,20 @@ typedef std::set<std::pair<int, int>> Matching;
 
 namespace Koala {
     class BipartiteGaussianMatching {
-    friend class BpTest;
+        friend class BpTest;
 
     public:
         BipartiteGaussianMatching(const NetworKit::Graph& G);
         void run();
         Matching getMatching();
 
-    // private:
+        // private:
         NetworKit::Graph G;
         Eigen::MatrixXd AG;
         Matching M;
 
         std::vector<int> U, V;
-        std::vector<int> newIdx;
+        std::vector<int> bpIdx;
+        std::vector<int> oldIdx;
     };
 }

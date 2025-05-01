@@ -14,23 +14,29 @@ namespace Koala {
     bool dfs(const Graph& G, int v, vector<int>& colors);
     pair<vector<int>, vector<int>> getComponents(const Graph& G);
 
-    BipartiteGaussianMatching::BipartiteGaussianMatching(const Graph& G) : G(G) {
-        auto UV = getComponents(G);
+    BipartiteGaussianMatching::BipartiteGaussianMatching(const Graph& G1) {
+        auto [_G, _oldIdx] = reindexGraph(G1);
+        G = _G;
+        oldIdx = _oldIdx;
 
+        auto UV = getComponents(G);
         U = UV.first, V = UV.second;
-        newIdx.resize(G.numberOfNodes());
+        
+        bpIdx.resize(G.numberOfNodes());
         for (int i = 0; i < U.size(); ++i) {
-            newIdx[U[i]] = i;
+            bpIdx[U[i]] = i;
         }
         for (int i = 0; i < V.size(); ++i) {
-            newIdx[V[i]] = i;
+            bpIdx[V[i]] = i;
         }
     };
 
     Matching BipartiteGaussianMatching::getMatching() {
         Matching M1;
-        for (auto [ui, vi]: M) {
-            M1.insert({U[ui], V[vi]});
+        for (auto [ui, vi] : M) {
+            int u = oldIdx[U[ui]];
+            int v = oldIdx[V[vi]];
+            M1.insert({ u,v });
         }
         return M1;
     }
@@ -40,8 +46,8 @@ namespace Koala {
         AG = ArrayXXd::Zero(n, n);
         for (auto& u : U) {
             G.forEdgesOf(u, [&](int v) {
-                int ui = newIdx[u], vi = newIdx[v];
-                double Xuv = generateRandom();
+                int ui = bpIdx[u], vi = bpIdx[v];
+                auto Xuv = generateRandom();
                 AG(ui, vi) = Xuv;
                 });
         }

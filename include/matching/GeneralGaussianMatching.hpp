@@ -13,9 +13,11 @@ namespace Koala {
         void run();
         Matching getMatching();
 
-    // private:
+        // private:
         NetworKit::Graph G;
         Eigen::MatrixXd AG;
         Matching M;
+
+        std::vector<int> oldIdx;
     };
 }

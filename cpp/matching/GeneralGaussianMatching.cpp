@@ -2,32 +2,20 @@
 #include <matching/GaussElimination.hpp>
 #include <matching/utils.hpp>
 #include <matching/BipartiteGaussianMatching.hpp>
+#include <matching/DynamicComponents.hpp>
 
 #include <set>
 #include <map>
 
 #include <Eigen/Dense>
+#include <networkit/graph/GraphTools.hpp>
 
 using namespace std;
 using namespace Eigen;
 using namespace NetworKit;
 
 namespace Koala {
-    struct Partition {
-        vector<Graph> subgraphs;
-        vector<pair<int, int>> componentMap; // v -> c,i
-        vector<vector<int>> components;
-
-        int getLabel(int c, int i) {
-            return components[c][i];
-        }
-
-        pair<int, int> getComponent(int v) {
-            return componentMap[v];
-        }
-    };
-
-    Partition partitionGraph(const Graph& graph, vector<set<int>>& components);
+    void dfs(int u, vector<bool>& visited, set<int>& connected, function<vector<int>(int)> edgesOf);
     vector<set<int>> getSimpleComponents(const Graph& graph, const MatrixXd& AG);
     vector<set<int>> getConnectedComponents(const Graph& graph, vector<bool> visited);
     set<int> getNontrivialClass(const MatrixXd& AG);
@@ -38,15 +26,25 @@ namespace Koala {
     Matching simplePartition(const Graph& graph, const MatrixXd& AG);
     MatrixXd generateMatrix(const Graph& G);
 
-    GeneralGaussianMatching::GeneralGaussianMatching(const Graph& G) : G(G) {};
+    GeneralGaussianMatching::GeneralGaussianMatching(const Graph& G1) {
+        if (G1.numberOfNodes() == 0) return;
+        auto [_G, _oldIdx] = reindexGraph(G1);
+        G = _G;
+        oldIdx = _oldIdx;
+    };
 
     void GeneralGaussianMatching::run() {
+        if (G.numberOfNodes() == 0) return;
         MatrixXd AG = generateMatrix(G);
         M = generalMatching(G, AG);
     }
 
     Matching GeneralGaussianMatching::getMatching() {
-        return M;
+        Matching M1;
+        for (auto [u, v] : M) {
+            M1.insert({ oldIdx[u], oldIdx[v] });
+        }
+        return M1;
     }
 
 
@@ -102,128 +100,239 @@ namespace Koala {
     }
 
     Matching partition(const Graph& G, const MatrixXd& AG) {
-        int n = AG.cols();
+        cout << "PARTITION G:" << G.numberOfNodes() << endl;
+        int n = G.numberOfNodes();
 
         auto components = getSimpleComponents(G, AG);
-        auto partition = partitionGraph(G, components);
-
-        Matching M;
-        for (int c = 0; c < partition.subgraphs.size(); ++c) {
-            auto Gc = partition.subgraphs[c];
-            auto AGc = generateMatrix(Gc);
-            auto M1 = simplePartition(Gc, AGc);
-            for (auto [ui, vi] : M1) {
-                int u = partition.getLabel(c, ui);
-                int v = partition.getLabel(c, vi);
-                M.insert({ u,v });
-            }
+        vector<pair<Graph, vector<int>>> subgraphs(components.size());
+        for (int i = 0; i < components.size(); ++i) {
+            subgraphs[i] = reindexGraph(GraphTools::subgraphFromNodes(G, components[i].begin(), components[i].end()));
         }
 
+        Matching M;
+        cout << "Partition of " << subgraphs.size() << " simple components" << endl;
+        for (int c = 0; c < subgraphs.size(); ++c) {
+            auto [Gc, oldIdx] = subgraphs[c];
+            auto AGc = generateMatrix(Gc);
+            auto M1 = simplePartition(Gc, AGc);
+
+            assert(M1.size() == Gc.numberOfNodes() / 2);
+            for (auto [u1, v1] : M1) {
+                int u = oldIdx[u1], v = oldIdx[v1];
+                M.insert({ u, v });
+
+                assert(u != v);
+                assert(components[c].find(u) != components[c].end());
+                assert(components[c].find(v) != components[c].end());
+            }
+        }
+        assert(M.size() == G.numberOfNodes() / 2);
         return M;
     }
 
     Matching simplePartition(const Graph& G, const MatrixXd& AG) {
+        cout << "SIMPLE_PARTITION G:" << endl;
+
+        Matching M;
+        DynamicComponents DC(G);
+
         auto Sv = getNontrivialClass(AG);
-        if (Sv.size() == 0) {
-            return greedyMatching(G); // TODO
+        if (Sv.size() == 0) { 
+            GeneralGaussianMatching gen(G);
+            gen.run();
+            M = gen.getMatching();
+            assert(M.size() == G.numberOfNodes() / 2);
+            return M;
+            // return M;
         }
+        int sSize = Sv.size();
         vector<bool> isInS(G.numberOfNodes(), false);
         for (auto v : Sv) {
             isInS[v] = true;
         }
 
-        // Components of C1...Ck of G-S and S
-        auto components = getConnectedComponents(G, isInS);
-        components.push_back(Sv);
-        auto partition = partitionGraph(G, components);
+        set<int> Tv;
+        for (auto sv : Sv) {
+            G.forNeighborsOf(sv, [&](node t) {
+                DC.removeEdge(sv, t);
+                if (!isInS[t]) Tv.insert(t);
+                });
+        }
 
-        auto S = partition.subgraphs.back();
-        int sSize = S.numberOfNodes();
-        assert(sSize == partition.subgraphs.size() - 1); // |{C1, C2, ...}| = sSize = |S|
-
-        // Contract Ci to single vertex
-        S.addNodes(sSize);
-        G.forEdges([&](node u, node v) {
-            if (isInS[u] && isInS[v]) {
-                auto [cu, ui] = partition.getComponent(u);
-                auto [cv, vi] = partition.getComponent(v);
-                S.removeEdge(ui, vi);
-            } else if (isInS[u] != isInS[v]) {
-                int w = isInS[u] ? v : u;
-                int s = isInS[u] ? u : v;
-
-                auto [cw, wi] = partition.getComponent(w);
-                auto [sw, si] = partition.getComponent(s);
-                S.addEdge(si, sSize + cw);
+        // Get largest component of G\S
+        int maxComponentSize = 0, maxComponentV;
+        for (auto t : Tv) {
+            int s = DC.getComponentSize(t);
+            if (s > maxComponentSize) {
+                maxComponentSize = s;
+                maxComponentV = t;
             }
-            });
+        }
 
-        // Get the matching of S and contracted ci
-        auto bpMatch = BipartiteGaussianMatching(S);
-        bpMatch.run();
-        auto matchS = bpMatch.getMatching();
+        // Get vertices of smaller component that were connected to S
+        set<int> Dv;
+        for (auto u : Tv) {
+            if (!DC.isConnected(maxComponentV, u)) {
+                Dv.insert(u);
+            }
+        }
 
-        Matching M;
-        for (auto [si, ci] : matchS) {
-            // si has lower index than a contracted vertex ci
-            if (si > ci) swap(si, ci);
-            int s = partition.getLabel(sSize, si);
-            int c = ci - sSize;
+        // Get vertices of all components of G\S and S
+        vector<set<int>> components({ {} });
+        for (auto v : G.nodeRange()) components[0].insert(v);
+        for (auto v : Sv) components[0].erase(v);
 
-            // get some neighbor of s from component c
-            int v = -1;
-            G.forEdgesOf(s, [&](node u) {
-                if (partition.getComponent(u).first == c) {
-                    v = u;
+        for (auto v : Dv) {
+            components.push_back(set<int>({}));
+            auto& comp = components[components.size() - 1];
+
+            vector<bool> visited(G.numberOfNodes(), false);
+            dfs(v, visited, comp, [&](int u) {
+                auto it = DC.G.neighborRange(u);
+                return vector<int>(it.begin(), it.end());
+                });
+            for (auto v : comp) components[0].erase(v);
+        }
+
+        int s = DC.G.addNode();
+        for (auto v : Tv) {
+            DC.addEdge(s, v);
+        }
+        for (auto& comp : components) {
+            comp.insert(s);
+        }
+        components.push_back(Sv);
+
+        vector<int> componentOf(G.numberOfNodes());
+        for (int i = 0; auto& comp :components) {
+            for (auto v : comp) {
+                if (v == G.numberOfNodes()) continue;
+                componentOf[v] = i;
+            }
+            i++;
+        }
+
+        vector<Graph> subgraphs(components.size());
+        for (int i = 0; i < components.size(); ++i) {
+            subgraphs[i] = GraphTools::subgraphFromNodes(DC.G, components[i].begin(), components[i].end());
+        }
+        auto& SG = subgraphs[sSize];
+        auto& C1G = subgraphs[0];
+
+        // Match the biggest component
+        cout << "Match C0 component" << endl;
+        GeneralGaussianMatching genC1(C1G); // TODO non-trivial class
+        genC1.run();
+        auto MC1 = genC1.getMatching();
+        assert(MC1.size() == C1G.numberOfNodes() / 2);
+        for (auto [u, v] : MC1) assert(u != v);
+
+
+        // Remove vertex matched with the contracted biggest component
+        cout << "Removed s matched with C0" << endl;
+        for (auto [u, v] : MC1) {
+            cout << u << ' ' << v << ' ' << s << endl;
+            if (u == s || v == s) {
+                int cv = v == s ? u : v;
+                for (auto sv : Sv) {
+                    if (G.hasEdge(cv, sv)) {
+                        assert(sv != G.numberOfNodes());
+                        assert(cv != G.numberOfNodes());
+                        M.insert({ cv, sv });
+                        SG.removeNode(sv);
+                        Sv.erase(sv);
+                        break;
+                    }
                 }
-                });
-            assert(v != -1);
+            } else {
+                assert(u != G.numberOfNodes());
+                assert(v != G.numberOfNodes());
+                M.insert({ u,v });
+            }
+        }
+        assert(Sv.size() == sSize - 1);
 
-            M.insert({ s,v });
+        // Create a graph of S and a contracted vertex for each of the smaller components of G\S
+        cout << "contract smaller components" << endl;
+        vector<int> contractedNodes(sSize);
+        map<int, int> contractedComponents;
+        for (int i = 1; i < sSize; ++i) {
+            int v = SG.addNode();
+            contractedNodes[i] = v;
+            contractedComponents[v] = i;
+        }
+        for (auto v : Dv) {
+            for (int i = 0; auto sv : Sv) {
+                int cv = componentOf[v];
+                if (cv == 0) continue;
+                if (G.hasEdge(sv, v))
+                SG.addEdge(sv, contractedNodes[cv]);
+            }
+        }
 
-            auto Gc = partition.subgraphs[c];
-            if (Gc.numberOfNodes() == 1)
-                continue;
+        cout << "bp matching of S:" << endl;
+        BipartiteGaussianMatching bpS(SG);
+        bpS.run();
+        auto MS = bpS.getMatching();
+        assert(MS.size() == SG.numberOfNodes() / 2);
+        for (auto [u, v] : MS) assert(u != v);
 
-            // Swap v and the last node for quick delete
-            int vi = partition.getComponent(v).second;
-            int ui = partition.components[c].size() - 1;
-            int u = partition.getLabel(c, ui);
+        // Eliminated matched vertex s with some vertex from corresponding smaller component
+        cout << "Add matching from S:" << endl;
+        for (auto [s, cv] : MS) {
+             if (contractedComponents.find(cv) == contractedComponents.end())
+                swap(s, cv);
 
-            Gc.forEdgesOf(vi, [&](int wi) {
-                Gc.removeEdge(vi, wi);
-                });
-            Gc.forEdgesOf(ui, [&](int wi) {
-                if (vi == wi) return;
-                Gc.addEdge(vi, wi);
-                });
-            Gc.removeNode(ui);
+            int c = contractedComponents[cv];
+        }
+        for (auto [s, cv] : MS) {
+            if (contractedComponents.find(cv) == contractedComponents.end())
+                swap(s, cv);
+            assert(contractedComponents.find(cv) != contractedComponents.end());
 
-            partition.components[c][vi] = u;
-            partition.components[c].pop_back();
-            partition.componentMap[u] = { c, vi };
-            partition.componentMap[v] = { -1, -1 };
+            int c = contractedComponents[cv];
+            for (auto v : components[c]) {
+                if (G.hasEdge(s, v)) {
+                    M.insert({ s, v });
+                    subgraphs[c].removeNode(v);
+                    subgraphs[c].removeNode(s);
+                    components[c].erase(v);
+                    break;
+                }
+                assert(false);
+            }
+        }
 
-            // Match the rest of component c
-            auto genMatch = GeneralGaussianMatching(Gc);
-            genMatch.run();
-            auto matchC = genMatch.getMatching();
-
-            for (auto [ui, vi] : matchC) {
-                int u = partition.getLabel(c, ui);
-                int v = partition.getLabel(c, vi);
+        // Match smaller components
+        for (int i = 1; i < sSize; ++i) {
+            auto& SCi = subgraphs[i];
+            cout << "Match C" << i << endl;
+            GeneralGaussianMatching gen(SCi);
+            gen.run();
+            auto MCi = gen.getMatching();
+            assert(MCi.size() == SCi.numberOfNodes() / 2);
+            for (auto [u, v] : MCi) assert(u != v);
+            for (auto [u, v] : MCi) {
+                assert(u != G.numberOfNodes());
+                assert(v != G.numberOfNodes());
                 M.insert({ u,v });
             }
         }
 
+        assert(M.size() == G.numberOfNodes()/2);
         return M;
     }
 
     Matching generalMatching(const Graph& G, const MatrixXd& AG) {
+        cout << "GENERAL_MATCHING G:" << G.numberOfNodes() << endl;
+
         int n = G.numberOfNodes();
         if (n == 0) return {};
 
         Matching M = greedyMatching(G);
+        if (M.size() == n / 2) {
+            return M;
+        }
         Matching M1 = getMaximalMatching(AG, M);
 
         vector<set<int>> components(2, set<int>());
@@ -237,8 +346,7 @@ namespace Koala {
             }
         }
 
-        auto part = partitionGraph(G, components);
-        auto G1 = part.subgraphs[1];
+        auto [G1, oldIdx] = reindexGraph(GraphTools::subgraphFromNodes(G, components[1].begin(), components[1].end()));
         auto AG1 = generateMatrix(G1);
 
         Matching M2;
@@ -247,17 +355,16 @@ namespace Koala {
         } else {
             M2 = partition(G1, AG1);
         }
-
-        for (auto [ui, vi] : M2) {
-            M1.insert({ part.getLabel(1, ui), part.getLabel(1, vi) });
+        assert(M2.size() == G1.numberOfNodes() / 2);
+        for (auto [u, v] : M2) {
+            assert(u != v);
+            M1.insert({ oldIdx[u], oldIdx[v] });
         }
-
         return M1;
     }
 
 
-    // TODO: move to some utils
-    void dfs(int u, vector<bool>& visited, set<int>& connected, function<vector<int>(int)>& edgesOf) {
+    void dfs(int u, vector<bool>& visited, set<int>& connected, function<vector<int>(int)> edgesOf) {
         visited[u] = true;
         connected.insert(u);
         for (auto v : edgesOf(u)) {
@@ -273,11 +380,9 @@ namespace Koala {
         vector<set<int>> connected;
         function<vector<int>(int)> edgesOf = [&](int u) {
             vector<int> edges;
-            for (int v = 0; v < n; ++v) {
-                if (G.hasEdge(u, v) && !eq(AG(u, v), 0)) {
-                    edges.push_back(v);
-                }
-            }
+            G.forNeighborsOf(u, [&](int v) {
+                if (!eq(AG(u, v), 0)) edges.push_back(v);
+                });
             return edges;
             };
 
@@ -335,47 +440,12 @@ namespace Koala {
         return {};
     }
 
-    Partition partitionGraph(const Graph& G, vector<set<int>>& components) {
-        int n = G.numberOfNodes();
-        int m = components.size();
-
-        Partition partition;
-        partition.subgraphs.resize(m);
-        partition.componentMap.resize(n);
-        partition.components.resize(m);
-
-        for (int c = 0; c < m; ++c) {
-            int nc = components[c].size();
-            partition.components[c].resize(nc);
-
-            int i = 0;
-            for (auto& v : components[c]) {
-                partition.componentMap[v] = { c, i };
-                partition.components[c][i] = v;
-                i++;
-            }
-
-            partition.subgraphs[c] = Graph(nc, false, false);
-        }
-
-        // copy G
-        G.forEdges([&](node u, node v) {
-            auto [cu, ui] = partition.componentMap[u];
-            auto [cv, vi] = partition.componentMap[v];
-            if (cu == cv) {
-                partition.subgraphs[cu].addEdge(ui, vi);
-            }
-            });
-
-        return partition;
-    }
-
     MatrixXd generateMatrix(const Graph& G) {
         int n = G.numberOfNodes();
 
         MatrixXd AG = ArrayXXd::Zero(n, n);
         G.forEdges([&](node u, node v) {
-            double Xuv = generateRandom();
+            auto Xuv = generateRandom();
             AG(u, v) = Xuv;
             AG(v, u) = -Xuv;
             });
