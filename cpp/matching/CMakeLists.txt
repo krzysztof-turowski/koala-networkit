@@ -1,8 +1,9 @@
 koala_add_module(matching
-    # NaiveGaussianMatching.cpp
-    NaiveGaussElimination.cpp
-    NaiveDynamicComponents.cpp
     BipartiteGaussianMatching.cpp
     GeneralGaussianMatching.cpp
-    # LazyGauss.cpp
+    
+    # NaiveGaussElimination.cpp
+    LazyGaussElimination.cpp
+
+    NaiveDynamicComponents.cpp
 )
