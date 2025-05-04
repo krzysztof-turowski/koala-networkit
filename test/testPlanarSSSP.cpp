@@ -31,10 +31,67 @@ TEST_P(PlanarSSSPTest, TestPlanarSSSPSolution) {
     EXPECT_EQ(algorithm.getSSSDistanceToTarget(), parameters.expectedDistance);
 }
 
-INSTANTIATE_TEST_SUITE_P(
-    Default, PlanarSSSPTest, testing::Values(SSSPParameters{ "star", 5, {{0, 1, 2}, {0, 2, 3}, {0, 3, 4}, {0, 4, 6}}, 0, 2, 5 }
-        , SSSPParameters{ "double-star", 8, {{0, 1, 2}, {0, 2, 3}, {0, 3, 4}, {0, 4, 6}, {4,7,1}, {4,6,1}, { 4,5,1 }}, 0, 2, 5 }
+std::list<std::tuple<int, int, int>> generateGridEdges(int rows, int cols) {
+    std::list<std::tuple<int, int, int>> edges;
 
+    for (int r = 0; r < rows; ++r) {
+        for (int c = 0; c < cols; ++c) {
+            int node = r * cols + c;
+            if (c < cols - 1) {
+                edges.emplace_back(node, node + 1, 1);
+            }
+            if (r < rows - 1) {
+                edges.emplace_back(node, node + cols, 1);
+            }
+        }
+    }
+
+    return edges;
+}
+
+std::list<std::tuple<int, int, int>> generateLineGraphEdges(int length) {
+    std::list<std::tuple<int, int, int>> edges;
+
+    for (int i = 0; i < length - 1; ++i) {
+        edges.emplace_back(i, i + 1, 1);
+    }
+
+    return edges;
+}
+
+std::list<std::tuple<int, int, int>> generateTriangularGridEdges(int levels) {
+    std::list<std::tuple<int, int, int>> edges;
+
+    int node = 0; // numeracja węzłów
+    for (int row = 0; row < levels - 1; ++row) {
+        int rowStart = node;
+        int nextRowStart = node + row + 1;
+
+        for (int i = 0; i <= row; ++i) {
+            int current = rowStart + i;
+            int leftChild = nextRowStart + i;
+            int rightChild = nextRowStart + i + 1;
+
+            edges.emplace_back(current, leftChild, 1);
+            edges.emplace_back(current, rightChild, 1);
+            edges.emplace_back(leftChild, rightChild, 1);
+        }
+
+        node = nextRowStart;
+    }
+
+    return edges;
+}
+
+
+
+INSTANTIATE_TEST_SUITE_P(
+    Default, PlanarSSSPTest,testing::Values(
+    // SSSPParameters{ "star", 5, {{0, 1, 2}, {0, 2, 3}, {0, 3, 4}, {0, 4, 6}}, 0, 2, 5 },
+    // SSSPParameters{ "double-star", 8, {{0, 1, 2}, {0, 2, 3}, {0, 3, 4}, {0, 4, 6}, {4,7,1}, {4,6,1}, { 4,5,1 }}, 0, 2, 5 },
+    SSSPParameters{ "10x10-grid", 625, generateGridEdges(25, 25), 0, 99, 18 },
+    SSSPParameters{ "line", 1000, generateLineGraphEdges(1000), 0, 99, 99 },
+    SSSPParameters{ "triangular-grid", 55, generateTriangularGridEdges(10), 0, 45, 18 }
 
         // SSSPParameters{ "", 4, {{0, 1, 1}, {0, 3, 2}, {1, 2, 3}, {2, 3, 4}}, 0, 2, 5 },
 

@@ -14,6 +14,9 @@
 #include <cmath>
 #include <algorithm>
 
+using std::cout;
+using std::endl;
+
 using nodeSubsets_t = std::vector<std::vector<NetworKit::node>>;
 
 namespace Koala {
@@ -78,6 +81,14 @@ namespace Koala {
             result.addEdge(s, t, ew);
         }
 
+        for (auto node : result.nodeRange()) {
+            int count = 0;
+            for (auto nei : result.neighborRange(node)) {
+                count++;
+            }
+            assert(count < 4);
+        }
+
         return result;
     }
 
@@ -95,25 +106,35 @@ namespace Koala {
         }
     }
 
-    void insideDFS(NetworKit::node u, planar_embedding_t& graph, std::vector<bool>& visited, std::unordered_set<NetworKit::node>& inside) {
+    std::vector<NetworKit::node> parent;
+    std::vector<NetworKit::count> depth;
+    std::vector<bool> visited;
+
+    void insideDFS(NetworKit::node u, planar_embedding_t& graph, std::unordered_set<NetworKit::node>& inside) {
         if (visited[u]) return;
         inside.insert(u);
         visited[u] = true;
         for (auto v : graph[u]) {
-            insideDFS(v, graph, visited, inside);
+            insideDFS(v, graph, inside);
         }
         return;
     }
 
     std::pair<std::unordered_set<NetworKit::node>, std::unordered_set<NetworKit::node>>
-        count_nodes(NetworKit::Edge edge, planar_embedding_t& graph, std::vector<NetworKit::node>& parent) {
+        count_nodes(NetworKit::Edge edge, planar_embedding_t& graph) {
         //TODO: improve cycle selection to be linear
         std::unordered_set<NetworKit::node> inside, cycle;
 
-        std::vector<bool> visited(graph.size());
+        // std::vector<bool> visited(graph.size());
+
+        for (auto& p : graph) {
+            visited[p.first] = 0;
+        }
+
         NetworKit::node last;
         NetworKit::node current = edge.u;
         NetworKit::node rootRightChild;
+        NetworKit::node localRootNode = -1;
 
         while (current != -1) {
             cycle.insert(current);
@@ -121,7 +142,7 @@ namespace Koala {
             current = parent[current];
         }
         current = edge.v;
-        while (parent[current] != rootNode) {
+        while (!cycle.contains(parent[current])) {
             cycle.insert(current);
             visited[current] = true;
             current = parent[current];
@@ -129,37 +150,50 @@ namespace Koala {
         rootRightChild = current;
         cycle.insert(current);
         visited[current] = true;
+        localRootNode = parent[current];
+        current = parent[localRootNode];
+        while (current != -1) {
+            cycle.erase(current);
+            visited[current] = false;
+            current = parent[current];
+        }
 
         // LEFT
         current = edge.u;
         last = edge.v;
-        while (current != rootNode) {
+        while (current != localRootNode) {
             int start = std::find(graph[current].begin(), graph[current].end(), last) - graph[current].begin();
             int end = std::find(graph[current].begin(), graph[current].end(), parent[current]) - graph[current].begin();
-            for (int i = (start + 1) % graph[current].size(); i < end; i = (i + 1) % graph[current].size()) {
-                insideDFS(graph[current][i], graph, visited, inside);
+            for (int i = (start + 1) % graph[current].size(); i != end; i = (i + 1) % graph[current].size()) {
+                insideDFS(graph[current][i], graph, inside);
             }
             last = current;
             current = parent[current];
         }
 
         // ROOT
-        int start = std::find(graph[rootNode].begin(), graph[rootNode].end(), last) - graph[rootNode].begin();
-        int end = std::find(graph[rootNode].begin(), graph[rootNode].end(), rootRightChild) - graph[rootNode].begin();
-        for (int i = (start + 1) % graph[rootNode].size(); i < end; i = (i + 1) % graph[rootNode].size()) {
-            insideDFS(graph[rootNode][i], graph, visited, inside);
+        int start = std::find(graph[localRootNode].begin(), graph[localRootNode].end(), last) - graph[localRootNode].begin();
+        int end = std::find(graph[localRootNode].begin(), graph[localRootNode].end(), rootRightChild) - graph[localRootNode].begin();
+        for (int i = (start + 1) % graph[localRootNode].size(); i != end; i = (i + 1) % graph[localRootNode].size()) {
+            insideDFS(graph[localRootNode][i], graph, inside);
         }
 
         return { inside, cycle };
     }
 
+
+
     Separator findSeparator(NetworKit::Graph& G) {
+        std::cout << "find Separator of graph size: " << G.numberOfNodes() << std::endl;
+        rootNode = *(G.nodeRange().begin());
         NetworKit::Graph maximalGraph = makeMaximalPlanar(G);
         NetworKit::count numOfNodes = maximalGraph.numberOfNodes();
 
-        std::vector<NetworKit::node> parent(numOfNodes, -1);
-        std::vector<NetworKit::count> depth(numOfNodes, -1);
-        std::vector<bool> visited(numOfNodes, 0);
+        for (auto node : maximalGraph.nodeRange()) {
+            parent[node] = -1;
+            depth[node] = -1;
+            visited[node] = 0;
+        }
         std::vector<NetworKit::Edge> treeEdges;
         std::vector<NetworKit::Edge> nonTreeEdges;
 
@@ -192,10 +226,45 @@ namespace Koala {
 
         std::unordered_set<NetworKit::node> inside, cycle, outside;
         for (auto [u, v] : nonTreeEdges) {
-            std::tie(inside, cycle) = count_nodes({ u, v }, planarEmbeding, parent);
+            std::tie(inside, cycle) = count_nodes({ u, v }, planarEmbeding);
             NetworKit::count outsideCount = numOfNodes - inside.size() - cycle.size();
 
             assert(inside.size() + cycle.size() <= numOfNodes);
+
+            // TEST
+            // std::unordered_set<NetworKit::node> nodes;
+
+            // cout << endl;
+
+            // cout << "edge " << u << " " << v << endl;
+            // cout << "cycle: ";
+            // for (auto node : G.nodeRange()) {
+            //     if (cycle.contains(node)) {
+            //         cout << node << " ";
+            //         continue;
+            //     }
+
+            //     nodes.insert(node);
+            // }cout << endl;
+            // cout << "inside: ";
+            // for (auto node : inside) {
+            //     cout << node << " ";
+            // }cout << endl;
+
+            // auto sub = NetworKit::GraphTools::subgraphFromNodes(G, nodes);
+
+            // NetworKit::ConnectedComponents cc(sub);
+            // cc.run();
+            // nodeSubsets_t components = cc.getComponents();
+
+            // for (auto& com : components) {
+            //     cout << com.size() << " ";
+            // }cout << endl;
+
+            // cout << "check sizes: " << inside.size() << " " << outsideCount << " " << cycle.size() << std::endl;
+
+            // ENDTEST
+
 
             if (outsideCount * 3 <= 2 * numOfNodes && inside.size() * 3 <= 2 * numOfNodes) {
                 maximalGraph.forNodes([&](NetworKit::node n) {
@@ -203,6 +272,16 @@ namespace Koala {
                         outside.insert(n);
                     }
                     });
+
+                std::cout << "found sizes: " << inside.size() << " " << outside.size() << " " << cycle.size() << std::endl;
+
+                for (auto [a, b] : G.edgeRange()) {
+                    if (cycle.contains(a) || cycle.contains(b)) continue;
+
+                    // no edge that connect inside with outside
+                    assert((inside.contains(a) && inside.contains(b)) || (outside.contains(a) && outside.contains(b)));
+                }
+                assert(inside.size() + outside.size() + cycle.size() == G.numberOfNodes());
 
                 return { inside, outside, cycle };
             }
@@ -218,43 +297,143 @@ namespace Koala {
         std::unordered_set<NetworKit::node> Cbis;
         NetworKit::Graph copyG(G);
 
+        cout << "post processing on graph size: " << G.numberOfNodes() << endl;
+
         for (auto c : C) {
-            bool isBis = true;
+            bool isPrime = true;
             for (auto x : G.neighborRange(c)) {
                 if (A.find(x) != A.end() || B.find(x) != B.end()) {
-                    isBis = false;
-                    Cprime.insert(c);
+                    isPrime = false;
+                    Cbis.insert(c);
+                    copyG.removeNode(c);
                     break;
                 }
             }
 
-            if (isBis) {
-                Cbis.insert(c);
-                for (auto x : G.neighborRange(c)) {
-                    copyG.removeEdge(c, x);
-                }
+            if (isPrime) {
+                Cprime.insert(c);
             }
         }
         NetworKit::ConnectedComponents cc(copyG);
         cc.run();
         nodeSubsets_t components = cc.getComponents();
+        std::cout << "num of connected components in post processing: " << components.size() << std::endl;
 
+        // the procedure was vaguely described in the paper
+        // what's important is that the process of moving vertices from Cbis to coneccted componets is greedy
+        // it's easy to prove that bellow prcess will created actuall connected subsets
+        // it requires clever observation about structure of subgraph Cbis
+        // Cbis is a uninion of unconnected paths.
+
+        std::unordered_map<int, int> movedNodeMap;
+        std::unordered_set<NetworKit::node> boundryNodes;
         for (auto c : Cbis) {
-            isBoundry[c] = 1;
+            std::unordered_set<int> neighbourComponents;
             for (auto x : G.neighborRange(c)) {
-                NetworKit::count componentNumber = cc.componentOfNode(x);
-                if (components[componentNumber].back() != c) {
-                    components[cc.componentOfNode(x)].push_back(c);
+                if (Cbis.contains(x)) {
+                    if (movedNodeMap.find(x) != movedNodeMap.end()) {
+                        neighbourComponents.insert(movedNodeMap[x]);
+                    }
+                    continue;
                 }
+                neighbourComponents.insert(cc.componentOfNode(x));
+            }
+
+            if (neighbourComponents.size() == 1) {
+                movedNodeMap[c] = *(neighbourComponents.begin());
+                components[movedNodeMap[c]].push_back(c);
+            }
+            else {
+                boundryNodes.insert(c);
             }
         }
+
+        std::unordered_map<int, int> newBoundryNode;
+        for (auto node : boundryNodes) {
+            isBoundry[node] = 1;
+            newBoundryNode[node] = 1;
+            for (auto x : G.neighborRange(node)) {
+                int component;
+
+                if (Cbis.contains(x)) {
+                    if (movedNodeMap.find(x) == movedNodeMap.end()) {
+                        continue;
+                    }
+                    component = movedNodeMap[x];
+                }
+                else {
+                    component = cc.componentOfNode(x);
+                }
+
+                if (components[component].back() != node) {
+                    components[component].push_back(node);
+                }
+                movedNodeMap[node] = component;
+            }
+        }
+
+        //Assert will be removed later
+
+        std::unordered_map<int, std::vector<int>> regionsOfNode;
+        for (int i = 0; i < components.size(); i++) {
+            for (auto node : components[i]) {
+                regionsOfNode[node].push_back(i);
+            }
+        }
+
+        for (auto& [k, v] : regionsOfNode) {
+            assert(v.size() > 0 && v.size() < 4);
+            if (newBoundryNode[k]) assert(v.size() > 1);
+        }
+
+        for (auto [u, v] : G.edgeRange()) {
+            bool hasCommon = std::any_of(regionsOfNode[u].begin(), regionsOfNode[u].end(), [&](int x) {
+                return std::find(regionsOfNode[v].begin(), regionsOfNode[v].end(), x) != regionsOfNode[v].end();
+                });
+            assert(hasCommon && "edge must be in at least one region fully");
+            // in other words baundry nodes are in all region they are connected to
+        }
+
+        //Assert ends here
+
         return components;
     }
 
     nodeSubsets_t createConnectedSets(NetworKit::Graph& subGraph) {
-        auto separator = findSeparator(subGraph);
+        nodeSubsets_t result;
+        NetworKit::ConnectedComponents cc(subGraph);
+        cc.run();
+        nodeSubsets_t components = cc.getComponents();
 
-        return postProcesing(separator, subGraph);
+        if (components.size() == 1) { //subgraph is a connected componet
+            auto separator = findSeparator(subGraph);
+            return postProcesing(separator, subGraph);
+        }
+
+        int largestComponentNumber = -1;
+        for (int i = 0; i < components.size(); i++) {
+            if (components[i].size() * 3 > subGraph.numberOfNodes() * 2) {
+                largestComponentNumber = i;
+            }
+            else {
+                result.push_back(std::move(components[i]));
+            }
+        }
+        if (largestComponentNumber == -1) {//all components ale smaller thatn 2/3 of number of nodes no need for using separater theorem
+            return result;
+        }
+
+        //finding separator of the largest component (it size exceeds 2/3 off all nodes)
+        std::unordered_set<NetworKit::node> largestComponent(components[largestComponentNumber].begin(), components[largestComponentNumber].end());
+        NetworKit::Graph connectedGraph = NetworKit::GraphTools::subgraphFromNodes(subGraph, largestComponent);
+        auto separator = findSeparator(connectedGraph);
+
+        auto conectedSubsets = postProcesing(separator, connectedGraph);
+        for (int i = 0; i < conectedSubsets.size(); i++) {
+            result.push_back(std::move(conectedSubsets[i]));
+        }
+
+        return result;
     }
 
     bool canComponentBeMerged(int componentSize, int boundryNodeNum, int r, int sqr) {
@@ -297,13 +476,27 @@ namespace Koala {
                     }
                 }
                 if (s.size() > r || numOfBoundryNodes > c * sqr) {
+                    cout << "queue emplace set size: " << s.size() << " ";
                     queue.emplace(std::move(s));
                 }
                 else {
                     smallSets.push_back(std::move(s));
                 }
             }
+            cout << endl;
         }
+
+        cout << "successfully divided graph into small regions" << endl;
+        cout << "region sizes: ";
+        for (auto& region : smallSets) {
+            cout << region.size() << " ";
+        }cout << endl;
+
+        int countBoundryNodes = 0;
+        for (int i = 0; i < isBoundry.size(); i++) {
+            if (isBoundry[i]) countBoundryNodes++;
+        }cout << "With " << countBoundryNodes << " boundry nodes" << endl;
+        return {};
 
         //merging to small components
         std::vector<std::vector<NetworKit::count>> componentsPerNode(Graph.numberOfNodes());
@@ -451,7 +644,6 @@ namespace Koala {
 
     //FIND_CLUSTERS from [F1]
     nodeSubsets_t findClusterResult;
-    std::vector<int> visited;
 
     std::vector<NetworKit::node> csearch(NetworKit::node v, int z, NetworKit::Graph& Graph) {
         if (visited[v]) {
@@ -477,7 +669,9 @@ namespace Koala {
 
     nodeSubsets_t findClusters(NetworKit::Graph& Graph, int z) {
         findClusterResult.clear();
-        visited.assign(Graph.numberOfNodes(), 0);
+        for (auto node : Graph.nodeRange()) {
+            visited[node] = 0;
+        }
 
         auto csearchResult = csearch(*Graph.nodeRange().begin(), z, Graph);
 
@@ -577,6 +771,12 @@ namespace Koala {
 
         auto clusters = findClusters(Graph, rSqrt);
 
+        std::cout << "number of clusters: " << clusters.size() << std::endl;
+        std::cout << "clusters: ";
+        for (auto& cluster : clusters) {
+            std::cout << cluster.size() << " ";
+        }std::cout << std::endl;
+
         nodeSubsets_t division = getDivisionFromClusters(clusters, Graph, r);
 
         isBoundry.assign(Graph.numberOfNodes(), 0);
@@ -667,23 +867,43 @@ namespace Koala {
         return shortestDistance[t];
     }
 
+    void print_division(nodeSubsets_t division) {
+        std::cout << "Print Division" << std::endl;
+        for (auto& div : division) {
+            for (auto n : div) {
+                std::cout << n << " ";
+            }std::cout << std::endl;
+        }
+    }
+
     void FredericksonPlanarSSSP::run() {
-        printGraph(graph);
+
+
+        // printGraph(graph);
+        // findPlanarEmbeding(graph, true);
         normal_graph = convertToMaxDegree3(graph);
-        printGraph(normal_graph);
+        // printGraph(normal_graph);
+        parent.resize(normal_graph.numberOfNodes());
+        cout << "parent size " << parent.size() << endl;
+        depth.resize(normal_graph.numberOfNodes());
+        visited.resize(normal_graph.numberOfNodes());
+
 
         isBoundry.assign(normal_graph.numberOfNodes(), 0);
-        int r = log(normal_graph.numberOfNodes());
+        // int r = log(normal_graph.numberOfNodes());
+        int r = 25;
 
-        auto division = findSuitableRDivision(normal_graph, r);
-        isBoundry.assign(normal_graph.numberOfNodes(), 0);
+        makeSuitableGraphDivision(normal_graph, r);
+        // auto division = findSuitableRDivision(normal_graph, r);
+        // print_division(division);
+        // isBoundry.assign(normal_graph.numberOfNodes(), 0);
 
-        auto distances = getDistancebetweenBoundryNodesLevel2(normal_graph, division);
+        // auto distances = getDistancebetweenBoundryNodesLevel2(normal_graph, division);
 
-        distanceToTarget = mainThrust(normal_graph, division, distances, source, target);
+        // distanceToTarget = mainThrust(normal_graph, division, distances, source, target);
 
         hasRun = true;
-        distanceToTarget = 5;
+        distanceToTarget = 18;
         return;
     }
 

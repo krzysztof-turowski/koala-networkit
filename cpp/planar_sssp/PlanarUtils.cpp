@@ -42,8 +42,8 @@ namespace Koala {
     }
 
 
-    NetworKit::Graph convertBoostToNetworKit(BoostGraph G, std::vector<NetworKit::node> nodeMap) {
-        NetworKit::Graph result(num_vertices(G));
+    NetworKit::Graph convertBoostToNetworKit(BoostGraph G, std::vector<NetworKit::node> nodeMap, NetworKit::Graph Graph) {
+        NetworKit::Graph result(Graph);
 
         for (auto [ei, ei_end] = edges(G); ei != ei_end; ++ei) {
             auto u = source(*ei, G);
@@ -54,21 +54,18 @@ namespace Koala {
         return result;
     }
 
-    void printEmbeding(const embedding_storage_t& embedding_storage,
+    void printEmbeding(const planar_embedding_t& embedding_storage,
         const BoostGraph& boostGraph) {
-        for (size_t i = 0; i < embedding_storage.size(); ++i) {
-            std::cout << "Vertex " << i << ": ";
-            for (const auto& edge : embedding_storage[i]) {
-                if (source(edge, boostGraph) == i)
-                    std::cout << target(edge, boostGraph) << " ";
-                else
-                    std::cout << source(edge, boostGraph) << " ";
+        for (auto [k, v] : embedding_storage) {
+            std::cout << "Vertex " << k << ": ";
+            for (auto x : v) {
+                std::cout << x << " ";
             }
-            std::cout << "\n";
+            std::cout << std::endl;
         }
     }
 
-    planar_embedding_t findPlanarEmbeding(const NetworKit::Graph& G) {
+    planar_embedding_t findPlanarEmbeding(const NetworKit::Graph& G, bool verbose = false) {
         auto [boostGraph, nodeMap] = convertNetworKitToBoost(G);
         embedding_storage_t embedding_storage(num_vertices(boostGraph));
         embedding_t embedding(embedding_storage.begin(),
@@ -86,11 +83,17 @@ namespace Koala {
         for (int i = 0; i < embedding_storage.size(); i++) {
             for (auto& edge : embedding_storage[i]) {
                 NetworKit::node node = source(edge, boostGraph) == i ? target(edge, boostGraph) : source(edge, boostGraph);
-                result[nodeMap[i]].push_back(nodeMap[node]);
+                if (result[nodeMap[i]].empty() || result[nodeMap[i]].back() != nodeMap[node]) {
+                    result[nodeMap[i]].push_back(nodeMap[node]);
+                }
+
             }
         }
 
-        printEmbeding(embedding_storage, boostGraph);
+        if (verbose) {
+            printEmbeding(result, boostGraph);
+        }
+
         return result;
     }
 
@@ -128,7 +131,7 @@ namespace Koala {
         for (boost::tie(ei, ei_end) = edges(g); ei != ei_end; ++ei)
             put(e_index, *ei, edge_count++);
 
-        return convertBoostToNetworKit(g, nodeMap);
+        return convertBoostToNetworKit(g, nodeMap, G);
     }
 
 }
