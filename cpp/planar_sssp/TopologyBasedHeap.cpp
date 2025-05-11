@@ -25,7 +25,7 @@ namespace Koala {
     void TopologyHeap::initialDistances() {
         //initial distances to boundry nodes from source
 
-        if (nodeRegions[source].size() > 1) {//is boundry node distances are already calculated
+        if (nodeRegions[source].size() > 1) {//boundry node distances are already calculated
             storage[nodeStorageIdx[source]].first = 0;
             return;
         }
