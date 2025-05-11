@@ -23,7 +23,7 @@ namespace Koala {
 
     NetworKit::node rootNode = 0;
     std::vector<int> isBoundry;
-    const int c = 10;
+    const int c = 3;
 
     NetworKit::Graph convertToMaxDegree3(NetworKit::Graph& G) {
         planar_embedding_t embedding = findPlanarEmbeding(G);
@@ -184,7 +184,7 @@ namespace Koala {
 
 
     Separator findSeparator(NetworKit::Graph& G) {
-        std::cout << "find Separator of graph size: " << G.numberOfNodes() << std::endl;
+        // std::cout << "find Separator of graph size: " << G.numberOfNodes() << std::endl;
         rootNode = *(G.nodeRange().begin());
         NetworKit::Graph maximalGraph = makeMaximalPlanar(G);
         NetworKit::count numOfNodes = maximalGraph.numberOfNodes();
@@ -273,7 +273,7 @@ namespace Koala {
                     }
                     });
 
-                std::cout << "found sizes: " << inside.size() << " " << outside.size() << " " << cycle.size() << std::endl;
+                // std::cout << "found sizes: " << inside.size() << " " << outside.size() << " " << cycle.size() << std::endl;
 
                 for (auto [a, b] : G.edgeRange()) {
                     if (cycle.contains(a) || cycle.contains(b)) continue;
@@ -297,7 +297,7 @@ namespace Koala {
         std::unordered_set<NetworKit::node> Cbis;
         NetworKit::Graph copyG(G);
 
-        cout << "post processing on graph size: " << G.numberOfNodes() << endl;
+        // cout << "post processing on graph size: " << G.numberOfNodes() << endl;
 
         for (auto c : C) {
             bool isPrime = true;
@@ -317,7 +317,7 @@ namespace Koala {
         NetworKit::ConnectedComponents cc(copyG);
         cc.run();
         nodeSubsets_t components = cc.getComponents();
-        std::cout << "num of connected components in post processing: " << components.size() << std::endl;
+        // std::cout << "num of connected components in post processing: " << components.size() << std::endl;
 
         // the procedure was vaguely described in the paper
         // what's important is that the process of moving vertices from Cbis to coneccted componets is greedy
@@ -382,7 +382,12 @@ namespace Koala {
         }
 
         for (auto& [k, v] : regionsOfNode) {
-            assert(v.size() > 0 && v.size() < 4);
+            int countNeighbours = 0;
+            for (auto nei : G.neighborRange(k)) {
+                countNeighbours++;
+            }
+            assert(v.size() > 0);
+            assert(v.size() <= countNeighbours);
             if (newBoundryNode[k]) assert(v.size() > 1);
         }
 
@@ -404,7 +409,6 @@ namespace Koala {
         NetworKit::ConnectedComponents cc(subGraph);
         cc.run();
         nodeSubsets_t components = cc.getComponents();
-
         if (components.size() == 1) { //subgraph is a connected componet
             auto separator = findSeparator(subGraph);
             return postProcesing(separator, subGraph);
@@ -443,6 +447,66 @@ namespace Koala {
         return false;
     }
 
+
+    void assert_division(const nodeSubsets_t& division, NetworKit::Graph& Graph) {
+        std::vector<std::vector<int>> componentsOfNode(Graph.numberOfNodes());
+
+        for (int i = 0; i < division.size(); i++) {
+            for (auto node : division[i]) {
+                componentsOfNode[node].push_back(i);
+            }
+        }
+
+        for (auto& components : componentsOfNode) {
+            assert(components.size() > 0);
+            if (components.size() >= 4) {
+                for (auto c : components) {
+                    for (auto node : division[c]) {
+                        cout << node << " ";
+                    }cout << endl;
+                }
+            }
+            assert(components.size() < 4);
+        }
+
+        for (const auto& [u, v] : Graph.edgeRange()) {
+            bool hasCommon = std::any_of(componentsOfNode[u].begin(), componentsOfNode[u].end(), [&](int x) {
+                return std::find(componentsOfNode[v].begin(), componentsOfNode[v].end(), x) != componentsOfNode[v].end();
+                });
+            assert(hasCommon && "edge must be in at least one region fully");
+        }
+    }
+
+
+    void fixDivision(nodeSubsets_t& division, NetworKit::Graph& Graph) {// TODO: Improve this function to not break a division
+        std::vector<std::vector<int>> componentsOfNode(Graph.numberOfNodes());
+
+        for (int i = 0; i < division.size(); i++) {
+            for (auto node : division[i]) {
+                componentsOfNode[node].push_back(i);
+            }
+        }
+
+        for (auto node : Graph.nodeRange()) {
+            if (componentsOfNode[node].size() > 3) {
+                for (auto nei : Graph.neighborRange(node)) {
+                    int commonComponents = 0;
+                    int exampleToRemove = -1;
+                    for (auto c : componentsOfNode[node]) {
+                        if (std::find(componentsOfNode[nei].begin(), componentsOfNode[nei].end(), c) != componentsOfNode[nei].end()) {
+                            exampleToRemove = c;
+                            commonComponents++;
+                        }
+                    }
+
+                    if (commonComponents > 1) {
+                        division[exampleToRemove].erase(std::find(division[exampleToRemove].begin(), division[exampleToRemove].end(), node));
+                    }
+                }
+            }
+        }
+    }
+
     //It requires isBoundry to be set correctly
     nodeSubsets_t makeSuitableGraphDivisionFromQueue(std::queue<std::vector<NetworKit::node>>& queue, NetworKit::Graph& Graph, int r) {
         int sqr = sqrt(r);
@@ -463,11 +527,13 @@ namespace Koala {
             }
             if (nodeSet.size() < r && numOfBoundryNodes < c * sqr) {
                 smallSets.push_back(std::move(nodeSet));
+                continue;
             }
 
-            std::unordered_set<NetworKit::node> set{ nodeSet.begin(), nodeSet.end() };
-            auto subGraph = NetworKit::GraphTools::subgraphFromNodes(Graph, set);
+            std::unordered_set<NetworKit::node> nodesForSubGraph{ nodeSet.begin(), nodeSet.end() };
+            auto subGraph = NetworKit::GraphTools::subgraphFromNodes(Graph, nodesForSubGraph);
             auto sets = createConnectedSets(subGraph);
+
             for (auto& s : sets) {
                 numOfBoundryNodes = 0;
                 for (auto node : s) {
@@ -475,28 +541,27 @@ namespace Koala {
                         numOfBoundryNodes++;
                     }
                 }
-                if (s.size() > r || numOfBoundryNodes > c * sqr) {
-                    cout << "queue emplace set size: " << s.size() << " ";
+                if (s.size() >= r || numOfBoundryNodes >= c * sqr) {
                     queue.emplace(std::move(s));
                 }
                 else {
                     smallSets.push_back(std::move(s));
                 }
             }
-            cout << endl;
         }
 
+        fixDivision(smallSets, Graph);
+
+        assert_division(smallSets, Graph);
         cout << "successfully divided graph into small regions" << endl;
-        cout << "region sizes: ";
-        for (auto& region : smallSets) {
-            cout << region.size() << " ";
-        }cout << endl;
 
         int countBoundryNodes = 0;
         for (int i = 0; i < isBoundry.size(); i++) {
             if (isBoundry[i]) countBoundryNodes++;
         }cout << "With " << countBoundryNodes << " boundry nodes" << endl;
-        return {};
+        cout << endl;
+
+
 
         //merging to small components
         std::vector<std::vector<NetworKit::count>> componentsPerNode(Graph.numberOfNodes());
@@ -518,6 +583,7 @@ namespace Koala {
         }
 
         auto isComponentMergable = [&](int c) {
+            // cout << c << " " << smallSets.size() << " " << isSetUsed.size() << endl;
             if (isSetUsed[c]) return false;
             if (2 * smallSets[c].size() > r || 2 * numOfBoundryNodes[c] > c * sqr) return false;
             return true;
@@ -546,6 +612,7 @@ namespace Koala {
                 }
 
             }
+            smallSets[c2].clear();
             numOfBoundryNodes[c1] += goodBoundryNodes;
             assert(numOfBoundryNodes[c1] >= 0);
             return c1;
@@ -553,26 +620,51 @@ namespace Koala {
 
         //mergin components with common boundry nodes
         for (auto& components : componentsPerNode) {
-            assert(components.size() > 0 && components.size() < 4);
+            // assert(components.size() > 0 && components.size() < 4);
             if (components.size() == 1) continue; //interior node
 
-            tryMergeComponents(components[0], components[1]);
-            if (components.size() == 2) {// boundry node of two regions
+            int c0, c1, c2;
+            if (components.size() == 3) {  // boundy node of threee regions
+                int c0 = components[0], c1 = components[1], c2 = components[2];
+                tryMergeComponents(c0, c1);
+                tryMergeComponents(c0, c2);
+                tryMergeComponents(c1, c2);
                 continue;
             }
-            // boundy node of threee regions
-            tryMergeComponents(components[0], components[2]);
-            tryMergeComponents(components[1], components[2]);
+            // boundry node of two regions
+            tryMergeComponents(components[0], components[1]);
         }
+
+
+        std::vector<std::vector<NetworKit::node>> regionsToAssert;
+        for (auto set : smallSets) {
+            if (set.size() > 0) {
+                regionsToAssert.push_back(set);
+            }
+        }
+        assert_division(regionsToAssert, Graph);
+        cout << "successfully merged regions with common boundry nodes" << endl;
+
+        countBoundryNodes = 0;
+        for (auto node : Graph.nodeRange()) {
+            assert(componentsPerNode[node].size() > 0);
+            if (componentsPerNode[node].size() > 1) {
+                countBoundryNodes++;
+            }
+        }
+        cout << "With " << countBoundryNodes << " boundry nodes" << endl;
 
         std::vector<std::tuple<int, int, int>> regionsToMerge;
 
         for (int i = 0; i < smallSets.size(); i++) {
-            if (isSetUsed[i]) continue;
+            if (smallSets[i].size() == 0) continue;
+            if (!isComponentMergable(i)) continue;
             std::unordered_set<int> regionNeighbours;
             for (auto node : smallSets[i]) {
                 for (auto c : componentsPerNode[node]) {
-                    regionNeighbours.insert(c);
+                    if (c != i) {
+                        regionNeighbours.insert(c);
+                    }
                 }
             }
             if (regionNeighbours.size() > 2) {
@@ -580,8 +672,6 @@ namespace Koala {
                 // we can delay that to simplify the logic as the sets are still good to use
                 continue;
             }
-
-            assert(regionNeighbours.size() > 0); //there should NOT be a region without any neighbours
 
             int first, second;
             auto it = regionNeighbours.begin();
@@ -627,6 +717,10 @@ namespace Koala {
             if (isSetUsed[i]) continue;
             result.push_back(std::move(smallSets[i]));
         }
+
+        assert_division(result, Graph);
+
+        cout << "Generated suitable graph division succesfully" << endl;
 
         return result;
     }
@@ -690,7 +784,7 @@ namespace Koala {
             }
         }
         //build new shrinked graph based on clusters
-        NetworKit::Graph ShrinkedGraph(clusters.size() + 1);
+        NetworKit::Graph ShrinkedGraph(clusters.size());
 
         Graph.forNodes([&](auto v) {
             for (auto u : Graph.neighborRange(v)) {

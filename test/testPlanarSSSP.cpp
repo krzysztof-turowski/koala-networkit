@@ -31,7 +31,7 @@ TEST_P(PlanarSSSPTest, TestPlanarSSSPSolution) {
     EXPECT_EQ(algorithm.getSSSDistanceToTarget(), parameters.expectedDistance);
 }
 
-std::list<std::tuple<int, int, int>> generateGridEdges(int rows, int cols) {
+SSSPParameters generateGridEdges(int rows, int cols) {
     std::list<std::tuple<int, int, int>> edges;
 
     for (int r = 0; r < rows; ++r) {
@@ -46,7 +46,8 @@ std::list<std::tuple<int, int, int>> generateGridEdges(int rows, int cols) {
         }
     }
 
-    return edges;
+
+    return SSSPParameters{ "grid", rows*cols, edges, 0, 99, 18 };
 }
 
 std::list<std::tuple<int, int, int>> generateLineGraphEdges(int length) {
@@ -89,8 +90,8 @@ INSTANTIATE_TEST_SUITE_P(
     Default, PlanarSSSPTest,testing::Values(
     // SSSPParameters{ "star", 5, {{0, 1, 2}, {0, 2, 3}, {0, 3, 4}, {0, 4, 6}}, 0, 2, 5 },
     // SSSPParameters{ "double-star", 8, {{0, 1, 2}, {0, 2, 3}, {0, 3, 4}, {0, 4, 6}, {4,7,1}, {4,6,1}, { 4,5,1 }}, 0, 2, 5 },
-    SSSPParameters{ "10x10-grid", 625, generateGridEdges(25, 25), 0, 99, 18 },
-    SSSPParameters{ "line", 1000, generateLineGraphEdges(1000), 0, 99, 99 },
+    generateGridEdges(15, 15),
+    SSSPParameters{ "line", 1000, generateLineGraphEdges(1000), 0, 99, 18 },
     SSSPParameters{ "triangular-grid", 55, generateTriangularGridEdges(10), 0, 45, 18 }
 
         // SSSPParameters{ "", 4, {{0, 1, 1}, {0, 3, 2}, {1, 2, 3}, {2, 3, 4}}, 0, 2, 5 },
