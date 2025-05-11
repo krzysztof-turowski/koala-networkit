@@ -1019,12 +1019,25 @@ namespace Koala {
     }
 
 
-    void mopUp(std::vector<int>& shortestDistance, nodeSubsets_t& regions, NetworKit::Graph& G, int t) {
+    int mopUp(std::vector<int>& shortestDistance, nodeSubsets_t& regions, NetworKit::Graph& G, int targetRegion, int t) {
+        int result = INT_MAX;
 
+        std::unordered_set<NetworKit::node> subGraphNodes(regions[targetRegion].begin(), regions[targetRegion].end());
+        NetworKit::Graph subGraph = NetworKit::GraphTools::subgraphFromNodes(G, subGraphNodes);
 
+        NetworKit::MultiTargetDijkstra dij(subGraph, t, regions[targetRegion].begin(), regions[targetRegion].end());
+        dij.run();
+        auto map = dij.getTargetIndexMap();
+        auto distances = dij.getDistances();
+
+        for (auto node : regions[targetRegion]) {
+            if (!isBoundry[node]) continue;
+            result = std::min(result, shortestDistance[node] + (int)distances[map[node]]);
+        }
+        return result;
     }
 
-    int mainThrust(NetworKit::Graph& Graph, nodeSubsets_t& regions, pairDistance_t& distances, int s, int t) {
+    int mainThrust(NetworKit::Graph& Graph, nodeSubsets_t& regions, pairDistance_t& distances, std::vector<std::vector<int>>& nodeRegions, int s, int t) {
         std::vector<int> shortestDistance(Graph.numberOfNodes(), -1);
 
         TopologyHeap heap(Graph, regions, distances, s);
@@ -1035,10 +1048,11 @@ namespace Koala {
             heap.closeNode(node);
         }
 
-        mopUp(shortestDistance, regions, Graph, t);
+        if (nodeRegions[t].size() > 0) {
+            return shortestDistance[t];
+        }
 
-        //TODO improve the mopUp function to calculate distance to all the nodes
-        return shortestDistance[t];
+        return mopUp(shortestDistance, regions, Graph, nodeRegions[t][0], t);
     }
 
     void print_division(nodeSubsets_t division) {
@@ -1074,13 +1088,22 @@ namespace Koala {
             assert(region.size() > 0);
             cout << region.size() << " ";
         }cout << endl;
+
         isBoundry.assign(normal_graph.numberOfNodes(), 0);
+        std::vector<std::vector<int>> nodeRegions(normal_graph.numberOfNodes());
+        for (int i = 0; i < division.size(); i++) {
+            for (auto node : division[i]) {
+                nodeRegions[node].push_back(i);
+            }
+        }
+        for (int i = 0; i < nodeRegions.size(); i++) {
+            if (nodeRegions[i].size() > 1) {
+                isBoundry[i] = true;
+            }
+        }
+        auto distances = getDistancebetweenBoundryNodesLevel2(normal_graph, division);
 
-
-
-        // auto distances = getDistancebetweenBoundryNodesLevel2(normal_graph, division);
-
-        // distanceToTarget = mainThrust(normal_graph, division, distances, source, target);
+        distanceToTarget = mainThrust(normal_graph, division, distances, nodeRegions, source, target);
 
         hasRun = true;
         distanceToTarget = 18;
