@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 #include <structures/priority_queue/VanEmdeBoasTree.hpp>
+#include <structures/priority_queue/XFastTrie.hpp>
+#include <structures/priority_queue/YFastTrie.hpp>
 #include <algorithm>
 #include <vector>
 #include <stdexcept>
@@ -20,8 +22,10 @@ INSTANTIATE_TEST_SUITE_P(
     IntegerPriorityQueue,
     IntegerPriorityQueueTest,
     testing::Values(
-        std::make_shared<Koala::VanEmdeBoasTree<uint32_t>>(1024)
-        // TODO(jkukowski): Add X-fast Trie, Y-fast Trie, Fusion Tree
+        std::make_shared<Koala::VanEmdeBoasTree<uint32_t>>(1024),
+        std::make_shared<Koala::XFastTrie<uint32_t>>(1024),
+        std::make_shared<Koala::YFastTrie<uint32_t>>(1024)
+        // TODO(jkukowski): Add Fusion Tree
     )
 );
 
