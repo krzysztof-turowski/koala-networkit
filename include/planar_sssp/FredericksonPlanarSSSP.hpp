@@ -13,7 +13,7 @@ namespace Koala {
     public:
         FredericksonPlanarSSSP(NetworKit::Graph& Graph, NetworKit::node source,
             NetworKit::node target)
-            : PlanarSSSP(Graph, source) {
+            : PlanarSSSP(Graph, source, target) {
         }
 
         void run();

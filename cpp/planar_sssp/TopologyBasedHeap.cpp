@@ -5,8 +5,18 @@
 #include <networkit/graph/GraphTools.hpp>
 #include <vector>
 
+using std::cout;
+using std::endl;
+
+
 namespace Koala {
     using pairDistance_t = std::unordered_map<std::pair<int, int>, int, boost::hash<std::pair<int, int>>>;
+
+    void TopologyHeap::printStorage() {
+        for (int i = 0; i < storage.size(); i++) {
+            cout << "{ " << storage[i].first << ", " << storage[i].second << " } ";
+        }cout << endl;
+    }
 
     //root is stored in storage[1] to simplify traverse logic
 
@@ -27,7 +37,6 @@ namespace Koala {
 
         if (nodeRegions[source].size() > 1) {//boundry node distances are already calculated
             storage[nodeStorageIdx[source]].first = 0;
-            return;
         }
 
         int initialRegionId = nodeRegions[source][0];
@@ -55,6 +64,7 @@ namespace Koala {
 
         // initialize the heap to have boundry sets in clusters
         std::vector<int> lastbatch;
+        regionBatches.resize(regions.size());
         for (int i = 0; i < sortedBoudryNodeRegions.size(); i++) {
             int nodeIndex = sortedBoudryNodeRegions[i].back();
             sortedBoudryNodeRegions[i].pop_back();
@@ -67,14 +77,17 @@ namespace Koala {
             }
             else {
                 lastbatch = sortedBoudryNodeRegions[i];
-                batches.push_back({ i });
+                batches.push_back({ nodeIndex });
+                for (auto region : sortedBoudryNodeRegions[i]) {
+                    regionBatches[region].push_back(batches.size() - 1);
+                }
             }
         }
 
         initialDistances();
 
         // build the heap
-        for (int i = storageSize; i >= 1; i--) {
+        for (int i = storageSize - 1; i >= 1; i--) {
             fixIndex(i);
         }
     }
@@ -83,9 +96,11 @@ namespace Koala {
         graph(graph), regions(regions), distances(distances), source(source) {
 
         //get list per node of regions a node is a part of
-        nodeRegions.assign(graph.numberOfNodes(), std::vector<int>());
+        nodeRegions.assign(graph.numberOfNodes(), std::vector<int>{});
+        nodeStorageIdx.resize(graph.numberOfNodes());
+        isClosed.assign(graph.numberOfNodes(), 0);
         for (int i = 0; i < regions.size(); i++) {
-            for (auto node : regions[i]) {
+            for (auto& node : regions[i]) {
                 nodeRegions[node].push_back(i);
             }
         }
@@ -94,7 +109,8 @@ namespace Koala {
         for (int i = 0; i < graph.numberOfNodes(); i++) {
             if (nodeRegions[i].size() > 1) {
                 nodeRegions[i].push_back(i);
-                sortedBoudryNodeRegions.push_back(std::move(nodeRegions[i]));
+                sortedBoudryNodeRegions.push_back(nodeRegions[i]);
+                nodeRegions[i].pop_back();
             }
         }
 
@@ -106,29 +122,41 @@ namespace Koala {
 
         //double the storageSize. Actual storage and heap structure
         storage.assign(storageSize << 1, { INF, -1 });
+
         initializeStorage();
     }
 
-    std::pair<NetworKit::count, NetworKit::node> TopologyHeap::top() {
-        assert(storage[0].second != -1);
-        return storage[0];
+    std::pair<int, NetworKit::node> TopologyHeap::top() {
+        if (size > 0) {
+            assert(storage[1].second != -1);
+        }
+        return storage[1];
     }
 
-    void TopologyHeap::batchUpdate(int batchId, NetworKit::node node) {
+    void TopologyHeap::batchUpdate(int batchId, NetworKit::node node, int currentValue) {
         auto batch = batches[batchId];
         int nodeId = nodeStorageIdx[node];
         int minId = INF;
         std::deque<int> indexToFix;
         for (int b : batch) {
             int sId = nodeStorageIdx[b];
-            if (indexToFix.back() != sId >> 1) {
+            if (indexToFix.empty() || indexToFix.back() != sId >> 1) {
                 indexToFix.emplace_back(sId >> 1);
             }
+            if (isClosed[b]) continue;
             if (b == node) {
-                storage[sId].first = INF;
+                continue;
             }
             else {
-                storage[sId].first = std::min(storage[sId].first, storage[nodeId].first + distances[{node, b}]);
+                int distance = INF;
+
+                if (distances.find({ node, b }) != distances.end()) {
+                    if (distances[{node, b}] > 0) {
+                        distance = currentValue + distances[{node, b}];
+                    }
+                }
+
+                storage[sId].first = std::min(storage[sId].first, distance);
             }
         }
 
@@ -147,16 +175,26 @@ namespace Koala {
     }
 
     void TopologyHeap::closeNode(NetworKit::node node) {
+        size--;
+        assert(nodeRegions[node].size() > 1);
+
+
+        int currentValue = storage[nodeStorageIdx[node]].first;
+        storage[nodeStorageIdx[node]].first = INF;
+        isClosed[node] = true;
+        std::unordered_set<int> batcherToUpdate;
         for (int regionId : nodeRegions[node]) {
             for (int batchId : regionBatches[regionId]) {
-                batchUpdate(batchId, node);
+                batcherToUpdate.insert(batchId);
             }
         }
-        size--;
+        for (auto bId : batcherToUpdate) {
+            batchUpdate(bId, node, currentValue);
+        }
     }
 
     bool TopologyHeap::empty() {
-        return size == 0;
+        return size <= 0;
     }
 
 } // namespace Koala

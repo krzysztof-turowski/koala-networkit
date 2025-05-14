@@ -623,7 +623,6 @@ namespace Koala {
             }
         }
         assert_division(regionsToAssert, Graph);
-        cout << "successfully merged regions with common boundry nodes" << endl;
 
         countBoundryNodes = 0;
         for (auto node : Graph.nodeRange()) {
@@ -632,7 +631,6 @@ namespace Koala {
                 countBoundryNodes++;
             }
         }
-        cout << "With " << countBoundryNodes << " boundry nodes" << endl;
 
         std::vector<std::tuple<int, int, int>> regionsToMerge;
 
@@ -821,10 +819,6 @@ namespace Koala {
             }
         }
 
-        for (auto reg : division) {
-            cout << reg.size() << " ";
-        }cout << endl;
-
         std::vector<int> regionOfNode(ShrinkedGraph.numberOfNodes(), -1);
         std::vector<int> countRegionsOfNode(ShrinkedGraph.numberOfNodes(), 0);
 
@@ -909,9 +903,6 @@ namespace Koala {
                         region[u][2] = region[v][0];
                     }
                     else {
-                        if (region[v][2] = -1) {
-                            cout << "Oh noooo" << endl;
-                        }
                         region[v][2] = region[u][0];
                     }
 
@@ -931,19 +922,11 @@ namespace Koala {
         return result;
     }
 
-
-
     //create suitable r-division quickly.
-    nodeSubsets_t  findSuitableRDivision(NetworKit::Graph& Graph, int r) {
+    nodeSubsets_t findSuitableRDivision(NetworKit::Graph& Graph, int r) {
         int rSqrt = sqrt(r);
 
         auto clusters = findClusters(Graph, rSqrt);
-
-        std::cout << "number of clusters: " << clusters.size() << std::endl;
-        std::cout << "clusters: ";
-        for (auto& cluster : clusters) {
-            std::cout << cluster.size() << " ";
-        }std::cout << std::endl;
 
         nodeSubsets_t division = getDivisionFromClusters(clusters, Graph, r);
 
@@ -964,11 +947,13 @@ namespace Koala {
     }
 
     using pairDistance_t = std::unordered_map<std::pair<int, int>, int, boost::hash<std::pair<int, int>>>;
-    pairDistance_t  getDistancebetweenBoundryNodesLevel2(NetworKit::Graph Graph, nodeSubsets_t division) {
+
+    pairDistance_t  getDistancebetweenBoundryNodesLevel2(NetworKit::Graph& Graph, nodeSubsets_t& division) {
         std::vector<pairDistance_t> resultPerRegion(division.size());
         pairDistance_t result;
 
         std::vector<int> regionCount(Graph.numberOfNodes(), 0);
+        isBoundry.assign(Graph.numberOfNodes(), 0);
 
         for (int i = 0; i < division.size(); i++) {
             for (auto node : division[i]) {
@@ -977,7 +962,7 @@ namespace Koala {
         }
         for (int i = 0; i < Graph.numberOfNodes(); i++) {
             if (regionCount[i] > 1) {
-                isBoundry[i] = 1;
+                isBoundry[i] = true;
             }
         }
 
@@ -999,6 +984,7 @@ namespace Koala {
                 auto map = dij.getTargetIndexMap();
                 auto distances = dij.getDistances();
                 for (int j = 0; j < boundry.size(); j++) {
+                    if (distances[map[boundry[j]]] < 0 || distances[map[boundry[j]]]  > INT_MAX) continue;
                     resultPerRegion[r][std::make_pair(boundry[i], boundry[j])] = distances[map[boundry[j]]];
                     resultPerRegion[r][std::make_pair(boundry[j], boundry[i])] = distances[map[boundry[j]]];
                 }
@@ -1031,8 +1017,8 @@ namespace Koala {
         auto distances = dij.getDistances();
 
         for (auto node : regions[targetRegion]) {
-            if (!isBoundry[node]) continue;
-            result = std::min(result, shortestDistance[node] + (int)distances[map[node]]);
+            if (shortestDistance[node] == -1) continue;
+            result = std::min(result, shortestDistance[node] + static_cast<int>(distances[map[node]]));
         }
         return result;
     }
@@ -1048,7 +1034,7 @@ namespace Koala {
             heap.closeNode(node);
         }
 
-        if (nodeRegions[t].size() > 0) {
+        if (nodeRegions[t].size() > 1) {
             return shortestDistance[t];
         }
 
@@ -1065,31 +1051,22 @@ namespace Koala {
     }
 
     void FredericksonPlanarSSSP::run() {
-
-
-        // printGraph(graph);
-        // findPlanarEmbeding(graph, true);
         normal_graph = convertToMaxDegree3(graph);
         // printGraph(normal_graph);
+
         parent.resize(normal_graph.numberOfNodes());
-        cout << "parent size " << parent.size() << endl;
+        cout << "graph size " << normal_graph.numberOfNodes() << endl;
         depth.resize(normal_graph.numberOfNodes());
         visited.resize(normal_graph.numberOfNodes());
-
 
         isBoundry.assign(normal_graph.numberOfNodes(), 0);
         // int r = log(normal_graph.numberOfNodes());
         int r = 25;
-
         auto division = findSuitableRDivision(normal_graph, r);
-
         assert_division(division, normal_graph);
-        for (auto& region : division) {
-            assert(region.size() > 0);
-            cout << region.size() << " ";
-        }cout << endl;
 
         isBoundry.assign(normal_graph.numberOfNodes(), 0);
+
         std::vector<std::vector<int>> nodeRegions(normal_graph.numberOfNodes());
         for (int i = 0; i < division.size(); i++) {
             for (auto node : division[i]) {
@@ -1104,9 +1081,7 @@ namespace Koala {
         auto distances = getDistancebetweenBoundryNodesLevel2(normal_graph, division);
 
         distanceToTarget = mainThrust(normal_graph, division, distances, nodeRegions, source, target);
-
         hasRun = true;
-        distanceToTarget = 18;
         return;
     }
 

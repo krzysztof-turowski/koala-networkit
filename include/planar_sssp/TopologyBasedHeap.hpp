@@ -11,17 +11,19 @@ namespace Koala {
     class TopologyHeap {
     public:
 
-        std::pair<NetworKit::count, NetworKit::node> top();
+        std::pair<int, NetworKit::node> top();
 
         void closeNode(NetworKit::node);
 
         bool empty();
 
+        void printStorage();
+
         TopologyHeap(NetworKit::Graph& graph, nodeSubsets_t& regions, pairDistance_t& distances, int source);
 
     private:
         void initializeStorage();
-        void batchUpdate(int batch, NetworKit::node node);
+        void batchUpdate(int batch, NetworKit::node node, int currentValue);
         void fixIndex(int i);
         void initialDistances();
 
@@ -34,6 +36,7 @@ namespace Koala {
         nodeSubsets_t& regions;
         pairDistance_t& distances;
         std::vector<int> nodeStorageIdx;
+        std::vector<int> isClosed;
         std::vector<std::vector<int>> nodeRegions;
         std::vector<std::vector<int>> batches;
         std::vector<std::vector<int>> regionBatches;
@@ -41,7 +44,7 @@ namespace Koala {
 
         int size;
         int storageSize;
-        std::vector <std::pair<NetworKit::count, NetworKit::node>> storage;
+        std::vector <std::pair<int, int>> storage;
     };
 
 } /* namespace Koala */

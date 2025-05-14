@@ -47,17 +47,17 @@ SSSPParameters generateGridEdges(int rows, int cols) {
     }
 
 
-    return SSSPParameters{ "grid", rows*cols, edges, 0, 99, 18 };
+    return SSSPParameters{ "grid", rows*cols, edges, 0, static_cast<NetworKit::node>(rows*cols-1), rows + cols - 2 };
 }
 
-std::list<std::tuple<int, int, int>> generateLineGraphEdges(int length) {
+SSSPParameters generateLineGraphEdges(int length) {
     std::list<std::tuple<int, int, int>> edges;
 
     for (int i = 0; i < length - 1; ++i) {
         edges.emplace_back(i, i + 1, 1);
     }
 
-    return edges;
+    return {"line", length, edges, 0, length-1, length-1};
 }
 
 std::list<std::tuple<int, int, int>> generateTriangularGridEdges(int levels) {
@@ -88,20 +88,8 @@ std::list<std::tuple<int, int, int>> generateTriangularGridEdges(int levels) {
 
 INSTANTIATE_TEST_SUITE_P(
     Default, PlanarSSSPTest,testing::Values(
-    // SSSPParameters{ "star", 5, {{0, 1, 2}, {0, 2, 3}, {0, 3, 4}, {0, 4, 6}}, 0, 2, 5 },
-    // SSSPParameters{ "double-star", 8, {{0, 1, 2}, {0, 2, 3}, {0, 3, 4}, {0, 4, 6}, {4,7,1}, {4,6,1}, { 4,5,1 }}, 0, 2, 5 },
-    generateGridEdges(15, 15),
-    SSSPParameters{ "line", 1000, generateLineGraphEdges(1000), 0, 99, 18 },
-    SSSPParameters{ "triangular-grid", 55, generateTriangularGridEdges(10), 0, 45, 18 }
-
-        // SSSPParameters{ "", 4, {{0, 1, 1}, {0, 3, 2}, {1, 2, 3}, {2, 3, 4}}, 0, 2, 5 },
-
-        // SSSPParameters{ "", 4, {{0, 1, 1}, {0, 2, 1}, {0, 3, 1}, {1, 2, 1}, {1, 3, 1}, {2, 3, 1}}, 0, 2, 5 },
-
-        // SSSPParameters{ "", 5, {{0, 1, 1}, {0, 2, 1}, {0, 3, 1}, {0, 4, 1}}, 0, 2, 5 },
-
-        // SSSPParameters{ "", 4, {{0, 1, 1}, {1, 2, 2}, {2, 3, 3}}, 0, 2, 5 },
-
-        // SSSPParameters{ "", 5, {{0, 1, 10}, {0, 4, 3}, {1, 2, 2}, {2, 3, 4}, {3, 4, 5}}, 0, 2, 5 }
+    generateGridEdges(20, 20),
+    generateLineGraphEdges(1000),
+    SSSPParameters{ "triangular-grid", 55, generateTriangularGridEdges(10), 0, 46, 9}
     ));
     
