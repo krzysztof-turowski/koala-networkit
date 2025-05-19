@@ -20,10 +20,12 @@ using std::endl;
 using nodeSubsets_t = std::vector<std::vector<NetworKit::node>>;
 
 namespace Koala {
-
     NetworKit::node rootNode = 0;
-    std::vector<int> isBoundry;
     const int c = 3;
+    const int r1 = 100;
+    const int r2 = 25;
+    // int r1 = log(normal_graph.numberOfNodes());
+    // int r2 = (log(log(normal_graph.numberOfNodes())))^2
 
     NetworKit::Graph convertToMaxDegree3(NetworKit::Graph& G) {
         planar_embedding_t embedding = findPlanarEmbeding(G);
@@ -256,7 +258,7 @@ namespace Koala {
     }
 
 
-    std::vector<std::vector<NetworKit::node>> postProcesing(Separator& sep, NetworKit::Graph& G) {
+    std::vector<std::vector<NetworKit::node>> postProcesing(Separator& sep, NetworKit::Graph& G, std::vector<int>& isBoundry) {
         auto [A, B, C] = sep;
         std::unordered_set<NetworKit::node> Cprime;
         std::unordered_set<NetworKit::node> Cbis;
@@ -369,14 +371,14 @@ namespace Koala {
         return components;
     }
 
-    nodeSubsets_t createConnectedSets(NetworKit::Graph& subGraph) {
+    nodeSubsets_t createConnectedSets(NetworKit::Graph& subGraph, std::vector<int>& isBoundry) {
         nodeSubsets_t result;
         NetworKit::ConnectedComponents cc(subGraph);
         cc.run();
         nodeSubsets_t components = cc.getComponents();
         if (components.size() == 1) { //subgraph is a connected componet
             auto separator = findSeparator(subGraph);
-            return postProcesing(separator, subGraph);
+            return postProcesing(separator, subGraph, isBoundry);
         }
 
         int largestComponentNumber = -1;
@@ -397,7 +399,7 @@ namespace Koala {
         NetworKit::Graph connectedGraph = NetworKit::GraphTools::subgraphFromNodes(subGraph, largestComponent);
         auto separator = findSeparator(connectedGraph);
 
-        auto conectedSubsets = postProcesing(separator, connectedGraph);
+        auto conectedSubsets = postProcesing(separator, connectedGraph, isBoundry);
         for (int i = 0; i < conectedSubsets.size(); i++) {
             result.push_back(std::move(conectedSubsets[i]));
         }
@@ -487,8 +489,8 @@ namespace Koala {
         }
     }
 
-    //It requires isBoundry to be set correctly
-    nodeSubsets_t makeSuitableGraphDivisionFromQueue(std::queue<std::vector<NetworKit::node>>& queue, NetworKit::Graph& Graph, int r) {
+
+    nodeSubsets_t makeSuitableGraphDivisionFromQueue(std::queue<std::vector<NetworKit::node>>& queue, NetworKit::Graph& Graph, int r, std::vector<int>& isBoundry) {
         int sqr = sqrt(r);
         nodeSubsets_t smallSets;
         nodeSubsets_t result;
@@ -512,7 +514,7 @@ namespace Koala {
 
             std::unordered_set<NetworKit::node> nodesForSubGraph{ nodeSet.begin(), nodeSet.end() };
             auto subGraph = NetworKit::GraphTools::subgraphFromNodes(Graph, nodesForSubGraph);
-            auto sets = createConnectedSets(subGraph);
+            auto sets = createConnectedSets(subGraph, isBoundry);
 
             for (auto& s : sets) {
                 numOfBoundryNodes = 0;
@@ -705,12 +707,12 @@ namespace Koala {
 
     // we need two different starting points for algorithm extra abstract layer allows for that
     nodeSubsets_t makeSuitableGraphDivision(NetworKit::Graph& Graph, int r) {
-        isBoundry.assign(Graph.numberOfNodes(), 0);
+        std::vector<int> isBoundry(Graph.numberOfNodes(), 0);
         std::queue<std::vector<NetworKit::node>> queue;
         auto nodeRange = Graph.nodeRange();
         queue.push(std::vector<NetworKit::node> { nodeRange.begin(), nodeRange.end() });
 
-        return makeSuitableGraphDivisionFromQueue(queue, Graph, r);
+        return makeSuitableGraphDivisionFromQueue(queue, Graph, r, isBoundry);
     }
 
 
@@ -777,7 +779,7 @@ namespace Koala {
         int sqr = sqrt(r);
         nodeSubsets_t division;
 
-        isBoundry.assign(ShrinkedGraph.numberOfNodes(), 0);
+        std::vector<int> isBoundry(ShrinkedGraph.numberOfNodes(), 0);
         std::queue<std::vector<NetworKit::node>> queue;
         auto nodeRange = ShrinkedGraph.nodeRange();
         queue.push(std::vector<NetworKit::node> { nodeRange.begin(), nodeRange.end() });
@@ -801,7 +803,7 @@ namespace Koala {
 
             std::unordered_set<NetworKit::node> nodesForSubGraph{ nodeSet.begin(), nodeSet.end() };
             auto subGraph = NetworKit::GraphTools::subgraphFromNodes(ShrinkedGraph, nodesForSubGraph);
-            auto sets = createConnectedSets(subGraph);
+            auto sets = createConnectedSets(subGraph, isBoundry);
 
             for (auto& s : sets) {
                 numOfBoundryNodes = 0;
@@ -859,7 +861,7 @@ namespace Koala {
         return result;
     }
 
-    nodeSubsets_t fixGraphDivision(nodeSubsets_t& division, NetworKit::Graph& Graph) {
+    nodeSubsets_t fixGraphDivision(nodeSubsets_t& division, NetworKit::Graph& Graph, std::vector<int>& isBoundry) {
         // The procedure is not described in the paper "Infer boundary vertices and slightly expanded(sic!) regions
         // that share these vertices". So I guess we can do it in a greedy fashion.
 
@@ -934,8 +936,8 @@ namespace Koala {
             assert(region.size() > 0);
         }
 
-        isBoundry.assign(Graph.numberOfNodes(), 0);
-        division = fixGraphDivision(division, Graph);
+        std::vector<int> isBoundry(Graph.numberOfNodes(), 0);
+        division = fixGraphDivision(division, Graph, isBoundry);
 
         assert_division(division, Graph);
 
@@ -943,7 +945,7 @@ namespace Koala {
         for (auto& region : division) {
             queue.push(std::move(region));
         }
-        return makeSuitableGraphDivisionFromQueue(queue, Graph, r);
+        return makeSuitableGraphDivisionFromQueue(queue, Graph, r, isBoundry);
     }
 
     using pairDistance_t = std::unordered_map<std::pair<int, int>, int, boost::hash<std::pair<int, int>>>;
@@ -953,7 +955,7 @@ namespace Koala {
         pairDistance_t result;
 
         std::vector<int> regionCount(Graph.numberOfNodes(), 0);
-        isBoundry.assign(Graph.numberOfNodes(), 0);
+        std::vector<int> isBoundry(Graph.numberOfNodes(), 0);
 
         for (int i = 0; i < division.size(); i++) {
             for (auto node : division[i]) {
@@ -984,7 +986,7 @@ namespace Koala {
                 auto map = dij.getTargetIndexMap();
                 auto distances = dij.getDistances();
                 for (int j = 0; j < boundry.size(); j++) {
-                    if (distances[map[boundry[j]]] < 0 || distances[map[boundry[j]]]  > INT_MAX) continue;
+                    if (distances[map[boundry[j]]] < 0 || distances[map[boundry[j]]] > INT_MAX) continue;
                     resultPerRegion[r][std::make_pair(boundry[i], boundry[j])] = distances[map[boundry[j]]];
                     resultPerRegion[r][std::make_pair(boundry[j], boundry[i])] = distances[map[boundry[j]]];
                 }
@@ -1001,9 +1003,9 @@ namespace Koala {
                 }
             }
         }
+
         return result;
     }
-
 
     int mopUp(std::vector<int>& shortestDistance, nodeSubsets_t& regions, NetworKit::Graph& G, int targetRegion, int t) {
         int result = INT_MAX;
@@ -1023,22 +1025,19 @@ namespace Koala {
         return result;
     }
 
-    int mainThrust(NetworKit::Graph& Graph, nodeSubsets_t& regions, pairDistance_t& distances, std::vector<std::vector<int>>& nodeRegions, int s, int t) {
+    std::vector<int> mainThrust(NetworKit::Graph& Graph, nodeSubsets_t& regions, pairDistance_t& distances, int s) {
         std::vector<int> shortestDistance(Graph.numberOfNodes(), -1);
 
         TopologyHeap heap(Graph, regions, distances, s);
 
         while (!heap.empty()) {
             auto [distance, node] = heap.top();
+            if (node == -1) break;
             shortestDistance[node] = distance;
             heap.closeNode(node);
         }
 
-        if (nodeRegions[t].size() > 1) {
-            return shortestDistance[t];
-        }
-
-        return mopUp(shortestDistance, regions, Graph, nodeRegions[t][0], t);
+        return shortestDistance;
     }
 
     void print_division(nodeSubsets_t division) {
@@ -1050,22 +1049,109 @@ namespace Koala {
         }
     }
 
+    pairDistance_t getDistanceInRegionLevel1(NetworKit::Graph& Graph, std::vector<NetworKit::node>& level1BoundryNodes) {
+        pairDistance_t result;
+
+        NetworKit::ConnectedComponents cc(Graph);
+        cc.run();
+        nodeSubsets_t components = cc.getComponents();
+
+        for (auto& component : components) {
+            auto connectedSubgraph = NetworKit::GraphTools::subgraphFromNodes(Graph, { component.begin(), component.end() });
+            std::vector<NetworKit::node> nodes;
+            std::unordered_map<NetworKit::node, NetworKit::node> mapOfNodes;
+
+            for (auto node : connectedSubgraph.nodeRange()) nodes.push_back(node);
+            for (int i = 0; i < nodes.size(); i++) mapOfNodes[nodes[i]] = i;
+
+            NetworKit::Graph subGraphFrom0(nodes.size(), true);
+            for (auto e : connectedSubgraph.edgeWeightRange()) {
+                subGraphFrom0.setWeight(mapOfNodes[e.u], mapOfNodes[e.v], e.weight);
+            }
+
+            auto level2Division = findSuitableRDivision(subGraphFrom0, r2);
+
+            std::vector<NetworKit::node> boundryNodesOfComponent;
+            for (auto bn : level1BoundryNodes) {
+                if (mapOfNodes.find(bn) != mapOfNodes.end()) {
+                    boundryNodesOfComponent.push_back(mapOfNodes[bn]);
+                }
+            }
+
+            level2Division.push_back(boundryNodesOfComponent);
+
+            assert_division(level2Division, subGraphFrom0);
+
+            auto distancesLevel2 = getDistancebetweenBoundryNodesLevel2(subGraphFrom0, level2Division);
+
+            for (auto boundryNode : boundryNodesOfComponent) {
+                auto shortestDistances = mainThrust(subGraphFrom0, level2Division, distancesLevel2, boundryNode);
+
+                for (int i = 0; i < shortestDistances.size(); i++) {
+                    if (shortestDistances[i] != -1) {
+                        result[std::make_pair(mapOfNodes[i], mapOfNodes[boundryNode])] = shortestDistances[i];
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    pairDistance_t  getDistancebetweenBoundryNodesLevel1(NetworKit::Graph& Graph, nodeSubsets_t& division) {
+        std::vector<pairDistance_t> resultPerRegion(division.size());
+        pairDistance_t result;
+
+        std::vector<int> regionCount(Graph.numberOfNodes(), 0);
+        std::vector<int> isLevel1Boundry(Graph.numberOfNodes(), 0);
+
+        for (int i = 0; i < division.size(); i++) {
+            for (auto node : division[i]) {
+                regionCount[node]++;
+            }
+        }
+        for (int i = 0; i < Graph.numberOfNodes(); i++) {
+            if (regionCount[i] > 1) {
+                isLevel1Boundry[i] = true;
+            }
+        }
+
+        for (int r = 0; r < division.size(); r++) {
+            auto& region = division[r];
+            auto subGraph = NetworKit::GraphTools::subgraphFromNodes(Graph,
+                std::unordered_set<NetworKit::node> {region.begin(), region.end()});
+            std::vector<NetworKit::node> boundry;
+
+            for (auto node : region) {
+                if (isLevel1Boundry[node]) {
+                    boundry.push_back(node);
+                }
+            }
+
+            resultPerRegion[r] = getDistanceInRegionLevel1(subGraph, boundry);
+        }
+        for (auto pairs : resultPerRegion) {
+            for (auto [p, dist] : pairs) {
+                if (result.contains(p)) {
+                    result[p] = std::min(result[p], dist);
+                }
+                else {
+                    result[p] = dist;
+                }
+            }
+        }
+        return result;
+    }
+
     void FredericksonPlanarSSSP::run() {
         normal_graph = convertToMaxDegree3(graph);
-        // printGraph(normal_graph);
 
         parent.resize(normal_graph.numberOfNodes());
         cout << "graph size " << normal_graph.numberOfNodes() << endl;
         depth.resize(normal_graph.numberOfNodes());
         visited.resize(normal_graph.numberOfNodes());
 
-        isBoundry.assign(normal_graph.numberOfNodes(), 0);
-        // int r = log(normal_graph.numberOfNodes());
-        int r = 25;
-        auto division = findSuitableRDivision(normal_graph, r);
+        auto division = findSuitableRDivision(normal_graph, r2);
         assert_division(division, normal_graph);
-
-        isBoundry.assign(normal_graph.numberOfNodes(), 0);
 
         std::vector<std::vector<int>> nodeRegions(normal_graph.numberOfNodes());
         for (int i = 0; i < division.size(); i++) {
@@ -1073,14 +1159,19 @@ namespace Koala {
                 nodeRegions[node].push_back(i);
             }
         }
-        for (int i = 0; i < nodeRegions.size(); i++) {
-            if (nodeRegions[i].size() > 1) {
-                isBoundry[i] = true;
-            }
-        }
-        auto distances = getDistancebetweenBoundryNodesLevel2(normal_graph, division);
 
-        distanceToTarget = mainThrust(normal_graph, division, distances, nodeRegions, source, target);
+        auto distances = getDistancebetweenBoundryNodesLevel2(normal_graph, division);
+        cout << "OK" << endl;
+
+        auto shortestDistance = mainThrust(normal_graph, division, distances, source);
+
+        if (nodeRegions[target].size() > 1) {
+            distanceToTarget = shortestDistance[target];
+        }
+        else {
+            distanceToTarget = mopUp(shortestDistance, division, normal_graph, nodeRegions[target][0], target);
+        }
+
         hasRun = true;
         return;
     }

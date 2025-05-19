@@ -84,12 +84,10 @@ std::list<std::tuple<int, int, int>> generateTriangularGridEdges(int levels) {
     return edges;
 }
 
-
-
 INSTANTIATE_TEST_SUITE_P(
     Default, PlanarSSSPTest,testing::Values(
     generateGridEdges(20, 20),
     generateLineGraphEdges(1000),
-    SSSPParameters{ "triangular-grid", 55, generateTriangularGridEdges(10), 0, 46, 9}
+    SSSPParameters{ "triangular-grid", 55, generateTriangularGridEdges(10), 0, 45, 9}
     ));
     

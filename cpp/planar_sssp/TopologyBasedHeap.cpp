@@ -151,9 +151,7 @@ namespace Koala {
                 int distance = INF;
 
                 if (distances.find({ node, b }) != distances.end()) {
-                    if (distances[{node, b}] > 0) {
-                        distance = currentValue + distances[{node, b}];
-                    }
+                    distance = currentValue + distances[{node, b}];
                 }
 
                 storage[sId].first = std::min(storage[sId].first, distance);
