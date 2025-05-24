@@ -6,6 +6,7 @@
 #include <boost/graph/make_biconnected_planar.hpp>
 #include <boost/graph/make_maximal_planar.hpp>
 #include <set>
+#include <vector>
 #include <unordered_map>
 #include <utility>
 #include <networkit/graph/GraphTools.hpp>
@@ -26,6 +27,8 @@ using embedding_t = boost::iterator_property_map<
     embedding_storage_t::iterator,
     property_map<BoostGraph, vertex_index_t>::type>;
 
+using pairDistance_t = std::unordered_map<std::pair<int, int>, int, boost::hash<std::pair<int, int>>>;
+using nodeSubsets_t = std::vector<std::vector<NetworKit::node>>;
 
 namespace Koala {
 
@@ -134,4 +137,108 @@ namespace Koala {
         return convertBoostToNetworKit(g, nodeMap, G);
     }
 
+    NetworKit::Graph convertToMaxDegree3(NetworKit::Graph& G) {
+        planar_embedding_t embedding = findPlanarEmbeding(G);
+        NetworKit::count result_size = G.numberOfNodes();
+
+        for (auto [i, node_embeding] : embedding) {
+            if (node_embeding.size() > 3) {
+                result_size += node_embeding.size() - 1;
+            }
+        }
+
+        if (result_size == G.numberOfNodes()) {
+            return G;
+        }
+
+        std::vector<std::unordered_map<size_t, size_t>> vertexMaps(
+            G.numberOfNodes(), std::unordered_map<size_t, size_t>());
+
+        size_t emptyVertex = G.numberOfNodes();
+        NetworKit::Graph result(result_size, true, false);
+
+        for (size_t i = 0; i < embedding.size(); ++i) {
+            if (embedding[i].size() > 3) {
+                size_t t = embedding[i][0];
+                vertexMaps[i][t] = i;
+                vertexMaps[i][emptyVertex] = 0;
+
+                result.addEdge(i, emptyVertex, 0);
+                for (int j = 1; j < embedding[i].size(); ++j) {
+                    t = embedding[i][j];
+                    vertexMaps[i][t] = emptyVertex;
+                    if (j < embedding[i].size() - 1) {
+                        result.addEdge(emptyVertex, emptyVertex + 1, 0);
+                    }
+                    emptyVertex++;
+                }
+
+                result.addEdge(emptyVertex - 1, i, 0);
+            }
+        }
+
+        for (const auto& edge : G.edgeWeightRange()) {
+            NetworKit::node u = edge.u;
+            NetworKit::node v = edge.v;
+            NetworKit::edgeweight ew = edge.weight;
+
+            size_t s = v;
+            size_t t = u;
+            if (vertexMaps[u].find(v) != vertexMaps[u].end()) {
+                t = vertexMaps[u][v];
+            }
+            if (vertexMaps[v].find(u) != vertexMaps[v].end()) {
+                s = vertexMaps[v][u];
+            }
+            result.addEdge(s, t, ew);
+        }
+
+        for (auto node : result.nodeRange()) {
+            int count = 0;
+            for (auto nei : result.neighborRange(node)) {
+                count++;
+            }
+            assert(count < 4);
+        }
+
+        return result;
+    }
+
+    void assert_division(const nodeSubsets_t& division, NetworKit::Graph& Graph) {
+        std::vector<std::vector<int>> componentsOfNode(Graph.numberOfNodes());
+
+        for (int i = 0; i < division.size(); i++) {
+            for (auto node : division[i]) {
+                componentsOfNode[node].push_back(i);
+            }
+        }
+
+        for (auto& components : componentsOfNode) {
+            assert(components.size() > 0);
+            assert(components.size() < 4);
+        }
+
+        for (const auto& [u, v] : Graph.edgeRange()) {
+            bool hasCommon = std::any_of(componentsOfNode[u].begin(), componentsOfNode[u].end(), [&](int x) {
+                return std::find(componentsOfNode[v].begin(), componentsOfNode[v].end(), x) != componentsOfNode[v].end();
+                });
+            assert(hasCommon && "edge must be in at least one region fully");
+        }
+    }
+
+    void printGraph(const NetworKit::Graph& graph) {
+        std::cout << "Graph structure" << std::endl;
+        for (auto edge : graph.edgeWeightRange()) {
+            std::cout << edge.u << " - " << edge.v << " weight: " << edge.weight << std::endl;
+        }
+    }
+
+    void print_division(nodeSubsets_t division) {
+        std::cout << "Print Division" << std::endl;
+        for (auto& div : division) {
+            for (auto n : div) {
+                std::cout << n << " ";
+            }std::cout << std::endl;
+        }
+    }
 }

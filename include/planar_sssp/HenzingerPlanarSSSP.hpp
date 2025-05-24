@@ -4,13 +4,13 @@
 
 namespace Koala {
 
-    class FredericksonPlanarSSSP : public PlanarSSSP {
+    class HenzingerPlanarSSSP : public PlanarSSSP {
     private:
         NetworKit::Graph normal_graph;
         std::vector<int> isBoundry;
 
     public:
-        FredericksonPlanarSSSP(NetworKit::Graph& Graph, NetworKit::node source,
+        HenzingerPlanarSSSP(NetworKit::Graph& Graph, NetworKit::node source,
             NetworKit::node target)
             : PlanarSSSP(Graph, source, target) {
         }
