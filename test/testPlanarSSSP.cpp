@@ -60,18 +60,22 @@ SSSPParameters generateLineGraphEdges(int length) {
     return {"line", length, edges, 0, length-1, length-1};
 }
 
-std::list<std::tuple<int, int, int>> generateTriangularGridEdges(int levels) {
+SSSPParameters generateTriangularGridEdges(int levels) {
     std::list<std::tuple<int, int, int>> edges;
 
     int node = 0; // numeracja węzłów
+    int rowStart;
+    int nextRowStart;
+    int current;
+    int leftChild, rightChild; 
     for (int row = 0; row < levels - 1; ++row) {
-        int rowStart = node;
-        int nextRowStart = node + row + 1;
+        rowStart = node;
+        nextRowStart = node + row + 1;
 
         for (int i = 0; i <= row; ++i) {
-            int current = rowStart + i;
-            int leftChild = nextRowStart + i;
-            int rightChild = nextRowStart + i + 1;
+            current = rowStart + i;
+            leftChild = nextRowStart + i;
+            rightChild = nextRowStart + i + 1;
 
             edges.emplace_back(current, leftChild, 1);
             edges.emplace_back(current, rightChild, 1);
@@ -81,13 +85,14 @@ std::list<std::tuple<int, int, int>> generateTriangularGridEdges(int levels) {
         node = nextRowStart;
     }
 
-    return edges;
+    return {"triangular-grid", rightChild + 1, edges, 0, rightChild, levels-1};
+
 }
 
 INSTANTIATE_TEST_SUITE_P(
     Default, PlanarSSSPTest,testing::Values(
-    generateGridEdges(20, 20),
+    generateGridEdges(40, 40),
     generateLineGraphEdges(1000),
-    SSSPParameters{ "triangular-grid", 55, generateTriangularGridEdges(10), 0, 45, 9}
+    generateTriangularGridEdges(10)
     ));
     

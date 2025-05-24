@@ -19,7 +19,7 @@ namespace Koala {
 
         void printStorage();
 
-        TopologyHeap(NetworKit::Graph& graph, nodeSubsets_t& regions, pairDistance_t& distances, int source);
+        TopologyHeap(NetworKit::Graph& graph, nodeSubsets_t& regions, pairDistance_t& distances, int source, const std::unordered_set<NetworKit::node>& extraBoundryNodes);
 
     private:
         void initializeStorage();
@@ -37,6 +37,7 @@ namespace Koala {
         pairDistance_t& distances;
         std::vector<int> nodeStorageIdx;
         std::vector<int> isClosed;
+        const std::unordered_set<NetworKit::node> extraBoundryNodes;
         std::vector<std::vector<int>> nodeRegions;
         std::vector<std::vector<int>> batches;
         std::vector<std::vector<int>> regionBatches;

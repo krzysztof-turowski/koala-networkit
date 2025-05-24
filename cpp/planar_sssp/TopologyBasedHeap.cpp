@@ -35,7 +35,7 @@ namespace Koala {
     void TopologyHeap::initialDistances() {
         //initial distances to boundry nodes from source
 
-        if (nodeRegions[source].size() > 1) {//boundry node distances are already calculated
+        if (nodeRegions[source].size() > 1 || (extraBoundryNodes.find(source) != extraBoundryNodes.end())) {//boundry node distances are already calculated
             storage[nodeStorageIdx[source]].first = 0;
         }
 
@@ -92,8 +92,8 @@ namespace Koala {
         }
     }
 
-    TopologyHeap::TopologyHeap(NetworKit::Graph& graph, nodeSubsets_t& regions, pairDistance_t& distances, int source) :
-        graph(graph), regions(regions), distances(distances), source(source) {
+    TopologyHeap::TopologyHeap(NetworKit::Graph& graph, nodeSubsets_t& regions, pairDistance_t& distances, int source, const std::unordered_set<NetworKit::node>& extraBoundryNodes) :
+        graph(graph), regions(regions), distances(distances), source(source), extraBoundryNodes(extraBoundryNodes) {
 
         //get list per node of regions a node is a part of
         nodeRegions.assign(graph.numberOfNodes(), std::vector<int>{});
@@ -111,6 +111,9 @@ namespace Koala {
                 nodeRegions[i].push_back(i);
                 sortedBoudryNodeRegions.push_back(nodeRegions[i]);
                 nodeRegions[i].pop_back();
+            }
+            else if (extraBoundryNodes.find(i) != extraBoundryNodes.end()) {
+                sortedBoudryNodeRegions.push_back({ nodeRegions[i][0], i });
             }
         }
 
@@ -174,7 +177,7 @@ namespace Koala {
 
     void TopologyHeap::closeNode(NetworKit::node node) {
         size--;
-        assert(nodeRegions[node].size() > 1);
+        assert(nodeRegions[node].size() > 1 || (extraBoundryNodes.find(source) != extraBoundryNodes.end()));
 
 
         int currentValue = storage[nodeStorageIdx[node]].first;
