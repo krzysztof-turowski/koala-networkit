@@ -3,6 +3,7 @@
 
 #include "planar_sssp/PlanarSSSP.hpp"
 #include "planar_sssp/FredericksonPlanarSSSP.hpp"
+#include "planar_sssp/HenzingerPlanarSSSP.hpp"
 #include "helpers.hpp"
 
 struct SSSPParameters {
@@ -12,6 +13,7 @@ struct SSSPParameters {
     NetworKit::node s;
     NetworKit::node t;
     int expectedDistance;
+    bool directed = false;
 };
 
 class PlanarSSSPTest : public testing::TestWithParam<SSSPParameters> {
@@ -20,18 +22,24 @@ class PlanarSSSPTest : public testing::TestWithParam<SSSPParameters> {
 TEST_P(PlanarSSSPTest, TestPlanarSSSPSolution) {
     SSSPParameters const& parameters = GetParam();
 
-    std::cout << "Test name: " << parameters.name << std::endl;
+    std::cout << "\nTest name: " << parameters.name << std::endl;
 
-    NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
+    NetworKit::Graph G = build_graph(parameters.N, parameters.E, parameters.directed);
 
-    Koala::FredericksonPlanarSSSP algorithm(G, parameters.s, parameters.t);
-
-    algorithm.run();
-
-    EXPECT_EQ(algorithm.getSSSDistanceToTarget(), parameters.expectedDistance);
+    if(parameters.directed){
+        std::cout << "Running HenzingerPlanarSSSP\n" << std::endl;
+        Koala::HenzingerPlanarSSSP algorithm(G, parameters.s, parameters.t);
+        algorithm.run();
+        EXPECT_EQ(algorithm.getSSSDistanceToTarget(), parameters.expectedDistance);
+    }else{
+        std::cout<< "Running FredericksonPlanarSSSP\n" << std::endl;
+        Koala::FredericksonPlanarSSSP algorithm(G, parameters.s, parameters.t);
+        algorithm.run();
+        EXPECT_EQ(algorithm.getSSSDistanceToTarget(), parameters.expectedDistance);
+    }
 }
 
-SSSPParameters generateGridEdges(int rows, int cols) {
+SSSPParameters generateGridEdges(int rows, int cols, bool directed = false) {
     std::list<std::tuple<int, int, int>> edges;
 
     for (int r = 0; r < rows; ++r) {
@@ -46,21 +54,20 @@ SSSPParameters generateGridEdges(int rows, int cols) {
         }
     }
 
-
-    return SSSPParameters{ "grid", rows*cols, edges, 0, static_cast<NetworKit::node>(rows*cols-1), rows + cols - 2 };
+    return SSSPParameters{ "grid", rows*cols, edges, 0, static_cast<NetworKit::node>(rows*cols-1), rows + cols - 2, directed };
 }
 
-SSSPParameters generateLineGraphEdges(int length) {
+SSSPParameters generateLineGraphEdges(int length, bool directed = false) {
     std::list<std::tuple<int, int, int>> edges;
 
     for (int i = 0; i < length - 1; ++i) {
         edges.emplace_back(i, i + 1, 1);
     }
 
-    return {"line", length, edges, 0, length-1, length-1};
+    return {"line", length, edges, 0, length-1, length-1, directed};
 }
 
-SSSPParameters generateTriangularGridEdges(int levels) {
+SSSPParameters generateTriangularGridEdges(int levels, bool directed = false) {
     std::list<std::tuple<int, int, int>> edges;
 
     int node = 0; // numeracja węzłów
@@ -85,14 +92,17 @@ SSSPParameters generateTriangularGridEdges(int levels) {
         node = nextRowStart;
     }
 
-    return {"triangular-grid", rightChild + 1, edges, 0, rightChild, levels-1};
+    return {"triangular-grid", rightChild + 1, edges, 0, rightChild, levels-1, directed};
 
 }
 
 INSTANTIATE_TEST_SUITE_P(
     Default, PlanarSSSPTest,testing::Values(
     generateGridEdges(40, 40),
-    generateLineGraphEdges(1000),
-    generateTriangularGridEdges(10)
+    generateLineGraphEdges(100),
+    generateTriangularGridEdges(10),
+    generateGridEdges(40, 40, true),
+    generateLineGraphEdges(100, true),
+    generateTriangularGridEdges(10, true)
     ));
     

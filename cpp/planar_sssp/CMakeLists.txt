@@ -5,4 +5,5 @@ koala_add_module(pathwidth
     TopologyBasedHeap.cpp
     SuitableRDivision.cpp
     HenzingerPlannarSSSP.cpp
+    HenzingerPriorityQueue.cpp
 )

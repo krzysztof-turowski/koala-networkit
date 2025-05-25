@@ -7,7 +7,6 @@ namespace Koala {
     class FredericksonPlanarSSSP : public PlanarSSSP {
     private:
         NetworKit::Graph normal_graph;
-        std::vector<int> isBoundry;
 
     public:
         FredericksonPlanarSSSP(NetworKit::Graph& Graph, NetworKit::node source,

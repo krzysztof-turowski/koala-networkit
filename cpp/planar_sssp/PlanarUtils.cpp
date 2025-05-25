@@ -137,7 +137,7 @@ namespace Koala {
         return convertBoostToNetworKit(g, nodeMap, G);
     }
 
-    NetworKit::Graph convertToMaxDegree3(NetworKit::Graph& G) {
+    NetworKit::Graph convertToMaxDegree3(NetworKit::Graph& G, bool directed = false) {
         planar_embedding_t embedding = findPlanarEmbeding(G);
         NetworKit::count result_size = G.numberOfNodes();
 
@@ -155,7 +155,7 @@ namespace Koala {
             G.numberOfNodes(), std::unordered_map<size_t, size_t>());
 
         size_t emptyVertex = G.numberOfNodes();
-        NetworKit::Graph result(result_size, true, false);
+        NetworKit::Graph result(result_size, true, directed);
 
         for (size_t i = 0; i < embedding.size(); ++i) {
             if (embedding[i].size() > 3) {
@@ -190,7 +190,7 @@ namespace Koala {
             if (vertexMaps[v].find(u) != vertexMaps[v].end()) {
                 s = vertexMaps[v][u];
             }
-            result.addEdge(s, t, ew);
+            result.addEdge(t, s, ew);
         }
 
         for (auto node : result.nodeRange()) {
@@ -201,6 +201,15 @@ namespace Koala {
             assert(count < 4);
         }
 
+        return result;
+    }
+
+    NetworKit::Graph convertDirectedGraphToUndirected(NetworKit::Graph& Graph) {
+        NetworKit::Graph result(Graph.numberOfNodes());
+        for (auto [u, v] : Graph.edgeRange()) {
+            result.addEdge(u, v);
+        }
+        result.removeMultiEdges();
         return result;
     }
 
