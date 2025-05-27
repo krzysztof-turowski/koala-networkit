@@ -6,7 +6,7 @@ koala_add_module(recognition
     perfect/NearCleaners.cpp
     planar/PlanarGraphRecognition.cpp
     planar/HopcroftTarjan.cpp
-    planar/BoyerMyrvold.cpp
+    planar/LeftRight.cpp
 )
 
 koala_add_module(cograph
