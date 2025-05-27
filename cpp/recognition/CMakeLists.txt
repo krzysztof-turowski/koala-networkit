@@ -4,6 +4,9 @@ koala_add_module(recognition
     perfect/Jewels.cpp
     perfect/Pyramids.cpp
     perfect/NearCleaners.cpp
+    planar/PlanarGraphRecognition.cpp
+    planar/HopcroftTarjan.cpp
+    planar/LeftRight.cpp
 )
 
 koala_add_module(cograph
