@@ -1,11 +1,3 @@
-/*
- * PlanarGraphRecognition.cpp
- *
- *  Created on: 24.03.2024
- *      Author: Dzianis Lahunou
- *      Ported by: Krzysztof Turowski (krzysztof.szymon.turowski@gmail.com)
- */
-
 #include <recognition/planar/PlanarGraphRecognition.hpp>
 
 namespace Koala {

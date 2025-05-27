@@ -1,14 +1,6 @@
-/*
- * HopcroftTarjan.cpp
- *
- *  Created on: 24.03.2024
- *      Author: Dzianis Lahunou
- *      Ported by: Krzysztof Turowski (krzysztof.szymon.turowski@gmail.com)
- */
-
 #include <iostream>
 #include <list>
-#include <set>
+
 #include <networkit/linkprediction/NeighborhoodUtility.hpp>
 #include <recognition/planar/PlanarGraphRecognition.hpp>
 
@@ -77,7 +69,9 @@ namespace Koala {
 
         void add_to_Att(std::list<int> &Att, int dfsnum_w0,
                         std::vector<int> &alpha) {
-            if (!Ratt.empty() && this->Ratt.front() > dfsnum_w0) flip();
+            if (!Ratt.empty() && this->Ratt.front() > dfsnum_w0) {
+                flip();
+            }
             Att.splice(Att.end(), Latt);
             Att.splice(Att.end(), Ratt);
             for (auto e: Lseg) {
@@ -351,7 +345,7 @@ namespace Koala {
         if (embedding) {
             // TODO embedding
         }
-        return PlanarGraphRecognition::State::PLANAR;;
+        return PlanarGraphRecognition::State::PLANAR;
     }
 
     void HopcroftTarjan::run() {

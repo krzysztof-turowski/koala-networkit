@@ -1,21 +1,9 @@
-/*
- * PlanarGraphRecognition.hpp
- *
- *  Created on: 24.03.2024
- *      Author: Dzianis Lahunou
- *      Ported by: Krzysztof Turowski (krzysztof.szymon.turowski@gmail.com)
- */
-
 #pragma once
 
 #include <optional>
 #include <stack>
 #include <vector>
 #include <list>
-#include <networkit/base/Algorithm.hpp>
-#include <networkit/components/ConnectedComponents.hpp>
-#include <networkit/graph/Graph.hpp>
-#include <networkit/graph/GraphTools.hpp>
 #include <iostream>
 #include <vector>
 #include <list>
@@ -30,6 +18,10 @@
 #include <limits>
 #include <array>
 
+#include <networkit/base/Algorithm.hpp>
+#include <networkit/components/ConnectedComponents.hpp>
+#include <networkit/graph/Graph.hpp>
+#include <networkit/graph/GraphTools.hpp>
 
 namespace Koala {
 

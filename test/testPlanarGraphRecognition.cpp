@@ -42,7 +42,7 @@ INSTANTIATE_TEST_SUITE_P(test_example, PlanarGraphRecognitionTest,
                                           {2, 3},
                                           {2, 4},
                                           {3, 4}},
-                                         Koala::PlanarGraphRecognition::State::NOT_PLANAR},
+                                         Koala::PlanarGraphRecognition::State::NOT_PLANAR}, // K5
         PlanarGraphRecognitionParameters{6,
                                          {{0, 3},
                                           {0, 4},
@@ -53,4 +53,4 @@ INSTANTIATE_TEST_SUITE_P(test_example, PlanarGraphRecognitionTest,
                                           {2, 3},
                                           {2, 4},
                                           {2, 5}},
-                                         Koala::PlanarGraphRecognition::State::NOT_PLANAR}));
+                                         Koala::PlanarGraphRecognition::State::NOT_PLANAR})); // K3,3

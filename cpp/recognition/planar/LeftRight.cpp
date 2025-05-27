@@ -1,14 +1,7 @@
-/*
- * LeftRight.cpp
- *
- *  Created on: 20.16.2025
- *      Author: Dzianis Lahunou
- *      Ported by: Krzysztof Turowski (krzysztof.szymon.turowski@gmail.com)
- */
-
 #include <iostream>
 #include <list>
 #include <set>
+
 #include <networkit/linkprediction/NeighborhoodUtility.hpp>
 #include <recognition/planar/PlanarGraphRecognition.hpp>
 
