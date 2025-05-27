@@ -1,5 +1,5 @@
 /*
- * VanEmdeBoasTree.hpp
+ * XFastTrie.hpp
  *
  * Created on: 11.05.2025
  * Author: Jan Kukowski
@@ -109,13 +109,14 @@ public:
 
         for (int level = 0; level < bitWidth; ++level) {
             int bit = getBit(key, level);
-            if (!node->children[bit]) return false;
+            if (!node->children[bit]) {
+                return false;
+            }
             node = node->children[bit];
         }
 
-        unlinkNode(node);
         cleanupPath(node, key);
-        erasePrefixes(key);
+        unlinkNode(node);
 
         return true;
     }
@@ -137,7 +138,7 @@ private:
     }
 
     Key getPrefix(Key key, int level) const {
-        return key >> (bitWidth - level) >> 1;
+        return key >> (bitWidth - level);
     }
 
     std::shared_ptr<Node> findPredecessorNode(Key key) const {
@@ -160,7 +161,7 @@ private:
         }
 
         int dir = getBit(key, low);
-        return (dir == RIGHT) ? node->jump : (node->jump ? node->jump->children[LEFT] : nullptr);
+        return (dir == RIGHT) ? node->jump : (node->jump ? node->jump->linkedNodes[PREV] : nullptr);
     }
 
     bool insert(Key key) {
@@ -179,7 +180,6 @@ private:
 
         auto [predecessor, successor] = getInsertNeighbors(node, key, level);
 
-        node->jump = nullptr;
         auto insertedNode = createPath(node, key, level);
 
         linkNeighbors(insertedNode, predecessor, successor);
@@ -227,6 +227,9 @@ private:
                 (parent->children[RIGHT] == nullptr && (!parent->jump || parent->jump->key < key))) {
                 parent->jump = node;
             }
+            if((parent->children[LEFT] != nullptr) &&  (parent->children[RIGHT] != nullptr)) {
+                parent->jump = nullptr;
+            }
             parent = parent->parent;
         }
     }
@@ -253,32 +256,31 @@ private:
 
     void cleanupPath(std::shared_ptr<Node> node, Key key) {
         auto parent = node->parent;
-        for (int level = bitWidth - 1; level >= 0; --level) {
+        int level = bitWidth - 1;
+
+        for (; level >= 0; --level) {
             int bit = getBit(key, level);
+
             parent->children[bit] = nullptr;
+            prefixLevels[level + 1].erase(getPrefix(key, level + 1));
+            if (!parent->children[1 - bit]) parent->jump = nullptr;
 
             if (parent->children[1 - bit]) break;
             parent = parent->parent;
         }
 
-        while (parent) {
+        if(parent)
+            parent->jump = node;
+
+        for (; level >= 0; --level) {
             if (parent->jump == node) {
-                int bit = getBit(key, 0);
-                parent->jump = parent->children[1 - bit] ? parent->children[1 - bit] : nullptr;
+                if(!parent->children[LEFT]) {
+                    parent->jump = node->linkedNodes[NEXT];
+                } else if(!parent->children[RIGHT]) {
+                    parent->jump = node->linkedNodes[PREV];
+                }
             }
             parent = parent->parent;
-        }
-    }
-
-    void erasePrefixes(Key key) {
-        auto node = root;
-        for (int i = 0; i <= bitWidth; ++i) {
-            prefixLevels[i].erase(getPrefix(key, i));
-            if (i < bitWidth) {
-                int bit = getBit(key, i);
-                if (!node->children[bit]) break;
-                node = node->children[bit];
-            }
         }
     }
 };
