@@ -24,7 +24,9 @@ namespace Koala {
             Lseg.push_back(e);
             Latt.splice(Latt.end(), A);
         }
+
         ~Block() {}
+
         void flip() {
             std::list<int> ha;
             std::list<NetworKit::WeightedEdge> he;
@@ -35,6 +37,7 @@ namespace Koala {
             Rseg.splice(Rseg.end(), Lseg);
             Lseg.splice(Lseg.end(), he);
         }
+
         bool left_interlace(std::stack<Block> &S) {
             return (!S.empty() && !S.top().Latt.empty() &&
                     Latt.back() < S.top().Latt.front());
@@ -63,10 +66,10 @@ namespace Koala {
             if (!Latt.empty() || !Ratt.empty()) {
                 return false;
             }
-            for (auto e : Lseg) {
+            for (auto e: Lseg) {
                 alpha[e.weight] = LEFT;
             }
-            for (auto e : Rseg) {
+            for (auto e: Rseg) {
                 alpha[e.weight] = RIGHT;
             }
             return true;
@@ -77,13 +80,14 @@ namespace Koala {
             if (!Ratt.empty() && this->Ratt.front() > dfsnum_w0) flip();
             Att.splice(Att.end(), Latt);
             Att.splice(Att.end(), Ratt);
-            for (auto e : Lseg) {
+            for (auto e: Lseg) {
                 alpha[e.weight] = LEFT;
             }
-            for (auto e : Rseg) {
+            for (auto e: Rseg) {
                 alpha[e.weight] = RIGHT;
             }
         }
+
         friend class HopcroftTarjan;
     };
 
@@ -93,7 +97,7 @@ namespace Koala {
     void HopcroftTarjan::dfs(NetworKit::Graph &g, NetworKit::node v,
                              std::vector<bool> &reached) {
         reached[v] = true;
-        for (auto u : g.neighborRange(v)) {
+        for (auto u: g.neighborRange(v)) {
             if (!reached[u]) {
                 dfs(g, u, reached);
             }
@@ -109,10 +113,10 @@ namespace Koala {
         lowpt[v] = dfsnum[v];
         reached[v] = true;
         std::vector<int> neighbors;
-        for (auto u : g.neighborRange(v)) {
+        for (auto u: g.neighborRange(v)) {
             neighbors.push_back(u);
         }
-        for (auto u : neighbors) {
+        for (auto u: neighbors) {
             if (!reached[u]) {
                 if (w == NetworKit::none) {
                     w = u;
@@ -141,7 +145,7 @@ namespace Koala {
         // make it connected
         NetworKit::node u = 0;
         std::vector<bool> reached(N);
-        for (auto v : g.nodeRange()) {
+        for (auto v: g.nodeRange()) {
             if (!reached[v]) {
                 dfs(g, v, reached);
                 if (u != v) {
@@ -171,7 +175,7 @@ namespace Koala {
         dfsnum[v] = dfs_count++;
         lowpt2[v] = lowpt[v] = dfsnum[v];
         reached[v] = true;
-        for (auto w : g.neighborRange(v)) {
+        for (auto w: g.neighborRange(v)) {
             if (!reached[w]) {
                 Add.push_back(NetworKit::Edge(v, w));
                 parent[w] = v;
@@ -185,7 +189,7 @@ namespace Koala {
                 }
             }
         }
-        for (auto w : g.neighborRange(v)) {
+        for (auto w: g.neighborRange(v)) {
             if (parent[w] == v) {
                 if (lowpt[w] != lowpt[v]) {
                     lowpt2[v] = std::min(lowpt2[v], lowpt[w]);
@@ -211,7 +215,7 @@ namespace Koala {
         dfs_in_reorder(g, v, Add, dfs_count, reached, dfsnum, lowpt, lowpt2,
                        parent);
         std::vector<NetworKit::Edge> buckets[N * 2 + 5];
-        for (auto [u, v] : Add) {
+        for (auto[u, v]: Add) {
             int cost = ((dfsnum[v] < dfsnum[u])
                         ? 2 * dfsnum[v]
                         : ((lowpt2[v] >= dfsnum[u]) ? 2 * lowpt[v]
@@ -222,7 +226,7 @@ namespace Koala {
         order = std::vector<NetworKit::Edge>(Add.size());
         int id = 0;
         for (int i = 0; i <= 2 * N; i++) {
-            for (auto [u, v] : buckets[i]) {
+            for (auto[u, v]: buckets[i]) {
                 g.addEdge(u, v, id);
                 order[id] = NetworKit::Edge(u, v);
                 id++;
@@ -244,7 +248,7 @@ namespace Koala {
         std::stack<Block> S;
         while (w != x) {
             int count = 0;
-            for (auto [v, weight] : g.weightNeighborRange(w)) {
+            for (auto[v, weight]: g.weightNeighborRange(w)) {
                 count++;
                 if (count != 1) {
                     std::list<int> A;
@@ -320,7 +324,7 @@ namespace Koala {
         // make G copy of Graph and make it biconnected
 
         NetworKit::Graph g = NetworKit::Graph(N, false, true);
-        for (auto i : graph.edgeRange()) {
+        for (auto i: graph.edgeRange()) {
             g.addEdge(i.u, i.v);
             g.addEdge(i.v, i.u);
         }
