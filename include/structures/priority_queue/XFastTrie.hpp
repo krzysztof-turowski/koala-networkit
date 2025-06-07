@@ -20,7 +20,7 @@ namespace Koala {
 /**
  * @ingroup priority-queue
  * 
- * The class implements a priority queue using a X-fast trie tree.
+ * The class implements a priority queue using a X-fast trie.
  */
 template <class Key, class Compare = std::less<Key>>
 class XFastTrie : public PriorityQueue<Key, Compare> {
@@ -77,9 +77,7 @@ public:
             throw std::runtime_error("Priority queue is empty");
         }
         Key minKey = dummy->linkedNodes[NEXT]->key.value();
-        if (remove(minKey)) {
-            --size;
-        }
+        remove(minKey);
         return minKey;
     }
     
@@ -117,6 +115,7 @@ public:
 
         cleanupPath(node, key);
         unlinkNode(node);
+        size--;
 
         return true;
     }

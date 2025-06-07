@@ -1,37 +1,40 @@
+/*
+ * YFastTrie.hpp
+ *
+ * Created on: 11.05.2025
+ * Author: Jan Kukowski
+ */
+
 #pragma once
 
 #include "structures/PriorityQueue.hpp"
 #include <structures/priority_queue/XFastTrie.hpp>
+#include <structures/heap/Treap.hpp>
 #include <map>
-#include <set>
 #include <memory>
 #include <limits>
 #include <stdexcept>
 #include <type_traits>
 #include <cmath>
-#include <random>
+#include <optional>
 
 namespace Koala {
 
 /**
  * @ingroup priority-queue
  * 
- * The class implements a priority queue using a Y-fast trie tree.
+ * The class implements a priority queue using a Y-fast trie.
  */
 template <class Key, class Compare = std::less<Key>>
 class YFastTrie : public PriorityQueue<Key, Compare> {
     static_assert(std::is_unsigned_v<Key>, "YFastTrie only supports unsigned integer keys.");
 
-public:
+ public:
     explicit YFastTrie(Key universeSize)
         : universeSize(universeSize),
           bitWidth(calculateBitWidth(universeSize)),
-          comparator(),
           representatives(universeSize),
-          randomEngine(std::random_device{}()),
-          distribution(0, 1),
-          INVALID_KEY(universeSize + 1),
-          minimum(INVALID_KEY) {}
+          minimum(std::nullopt) {}
 
     void push(const Key& key) override {
         if (key >= universeSize) {
@@ -40,22 +43,22 @@ public:
         if (contains(key)) {
             return;
         }
-        insertKey(key);
+        insert(key);
     }
 
     Key peek() const override {
         if (empty()) {
             throw std::runtime_error("Priority queue is empty");
         }
-        return minimum;
+        return *minimum;
     }
 
     Key pop() override {
         if (empty()) {
             throw std::runtime_error("Priority queue is empty");
         }
-        Key minKey = minimum;
-        removeKey(minKey);
+        Key minKey = *minimum;
+        remove(minKey);
         return minKey;
     }
 
@@ -63,110 +66,130 @@ public:
         return size == 0;
     }
 
-private:
-    const Key universeSize;
-    const int bitWidth;
-    Compare comparator;
+ private:
+    Key universeSize;
+    int bitWidth;
     XFastTrie<Key, Compare> representatives;
-    std::map<Key, std::shared_ptr<std::set<Key>>> buckets;
+    std::optional<Key> minimum;
     size_t size = 0;
-    mutable std::mt19937 randomEngine;
-    mutable std::uniform_int_distribution<int> distribution;
-    const Key INVALID_KEY;
-    Key minimum;
+    std::map<Key, std::shared_ptr<Koala::Treap<Key>>> buckets;
 
     int calculateBitWidth(Key universeSize) {
-        return universeSize == 0 ? 0 : static_cast<int>(std::log2(universeSize)) + 1;
+        return universeSize == 0 ? 1 : static_cast<int>(std::log2(universeSize)) + 1;
     }
 
     bool contains(Key key) const {
-        Key representative = findRepresentative(key);
-        if (representative == INVALID_KEY) {
+        auto representative = findRepresentative(key);
+        if (!representative.has_value()) {
             return false;
         }
-        auto it = buckets.find(representative);
+        auto it = buckets.find(*representative);
         if (it == buckets.end()) {
             return false;
         }
-        return it->second->count(key) > 0;
+        return it->second->contains(key);
     }
 
-    void insertKey(const Key& key) {
-        Key representative = findRepresentative(key);
-        std::shared_ptr<std::set<Key>> bucket;
-    
-        if (representative == INVALID_KEY) {
-            bucket = std::make_shared<std::set<Key>>();
-            representatives.push(key);
-            buckets[key] = bucket;
-            representative = key;
+    void insert(const Key& key) {
+        auto representative = findRepresentative(key);
+        std::shared_ptr<Koala::Treap<Key>> bucket;
+
+        if (!representative.has_value()) {
+            if (!empty()) {
+                Key rep = representatives.peek();
+                bucket = buckets[rep];
+                representative = rep;
+            } else {
+                bucket = std::make_shared<Koala::Treap<Key>>();
+                representatives.push(key);
+                buckets[key] = bucket;
+                representative = key;
+            }
         } else {
-            bucket = buckets[representative];
+            bucket = buckets[*representative];
         }
-    
+
         bucket->insert(key);
         ++size;
 
-        if (key < minimum) {
+        if (!minimum.has_value() || key < *minimum) {
             minimum = key;
         }
-    
-        if (*bucket->begin() != representative) {
-            Key newRepresentative = *bucket->begin();
-            representatives.remove(representative);
+
+        if (bucket->kth(1) != *representative) {
+            Key newRepresentative = bucket->kth(1);
+            representatives.remove(*representative);
             representatives.push(newRepresentative);
-            buckets.erase(representative);
+            buckets.erase(*representative);
             buckets[newRepresentative] = bucket;
+            representative = newRepresentative;
         }
-    
-        // Randomized bucket split: Split 1/bitWidth of the time
-        if (bucket->size() >= 2) {
-            double randomValue = distribution(randomEngine);
-            if (randomValue < 1.0 / static_cast<double>(bitWidth)) {
-                splitBucket(bucket);
-            }
+
+        if (bucket->size() > 2 * bitWidth) {
+            splitBucket(bucket);
         }
     }
 
-    void removeKey(const Key& key) {
-        Key representative = findRepresentative(key);
-        if (representative == INVALID_KEY) {
+    void remove(const Key& key) {
+        auto representative = findRepresentative(key);
+        if (!representative.has_value()) {
             return;
         }
 
-        auto it = buckets.find(representative);
-        if (it == buckets.end()) {
-            return;
-        }
+        auto it = buckets.find(*representative);
 
         auto& bucket = it->second;
-        if (bucket->erase(key)) {
+        if (bucket->contains(key)) {
+            bucket->erase(key);
             --size;
 
-            if (bucket->empty()) {
-                representatives.remove(representative);
-                buckets.erase(representative);
-            } else if (key == representative) {
-                Key newRepresentative = *bucket->begin();
-                representatives.remove(representative);
+            if (bucket->size() == 0) {
+                representatives.remove(*representative);
+                buckets.erase(*representative);
+            } else if (key == *representative) {
+                Key newRepresentative = bucket->kth(1);
+                representatives.remove(*representative);
                 representatives.push(newRepresentative);
                 buckets[newRepresentative] = bucket;
-                buckets.erase(representative);
+                buckets.erase(*representative);
+                representative = newRepresentative;
             }
 
-            if (key == minimum) {
-                minimum = INVALID_KEY;
-                for (const auto& [rep, bucket] : buckets) {
-                    if (!bucket->empty()) {
-                        minimum = *bucket->begin();
-                        break;
+            if (minimum.has_value() && key == *minimum) {
+                if (!representatives.empty())
+                    minimum = representatives.peek();
+                else
+                    minimum = std::nullopt;
+            }
+        }
+
+        if (bucket->size() > 0 && bucket->size() < (bitWidth + 1) / 2) {
+            Key currentRep = bucket->kth(1);
+            auto it = buckets.find(currentRep);
+            if (it != buckets.end()) {
+                auto nextIt = std::next(it);
+                if (nextIt != buckets.end()) {
+                    auto nextRepresentative = nextIt->first;
+                    it->second->mergeFrom(*nextIt->second);
+                    representatives.remove(nextRepresentative);
+                    buckets.erase(nextRepresentative);
+                    if (it->second->size() > 2 * bitWidth) {
+                        splitBucket(it->second);
+                    }
+                } else if (it != buckets.begin()) {
+                    auto prevIt = std::prev(it);
+                    prevIt->second->mergeFrom(*it->second);
+                    representatives.remove(currentRep);
+                    buckets.erase(currentRep);
+                    if (prevIt->second->size() > 2 * bitWidth) {
+                        splitBucket(prevIt->second);
                     }
                 }
             }
         }
     }
 
-    Key findRepresentative(const Key& key) const {
+    std::optional<Key> findRepresentative(const Key& key) const {
         auto it = buckets.find(key);
         if (it != buckets.end()) {
             return key;
@@ -181,19 +204,20 @@ private:
             }
         }
 
-        return INVALID_KEY;
+        return std::nullopt;
     }
 
-    void splitBucket(std::shared_ptr<std::set<Key>>& bucket) {
-        auto midIt = bucket->begin();
-        std::advance(midIt, bucket->size() / 2);
+    void splitBucket(std::shared_ptr<Koala::Treap<Key>>& bucket) {
+        auto left = std::make_shared<Koala::Treap<Key>>();
+        auto right = std::make_shared<Koala::Treap<Key>>();
+        bucket->splitInHalf(*left, *right);
 
-        std::shared_ptr<std::set<Key>> newBucket = std::make_shared<std::set<Key>>(midIt, bucket->end());
-        Key newRepresentative = *newBucket->begin();
+        Key newRepresentative = right->kth(1);
         representatives.push(newRepresentative);
-        buckets[newRepresentative] = newBucket;
+        buckets[newRepresentative] = right;
 
-        bucket->erase(midIt, bucket->end());
+        Key oldRepresentative = left->kth(1);
+        buckets[oldRepresentative] = left;
     }
 };
 

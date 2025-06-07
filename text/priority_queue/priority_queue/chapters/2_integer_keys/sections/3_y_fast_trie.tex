@@ -1,3 +1,204 @@
 \section{Y-fast trie}
 
-\emph{``Log-logarithmic worst-case range queries are possible in space \( \Theta(N) \)''}~\cite{Willard1983}
+The Y-fast trie is a data structure introduced by Dan Willard in his 1983 paper, \emph{``Log-logarithmic worst-case range queries are possible in space \( \Theta(N) \)''}~\cite{Willard1983}, which also presented the X-fast trie. It supports a dynamic set of integer keys from a universe of size \( M \), allowing all standard associative array operations in expected \( O(\log \log M) \) time. Notably, it achieves this performance using only \( O(n) \) space, where \( n \) is the number of stored elements, which is a significant improvement over van Emde Boas trees.
+
+\subsection{Structure and complexity}
+
+The Y-fast trie builds upon the X-fast trie by partitioning the key set into disjoint subsets of elements, each stored in a balanced binary search tree such as a treap. A representative from each subset is stored in an X-fast trie in order to quickly locate the balanced binary search tree where the queried element is located.
+
+The class outline looks like this:
+\begin{minted}{cpp}
+class YFastTrie : public PriorityQueue<Key, Compare> {
+    Key universeSize;
+    int bitWidth;
+    size_t size = 0;
+    std::optional<Key> minimum;
+    XFastTrie<Key, Compare> representatives;
+    std::map<Key, std::shared_ptr<Koala::Treap<Key>>> buckets;
+};
+\end{minted}
+
+And like previously discussed structures, in can be initialized by providing the universe size \(M\):
+
+\begin{minted}{cpp}
+YFastTrie::YFastTrie(Key universeSize)
+    : universeSize(universeSize),
+      bitWidth(calculateBitWidth(universeSize)),
+      representatives(universeSize),
+      minimum(std::nullopt) {}
+\end{minted}
+
+Assuming there are at least \( \frac{\log M}{2} \) elements stored in the trie, we maintain a crucial invariant across all operations: each balanced binary search tree contains \( \Theta(\log M) \) elements. Thus, there will be \( O(n / \log M) \) representatives stored in the X-fast trie. We achieve this by splitting the BST during insertions if its size would exceed \( 2 \cdot \log M \) after the insertion. Similarly, during deletions, if the size of a BST drops below \( \frac{\log M}{2} \), we merge it with one of the other BSTs. 
+
+Importantly, to preserve this invariant without compromising the overall time complexity of the structure, we need to use balanced binary search trees that support efficient \texttt{split} and \texttt{merge} operations. Treaps are a natural candidate, as they are well-known to support both operations in logarithmic time. Since each tree stores \( O(\log M) \) elements, \texttt{split} and \texttt{merge} will take \( O(\log \log M) \) time, which is sufficient for our needs.
+
+With the invariant in mind, we now establish the upper bound for the memory required by an Y-fast trie.
+
+\begin{lemma}
+The space complexity of an Y-fast trie storing \( n\) elements is \( O(n) \)
+\end{lemma}
+
+\begin{proof}
+As previously discussed, an X-fast trie over a universe of size \( M \), storing \( n \) elements, requires \( O(n \log M) \) space. In the Y-fast trie, only \( O(n / \log M) \) representatives are stored in the X-fast trie, resulting in a space requirement of \( O((n / \log M) \log M) = O(n) \) for the representatives trie.
+
+Each element is also stored in a corresponding balanced binary search tree. Since each element appears exactly once, the total space required by all such trees is \( O(n) \).
+
+Aside from this, the data structure maintains only a constant number of variables. Therefore, the overall space complexity of the Y-fast trie is \( O(n) + O(n) + O(1) = O(n) \).
+\end{proof}
+
+In addition to the standard operations supported by a treap, we use a helper function called \texttt{splitInHalf} to divide a bucket into two approximately equal halves. This function works by locating the middle element of the treap and then performing a standard split at that point:
+
+\begin{minted}{cpp}
+void YFastTrie::splitBucket(std::shared_ptr<Koala::Treap<Key>>& bucket) {
+    auto left = std::make_shared<Koala::Treap<Key>>();
+    auto right = std::make_shared<Koala::Treap<Key>>();
+    bucket->splitInHalf(*left, *right);
+
+    Key newRepresentative = right->kth(1);
+    representatives.push(newRepresentative);
+    buckets[newRepresentative] = right;
+
+    Key oldRepresentative = left->kth(1);
+    buckets[oldRepresentative] = left;
+}
+\end{minted}
+
+
+\subsection{Push operation}
+
+To insert a new key \( x \) into a Y-fast trie, we must first identify the balanced binary search tree that should contain it. Each BST corresponds to a disjoint subset of elements, and is represented in the X-fast trie by its minimum element. Therefore, to find the correct subset for \( x \), we perform a predecessor query in the X-fast trie. The result is the largest representative \( r \leq x \), which is the minimum element of the BST that should contain \( x \). If no such representative exists (\( x \) is smaller than all current representatives), then \( x \) belongs to the first BST. If no BSTs exist yet, we initialize the first bucket. As described in the chapter on X-fast tries, the predecessor query takes expected \( O(\log \log M) \) time. Then, we proceed to insert the element into the selected bucket in \( O(\log \log M) \) time.
+
+\begin{minted}{cpp}
+void YFastTrie::insert(const Key& key) {
+    auto representative = findRepresentative(key);
+    std::shared_ptr<Koala::Treap<Key>> bucket;
+
+    if (!representative.has_value()) {
+        if (!empty()) {
+            Key rep = representatives.peek();
+            bucket = buckets[rep];
+            representative = rep;
+        } else {
+            bucket = std::make_shared<Koala::Treap<Key>>();
+            representatives.push(key);
+            buckets[key] = bucket;
+            representative = key;
+        }
+    } else {
+        bucket = buckets[*representative];
+    }
+
+    bucket->insert(key);
+    ++size;
+\end{minted}
+
+The minimum value is updated if necessary. Next, we determine whether there's a need to update the representative. If so, we remove the old value from \texttt{representatives} and \texttt{buckets} keyset and insert the new value. Again, each of these operations \( O(\log \log M) \) time.
+
+Finally, if the insertion causes the bucket to exceed its allowed size, we split it into two smaller buckets. This maintains the invariant that each bucket contains \( \Theta(\log M) \) elements.
+
+\begin{minted}{cpp}
+    if (!minimum.has_value() || key < *minimum) {
+        minimum = key;
+    }
+
+    if (bucket->kth(1) != *representative) {
+        Key newRepresentative = bucket->kth(1);
+        representatives.remove(*representative);
+        representatives.push(newRepresentative);
+        buckets.erase(*representative);
+        buckets[newRepresentative] = bucket;
+        representative = newRepresentative;
+    }
+
+    if (bucket->size() > 2 * bitWidth) {
+        splitBucket(bucket);
+    }
+}
+\end{minted}
+
+Overall, the entire insertion process runs in expected \( O(\log \log M) \) time, including locating the appropriate subset, updating the BST, and maintaining the structure's invariants through splits and representative updates.
+
+\subsection{Pop operation}
+
+To delete a key \( x \) from a Y-fast trie, we begin by locating the balanced binary search tree that contains it. As with insertion, this is done via a predecessor query in the X-fast trie, which returns the largest representative \( r \leq x \).
+
+\begin{minted}{cpp}
+void YFastTrie::remove(const Key& key) {
+    auto representative = findRepresentative(key);
+    if (!representative.has_value()) {
+        return;
+    }
+
+    auto it = buckets.find(*representative);
+
+    auto& bucket = it->second;
+\end{minted}
+
+We then proceed to remove \texttt{key} from the bucket found. If the bucket becomes empty as a result, we remove it entirely. If the element removed was the representative, we update \texttt{representatives} and \texttt{buckets} with the smallest element remaining in the bucket. Likewise, if the deleted element was the \texttt{minimum}, we update the minimum by querying the X-fast trie, which can be done in constant time.
+
+\begin{minted}{cpp}
+    if (bucket->contains(key)) {
+        bucket->erase(key);
+        --size;
+
+        if (bucket->size() == 0) {
+            representatives.remove(*representative);
+            buckets.erase(*representative);
+        } else if (key == *representative) {
+            Key newRepresentative = bucket->kth(1);
+            representatives.remove(*representative);
+            representatives.push(newRepresentative);
+            buckets[newRepresentative] = bucket;
+            buckets.erase(*representative);
+            representative = newRepresentative;
+        }
+
+        if (minimum.has_value() && key == *minimum) {
+            if (!representatives.empty())
+                minimum = representatives.peek();
+            else
+                minimum = std::nullopt;
+        }
+    }
+\end{minted}
+
+After deletion, we check whether the size of the BST has fallen below \( \frac{\log M}{2} \). If it has, we attempt to merge it with a neighboring BST. This involves locating an adjacent bucket, merging the two trees, and updating the set of representatives to reflect the change. First, we try to merge our bucket with its successor in \texttt{representatives}.
+
+\begin{minted}{cpp}
+    if (bucket->size() > 0 && bucket->size() < (bitWidth + 1) / 2) {
+        Key currentRep = bucket->kth(1);
+        auto it = buckets.find(currentRep);
+        if (it != buckets.end()) {
+            auto nextIt = std::next(it);
+            if (nextIt != buckets.end()) {
+                auto nextRepresentative = nextIt->first;
+                it->second->mergeFrom(*nextIt->second);
+                representatives.remove(nextRepresentative);
+                buckets.erase(nextRepresentative);
+                if (it->second->size() > 2 * bitWidth) {
+                    splitBucket(it->second);
+                }
+            }
+\end{minted}
+
+If no successor is available, we attempt the merge with the predecessor instead. It's important to note that the BST resulting from the merge may itself break the size invariant. If that happens, we must split the merged tree to rebalance the sizes and restore the invariant.
+
+
+\begin{minted}{cpp}
+             else if (it != buckets.begin()) {
+                auto prevIt = std::prev(it);
+                prevIt->second->mergeFrom(*it->second);
+                representatives.remove(currentRep);
+                buckets.erase(currentRep);
+                if (prevIt->second->size() > 2 * bitWidth) {
+                    splitBucket(prevIt->second);
+                }
+            }
+        }
+    }
+}
+\end{minted}
+
+The merge operation requires \( O(\log \log M) \) time, as does the rebalancing split if needed. Additionally, removing an outdated representative from the X-fast trie takes expected \( O(\log \log M) \) time.
+
+Altogether, \texttt{pop} has an expected time complexity of \( O(\log \log M) \). This includes locating the appropriate BST, removing the element, and restoring the invariant through merging and updating representatives.
