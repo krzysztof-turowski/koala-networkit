@@ -32,7 +32,7 @@ namespace Koala {
    std::size_t operator()(const std::pair<T1, T2>& p) const {
        std::size_t h1 = std::hash<T1>{}(p.first);
        std::size_t h2 = std::hash<T2>{}(p.second);
-       return h1 ^ (h2 << 1); // or use boost::hash_combine
+       return h1 ^ (h2 << 1);
    }
 };
 
@@ -40,7 +40,6 @@ namespace Koala {
 class MaximumFlow : public NetworKit::Algorithm {
  public:
     /**
-     * Given an input graph, set up the greedy vertex coloring procedure.
      *
      * @param graph The input graph.
      * @param s     The source vertex.
@@ -125,6 +124,7 @@ public:
    void run();
 private:
    int V;
+   NetworKit::Graph graph_stage;
    std::unordered_map<NetworKit::node,int> level;
    std::unordered_map<NetworKit::node,int> inPotential, outPotential;
    std::unordered_map<std::pair<NetworKit::node, NetworKit::node>, int, pair_hash> capacity;

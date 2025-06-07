@@ -17,7 +17,6 @@ edge MKMFlow::rev(const edge &p) {
 void MKMFlow::initialize(){
 
     V = graph->numberOfNodes();
-
     graph->forEdges([&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight w) {
         
         auto p = std::make_pair(u, v);
@@ -55,6 +54,7 @@ bool MKMFlow::buildLevelGraph(){
         });
 
     }
+    graph_stage = NetworKit::Graph(*graph);
     return level[target] != UNREACHABLE;
 
 }
@@ -92,7 +92,7 @@ void MKMFlow::pushForward(NetworKit::node u, int f){
     std::queue<NetworKit::node> q;
     std::map<NetworKit::node,int>to_push;
 
-    graph->forNodes([&](NetworKit::node v) {
+    graph_stage.forNodes([&](NetworKit::node v) {
         to_push[v]=0;
     });
 
@@ -106,7 +106,8 @@ void MKMFlow::pushForward(NetworKit::node u, int f){
         if(to_push[v]==0){
             continue;
         }
-        graph->forEdgesOf(v, [&](NetworKit::node w, NetworKit::edgeweight weight){ 
+        std::vector<edge> edgesToRemove;
+        graph_stage.forEdgesOf(v, [&](NetworKit::node w, NetworKit::edgeweight weight){ 
             edge e = std::make_pair(v,w);
             if(level[v] + 1 != level[e.second]){
                 return;
@@ -120,12 +121,18 @@ void MKMFlow::pushForward(NetworKit::node u, int f){
             }
             flow[e]+=can_be_pushed;
             flow[rev(e)]-=can_be_pushed;
+            if (capacity[e] - flow[e] == 0) {
+                edgesToRemove.push_back(e);
+            }
             inPotential[e.second]-=can_be_pushed;
             outPotential[v]-=can_be_pushed;
             to_push[v]-=can_be_pushed;
             to_push[e.second]+=can_be_pushed;
         });
-        
+        for (const edge& e : edgesToRemove) {
+            graph_stage.removeEdge(e.first, e.second);
+            graph_stage.removeEdge(e.second, e.first); 
+        }
     }
 }
 
@@ -136,7 +143,7 @@ void MKMFlow::pushBackward(NetworKit::node u, int f){
     std::queue<NetworKit::node> q;
     std::map<NetworKit::node,int>to_push;
 
-    graph->forNodes([&](NetworKit::node v) {
+    graph_stage.forNodes([&](NetworKit::node v) {
         to_push[v]=0;
     });
 
@@ -150,7 +157,8 @@ void MKMFlow::pushBackward(NetworKit::node u, int f){
         if(to_push[v]==0){
             continue;
         }
-        graph->forInEdgesOf(v, [&](NetworKit::node w, NetworKit::edgeweight weight){ 
+        std::vector<edge> edgesToRemove;
+        graph_stage.forInEdgesOf(v, [&](NetworKit::node w, NetworKit::edgeweight weight){ 
             edge e = std::make_pair(w,v);
             if(level[v] - 1 != level[e.first]){
                 return;
@@ -164,18 +172,24 @@ void MKMFlow::pushBackward(NetworKit::node u, int f){
             }
             flow[e]+=can_be_pushed;
             flow[rev(e)]-=can_be_pushed;
+            if (capacity[e] - flow[e] == 0) {
+                edgesToRemove.push_back(e);
+            }
             outPotential[e.first]-=can_be_pushed;
             inPotential[v]-=can_be_pushed;
             to_push[v]-=can_be_pushed;
             to_push[e.first]+=can_be_pushed;
         });
-        
+        for (const edge& e : edgesToRemove) {
+            graph_stage.removeEdge(e.first, e.second);
+            graph_stage.removeEdge(e.second, e.first); 
+        }
     }
 }
 
 void MKMFlow::deleteNode(NetworKit::node v){
 
-     graph->forInEdgesOf(v, [&](NetworKit::node w, NetworKit::edgeweight weight){
+     graph_stage.forInEdgesOf(v, [&](NetworKit::node w, NetworKit::edgeweight weight){
         edge e = std::make_pair(w,v);
         if(level[v] - 1 == level[e.first]){
             if (capacity[e] > flow[e]) {
@@ -184,7 +198,7 @@ void MKMFlow::deleteNode(NetworKit::node v){
             }
         }
     });
-    graph->forEdgesOf(v, [&](NetworKit::node w, NetworKit::edgeweight weight){
+    graph_stage.forEdgesOf(v, [&](NetworKit::node w, NetworKit::edgeweight weight){
         edge e = std::make_pair(v,w);
         if(level[v] + 1 == level[e.second]){
             if (capacity[e] > flow[e]) {
@@ -194,7 +208,7 @@ void MKMFlow::deleteNode(NetworKit::node v){
         }
     });
     level[v]=UNREACHABLE;
-
+    graph_stage.removeNode(v);
 }
 
 void MKMFlow::run(){
@@ -208,7 +222,7 @@ void MKMFlow::run(){
             NetworKit::node u;
             int minimum=INT_MAX;
 
-            graph->forNodes([&](NetworKit::node v) {
+            graph_stage.forNodes([&](NetworKit::node v) {
 
                 if(level[v]==UNREACHABLE){
                     return;
