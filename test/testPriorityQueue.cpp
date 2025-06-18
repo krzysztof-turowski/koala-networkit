@@ -2,6 +2,7 @@
 #include <structures/priority_queue/VanEmdeBoasTree.hpp>
 #include <structures/priority_queue/XFastTrie.hpp>
 #include <structures/priority_queue/YFastTrie.hpp>
+#include <structures/priority_queue/WeakHeap.hpp>
 #include <algorithm>
 #include <vector>
 #include <stdexcept>
@@ -24,7 +25,8 @@ INSTANTIATE_TEST_SUITE_P(
     testing::Values(
         std::make_shared<Koala::VanEmdeBoasTree<uint32_t>>(1024),
         std::make_shared<Koala::XFastTrie<uint32_t>>(1024),
-        std::make_shared<Koala::YFastTrie<uint32_t>>(1024)
+        std::make_shared<Koala::YFastTrie<uint32_t>>(1024),
+        std::make_shared<Koala::WeakHeap<uint32_t>>()
         // TODO(jkukowski): Add Fusion Tree
     )
 );
