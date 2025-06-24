@@ -46,8 +46,6 @@ std::pair<std::unordered_set<NetworKit::node>, std::unordered_set<NetworKit::nod
     // TODO: improve cycle selection to be linear
     std::unordered_set<NetworKit::node> inside, cycle;
 
-    // std::vector<bool> visited(graph.size());
-
     for (auto& p : graph) {
         visited[p.first] = 0;
     }
@@ -109,7 +107,6 @@ std::pair<std::unordered_set<NetworKit::node>, std::unordered_set<NetworKit::nod
 }
 
 Separator findSeparator(NetworKit::Graph& G) {
-    // std::cout << "find Separator of graph size: " << G.numberOfNodes() << std::endl;
     rootNode = *(G.nodeRange().begin());
     NetworKit::Graph maximalGraph = makeMaximalPlanar(G);
     NetworKit::count numOfNodes = maximalGraph.numberOfNodes();
@@ -163,9 +160,6 @@ Separator findSeparator(NetworKit::Graph& G) {
                 }
             });
 
-            // std::cout << "found sizes: " << inside.size() << " " << outside.size() << " " <<
-            // cycle.size() << std::endl;
-
             for (auto [a, b] : G.edgeRange()) {
                 if (cycle.contains(a) || cycle.contains(b)) continue;
 
@@ -211,7 +205,7 @@ std::vector<std::vector<NetworKit::node>> postProcesing(Separator& sep, NetworKi
     // the procedure was vaguely described in the paper
     // what's important is that the process of moving vertices from Cbis to coneccted componets is
     // greedy it's easy to prove that bellow prcess will created actuall connected subsets it
-    // requires clever observation about structure of subgraph Cbis Cbis is a uninion of unconnected
+    // requires observation about structure of subgraph Cbis. Cbis is a uninion of unconnected
     // paths.
 
     std::unordered_map<int, int> movedNodeMap;
@@ -284,7 +278,7 @@ std::vector<std::vector<NetworKit::node>> postProcesing(Separator& sep, NetworKi
                    regionsOfNode[v].end();
         });
         assert(hasCommon && "edge must be in at least one region fully");
-        // in other words baundry nodes are in all region they are connected to
+        // in other words baundry nodes are in all regions they are connected to
     }
 
     // Assert ends here
@@ -337,8 +331,7 @@ bool canComponentBeMerged(int componentSize, int boundryNodeNum, int r, int sqr)
     return false;
 }
 
-void fixDivision(nodeSubsets_t& division,
-                 NetworKit::Graph& Graph) {  // TODO: Improve this function to not break a division
+void fixDivision(nodeSubsets_t& division, NetworKit::Graph& Graph) {
     std::vector<std::vector<int>> componentsOfNode(Graph.numberOfNodes());
 
     for (int i = 0; i < division.size(); i++) {
@@ -458,7 +451,6 @@ nodeSubsets_t makeSuitableGraphDivisionFromQueue(std::queue<std::vector<NetworKi
     }
 
     auto isComponentMergable = [&](int c) {
-        // cout << c << " " << smallSets.size() << " " << isSetUsed.size() << endl;
         if (isSetUsed[c]) return false;
         if (2 * smallSets[c].size() > r || 2 * numOfBoundryNodes[c] > c * sqr) return false;
         return true;
@@ -494,7 +486,6 @@ nodeSubsets_t makeSuitableGraphDivisionFromQueue(std::queue<std::vector<NetworKi
 
     // mergin components with common boundry nodes
     for (auto& components : componentsPerNode) {
-        // assert(components.size() > 0 && components.size() < 4);
         if (components.size() == 1) continue;  // interior node
 
         int c0, c1, c2;

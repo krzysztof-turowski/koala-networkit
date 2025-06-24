@@ -28,7 +28,7 @@ class TopologyHeap {
     void fixIndex(int i);
     void initialDistances();
 
-    static const int INF = std::numeric_limits<int>::max();  // TODO rewrite logic to handle double
+    static const int INF = std::numeric_limits<int>::max();
 
     NetworKit::node source;
     NetworKit::node target;

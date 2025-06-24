@@ -124,7 +124,7 @@ TopologyHeap::TopologyHeap(NetworKit::Graph& graph, nodeSubsets_t& regions,
     size = sortedBoudryNodeRegions.size();
     std::sort(sortedBoudryNodeRegions.begin(),
               sortedBoudryNodeRegions
-                  .end());  // TODO change sort from std::sort to some linera equivalent
+                  .end());  // TODO change sort from std::sort to some linear equivalent
 
     storageSize = 1;
     while (storageSize < size) storageSize <<= 1;

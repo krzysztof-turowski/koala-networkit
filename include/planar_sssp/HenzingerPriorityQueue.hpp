@@ -3,7 +3,7 @@
 #include <networkit/graph/Graph.hpp>
 #include <set>
 
-static const int INF = std::numeric_limits<int>::max();  // TODO rewrite logic to handle double
+static const int INF = std::numeric_limits<int>::max();
 
 namespace Koala {
 class HPriorityQueue {
