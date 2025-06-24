@@ -4,17 +4,18 @@
 
 namespace Koala {
 
-    class FredericksonPlanarSSSP : public PlanarSSSP {
-    private:
-        NetworKit::Graph normal_graph;
+class FredericksonPlanarSSSP : public PlanarSSSP {
+   private:
+    NetworKit::Graph normal_graph;
+    int c = 3;
+    int r1 = 100;
+    int r2 = 25;
 
-    public:
-        FredericksonPlanarSSSP(NetworKit::Graph& Graph, NetworKit::node source,
-            NetworKit::node target)
-            : PlanarSSSP(Graph, source, target) {
-        }
+   public:
+    FredericksonPlanarSSSP(NetworKit::Graph& Graph, NetworKit::node source, NetworKit::node target)
+        : PlanarSSSP(Graph, source, target) {}
 
-        void run();
-    };
+    void run();
+};
 
 } /* namespace Koala */
