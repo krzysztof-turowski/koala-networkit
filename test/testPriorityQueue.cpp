@@ -3,6 +3,8 @@
 #include <structures/priority_queue/XFastTrie.hpp>
 #include <structures/priority_queue/YFastTrie.hpp>
 #include <structures/priority_queue/WeakHeap.hpp>
+#include <structures/priority_queue/SkewHeap.hpp>
+#include <structures/priority_queue/RankPairingHeap.hpp>
 #include <algorithm>
 #include <vector>
 #include <stdexcept>
@@ -26,8 +28,9 @@ INSTANTIATE_TEST_SUITE_P(
         std::make_shared<Koala::VanEmdeBoasTree<uint32_t>>(1024),
         std::make_shared<Koala::XFastTrie<uint32_t>>(1024),
         std::make_shared<Koala::YFastTrie<uint32_t>>(1024),
-        std::make_shared<Koala::WeakHeap<uint32_t>>()
-        // TODO(jkukowski): Add Fusion Tree
+        std::make_shared<Koala::WeakHeap<uint32_t>>(),
+        std::make_shared<Koala::SkewHeap<uint32_t>>(),
+        std::make_shared<Koala::RankPairingHeap<uint32_t>>()
     )
 );
 
@@ -82,7 +85,7 @@ TEST_P(IntegerPriorityQueueTest, PushPopRandomOrder) {
     ASSERT_TRUE(queue->empty());
 }
 
-// TODO(jkukowski): Add generic priority queues (Brodal Queue, Weak Heap)
+// TODO(jkukowski): Move generic priority queues here (Weak heap, Skew heap, Rank-pairing heap)
 template <typename T>
 class GenericPriorityQueueTest : public testing::Test {
  protected:
