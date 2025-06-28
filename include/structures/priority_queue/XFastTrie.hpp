@@ -268,8 +268,7 @@ private:
             parent = parent->parent;
         }
 
-        if(parent)
-            parent->jump = node;
+        if (parent) parent->jump = node;
 
         for (; level >= 0; --level) {
             if (parent->jump == node) {

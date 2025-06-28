@@ -1,10 +1,11 @@
 \section{Y-fast trie}
 
-The Y-fast trie is a data structure introduced by Dan Willard in his 1983 paper, \emph{``Log-logarithmic worst-case range queries are possible in space \( \Theta(N) \)''}~\cite{Willard1983}, which also presented the X-fast trie. It supports a dynamic set of integer keys from a universe of size \( M \), allowing all standard associative array operations in expected \( O(\log \log M) \) time. Notably, it achieves this performance using only \( O(n) \) space, where \( n \) is the number of stored elements, which is a significant improvement over van Emde Boas trees.
+The Y-fast trie is a data structure introduced by Dan Willard in his 1983 paper, \emph{Log-logarithmic worst-case range queries are possible in space \( \Theta(N) \)}~\cite{Willard1983}, which also presented the X-fast trie. It supports a dynamic set of integer keys from a universe of size \( M \), allowing all standard associative array operations in expected \( O(\log \log M) \) time. Notably, it achieves this performance using only \( O(n) \) space, where \( n \) is the number of stored elements, which is a significant improvement over van Emde Boas trees.
 
 \subsection{Structure and complexity}
 
-The Y-fast trie builds upon the X-fast trie by partitioning the key set into disjoint subsets of elements, each stored in a balanced binary search tree such as a treap. A representative from each subset is stored in an X-fast trie in order to quickly locate the balanced binary search tree where the queried element is located.
+The Y-fast trie builds upon the X-fast trie by partitioning the key set into disjoint subsets of elements, each stored in a balanced binary search tree such as a treap~\cite{seidel1996treaps}
+. A representative from each subset is stored in an X-fast trie in order to quickly locate the balanced binary search tree where the queried element is located.
 
 The class outline looks like this:
 \begin{minted}{cpp}
@@ -28,7 +29,7 @@ YFastTrie::YFastTrie(Key universeSize)
       minimum(std::nullopt) {}
 \end{minted}
 
-Assuming there are at least \( \frac{\log M}{2} \) elements stored in the trie, we maintain a crucial invariant across all operations: each balanced binary search tree contains \( \Theta(\log M) \) elements. Thus, there will be \( O(n / \log M) \) representatives stored in the X-fast trie. We achieve this by splitting the BST during insertions if its size would exceed \( 2 \cdot \log M \) after the insertion. Similarly, during deletions, if the size of a BST drops below \( \frac{\log M}{2} \), we merge it with one of the other BSTs. 
+Assuming there are at least \( \frac{\log M}{2} \) elements stored in the trie, we maintain a crucial invariant across all operations: each balanced binary search tree contains \( \Theta(\log M) \) elements. Thus, there will be \( O(n / \log M) \) representatives stored in the X-fast trie. We achieve this by splitting the BST (short for Binary Search Tree) during insertions if its size would exceed \( 2 \cdot \log M \) after the insertion. Similarly, during deletions, if the size of a BST drops below \( \frac{\log M}{2} \), we merge it with one of the other BSTs. 
 
 Importantly, to preserve this invariant without compromising the overall time complexity of the structure, we need to use balanced binary search trees that support efficient \texttt{split} and \texttt{merge} operations. Treaps are a natural candidate, as they are well-known to support both operations in logarithmic time. Since each tree stores \( O(\log M) \) elements, \texttt{split} and \texttt{merge} will take \( O(\log \log M) \) time, which is sufficient for our needs.
 
@@ -92,7 +93,7 @@ void YFastTrie::insert(const Key& key) {
     ++size;
 \end{minted}
 
-The minimum value is updated if necessary. Next, we determine whether there's a need to update the representative. If so, we remove the old value from \texttt{representatives} and \texttt{buckets} keyset and insert the new value. Again, each of these operations \( O(\log \log M) \) time.
+The minimum value is updated if necessary. Next, we determine whether there is a need to update the representative. If so, we remove the old value from \texttt{representatives} and \texttt{buckets} keyset and insert the new value. Again, each of these operations takes \( O(\log \log M) \) time.
 
 Finally, if the insertion causes the bucket to exceed its allowed size, we split it into two smaller buckets. This maintains the invariant that each bucket contains \( \Theta(\log M) \) elements.
 
@@ -181,8 +182,7 @@ After deletion, we check whether the size of the BST has fallen below \( \frac{\
             }
 \end{minted}
 
-If no successor is available, we attempt the merge with the predecessor instead. It's important to note that the BST resulting from the merge may itself break the size invariant. If that happens, we must split the merged tree to rebalance the sizes and restore the invariant.
-
+If no successor is available, we attempt the merge with the predecessor instead. It's important to note that the BST resulting from the merge may itself break the size invariant. If that happens, we must split the merged tree to rebalance the sizes. Before calling \texttt{remove}, the neighboring bucket we merge with has a size in the range \([(bitWidth + 1)/2,\ 2 \cdot bitWidth ]\), due to the invariant holding previously. If the merged bucket stays within this range, the invariant still holds. If not, its size falls between \([ 2 \cdot bitWidth,\ 2 \cdot bitWidth + bitWidth + 1)/2 - 1 ]\). In this case, we split it into two nearly equal parts to restore the invariant.
 
 \begin{minted}{cpp}
              else if (it != buckets.begin()) {

@@ -52,3 +52,8 @@ koala_make_benchmark(
     benchmark_vertex_coloring
     benchmarkVertexColoring.cpp
     benchmarkVertexColoring.sh)
+
+koala_make_benchmark(
+    benchmark_priority_queue
+    benchmarkPriorityQueue.cpp
+    benchmarkPriorityQueue.sh)

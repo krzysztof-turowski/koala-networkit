@@ -1,0 +1,17 @@
+\section{Implementation}
+
+All priority queues described in this work were implemented in C++. The full open-source code is available in the \texttt{koala-networkit} GitHub repository at: \url{https://github.com/krzysztof-turowski/koala-networkit/pull/37}. Each data structure is accompanied by unit tests to verify correctness for basic cases.
+
+\subsection{File Structure}
+
+All priority queue implementations are header-only and organized as follows:
+
+\begin{itemize}
+  \item \texttt{include/structures/PriorityQueue.hpp} – defines the common interface,
+  \item \texttt{include/structures/priority\_queue/VanEmdeBoasTree.hpp},
+  \item \texttt{include/structures/priority\_queue/XFastTrie.hpp},
+  \item \texttt{include/structures/priority\_queue/YFastTrie.hpp},
+  \item \texttt{include/structures/priority\_queue/WeakHeap.hpp},
+  \item \texttt{include/structures/priority\_queue/SkewHeap.hpp},
+  \item \texttt{include/structures/priority\_queue/RankPairingHeap.hpp}.
+\end{itemize}

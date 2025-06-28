@@ -1,5 +1,5 @@
 \section{X-fast trie}
-The X-fast trie is a data structure introduced by Dan Willard in his 1983 paper \emph{``Log-logarithmic worst-case range queries are possible in space \( \Theta(N) \)''}~\cite{Willard1983}. For a universe of size \( M \), it supports search, predecessor, and successor queries in \( O(\log \log M) \) time, while insertions and deletions require \( O(\log M) \) time. The data structure uses \( O(n \log M) \) space, where \( n \) is the number of stored elements. X-fast tries were developed as a foundation for  the more advanced Y-fast tries, which incorporate X-fast tries as components.
+The X-fast trie is a data structure introduced by Dan Willard in his 1983 paper \emph{Log-logarithmic worst-case range queries are possible in space \( \Theta(N) \)}~\cite{Willard1983}. For a universe of size \( M \), it supports \emph{search}, \emph{predecessor}, and \emph{successor} queries in \( O(\log \log M) \) time, while insertions and deletions require \( O(\log M) \) time. The data structure uses \( O(n \log M) \) space, where \( n \) is the number of stored elements. X-fast tries were developed as a foundation for  the more advanced Y-fast tries, which incorporate X-fast tries as components.
 
 The X-fast trie builds on the structure of a standard trie, enhancing it with binary search across trie levels to improve query efficiency. Although the \texttt{XFastTrie} class implements the predefined \texttt{PriorityQueue} interface, it must also support public predecessor queries and arbitrary key removal, as these operations are essential for integration into the Y-fast trie.
 
@@ -105,8 +105,12 @@ If the key is not already present, a series of helper methods is invoked. First,
 We can use the jump pointers directly to return the predecessor and successor of a key, given the lowest node matching a prefix of the key. If this node has no right child, the predecessor of the key will be the largest leaf in the node's left subtree, pointed to by the jump pointer; the successor will then be the predecessor's successor, or the minimum value in the trie if the predecessor doesn't exist. Similarly, if the node has no left child, the successor of the key will be the smallest leaf in the node's right subtree, pointed to by the jump pointer; the predecessor will then be the successor's predecessor, or the maximum value in the trie if the successor doesn't exist.
 
 \begin{minted}{cpp}
-std::pair<std::shared_ptr<Node>, std::shared_ptr<Node>> XFastTrie::getInsertNeighbors
-(std::shared_ptr<Node> node, Key key, int level) const {
+std::pair<std::shared_ptr<Node>, std::shared_ptr<Node>> 
+XFastTrie::getInsertNeighbors(
+    std::shared_ptr<Node> node,
+    Key key,
+    int level
+) const {
     int bit = getBit(key, level);
     if (bit == RIGHT) {
         auto pred = node->jump;
@@ -123,20 +127,23 @@ std::pair<std::shared_ptr<Node>, std::shared_ptr<Node>> XFastTrie::getInsertNeig
 The following utility functions complete the insertion by adding any missing nodes to the trie, linking the new leaf into the doubly linked list, and updating the hash tables at each level by traversing the full path to the leaf.
 
 \begin{minted}{cpp}
-std::shared_ptr<Node> XFastTrie::createPath
-(std::shared_ptr<Node> node, Key key, int startLevel) {
-    for (int level = startLevel; level < bitWidth; ++level) {
-        int bit = getBit(key, level);
-        node->children[bit] = std::make_shared<Node>();
-        node->children[bit]->parent = node;
-        node = node->children[bit];
-    }
-    node->key = key;
-    return node;
+std::shared_ptr<Node> XFastTrie::createPath(
+    std::shared_ptr<Node> node, Key key, int startLevel) {
+        for (int level = startLevel; level < bitWidth; ++level) {
+            int bit = getBit(key, level);
+            node->children[bit] = std::make_shared<Node>();
+            node->children[bit]->parent = node;
+            node = node->children[bit];
+        }
+        node->key = key;
+        return node;
 }
 
-void XFastTrie::linkNeighbors
-(std::shared_ptr<Node> node, std::shared_ptr<Node> pred, std::shared_ptr<Node> succ) {
+void XFastTrie::linkNeighbors(
+    std::shared_ptr<Node> node,
+    std::shared_ptr<Node> pred,
+    std::shared_ptr<Node> succ
+) {
     node->linkedNodes[PREV] = pred;
     node->linkedNodes[NEXT] = succ;
     if (pred) pred->linkedNodes[NEXT] = node;
@@ -177,7 +184,7 @@ The average time complexity of the \texttt{push} operation on X-fast tries is \(
 \end{lemma}
 
 \begin{proof}
-The complexity is dominated by a constant number of traversals over a path down the trie. Each such traversal requires \( O(\log M) \) time, as the height of the trie is \( \lceil \log_2 M \rceil \) and at each level we perform a constant amount of work. This is under the assumption that operations on the \texttt{prefixLevels} structure have average \( O(1) \) time complexity.
+The complexity is dominated by a constant number of traversals over a path down the trie. Each such traversal requires \( O(\log M) \) time, as the height of the trie is \( \lceil \log_2 M \rceil \), which is the maximum length of a binary representation of an integer from the universe, and at each level we perform a constant amount of work. This is under the assumption that operations on the \texttt{prefixLevels} structure have average \( O(1) \) time complexity, which can be achieved e.g. using any data structure that supports perfect hashing.
 \end{proof}
 
 \subsection{Pop operation}
@@ -223,8 +230,7 @@ void XFastTrie::cleanupPath(std::shared_ptr<Node> node, Key key) {
 Next, we update the jump pointers for the parent of the removed node and all ancestors above it that previously pointed to this node. If such an ancestor lacks a left child, its jump pointer is updated to the node’s successor, which is now the smallest key in the ancestor’s right subtree. Conversely, if the ancestor lacks a right child, we update its jump pointer to the node’s predecessor, now the largest key in the ancestor’s left subtree.
 
 \begin{minted}{cpp}
-if(parent)
-    parent->jump = node;
+if (parent) parent->jump = node;
 
 for (; level >= 0; --level) {
     if (parent->jump == node) {
@@ -255,7 +261,7 @@ The average time complexity of the \texttt{pop} operation on X-fast tries is \( 
 
 \subsection{Predecessor operation}
 
-While \texttt{pop} and \texttt{push} don't offer any advantage in terms of time complexity over standard binary tries, they maintain a structure that now allows us to elegantly perform \texttt{predecessor} queries in \( O(\log \log M) \) worst-case time.
+While \texttt{pop} and \texttt{push} do not offer any advantage in terms of time complexity over standard binary tries, they maintain a structure that now allows us to elegantly perform \texttt{predecessor} queries in \( O(\log \log M) \) worst-case time.
 
 Predecessors are found by a binary search over the levels of the trie to identify the longest matching prefix of the query key.
 
@@ -284,7 +290,9 @@ After locating this prefix, the structure leverages jump pointers and predecesso
     }
 
     int dir = getBit(key, low);
-    return (dir == RIGHT) ? node->jump : (node->jump ? node->jump->linkedNodes[PREV] : nullptr);
+    return (dir == RIGHT) ? 
+        node->jump :
+        (node->jump ? node->jump->linkedNodes[PREV] : nullptr);
 }
 \end{minted}
 

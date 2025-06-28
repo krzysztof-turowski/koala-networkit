@@ -109,8 +109,8 @@ private:
 
             if (clusters[clusterIndex].value()->isEmpty()) {
                 summaryTree.value()->insert(clusterIndex);
-                clusters[clusterIndex].value()->minValue = position;
-                clusters[clusterIndex].value()->maxValue = position;
+                auto &value = clusters[clusterIndex].value();
+                value->minValue = value->maxValue = position;
             } else {
                 clusters[clusterIndex].value()->insert(position);
             }

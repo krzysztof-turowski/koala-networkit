@@ -1,6 +1,6 @@
 \section{Van Emde Boas tree}
 
-The van Emde Boas tree, first introduced in the 1975 paper \emph{``Preserving Order in a Forest in Less Than Logarithmic Time''} \cite{vanEmdeBoas1975} by Dutch computer scientist Peter van Emde Boas, is a data structure for storing integer keys from a universe of fixed size \( M \). Van Emde Boas trees support all associative array operations (Search, Insert, and Delete) as well as predecessor and successor queries with a time complexity of \( O(\log \log M) \). This is achieved by leveraging a recursive decomposition of the universe into pieces of size \( O(\sqrt{M}) \). 
+The van Emde Boas tree, first introduced in the 1975 paper \emph{Preserving Order in a Forest in Less Than Logarithmic Time} \cite{vanEmdeBoas1975} by Dutch computer scientist Peter van Emde Boas, is a data structure for storing integer keys from a universe of fixed size \( M \). Van Emde Boas trees support all associative array operations (Search, Insert, and Delete) as well as predecessor and successor queries with a time complexity of \( O(\log \log M) \). This is achieved by leveraging a recursive decomposition of the universe into pieces of size \( O(\sqrt{M}) \). 
 
 In this chapter, we focus solely on the use of van Emde Boas trees as priority queues. When used in this context, van Emde Boas trees provide \( O(\log \log M) \) time complexity for \texttt{push} and \texttt{pop} operations and \( O(1) \) time complexity for \texttt{peek}, by augmenting the data structure to maintain the current minimum value after each operation.
 
@@ -36,10 +36,11 @@ We also maintain the cluster size, which is equal to \( \lceil \sqrt{M} \rceil \
 The class outline is as follows:
 
 \begin{minted}{cpp}
-class VanEmdeBoasTree : public PriorityQueue<int> {
-    int universeSize;
-    int clusterSize;
-    int minValue, maxValue;
+template <class Key, class Compare = std::less<Key>>
+class VanEmdeBoasTree : public PriorityQueue<Key, Compare> {
+    const Key universeSize;
+    const Key clusterSize;
+    std::optional<Key> minValue, maxValue;
     std::optional<std::unique_ptr<VanEmdeBoasTree>> summaryTree;
     std::vector<std::optional<std::unique_ptr<VanEmdeBoasTree>>> clusters;
 };
@@ -48,10 +49,11 @@ class VanEmdeBoasTree : public PriorityQueue<int> {
 The structure can be initialized by providing the universe size \( M \):
 
 \begin{minted}{cpp}
-VanEmdeBoasTree::VanEmdeBoasTree(int universeSize)
+VanEmdeBoasTree::VanEmdeBoasTree(Key universeSize)
     : universeSize(universeSize), 
-      clusterSize(static_cast<int>(std::ceil(std::sqrt(universeSize)))),
-      minValue(-1), maxValue(-1) {
+      clusterSize(static_cast<Key>(std::ceil(std::sqrt(universeSize)))),
+      minValue(std::nullopt), 
+      maxValue(std::nullopt) {
     clusters.resize(clusterSize);
 }
 \end{minted}
@@ -76,12 +78,12 @@ S(M) \leq \left( \prod_{i=1}^{\log \log M} \left( M^{1/2^i} + 1 \right) \right) 
 
 In the first term, the highest power of \(M\) is equal to the sum:
 \[
-\sum_{i=1}^{\log \log M} \frac{1}{2^i}
+\sum_{i=1}^{\log \log M} \frac{1}{2^i} \leq 1
 \]
 
-which is a partial sum of a geometric series with sum 1. Thus, the entire term is \(O(M)\).
+Thus, the entire term is \(O(M)\).
 
-In the second term, the largest subterm occurs at \(i = 1\), and gives \(O(M)\). For all \(i > 1\), the exponent \(2/2^i < 1\), so the corresponding terms are \(o(M)\). Therefore, the entire second term is \(O(M)\).
+In the second term, the largest subterm occurs at \(i = 1\), and contributes \(O(M)\). For all \(i > 1\), the exponent is \(2/2^i\), so the sum of corresponding terms is \(O(M)\). Therefore, the entire second term is \(O(M)\).
 
 Combining both terms, we find:
 \[
@@ -92,15 +94,15 @@ S(M) = O(M) + O(M) = O(M)
 In order to quickly locate an element within the tree, a set of simple helper functions is needed. Here, \texttt{high} denotes the index of the cluster containing an element, and \texttt{low} denotes the index of the element within that cluster. \texttt{index} is then used to combine both values.
 
 \begin{minted}{cpp}
-int VanEmdeBoasTree::high(int x) const {
+Key high(Key x) const {
     return x / clusterSize;
 }
 
-int VanEmdeBoasTree::low(int x) const {
+Key low(Key x) const {
     return x % clusterSize;
 }
 
-int VanEmdeBoasTree::index(int high, int low) const {
+Key index(Key high, Key low) const {
     return high * clusterSize + low;
 }
 \end{minted}
@@ -110,7 +112,7 @@ int VanEmdeBoasTree::index(int high, int low) const {
 We begin the implementation by handling important base cases. If the tree is empty, we initialize both \texttt{minValue} and \texttt{maxValue} with the inserted value \( x \), and then return. Checking if the tree is empty is done in \(O(1)\) by simply verifying that the \texttt{minValue} is initialized. Crucially, this means that we don't store the minimum recursively and that inserting into an empty tree takes constant time.
 
 \begin{minted}{cpp}
-void VanEmdeBoasTree::insert(int x) {
+void VanEmdeBoasTree::insert(Key x) {
     if (isEmpty()) {
         minValue = maxValue = x;
         return;
@@ -120,42 +122,42 @@ void VanEmdeBoasTree::insert(int x) {
 We maintain the invariant that the minimum value is stored explicitly. If the new value is smaller, we swap it with the current minimum and continue inserting the larger of the two values.
 
 \begin{minted}{cpp}
-    if (x < minValue) {
-        std::swap(x, minValue);
+    if (x < *minValue) {
+        std::swap(x, *minValue);
     }
 \end{minted}
 
-We then proceed to the main recursive case. For universes larger than 2, we decompose the integer \( x \) into two parts: its cluster index and its position within that cluster. If the corresponding cluster or the summary tree does not exist yet, we allocate them dynamically. If the target cluster is empty, we record its index in the summary tree and initialize its min/max directly. Otherwise, we recursively insert the position into the subcluster.
+We then proceed to the main recursive case. For universes larger than 2, we decompose the integer \( x \) into two parts: its cluster index and its position within that cluster. If the corresponding cluster or the summary tree does not exist yet, we allocate them dynamically. If the target cluster is empty, we record its index in the summary tree and initialize its minimum or maximum directly. Otherwise, we recursively insert the position into the subcluster.
 
 \begin{minted}{cpp}
     if (universeSize > 2) {
-        int clusterIndex = high(x);
-        int position = low(x);
+            Key clusterIndex = high(x);
+            Key position = low(x);
 
-        if (!clusters[clusterIndex].has_value()) {
-            clusters[clusterIndex] = std::make_unique<VanEmdeBoasTree>(clusterSize);
-        }
+            if (!clusters[clusterIndex].has_value()) {
+                clusters[clusterIndex] = 
+                    std::make_unique<VanEmdeBoasTree>(clusterSize);
+            }
 
-        if (!summaryTree.has_value()) {
-            summaryTree = std::make_unique<VanEmdeBoasTree>(clusterSize);
-        }
-\end{minted}
+            if (!summaryTree.has_value()) {
+                summaryTree = 
+                    std::make_unique<VanEmdeBoasTree>(clusterSize);
+            }
 
-\begin{minted}{cpp}
-        if (clusters[clusterIndex].value()->isEmpty()) {
-            summaryTree.value()->insert(clusterIndex);
-            clusters[clusterIndex].value()->minValue = 
-                clusters[clusterIndex].value()->maxValue = position;
-        } else {
-            clusters[clusterIndex].value()->insert(position);
+            if (clusters[clusterIndex].value()->isEmpty()) {
+                summaryTree.value()->insert(clusterIndex);
+                auto &value = clusters[clusterIndex].value();
+                value->minValue = value->maxValue = position;
+            } else {
+                clusters[clusterIndex].value()->insert(position);
+            }
         }
-    }
 \end{minted}
 
 Finally, we update the maximum value explicitly if the inserted value exceeds the current maximum.
 
 \begin{minted}{cpp}
-    if (x > maxValue) {
+    if (x > *maxValue) {
         maxValue = x;
     }
 }
@@ -168,18 +170,16 @@ In each possible path, we make only a single recursive call to insert. If the cl
 Once again, the function begins by handling several base cases. If the tree is empty, there is nothing to remove. If the tree contains a single element, we reset both \texttt{minValue} and \texttt{maxValue}. Here, we assume that the tree contains the removed element—this is reasonable to assume since we will only ever be removing the current minimum value. If there are only two elements in the tree, we set both \texttt{minValue} and \texttt{maxValue} to the other element.
 
 \begin{minted}{cpp}
-void VanEmdeBoasTree::remove(int x) {
+    void remove(Key x) {
     if (isEmpty()) {
         return;
     }
 
-    if (minValue == maxValue) {
-        minValue = maxValue = -1;
+    if (*minValue == *maxValue) {
+        minValue = maxValue = std::nullopt;
         return;
     }
-\end{minted}
 
-\begin{minted}{cpp}
     if (universeSize <= 2) {
         if (x == 0) {
             minValue = 1;
@@ -196,9 +196,9 @@ What follows is the main recursive case. We split it based on whether the elemen
 If the element to remove is the minimum, we find the new minimum. This is done by querying the summary tree for the first non-empty cluster and removing the minimum value in this cluster. After removing this value, we also remove the cluster index from the summary tree if the cluster becomes empty.
 
 \begin{minted}{cpp}
-    if (x == minValue) {
-        int firstCluster = summaryTree.value()->minValue;
-        int firstClusterMin = clusters[firstCluster].value()->minValue;
+    if (x == *minValue) {
+        Key firstCluster = summaryTree.value()->minValue.value();
+        Key firstClusterMin = clusters[firstCluster].value()->minValue.value();
 
         minValue = index(firstCluster, firstClusterMin);
         clusters[firstCluster].value()->remove(firstClusterMin);
@@ -213,8 +213,8 @@ If \( x \) is not the current minimum, we remove it from its cluster. Again, we 
 
 \begin{minted}{cpp}
     else {
-        int clusterIndex = high(x);
-        int position = low(x);
+        Key clusterIndex = high(x);
+        Key position = low(x);
 
         clusters[clusterIndex].value()->remove(position);
 
@@ -227,12 +227,15 @@ If \( x \) is not the current minimum, we remove it from its cluster. Again, we 
 Finally, if the element to remove was the maximum, we compute the new maximum value. If the summary tree is not empty, we find the last non-empty cluster and retrieve its maximum.
 
 \begin{minted}{cpp}
-    if (x == maxValue) {
+    if (x == *maxValue) {
         if (summaryTree.value()->isEmpty()) {
             maxValue = minValue;
         } else {
-            int lastCluster = summaryTree.value()->maxValue;
-            maxValue = index(lastCluster, clusters[lastCluster].value()->maxValue);
+            Key lastCluster = summaryTree.value()->maxValue.value();
+            maxValue = index(
+                lastCluster, 
+                clusters[lastCluster].value()->maxValue.value()
+            );
         }
     }
 }

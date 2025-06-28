@@ -1,6 +1,6 @@
 \section{Rank-pairing heap}
 
-The \emph{rank-pairing heap} is a priority queue data structure introduced by Bernhard Haeupler, Siddhartha Sen, and Robert Tarjan in their 2011 paper, \emph{``Rank-Pairing Heaps''}~\cite{HaeuplerSenTarjan2011}. Combining ideas from earlier structures such as binomial heaps, pairing heaps, and Fibonacci heaps, rank-pairing heaps were designed to offer a \emph{simpler implementation} while matching the asymptotic time complexities of Fibonacci heaps.
+The \emph{rank-pairing heap} is a priority queue data structure introduced by Bernhard Haeupler, Siddhartha Sen, and Robert Tarjan in their 2011 paper, \emph{Rank-Pairing Heaps}~\cite{HaeuplerSenTarjan2011}. Combining ideas from earlier structures such as binomial heaps, pairing heaps, and Fibonacci heaps, rank-pairing heaps were designed to offer a \emph{simpler implementation} while matching the asymptotic time complexities of Fibonacci heaps.
 
 The structure supports \(O(1)\) worst-case time for \texttt{push}, \texttt{peek}, and \texttt{merge} operations, along with an impressive \(O(1)\) \emph{amortized} time for \texttt{decreaseKey} (which decreases the value stored at a given node, assuming direct access to it). The \texttt{pop} operation has an amortized complexity of \(O(\log n)\).
 
@@ -80,22 +80,6 @@ class RankParingHeap : public PriorityQueue<Key, Compare> {
 \end{minted}
 
 It maintains a single pointer, \texttt{firstNode}, which always refers to the node with the minimum key. This node also serves as the logical "start" of the circular list of tree roots.
-
-\begin{minted}{cpp}
-void RankPairingHeap::addNodeToRootList(Node* node) {
-    if (empty()) {
-        firstNode = node;
-        firstNode->next = firstNode;
-        return;
-    }
-    node->next = firstNode->next;
-    firstNode->next = node;
-
-    if (comp(node->key, firstNode->key)) {
-        firstNode = node;
-    }
-}
-\end{minted}
 
 \subsection{Push and merge operations}
 
@@ -187,7 +171,10 @@ void RankPairingHeap::addRightSpine(Node* node) {
 To maintain structural invariants, we must link all trees in the rank-pairing heap that share the same rank. This is achieved through the \texttt{consolidateBuckets} method.
 
 \begin{minted}{cpp}
-std::vector<Node*> RankPairingHeap::consolidateBuckets(Node* root, unsigned nodeCount) {
+std::vector<Node*> RankPairingHeap::consolidateBuckets(
+    Node* root,
+    unsigned nodeCount
+) {
     std::vector<Node*> result;
     
     if (root->next == root) {
@@ -255,7 +242,8 @@ If the heap contains only a single node, that node is deleted, \texttt{firstNode
 \begin{minted}{cpp}
     addRightSpine(firstNode->left);
         
-    std::vector<Node*> consolidatedRoots = consolidateBuckets(firstNode, size);
+    std::vector<Node*> consolidatedRoots = 
+        consolidateBuckets(firstNode, size);
 
     firstNode = nullptr;
     size--;
@@ -337,7 +325,9 @@ void RankPairingHeap::recalculateRank(Node* node) {
         int leftRank = getRank(node->left);
         int rightRank = getRank(node->right);
 
-        int newRank = (std::abs(leftRank - rightRank) > 1) ? std::max(leftRank, rightRank) : std::max(leftRank, rightRank) + 1;
+        int newRank = (std::abs(leftRank - rightRank) > 1) ?
+            std::max(leftRank, rightRank) :
+            std::max(leftRank, rightRank) + 1;
         
         if (newRank >= oldRank) break;
         
