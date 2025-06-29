@@ -1,0 +1,112 @@
+\section{Main search}
+
+The Frederickson's SSSP algorithm for planar graphs consists of three separate parts:
+\begin{enumerate}
+    \item division,
+    \item distance preprocessing,
+    \item main search.
+\end{enumerate}
+
+It will also make use of two parameters $r_1 = \log n$ and $r_2 = (\log \log n)^2$ describing sizes of regions on different levels of division.
+
+\subsection{Nested graph division}
+
+The first parts is to divide the graph into level 1 regions of size $r_1$ using the strategy (see \Cref{findSuitable}) described in Chapter 2. Afterwards we divide every level 1 region into regions of size $r_2$. Call each region in this division a level 2 region. When generating level 2 this division, we start with each level 1 boundary vertex automatically being a level 2 boundary vertex. 
+
+
+\begin{lemma}
+The above strategy can be implemented in $O(n\sqrt{\log n})$ time and does not create more than $O(n/\sqrt{r_2})$ level 2 boundary vertices.
+\end{lemma}
+
+\begin{proof}
+It is easy to see that starting \Cref{findSuitable} with this modification is identical to running it once with single parameter $r_2$. All we do is just continue recursively division from one of the regions. This observation proves that this strategy will not cause more than $O(n/\sqrt{r_2})$ boundary vertices of level 2 regions to be created.
+
+Based on Chapter 2 calculation running graph division algorithm on level 1 regions will take $O(r_1 \log r_1)$ time per region. There are a total of $O(n/r_1)$ level 1 regions in the division, thus it gives us overall time of $O(n \log\log n)$ which after adding time it takes to divide graph into level 1 regions and substituting parameters we get $O(n\sqrt{\log n})$ time.
+\end{proof}
+
+\subsection{Distance preprocessing}
+Given the nested division of planar graph $G$ the goal of this phase is to calculate the distances between every pair of level 1 boundary nodes within each level 1 region. Since level 2 regions share their boundary nodes with the level 1 division, it is sufficient to perform only \Cref{mainthrust} and mop-up phase is required. The main thrust already calculates distances from source to all boundary vertices.
+
+We will treat every level 1 region separately, and describe procedure that have to be repeated for every level 1 region.
+
+\begin{algorithm}
+\caption{\textsc{Distance Preprocessing}}\label{distacenPrepro}
+\begin{algorithmic}[1]
+\Require Induced subgraph $G$ by a level 1 region; level 2 division of $G$
+\Ensure Distances between all boundary nodes in $G$
+\Procedure{DistancePreprocessing}{$G$}
+\State $D_1 \gets \emptyset$ \Comment{maps pair of level 1 boundary nodes on distance}
+\State $D_2 \gets \emptyset$ \Comment{maps pair of level 2 boundary nodes on distance}
+\ForEach{level 2 region $R_2$ in $G$}
+    \ForEach{boundary vertex $b$ in $R_2$}
+        \State $dist \gets$ \Call{Dijkstra}{$G[R_2]$, $b$}
+        \ForEach{boundary node $w$ in $R_2$}
+            \State $D_2[b,w] \gets dist(b, w)$
+        \EndFor
+    \EndFor
+\EndFor
+
+\ForEach{level 1 boundary vertex $b$ in $G$}
+    \State \Call{MainThrust}{$G$,$b$,$D_2$}
+    \ForEach{level 1 boundary vertex $w$ in $G$}
+        \State $D_1[b,w] \gets dist(b, w)$
+    \EndFor
+\EndFor
+\State \Return{$D_1$}
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+To compute the distances between level 2 boundary vertices in each level 2 region, Dijkstra's algorithm is used. For each boundary node in a region, we run Dijkstra's algorithm on the subgraph induced by the corresponding level 2 region.
+
+\begin{lemma}
+Given nested graph division of n-vertex planner graph. It is possible to calculate distances between every pair of boundary vertices shared by one region in $O(n \sqrt{\log n})$ time.
+\end{lemma}
+
+\begin{proof}
+Using Dijkstra's algorithm, the time required to find a shortest path tree in a region of size at most $r_2$ is $O(r_2 \log r_2)$. Computing these shortest path trees for each of the $O(n / \sqrt{r_1})$ level 2 boundary vertices requires a total time of $O(n \log \log n \log \log \log n)$.
+
+Using the main thrust algorithm, the time to find a shortest path tree in a region of size at most $r_1$ is $O(r_1 + (r_1 /\sqrt{r_2})\log r_1)$, or simply $O(r_1)$. Therefore, the total time to find these shortest path trees for all $O(n /\sqrt{r_1})$ level 1 boundary vertices is $O(n \sqrt{r_1})$, which simplifies to $O(n\sqrt{\log n})$.
+\end{proof}
+
+\subsection{Main search}
+
+Now given that for every level 1 region distances between all boundary nodes in each region are calculated, we can run main thrust on an entire graph. This will result in list of all shortest distances from source vertex to all level 1 boundary vertices. What's left is a quick mop-up phase to calculate distances to interior vertices. Mop-up phase for a single level 1 region can be calculated by labeling all boundary nodes with their distance to the source vertex and running Dijkstra algorithm to calculate all the remaining distance. This is identical to running Dijkstra algorithm on a graph induced by the region with an extra source node and extra edges connecting source to boundary vertices with appropriate weight.
+
+\begin{algorithm}[H]
+\caption{\textsc{FredericksonSSSP}}\label{FredericksonSSSP}
+\begin{algorithmic}[1]
+\Require Planar graph $G = (V,E)$, source vertex $s$, 
+\Ensure Shortest path distances from $s$ to all $v \in V$
+\State $D \gets$ \Call{GetNestedDivision}{$G$}
+\State $dist \gets \emptyset$
+\ForEach{level 1 region $R \in D$}
+    \State $dist \gets dist \cup$\Call{DistancePreprocessing}{$G[R]$}
+\EndFor
+\ForEach{$v \in V$}
+    \State $d[v] \gets \infty$
+\EndFor
+\State $d[s] \gets 0$
+\State \Call{MainThrust}{$G$, $D$, $dist$}
+\State \Call{MopUp}{$G$,$D$,$d$}
+\State \Return{$d[v]$ for all $v \in V$}
+\end{algorithmic}
+\end{algorithm}
+
+
+\begin{lemma}
+The mop-up phase will take at most $O(n \log \log n)$ time.
+\end{lemma}
+
+\begin{proof}
+    The mop-up for each of level 1 region will take $O(r_1 \log r_1)$ time. There are $O(n/r_1)$ regions which gives $O(n \log\log n)$ time in total.
+\end{proof}
+
+Parts 1 and 2 both run in $O(n \sqrt{\log n})$, dominating the overall running time of the algorithm. As a corollary of the lemmas proven above, we obtain the following theorem:
+
+\begin{theorem} [Theorem 3. in \cite{frederickson}]
+A SSSP problem on an n-vertex planar graph with non-negative edge weights can be solved in $O(n \sqrt{\log n})$ time.
+\end{theorem}
+
+
+
