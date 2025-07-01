@@ -9,16 +9,16 @@ A priority queue is an abstract data structure that maintains a set of elements,
 The following definition, as given in \emph{Introduction to Algorithms}~\cite{CLRS2022}, specifies the standard operations supported by a priority queue managing a collection \( S \) of elements:
 
 \begin{itemize}
-    \item \texttt{Insert(S, x)}: Insert element \( x \) into the priority queue.
-    \item \texttt{Maximum(S)} / \texttt{Minimum(S)}: Return the element with the maximum or minimum key.
-    \item \texttt{Extract-Max(S)} / \texttt{Extract-Min(S)}: Remove and return the element with the maximum or minimum key.
-    \item \texttt{Increase-Key(S, x, k)} / \texttt{Decrease-Key(S, x, k)}: Modify the key of element \( x \).
+    \item \texttt{insert(S, x)}: Insert element \( x \) into the priority queue.
+    \item \texttt{maximum(S)} / \texttt{minimum(S)}: Return the element with the maximum or minimum key.
+    \item \texttt{extractMax(S)} / \texttt{extractMin(S)}: Remove and return the element with the maximum or minimum key.
+    \item \texttt{increaseKey(S, x, k)} / \texttt{decreaseKey(S, x, k)}: Modify the key of element \( x \).
 \end{itemize}
 
 To simplify our analysis and avoid repetition, this work consistently assumes the use of a \emph{min}-priority queue. Where necessary, clarifications are provided in the text to avoid ambiguity. Based on a slightly adapted version of the classical definition, we define a priority queue in terms of three fundamental \emph{base operations}:
 
 \begin{itemize}
-    \item \texttt{push(key)}: Inserts a key into the queue.
+    \item \texttt{push(k)}: Inserts a key into the queue.
     \item \texttt{peek()}: Returns (without removing) the element with the lowest priority.
     \item \texttt{pop()}: Removes and returns the element with the lowest priority.
 \end{itemize}
@@ -46,3 +46,10 @@ public:
 \end{minted}
 
 This interface serves as the foundation for all implementations explored throughout this work.
+
+In priority queue implementations that support optional operations, the operation signatures take the following form. Here, \texttt{PriorityQueue} denotes the specific implementation class, and \texttt{Node} represents the node type used in that implementation:
+
+\begin{minted}{cpp}
+void PriorityQueue::meld(PriorityQueue& other);
+void PriorityQueue::decreaseKey(Node* node, Key newKey);
+\end{minted}

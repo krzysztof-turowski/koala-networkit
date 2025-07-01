@@ -4,8 +4,7 @@ The Y-fast trie is a data structure introduced by Dan Willard in his 1983 paper,
 
 \subsection{Structure and complexity}
 
-The Y-fast trie builds upon the X-fast trie by partitioning the key set into disjoint subsets of elements, each stored in a balanced binary search tree such as a treap~\cite{seidel1996treaps}
-. A representative from each subset is stored in an X-fast trie in order to quickly locate the balanced binary search tree where the queried element is located.
+The Y-fast trie builds upon the X-fast trie by partitioning the key set into disjoint subsets of elements, each stored in a balanced binary search tree. A representative from each subset is stored in an X-fast trie in order to quickly locate the balanced binary search tree where the queried element is located.
 
 The class outline looks like this:
 \begin{minted}{cpp}
@@ -31,12 +30,12 @@ YFastTrie::YFastTrie(Key universeSize)
 
 Assuming there are at least \( \frac{\log M}{2} \) elements stored in the trie, we maintain a crucial invariant across all operations: each balanced binary search tree contains \( \Theta(\log M) \) elements. Thus, there will be \( O(n / \log M) \) representatives stored in the X-fast trie. We achieve this by splitting the BST (short for Binary Search Tree) during insertions if its size would exceed \( 2 \cdot \log M \) after the insertion. Similarly, during deletions, if the size of a BST drops below \( \frac{\log M}{2} \), we merge it with one of the other BSTs. 
 
-Importantly, to preserve this invariant without compromising the overall time complexity of the structure, we need to use balanced binary search trees that support efficient \texttt{split} and \texttt{merge} operations. Treaps are a natural candidate, as they are well-known to support both operations in logarithmic time. Since each tree stores \( O(\log M) \) elements, \texttt{split} and \texttt{merge} will take \( O(\log \log M) \) time, which is sufficient for our needs.
+Importantly, to preserve this invariant without compromising the overall time complexity of the structure, we need to use balanced binary search trees that support efficient \texttt{split} and \texttt{merge} operations. Treaps~\cite{seidel1996treaps} are a natural candidate, as they are well-known to support both operations in logarithmic expected time. Since each tree stores \( O(\log M) \) elements, \texttt{split} and \texttt{merge} will take \( O(\log \log M) \) expected time, which is sufficient for our needs.
 
 With the invariant in mind, we now establish the upper bound for the memory required by an Y-fast trie.
 
 \begin{lemma}
-The space complexity of an Y-fast trie storing \( n\) elements is \( O(n) \)
+The space complexity of an Y-fast trie storing \( n\) elements is \( O(n) \).
 \end{lemma}
 
 \begin{proof}
@@ -182,7 +181,7 @@ After deletion, we check whether the size of the BST has fallen below \( \frac{\
             }
 \end{minted}
 
-If no successor is available, we attempt the merge with the predecessor instead. It's important to note that the BST resulting from the merge may itself break the size invariant. If that happens, we must split the merged tree to rebalance the sizes. Before calling \texttt{remove}, the neighboring bucket we merge with has a size in the range \([(bitWidth + 1)/2,\ 2 \cdot bitWidth ]\), due to the invariant holding previously. If the merged bucket stays within this range, the invariant still holds. If not, its size falls between \([ 2 \cdot bitWidth,\ 2 \cdot bitWidth + bitWidth + 1)/2 - 1 ]\). In this case, we split it into two nearly equal parts to restore the invariant.
+If no successor is available, we attempt the merge with the predecessor instead. It is important to note that the BST resulting from the merge may itself break the size invariant. If that happens, we must split the merged tree to rebalance the sizes. Before calling \texttt{remove}, the neighboring bucket we merge with has a size in the range \([(\log M + 1)/2,\ 2 \cdot \log M ]\), due to the invariant holding previously. If the merged bucket stays within this range, the invariant still holds. If not, its size falls between \([ 2 \cdot \log M,\ 2 \cdot \log M + (\log M + 1)/2 - 1 ]\). In this case, we split it into two nearly equal parts to restore the invariant.
 
 \begin{minted}{cpp}
              else if (it != buckets.begin()) {

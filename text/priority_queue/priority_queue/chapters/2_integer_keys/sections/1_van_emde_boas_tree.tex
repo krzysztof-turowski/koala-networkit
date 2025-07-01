@@ -1,6 +1,6 @@
 \section{Van Emde Boas tree}
 
-The van Emde Boas tree, first introduced in the 1975 paper \emph{Preserving Order in a Forest in Less Than Logarithmic Time} \cite{vanEmdeBoas1975} by Dutch computer scientist Peter van Emde Boas, is a data structure for storing integer keys from a universe of fixed size \( M \). Van Emde Boas trees support all associative array operations (Search, Insert, and Delete) as well as predecessor and successor queries with a time complexity of \( O(\log \log M) \). This is achieved by leveraging a recursive decomposition of the universe into pieces of size \( O(\sqrt{M}) \). 
+The van Emde Boas tree, first introduced in the 1975 paper \emph{Preserving Order in a Forest in Less Than Logarithmic Time} \cite{vanEmdeBoas1975} by Dutch computer scientist Peter van Emde Boas, is a data structure for storing integer keys from a universe of fixed size \( M \). Van Emde Boas trees support all associative array operations (\texttt{search}, \texttt{insert}, and \texttt{delete}) as well as predecessor and successor queries with a time complexity of \( O(\log \log M) \). This is achieved by leveraging a recursive decomposition of the universe into pieces of size \( O(\sqrt{M}) \). 
 
 In this chapter, we focus solely on the use of van Emde Boas trees as priority queues. When used in this context, van Emde Boas trees provide \( O(\log \log M) \) time complexity for \texttt{push} and \texttt{pop} operations and \( O(1) \) time complexity for \texttt{peek}, by augmenting the data structure to maintain the current minimum value after each operation.
 
@@ -68,27 +68,18 @@ Each van Emde Boas tree contains one summary van Emde Boas tree of size \(\lceil
 
 Combining these, we get the recurrence:
 \[
-S(M) = (1 + \sqrt{M}) S(\sqrt{M}) + O(\sqrt{M})
+S(M) = (1 + \sqrt{M}) S(\sqrt{M}) + \sqrt{M}
 \]
 
-The number of times we take the square root of \(M\) before reaching a value less than 2 is \(\log \log M\). Unrolling the recurrence until we reach subproblems of size 2 gives:
+We prove by induction on \(u \geq u_0 = 2\). Define \(c = S(u_0) + 1\) and \(d = S(u_0) + 2\). The induction hypothesis is \(S(u) \leq c u - d\).
+
+\textbf{Base case:} For \(u = 2\), by definition \(S(2) = c \cdot 2 - d\).
+
+\textbf{Inductive step:} Assume the hypothesis holds for all sizes \(\leq u\). Then
 \[
-S(M) \leq \left( \prod_{i=1}^{\log \log M} \left( M^{1/2^i} + 1 \right) \right) S(2) + \sum_{i=1}^{\log \log M} O\left( M^{1/2^i} \right) \left( M^{1/2^i} + 1 \right)
+S(u) = (1 + \sqrt{u}) S(\sqrt{u}) + \sqrt{u} \leq (1 + \sqrt{u})(c \sqrt{u} - d) + \sqrt{u} = c u - d + (c - d + 1) \sqrt{u}.
 \]
-
-In the first term, the highest power of \(M\) is equal to the sum:
-\[
-\sum_{i=1}^{\log \log M} \frac{1}{2^i} \leq 1
-\]
-
-Thus, the entire term is \(O(M)\).
-
-In the second term, the largest subterm occurs at \(i = 1\), and contributes \(O(M)\). For all \(i > 1\), the exponent is \(2/2^i\), so the sum of corresponding terms is \(O(M)\). Therefore, the entire second term is \(O(M)\).
-
-Combining both terms, we find:
-\[
-S(M) = O(M) + O(M) = O(M)
-\]
+By definiton, \(c - d + 1 \leq 0\), and thus \(S(u) \leq c u - d\). This completes the induction.
 \end{proof}
 
 In order to quickly locate an element within the tree, a set of simple helper functions is needed. Here, \texttt{high} denotes the index of the cluster containing an element, and \texttt{low} denotes the index of the element within that cluster. \texttt{index} is then used to combine both values.
@@ -113,7 +104,7 @@ We begin the implementation by handling important base cases. If the tree is emp
 
 \begin{minted}{cpp}
 void VanEmdeBoasTree::insert(Key x) {
-    if (isEmpty()) {
+    if (empty()) {
         minValue = maxValue = x;
         return;
     }
@@ -131,8 +122,7 @@ We then proceed to the main recursive case. For universes larger than 2, we deco
 
 \begin{minted}{cpp}
     if (universeSize > 2) {
-            Key clusterIndex = high(x);
-            Key position = low(x);
+            Key clusterIndex = high(x), position = low(x);
 
             if (!clusters[clusterIndex].has_value()) {
                 clusters[clusterIndex] = 
@@ -171,7 +161,7 @@ Once again, the function begins by handling several base cases. If the tree is e
 
 \begin{minted}{cpp}
     void remove(Key x) {
-    if (isEmpty()) {
+    if (empty()) {
         return;
     }
 

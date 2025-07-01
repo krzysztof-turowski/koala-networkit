@@ -1,5 +1,5 @@
 \section{X-fast trie}
-The X-fast trie is a data structure introduced by Dan Willard in his 1983 paper \emph{Log-logarithmic worst-case range queries are possible in space \( \Theta(N) \)}~\cite{Willard1983}. For a universe of size \( M \), it supports \emph{search}, \emph{predecessor}, and \emph{successor} queries in \( O(\log \log M) \) time, while insertions and deletions require \( O(\log M) \) time. The data structure uses \( O(n \log M) \) space, where \( n \) is the number of stored elements. X-fast tries were developed as a foundation for  the more advanced Y-fast tries, which incorporate X-fast tries as components.
+The X-fast trie is a data structure introduced by Dan Willard in his 1983 paper \emph{Log-logarithmic worst-case range queries are possible in space \( \Theta(N) \)}~\cite{Willard1983}. For a universe of size \( M \), it supports \texttt{search}, \texttt{predecessor}, and \texttt{successor} queries in \( O(\log \log M) \) time, while insertions and deletions require \( O(\log M) \) time. The data structure uses \( O(n \log M) \) space, where \( n \) is the number of stored elements. X-fast tries were developed as a foundation for  the more advanced Y-fast tries, which incorporate X-fast tries as components.
 
 The X-fast trie builds on the structure of a standard trie, enhancing it with binary search across trie levels to improve query efficiency. Although the \texttt{XFastTrie} class implements the predefined \texttt{PriorityQueue} interface, it must also support public predecessor queries and arbitrary key removal, as these operations are essential for integration into the Y-fast trie.
 
@@ -59,8 +59,7 @@ XFastTrie::XFastTrie(Key universeSize)
       bitWidth(calculateBitWidth(universeSize)),
       root(std::make_shared<Node>()),
       dummy(std::make_shared<Node>()),
-      prefixLevels(bitWidth + 1)
-{
+      prefixLevels(bitWidth + 1) {
     dummy->linkedNodes[PREV] = dummy;
     dummy->linkedNodes[NEXT] = dummy;
 }
@@ -86,7 +85,7 @@ bool XFastTrie::insert(Key key) {
     }
 \end{minted}
 
-If the key is not already present, a series of helper methods is invoked. First, the predecessor and successor of the new key are located. Next, the remaining path down the trie is constructed based on the key's bits. The new leaf is then linked between its predecessor and successor. Finally, jump pointers are updated by traversing up the trie, and the hash tables at each level are modified accordingly.
+If the key is not already present, a series of helper methods is invoked. First, the predecessor and successor of the new key are located. Next, the remaining path down the trie is constructed based on the bits of the key. The new leaf is then linked between its predecessor and successor. Finally, jump pointers are updated by traversing up the trie, and the hash tables at each level are modified accordingly.
 
 \begin{minted}{cpp}
     auto [predecessor, successor] = getInsertNeighbors(node, key, level);
@@ -102,7 +101,7 @@ If the key is not already present, a series of helper methods is invoked. First,
 }
 \end{minted}
 
-We can use the jump pointers directly to return the predecessor and successor of a key, given the lowest node matching a prefix of the key. If this node has no right child, the predecessor of the key will be the largest leaf in the node's left subtree, pointed to by the jump pointer; the successor will then be the predecessor's successor, or the minimum value in the trie if the predecessor doesn't exist. Similarly, if the node has no left child, the successor of the key will be the smallest leaf in the node's right subtree, pointed to by the jump pointer; the predecessor will then be the successor's predecessor, or the maximum value in the trie if the successor doesn't exist.
+We can use the jump pointers directly to return the predecessor and successor of a key, given the lowest node matching a prefix of the key. If this node has no right child, the predecessor of the key will be the largest leaf in the node's left subtree, pointed to by the jump pointer; the successor will then be the predecessor's successor, or the minimum value in the trie if the predecessor does not exist. Similarly, if the node has no left child, the successor of the key will be the smallest leaf in the node's right subtree, pointed to by the jump pointer; the predecessor will then be the successor's predecessor, or the maximum value in the trie if the successor does not exist.
 
 \begin{minted}{cpp}
 std::pair<std::shared_ptr<Node>, std::shared_ptr<Node>> 
@@ -180,7 +179,7 @@ void XFastTrie::updateJumpPointers(std::shared_ptr<Node> node, Key key) {
 \end{minted}
 
 \begin{lemma}
-The average time complexity of the \texttt{push} operation on X-fast tries is \( O(\log M) \)
+The average time complexity of the \texttt{push} operation on X-fast tries is \( O(\log M) \).
 \end{lemma}
 
 \begin{proof}
@@ -261,7 +260,7 @@ The average time complexity of the \texttt{pop} operation on X-fast tries is \( 
 
 \subsection{Predecessor operation}
 
-While \texttt{pop} and \texttt{push} do not offer any advantage in terms of time complexity over standard binary tries, they maintain a structure that now allows us to elegantly perform \texttt{predecessor} queries in \( O(\log \log M) \) worst-case time.
+While \texttt{pop} and \texttt{push} do not offer any advantage in terms of time complexity over standard binary tries, they maintain a structure that now allows us to elegantly perform \texttt{predecessor} queries in \( O(\log \log M) \) worst-case time. Given a key \(x\), \texttt{predecessor} returns \(x\) if it exists in the structure; otherwise, it returns the greatest element less than \(x\), or a null pointer if no such element exists.
 
 Predecessors are found by a binary search over the levels of the trie to identify the longest matching prefix of the query key.
 
@@ -282,7 +281,7 @@ std::shared_ptr<Node> XFastTrie::findPredecessorNode(Key key) const {
     }
 \end{minted}
 
-After locating this prefix, the structure leverages jump pointers and predecessor/successor pointers from the linked list to identify the predecessor or successor of the corresponding node. If the key's first unmatched bit is \(1\), we retrieve the largest key in the node’s left subtree via the jump pointer. Otherwise, we find the smallest key in the right subtree using jump pointers and then move one position backward in the linked list.
+After locating this prefix, the structure leverages jump pointers and predecessor/successor pointers from the linked list to identify the predecessor or successor of the corresponding node. If the first unmatched bit of the key is \(1\), we retrieve the largest key in the left subtree of the node via the jump pointer. Otherwise, we find the smallest key in the right subtree using jump pointers and then move one position backward in the linked list.
 
 \begin{minted}{cpp}
     if (low == bitWidth && node->key.has_value()) {

@@ -6,7 +6,7 @@ The skew heap is a priority queue implemented as a binary tree, where all operat
 
 The basic structure of the \texttt{SkewHeap} class is identical to that of a standard binary tree, so we omit its full definition here.
 
-As noted earlier, the most important and complex operation on a skew heap is the \texttt{merge} operation. Given the roots of two skew heaps, denoted \texttt{a} and \texttt{b}, \texttt{merge} produces a new skew heap rooted at the smaller of the two (we continue to assume a \texttt{min} priority queue). At the same time, it rearranges the subtrees to maintain the efficiency of subsequent operations.
+As noted earlier, the most important and complex operation on a skew heap is the \texttt{merge} operation. Given the roots of two skew heaps, denoted \texttt{a} and \texttt{b}, \texttt{merge} produces a new skew heap rooted at the smaller of the two (we continue to assume a \emph{min}-priority queue). At the same time, it rearranges the subtrees to maintain the efficiency of subsequent operations.
 
 Assuming that \texttt{a} is the smaller of the two roots, we recursively merge \texttt{a}'s right subtree with the heap rooted at \texttt{b}, and set the result as \texttt{a}'s new right subtree. Finally, we swap \texttt{a}'s left and right subtrees to complete the merge.
 

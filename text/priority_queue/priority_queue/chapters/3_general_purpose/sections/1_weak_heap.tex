@@ -5,7 +5,7 @@ sorting. Its primary advantage is the reduced number of comparisons required for
 
 \subsection{Structure and complexity}
 
-Weak heaps loosen the structural requirements of standard binary heaps. In weak heap ordering (assuming a \texttt{min} priority queue, which we will adopt throughout this chapter), each element is required to be smaller than every element in its right subtree, while its relation to elements in the left subtree is unrestricted. As a consequence, to guarantee that the smallest element is at the root, the root must have no left child.
+Weak heaps loosen the structural requirements of standard binary heaps. In weak heap ordering (assuming a \emph{min}-priority queue, which we will adopt throughout this chapter), each element is required to be smaller than every element in its right subtree, while its relation to elements in the left subtree is unrestricted. As a consequence, to guarantee that the smallest element is at the root, the root must have no left child.
 
 The array-based representation of weak heaps closely resembles that of standard binary heaps, with one key distinction: each element is associated with a corresponding \texttt{flip} bit. When this bit is set to \(1\), it indicates that the children of the corresponding node are swapped.
 
@@ -36,9 +36,9 @@ std::size_t WeakHeap::distinguishedAncestor(std::size_t index) const {
 }
 \end{minted}
 
-The average distance \({d}\) from a node to its distinguished ancestor is approximately 2. This follows from the observation that the distance is at least 1, and in half of the cases, the search proceeds one additional level up the tree. This results in \(d = 1 + d/2\). 
+The average distance \({d}\) from a node to its distinguished ancestor is approximately 2. This follows from the observation that the distance is at least 1, and in half of the cases, the search proceeds one additional level up the tree.
 
-The central operation in our analysis is the \texttt{join} operation. Given a node \(j\) and its distinguished ancestor \(i\), the \texttt{join} restores the weak heap property between the subtrees rooted at \(i\) and \(j\). Crucially, this is the only operation that performs a direct comparison between two elements. We will always invoke the following method with a node and its distinguished ancestor as arguments, assuming that the weak heap property holds everywhere else except possibly between \(i\) and \(j\):
+The central operation in our analysis is the \texttt{join} operation. Given a node \(j\) and its distinguished ancestor \(i\), \texttt{join} restores the weak heap property between the subtrees rooted at \(i\) and \(j\); that is, it ensures that the node \(j\) is not smaller than its distinguished ancestor \(i\). Crucially, this is the only operation that performs a direct comparison between two elements. We will always invoke the following method with a node and its distinguished ancestor as arguments, assuming that the weak heap property holds everywhere else except possibly between \(i\) and \(j\):
 
 \begin{minted}{cpp}
 bool WeakHeap::join(std::size_t parent, std::size_t child) {
@@ -51,7 +51,7 @@ bool WeakHeap::join(std::size_t parent, std::size_t child) {
 }
 \end{minted}
 
-If the weak heap property holds between \(i\) and \(j\), no action is required. Otherwise, we first exchange the children of the lower root \(j\) and then swap \(j\) with its ancestor \(i\). Exchanging the roots restores the weak heap property (in the multi-way tree representation) between \(i\) and \(j\). The children exchange is necessary to ensure that the losing (larger) root preserves its original subtree after being moved. Specifically, the lower root’s left child (or next sibling) becomes the former higher root’s right child (or first child), preserving its role as a child of the higher root. The lower root’s right child (or first child) becomes the former higher root’s left child. This does not violate the weak heap property, since it imposes no restrictions on left children.
+If the weak heap property holds between \(i\) and \(j\), no action is required. Otherwise, we first swap \(j\) with its ancestor \(i\) and then exchange the children of the lower root \(j\). Exchanging the roots restores the weak heap property (in the multi-way tree representation) between \(i\) and \(j\). The children exchange is necessary to ensure that the losing (larger) root preserves its original subtree after being moved. Specifically, the lower root’s left child (or next sibling) becomes the former higher root’s right child (or first child), preserving its role as a child of the higher root. The lower root’s right child (or first child) becomes the former higher root’s left child. This does not violate the weak heap property, since it imposes no restrictions on left children.
 
 Similar to the sift operations in a standard binary heap, \texttt{siftUp} restores the weak heap property along the entire path from \(j\) up to the root.
 
