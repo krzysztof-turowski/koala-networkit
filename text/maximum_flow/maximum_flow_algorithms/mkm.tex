@@ -1,0 +1,201 @@
+\section{Introduction}
+%MKM algorithm
+The MKM (Malhotra, Kumar, Maheshwari) \cite{MKM} algorithm is an enhancement of Dinic's algorithm within the family of maximum flow methods based on layered networks and blocking flows. Like Dinic's approach, the MKM algorithm iteratively constructs a layered network from the residual graph and computes a blocking flow to push the maximum possible amount of flow through the network before reconstructing the layers.
+
+Dinic’s original blocking flow algorithm, running in $O(|V|^2|E|)$ time, employs depth-first search (DFS) to find augmenting paths within the layered network. Each DFS traversal saturates at least one edge, and since edges are not revisited excessively, the total complexity for finding a blocking flow is bounded by $O(|V||E|)$ per phase. With the amount of phases bounded by the number of nodes $V$, the overall complexity reaches $O(|V|^2 |E|)$.
+
+The MKM algorithm improves this stage of the algorithm by introducing a more efficient method to compute blocking flows in $O(|V|^2)$ time per phase, significantly reducing the bottleneck in Dinic’s method. This is achieved through a careful combinatorial approach that systematically identifies minimal cuts within the layered network and pushes flow accordingly, rather than relying solely on augmenting path searches.
+
+By improving the blocking flow computation, the MKM algorithm achieves an overall worst-case time complexity of $O(|V|^3)$, making it particularly advantageous in dense graphs or scenarios where multiple blocking flow computations are required.
+
+\section{Definitions}
+
+\begin{defn}
+A \emph{blocking flow} is a flow such that every path from the source $s$ to the sink $t$ contains at least one \emph{saturated} edge, i.e., an edge with zero residual capacity. Formally, for any $s$-$t$ path, there exists an edge $ (u, v) $ on the path for which
+$$
+c_f(u, v) = c(u, v) - f(u, v) = 0.
+$$
+\end{defn}
+
+\begin{defn}
+A \emph{layered network} is a subgraph of the residual graph $G_f = (V,E_f)$ constructed as follows:
+
+Each vertex $v$ is assigned a level value $ \text{level}[v] $, which is the length of the shortest path from the source $s$ to $v$, using only residual edges with positive capacity.
+
+The layered network includes only those residual edges $ (v, u) \in E_f$ such that
+$$
+\text{level}[u] = \text{level}[v] + 1,
+$$
+and the residual capacity $ c_f(v, u) > 0 $.
+\end{defn}
+
+\begin{defn}
+A \emph{flow potential} $p(v)$ is defined as
+$$
+p(v) = \min \left\lbrace \sum_{(v,w) \in E} (c(v,w) - f(v,w)),\ \sum_{(u,v) \in E} (c(u,v) - f(u,v)) \right\rbrace \quad \text{for } v \neq s,t
+$$
+$$
+p(s) = \sum_{(s,w) \in E} (c(s,w) - f(s,w))
+$$
+$$
+p(t) = \sum_{(u,t) \in E} (c(u,t) - f(u,t))
+$$
+\end{defn}
+
+Intuitively, the flow potential represents the amount of flow that can be pushed through a node.
+
+\begin{defn}
+A node $v$ is called a \emph{reference node} if it has the minimal potential among all nodes:
+$$
+p(v) = \min_{u \in V} p(u)
+$$
+\end{defn}
+
+\begin{lemma}
+Let $r$ be the reference node in a layered network $G = (V, E)$ with flow $f$.  
+Then the flow $f$ can be augmented by $p(r)$ to obtain a new flow $f'$ such that $$p(r) = 0.$$
+\end{lemma}
+
+\begin{proof}
+Let the reference node $r$ lie in layer $i$ of the layered network. We now push $p(r)$ flow into $r$ from nodes in layer $i-1$, and then push the same amount of flow out of $r$ to nodes in layer $i+1$. Since the incoming capacity is at least $p(r)$, there exists enough capacity to route $p(r)$ units into $r$. Similarly, the outgoing capacity from $r$ is at least $p(r)$, so we can send this flow out of $r$.
+
+Next, observe that all nodes in layer $i+1$ have potential at least $p(r)$ (by the definition of the reference node). Therefore, any node $w$ in layer $i+1$ that receives flow from $r$ has enough flow potential to forward the received flow toward the sink in subsequent augmentation steps. The same holds for nodes in layer $i-1$: they have potential at least $p(r)$, so they are able to supply $p(r)$ flow to $r$.
+\end{proof}
+
+\section{Per-Stage Algorithm}
+
+The algorithm is based on a previously stated lemma and proceeds iteratively. At each iteration, flow is redistributed through the network based on the potential of the reference node.
+
+At the beginning of each iteration, a reference node is found in $O(|V|)$ time. If its potential is zero then we remove it from the graph and find new reference node. From that node, an amount of flow equal to its potential is pushed in both directions:
+
+\begin{enumerate}
+  \item \textbf{Towards the sink:}
+      The nodes are processed from the reference node to the sink in \emph{topological order}.
+      At each node, incoming flow is pushed through outgoing edges and edges are saturated one by one. At most one outgoing edge may receive additional flow without being saturated.
+  \item \textbf{Towards the source:}
+    The same process is applied in the reverse direction.
+
+\end{enumerate}
+
+Saturated edges are removed from the network, since no further flow can pass through them in later iterations.
+Nodes are removed if either all of their incoming or all of their outgoing edges have been deleted.
+Deleting a node implies deleting all of its incident edges. Below is the pseudocode for the described procedure.
+
+\begin{algorithm}[H]
+\caption{MKM Flow Algorithm (Main Loop)}
+\begin{algorithmic}[1]
+\State Initialize total flow $F \gets 0$
+\While{true}
+    \State $\text{level} \gets \textsc{BuildLayeredNetwork}(s)$ \Comment{Build layered network using BFS}
+    \If{sink $t$ is not reachable from source $s$}
+        \State \textbf{break}
+    \EndIf
+    \State $\text{p} \gets \textsc{ComputePotential}()$
+    \While{\textbf{Graph is non empty}}
+    \State $u \gets \displaystyle\arg\min_{v } \text{ potential}(v)$ \Comment{node with minimal non-zero potential}
+        \If{$\text{p}(u) = 0$}
+            \State \textsc{DeleteNode}($u$)
+            %\State \textbf{continue}
+        \Else
+            \State \textsc{PushForward}($u$, $\text{p}(u)$)
+            \State \textsc{PushBackward}($u$, $\text{p}(u)$)
+            \State $F \gets F + \text{p}(u)$
+            \State \textsc{DeleteNode}($u$)
+        \EndIf
+    \EndWhile
+\EndWhile
+\State \Return $F$
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Complexity}\label{sec:complexity}
+
+In every iteration, either all incoming or all outgoing edges of the reference node become saturated and the node can be deleted from the graph. Therefore, the number of iterations is at most $|V|$.
+
+To achieve optimal performance a structure for a graph which allows for $O(1)$ edge lookup and deletion must be used.
+During the $i$-th iteration the total work done is $ O(|V| + E_i)$ where $E_i$ be the number of edges deleted. Since a maximum of traversed edge remains per node after pushing flow (all other have been saturated and deleted from the network), and each edge is deleted at most once, we have:
+$
+\sum E_i \leq |E|.
+$
+
+Summing over all iterations, the total complexity becomes:
+$$
+O\left(\sum (|V| + E_i)\right) = O(|V|^2 + |E|) = O(|V|^2).
+$$
+
+\begin{algorithm}[H]
+\caption{\textsc{BuildLayeredNetwork}($s$)}
+\begin{algorithmic}[1]
+\State Set $\text{level}[v] \gets \infty$ for all $v \in V$
+\State Initialize queue $q$
+\State $q.\text{push}(s)$; $\text{level}[s] \gets 0$
+\While{$q$ is not empty}
+    \State $u \gets q.\text{front()}$; $q.\text{pop()}$
+    \For{each $(u,w) \in E$}
+        \If{$\text{level}[w] = \infty$ \textbf{and} $f(u,w) < c(u,w)$}
+            \State $\text{level}[w] \gets \text{level}[u] + 1$
+            \State $q.\text{push}(w)$
+        \EndIf
+    \EndFor
+\EndWhile
+\State \Return $\text{level}$
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]
+\caption{\textsc{PushForward}($u$, $flow$)}
+\begin{algorithmic}[1]
+\State Initialize queue $q$
+\State Initialize array $\text{to\_push}[v] \gets 0 \quad \forall v \in V$
+\State \textsc{UpdatePotential}($u$)
+\State $q.\text{push}(u)$
+\While{$q$ is not empty}
+    \State $v \gets q.\text{front}()$
+    \State $q.\text{pop}()$
+    \If{$\text{to\_push}[v] = 0$}
+        \State \textbf{continue}
+    \EndIf
+    \For{each edge $e = (v, w)$ with $\text{level}[v]+ 1 = \text{level}[w]$ and $c_f(e) > 0$}
+        \State $\text{pushable} \gets \min \{ c_f(e), \text{to\_push}[v] \}$
+        \State $f(e) \gets f(e) + \text{pushable}$
+        \State \textsc{UpdatePotential}($v$)
+        \State \textsc{UpdatePotential}($w$)
+        \If{$w \neq t$}
+            \State $q.\text{push}(w)$
+        \EndIf
+        \If{$c_f(e) = 0$} \Comment{edge saturated}
+            \State \textsc{DeleteEdge}($e$)
+        \EndIf
+    \EndFor
+\EndWhile
+\end{algorithmic}
+\end{algorithm}
+
+\section{Correctness and Complexity}
+
+We prove the correctness of the algorithm by showing that it terminates with a valid maximum flow and analyzing its time complexity.
+
+\subsection*{Correctness}
+
+Assume the algorithm terminates. Then, by construction, there is no path from the source $s$ to the sink $t$ in the residual graph. From \Cref{thm:max} this means that the flow is maximal.
+
+\begin{lemma}
+The number of iterations of the main loop is at most $$|V| - 1.$$
+\end{lemma}
+\begin{proof}
+The above observation is based on the fact that each iteration increases the distance between $s$ and $t$ in the residual graph $G_f$. Then since the maximum distance is $|V|-1$ this gives an upper bound on the number of iterations. Below we present a sketch of the proof. For a complete proof refer to \cite{even1976}.
+
+Let $level_i[v]$ denote the $level$ value during $i$-th iteration. First we will prove that $level_{i+1}[v] \geq level_{i}[v] $, meaning the distances from $s$ to each node are non-decreasing.
+Notice that after one iteration the only new edges $(u,v)$ that might appear in the residual graph $G_f$ had their reverse edge $(v,u)$ in $G_f$ in previous iteration (because only edges and its reverses on the paths from $s$ to $t$ in the layered graph had modified flow values). But then $level_i[u] = level_i[v]+1$ and such edge cannot decrease the distance from $s$ to $u$.
+
+Similarly we can prove that $level_{i+1}[t] > level_{i}[t]$. We know already that $level_{i+1}[t] \geq level_{i}[t]$. Since each path of length $level_{i}[t]$ was saturated in iteration $i$ then for the distance to not increase we would need a path containing some new edge $(u,v)$ which satisfies $level_i[u] = level_i[v]+1$ . But because the $level$ values are non-decreasing this path will take us from a node in layer $k$ to a node in layer $k-1$, thus increasing the path from $s$ to $t$.
+\end{proof}
+
+
+Combining the two results above, we conclude that the algorithm always terminates and returns a valid maximum flow.
+
+\subsection*{Complexity}
+
+The time complexity of finding the blocking flow is $O(|V|^2)$ (\Cref{sec:complexity}). The total number of iterations is $O(|V|)$,
+giving total time complexity of the algorithm of 
+$$ O(|V|^2 \cdot |V|) = O(|V|^3)$$.
