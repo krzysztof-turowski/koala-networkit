@@ -611,5 +611,298 @@ void MinimumSpanningTree::check() const {
         assert(branching_tree_augmented.getWeight(answers[i]) <= std::get<2>(G_minus_M[i / 2]));
     }
 }
+namespace {
+    /**
+     * Assumes that both graphs have the same nodes
+     */
+    // NetworKit::Graph graphSum(NetworKit::Graph g1, NetworKit::Graph g2) {
+    //     std::cout << "GRAPH SUM START" << std::endl;
+    //     auto ID1 = g1.getEdgeIntAttribute("ID");
+    //     auto ID2 = g2.getEdgeIntAttribute("ID");
+    //     g2.forEdges([&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight ew, NetworKit::edgeid eid) {
+    //         g1.addEdge(u, v, ew);
+    //         ID1[u, v] = ID2[u, v];
+    //     });
+    //     std::cout << "GRAPH SUM END" << std::endl;
+    // }
+
+    /**
+     * Assumes that both graphs have the same nodes
+     */
+    NetworKit::Graph graphSum(const NetworKit::Graph& g1, const NetworKit::Graph& g2) {
+        NetworKit::Graph g;
+        g1.forEdges([&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight ew){
+            g.addEdge(u, v, ew);
+        });
+        g2.forEdges([&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight ew){
+            g.addEdge(u, v, ew);
+        });
+        return g;
+    }
+}
+
+void Chazelle2000MinimumSpanningTree::run() {
+    // TODO Find proper starting t value
+    std::cout << "CHAZELLE 2000 ALGO" << std::endl;
+    auto G = graph.value();
+    std::cout << "GRAPH RETRIEVED" << std::endl;
+    G.indexEdges();
+    std::cout << "INDEXED EDGES" << std::endl;
+    // auto ID = G.attachEdgeIntAttribute("ID");
+    std::cout << "ATTACHED ID ATTR" << std::endl;
+    // auto ID2 = G.getEdgeIntAttribute("ID");
+
+    std::map<NodePair, int> edgeId;
+    
+    std::cout << G.numberOfEdges() << std::endl;
+    G.forEdges([&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight ew, NetworKit::edgeid eid){
+        if (eid % 10000 == 0) {
+            std::cout << "EDGE " << u << " " << v << " " << ew << " " << eid << std::endl; 
+        }
+        edgeId[{u, v}] = eid;
+        // ID[u, v] = eid;
+    });
+    std::cout << "SET ID FOR ALL EDGES" << std::endl;
+    tree = msf(G, edgeId, 10);
+    std::cout << "RUN MSF" << std::endl;
+    hasRun = true;
+}
+
+
+/**
+ * A wrapper for BoruvkaMinimumSpanningTree::iterate function
+ * that's used in the Chazelle(2000) algorithm implementation.
+ *
+ * The function applies c consecutive Boruvka steps
+ * returns a tuple [gMinor, edgeId, forest]
+ * gMinor - a minor of the input graph G - the result of edge contraction.
+ *
+ * edgeId - a map that maps gMinor edges to their original id
+ *          [u, v] -> id
+ * 
+ * forest - edges from the input graph G which were contracted.
+ */
+std::tuple<NetworKit::Graph, const std::map<Koala::MinimumSpanningTree::NodePair, int>&, NetworKit::Graph>
+    Chazelle2000MinimumSpanningTree::boruvkaSteps(NetworKit::Graph G,  std::map<NodePair, int>& edgeId, int c) {
+    assert(c >= 1);
+    
+    std::cout << "BORVUKA STEPS" << std::endl;
+    auto F = NetworKit::GraphTools::copyNodes(G);
+    auto uf = NetworKit::UnionFind(graph->upperNodeIdBound());
+    std::map<NodePair, NodePair> E;
+    G.forEdges([&](NetworKit::node u, NetworKit::node v) {
+        E.insert({std::minmax(u, v), {u, v}});
+    });
+    auto gMinor = G;
+    BoruvkaMinimumSpanningTree::iterate(gMinor, F, uf, E, C, false);
+    
+    // As F has the same vertices as G, its edgeId map is the same also
+    // auto GID = G.getEdgeIntAttribute("ID");
+    // std::cout << "GET G ID ATTR" << std::endl;
+    // F.indexEdges();
+    // auto FID = F.attachEdgeIntAttribute("ID");
+    // std::cout << "ATTACH F ID ATTR" << std::endl;
+    // F.forEdges([&](NetworKit::node u, NetworKit::node v){
+    //     FID[u, v] = static_cast<int>(GID[u, v]);
+    // });
+    // std::cout << "COPY G ID ATTR -> F ID ATTR" << std::endl;
+    
+    // gMinor.indexEdges();
+    // auto GMIN_ID = gMinor.attachEdgeIntAttribute("ID");
+    // G.forEdges([&](NetworKit::node u, NetworKit::node v){
+    //     if (uf.find(u) != uf.find(v)) {
+    //         auto [uu, vv] = E[{u, v}];
+    //         GMIN_ID[uu, vv] = GID[u, v];
+    //     }
+    // });
+    // std::cout << "SET PROPER ID ATTR TO RETURN GMINOR" << std::endl;
+    std::map<NodePair, int> gMinorEdgeId;
+    G.forEdges([&](NetworKit::node u, NetworKit::node v) {
+        if (uf.find(u) != uf.find(v)) {
+            auto [uu, vv] = E[{u, v}];
+            gMinorEdgeId[{uu, vv}] = edgeId[NodePair{u, v}];
+        }
+    });
+
+    return {gMinor, gMinorEdgeId, F};
+}
+
+struct edge {
+    int u;
+    int v;
+    int val;
+    int id;
+
+    friend bool operator<(edge e1, edge e2) {
+        return e1.val < e2.val;
+    }
+};
+
+NetworKit::Graph Chazelle2000MinimumSpanningTree::msf(NetworKit::Graph G, std::map<NodePair, int>& edgeId, int t) {
+    std::cout << "HUB" << std::endl;
+    // auto ID = G.getEdgeIntAttribute("ID");
+    // std::cout << "HUB 2" << std::endl;
+    // std::cout << ID[0] << std::endl;
+
+    // [STEP 1]
+    if( t <= 1 || G.numberOfNodes() < MIN_NUMBER_NODES) {
+        BoruvkaMinimumSpanningTree boruvka(G);
+        boruvka.run();
+        return boruvka.getForest();
+    }
+
+    
+    // [STEP 2]
+    auto [G0, edgeId0, forest] = boruvkaSteps(G, edgeId, C);
+    if (G0.numberOfEdges() == 0) {
+        return forest;
+    }
+    
+    // [STEP 3]
+    // [TODO]
+    std::vector<std::pair<NetworKit::Graph, std::map<NodePair, int>>> minors;
+    std::vector<std::vector<Koala::Heap<edge>>> heaps;
+    std::vector<std::pair<NetworKit::Graph, std::map<NodePair, int>>> Cz;
+    std::vector<std::vector<edge>> minLink;
+    std::vector<std::vector<std::vector<edge>>> CzEdges;
+    // std::vector< edgeId > chain_link;
+
+    NetworKit::Graph F = NetworKit::GraphTools::copyNodes(G0);
+    NetworKit::Graph B = NetworKit::GraphTools::copyNodes(G0);
+    
+    auto retraction = [&](){
+        /**
+         * [TODO]
+         * 1. add the graph of the last Cz to minors 
+         * [TODO]
+         * 2. add new node representing the last Cz to the semi-last Cz
+         * [TODO]
+         * 3. add appropriate edges to the step 2.
+         */
+    };
+
+    auto popMinBorderEdge = [&]() {
+        int minVal = INT32_MAX;
+        int mini = -1, minj = -1;
+        for (int i = 0; i < heaps.size(); ++i) {
+            for (int j = 0; j < heaps[i].size(); ++j) {
+                if ( heaps[i][j].top().val < minVal ) {
+                    mini = i;
+                    minj = j;
+                    minVal = heaps[i][j].top().val;
+                }
+            }
+        }
+
+        edge minEdge = heaps[mini][minj].top();
+        heaps[mini][minj].pop();
+        return std::tuple{minEdge, mini, minj};
+    };
+
+    auto leftmostSmallerMinLink = [&](int val) {
+        for (int i = 0; i < minLink.size(); ++i) {
+            for (int j = 0; j < minLink[i].size(); ++j) {
+                if( minLink[i][j].val <= val ) {
+                    return std::tuple{true, i, j};
+                }
+            }
+        }
+        return std::tuple{false, -1, -1};
+    };
+
+    auto fusion = [&](int linki, int linkj) {
+        // TODO
+        // - contract all edges with both endpoints in Cz[linki + 1 ... k]
+        // - don't touch already commited minors - i.e. vertices of Cz[j]
+        //
+        // maybe store for each Cz vertex it's set of vertices inside it as it is a contraction
+        // maybe have a multigraph CzGraph where each Cz[i] is a vertex
+        for (int i = linki + 1; i < CzEdges.size(); ++i) {
+            for (int j = i + 1; j < CzEdges[i].size(); ++j) {
+                for (edge e : CzEdges[i][j]) {
+                    // contracting the edge == adding it to the F i.e. the msf approximation
+                    F.addEdge(e.u, e.v);
+                }
+            }
+        }
+
+        CzEdges.resize(linki + 1);
+
+        // TODO deal with heaps...
+
+        // TODO maybe need some UnionFind for the minors ???
+    };
+
+    auto extension = [&]() {
+        auto [minEdge, i, j] = popMinBorderEdge();
+        auto [needFusion, linki, linkj] = leftmostSmallerMinLink(minEdge.val);
+
+        if ( needFusion ) {
+            fusion(linki, linkj);
+        }
+        // now need to do fusion !!!!!!!
+        /**
+         * [DONE]
+         * 1. Find the minimum border edge  ([in] u, v [out]) from heaps
+         * [TODO]
+         * 2. Perform fusion of all Cz after Cz in which the u is. // AND later also need to check for min_link from previous Czs
+         *      need to update :
+         *      - Czs
+         *      - min_links
+         *      - chain_links
+         * 
+         * 
+         * 
+         * [TODO]
+         * 3. Think what else is to be done in here
+         */
+
+
+    };
+
+    // [TODO]
+    auto heapsEmpty = [&]() {
+        return false;
+    };
+
+    // [TODO]
+    auto shouldRetract = [&]() {
+        return false;
+    };
+
+    while ( !heapsEmpty() ) {
+          if ( shouldRetract() ) {
+              retraction();
+          } else {
+              extension();
+         }
+     }
+     
+
+    // [STEP 4]
+    
+    /**
+     * Call recursivly msf on each minor from minors
+     * let F be the sum of all of resulting forests
+     * As in [STEP 5] we will call msf on F and on Bad edges,
+     * its important not to put these edges to the actual msf. 
+     */
+
+    NetworKit::Graph F = NetworKit::GraphTools::copyNodes(G0);
+    for (auto minor : minors) {
+        /**
+         * [TODO]
+         * F0 = msf(minor \ B, t - 1);
+         * [TODO]
+         * F += F0
+         */
+    }
+    
+
+    // [STEP 5]
+    // [TODO]
+    // return msf( F + B, t);
+
+}
 
 }  /* namespace Koala */

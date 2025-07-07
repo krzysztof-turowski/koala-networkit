@@ -82,6 +82,7 @@ class PrimMinimumSpanningTree final : public MinimumSpanningTree {
  */
 class BoruvkaMinimumSpanningTree : public MinimumSpanningTree {
     friend class MinimumSpanningTree;
+    friend class Chazelle2000MinimumSpanningTree;
  public:
     using MinimumSpanningTree::MinimumSpanningTree;
 
@@ -151,6 +152,25 @@ private:
    float calculateApproximateCCsCount(float eps, int bfs_bound, unsigned int w, unsigned int w_bound) const; 
    float calculateApproximateTreeWeight(float eps, unsigned int w) const;
    float treeWeight = -1;
-}; 
+};
+
+class Chazelle2000MinimumSpanningTree final : public MinimumSpanningTree {
+public:
+   using MinimumSpanningTree::MinimumSpanningTree;
+   void run();
+
+private:
+   NetworKit::Graph msf(NetworKit::Graph G, std::map<NodePair, int>& edgeId, int t);
+   std::tuple<NetworKit::Graph, const std::map<NodePair, int>&, NetworKit::Graph> boruvkaSteps(NetworKit::Graph G, std::map<NodePair, int>& edgeId, int c);
+
+   struct EdgeInfo {
+      bool bad = false;
+      bool in_msf = false;
+      int original_cost = 0;
+   };
+   std::vector<EdgeInfo> edges; 
+   static constexpr int MIN_NUMBER_NODES = 10;
+   static constexpr int C = 10;
+};
 
 }  /* namespace Koala */

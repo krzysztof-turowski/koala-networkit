@@ -99,3 +99,12 @@ TEST_P(ChazelleRubinfeldTrevisanMinimumSpanningTreeTest, test_example) {
 }
 
 INSTANTIATE_TEST_SUITE_P(test_example, ChazelleRubinfeldTrevisanMinimumSpanningTreeTest, example_trees);
+
+class Chazelle2000MinimumSpanningTreeTest
+    : public MinimumSpanningTreeTest<Koala::Chazelle2000MinimumSpanningTree> { };
+
+TEST_P(Chazelle2000MinimumSpanningTreeTest, test_example) {
+    test_mst();
+}
+
+INSTANTIATE_TEST_CASE_P(test_example, Chazelle2000MinimumSpanningTreeTest, example_trees);
