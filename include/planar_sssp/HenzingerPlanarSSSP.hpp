@@ -22,7 +22,8 @@ class HenzingerPlanarSSSP : public PlanarSSSP {
     void mainThrust();
 
  public:
-    HenzingerPlanarSSSP(NetworKit::Graph& graph, NetworKit::node source, NetworKit::node target)
+    HenzingerPlanarSSSP(
+        NetworKit::Graph& graph, NetworKit::node source, NetworKit::node target = NetworKit::none)
         : PlanarSSSP(graph, source, target) {}
 
     void run();

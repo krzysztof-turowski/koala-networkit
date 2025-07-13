@@ -3,11 +3,16 @@
 namespace Koala {
 
 PlanarSSSP::PlanarSSSP(NetworKit::Graph& graph, NetworKit::node source, NetworKit::node target)
-    : graph(graph), source(source), target(target) {}
+    : graph(graph), source(source), target(target), distances(graph.numberOfNodes()) {}
 
-NetworKit::count PlanarSSSP::getSSSDistanceToTarget() {
+NetworKit::edgeweight PlanarSSSP::distance(NetworKit::node t) {
     assureFinished();
-    return distanceToTarget;
+    return distances[t];
+}
+
+const std::vector<NetworKit::edgeweight> PlanarSSSP::getDistances() {
+    assureFinished();
+    return distances;
 }
 
 } /* namespace Koala */

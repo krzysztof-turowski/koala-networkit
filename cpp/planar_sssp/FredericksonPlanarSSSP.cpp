@@ -84,25 +84,26 @@ pairDistance_t getDistancebetweenBoundaryNodesLevel2(NetworKit::Graph& graph,
     return result;
 }
 
-int mopUp(std::vector<int>& shortestDistance, nodeSubsets_t& regions, NetworKit::Graph& G,
-    int targetRegion, int t) {
-    int result = std::numeric_limits<int>::max();
+void mopUp(std::vector<int>& shortestDistance, nodeSubsets_t& regions, NetworKit::Graph& G) {
+    for (auto& region : regions) {
+        std::unordered_set<NetworKit::node> subGraphNodes(region.begin(), region.end());
+        NetworKit::Graph subGraph = NetworKit::GraphTools::subgraphFromNodes(G, subGraphNodes);
+        auto root = subGraph.addNode();
+        for (auto node : region) {
+            if (shortestDistance[node] != -1) {
+                subGraph.addEdge(root, node, shortestDistance[node]);
+            }
+        }
+        NetworKit::MultiTargetDijkstra dijkstra(subGraph, root, region.begin(), region.end());
+        dijkstra.run();
+        auto map = dijkstra.getTargetIndexMap();
+        auto distances = dijkstra.getDistances();
 
-    std::unordered_set<NetworKit::node> subGraphNodes(
-        regions[targetRegion].begin(), regions[targetRegion].end());
-    NetworKit::Graph subGraph = NetworKit::GraphTools::subgraphFromNodes(G, subGraphNodes);
-
-    NetworKit::MultiTargetDijkstra dijkstra(
-        subGraph, t, regions[targetRegion].begin(), regions[targetRegion].end());
-    dijkstra.run();
-    auto map = dijkstra.getTargetIndexMap();
-    auto distances = dijkstra.getDistances();
-
-    for (auto node : regions[targetRegion]) {
-        if (shortestDistance[node] == -1) continue;
-        result = std::min(result, shortestDistance[node] + static_cast<int>(distances[map[node]]));
+        for (auto node : region) {
+            if (shortestDistance[node] != -1) continue;
+            shortestDistance[node] = distances[map[node]];
+        }
     }
-    return result;
 }
 
 std::vector<int> mainThrust(NetworKit::Graph& graph, nodeSubsets_t& regions,
@@ -241,14 +242,11 @@ void FredericksonPlanarSSSP::run() {
     auto distancesLevel1 =
         getDistancebetweenBoundaryNodesLevel1(normal_graph, divisionLevel1, r2, c);
 
-    auto shortestDistance = mainThrust(normal_graph, divisionLevel1, distancesLevel1, source, {});
+    auto shortestDistances = mainThrust(normal_graph, divisionLevel1, distancesLevel1, source, {});
 
-    if (nodeRegions[target].size() > 1) {
-        distanceToTarget = shortestDistance[target];
-    } else {  // mop up is required to calculated distance to target node that is not a boundary
-              // node
-        distanceToTarget =
-            mopUp(shortestDistance, divisionLevel1, normal_graph, nodeRegions[target][0], target);
+    mopUp(shortestDistances, divisionLevel1, normal_graph);
+    for (auto node : graph.nodeRange()) {
+        distances[node] = shortestDistances[node];
     }
 
     hasRun = true;

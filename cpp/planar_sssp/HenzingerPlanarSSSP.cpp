@@ -92,12 +92,14 @@ void HenzingerPlanarSSSP::run() {
             isBoundary[i] = 1;
         }
     }
-
     initializeQueues(division);
 
     mainThrust();
 
-    distanceToTarget = d[target];
+    for (auto node : graph.nodeRange()) {
+        distances[node] = d[node];
+    }
+
     hasRun = true;
     return;
 }

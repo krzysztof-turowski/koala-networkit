@@ -2,10 +2,10 @@
 
 #include <list>
 
-
 #include "planar_sssp/FredericksonPlanarSSSP.hpp"
 #include "planar_sssp/HenzingerPlanarSSSP.hpp"
 #include "planar_sssp/PlanarSSSP.hpp"
+
 #include "helpers.hpp"
 
 struct SSSPParameters {
@@ -31,12 +31,12 @@ TEST_P(PlanarSSSPTest, TestPlanarSSSPSolution) {
         std::cout << "Running HenzingerPlanarSSSP\n" << std::endl;
         Koala::HenzingerPlanarSSSP algorithm(G, parameters.s, parameters.t);
         algorithm.run();
-        EXPECT_EQ(algorithm.getSSSDistanceToTarget(), parameters.expectedDistance);
+        EXPECT_EQ(algorithm.distance(parameters.t), parameters.expectedDistance);
     } else {
         std::cout << "Running FredericksonPlanarSSSP\n" << std::endl;
         Koala::FredericksonPlanarSSSP algorithm(G, parameters.s, parameters.t);
         algorithm.run();
-        EXPECT_EQ(algorithm.getSSSDistanceToTarget(), parameters.expectedDistance);
+        EXPECT_EQ(algorithm.distance(parameters.t), parameters.expectedDistance);
     }
 }
 
@@ -55,9 +55,8 @@ SSSPParameters generateGridEdges(int rows, int cols, bool directed = false) {
         }
     }
 
-    return SSSPParameters{
-        "grid",          rows * cols, edges, 0, static_cast<NetworKit::node>(rows * cols - 1),
-        rows + cols - 2, directed};
+    return SSSPParameters{"grid", rows * cols, edges, 0,
+        static_cast<NetworKit::node>(rows * cols - 1), rows + cols - 2, directed};
 }
 
 SSSPParameters generateLineGraphEdges(int length, bool directed = false) {
@@ -99,8 +98,6 @@ SSSPParameters generateTriangularGridEdges(int levels, bool directed = false) {
 }
 
 INSTANTIATE_TEST_SUITE_P(Default, PlanarSSSPTest,
-                         testing::Values(generateGridEdges(40, 40), generateLineGraphEdges(100),
-                                         generateTriangularGridEdges(10),
-                                         generateGridEdges(40, 40, true),
-                                         generateLineGraphEdges(100, true),
-                                         generateTriangularGridEdges(10, true)));
+    testing::Values(generateGridEdges(40, 40), generateLineGraphEdges(100),
+        generateTriangularGridEdges(10), generateGridEdges(40, 40, true),
+        generateLineGraphEdges(100, true), generateTriangularGridEdges(10, true)));

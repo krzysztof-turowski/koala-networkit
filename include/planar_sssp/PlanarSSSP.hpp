@@ -11,7 +11,8 @@ class PlanarSSSP : public NetworKit::Algorithm {
  public:
     virtual void run() = 0;
 
-    NetworKit::count getSSSDistanceToTarget();
+    const std::vector<NetworKit::edgeweight> getDistances();
+    NetworKit::edgeweight distance(NetworKit::node t);
 
     explicit PlanarSSSP(
         NetworKit::Graph& graph, NetworKit::node source, NetworKit::node target = NetworKit::none);
@@ -19,8 +20,8 @@ class PlanarSSSP : public NetworKit::Algorithm {
  protected:
     NetworKit::node source;
     NetworKit::node target;
-    NetworKit::count distanceToTarget = 0;
     NetworKit::Graph& graph;
+    std::vector<NetworKit::edgeweight> distances;
 };
 
 } /* namespace Koala */

@@ -4,18 +4,6 @@ namespace Koala {
 
 static const int INF = std::numeric_limits<int>::max();
 
-// requires for ids to be unique
-void HPriorityQueue::initialize(std::vector<NetworKit::node>& ids) {
-    for (auto id : ids) {
-        set.insert({INF, id});
-        idMap[id] = INF;
-    }
-
-    if (!empty()) {
-        minElement = *(set.begin());
-    }
-}
-
 // Updates key of item under id. In case set does not contain the item inserts it.
 void HPriorityQueue::updateKey(NetworKit::node id, NetworKit::count newKey) {
     if (idMap.find(id) == idMap.end()) {

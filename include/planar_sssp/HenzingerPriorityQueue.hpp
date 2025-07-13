@@ -12,7 +12,6 @@ class HPriorityQueue {
     std::pair<NetworKit::count, NetworKit::node> minElement;
 
  public:
-    void initialize(std::vector<NetworKit::node>& ids);
     void insert(NetworKit::node id, NetworKit::count key);
     void updateKey(NetworKit::node id, NetworKit::count newKey);
     void deactivateItem(NetworKit::node id);
