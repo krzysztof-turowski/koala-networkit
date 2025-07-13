@@ -5,25 +5,14 @@
 #include <networkit/graph/GraphTools.hpp>
 #include <vector>
 
-using std::cout;
-using std::endl;
-
 namespace Koala {
+static const int INF = std::numeric_limits<int>::max();
 using pairDistance_t =
     std::unordered_map<std::pair<int, int>, int, boost::hash<std::pair<int, int>>>;
 
-void TopologyHeap::printStorage() {
-    for (int i = 0; i < storage.size(); i++) {
-        cout << "{ " << storage[i].first << ", " << storage[i].second << " } ";
-    }
-    cout << endl;
-}
-
 // root is stored in storage[1] to simplify traverse logic
-
 void TopologyHeap::fixIndex(int i) {
-    int l = i * 2;
-    int r = i * 2 + 1;
+    int l = i * 2, r = i * 2 + 1;
 
     if (storage[l].first < storage[r].first) {
         storage[i] = storage[l];
@@ -33,12 +22,12 @@ void TopologyHeap::fixIndex(int i) {
 }
 
 void TopologyHeap::initialDistances() {
-    // initial distances to boundry nodes from source
+    // initial distances to boundary nodes from source
 
     if (nodeRegions[source].size() > 1 ||
-        (extraBoundryNodes.find(source) !=
-         extraBoundryNodes.end())) {  // boundry node distances are already calculated
-        storage[nodeStorageIdx[source]].first = 0;
+        (extraBoundaryNodes.find(source) !=
+            extraBoundaryNodes.end())) {  // boundary node distances are already calculated
+        storage[node_storage_index[source]].first = 0;
     }
 
     int initialRegionId = nodeRegions[source][0];
@@ -46,24 +35,24 @@ void TopologyHeap::initialDistances() {
     auto& region = regions[initialRegionId];
     auto subGraph = NetworKit::GraphTools::subgraphFromNodes(
         graph, std::unordered_set<NetworKit::node>{region.begin(), region.end()});
-    std::vector<NetworKit::node> boundry;
+    std::vector<NetworKit::node> boundary;
 
     for (int batchId : regionBatches[initialRegionId]) {
         for (auto b : batches[batchId]) {
-            boundry.push_back(b);
+            boundary.push_back(b);
         }
     }
-    NetworKit::MultiTargetDijkstra dij(subGraph, source, boundry.begin(), boundry.end());
-    dij.run();
-    auto map = dij.getTargetIndexMap();
-    auto distances = dij.getDistances();
-    for (auto b : boundry) {
-        storage[nodeStorageIdx[b]].first = distances[map[b]];
+    NetworKit::MultiTargetDijkstra dijkstra(subGraph, source, boundary.begin(), boundary.end());
+    dijkstra.run();
+    auto map = dijkstra.getTargetIndexMap();
+    auto distances = dijkstra.getDistances();
+    for (auto b : boundary) {
+        storage[node_storage_index[b]].first = distances[map[b]];
     }
 }
 
 void TopologyHeap::initializeStorage() {
-    // initialize the heap to have boundry sets in clusters
+    // initialize the heap to have boundary sets in clusters
     std::vector<int> lastbatch;
     regionBatches.resize(regions.size());
     for (int i = 0; i < sortedBoudryNodeRegions.size(); i++) {
@@ -71,7 +60,7 @@ void TopologyHeap::initializeStorage() {
         sortedBoudryNodeRegions[i].pop_back();
 
         storage[i + storageSize] = {INF, nodeIndex};
-        nodeStorageIdx[nodeIndex] = i + storageSize;
+        node_storage_index[nodeIndex] = i + storageSize;
 
         if (lastbatch == sortedBoudryNodeRegions[i]) {
             batches.back().push_back(nodeIndex);
@@ -93,16 +82,16 @@ void TopologyHeap::initializeStorage() {
 }
 
 TopologyHeap::TopologyHeap(NetworKit::Graph& graph, nodeSubsets_t& regions,
-                           pairDistance_t& distances, int source,
-                           const std::unordered_set<NetworKit::node>& extraBoundryNodes)
+    pairDistance_t& distances, int source,
+    const std::unordered_set<NetworKit::node>& extraBoundaryNodes)
     : graph(graph),
       regions(regions),
       distances(distances),
       source(source),
-      extraBoundryNodes(extraBoundryNodes) {
+      extraBoundaryNodes(extraBoundaryNodes) {
     // get list per node of regions a node is a part of
     nodeRegions.assign(graph.numberOfNodes(), std::vector<int>{});
-    nodeStorageIdx.resize(graph.numberOfNodes());
+    node_storage_index.resize(graph.numberOfNodes());
     isClosed.assign(graph.numberOfNodes(), 0);
     for (int i = 0; i < regions.size(); i++) {
         for (auto& node : regions[i]) {
@@ -110,21 +99,20 @@ TopologyHeap::TopologyHeap(NetworKit::Graph& graph, nodeSubsets_t& regions,
         }
     }
 
-    // filter boundry nodes and add nodeId to the end
+    // filter boundary nodes and add nodeId to the end
     for (int i = 0; i < graph.numberOfNodes(); i++) {
         if (nodeRegions[i].size() > 1) {
             nodeRegions[i].push_back(i);
             sortedBoudryNodeRegions.push_back(nodeRegions[i]);
             nodeRegions[i].pop_back();
-        } else if (extraBoundryNodes.find(i) != extraBoundryNodes.end()) {
+        } else if (extraBoundaryNodes.find(i) != extraBoundaryNodes.end()) {
             sortedBoudryNodeRegions.push_back({nodeRegions[i][0], i});
         }
     }
 
     size = sortedBoudryNodeRegions.size();
-    std::sort(sortedBoudryNodeRegions.begin(),
-              sortedBoudryNodeRegions
-                  .end());  // TODO change sort from std::sort to some linear equivalent
+    std::sort(sortedBoudryNodeRegions.begin(), sortedBoudryNodeRegions.end());
+    // TODO(289Adam289): change sort from std::sort to some linear equivalent
 
     storageSize = 1;
     while (storageSize < size) storageSize <<= 1;
@@ -144,11 +132,11 @@ std::pair<int, NetworKit::node> TopologyHeap::top() {
 
 void TopologyHeap::batchUpdate(int batchId, NetworKit::node node, int currentValue) {
     auto batch = batches[batchId];
-    int nodeId = nodeStorageIdx[node];
+    int nodeId = node_storage_index[node];
     int minId = INF;
     std::deque<int> indexToFix;
     for (int b : batch) {
-        int sId = nodeStorageIdx[b];
+        int sId = node_storage_index[b];
         if (indexToFix.empty() || indexToFix.back() != sId >> 1) {
             indexToFix.emplace_back(sId >> 1);
         }
@@ -183,10 +171,10 @@ void TopologyHeap::batchUpdate(int batchId, NetworKit::node node, int currentVal
 void TopologyHeap::closeNode(NetworKit::node node) {
     size--;
     assert(nodeRegions[node].size() > 1 ||
-           (extraBoundryNodes.find(source) != extraBoundryNodes.end()));
+           (extraBoundaryNodes.find(source) != extraBoundaryNodes.end()));
 
-    int currentValue = storage[nodeStorageIdx[node]].first;
-    storage[nodeStorageIdx[node]].first = INF;
+    int currentValue = storage[node_storage_index[node]].first;
+    storage[node_storage_index[node]].first = INF;
     isClosed[node] = true;
     std::unordered_set<int> batcherToUpdate;
     for (int regionId : nodeRegions[node]) {

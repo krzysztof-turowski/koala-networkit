@@ -1,6 +1,9 @@
 #include "planar_sssp/HenzingerPriorityQueue.hpp"
 
 namespace Koala {
+
+static const int INF = std::numeric_limits<int>::max();
+
 // requires for ids to be unique
 void HPriorityQueue::initialize(std::vector<NetworKit::node>& ids) {
     for (auto id : ids) {

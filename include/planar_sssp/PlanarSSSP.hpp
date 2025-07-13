@@ -8,15 +8,15 @@
 
 namespace Koala {
 class PlanarSSSP : public NetworKit::Algorithm {
-   public:
+ public:
     virtual void run() = 0;
 
     NetworKit::count getSSSDistanceToTarget();
 
-    explicit PlanarSSSP(NetworKit::Graph& graph, NetworKit::node source,
-                        NetworKit::node target = NetworKit::none);
+    explicit PlanarSSSP(
+        NetworKit::Graph& graph, NetworKit::node source, NetworKit::node target = NetworKit::none);
 
-   protected:
+ protected:
     NetworKit::node source;
     NetworKit::node target;
     NetworKit::count distanceToTarget = 0;

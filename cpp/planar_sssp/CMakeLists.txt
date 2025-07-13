@@ -1,9 +1,9 @@
-koala_add_module(pathwidth
+koala_add_module(planar_sssp
     FredericksonPlanarSSSP.cpp
     PlanarSSSP.cpp
     PlanarUtils.cpp
     TopologyBasedHeap.cpp
     SuitableRDivision.cpp
-    HenzingerPlannarSSSP.cpp
+    HenzingerPlanarSSSP.cpp
     HenzingerPriorityQueue.cpp
 )

@@ -8,6 +8,6 @@ using nodeSubsets_t = std::vector<std::vector<NetworKit::node>>;
 
 namespace Koala {
 
-nodeSubsets_t findSuitableRDivision(NetworKit::Graph& Graph, int r, int c);
+nodeSubsets_t findSuitableRDivision(NetworKit::Graph& graph, int r, int c);
 
 } /* namespace Koala */

@@ -10,7 +10,7 @@ using nodeSubsets_t = std::vector<std::vector<NetworKit::node>>;
 
 namespace Koala {
 class TopologyHeap {
-   public:
+ public:
     std::pair<int, NetworKit::node> top();
 
     void closeNode(NetworKit::node);
@@ -20,15 +20,13 @@ class TopologyHeap {
     void printStorage();
 
     TopologyHeap(NetworKit::Graph& graph, nodeSubsets_t& regions, pairDistance_t& distances,
-                 int source, const std::unordered_set<NetworKit::node>& extraBoundryNodes);
+        int source, const std::unordered_set<NetworKit::node>& extraBoundaryNodes);
 
-   private:
+ private:
     void initializeStorage();
     void batchUpdate(int batch, NetworKit::node node, int currentValue);
     void fixIndex(int i);
     void initialDistances();
-
-    static const int INF = std::numeric_limits<int>::max();
 
     NetworKit::node source;
     NetworKit::node target;
@@ -36,9 +34,9 @@ class TopologyHeap {
     NetworKit::Graph& graph;
     nodeSubsets_t& regions;
     pairDistance_t& distances;
-    std::vector<int> nodeStorageIdx;
+    std::vector<int> node_storage_index;
     std::vector<int> isClosed;
-    const std::unordered_set<NetworKit::node> extraBoundryNodes;
+    const std::unordered_set<NetworKit::node> extraBoundaryNodes;
     std::vector<std::vector<int>> nodeRegions;
     std::vector<std::vector<int>> batches;
     std::vector<std::vector<int>> regionBatches;

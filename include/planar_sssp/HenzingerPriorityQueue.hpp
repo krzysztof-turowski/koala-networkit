@@ -3,8 +3,6 @@
 #include <networkit/graph/Graph.hpp>
 #include <set>
 
-static const int INF = std::numeric_limits<int>::max();
-
 namespace Koala {
 class HPriorityQueue {
     std::set<std::pair<NetworKit::count, NetworKit::node>> set;
@@ -13,7 +11,7 @@ class HPriorityQueue {
     // caching the mininmal elemnet to ensure constan time read
     std::pair<NetworKit::count, NetworKit::node> minElement;
 
-   public:
+ public:
     void initialize(std::vector<NetworKit::node>& ids);
     void insert(NetworKit::node id, NetworKit::count key);
     void updateKey(NetworKit::node id, NetworKit::count newKey);

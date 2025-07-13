@@ -15,13 +15,13 @@ using namespace boost;
 
 // Boost graph typedefs
 using BoostGraph = adjacency_list<vecS, vecS, undirectedS, property<vertex_index_t, int>,
-                                  property<edge_index_t, int>>;
+    property<edge_index_t, int>>;
 
 // Boost planar embedding typedefs based on
 // https://www.boost.org/doc/libs/1_53_0/libs/graph/example/straight_line_drawing.cpp
 using embedding_storage_t = std::vector<std::vector<graph_traits<BoostGraph>::edge_descriptor>>;
 using embedding_t = boost::iterator_property_map<embedding_storage_t::iterator,
-                                                 property_map<BoostGraph, vertex_index_t>::type>;
+    property_map<BoostGraph, vertex_index_t>::type>;
 
 using pairDistance_t =
     std::unordered_map<std::pair<int, int>, int, boost::hash<std::pair<int, int>>>;
@@ -44,9 +44,9 @@ std::pair<BoostGraph, std::vector<NetworKit::node>> convertNetworKitToBoost(
     return {boostGraph, nodeMap};
 }
 
-NetworKit::Graph convertBoostToNetworKit(BoostGraph G, std::vector<NetworKit::node> nodeMap,
-                                         NetworKit::Graph Graph) {
-    NetworKit::Graph result(Graph);
+NetworKit::Graph convertBoostToNetworKit(
+    BoostGraph G, std::vector<NetworKit::node> nodeMap, NetworKit::Graph graph) {
+    NetworKit::Graph result(graph);
 
     for (auto [ei, ei_end] = edges(G); ei != ei_end; ++ei) {
         auto u = source(*ei, G);
@@ -73,7 +73,7 @@ planar_embedding_t findPlanarEmbeding(const NetworKit::Graph& G, bool verbose = 
     embedding_t embedding(embedding_storage.begin(), get(vertex_index, boostGraph));
 
     if (!boyer_myrvold_planarity_test(boyer_myrvold_params::graph = boostGraph,
-                                      boyer_myrvold_params::embedding = embedding)) {
+            boyer_myrvold_params::embedding = embedding)) {
         throw std::runtime_error("Graph have to be planar!");
         return;
     }
@@ -99,7 +99,7 @@ planar_embedding_t findPlanarEmbeding(const NetworKit::Graph& G, bool verbose = 
 
 NetworKit::Graph makeMaximalPlanar(NetworKit::Graph& G) {
     typedef adjacency_list<vecS, vecS, undirectedS, property<vertex_index_t, int>,
-                           property<edge_index_t, int>>
+        property<edge_index_t, int>>
         graph;
     auto [g, nodeMap] = convertNetworKitToBoost(G);
 
@@ -110,16 +110,16 @@ NetworKit::Graph makeMaximalPlanar(NetworKit::Graph& G) {
 
     typedef std::vector<graph_traits<graph>::edge_descriptor> vec_t;
     std::vector<vec_t> embedding(num_vertices(g));
-    boyer_myrvold_planarity_test(boyer_myrvold_params::graph = g,
-                                 boyer_myrvold_params::embedding = &embedding[0]);
+    boyer_myrvold_planarity_test(
+        boyer_myrvold_params::graph = g, boyer_myrvold_params::embedding = &embedding[0]);
 
     make_biconnected_planar(g, &embedding[0]);
 
     edge_count = 0;
     for (boost::tie(ei, ei_end) = edges(g); ei != ei_end; ++ei) put(e_index, *ei, edge_count++);
 
-    boyer_myrvold_planarity_test(boyer_myrvold_params::graph = g,
-                                 boyer_myrvold_params::embedding = &embedding[0]);
+    boyer_myrvold_planarity_test(
+        boyer_myrvold_params::graph = g, boyer_myrvold_params::embedding = &embedding[0]);
 
     make_maximal_planar(g, &embedding[0]);
 
@@ -197,17 +197,17 @@ NetworKit::Graph convertToMaxDegree3(NetworKit::Graph& G, bool directed = false)
     return result;
 }
 
-NetworKit::Graph convertDirectedGraphToUndirected(NetworKit::Graph& Graph) {
-    NetworKit::Graph result(Graph.numberOfNodes());
-    for (auto [u, v] : Graph.edgeRange()) {
+NetworKit::Graph convertDirectedGraphToUndirected(NetworKit::Graph& graph) {
+    NetworKit::Graph result(graph.numberOfNodes());
+    for (auto [u, v] : graph.edgeRange()) {
         result.addEdge(u, v);
     }
     result.removeMultiEdges();
     return result;
 }
 
-void assert_division(const nodeSubsets_t& division, NetworKit::Graph& Graph) {
-    std::vector<std::vector<int>> componentsOfNode(Graph.numberOfNodes());
+void assert_division(const nodeSubsets_t& division, NetworKit::Graph& graph) {
+    std::vector<std::vector<int>> componentsOfNode(graph.numberOfNodes());
 
     for (int i = 0; i < division.size(); i++) {
         for (auto node : division[i]) {
@@ -220,7 +220,7 @@ void assert_division(const nodeSubsets_t& division, NetworKit::Graph& Graph) {
         assert(components.size() < 4);
     }
 
-    for (const auto& [u, v] : Graph.edgeRange()) {
+    for (const auto& [u, v] : graph.edgeRange()) {
         bool hasCommon =
             std::any_of(componentsOfNode[u].begin(), componentsOfNode[u].end(), [&](int x) {
                 return std::find(componentsOfNode[v].begin(), componentsOfNode[v].end(), x) !=

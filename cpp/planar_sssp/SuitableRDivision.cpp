@@ -30,8 +30,8 @@ struct Separator {
     std::unordered_set<NetworKit::node> C;
 };
 
-void insideDFS(NetworKit::node u, planar_embedding_t& graph,
-               std::unordered_set<NetworKit::node>& inside) {
+void insideDFS(
+    NetworKit::node u, planar_embedding_t& graph, std::unordered_set<NetworKit::node>& inside) {
     if (visited[u]) return;
     inside.insert(u);
     visited[u] = true;
@@ -43,7 +43,7 @@ void insideDFS(NetworKit::node u, planar_embedding_t& graph,
 
 std::pair<std::unordered_set<NetworKit::node>, std::unordered_set<NetworKit::node>> count_nodes(
     NetworKit::Edge edge, planar_embedding_t& graph) {
-    // TODO: improve cycle selection to be linear
+    // TODO(289Adam289): improve cycle selection to be linear
     std::unordered_set<NetworKit::node> inside, cycle;
 
     for (auto& p : graph) {
@@ -86,7 +86,7 @@ std::pair<std::unordered_set<NetworKit::node>, std::unordered_set<NetworKit::nod
         int end = std::find(graph[current].begin(), graph[current].end(), parent[current]) -
                   graph[current].begin();
         for (int i = (start + 1) % graph[current].size(); i != end;
-             i = (i + 1) % graph[current].size()) {
+            i = (i + 1) % graph[current].size()) {
             insideDFS(graph[current][i], graph, inside);
         }
         last = current;
@@ -99,7 +99,7 @@ std::pair<std::unordered_set<NetworKit::node>, std::unordered_set<NetworKit::nod
     int end = std::find(graph[localRootNode].begin(), graph[localRootNode].end(), rootRightChild) -
               graph[localRootNode].begin();
     for (int i = (start + 1) % graph[localRootNode].size(); i != end;
-         i = (i + 1) % graph[localRootNode].size()) {
+        i = (i + 1) % graph[localRootNode].size()) {
         insideDFS(graph[localRootNode][i], graph, inside);
     }
 
@@ -176,8 +176,8 @@ Separator findSeparator(NetworKit::Graph& G) {
     throw std::runtime_error("Acording to Lipton and Tarjan Lemma 2 Should not have happened!!!");
 }
 
-std::vector<std::vector<NetworKit::node>> postProcesing(Separator& sep, NetworKit::Graph& G,
-                                                        std::vector<int>& isBoundry) {
+std::vector<std::vector<NetworKit::node>> postProcesing(
+    Separator& sep, NetworKit::Graph& G, std::vector<int>& isBoundary) {
     auto [A, B, C] = sep;
     std::unordered_set<NetworKit::node> Cprime;
     std::unordered_set<NetworKit::node> Cbis;
@@ -209,7 +209,7 @@ std::vector<std::vector<NetworKit::node>> postProcesing(Separator& sep, NetworKi
     // paths.
 
     std::unordered_map<int, int> movedNodeMap;
-    std::unordered_set<NetworKit::node> boundryNodes;
+    std::unordered_set<NetworKit::node> boundaryNodes;
     for (auto c : Cbis) {
         std::unordered_set<int> neighbourComponents;
         for (auto x : G.neighborRange(c)) {
@@ -226,14 +226,14 @@ std::vector<std::vector<NetworKit::node>> postProcesing(Separator& sep, NetworKi
             movedNodeMap[c] = *(neighbourComponents.begin());
             components[movedNodeMap[c]].push_back(c);
         } else {
-            boundryNodes.insert(c);
+            boundaryNodes.insert(c);
         }
     }
 
-    std::unordered_map<int, int> newBoundryNode;
-    for (auto node : boundryNodes) {
-        isBoundry[node] = 1;
-        newBoundryNode[node] = 1;
+    std::unordered_map<int, int> newBoundaryNode;
+    for (auto node : boundaryNodes) {
+        isBoundary[node] = 1;
+        newBoundaryNode[node] = 1;
         for (auto x : G.neighborRange(node)) {
             int component;
 
@@ -269,7 +269,7 @@ std::vector<std::vector<NetworKit::node>> postProcesing(Separator& sep, NetworKi
         }
         assert(v.size() > 0);
         assert(v.size() <= countNeighbours);
-        if (newBoundryNode[k]) assert(v.size() > 1);
+        if (newBoundaryNode[k]) assert(v.size() > 1);
     }
 
     for (auto [u, v] : G.edgeRange()) {
@@ -286,14 +286,14 @@ std::vector<std::vector<NetworKit::node>> postProcesing(Separator& sep, NetworKi
     return components;
 }
 
-nodeSubsets_t createConnectedSets(NetworKit::Graph& subGraph, std::vector<int>& isBoundry) {
+nodeSubsets_t createConnectedSets(NetworKit::Graph& subGraph, std::vector<int>& isBoundary) {
     nodeSubsets_t result;
     NetworKit::ConnectedComponents cc(subGraph);
     cc.run();
     nodeSubsets_t components = cc.getComponents();
     if (components.size() == 1) {  // subgraph is a connected componet
         auto separator = findSeparator(subGraph);
-        return postProcesing(separator, subGraph, isBoundry);
+        return postProcesing(separator, subGraph, isBoundary);
     }
 
     int largestComponentNumber = -1;
@@ -310,13 +310,13 @@ nodeSubsets_t createConnectedSets(NetworKit::Graph& subGraph, std::vector<int>& 
     }
 
     // finding separator of the largest component (it size exceeds 2/3 off all nodes)
-    std::unordered_set<NetworKit::node> largestComponent(components[largestComponentNumber].begin(),
-                                                         components[largestComponentNumber].end());
+    std::unordered_set<NetworKit::node> largestComponent(
+        components[largestComponentNumber].begin(), components[largestComponentNumber].end());
     NetworKit::Graph connectedGraph =
         NetworKit::GraphTools::subgraphFromNodes(subGraph, largestComponent);
     auto separator = findSeparator(connectedGraph);
 
-    auto conectedSubsets = postProcesing(separator, connectedGraph, isBoundry);
+    auto conectedSubsets = postProcesing(separator, connectedGraph, isBoundary);
     for (int i = 0; i < conectedSubsets.size(); i++) {
         result.push_back(std::move(conectedSubsets[i]));
     }
@@ -324,15 +324,15 @@ nodeSubsets_t createConnectedSets(NetworKit::Graph& subGraph, std::vector<int>& 
     return result;
 }
 
-bool canComponentBeMerged(int componentSize, int boundryNodeNum, int r, int sqr) {
-    if (componentSize < r / 2 && boundryNodeNum < c * sqr) {
+bool canComponentBeMerged(int componentSize, int boundaryNodeNum, int r, int sqr) {
+    if (componentSize < r / 2 && boundaryNodeNum < c * sqr) {
         return true;
     }
     return false;
 }
 
-void fixDivision(nodeSubsets_t& division, NetworKit::Graph& Graph) {
-    std::vector<std::vector<int>> componentsOfNode(Graph.numberOfNodes());
+void fixDivision(nodeSubsets_t& division, NetworKit::Graph& graph) {
+    std::vector<std::vector<int>> componentsOfNode(graph.numberOfNodes());
 
     for (int i = 0; i < division.size(); i++) {
         for (auto node : division[i]) {
@@ -340,14 +340,14 @@ void fixDivision(nodeSubsets_t& division, NetworKit::Graph& Graph) {
         }
     }
 
-    for (auto node : Graph.nodeRange()) {
+    for (auto node : graph.nodeRange()) {
         if (componentsOfNode[node].size() > 3) {
             int componentToRemove = -1;
 
             for (auto c : componentsOfNode[node]) {
                 int countNeighbors = 0;
                 int TheNei = -1;
-                for (auto nei : Graph.neighborRange(node)) {
+                for (auto nei : graph.neighborRange(node)) {
                     if (std::find(componentsOfNode[nei].begin(), componentsOfNode[nei].end(), c) !=
                         componentsOfNode[nei].end()) {
                         countNeighbors++;
@@ -369,8 +369,8 @@ void fixDivision(nodeSubsets_t& division, NetworKit::Graph& Graph) {
                     bool hasCommon =
                         std::any_of(restComponents.begin(), restComponents.end(), [&](int x) {
                             return std::find(componentsOfNode[TheNei].begin(),
-                                             componentsOfNode[TheNei].end(),
-                                             x) != componentsOfNode[TheNei].end();
+                                       componentsOfNode[TheNei].end(),
+                                       x) != componentsOfNode[TheNei].end();
                         });
                     if (hasCommon) {
                         componentToRemove = c;
@@ -379,15 +379,14 @@ void fixDivision(nodeSubsets_t& division, NetworKit::Graph& Graph) {
                 }
             }
 
-            division[componentToRemove].erase(std::find(division[componentToRemove].begin(),
-                                                        division[componentToRemove].end(), node));
+            division[componentToRemove].erase(std::find(
+                division[componentToRemove].begin(), division[componentToRemove].end(), node));
         }
     }
 }
 
 nodeSubsets_t makeSuitableGraphDivisionFromQueue(std::queue<std::vector<NetworKit::node>>& queue,
-                                                 NetworKit::Graph& Graph, int r,
-                                                 std::vector<int>& isBoundry) {
+    NetworKit::Graph& graph, int r, std::vector<int>& isBoundary) {
     int sqr = sqrt(r);
     nodeSubsets_t smallSets;
     nodeSubsets_t result;
@@ -397,29 +396,29 @@ nodeSubsets_t makeSuitableGraphDivisionFromQueue(std::queue<std::vector<NetworKi
         auto nodeSet = std::move(queue.front());
         queue.pop();
 
-        int numOfBoundryNodes = 0;
+        int numOfBoundaryNodes = 0;
         for (auto node : nodeSet) {
-            if (isBoundry[node]) {
-                numOfBoundryNodes++;
+            if (isBoundary[node]) {
+                numOfBoundaryNodes++;
             }
         }
-        if (nodeSet.size() < r && numOfBoundryNodes < c * sqr) {
+        if (nodeSet.size() < r && numOfBoundaryNodes < c * sqr) {
             smallSets.push_back(std::move(nodeSet));
             continue;
         }
 
         std::unordered_set<NetworKit::node> nodesForSubGraph{nodeSet.begin(), nodeSet.end()};
-        auto subGraph = NetworKit::GraphTools::subgraphFromNodes(Graph, nodesForSubGraph);
-        auto sets = createConnectedSets(subGraph, isBoundry);
+        auto subGraph = NetworKit::GraphTools::subgraphFromNodes(graph, nodesForSubGraph);
+        auto sets = createConnectedSets(subGraph, isBoundary);
 
         for (auto& s : sets) {
-            numOfBoundryNodes = 0;
+            numOfBoundaryNodes = 0;
             for (auto node : s) {
-                if (isBoundry[node]) {
-                    numOfBoundryNodes++;
+                if (isBoundary[node]) {
+                    numOfBoundaryNodes++;
                 }
             }
-            if (s.size() >= r || numOfBoundryNodes >= c * sqr) {
+            if (s.size() >= r || numOfBoundaryNodes >= c * sqr) {
                 queue.emplace(std::move(s));
             } else {
                 smallSets.push_back(std::move(s));
@@ -427,15 +426,15 @@ nodeSubsets_t makeSuitableGraphDivisionFromQueue(std::queue<std::vector<NetworKi
         }
     }
 
-    fixDivision(smallSets, Graph);
+    fixDivision(smallSets, graph);
 
-    assert_division(smallSets, Graph);
+    assert_division(smallSets, graph);
 
     // merging to small components
-    std::vector<std::vector<NetworKit::count>> componentsPerNode(Graph.numberOfNodes());
+    std::vector<std::vector<NetworKit::count>> componentsPerNode(graph.numberOfNodes());
     std::vector<int> isSetUsed(smallSets.size(), 0);
-    std::vector<int> numOfBoundryNodes(smallSets.size(), 0);
-    std::vector<int> used(Graph.numberOfNodes(), 0);
+    std::vector<int> numOfBoundaryNodes(smallSets.size(), 0);
+    std::vector<int> used(graph.numberOfNodes(), 0);
 
     for (int i = 0; i < smallSets.size(); i++) {
         for (auto& x : smallSets[i]) {
@@ -445,14 +444,14 @@ nodeSubsets_t makeSuitableGraphDivisionFromQueue(std::queue<std::vector<NetworKi
     for (int i = 0; i < componentsPerNode.size(); i++) {
         if (componentsPerNode[i].size() > 1) {
             for (auto c : componentsPerNode[i]) {
-                numOfBoundryNodes[c] += 1;
+                numOfBoundaryNodes[c] += 1;
             }
         }
     }
 
     auto isComponentMergable = [&](int c) {
         if (isSetUsed[c]) return false;
-        if (2 * smallSets[c].size() > r || 2 * numOfBoundryNodes[c] > c * sqr) return false;
+        if (2 * smallSets[c].size() > r || 2 * numOfBoundaryNodes[c] > c * sqr) return false;
         return true;
     };
 
@@ -463,28 +462,28 @@ nodeSubsets_t makeSuitableGraphDivisionFromQueue(std::queue<std::vector<NetworKi
         // importat to merge smaller component to the bigger
         if (smallSets[c1].size() < smallSets[c2].size()) std::swap(c1, c2);
         isSetUsed[c2] = true;
-        int goodBoundryNodes = 0;
+        int goodBoundaryNodes = 0;
         for (auto node : smallSets[c2]) {
             auto& nodeComponents = componentsPerNode[node];
             if (std::find(nodeComponents.begin(), nodeComponents.end(), c1) ==
                 nodeComponents.end()) {
                 smallSets[c1].push_back(node);
                 if (nodeComponents.size() > 1) {
-                    goodBoundryNodes++;
+                    goodBoundaryNodes++;
                 }
                 std::replace(nodeComponents.begin(), nodeComponents.end(), c2, c1);
-            } else {  // boundry between c1 and c2
-                goodBoundryNodes += nodeComponents.size() == 2 ? -1 : 1;
+            } else {  // boundary between c1 and c2
+                goodBoundaryNodes += nodeComponents.size() == 2 ? -1 : 1;
                 nodeComponents.erase(find(nodeComponents.begin(), nodeComponents.end(), c2));
             }
         }
         smallSets[c2].clear();
-        numOfBoundryNodes[c1] += goodBoundryNodes;
-        assert(numOfBoundryNodes[c1] >= 0);
+        numOfBoundaryNodes[c1] += goodBoundaryNodes;
+        assert(numOfBoundaryNodes[c1] >= 0);
         return c1;
     };
 
-    // mergin components with common boundry nodes
+    // mergin components with common boundary nodes
     for (auto& components : componentsPerNode) {
         if (components.size() == 1) continue;  // interior node
 
@@ -496,7 +495,7 @@ nodeSubsets_t makeSuitableGraphDivisionFromQueue(std::queue<std::vector<NetworKi
             tryMergeComponents(c1, c2);
             continue;
         }
-        // boundry node of two regions
+        // boundary node of two regions
         tryMergeComponents(components[0], components[1]);
     }
 
@@ -506,13 +505,13 @@ nodeSubsets_t makeSuitableGraphDivisionFromQueue(std::queue<std::vector<NetworKi
             regionsToAssert.push_back(set);
         }
     }
-    assert_division(regionsToAssert, Graph);
+    assert_division(regionsToAssert, graph);
 
-    int countBoundryNodes = 0;
-    for (auto node : Graph.nodeRange()) {
+    int countBoundaryNodes = 0;
+    for (auto node : graph.nodeRange()) {
         assert(componentsPerNode[node].size() > 0);
         if (componentsPerNode[node].size() > 1) {
-            countBoundryNodes++;
+            countBoundaryNodes++;
         }
     }
 
@@ -544,8 +543,8 @@ nodeSubsets_t makeSuitableGraphDivisionFromQueue(std::queue<std::vector<NetworKi
         regionsToMerge.push_back({first, second, i});
     }
 
-    sort(regionsToMerge.begin(),
-         regionsToMerge.end());  // TODO: swap std::sort for an linear or nsqrt(logn) sort
+    sort(regionsToMerge.begin(), regionsToMerge.end());
+    // TODO(289Adam289): swap std::sort for an linear or nsqrt(logn) sort
 
     // greedy merging of regions with the same sets of either one or two regions.
 
@@ -581,32 +580,32 @@ nodeSubsets_t makeSuitableGraphDivisionFromQueue(std::queue<std::vector<NetworKi
         result.push_back(std::move(smallSets[i]));
     }
 
-    assert_division(result, Graph);
+    assert_division(result, graph);
     return result;
 }
 
 // we need two different starting points for algorithm
-nodeSubsets_t makeSuitableGraphDivision(NetworKit::Graph& Graph, int r) {
-    std::vector<int> isBoundry(Graph.numberOfNodes(), 0);
+nodeSubsets_t makeSuitableGraphDivision(NetworKit::Graph& graph, int r) {
+    std::vector<int> isBoundary(graph.numberOfNodes(), 0);
     std::queue<std::vector<NetworKit::node>> queue;
-    auto nodeRange = Graph.nodeRange();
+    auto nodeRange = graph.nodeRange();
     queue.push(std::vector<NetworKit::node>{nodeRange.begin(), nodeRange.end()});
 
-    return makeSuitableGraphDivisionFromQueue(queue, Graph, r, isBoundry);
+    return makeSuitableGraphDivisionFromQueue(queue, graph, r, isBoundary);
 }
 
 // FIND_CLUSTERS from [F1]
 nodeSubsets_t findClusterResult;
 
-std::vector<NetworKit::node> csearch(NetworKit::node v, int z, NetworKit::Graph& Graph) {
+std::vector<NetworKit::node> csearch(NetworKit::node v, int z, NetworKit::Graph& graph) {
     if (visited[v]) {
         return {};
     }
     visited[v] = 1;
     std::vector<NetworKit::node> clust(1, v);
 
-    for (auto neigh : Graph.neighborRange(v)) {
-        auto neighClust = csearch(neigh, z, Graph);
+    for (auto neigh : graph.neighborRange(v)) {
+        auto neighClust = csearch(neigh, z, graph);
         for (auto n : neighClust) {
             clust.push_back(n);
         }
@@ -619,13 +618,13 @@ std::vector<NetworKit::node> csearch(NetworKit::node v, int z, NetworKit::Graph&
     }
 }
 
-nodeSubsets_t findClusters(NetworKit::Graph& Graph, int z) {
+nodeSubsets_t findClusters(NetworKit::Graph& graph, int z) {
     findClusterResult.clear();
-    for (auto node : Graph.nodeRange()) {
+    for (auto node : graph.nodeRange()) {
         visited[node] = 0;
     }
 
-    auto csearchResult = csearch(*Graph.nodeRange().begin(), z, Graph);
+    auto csearchResult = csearch(*graph.nodeRange().begin(), z, graph);
 
     for (auto node : csearchResult) {
         findClusterResult.back().push_back(node);
@@ -634,8 +633,8 @@ nodeSubsets_t findClusters(NetworKit::Graph& Graph, int z) {
     return findClusterResult;
 }
 
-nodeSubsets_t getDivisionFromClusters(nodeSubsets_t& clusters, NetworKit::Graph& Graph, int r) {
-    std::vector<NetworKit::count> clusterNum(Graph.numberOfNodes());
+nodeSubsets_t getDivisionFromClusters(nodeSubsets_t& clusters, NetworKit::Graph& graph, int r) {
+    std::vector<NetworKit::count> clusterNum(graph.numberOfNodes());
     for (int i = 0; i < clusters.size(); i++) {
         for (auto node : clusters[i]) {
             clusterNum[node] = i;
@@ -644,8 +643,8 @@ nodeSubsets_t getDivisionFromClusters(nodeSubsets_t& clusters, NetworKit::Graph&
     // build new shrinked graph based on clusters
     NetworKit::Graph ShrinkedGraph(clusters.size());
 
-    Graph.forNodes([&](auto v) {
-        for (auto u : Graph.neighborRange(v)) {
+    graph.forNodes([&](auto v) {
+        for (auto u : graph.neighborRange(v)) {
             if (clusterNum[v] != clusterNum[u]) {
                 ShrinkedGraph.addEdge(clusterNum[v], clusterNum[u]);
             }
@@ -656,7 +655,7 @@ nodeSubsets_t getDivisionFromClusters(nodeSubsets_t& clusters, NetworKit::Graph&
     int sqr = sqrt(r);
     nodeSubsets_t division;
 
-    std::vector<int> isBoundry(ShrinkedGraph.numberOfNodes(), 0);
+    std::vector<int> isBoundary(ShrinkedGraph.numberOfNodes(), 0);
     std::queue<std::vector<NetworKit::node>> queue;
     auto nodeRange = ShrinkedGraph.nodeRange();
     queue.push(std::vector<NetworKit::node>{nodeRange.begin(), nodeRange.end()});
@@ -666,29 +665,29 @@ nodeSubsets_t getDivisionFromClusters(nodeSubsets_t& clusters, NetworKit::Graph&
         auto nodeSet = std::move(queue.front());
         queue.pop();
 
-        int numOfBoundryNodes = 0;
+        int numOfBoundaryNodes = 0;
         for (auto node : nodeSet) {
-            if (isBoundry[node]) {
-                numOfBoundryNodes++;
+            if (isBoundary[node]) {
+                numOfBoundaryNodes++;
             }
         }
-        if (nodeSet.size() < r && numOfBoundryNodes < c * sqr) {
+        if (nodeSet.size() < r && numOfBoundaryNodes < c * sqr) {
             division.push_back(std::move(nodeSet));
             continue;
         }
 
         std::unordered_set<NetworKit::node> nodesForSubGraph{nodeSet.begin(), nodeSet.end()};
         auto subGraph = NetworKit::GraphTools::subgraphFromNodes(ShrinkedGraph, nodesForSubGraph);
-        auto sets = createConnectedSets(subGraph, isBoundry);
+        auto sets = createConnectedSets(subGraph, isBoundary);
 
         for (auto& s : sets) {
-            numOfBoundryNodes = 0;
+            numOfBoundaryNodes = 0;
             for (auto node : s) {
-                if (isBoundry[node]) {
-                    numOfBoundryNodes++;
+                if (isBoundary[node]) {
+                    numOfBoundaryNodes++;
                 }
             }
-            if (s.size() >= r || numOfBoundryNodes >= c * sqr) {
+            if (s.size() >= r || numOfBoundaryNodes >= c * sqr) {
                 queue.emplace(std::move(s));
             } else {
                 division.push_back(std::move(s));
@@ -711,7 +710,7 @@ nodeSubsets_t getDivisionFromClusters(nodeSubsets_t& clusters, NetworKit::Graph&
     // Unshrink the graph
     for (int i = 0; i < countRegionsOfNode.size(); i++) {
         assert(regionOfNode[i] > -1);
-        // boundry vertex
+        // boundary vertex
         if (countRegionsOfNode[i] >= 2) {
             resultWithZeros.push_back({});
             for (auto node : clusters[i]) {
@@ -735,25 +734,25 @@ nodeSubsets_t getDivisionFromClusters(nodeSubsets_t& clusters, NetworKit::Graph&
     return result;
 }
 
-nodeSubsets_t fixGraphDivision(nodeSubsets_t& division, NetworKit::Graph& Graph,
-                               std::vector<int>& isBoundry) {
+nodeSubsets_t fixGraphDivision(
+    nodeSubsets_t& division, NetworKit::Graph& graph, std::vector<int>& isBoundary) {
     // The procedure is not described in the paper "Infer boundary vertices and slightly
     // expanded(sic!) regions that share these vertices". So I guess we can do it in a greedy
     // fashion.
 
-    std::vector<std::array<int, 3>> region(Graph.numberOfNodes(), {-1, -1, -1});
+    std::vector<std::array<int, 3>> region(graph.numberOfNodes(), {-1, -1, -1});
     for (int i = 0; i < division.size(); i++) {
         for (auto& node : division[i]) {
             region[node][0] = i;
         }
     }
 
-    Graph.forEdges([&](NetworKit::node u, NetworKit::node v) {
-        if (isBoundry[u] && isBoundry[v]) {
+    graph.forEdges([&](NetworKit::node u, NetworKit::node v) {
+        if (isBoundary[u] && isBoundary[v]) {
             return;
         }
-        if (isBoundry[u] || isBoundry[v]) {
-            if (isBoundry[v]) std::swap(u, v);
+        if (isBoundary[u] || isBoundary[v]) {
+            if (isBoundary[v]) std::swap(u, v);
             for (auto r : region[u]) {
                 if (r == region[v][0]) return;
             }
@@ -762,12 +761,12 @@ nodeSubsets_t fixGraphDivision(nodeSubsets_t& division, NetworKit::Graph& Graph,
         }
         if (region[u][0] == region[v][0]) return;
 
-        isBoundry[u] = 1;
+        isBoundary[u] = 1;
         region[u][1] = region[v][0];
     });
 
-    Graph.forEdges([&](NetworKit::node u, NetworKit::node v) {
-        if (isBoundry[u] && isBoundry[v]) {
+    graph.forEdges([&](NetworKit::node u, NetworKit::node v) {
+        if (isBoundary[u] && isBoundary[v]) {
             bool hasCommon = false;
 
             for (auto cu : region[u]) {
@@ -799,31 +798,31 @@ nodeSubsets_t fixGraphDivision(nodeSubsets_t& division, NetworKit::Graph& Graph,
 }
 
 // create suitable r-division quickly.
-nodeSubsets_t findSuitableRDivision(NetworKit::Graph& Graph, int r, int constC) {
+nodeSubsets_t findSuitableRDivision(NetworKit::Graph& graph, int r, int constC) {
     // values used globally in dfs
-    parent.resize(Graph.numberOfNodes());
-    depth.resize(Graph.numberOfNodes());
-    visited.resize(Graph.numberOfNodes());
+    parent.resize(graph.numberOfNodes());
+    depth.resize(graph.numberOfNodes());
+    visited.resize(graph.numberOfNodes());
     c = constC;
     int rSqrt = sqrt(r);
 
-    auto clusters = findClusters(Graph, rSqrt);
+    auto clusters = findClusters(graph, rSqrt);
 
-    nodeSubsets_t division = getDivisionFromClusters(clusters, Graph, r);
+    nodeSubsets_t division = getDivisionFromClusters(clusters, graph, r);
 
     for (auto& region : division) {
         assert(region.size() > 0);
     }
 
-    std::vector<int> isBoundry(Graph.numberOfNodes(), 0);
-    division = fixGraphDivision(division, Graph, isBoundry);
+    std::vector<int> isBoundary(graph.numberOfNodes(), 0);
+    division = fixGraphDivision(division, graph, isBoundary);
 
-    assert_division(division, Graph);
+    assert_division(division, graph);
 
     std::queue<std::vector<NetworKit::node>> queue;
     for (auto& region : division) {
         queue.push(std::move(region));
     }
-    return makeSuitableGraphDivisionFromQueue(queue, Graph, r, isBoundry);
+    return makeSuitableGraphDivisionFromQueue(queue, graph, r, isBoundary);
 }
 }  // namespace Koala
