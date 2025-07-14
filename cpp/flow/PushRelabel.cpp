@@ -1,81 +1,72 @@
-#include <climits>
+#include <limits>
 #include <algorithm>
-#include <flow/MaximumFlow.hpp>
+#include <flow/PushRelabel.hpp>
 
-using edge = std::pair<NetworKit::node, NetworKit::node>;
+using edge = NetworKit::Edge;
 
 namespace Koala {
 
-edge PushRelabel::rev(const edge &p) {
-    return std::make_pair(p.second, p.first);
+edge PushRelabel::reverse(const edge &p) {
+    return NetworKit::Edge(p.v, p.u);
 }
-void PushRelabel::initialize(){
+void PushRelabel::initialize() {
     V = graph->numberOfNodes();
     graph->forNodes([&](NetworKit::node v) {
-        height[v]=0;
-        nextedge[v]=0;
-        excess[v]=0;
+        height[v] = 0;
+        nextedge[v] = 0;
+        excess[v] = 0;
     });
     graph->forEdges([&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight w) {
-        
-        auto p = std::make_pair(u, v);
-        if(graph->addEdge(v,u,0,true)){
-            capacity[rev(p)]=0;
+        auto p = NetworKit::Edge(u, v);
+        if (graph->addEdge(v, u, 0, true)) {
+            capacity[reverse(p)] = 0;
         }
         flow[p] = 0;
-        flow[rev(p)]=0;
-        capacity[p]=w;
+        flow[reverse(p)] = 0;
+        capacity[p] = w;
     });
     height[source] = V;
-    excess[source] = INT_MAX;
+    excess[source] = std::numeric_limits<int>::max();
 }
 
-void PushRelabel::push(const NetworKit::node& vertex, const edge& e){
-
+void PushRelabel::push(const NetworKit::node& vertex, const edge& e) {
     int fl = std::min(capacity[e] - flow[e], excess[vertex]);
     excess[vertex] -= fl;
-    excess[e.second] += fl;
-    flow[e]+=fl;
-    flow[rev(e)]-=fl;
+    excess[e.v] += fl;
+    flow[e] += fl;
+    flow[reverse(e)] -= fl;
 
-    if(excess[e.second] > 0 && e.second != source && e.second != target){
-        q.push(e.second);
+    if (excess[e.v] > 0 && e.v != source && e.v != target) {
+        q.push(e.v);
     }
-
 }
 
-void PushRelabel::relabel(const NetworKit::node& vertex){
-
-    int minimum = INT_MAX;
+void PushRelabel::relabel(const NetworKit::node& vertex) {
+    int minimum = std::numeric_limits<int>::max();
 
     graph->forNeighborsOf(vertex, [&](NetworKit::node w) {
-
-        auto e = std::make_pair(vertex, w);
-        if(capacity[e] - flow[e] > 0) {
-            minimum = std::min(minimum, height[e.second]);
+        auto e = NetworKit::Edge(vertex, w);
+        if (capacity[e] - flow[e] > 0) {
+            minimum = std::min(minimum, height[e.v]);
         }
     });
 
-    if(minimum != INT_MAX) {
+    if (minimum != std::numeric_limits<int>::max()) {
         height[vertex] = minimum + 1;
     }
-
 }
 
-void PushRelabel::discharge(const NetworKit::node& vertex){
+void PushRelabel::discharge(const NetworKit::node& vertex) {
+    while (excess[vertex] > 0) {
+        while (nextedge[vertex] < graph->degreeOut(vertex)) {
+            auto u = graph->getIthNeighbor(vertex, nextedge[vertex]);
+            auto e = NetworKit::Edge(vertex, u);
 
-    while(excess[vertex] > 0){
-
-        while(nextedge[vertex] < graph->degreeOut(vertex)){
-
-            auto u = graph->getIthNeighbor(vertex,nextedge[vertex]);
-            auto e = std::make_pair(vertex,u);
-
-            if(capacity[e] - flow[e] > 0 && height[vertex] == height[e.second] + 1){
-                push(vertex,e);
-                if(excess[vertex] == 0){
+            if (capacity[e] - flow[e] > 0 && height[vertex] == height[e.v] + 1) {
+                push(vertex, e);
+                if (excess[vertex] == 0) {
                     return;
-                } 
+                }
             }
             nextedge[vertex]++;
         }
@@ -83,19 +74,18 @@ void PushRelabel::discharge(const NetworKit::node& vertex){
         relabel(vertex);
         nextedge[vertex] = 0;
 
-        if(height[vertex] >= V) break;
+        if (height[vertex] >= V) break;
     }
 }
 
-void PushRelabel::run(){
-    //printf("Push Relabel Running\n");
+void PushRelabel::run() {
     initialize();
 
     graph->forNeighborsOf(source, [&](NetworKit::node w) {
-        push(source,std::make_pair(source,w));
+        push(source, NetworKit::Edge(source, w));
     });
 
-    while(!q.empty()){
+    while (!q.empty()) {
         auto vertex = q.front();
         q.pop();
         discharge(vertex);
@@ -104,6 +94,4 @@ void PushRelabel::run(){
     flow_size = excess[target];
     hasRun = true;
 }
-
-
-}
+}  // namespace Koala

@@ -3,7 +3,10 @@
 #include <list>
 
 #include <flow/MaximumFlow.hpp>
-
+#include <flow/PushRelabel.hpp>
+#include <flow/BoykovKolmogorovFlow.hpp>
+#include <flow/KingRaoTarjanMaximumFlow.hpp>
+#include <flow/MalhotraKumarMaheshwariFlow.hpp>
 #include "helpers.hpp"
 
 struct MaximumFlowParameters {
@@ -77,7 +80,7 @@ class MKMFlowTest
 TEST_P(MKMFlowTest, test) {
     MaximumFlowParameters const& parameters = GetParam();
     NetworKit::Graph G = build_graph(parameters.N, parameters.EW, true);
-    auto algorithm = Koala::MKMFlow(G, parameters.s, parameters.t); 
+    auto algorithm = Koala::MalhotraKumarMaheshwariFlow(G, parameters.s, parameters.t); 
     algorithm.run();
     EXPECT_EQ(algorithm.getFlowSize(), parameters.flowSize);
 }
@@ -106,7 +109,7 @@ class BKFlowTest
 TEST_P(BKFlowTest, test) {
     MaximumFlowParameters const& parameters = GetParam();
     NetworKit::Graph G = build_graph(parameters.N, parameters.EW, true);
-    auto algorithm = Koala::BKFlow(G, parameters.s, parameters.t); 
+    auto algorithm = Koala::BoykovKolmogorovFlow(G, parameters.s, parameters.t); 
     algorithm.run();
     EXPECT_EQ(algorithm.getFlowSize(), parameters.flowSize);
 }

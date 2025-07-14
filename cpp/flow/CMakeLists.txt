@@ -5,6 +5,6 @@ koala_add_module(flow
     maximum_flow/dynamic_tree/dyn_tree.cpp
     maximum_flow/dynamic_tree/dyn_splay.cpp
     PushRelabel.cpp
-    MKMFlow.cpp
-    BKFlow.cpp
+    MalhotraKumarMaheshwariFlow.cpp
+    BoykovKolmogorovFlow.cpp
 )

@@ -1,76 +1,71 @@
-#include <climits>
+#include <limits>
 #include <algorithm>
 #include <queue>
-#include <flow/MaximumFlow.hpp>
+#include <flow/BoykovKolmogorovFlow.hpp>
 
-using edge = std::pair<NetworKit::node, NetworKit::node>;
-#define SOURCE 0
-#define TARGET 1
-#define FREE 2
+using edge = NetworKit::Edge;
+constexpr int SOURCE = 0;
+constexpr int TARGET = 1;
+constexpr int FREE   = 2;
 namespace Koala {
 
-const NetworKit::node NO_PARENT = std::numeric_limits<NetworKit::node>::max();
-
-edge BKFlow::rev(const edge &p) {
-    return std::make_pair(p.second, p.first);
+edge BoykovKolmogorovFlow::reverse(const edge &p) {
+    return NetworKit::Edge(p.v, p.u);
 }
 
-void BKFlow::initialize(){
+void BoykovKolmogorovFlow::initialize() {
     V = graph->numberOfNodes();
     graph->forNodes([&](NetworKit::node v) {
-        tree[v]=FREE;
-        parent[v]=NO_PARENT;
+        tree[v] = FREE;
+        parent[v] = NetworKit::none;
     });
-    tree[source]=SOURCE;
-    tree[target]=TARGET;
+    tree[source] = SOURCE;
+    tree[target] = TARGET;
     active.push(source);
     active.push(target);
     graph->forEdges([&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight w) {
-        
-        auto p = std::make_pair(u, v);
-        if(graph->addEdge(v,u,0,true)){
-            capacity[rev(p)]=0;
+        auto p = NetworKit::Edge(u, v);
+        if (graph->addEdge(v, u, 0, true)) {
+            capacity[reverse(p)] = 0;
         }
         flow[p] = 0;
-        flow[rev(p)]=0;
-        capacity[p]=w;
+        flow[reverse(p)] = 0;
+        capacity[p] = w;
     });
-
 }
 
-int  BKFlow::tree_capacity(NetworKit::node p, NetworKit::node q){
-    edge forward = std::make_pair(p, q);
-    edge backward = std::make_pair(q, p);
-    if(tree[p] == SOURCE){
+int  BoykovKolmogorovFlow::tree_capacity(NetworKit::node p, NetworKit::node q) {
+    edge forward = NetworKit::Edge(p, q);
+    edge backward = NetworKit::Edge(q, p);
+    if (tree[p] == SOURCE) {
         return capacity[forward] - flow[forward];
     }
-    if(tree[p] == TARGET){
+    if (tree[p] == TARGET) {
         return capacity[backward] - flow[backward];
     }
     return 0;
 }
 
-bool  BKFlow::grow(){
-    
-    while(!active.empty()){
+bool  BoykovKolmogorovFlow::grow() {
+    while (!active.empty()) {
         NetworKit::node v = active.front();
         active.pop();
         bool foundPath = false;
-        
-        if (tree[v] == FREE) continue; // in case invalid node stayed on the queue
+        if (tree[v] == FREE) {
+            continue;
+        }
         graph->forNeighborsOf(v, [&](NetworKit::node w) {
             if (foundPath) return;
-            edge e = std::make_pair(v,w);
-            if(tree_capacity(v,w) > 0){
-                if(tree[w] == FREE){
+            edge e = NetworKit::Edge(v, w);
+            if (tree_capacity(v, w) > 0) {
+                if (tree[w] == FREE) {
                     tree[w] = tree[v];
                     parent[w] = v;
                     active.push(w);
-                }
-                else if(tree[w] != tree[v]){
-                    spath = tree[v]==SOURCE ? v : w;
-                    tpath = tree[w]==TARGET ? w : v;
-                    foundPath=true;
+                } else if (tree[w] != tree[v]) {
+                    spath = tree[v] == SOURCE ? v : w;
+                    tpath = tree[w] == TARGET ? w : v;
+                    foundPath = true;
                     active.push(v);
                     return;
                 }
@@ -81,27 +76,27 @@ bool  BKFlow::grow(){
     return false;
 }
 
-int BKFlow::augment() {
+int BoykovKolmogorovFlow::augment() {
     std::vector<edge> path;
-    int bottleneck = INT_MAX;
+    int bottleneck = std::numeric_limits<int>::max();
 
     NetworKit::node u = spath;
     while (u != source) {
         NetworKit::node p = parent[u];
-        edge e = std::make_pair(p, u);
+        edge e = NetworKit::Edge(p, u);
         bottleneck = std::min(bottleneck, capacity[e] - flow[e]);
         path.push_back(e);
         u = p;
     }
 
-    edge middle = std::make_pair(spath, tpath);
+    edge middle = NetworKit::Edge(spath, tpath);
     bottleneck = std::min(bottleneck, capacity[middle] - flow[middle]);
     path.push_back(middle);
 
     u = tpath;
     while (u != target) {
         NetworKit::node p = parent[u];
-        edge e = std::make_pair(u, p);  // reverse direction
+        edge e = NetworKit::Edge(u, p);  // reverse direction
         bottleneck = std::min(bottleneck, capacity[e] - flow[e]);
         path.push_back(e);
         u = p;
@@ -109,16 +104,16 @@ int BKFlow::augment() {
 
     for (edge e : path) {
         flow[e] += bottleneck;
-        flow[rev(e)] -= bottleneck;
+        flow[reverse(e)] -= bottleneck;
     }
 
     u = spath;
     while (u != source) {
         NetworKit::node p = parent[u];
-        edge e = std::make_pair(p, u);
+        edge e = NetworKit::Edge(p, u);
         if (capacity[e] - flow[e] == 0) {
             if (tree[p] == SOURCE && tree[u] == SOURCE) {
-                parent[u] = NO_PARENT;
+                parent[u] = NetworKit::none;
                 orphan.push(u);
             }
         }
@@ -128,10 +123,10 @@ int BKFlow::augment() {
     u = tpath;
     while (u != target) {
         NetworKit::node p = parent[u];
-        edge e = std::make_pair(u, p); // reverse direction
+        edge e = NetworKit::Edge(u, p);  // reverse direction
         if (capacity[e] - flow[e] == 0) {
             if (tree[p] == TARGET && tree[u] == TARGET) {
-                parent[u] = NO_PARENT;
+                parent[u] = NetworKit::none;
                 orphan.push(u);
             }
         }
@@ -140,24 +135,27 @@ int BKFlow::augment() {
     return bottleneck;
 }
 
-bool BKFlow::origin(NetworKit::node v){
+bool BoykovKolmogorovFlow::origin(NetworKit::node v) {
     NetworKit::node u = v;
-    while(true){
-        if(parent[u]==source || parent[u] == target)return true;
-        if(parent[u]==NO_PARENT)return false;
+    while (true) {
+        if (parent[u] == source || parent[u] == target) {
+            return true;
+        }
+        if (parent[u] == NetworKit::none) {
+            return false;
+        }
         u = parent[u];
     }
 }
 
-void BKFlow::adopt() {
+void BoykovKolmogorovFlow::adopt() {
     while (!orphan.empty()) {
-        
         NetworKit::node p = orphan.front();
         orphan.pop();
         bool found_new_parent = false;
 
         graph->forNeighborsOf(p, [&](NetworKit::node q) {
-            if(found_new_parent)return;
+            if (found_new_parent)return;
 
             if (tree[q] != tree[p]) return;
             if (tree_capacity(q, p) <= 0) return;
@@ -168,33 +166,29 @@ void BKFlow::adopt() {
         });
 
         if (!found_new_parent) {
-
             graph->forNeighborsOf(p, [&](NetworKit::node q) {
                 if (tree[q] != tree[p]) return;
 
                 if (tree_capacity(q, p) > 0) {
-                    active.push(q); 
+                    active.push(q);
                 }
 
                 if (parent[q] == p) {
-                    parent[q] = NO_PARENT;
+                    parent[q] = NetworKit::none;
                     orphan.push(q);
                 }
             });
             tree[p] = FREE;
         }
-        
     }
 }
 
-void BKFlow::run() {
-
+void BoykovKolmogorovFlow::run() {
     initialize();
     int totalflow = 0;
     int iteration = 0;
 
     while (true) {
-
         if (!grow()) {
             break;
         }
@@ -202,12 +196,9 @@ void BKFlow::run() {
         int f = augment();
         totalflow += f;
         adopt();
-  
     }
 
     flow_size = totalflow;
     hasRun = true;
-
 }
-
-}
+}  // namespace Koala
