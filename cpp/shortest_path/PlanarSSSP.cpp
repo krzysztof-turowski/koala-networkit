@@ -1,4 +1,4 @@
-#include "planar_sssp/PlanarSSSP.hpp"
+#include "shortest_path/PlanarSSSP.hpp"
 
 namespace Koala {
 

@@ -1,3 +1,5 @@
+#include "graph/PlanarGraphTools.hpp"
+
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/biconnected_components.hpp>
 #include <boost/graph/boyer_myrvold_planar_test.hpp>
@@ -5,7 +7,6 @@
 #include <boost/graph/make_maximal_planar.hpp>
 #include <networkit/graph/BFS.hpp>
 #include <networkit/graph/GraphTools.hpp>
-#include <planar_sssp/PlanarUtils.hpp>
 #include <set>
 #include <unordered_map>
 #include <utility>
@@ -14,50 +15,48 @@
 using namespace boost;
 
 // Boost graph typedefs
-using BoostGraph = adjacency_list<vecS, vecS, undirectedS, property<vertex_index_t, int>,
+using boost_graph_t = adjacency_list<vecS, vecS, undirectedS, property<vertex_index_t, int>,
     property<edge_index_t, int>>;
 
 // Boost planar embedding typedefs based on
 // https://www.boost.org/doc/libs/1_53_0/libs/graph/example/straight_line_drawing.cpp
-using embedding_storage_t = std::vector<std::vector<graph_traits<BoostGraph>::edge_descriptor>>;
+using embedding_storage_t = std::vector<std::vector<graph_traits<boost_graph_t>::edge_descriptor>>;
 using embedding_t = boost::iterator_property_map<embedding_storage_t::iterator,
-    property_map<BoostGraph, vertex_index_t>::type>;
-
-using pairDistance_t =
-    std::unordered_map<std::pair<int, int>, int, boost::hash<std::pair<int, int>>>;
-using nodeSubsets_t = std::vector<std::vector<NetworKit::node>>;
+    property_map<boost_graph_t, vertex_index_t>::type>;
 
 namespace Koala {
 
-std::pair<BoostGraph, std::vector<NetworKit::node>> convertNetworKitToBoost(
-    const NetworKit::Graph& netGraph) {
-    std::vector<NetworKit::node> nodeMap;
-    std::unordered_map<NetworKit::node, NetworKit::node> reverseMap;
-    netGraph.forNodes([&](NetworKit::node u) {
-        nodeMap.push_back(u);
-        reverseMap[u] = nodeMap.size() - 1;
+namespace PlanarGraphTools {
+
+std::pair<boost_graph_t, std::vector<NetworKit::node>> convert_networKit_to_boost(
+    const NetworKit::Graph& networkit_graph) {
+    std::vector<NetworKit::node> node_map;
+    std::unordered_map<NetworKit::node, NetworKit::node> reverse_map;
+    networkit_graph.forNodes([&](NetworKit::node u) {
+        node_map.push_back(u);
+        reverse_map[u] = node_map.size() - 1;
     });
-    BoostGraph boostGraph(netGraph.numberOfNodes());
-    netGraph.forEdges([&](NetworKit::node u, NetworKit::node v) {
-        add_edge(reverseMap[u], reverseMap[v], boostGraph);
+    boost_graph_t boost_graph(networkit_graph.numberOfNodes());
+    networkit_graph.forEdges([&](NetworKit::node u, NetworKit::node v) {
+        add_edge(reverse_map[u], reverse_map[v], boost_graph);
     });
-    return {boostGraph, nodeMap};
+    return {boost_graph, node_map};
 }
 
-NetworKit::Graph convertBoostToNetworKit(
-    BoostGraph G, std::vector<NetworKit::node> nodeMap, NetworKit::Graph graph) {
+NetworKit::Graph convert_boost_to_networKit(
+    boost_graph_t G, std::vector<NetworKit::node> node_map, NetworKit::Graph graph) {
     NetworKit::Graph result(graph);
 
     for (auto [ei, ei_end] = edges(G); ei != ei_end; ++ei) {
         auto u = source(*ei, G);
         auto v = target(*ei, G);
 
-        result.addEdge(nodeMap[u], nodeMap[v]);
+        result.addEdge(node_map[u], node_map[v]);
     }
     return result;
 }
 
-void printEmbeding(const planar_embedding_t& embedding_storage, const BoostGraph& boostGraph) {
+void print_embeding(const planar_embedding_t& embedding_storage, const boost_graph_t& boost_graph) {
     for (auto [k, v] : embedding_storage) {
         std::cout << "Vertex " << k << ": ";
         for (auto x : v) {
@@ -68,11 +67,11 @@ void printEmbeding(const planar_embedding_t& embedding_storage, const BoostGraph
 }
 
 planar_embedding_t findPlanarEmbeding(const NetworKit::Graph& G, bool verbose = false) {
-    auto [boostGraph, nodeMap] = convertNetworKitToBoost(G);
-    embedding_storage_t embedding_storage(num_vertices(boostGraph));
-    embedding_t embedding(embedding_storage.begin(), get(vertex_index, boostGraph));
+    auto [boost_graph, node_map] = convert_networKit_to_boost(G);
+    embedding_storage_t embedding_storage(num_vertices(boost_graph));
+    embedding_t embedding(embedding_storage.begin(), get(vertex_index, boost_graph));
 
-    if (!boyer_myrvold_planarity_test(boyer_myrvold_params::graph = boostGraph,
+    if (!boyer_myrvold_planarity_test(boyer_myrvold_params::graph = boost_graph,
             boyer_myrvold_params::embedding = embedding)) {
         throw std::runtime_error("Graph have to be planar!");
         return;
@@ -82,16 +81,16 @@ planar_embedding_t findPlanarEmbeding(const NetworKit::Graph& G, bool verbose = 
 
     for (int i = 0; i < embedding_storage.size(); i++) {
         for (auto& edge : embedding_storage[i]) {
-            NetworKit::node node =
-                source(edge, boostGraph) == i ? target(edge, boostGraph) : source(edge, boostGraph);
-            if (result[nodeMap[i]].empty() || result[nodeMap[i]].back() != nodeMap[node]) {
-                result[nodeMap[i]].push_back(nodeMap[node]);
+            NetworKit::node node = source(edge, boost_graph) == i ? target(edge, boost_graph)
+                                                                  : source(edge, boost_graph);
+            if (result[node_map[i]].empty() || result[node_map[i]].back() != node_map[node]) {
+                result[node_map[i]].push_back(node_map[node]);
             }
         }
     }
 
     if (verbose) {
-        printEmbeding(result, boostGraph);
+        print_embeding(result, boost_graph);
     }
 
     return result;
@@ -101,7 +100,7 @@ NetworKit::Graph makeMaximalPlanar(NetworKit::Graph& G) {
     typedef adjacency_list<vecS, vecS, undirectedS, property<vertex_index_t, int>,
         property<edge_index_t, int>>
         graph;
-    auto [g, nodeMap] = convertNetworKitToBoost(G);
+    auto [g, node_map] = convert_networKit_to_boost(G);
 
     property_map<graph, edge_index_t>::type e_index = get(edge_index, g);
     graph_traits<graph>::edges_size_type edge_count = 0;
@@ -127,7 +126,7 @@ NetworKit::Graph makeMaximalPlanar(NetworKit::Graph& G) {
     edge_count = 0;
     for (boost::tie(ei, ei_end) = edges(g); ei != ei_end; ++ei) put(e_index, *ei, edge_count++);
 
-    return convertBoostToNetworKit(g, nodeMap, G);
+    return convert_boost_to_networKit(g, node_map, G);
 }
 
 NetworKit::Graph convertToMaxDegree3(NetworKit::Graph& G, bool directed = false) {
@@ -144,29 +143,29 @@ NetworKit::Graph convertToMaxDegree3(NetworKit::Graph& G, bool directed = false)
         return G;
     }
 
-    std::vector<std::unordered_map<size_t, size_t>> vertexMaps(
+    std::vector<std::unordered_map<size_t, size_t>> vertex_maps(
         G.numberOfNodes(), std::unordered_map<size_t, size_t>());
 
-    size_t emptyVertex = G.numberOfNodes();
+    size_t empty_vertex = G.numberOfNodes();
     NetworKit::Graph result(result_size, true, directed);
 
     for (size_t i = 0; i < embedding.size(); ++i) {
         if (embedding[i].size() > 3) {
             size_t t = embedding[i][0];
-            vertexMaps[i][t] = i;
-            vertexMaps[i][emptyVertex] = 0;
+            vertex_maps[i][t] = i;
+            vertex_maps[i][empty_vertex] = 0;
 
-            result.addEdge(i, emptyVertex, 0);
+            result.addEdge(i, empty_vertex, 0);
             for (int j = 1; j < embedding[i].size(); ++j) {
                 t = embedding[i][j];
-                vertexMaps[i][t] = emptyVertex;
+                vertex_maps[i][t] = empty_vertex;
                 if (j < embedding[i].size() - 1) {
-                    result.addEdge(emptyVertex, emptyVertex + 1, 0);
+                    result.addEdge(empty_vertex, empty_vertex + 1, 0);
                 }
-                emptyVertex++;
+                empty_vertex++;
             }
 
-            result.addEdge(emptyVertex - 1, i, 0);
+            result.addEdge(empty_vertex - 1, i, 0);
         }
     }
 
@@ -177,18 +176,18 @@ NetworKit::Graph convertToMaxDegree3(NetworKit::Graph& G, bool directed = false)
 
         size_t s = v;
         size_t t = u;
-        if (vertexMaps[u].find(v) != vertexMaps[u].end()) {
-            t = vertexMaps[u][v];
+        if (vertex_maps[u].find(v) != vertex_maps[u].end()) {
+            t = vertex_maps[u][v];
         }
-        if (vertexMaps[v].find(u) != vertexMaps[v].end()) {
-            s = vertexMaps[v][u];
+        if (vertex_maps[v].find(u) != vertex_maps[v].end()) {
+            s = vertex_maps[v][u];
         }
         result.addEdge(t, s, ew);
     }
 
     for (auto node : result.nodeRange()) {
         int count = 0;
-        for (auto nei : result.neighborRange(node)) {
+        for (auto neighbor : result.neighborRange(node)) {
             count++;
         }
         assert(count < 4);
@@ -197,53 +196,30 @@ NetworKit::Graph convertToMaxDegree3(NetworKit::Graph& G, bool directed = false)
     return result;
 }
 
-NetworKit::Graph convertDirectedGraphToUndirected(NetworKit::Graph& graph) {
-    NetworKit::Graph result(graph.numberOfNodes());
-    for (auto [u, v] : graph.edgeRange()) {
-        result.addEdge(u, v);
-    }
-    result.removeMultiEdges();
-    return result;
-}
-
-void assert_division(const nodeSubsets_t& division, NetworKit::Graph& graph) {
-    std::vector<std::vector<int>> componentsOfNode(graph.numberOfNodes());
+void assertDivision(const node_subsets_t& division, NetworKit::Graph& graph) {
+    std::vector<std::vector<int>> components_of_node(graph.numberOfNodes());
 
     for (int i = 0; i < division.size(); i++) {
         for (auto node : division[i]) {
-            componentsOfNode[node].push_back(i);
+            components_of_node[node].push_back(i);
         }
     }
 
-    for (auto& components : componentsOfNode) {
+    for (auto& components : components_of_node) {
         assert(components.size() > 0);
         assert(components.size() < 4);
     }
 
     for (const auto& [u, v] : graph.edgeRange()) {
-        bool hasCommon =
-            std::any_of(componentsOfNode[u].begin(), componentsOfNode[u].end(), [&](int x) {
-                return std::find(componentsOfNode[v].begin(), componentsOfNode[v].end(), x) !=
-                       componentsOfNode[v].end();
+        bool has_common =
+            std::any_of(components_of_node[u].begin(), components_of_node[u].end(), [&](int x) {
+                return std::find(components_of_node[v].begin(), components_of_node[v].end(), x) !=
+                       components_of_node[v].end();
             });
-        assert(hasCommon && "edge must be in at least one region fully");
+        assert(has_common && "edge must be in at least one region fully");
     }
 }
 
-void printGraph(const NetworKit::Graph& graph) {
-    std::cout << "Graph structure" << std::endl;
-    for (auto edge : graph.edgeWeightRange()) {
-        std::cout << edge.u << " - " << edge.v << " weight: " << edge.weight << std::endl;
-    }
-}
+}  // namespace PlanarGraphTools
 
-void print_division(nodeSubsets_t division) {
-    std::cout << "Print Division" << std::endl;
-    for (auto& div : division) {
-        for (auto n : div) {
-            std::cout << n << " ";
-        }
-        std::cout << std::endl;
-    }
-}
 }  // namespace Koala

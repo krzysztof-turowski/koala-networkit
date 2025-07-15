@@ -1,9 +1,7 @@
 #pragma once
 
-#include <boost/functional/hash.hpp>
 #include <networkit/base/Algorithm.hpp>
 #include <networkit/graph/Graph.hpp>
-#include <optional>
 #include <set>
 
 namespace Koala {

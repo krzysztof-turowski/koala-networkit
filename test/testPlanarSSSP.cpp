@@ -1,10 +1,8 @@
 #include <gtest/gtest.h>
 
 #include <list>
-
-#include "planar_sssp/FredericksonPlanarSSSP.hpp"
-#include "planar_sssp/HenzingerPlanarSSSP.hpp"
-#include "planar_sssp/PlanarSSSP.hpp"
+#include <shortest_path/FredericksonPlanarSSSP.hpp>
+#include <shortest_path/HenzingerPlanarSSSP.hpp>
 
 #include "helpers.hpp"
 
@@ -14,7 +12,7 @@ struct SSSPParameters {
     std::list<std::tuple<int, int, int>> E;
     NetworKit::node s;
     NetworKit::node t;
-    int expectedDistance;
+    int expected_distance;
     bool directed = false;
 };
 
@@ -31,16 +29,16 @@ TEST_P(PlanarSSSPTest, TestPlanarSSSPSolution) {
         std::cout << "Running HenzingerPlanarSSSP\n" << std::endl;
         Koala::HenzingerPlanarSSSP algorithm(G, parameters.s, parameters.t);
         algorithm.run();
-        EXPECT_EQ(algorithm.distance(parameters.t), parameters.expectedDistance);
+        EXPECT_EQ(algorithm.distance(parameters.t), parameters.expected_distance);
     } else {
         std::cout << "Running FredericksonPlanarSSSP\n" << std::endl;
         Koala::FredericksonPlanarSSSP algorithm(G, parameters.s, parameters.t);
         algorithm.run();
-        EXPECT_EQ(algorithm.distance(parameters.t), parameters.expectedDistance);
+        EXPECT_EQ(algorithm.distance(parameters.t), parameters.expected_distance);
     }
 }
 
-SSSPParameters generateGridEdges(int rows, int cols, bool directed = false) {
+SSSPParameters generate_grid_edges(int rows, int cols, bool directed = false) {
     std::list<std::tuple<int, int, int>> edges;
 
     for (int r = 0; r < rows; ++r) {
@@ -59,7 +57,7 @@ SSSPParameters generateGridEdges(int rows, int cols, bool directed = false) {
         static_cast<NetworKit::node>(rows * cols - 1), rows + cols - 2, directed};
 }
 
-SSSPParameters generateLineGraphEdges(int length, bool directed = false) {
+SSSPParameters generate_line_graph_edges(int length, bool directed = false) {
     std::list<std::tuple<int, int, int>> edges;
 
     for (int i = 0; i < length - 1; ++i) {
@@ -69,35 +67,34 @@ SSSPParameters generateLineGraphEdges(int length, bool directed = false) {
     return {"line", length, edges, 0, length - 1, length - 1, directed};
 }
 
-SSSPParameters generateTriangularGridEdges(int levels, bool directed = false) {
+SSSPParameters generate_triangular_grid_edges(int levels, bool directed = false) {
     std::list<std::tuple<int, int, int>> edges;
 
-    int node = 0;  // numeracja węzłów
-    int rowStart;
-    int nextRowStart;
-    int current;
-    int leftChild, rightChild;
+    int node = 0;
+    int row_start;
+    int next_row_start;
+    int current, left_child, right_child;
     for (int row = 0; row < levels - 1; ++row) {
-        rowStart = node;
-        nextRowStart = node + row + 1;
+        row_start = node;
+        next_row_start = node + row + 1;
 
         for (int i = 0; i <= row; ++i) {
-            current = rowStart + i;
-            leftChild = nextRowStart + i;
-            rightChild = nextRowStart + i + 1;
+            current = row_start + i;
+            left_child = next_row_start + i;
+            right_child = next_row_start + i + 1;
 
-            edges.emplace_back(current, leftChild, 1);
-            edges.emplace_back(current, rightChild, 1);
-            edges.emplace_back(leftChild, rightChild, 1);
+            edges.emplace_back(current, left_child, 1);
+            edges.emplace_back(current, right_child, 1);
+            edges.emplace_back(left_child, right_child, 1);
         }
 
-        node = nextRowStart;
+        node = next_row_start;
     }
 
-    return {"triangular-grid", rightChild + 1, edges, 0, rightChild, levels - 1, directed};
+    return {"triangular-grid", right_child + 1, edges, 0, right_child, levels - 1, directed};
 }
 
 INSTANTIATE_TEST_SUITE_P(Default, PlanarSSSPTest,
-    testing::Values(generateGridEdges(40, 40), generateLineGraphEdges(100),
-        generateTriangularGridEdges(10), generateGridEdges(40, 40, true),
-        generateLineGraphEdges(100, true), generateTriangularGridEdges(10, true)));
+    testing::Values(generate_grid_edges(40, 40), generate_line_graph_edges(100),
+        generate_triangular_grid_edges(10), generate_grid_edges(40, 40, true),
+        generate_line_graph_edges(100, true), generate_triangular_grid_edges(10, true)));
