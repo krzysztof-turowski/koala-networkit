@@ -15,7 +15,6 @@ public:
 
   double lowerCapacity(int u, int v) const;
   double upperCapacity(int u, int v) const;
-  void currentDemand() const;
 
 // private:
   const Graph &graph;

@@ -29,7 +29,7 @@ set(FETCHCONTENT_QUIET FALSE)
 FetchContent_Declare(
     networkit
     GIT_REPOSITORY "https://github.com/networkit/networkit.git"
-    GIT_TAG master
+    GIT_TAG d02983db69e27cadad573ba0e677da4d7ec60a05
     GIT_PROGRESS TRUE
     SOURCE_DIR "${CMAKE_SOURCE_DIR}/lib/networkit"
 )
@@ -46,6 +46,17 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(csdp)
 #</Csdp>
+
+#<Eigen>
+FetchContent_Declare(
+    eigen
+    GIT_REPOSITORY "https://gitlab.com/libeigen/eigen.git"
+    GIT_TAG master
+    GIT_PROGRESS TRUE
+    SOURCE_DIR "${CMAKE_SOURCE_DIR}/lib/eigen"
+)
+FetchContent_MakeAvailable(eigen)
+#</Eigen>
 
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
@@ -76,7 +87,7 @@ if(KOALA_BUILD_SHARED)
 else()
     add_library(${PROJECT_NAME} STATIC cpp/koala.cpp)
 endif()
-target_link_libraries(${PROJECT_NAME} networkit boost_graph csdp_lib lapack blas gfortran quadmath)
+target_link_libraries(${PROJECT_NAME} networkit eigen boost_graph csdp_lib lapack blas gfortran quadmath)
 set_target_properties(${PROJECT_NAME} PROPERTIES
     COMPILE_FLAGS ${KOALA_CXX_FLAGS}
     LINK_FLAGS ${KOALA_LINKER_FLAGS})

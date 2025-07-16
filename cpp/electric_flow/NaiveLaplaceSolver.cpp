@@ -25,6 +25,9 @@ VectorXd solveLaplace(const Graph &graph, const vector<vector<double>> &weights,
 
   auto Linv = L.completeOrthogonalDecomposition().pseudoInverse();
   VectorXd x = Linv * b;
+  // cout << L << endl;
+  // cout << b << endl;
+  // cout << x << endl;
   return x;
 }
 

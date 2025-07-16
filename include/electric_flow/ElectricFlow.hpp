@@ -17,7 +17,7 @@ public:
 // private:
   bool routeFlow();
   void init();
-  bool isFeasable();
+  bool isFeasible();
   void augmentationStep();
   void fixingStep();
 

@@ -12,8 +12,6 @@ ElectricNetwork::ElectricNetwork(const Graph &graph,
 };
 
 void ElectricNetwork::compute(const vector<vector<double>> &resistance) {
-  cerr << "ELECTRIC COMPUTE" << endl;
-
   int N = graph.numberOfNodes();
   
   vector<vector<double>> weights(N, vector<double>(N, 0));
@@ -28,14 +26,12 @@ void ElectricNetwork::compute(const vector<vector<double>> &resistance) {
   }
 
   auto x = solveLaplace(graph, weights, b);
-
   for (int v = 0; v < N; ++v) {
     potentials[v] = x(v);
   }
   graph.forNodes([&](node u) {
     graph.forNeighborsOf(u, [&](node v) {
       flow[u][v] = (potentials[u] - potentials[v]) / resistance[u][v];
-      flow[v][u] = -flow[u][v];
     });
   });
 }
