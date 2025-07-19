@@ -53,13 +53,12 @@ namespace Koala {
         Matching M;
 
         vector<bool> isMatched(n, false);
-        G.forEdges([&](node u, node v) {
+        for (const auto& [u, v] : G.edgeRange()) {
             if (!isMatched[u] && !isMatched[v]) {
                 isMatched[u] = isMatched[v] = true;
                 M.insert({ u,v });
             }
-            });
-
+        }
         return M;
     }
 
@@ -104,17 +103,17 @@ namespace Koala {
         int n = G.numberOfNodes();
 
         auto components = getSimpleComponents(G, AG);
-        vector<pair<Graph, vector<int>>> subgraphs(components.size());
+        vector<tuple<Graph, vector<int>, MatrixXd>> subgraphs(components.size());
         for (int i = 0; i < components.size(); ++i) {
-            subgraphs[i] = reindexGraph(GraphTools::subgraphFromNodes(G, components[i].begin(), components[i].end()));
+            subgraphs[i] = reindexGraph(GraphTools::subgraphFromNodes(G, components[i].begin(), components[i].end()), AG);
         }
 
         Matching M;
         cout << "Partition of " << subgraphs.size() << " simple components" << endl;
         for (int c = 0; c < subgraphs.size(); ++c) {
-            auto [Gc, oldIdx] = subgraphs[c];
-            auto AGc = generateMatrix(Gc);
+            auto [Gc, oldIdx, AGc] = subgraphs[c];
             auto M1 = simplePartition(Gc, AGc);
+            // auto AGc = generateMatrix(Gc);
 
             assert(M1.size() == Gc.numberOfNodes() / 2);
             for (auto [u1, v1] : M1) {
@@ -137,13 +136,12 @@ namespace Koala {
         DynamicComponents DC(G);
 
         auto Sv = getNontrivialClass(AG);
-        if (Sv.size() == 0) { 
+        if (Sv.size() == 0) {
             GeneralGaussianMatching gen(G);
             gen.run();
             M = gen.getMatching();
             assert(M.size() == G.numberOfNodes() / 2);
             return M;
-            // return M;
         }
         int sSize = Sv.size();
         vector<bool> isInS(G.numberOfNodes(), false);
@@ -153,10 +151,10 @@ namespace Koala {
 
         set<int> Tv;
         for (auto sv : Sv) {
-            G.forNeighborsOf(sv, [&](node t) {
+            for (const auto& t : G.neighborRange(sv)) {
                 DC.removeEdge(sv, t);
                 if (!isInS[t]) Tv.insert(t);
-                });
+            }
         }
 
         // Get largest component of G\S
@@ -265,8 +263,9 @@ namespace Koala {
             for (int i = 0; auto sv : Sv) {
                 int cv = componentOf[v];
                 if (cv == 0) continue;
-                if (G.hasEdge(sv, v))
-                SG.addEdge(sv, contractedNodes[cv]);
+                if (G.hasEdge(sv, v)) {
+                    SG.addEdge(sv, contractedNodes[cv]);
+                }
             }
         }
 
@@ -280,7 +279,7 @@ namespace Koala {
         // Eliminated matched vertex s with some vertex from corresponding smaller component
         cout << "Add matching from S:" << endl;
         for (auto [s, cv] : MS) {
-             if (contractedComponents.find(cv) == contractedComponents.end())
+            if (contractedComponents.find(cv) == contractedComponents.end())
                 swap(s, cv);
 
             int c = contractedComponents[cv];
@@ -311,26 +310,26 @@ namespace Koala {
             gen.run();
             auto MCi = gen.getMatching();
             assert(MCi.size() == SCi.numberOfNodes() / 2);
-            for (auto [u, v] : MCi) assert(u != v);
             for (auto [u, v] : MCi) {
+                assert(u != v);
                 assert(u != G.numberOfNodes());
                 assert(v != G.numberOfNodes());
                 M.insert({ u,v });
             }
         }
 
-        assert(M.size() == G.numberOfNodes()/2);
+        assert(M.size() == G.numberOfNodes() / 2);
         return M;
     }
 
     Matching generalMatching(const Graph& G, const MatrixXd& AG) {
         cout << "GENERAL_MATCHING G:" << G.numberOfNodes() << endl;
 
-        int n = G.numberOfNodes();
+        const int n = G.numberOfNodes();
         if (n == 0) return {};
 
         Matching M = greedyMatching(G);
-        if (M.size() == n / 2) {
+        if (2 * M.size() == n) {
             return M;
         }
         Matching M1 = getMaximalMatching(AG, M);
@@ -360,9 +359,9 @@ namespace Koala {
             assert(u != v);
             M1.insert({ oldIdx[u], oldIdx[v] });
         }
+
         return M1;
     }
-
 
     void dfs(int u, vector<bool>& visited, set<int>& connected, function<vector<int>(int)> edgesOf) {
         visited[u] = true;
@@ -380,9 +379,11 @@ namespace Koala {
         vector<set<int>> connected;
         function<vector<int>(int)> edgesOf = [&](int u) {
             vector<int> edges;
-            G.forNeighborsOf(u, [&](int v) {
-                if (!eq(AG(u, v), 0)) edges.push_back(v);
-                });
+            for (const auto& v : G.neighborRange(u)) {
+                if (!eq(AG(u, v), 0)) {
+                    edges.push_back(v);
+                }
+            }
             return edges;
             };
 
@@ -398,12 +399,8 @@ namespace Koala {
         int n = G.numberOfNodes();
 
         vector<set<int>> connected;
-        function<vector<int>(int)> edgesOf = [&](int u) {
-            vector<int> edges;
-            G.forEdgesOf(u, [&](int v) {
-                edges.push_back(v);
-                });
-            return edges;
+        auto edgesOf = [&](int u) {
+            return vector<int>(G.neighborRange(u).begin(), G.neighborRange(u).end());
             };
 
         for (int v = 0; v < n; ++v) {

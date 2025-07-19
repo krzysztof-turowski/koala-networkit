@@ -70,7 +70,8 @@ namespace Koala {
         for (int v = 0; v < n; ++v) {
             if (colors[v] == -1) {
                 colors[v] = 0;
-                assert(!dfs(G, v, colors));
+                bool ok = dfs(G, v, colors);
+                assert(ok);
             }
         }
 

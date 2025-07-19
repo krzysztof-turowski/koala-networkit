@@ -6,9 +6,11 @@
 #include <map>
 
 #include <networkit/graph/Graph.hpp>
+#include <Eigen/Core>
 
 using namespace std;
 using namespace NetworKit;
+using namespace Eigen;
 
 namespace Koala {
     constexpr double EPS = 1e-8;
@@ -44,5 +46,19 @@ namespace Koala {
         }
         G.forEdges([&](node u, node v) { G1.addEdge(indexes[u], indexes[v]); });
         return { G1, labels };
+    }
+
+    inline tuple<Graph, std::vector<int>, MatrixXd> reindexGraph(const Graph& G, const MatrixXd& AG) {
+        int n = G.numberOfNodes();
+        auto [G1, labels] = reindexGraph(G);
+
+        Eigen::MatrixXd AG1(n, n);
+        for (int i = 0; i < n; ++i) {
+            for (int j = 0; j < n; ++j) {
+                AG1(i, j) = AG(labels[i], labels[j]);
+            }
+        }
+        
+        return { G1, labels, AG1 };
     }
 }
