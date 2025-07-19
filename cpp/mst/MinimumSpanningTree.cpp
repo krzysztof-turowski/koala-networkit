@@ -16,6 +16,7 @@
 #include <utility>
 #include <limits>
 #include <map>
+#include <set>
 #include <vector>
 
 #include <networkit/auxiliary/Parallel.hpp>
@@ -682,7 +683,7 @@ void Chazelle2000MinimumSpanningTree::run() {
  * 
  * forest - edges from the input graph G which were contracted.
  */
-std::tuple<NetworKit::Graph, const std::map<Koala::MinimumSpanningTree::NodePair, int>&, NetworKit::Graph>
+std::tuple<NetworKit::Graph, std::map<Koala::MinimumSpanningTree::NodePair, int>, NetworKit::Graph>
     Chazelle2000MinimumSpanningTree::boruvkaSteps(NetworKit::Graph G,  std::map<NodePair, int>& edgeId, int c) {
     assert(c >= 1);
     
@@ -720,7 +721,7 @@ std::tuple<NetworKit::Graph, const std::map<Koala::MinimumSpanningTree::NodePair
     G.forEdges([&](NetworKit::node u, NetworKit::node v) {
         if (uf.find(u) != uf.find(v)) {
             auto [uu, vv] = E[{u, v}];
-            gMinorEdgeId[{uu, vv}] = edgeId[NodePair{u, v}];
+            gMinorEdgeId[std::minmax(uu, vv)] = edgeId[std::minmax(u, v)];
         }
     });
 
@@ -739,6 +740,8 @@ struct edge {
 };
 
 NetworKit::Graph Chazelle2000MinimumSpanningTree::msf(NetworKit::Graph G, std::map<NodePair, int>& edgeId, int t) {
+    using std::minmax;
+    
     std::cout << "HUB" << std::endl;
     // auto ID = G.getEdgeIntAttribute("ID");
     // std::cout << "HUB 2" << std::endl;
@@ -785,6 +788,9 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::msf(NetworKit::Graph G, std::m
     // std::vector<std::pair<NetworKit::Graph, std::map<NodePair, int>>> Cz;
     
     // [TODO] figure out where will minLink and chainLink be used...
+    /**
+     * min link should be a GT edge
+     */
     std::vector<std::vector<edge>> minLink;
     // std::vector< edgeId > chain_link;
     // std::vector<std::vector<std::vector<edge>>> CzEdges;
@@ -805,11 +811,17 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::msf(NetworKit::Graph G, std::m
      * i.e. each Cz has its contracted vertices which are connected
      * by some original edges from the G0 graph
      */
-    NetworKit::Graph GT = NetworKit::GraphTools::copyNodes(G0);
+
+    NetworKit::Graph GT;
+    std::map<NodePair, int> GT_eid;
+    
     /**
-     * Map GT edges to G0 edges
+     * maps unique edge id to (u, v) edge in G0 graph
      */
-    std::map<NodePair, NodePair> GT_2_G0;
+    std::map<int, NodePair> eid_2_G0;
+    G0.forEdges([&](auto u, auto v){
+        eid_2_G0[edgeId0[minmax(u, v)]] = minmax(u, v);
+    });
 
     /**
      * Performs a retraction operation defined by Chazelle
@@ -844,6 +856,8 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::msf(NetworKit::Graph G, std::m
                 auto vGM = V_2_GMinorV[v];
                 // [THINK TODO] is ew correct here?
                 GMinor.addEdge(uGM, vGM, ew);
+                // [TODO] Check that edgeId0 is the map that maps u, v from GT (same as G0) to proper edgeId in G
+                GMinorEdgeId[std::minmax(uGM, vGM)] = edgeId0[std::minmax(u, v)];
             } else {
                 if (!V.contains(v)) {
                     std::swap(v, u);
@@ -877,31 +891,32 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::msf(NetworKit::Graph G, std::m
         for (auto [u, e] : smallestEdge) {
             GT.addEdge(newNode, u, e.second);
         }
+        
+        // GT and Cz are now in a valid state
 
         // [STEP 4]
         // Calculate the msf of GMinor now, why not
-        // [TODO] Need the edgeId map ???? OR DO I ????
-        // msf(GMinor, {}, t - 1);
+        // [TODO] Need to remove the bad edges in here or during the construction of GMinor
+        // [TODO] Check whether the ew is correct or incorrect...
+        auto minorForest = msf(GMinor, GMinorEdgeId, t - 1);
+        minorForest.forEdges([&](auto u, auto v, NetworKit::edgeweight ew){
+            int eid = GMinorEdgeId[std::minmax(u, v)]
+            auto [uF, vF] = eid_2_G0[eid];
+            F.addEdge(uF, vF, ew);
+        });
 
         /**
-         * [THINK] After contraction of the lasat Cz to a vertex there will be multiple
+         * [THINK] After contraction of the last Cz to a vertex there will be multiple
          * edges in the GT graph, figure out what to do with that, it may not be obvious
          * to leave just the smallest one.
+         * 
+         * Leaving the smallest one for now
          */
 
          /**
           * [THINK TODO] BORDER STRUCTURE will be a mess
           * Maybe a map from G0 vertices to GT vertices will be needed ???
           */
-
-        /**
-         * [TODO]
-         * 1. add the graph of the last Cz to minors 
-         * [TODO]
-         * 2. add new node representing the last Cz to the semi-last Cz
-         * [TODO]
-         * 3. add appropriate edges to the step 2.
-         */
     };
 
     auto popMinBorderEdge = [&]() {
@@ -934,26 +949,76 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::msf(NetworKit::Graph G, std::m
     };
 
     auto fusion = [&](int linki, int linkj) {
-        // TODO
-        // - contract all edges with both endpoints in Cz[linki + 1 ... k]
-        // - don't touch already commited minors - i.e. vertices of Cz[j]
-        //
-        // maybe store for each Cz vertex it's set of vertices inside it as it is a contraction
-        // maybe have a multigraph CzGraph where each Cz[i] is a vertex
-        // for (int i = linki + 1; i < CzEdges.size(); ++i) {
-        //     for (int j = i + 1; j < CzEdges[i].size(); ++j) {
-        //         for (edge e : CzEdges[i][j]) {
-        //             // contracting the edge == adding it to the F i.e. the msf approximation
-        //             F.addEdge(e.u, e.v);
-        //         }
-        //     }
-        // }
+        auto e = minLink[linki][linkj];
+        NetworKit::node a = e.u, b = e.v;
+        if (!Cz[linki].contains(a)) {
+            a = e.v;
+            b = e.u;
+        }
+        assert(Cz[linki].contains(a) && Cz[linkj].contains(b));
 
-        // CzEdges.resize(linki + 1);
+        std::set<NetworKit::node> contractedV;
+        std::vector<std::pair<NodePair, NetworKit::edgeweight>> E;
+        std::map<NetworKit::node, std::pair<NodePair, NetworKit::edgeweight>> smallestEdge;
 
-        // TODO deal with heaps...
+        contractedV.insert(a);
+        for (int i = linki + 1; i < Cz.size(); ++i) {
+            for (auto v : Cz[i]) {
+                contractedV.insert(v);
+                GT.forEdgesOf(v, [&](auto u, auto v, NetworKit::edgeweight ew){
+                    E.push_back({minmax(u, v), ew})
+                });
+            }
+        }
 
-        // TODO maybe need some UnionFind for the minors ???
+        GT.forEdgesOf(a, [&](auto u, auto v, NetworKit::edgeweight ew){
+            if (contractedV.contains(u) && contractedV.contains(v)) {
+                return;
+            }
+            if(u != a) {
+                std::swap(u, v);
+            }
+            smallestEdge[v] = {minmax(u, v), ew};
+        });
+
+        for (auto e : E) {
+            auto [uv, ew] = e;
+            auto [u, v] = uv;
+
+            // Need to contract that edge
+            if (contractedV.contains(u) && contractedV.contains(v)) {
+                auto[uF, vF] = eid_2_G0[GT_eid[minmax(u, v)]];
+                // [TODO] what ew is good in here?
+                F.addEdge(uF, vF, ew);
+            } else {
+                if (!contractedV.contains(u)) {
+                    std::swap(u, v);
+                }
+                
+                if (ew < smallestEdge[v].second) {
+                    smallestEdge[v] = {minmax(u, v), ew};
+                }
+            }
+        }
+
+        for (auto v : contractedV) {
+            if (v == a) {
+                continue;
+            }
+
+            GT.removeNode(v);
+        }
+
+        // Remove old edges from a
+        GT.removeAdjacentEdges(a, true, false);
+        GT.removeAdjacentEdges(a, true, true);
+        // Add new edges to a
+        // [TODO] need to update edge maps in here
+        for (auto [v, e] : smallestEdge) {
+            GT.addEdge(a, v, e.second);
+        }
+
+        // [TODO] deal with the heaps...
     };
 
     auto extension = [&]() {
@@ -1009,6 +1074,8 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::msf(NetworKit::Graph G, std::m
      * let F be the sum of all of resulting forests
      * As in [STEP 5] we will call msf on F and on Bad edges,
      * its important not to put these edges to the actual msf. 
+     * 
+     * It's actually done during the retraction...
      */
 
     // NetworKit::Graph F = NetworKit::GraphTools::copyNodes(G0);

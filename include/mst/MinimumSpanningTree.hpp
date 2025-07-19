@@ -161,7 +161,7 @@ public:
 
 private:
    NetworKit::Graph msf(NetworKit::Graph G, std::map<NodePair, int>& edgeId, int t);
-   std::tuple<NetworKit::Graph, const std::map<NodePair, int>&, NetworKit::Graph> boruvkaSteps(NetworKit::Graph G, std::map<NodePair, int>& edgeId, int c);
+   std::tuple<NetworKit::Graph, std::map<NodePair, int>, NetworKit::Graph> boruvkaSteps(NetworKit::Graph G, std::map<NodePair, int>& edgeId, int c);
 
    struct EdgeInfo {
       bool bad = false;
