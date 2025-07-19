@@ -51,9 +51,9 @@ std::pair<std::unordered_set<NetworKit::node>, std::unordered_set<NetworKit::nod
     NetworKit::node last;
     NetworKit::node current = edge.u;
     NetworKit::node root_right_child;
-    NetworKit::node local_root_node = -1;
+    NetworKit::node local_root_node = NetworKit::none;
 
-    while (current != -1) {
+    while (current != NetworKit::none) {
         cycle.insert(current);
         visited[current] = true;
         current = parent[current];
@@ -69,7 +69,7 @@ std::pair<std::unordered_set<NetworKit::node>, std::unordered_set<NetworKit::nod
     visited[current] = true;
     local_root_node = parent[current];
     current = parent[local_root_node];
-    while (current != -1) {
+    while (current != NetworKit::none) {
         cycle.erase(current);
         visited[current] = false;
         current = parent[current];
@@ -79,11 +79,11 @@ std::pair<std::unordered_set<NetworKit::node>, std::unordered_set<NetworKit::nod
     current = edge.u;
     last = edge.v;
     while (current != local_root_node) {
-        int start =
+        auto start =
             std::find(graph[current].begin(), graph[current].end(), last) - graph[current].begin();
-        int end = std::find(graph[current].begin(), graph[current].end(), parent[current]) -
-                  graph[current].begin();
-        for (int i = (start + 1) % graph[current].size(); i != end;
+        auto end = std::find(graph[current].begin(), graph[current].end(), parent[current]) -
+                   graph[current].begin();
+        for (NetworKit::index i = (start + 1) % graph[current].size(); i != end;
             i = (i + 1) % graph[current].size()) {
             inside_DFS(graph[current][i], graph, inside);
         }
@@ -92,12 +92,12 @@ std::pair<std::unordered_set<NetworKit::node>, std::unordered_set<NetworKit::nod
     }
 
     // ROOT
-    int start = std::find(graph[local_root_node].begin(), graph[local_root_node].end(), last) -
-                graph[local_root_node].begin();
-    int end =
+    auto start = std::find(graph[local_root_node].begin(), graph[local_root_node].end(), last) -
+                 graph[local_root_node].begin();
+    auto end =
         std::find(graph[local_root_node].begin(), graph[local_root_node].end(), root_right_child) -
         graph[local_root_node].begin();
-    for (int i = (start + 1) % graph[local_root_node].size(); i != end;
+    for (NetworKit::index i = (start + 1) % graph[local_root_node].size(); i != end;
         i = (i + 1) % graph[local_root_node].size()) {
         inside_DFS(graph[local_root_node][i], graph, inside);
     }
@@ -111,8 +111,8 @@ Separator find_separator(NetworKit::Graph& G) {
     NetworKit::count number_of_nodes = maximal_graph.numberOfNodes();
 
     for (auto node : maximal_graph.nodeRange()) {
-        parent[node] = -1;
-        depth[node] = -1;
+        parent[node] = NetworKit::none;
+        depth[node] = NetworKit::none;
         visited[node] = 0;
     }
     std::vector<NetworKit::Edge> tree_edges;
@@ -121,7 +121,7 @@ Separator find_separator(NetworKit::Graph& G) {
     std::queue<std::pair<NetworKit::node, NetworKit::count>> queue;
 
     auto planar_embeding = PlanarGraphTools::findPlanarEmbeding(maximal_graph);
-    parent[root_node] = -1;
+    parent[root_node] = NetworKit::none;
     depth[root_node] = 0;
     visited[root_node] = true;
     queue.push({root_node, 0});
@@ -207,10 +207,10 @@ std::vector<std::vector<NetworKit::node>> post_processing(
     // requires observation about structure of subgraph C_bis. C_bis is a uninion of unconnected
     // paths.
 
-    std::unordered_map<int, int> moved_node_map;
+    std::unordered_map<NetworKit::node, NetworKit::count> moved_node_map;
     std::unordered_set<NetworKit::node> boundary_nodes;
     for (auto c : C_bis) {
-        std::unordered_set<int> neighbor_components;
+        std::unordered_set<NetworKit::count> neighbor_components;
         for (auto x : G.neighborRange(c)) {
             if (C_bis.contains(x)) {
                 if (moved_node_map.find(x) != moved_node_map.end()) {
@@ -229,12 +229,12 @@ std::vector<std::vector<NetworKit::node>> post_processing(
         }
     }
 
-    std::unordered_map<int, int> new_boundary_node;
+    std::unordered_map<NetworKit::node, int> new_boundary_node;
     for (auto node : boundary_nodes) {
         is_boundary[node] = 1;
         new_boundary_node[node] = 1;
         for (auto x : G.neighborRange(node)) {
-            int component;
+            NetworKit::count component;
 
             if (C_bis.contains(x)) {
                 if (moved_node_map.find(x) == moved_node_map.end()) {
@@ -254,15 +254,15 @@ std::vector<std::vector<NetworKit::node>> post_processing(
 
     // Assert will be removed later
 
-    std::unordered_map<int, std::vector<int>> regions_of_node;
-    for (int i = 0; i < components.size(); i++) {
+    std::unordered_map<NetworKit::node, std::vector<NetworKit::index>> regions_of_node;
+    for (NetworKit::index i = 0; i < components.size(); i++) {
         for (auto node : components[i]) {
             regions_of_node[node].push_back(i);
         }
     }
 
     for (auto& [k, v] : regions_of_node) {
-        int count_neighbors = 0;
+        NetworKit::count count_neighbors = 0;
         for (auto nei : G.neighborRange(k)) {
             count_neighbors++;
         }
@@ -272,8 +272,8 @@ std::vector<std::vector<NetworKit::node>> post_processing(
     }
 
     for (auto [u, v] : G.edgeRange()) {
-        bool has_common =
-            std::any_of(regions_of_node[u].begin(), regions_of_node[u].end(), [&](int x) {
+        bool has_common = std::any_of(
+            regions_of_node[u].begin(), regions_of_node[u].end(), [&](NetworKit::index x) {
                 return std::find(regions_of_node[v].begin(), regions_of_node[v].end(), x) !=
                        regions_of_node[v].end();
             });
@@ -296,16 +296,17 @@ node_subsets_t create_connected_sets(NetworKit::Graph& subgraph, std::vector<int
         return post_processing(separator, subgraph, is_boundary);
     }
 
-    int largest_component_number = -1;
-    for (int i = 0; i < components.size(); i++) {
+    NetworKit::count largest_component_number = NetworKit::none;
+    for (NetworKit::index i = 0; i < components.size(); i++) {
         if (components[i].size() * 3 > subgraph.numberOfNodes() * 2) {
             largest_component_number = i;
         } else {
             result.push_back(std::move(components[i]));
         }
     }
-    if (largest_component_number == -1) {  // all components ale smaller thatn 2/3 of number of
-                                           // nodes no need for using separater theorem
+    if (largest_component_number ==
+        NetworKit::none) {  // all components ale smaller thatn 2/3 of number of
+                            // nodes no need for using separater theorem
         return result;
     }
 
@@ -317,7 +318,7 @@ node_subsets_t create_connected_sets(NetworKit::Graph& subgraph, std::vector<int
     auto separator = find_separator(connected_graph);
 
     auto conected_subsets = post_processing(separator, connected_graph, is_boundary);
-    for (int i = 0; i < conected_subsets.size(); i++) {
+    for (NetworKit::index i = 0; i < conected_subsets.size(); i++) {
         result.push_back(std::move(conected_subsets[i]));
     }
 
@@ -325,9 +326,9 @@ node_subsets_t create_connected_sets(NetworKit::Graph& subgraph, std::vector<int
 }
 
 void fix_division(node_subsets_t& division, NetworKit::Graph& graph) {
-    std::vector<std::vector<int>> components_of_node(graph.numberOfNodes());
+    std::vector<std::vector<NetworKit::index>> components_of_node(graph.numberOfNodes());
 
-    for (int i = 0; i < division.size(); i++) {
+    for (NetworKit::index i = 0; i < division.size(); i++) {
         for (auto node : division[i]) {
             components_of_node[node].push_back(i);
         }
@@ -335,11 +336,11 @@ void fix_division(node_subsets_t& division, NetworKit::Graph& graph) {
 
     for (auto node : graph.nodeRange()) {
         if (components_of_node[node].size() > 3) {
-            int component_to_remove = -1;
+            NetworKit::index component_to_remove = NetworKit::none;
 
             for (auto c : components_of_node[node]) {
-                int count_neighbors = 0;
-                int neighbor = -1;
+                NetworKit::count count_neighbors = 0;
+                NetworKit::node neighbor = NetworKit::none;
                 for (auto nei : graph.neighborRange(node)) {
                     if (std::find(components_of_node[nei].begin(), components_of_node[nei].end(),
                             c) != components_of_node[nei].end()) {
@@ -353,14 +354,14 @@ void fix_division(node_subsets_t& division, NetworKit::Graph& graph) {
                     break;
                 }
                 if (count_neighbors == 1) {
-                    std::vector<int> rest_components;
+                    std::vector<NetworKit::index> rest_components;
                     for (auto cc : components_of_node[node]) {
                         if (c != cc) {
                             rest_components.push_back(cc);
                         }
                     }
-                    bool has_common =
-                        std::any_of(rest_components.begin(), rest_components.end(), [&](int x) {
+                    bool has_common = std::any_of(
+                        rest_components.begin(), rest_components.end(), [&](NetworKit::index x) {
                             return std::find(components_of_node[neighbor].begin(),
                                        components_of_node[neighbor].end(),
                                        x) != components_of_node[neighbor].end();
@@ -390,7 +391,7 @@ node_subsets_t make_suitable_graph_division_from_queue(
         auto node_set = std::move(queue.front());
         queue.pop();
 
-        int number_of_boundary_nodes = 0;
+        NetworKit::count number_of_boundary_nodes = 0;
         for (auto node : node_set) {
             if (is_boundary[node]) {
                 number_of_boundary_nodes++;
@@ -427,15 +428,15 @@ node_subsets_t make_suitable_graph_division_from_queue(
     // merging to small components
     std::vector<std::vector<NetworKit::count>> components_per_node(graph.numberOfNodes());
     std::vector<int> is_set_used(small_sets.size(), 0);
-    std::vector<int> number_of_boundary_nodes(small_sets.size(), 0);
+    std::vector<NetworKit::count> number_of_boundary_nodes(small_sets.size(), 0);
     std::vector<int> used(graph.numberOfNodes(), 0);
 
-    for (int i = 0; i < small_sets.size(); i++) {
+    for (NetworKit::index i = 0; i < small_sets.size(); i++) {
         for (auto& x : small_sets[i]) {
             components_per_node[x].push_back(i);
         }
     }
-    for (int i = 0; i < components_per_node.size(); i++) {
+    for (NetworKit::index i = 0; i < components_per_node.size(); i++) {
         if (components_per_node[i].size() > 1) {
             for (auto c : components_per_node[i]) {
                 number_of_boundary_nodes[c] += 1;
@@ -443,20 +444,20 @@ node_subsets_t make_suitable_graph_division_from_queue(
         }
     }
 
-    auto is_mergable = [&](int c) {
+    auto is_mergable = [&](NetworKit::index c) {
         if (is_set_used[c]) return false;
         if (2 * small_sets[c].size() > r || 2 * number_of_boundary_nodes[c] > c * sqr) return false;
         return true;
     };
 
-    auto try_merge = [&](int c1, int c2) {
-        if (!is_mergable(c1)) return -1;
-        if (!is_mergable(c2)) return -1;
+    auto try_merge = [&](NetworKit::index c1, NetworKit::index c2) {
+        if (!is_mergable(c1)) return NetworKit::none;
+        if (!is_mergable(c2)) return NetworKit::none;
 
         // importat to merge smaller component to the bigger
         if (small_sets[c1].size() < small_sets[c2].size()) std::swap(c1, c2);
         is_set_used[c2] = true;
-        int good_boundary_nodes = 0;
+        NetworKit::count good_boundary_nodes = 0;
         for (auto node : small_sets[c2]) {
             auto& node_components = components_per_node[node];
             if (std::find(node_components.begin(), node_components.end(), c1) ==
@@ -467,7 +468,7 @@ node_subsets_t make_suitable_graph_division_from_queue(
                 }
                 std::replace(node_components.begin(), node_components.end(), c2, c1);
             } else {  // boundary between c1 and c2
-                good_boundary_nodes += node_components.size() == 2 ? -1 : 1;
+                good_boundary_nodes += node_components.size() == 2 ? NetworKit::none : 1;
                 node_components.erase(find(node_components.begin(), node_components.end(), c2));
             }
         }
@@ -481,9 +482,9 @@ node_subsets_t make_suitable_graph_division_from_queue(
     for (auto& components : components_per_node) {
         if (components.size() == 1) continue;  // interior node
 
-        int c0, c1, c2;
+        NetworKit::index c0, c1, c2;
         if (components.size() == 3) {  // boundy node of threee regions
-            int c0 = components[0], c1 = components[1], c2 = components[2];
+            NetworKit::index c0 = components[0], c1 = components[1], c2 = components[2];
             try_merge(c0, c1);
             try_merge(c0, c2);
             try_merge(c1, c2);
@@ -501,7 +502,7 @@ node_subsets_t make_suitable_graph_division_from_queue(
     }
     PlanarGraphTools::assertDivision(regions_to_assert, graph);
 
-    int count_boundary_nodes = 0;
+    NetworKit::count count_boundary_nodes = 0;
     for (auto node : graph.nodeRange()) {
         assert(components_per_node[node].size() > 0);
         if (components_per_node[node].size() > 1) {
@@ -509,12 +510,12 @@ node_subsets_t make_suitable_graph_division_from_queue(
         }
     }
 
-    std::vector<std::tuple<int, int, int>> regions_to_merge;
+    std::vector<std::tuple<NetworKit::index, NetworKit::index, NetworKit::index>> regions_to_merge;
 
-    for (int i = 0; i < small_sets.size(); i++) {
+    for (NetworKit::index i = 0; i < small_sets.size(); i++) {
         if (small_sets[i].size() == 0) continue;
         if (!is_mergable(i)) continue;
-        std::unordered_set<int> region_neighbors;
+        std::unordered_set<NetworKit::index> region_neighbors;
         for (auto node : small_sets[i]) {
             for (auto c : components_per_node[node]) {
                 if (c != i) {
@@ -528,11 +529,11 @@ node_subsets_t make_suitable_graph_division_from_queue(
             continue;
         }
 
-        int first, second;
+        NetworKit::index first, second;
         auto it = region_neighbors.begin();
         first = *it;
         it++;
-        second = it == region_neighbors.end() ? -1 : *it;
+        second = it == region_neighbors.end() ? NetworKit::none : *it;
 
         regions_to_merge.push_back({first, second, i});
     }
@@ -542,11 +543,11 @@ node_subsets_t make_suitable_graph_division_from_queue(
 
     // greedy merging of regions with the same sets of either one or two regions.
 
-    int last_component = -1;
-    std::pair<int, int> last_pair = {-1, -1};
+    NetworKit::index last_component = NetworKit::none;
+    std::pair<NetworKit::index, NetworKit::index> last_pair = {NetworKit::none, NetworKit::none};
     for (auto [f, s, i] : regions_to_merge) {
         if (!is_mergable(i)) continue;
-        if (last_component = -1) {
+        if (last_component = NetworKit::none) {
             last_component = i;
             last_pair = {f, s};
             continue;
@@ -557,9 +558,9 @@ node_subsets_t make_suitable_graph_division_from_queue(
             continue;
         }
 
-        int merged = try_merge(last_component, i);
+        NetworKit::index merged = try_merge(last_component, i);
         if (!is_mergable(merged)) {
-            last_component = -1;
+            last_component = NetworKit::none;
             continue;
         }
         if (merged == last_component) {
@@ -569,7 +570,7 @@ node_subsets_t make_suitable_graph_division_from_queue(
         last_pair = {f, s};
     }
 
-    for (int i = 0; i < small_sets.size(); i++) {
+    for (NetworKit::index i = 0; i < small_sets.size(); i++) {
         if (is_set_used[i]) continue;
         result.push_back(std::move(small_sets[i]));
     }
@@ -591,7 +592,8 @@ node_subsets_t make_suitable_graph_division(NetworKit::Graph& graph, int r) {
 // FIND_CLUSTERS from [F1]
 node_subsets_t find_cluster_result;
 
-std::vector<NetworKit::node> csearch(NetworKit::node v, int z, NetworKit::Graph& graph) {
+std::vector<NetworKit::node> csearch(
+    NetworKit::node v, NetworKit::count z, NetworKit::Graph& graph) {
     if (visited[v]) {
         return {};
     }
@@ -612,7 +614,7 @@ std::vector<NetworKit::node> csearch(NetworKit::node v, int z, NetworKit::Graph&
     }
 }
 
-node_subsets_t find_clusters(NetworKit::Graph& graph, int z) {
+node_subsets_t find_clusters(NetworKit::Graph& graph, NetworKit::count z) {
     find_cluster_result.clear();
     for (auto node : graph.nodeRange()) {
         visited[node] = 0;
@@ -630,7 +632,7 @@ node_subsets_t find_clusters(NetworKit::Graph& graph, int z) {
 node_subsets_t get_division_from_clusters(
     node_subsets_t& clusters, NetworKit::Graph& graph, int r) {
     std::vector<NetworKit::count> cluster_numbers(graph.numberOfNodes());
-    for (int i = 0; i < clusters.size(); i++) {
+    for (NetworKit::index i = 0; i < clusters.size(); i++) {
         for (auto node : clusters[i]) {
             cluster_numbers[node] = i;
         }
@@ -660,7 +662,7 @@ node_subsets_t get_division_from_clusters(
         auto node_set = std::move(queue.front());
         queue.pop();
 
-        int number_of_boundary_nodes = 0;
+        NetworKit::count number_of_boundary_nodes = 0;
         for (auto node : node_set) {
             if (is_boundary[node]) {
                 number_of_boundary_nodes++;
@@ -691,10 +693,10 @@ node_subsets_t get_division_from_clusters(
         }
     }
 
-    std::vector<int> region_of_node(shrinked_graph.numberOfNodes(), -1);
-    std::vector<int> count_regions_of_node(shrinked_graph.numberOfNodes(), 0);
+    std::vector<NetworKit::index> region_of_node(shrinked_graph.numberOfNodes(), NetworKit::none);
+    std::vector<NetworKit::count> count_regions_of_node(shrinked_graph.numberOfNodes(), 0);
 
-    for (int i = 0; i < division.size(); i++) {
+    for (NetworKit::index i = 0; i < division.size(); i++) {
         for (auto& node : division[i]) {
             count_regions_of_node[node] += 1;
             region_of_node[node] = i;
@@ -704,8 +706,8 @@ node_subsets_t get_division_from_clusters(
     node_subsets_t result_with_zeros(division.size(), std::vector<NetworKit::node>{});
 
     // Unshrink the graph
-    for (int i = 0; i < count_regions_of_node.size(); i++) {
-        assert(region_of_node[i] > -1);
+    for (NetworKit::index i = 0; i < count_regions_of_node.size(); i++) {
+        assert(region_of_node[i] != NetworKit::none);
         // boundary vertex
         if (count_regions_of_node[i] >= 2) {
             result_with_zeros.push_back({});
@@ -721,7 +723,7 @@ node_subsets_t get_division_from_clusters(
 
     node_subsets_t result;
 
-    for (int i = 0; i < result_with_zeros.size(); i++) {
+    for (NetworKit::index i = 0; i < result_with_zeros.size(); i++) {
         if (result_with_zeros[i].size() > 0) {
             result.push_back(std::move(result_with_zeros[i]));
         }
@@ -736,8 +738,9 @@ node_subsets_t fix_graph_division(
     // expanded(sic!) regions that share these vertices". So I guess we can do it in a greedy
     // fashion.
 
-    std::vector<std::array<int, 3>> region(graph.numberOfNodes(), {-1, -1, -1});
-    for (int i = 0; i < division.size(); i++) {
+    std::vector<std::array<NetworKit::index, 3>> region(
+        graph.numberOfNodes(), {NetworKit::none, NetworKit::none, NetworKit::none});
+    for (NetworKit::index i = 0; i < division.size(); i++) {
         for (auto& node : division[i]) {
             region[node][0] = i;
         }
@@ -766,13 +769,13 @@ node_subsets_t fix_graph_division(
             bool has_common = false;
 
             for (auto cu : region[u]) {
-                if (cu == -1) break;
+                if (cu == NetworKit::none) break;
                 for (auto cv : region[v]) {
                     if (cv == cu) has_common = true;
                 }
             }
             if (!has_common) {
-                if (region[u][2] == -1) {
+                if (region[u][2] == NetworKit::none) {
                     region[u][2] = region[v][0];
                 } else {
                     region[v][2] = region[u][0];
@@ -783,9 +786,9 @@ node_subsets_t fix_graph_division(
 
     node_subsets_t result(division.size());
 
-    for (int i = 0; i < region.size(); i++) {
+    for (NetworKit::index i = 0; i < region.size(); i++) {
         for (auto reg : region[i]) {
-            if (reg == -1) continue;
+            if (reg == NetworKit::none) continue;
             result[reg].push_back(i);
         }
     }

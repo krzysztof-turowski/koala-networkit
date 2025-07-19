@@ -4,7 +4,7 @@
 
 namespace Koala {
 
-static const int INF = std::numeric_limits<int>::max();
+static const NetworKit::edgeweight INF = std::numeric_limits<NetworKit::edgeweight>::max();
 
 // Updates key of item under id. In case set does not contain the item inserts it.
 void HenzingerPlanarSSSP::HenzingerPriorityQueue::update(
@@ -14,7 +14,7 @@ void HenzingerPlanarSSSP::HenzingerPriorityQueue::update(
         return;
     }
 
-    int old_key = id_map[id];
+    auto old_key = id_map[id];
     assert(set.erase({old_key, id}) == 1 && "update");
 
     id_map[id] = new_key;
@@ -33,7 +33,7 @@ void HenzingerPlanarSSSP::HenzingerPriorityQueue::push(NetworKit::node id, Netwo
 void HenzingerPlanarSSSP::HenzingerPriorityQueue::deactivate(NetworKit::node id) {
     assert(id_map.find(id) != id_map.end() && "deactivate");
 
-    int old_key = id_map[id];
+    auto old_key = id_map[id];
     assert(set.erase({old_key, id}) == 1);
     id_map.erase(id);
 

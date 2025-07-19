@@ -25,12 +25,12 @@ class HenzingerPlanarSSSP : public PlanarSSSP {
     };
 
     NetworKit::Graph normal_graph;
-    std::vector<int> d;
+    std::vector<NetworKit::edgeweight> d;
     HenzingerPriorityQueue main_Q;
     std::vector<HenzingerPriorityQueue> Q;
-    std::vector<std::vector<int>> regions;
+    std::vector<std::vector<NetworKit::node>> regions;
     std::vector<int> is_boundary;
-    int number_of_regions;
+    NetworKit::count number_of_regions;
     int r;
 
     void initialize_queues(node_subsets_t& division);

@@ -16,17 +16,17 @@
 #include "shortest_path/planar/SuitableRDivision.hpp"
 
 namespace Koala {
-static const int INF = std::numeric_limits<int>::max();
+static const NetworKit::edgeweight INF = std::numeric_limits<NetworKit::edgeweight>::max();
 
 void HenzingerPlanarSSSP::main_thrust() {
     while (!main_Q.empty()) {
-        int current_region = main_Q.minimum_item();
-        std::set<int> updated_regions;
+        NetworKit::index current_region = main_Q.minimum_item();
+        std::set<NetworKit::index> updated_regions;
         updated_regions.insert(current_region);
 
-        for (int times = r; times > 0; times--) {
+        for (NetworKit::index times = r; times > 0; times--) {
             if (Q[current_region].empty()) continue;
-            int distance = Q[current_region].minimum_key();
+            NetworKit::edgeweight distance = Q[current_region].minimum_key();
             NetworKit::node current_node = Q[current_region].minimum_item();
             Q[current_region].deactivate(current_node);
 
@@ -59,7 +59,7 @@ void HenzingerPlanarSSSP::main_thrust() {
 
 void HenzingerPlanarSSSP::initialize_queues(node_subsets_t& division) {
     Q.assign(division.size(), {});
-    for (int i = 0; i < division.size(); i++) {
+    for (NetworKit::index i = 0; i < division.size(); i++) {
         auto node = std::find(division[i].begin(), division[i].end(), source);
         if (node == division[i].end()) continue;
         Q[i].push(source, 0);
@@ -83,12 +83,12 @@ void HenzingerPlanarSSSP::run() {
 
     is_boundary.assign(normal_graph.numberOfNodes(), 0);
     regions.assign(normal_graph.numberOfNodes(), {});
-    for (int i = 0; i < division.size(); i++) {
+    for (NetworKit::index i = 0; i < division.size(); i++) {
         for (auto node : division[i]) {
             regions[node].push_back(i);
         }
     }
-    for (int i = 0; i < normal_graph.numberOfNodes(); i++) {
+    for (NetworKit::index i = 0; i < normal_graph.numberOfNodes(); i++) {
         if (regions.size() > 1) {
             is_boundary[i] = 1;
         }

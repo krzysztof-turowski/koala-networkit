@@ -23,21 +23,21 @@ pair_distance_t get_distance_between_boundary_nodes_level_2(NetworKit::Graph& gr
     std::vector<pair_distance_t> result_per_region(division.size());
     pair_distance_t result;
 
-    std::vector<int> region_count(graph.numberOfNodes(), 0);
+    std::vector<NetworKit::count> region_count(graph.numberOfNodes(), 0);
     std::vector<int> is_boundary(graph.numberOfNodes(), 0);
 
-    for (int i = 0; i < division.size(); i++) {
+    for (NetworKit::index i = 0; i < division.size(); i++) {
         for (auto node : division[i]) {
             region_count[node]++;
         }
     }
-    for (int i = 0; i < graph.numberOfNodes(); i++) {
+    for (NetworKit::index i = 0; i < graph.numberOfNodes(); i++) {
         if (region_count[i] > 1) {
             is_boundary[i] = true;
         }
     }
 
-    for (int r = 0; r < division.size(); r++) {
+    for (NetworKit::index r = 0; r < division.size(); r++) {
         auto& region = division[r];
         auto subgraph = NetworKit::GraphTools::subgraphFromNodes(
             graph, std::unordered_set<NetworKit::node>{region.begin(), region.end()});
@@ -50,15 +50,15 @@ pair_distance_t get_distance_between_boundary_nodes_level_2(NetworKit::Graph& gr
             }
         }
 
-        for (int i = 0; i < boundary.size(); i++) {
+        for (NetworKit::index i = 0; i < boundary.size(); i++) {
             NetworKit::MultiTargetDijkstra dijkstra(
                 subgraph, boundary[i], boundary.begin(), boundary.end());
             dijkstra.run();
             auto map = dijkstra.getTargetIndexMap();
             auto distances = dijkstra.getDistances();
-            for (int j = 0; j < boundary.size(); j++) {
+            for (NetworKit::index j = 0; j < boundary.size(); j++) {
                 if (distances[map[boundary[j]]] < 0 ||
-                    distances[map[boundary[j]]] > std::numeric_limits<int>::max())
+                    distances[map[boundary[j]]] > std::numeric_limits<NetworKit::edgeweight>::max())
                     continue;
                 result_per_region[r][std::make_pair(boundary[i], boundary[j])] =
                     distances[map[boundary[j]]];
@@ -81,7 +81,8 @@ pair_distance_t get_distance_between_boundary_nodes_level_2(NetworKit::Graph& gr
     return result;
 }
 
-void mop_up(std::vector<int>& shortest_distance, node_subsets_t& regions, NetworKit::Graph& G) {
+void mop_up(std::vector<NetworKit::edgeweight>& shortest_distance, node_subsets_t& regions,
+    NetworKit::Graph& G) {
     for (auto& region : regions) {
         std::unordered_set<NetworKit::node> subgraph_nodes(region.begin(), region.end());
         NetworKit::Graph subgraph = NetworKit::GraphTools::subgraphFromNodes(G, subgraph_nodes);
@@ -103,16 +104,16 @@ void mop_up(std::vector<int>& shortest_distance, node_subsets_t& regions, Networ
     }
 }
 
-std::vector<int> main_thrust(NetworKit::Graph& graph, node_subsets_t& regions,
-    pair_distance_t& distances, int s,
+std::vector<NetworKit::edgeweight> main_thrust(NetworKit::Graph& graph, node_subsets_t& regions,
+    pair_distance_t& distances, NetworKit::node s,
     const std::unordered_set<NetworKit::node>& extra_boudary_nodes) {
-    std::vector<int> shortest_distance(graph.numberOfNodes(), -1);
+    std::vector<NetworKit::edgeweight> shortest_distance(graph.numberOfNodes(), -1);
 
     TopologyHeap heap(graph, regions, distances, s, extra_boudary_nodes);
 
     while (!heap.empty()) {
         auto [distance, node] = heap.top();
-        if (node == -1) break;
+        if (node == NetworKit::none) break;
         shortest_distance[node] = distance;
         heap.close(node);
     }
@@ -135,7 +136,7 @@ pair_distance_t get_distance_in_region_level_1(
         std::unordered_map<NetworKit::node, NetworKit::node> map_of_nodes;
 
         for (auto node : connected_subgraph.nodeRange()) nodes.push_back(node);
-        for (int i = 0; i < nodes.size(); i++) map_of_nodes[nodes[i]] = i;
+        for (NetworKit::index i = 0; i < nodes.size(); i++) map_of_nodes[nodes[i]] = i;
 
         NetworKit::Graph subgraph_from_0(nodes.size(), true);
         for (auto e : connected_subgraph.edgeWeightRange()) {
@@ -166,7 +167,7 @@ pair_distance_t get_distance_in_region_level_1(
             auto shortest_distances = main_thrust(subgraph_from_0, level_2_division,
                 distancesLevel2, boundaryNode, boundary_nodes_of_component);
 
-            for (int i = 0; i < shortest_distances.size(); i++) {
+            for (NetworKit::index i = 0; i < shortest_distances.size(); i++) {
                 if (shortest_distances[i] != -1) {
                     result[std::make_pair(nodes[i], nodes[boundaryNode])] = shortest_distances[i];
                     result[std::make_pair(nodes[boundaryNode], nodes[i])] = shortest_distances[i];
@@ -182,21 +183,21 @@ pair_distance_t get_distance_between_boundary_nodes_Level_1(
     std::vector<pair_distance_t> result_per_region(division.size());
     pair_distance_t result;
 
-    std::vector<int> region_count(graph.numberOfNodes(), 0);
+    std::vector<NetworKit::count> region_count(graph.numberOfNodes(), 0);
     std::vector<int> is_level_1_boundary(graph.numberOfNodes(), 0);
 
-    for (int i = 0; i < division.size(); i++) {
+    for (NetworKit::index i = 0; i < division.size(); i++) {
         for (auto node : division[i]) {
             region_count[node]++;
         }
     }
-    for (int i = 0; i < graph.numberOfNodes(); i++) {
+    for (NetworKit::index i = 0; i < graph.numberOfNodes(); i++) {
         if (region_count[i] > 1) {
             is_level_1_boundary[i] = true;
         }
     }
 
-    for (int r = 0; r < division.size(); r++) {
+    for (NetworKit::index r = 0; r < division.size(); r++) {
         auto& region = division[r];
         auto subgraph = NetworKit::GraphTools::subgraphFromNodes(
             graph, std::unordered_set<NetworKit::node>{region.begin(), region.end()});
@@ -231,8 +232,8 @@ void FredericksonPlanarSSSP::run() {
     auto division_level_1 = findSuitableRDivision(normal_graph, r1, c);
     PlanarGraphTools::assertDivision(division_level_1, normal_graph);
 
-    std::vector<std::vector<int>> node_regions(normal_graph.numberOfNodes());
-    for (int i = 0; i < division_level_1.size(); i++) {
+    std::vector<std::vector<NetworKit::index>> node_regions(normal_graph.numberOfNodes());
+    for (NetworKit::index i = 0; i < division_level_1.size(); i++) {
         for (auto node : division_level_1[i]) {
             node_regions[node].push_back(i);
         }

@@ -15,8 +15,8 @@
 using namespace boost;
 
 // Boost graph typedefs
-using boost_graph_t = adjacency_list<vecS, vecS, undirectedS, property<vertex_index_t, int>,
-    property<edge_index_t, int>>;
+using boost_graph_t = adjacency_list<vecS, vecS, undirectedS,
+    property<vertex_index_t, NetworKit::edgeweight>, property<edge_index_t, NetworKit::edgeweight>>;
 
 // Boost planar embedding typedefs based on
 // https://www.boost.org/doc/libs/1_53_0/libs/graph/example/straight_line_drawing.cpp
@@ -79,7 +79,7 @@ planar_embedding_t findPlanarEmbeding(const NetworKit::Graph& G, bool verbose = 
 
     planar_embedding_t result;
 
-    for (int i = 0; i < embedding_storage.size(); i++) {
+    for (NetworKit::index i = 0; i < embedding_storage.size(); i++) {
         for (auto& edge : embedding_storage[i]) {
             NetworKit::node node = source(edge, boost_graph) == i ? target(edge, boost_graph)
                                                                   : source(edge, boost_graph);
@@ -97,8 +97,8 @@ planar_embedding_t findPlanarEmbeding(const NetworKit::Graph& G, bool verbose = 
 }
 
 NetworKit::Graph makeMaximalPlanar(NetworKit::Graph& G) {
-    typedef adjacency_list<vecS, vecS, undirectedS, property<vertex_index_t, int>,
-        property<edge_index_t, int>>
+    typedef adjacency_list<vecS, vecS, undirectedS, property<vertex_index_t, NetworKit::edgeweight>,
+        property<edge_index_t, NetworKit::edgeweight>>
         graph;
     auto [g, node_map] = convert_networKit_to_boost(G);
 
@@ -156,7 +156,7 @@ NetworKit::Graph convertToMaxDegree3(NetworKit::Graph& G, bool directed = false)
             vertex_maps[i][empty_vertex] = 0;
 
             result.addEdge(i, empty_vertex, 0);
-            for (int j = 1; j < embedding[i].size(); ++j) {
+            for (NetworKit::index j = 1; j < embedding[i].size(); ++j) {
                 t = embedding[i][j];
                 vertex_maps[i][t] = empty_vertex;
                 if (j < embedding[i].size() - 1) {
@@ -186,7 +186,7 @@ NetworKit::Graph convertToMaxDegree3(NetworKit::Graph& G, bool directed = false)
     }
 
     for (auto node : result.nodeRange()) {
-        int count = 0;
+        NetworKit::count count = 0;
         for (auto neighbor : result.neighborRange(node)) {
             count++;
         }
@@ -197,9 +197,9 @@ NetworKit::Graph convertToMaxDegree3(NetworKit::Graph& G, bool directed = false)
 }
 
 void assertDivision(const node_subsets_t& division, NetworKit::Graph& graph) {
-    std::vector<std::vector<int>> components_of_node(graph.numberOfNodes());
+    std::vector<std::vector<NetworKit::index>> components_of_node(graph.numberOfNodes());
 
-    for (int i = 0; i < division.size(); i++) {
+    for (NetworKit::index i = 0; i < division.size(); i++) {
         for (auto node : division[i]) {
             components_of_node[node].push_back(i);
         }
@@ -211,8 +211,8 @@ void assertDivision(const node_subsets_t& division, NetworKit::Graph& graph) {
     }
 
     for (const auto& [u, v] : graph.edgeRange()) {
-        bool has_common =
-            std::any_of(components_of_node[u].begin(), components_of_node[u].end(), [&](int x) {
+        bool has_common = std::any_of(
+            components_of_node[u].begin(), components_of_node[u].end(), [&](NetworKit::index x) {
                 return std::find(components_of_node[v].begin(), components_of_node[v].end(), x) !=
                        components_of_node[v].end();
             });
