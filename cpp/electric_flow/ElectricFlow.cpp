@@ -43,7 +43,7 @@ ElectricFlow::ElectricFlow(const Graph &graph, int s, int t)
     }
 
 void ElectricFlow::run() {
-  int L = 0, R = 1000;
+  int L = 0, R = primal.U + 1;
   while (L < R) {
     targetFlow = (L + R) / 2;
     if (routeFlow()) {
@@ -53,6 +53,12 @@ void ElectricFlow::run() {
     }
   }
   maxFlow = L-1;
+
+  targetFlow = maxFlow;
+  routeFlow();
+  cerr << "remaining:" << targetFlow*(1-progress) << endl;
+  // primal.pushValue(s, t, targetFlow*(1-progress));
+  primal.roundFlow();
 }
 
 bool ElectricFlow::isFeasible() {
@@ -67,7 +73,7 @@ bool ElectricFlow::isFeasible() {
 
 bool ElectricFlow::routeFlow() {
   init();
-  while ((1 - progress)*demand[t] > 1) {
+  while ((1.0 - progress)*demand[t] > 1.0) {
     if (!isFeasible()) {
       return false;
     }

@@ -16,9 +16,13 @@ public:
   double lowerCapacity(int u, int v) const;
   double upperCapacity(int u, int v) const;
 
+  void roundFlow();
+  void pushValue(int s, int t, double f);
+
 // private:
   const Graph &graph;
   vector<vector<double>> flow;
+  const int N, M, U;
 };
 
 } // namespace Koala

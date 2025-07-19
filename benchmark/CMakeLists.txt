@@ -42,3 +42,8 @@ koala_make_benchmark(
     benchmark_vertex_coloring
     benchmarkVertexColoring.cpp
     benchmarkVertexColoring.sh)
+
+koala_make_benchmark(
+    benchmark_electric_flow
+    benchmarkElectricFlow.cpp
+    benchmarkElectricFlow.sh)

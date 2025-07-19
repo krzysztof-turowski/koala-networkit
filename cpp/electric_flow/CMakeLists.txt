@@ -3,5 +3,6 @@ koala_add_module(electricFlow
     ElectricNetwork.cpp
     FlowNetwork.cpp 
     NaiveLaplaceSolver.cpp
+    NaiveDynamicTree.cpp
 )
 
