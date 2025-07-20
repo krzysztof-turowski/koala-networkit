@@ -36,7 +36,6 @@ vector<double> getViolation(const FlowNetwork &f, const vector<double> &y) {
   }
   return violation;
 }
-double getStepSize(double a, int m);
 
 ElectricFlow::ElectricFlow(const Graph &graph, int s, int t)
     : graph(graph), s(s), t(t), maxFlow(0), primal(graph) {
@@ -56,9 +55,7 @@ void ElectricFlow::run() {
 
   targetFlow = maxFlow;
   routeFlow();
-  cerr << "remaining:" << targetFlow*(1-progress) << endl;
-  // primal.pushValue(s, t, targetFlow*(1-progress));
-  primal.roundFlow();
+  // primal.roundFlow();
 }
 
 bool ElectricFlow::isFeasible() {
