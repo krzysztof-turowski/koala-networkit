@@ -36,20 +36,19 @@ class XFastTrie : public PriorityQueue<Key, Compare> {
         std::shared_ptr<Node> children[2] = {nullptr, nullptr};
         std::shared_ptr<Node> jump = nullptr;
         std::shared_ptr<Node> parent = nullptr;
-        std::shared_ptr<Node> linkedNodes[2] = {nullptr, nullptr};
+        std::shared_ptr<Node> linked_nodes[2] = {nullptr, nullptr};
         std::optional<Key> key;
     };
 
-public:
+ public:
     explicit XFastTrie(Key universeSize)
-        : universeSize(universeSize),
-          bitWidth(calculateBitWidth(universeSize)),
+        : universe_size(universeSize),
+          bit_width(calculate_bit_width(universeSize)),
           root(std::make_shared<Node>()),
           dummy(std::make_shared<Node>()),
-          prefixLevels(bitWidth + 1)
-    {
-        dummy->linkedNodes[PREV] = dummy;
-        dummy->linkedNodes[NEXT] = dummy;
+          prefix_levels(bit_width + 1) {
+        dummy->linked_nodes[PREV] = dummy;
+        dummy->linked_nodes[NEXT] = dummy;
     }
 
     bool empty() const override {
@@ -57,7 +56,7 @@ public:
     }
 
     void push(const Key& key) override {
-        if (key >= universeSize) {
+        if (key >= universe_size) {
             throw std::out_of_range("Key is out of range");
         }
         if (insert(key)) {
@@ -65,22 +64,21 @@ public:
         }
     }
 
-    Key peek() const override {
+    Key& top() override {
         if (empty()) {
             throw std::runtime_error("Priority queue is empty");
         }
-        return dummy->linkedNodes[NEXT]->key.value();
+        return dummy->linked_nodes[NEXT]->key.value();
     }
 
-    Key pop() override {
+    void pop() override {
         if (empty()) {
             throw std::runtime_error("Priority queue is empty");
         }
-        Key minKey = dummy->linkedNodes[NEXT]->key.value();
+        Key minKey = dummy->linked_nodes[NEXT]->key.value();
         remove(minKey);
-        return minKey;
     }
-    
+
     /**
      * Finds the largest key in the trie that is less than or equal to the given key.
      * 
@@ -88,7 +86,7 @@ public:
      * @return std::optional<Key> The predecessor key if it exists; std::nullopt otherwise.
      */
     std::optional<Key> predecessor(Key key) const {
-        auto node = findPredecessorNode(key);
+        auto node = find_predecessor_node(key);
         if (!node) {
             return std::nullopt;
         }
@@ -105,49 +103,49 @@ public:
     bool remove(Key key) {
         auto node = root;
 
-        for (int level = 0; level < bitWidth; ++level) {
-            int bit = getBit(key, level);
+        for (int level = 0; level < bit_width; ++level) {
+            int bit = get_bit(key, level);
             if (!node->children[bit]) {
                 return false;
             }
             node = node->children[bit];
         }
 
-        cleanupPath(node, key);
-        unlinkNode(node);
+        cleanup_path(node, key);
+        unlink_node(node);
         size--;
 
         return true;
     }
 
-private:
-    Key universeSize;
-    int bitWidth;
+ private:
+    Key universe_size;
+    int bit_width;
     size_t size = 0;
     std::shared_ptr<Node> root;
     std::shared_ptr<Node> dummy;
-    std::vector<std::unordered_map<Key, std::shared_ptr<Node>>> prefixLevels;
+    std::vector<std::unordered_map<Key, std::shared_ptr<Node>>> prefix_levels;
 
-    int calculateBitWidth(Key universeSize) {
+    int calculate_bit_width(Key universeSize) {
         return universeSize == 0 ? 1 : static_cast<int>(std::ceil(std::log2(universeSize + 1)));
     }
 
-    int getBit(Key key, int position) const {
-        return (key >> (bitWidth - position - 1)) & 1;
+    int get_bit(Key key, int position) const {
+        return (key >> (bit_width - position - 1)) & 1;
     }
 
-    Key getPrefix(Key key, int level) const {
-        return key >> (bitWidth - level);
+    Key get_prefix(Key key, int level) const {
+        return key >> (bit_width - level);
     }
 
-    std::shared_ptr<Node> findPredecessorNode(Key key) const {
-        int low = 0, high = bitWidth + 1;
+    std::shared_ptr<Node> find_predecessor_node(Key key) const {
+        int low = 0, high = bit_width + 1;
         auto node = root;
 
         while (high - low > 1) {
             int mid = (low + high) / 2;
-            auto it = prefixLevels[mid].find(getPrefix(key, mid));
-            if (it == prefixLevels[mid].end()) {
+            auto it = prefix_levels[mid].find(get_prefix(key, mid));
+            if (it == prefix_levels[mid].end()) {
                 high = mid;
             } else {
                 node = it->second;
@@ -155,55 +153,61 @@ private:
             }
         }
 
-        if (low == bitWidth && node->key.has_value()) {
+        if (low == bit_width && node->key.has_value()) {
             return node;
         }
 
-        int dir = getBit(key, low);
-        return (dir == RIGHT) ? node->jump : (node->jump ? node->jump->linkedNodes[PREV] : nullptr);
+        int dir = get_bit(key, low);
+        return (dir == RIGHT)
+            ? node->jump
+            : (node->jump ? node->jump->linked_nodes[PREV] : nullptr);
     }
 
     bool insert(Key key) {
         auto node = root;
         int level = 0;
 
-        for (; level < bitWidth; ++level) {
-            int bit = getBit(key, level);
+        for (; level < bit_width; ++level) {
+            int bit = get_bit(key, level);
             if (!node->children[bit]) break;
             node = node->children[bit];
         }
 
-        if (level == bitWidth) {
+        if (level == bit_width) {
             return false;
         }
 
-        auto [predecessor, successor] = getInsertNeighbors(node, key, level);
+        auto [predecessor, successor] = get_insert_neighbors(node, key, level);
 
-        auto insertedNode = createPath(node, key, level);
+        auto insertedNode = create_path(node, key, level);
 
-        linkNeighbors(insertedNode, predecessor, successor);
-        updateJumpPointers(insertedNode, key);
-        updatePrefixLevels(key);
+        link_neighbors(insertedNode, predecessor, successor);
+        update_jump_pointers(insertedNode, key);
+        update_prefix_levels(key);
 
         return true;
     }
 
-    std::pair<std::shared_ptr<Node>, std::shared_ptr<Node>> getInsertNeighbors(std::shared_ptr<Node> node, Key key, int level) const {
-        int bit = getBit(key, level);
+    std::pair<std::shared_ptr<Node>, std::shared_ptr<Node>> get_insert_neighbors(
+        std::shared_ptr<Node> node,
+        Key key,
+        int level)
+    const {
+        int bit = get_bit(key, level);
         if (bit == RIGHT) {
             auto pred = node->jump;
-            auto succ = pred ? pred->linkedNodes[NEXT] : dummy->linkedNodes[NEXT];
+            auto succ = pred ? pred->linked_nodes[NEXT] : dummy->linked_nodes[NEXT];
             return {pred, succ};
         } else {
             auto succ = node->jump;
-            auto pred = succ ? succ->linkedNodes[PREV] : dummy->linkedNodes[PREV];
+            auto pred = succ ? succ->linked_nodes[PREV] : dummy->linked_nodes[PREV];
             return {pred, succ};
         }
     }
 
-    std::shared_ptr<Node> createPath(std::shared_ptr<Node> node, Key key, int startLevel) {
-        for (int level = startLevel; level < bitWidth; ++level) {
-            int bit = getBit(key, level);
+    std::shared_ptr<Node> create_path(std::shared_ptr<Node> node, Key key, int startLevel) {
+        for (int level = startLevel; level < bit_width; ++level) {
+            int bit = get_bit(key, level);
             node->children[bit] = std::make_shared<Node>();
             node->children[bit]->parent = node;
             node = node->children[bit];
@@ -212,56 +216,61 @@ private:
         return node;
     }
 
-    void linkNeighbors(std::shared_ptr<Node> node, std::shared_ptr<Node> pred, std::shared_ptr<Node> succ) {
-        node->linkedNodes[PREV] = pred;
-        node->linkedNodes[NEXT] = succ;
-        if (pred) pred->linkedNodes[NEXT] = node;
-        if (succ) succ->linkedNodes[PREV] = node;
+    void link_neighbors(
+        std::shared_ptr<Node> node,
+        std::shared_ptr<Node> pred,
+        std::shared_ptr<Node> succ
+    ) {
+        node->linked_nodes[PREV] = pred;
+        node->linked_nodes[NEXT] = succ;
+        if (pred) pred->linked_nodes[NEXT] = node;
+        if (succ) succ->linked_nodes[PREV] = node;
     }
 
-    void updateJumpPointers(std::shared_ptr<Node> node, Key key) {
+    void update_jump_pointers(std::shared_ptr<Node> node, Key key) {
         auto parent = node->parent;
         while (parent) {
             if ((parent->children[LEFT] == nullptr && (!parent->jump || parent->jump->key > key)) ||
-                (parent->children[RIGHT] == nullptr && (!parent->jump || parent->jump->key < key))) {
+                (parent->children[RIGHT] == nullptr &&
+                (!parent->jump || parent->jump->key < key))) {
                 parent->jump = node;
             }
-            if((parent->children[LEFT] != nullptr) &&  (parent->children[RIGHT] != nullptr)) {
+            if ((parent->children[LEFT] != nullptr) &&  (parent->children[RIGHT] != nullptr)) {
                 parent->jump = nullptr;
             }
             parent = parent->parent;
         }
     }
 
-    void updatePrefixLevels(Key key) {
+    void update_prefix_levels(Key key) {
         auto node = root;
-        for (int i = 0; i <= bitWidth; ++i) {
-            prefixLevels[i][getPrefix(key, i)] = node;
-            if (i < bitWidth) {
-                int bit = getBit(key, i);
+        for (int i = 0; i <= bit_width; ++i) {
+            prefix_levels[i][get_prefix(key, i)] = node;
+            if (i < bit_width) {
+                int bit = get_bit(key, i);
                 node = node->children[bit];
             }
         }
     }
 
-    void unlinkNode(std::shared_ptr<Node> node) {
-        if (node->linkedNodes[PREV]) {
-            node->linkedNodes[PREV]->linkedNodes[NEXT] = node->linkedNodes[NEXT];
+    void unlink_node(std::shared_ptr<Node> node) {
+        if (node->linked_nodes[PREV]) {
+            node->linked_nodes[PREV]->linked_nodes[NEXT] = node->linked_nodes[NEXT];
         }
-        if (node->linkedNodes[NEXT]) {
-            node->linkedNodes[NEXT]->linkedNodes[PREV] = node->linkedNodes[PREV];
+        if (node->linked_nodes[NEXT]) {
+            node->linked_nodes[NEXT]->linked_nodes[PREV] = node->linked_nodes[PREV];
         }
     }
 
-    void cleanupPath(std::shared_ptr<Node> node, Key key) {
+    void cleanup_path(std::shared_ptr<Node> node, Key key) {
         auto parent = node->parent;
-        int level = bitWidth - 1;
+        int level = bit_width - 1;
 
         for (; level >= 0; --level) {
-            int bit = getBit(key, level);
+            int bit = get_bit(key, level);
 
             parent->children[bit] = nullptr;
-            prefixLevels[level + 1].erase(getPrefix(key, level + 1));
+            prefix_levels[level + 1].erase(get_prefix(key, level + 1));
             if (!parent->children[1 - bit]) parent->jump = nullptr;
 
             if (parent->children[1 - bit]) break;
@@ -272,10 +281,10 @@ private:
 
         for (; level >= 0; --level) {
             if (parent->jump == node) {
-                if(!parent->children[LEFT]) {
-                    parent->jump = node->linkedNodes[NEXT];
-                } else if(!parent->children[RIGHT]) {
-                    parent->jump = node->linkedNodes[PREV];
+                if (!parent->children[LEFT]) {
+                    parent->jump = node->linked_nodes[NEXT];
+                } else if (!parent->children[RIGHT]) {
+                    parent->jump = node->linked_nodes[PREV];
                 }
             }
             parent = parent->parent;
@@ -283,4 +292,4 @@ private:
     }
 };
 
-} // namespace Koala
+}  // namespace Koala

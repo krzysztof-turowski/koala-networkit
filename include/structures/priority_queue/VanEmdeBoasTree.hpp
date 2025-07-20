@@ -26,130 +26,124 @@ template <class Key, class Compare = std::less<Key>>
 class VanEmdeBoasTree : public PriorityQueue<Key, Compare> {
     static_assert(std::is_unsigned_v<Key>, "VanEmdeBoasTree only supports unsigned integer keys.");
 
-public:
+ public:
     explicit VanEmdeBoasTree(Key universeSize)
-        : universeSize(universeSize), 
-          clusterSize(static_cast<Key>(std::ceil(std::sqrt(universeSize)))),
-          minValue(std::nullopt), 
-          maxValue(std::nullopt) {
-        clusters.resize(clusterSize);
+        : universe_size(universeSize),
+          cluster_size(static_cast<Key>(std::ceil(std::sqrt(universeSize)))),
+          min_value(std::nullopt),
+          max_value(std::nullopt) {
+        clusters.resize(cluster_size);
     }
 
-    Key pop() override {
-        if (isEmpty()) {
+    void pop() override {
+        if (empty()) {
             throw std::runtime_error("Priority queue is empty");
         }
-        Key extractedMin = *minValue;
-        remove(*minValue);
-        return extractedMin;
+        remove(*min_value);
     }
 
-    Key peek() const override {
-        if (isEmpty()) {
+    Key& top() override {
+        if (empty()) {
             throw std::runtime_error("Priority queue is empty");
         }
-        return *minValue;
+        return *min_value;
     }
 
     void push(const Key& key) override {
-        if (key >= universeSize) {
+        if (key >= universe_size) {
             throw std::out_of_range("Key is out of range");
         }
         insert(key);
     }
 
     bool empty() const override {
-        return isEmpty();
+        return !min_value.has_value();
     }
 
-private:
-    const Key universeSize;
-    const Key clusterSize;
-    std::optional<Key> minValue, maxValue;
-    std::optional<std::unique_ptr<VanEmdeBoasTree>> summaryTree;
+ private:
+    const Key universe_size;
+    const Key cluster_size;
+    std::optional<Key> min_value, max_value;
+    std::optional<std::unique_ptr<VanEmdeBoasTree>> summary_tree;
     std::vector<std::optional<std::unique_ptr<VanEmdeBoasTree>>> clusters;
 
     Key high(Key x) const {
-        return x / clusterSize;
+        return x / cluster_size;
     }
 
     Key low(Key x) const {
-        return x % clusterSize;
+        return x % cluster_size;
     }
 
     Key index(Key high, Key low) const {
-        return high * clusterSize + low;
-    }
-
-    bool isEmpty() const {
-        return !minValue.has_value();
+        return high * cluster_size + low;
     }
 
     void insert(Key x) {
-        if (isEmpty()) {
-            minValue = maxValue = x;
+        if (empty()) {
+            min_value = max_value = x;
             return;
         }
 
-        if (x < *minValue) {
-            std::swap(x, *minValue);
+        if (x < *min_value) {
+            std::swap(x, *min_value);
         }
 
-        if (universeSize > 2) {
+        if (universe_size > 2) {
             Key clusterIndex = high(x);
             Key position = low(x);
 
             if (!clusters[clusterIndex].has_value()) {
-                clusters[clusterIndex] = std::make_unique<VanEmdeBoasTree>(clusterSize);
+                clusters[clusterIndex] = std::make_unique<VanEmdeBoasTree>(cluster_size);
             }
 
-            if (!summaryTree.has_value()) {
-                summaryTree = std::make_unique<VanEmdeBoasTree>(clusterSize);
+            if (!summary_tree.has_value()) {
+                summary_tree = std::make_unique<VanEmdeBoasTree>(cluster_size);
             }
 
-            if (clusters[clusterIndex].value()->isEmpty()) {
-                summaryTree.value()->insert(clusterIndex);
+            if (clusters[clusterIndex].value()->empty()) {
+                summary_tree.value()->insert(clusterIndex);
                 auto &value = clusters[clusterIndex].value();
-                value->minValue = value->maxValue = position;
+                value->min_value = value->max_value = position;
             } else {
                 clusters[clusterIndex].value()->insert(position);
             }
         }
 
-        if (x > *maxValue) {
-            maxValue = x;
+        if (x > *max_value) {
+            max_value = x;
         }
     }
 
     void remove(Key x) {
-        if (isEmpty()) {
+        if (empty()) {
             return;
         }
 
-        if (*minValue == *maxValue) {
-            minValue = maxValue = std::nullopt;
+        if (*min_value == *max_value) {
+            min_value = max_value = std::nullopt;
             return;
         }
 
-        if (universeSize <= 2) {
+        if (universe_size <= 2) {
             if (x == 0) {
-                minValue = 1;
+                min_value = 1;
             } else {
-                minValue = 0;
+                min_value = 0;
             }
-            maxValue = minValue;
+            max_value = min_value;
             return;
         }
 
-        if (x == *minValue) {
-            Key firstCluster = summaryTree.value()->minValue.value();
-            Key firstClusterMin = clusters[firstCluster].value()->minValue.value();
+        if (x == *min_value) {
+            Key firstCluster = summary_tree.value()->min_value.value();
+            Key firstClusterMin = clusters[firstCluster].value()->min_value.value();
 
-            minValue = index(firstCluster, firstClusterMin);
+            min_value = index(firstCluster, firstClusterMin);
             clusters[firstCluster].value()->remove(firstClusterMin);
 
-            if (clusters[firstCluster].value()->isEmpty()) {
-                summaryTree.value()->remove(firstCluster);
+            if (clusters[firstCluster].value()->empty()) {
+                summary_tree.value()->remove(firstCluster);
             }
         } else {
             Key clusterIndex = high(x);
@@ -157,17 +151,17 @@ private:
 
             clusters[clusterIndex].value()->remove(position);
 
-            if (clusters[clusterIndex].value()->isEmpty()) {
-                summaryTree.value()->remove(clusterIndex);
+            if (clusters[clusterIndex].value()->empty()) {
+                summary_tree.value()->remove(clusterIndex);
             }
         }
 
-        if (x == *maxValue) {
-            if (summaryTree.value()->isEmpty()) {
-                maxValue = minValue;
+        if (x == *max_value) {
+            if (summary_tree.value()->empty()) {
+                max_value = min_value;
             } else {
-                Key lastCluster = summaryTree.value()->maxValue.value();
-                maxValue = index(lastCluster, clusters[lastCluster].value()->maxValue.value());
+                Key lastCluster = summary_tree.value()->max_value.value();
+                max_value = index(lastCluster, clusters[lastCluster].value()->max_value.value());
             }
         }
     }

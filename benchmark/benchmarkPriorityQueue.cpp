@@ -44,7 +44,8 @@ class Dijkstra {
         pq.push(source);
 
         while (!pq.empty()) {
-            NetworKit::node u = pq.pop();
+            NetworKit::node u = pq.top();
+            pq.pop();
 
             if (visited[u]) continue;
 

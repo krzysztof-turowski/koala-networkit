@@ -17,22 +17,21 @@ namespace Koala {
  */
 template <class Key, class Compare = std::less<Key>>
 class PriorityQueue {
-public:
+ public:
     /**
      * Removes and returns the top element of the priority queue.
      * 
-     * @return Key The element with the highest priority.
      * @throws std::runtime_error If the priority queue is empty.
      */
-    virtual Key pop() = 0;
+    virtual void pop() = 0;
 
     /**
      * Returns the top element of the priority queue without removing it.
      * 
-     * @return Key The element with the highest priority.
+     * @return Key& The element with the highest priority.
      * @throws std::runtime_error If the priority queue is empty.
      */
-    virtual Key peek() const = 0;
+    virtual Key& top() = 0;
 
     /**
      * Inserts an element into the priority queue.

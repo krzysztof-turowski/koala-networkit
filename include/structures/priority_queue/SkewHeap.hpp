@@ -32,18 +32,16 @@ class SkewHeap : public PriorityQueue<Key, Compare> {
         root = merge(root, new_node);
     }
 
-    Key pop() override {
+    void pop() override {
         if (empty()) {
             throw std::runtime_error("Priority queue is empty");
         }
-        Key top = root->key;
         Node* old_root = root;
         root = merge(root->left, root->right);
         delete old_root;
-        return top;
     }
 
-    Key peek() const override {
+    Key& top() override {
         if (empty()) {
             throw std::runtime_error("Priority queue is empty");
         }

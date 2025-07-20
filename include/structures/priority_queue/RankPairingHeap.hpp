@@ -12,6 +12,7 @@
 #include <limits>
 #include <stdexcept>
 #include <vector>
+#include <numbers>
 
 #include "structures/PriorityQueue.hpp"
 
@@ -24,67 +25,65 @@ namespace Koala {
  */
 template <class Key, class Compare = std::less<Key>>
 class RankPairingHeap : public PriorityQueue<Key, Compare> {
-public:
+ public:
     struct Node;
 
-    RankPairingHeap() noexcept : firstNode(nullptr), size(0) {}
+    RankPairingHeap() noexcept : first_node(nullptr), size(0) {}
 
     ~RankPairingHeap() {
-        if (!firstNode) return;
-        
-        Node* current = firstNode;
-        firstNode->next = nullptr;
-        
+        if (!first_node) return;
+
+        Node* current = first_node;
+        first_node->next = nullptr;
+
         while (current) {
             Node* next = current->next;
-            deleteNode(current);
+            delete_node(current);
             current = next;
         }
-        
-        firstNode = nullptr;
+
+        first_node = nullptr;
         size = 0;
     }
 
     void push(const Key& key) override {
-        Node* newNode = new Node(key);
+        Node* new_node = new Node(key);
         size++;
-        
-        addNodeToRootList(newNode);
+
+        add_node_to_root_list(new_node);
     }
 
-    Key peek() const override {
+    Key& top() override {
         if (empty()) throw std::runtime_error("Heap is empty!");
-        return firstNode->key;
+        return first_node->key;
     }
 
-    Key pop() override {
+    void pop() override {
         if (empty()) throw std::runtime_error("Heap is empty!");
-        
-        Node* minNode = firstNode;
-        Key minKey = minNode->key;
-        
+
+        Node* min_node = first_node;
+
         if (size == 1) {
-            delete firstNode;
-            firstNode = nullptr;
+            delete first_node;
+            first_node = nullptr;
             size = 0;
-            return minKey;
+            return;
         }
-        
-        addRightSpine(firstNode->left);
-        
-        std::vector<Node*> consolidatedRoots = consolidateBuckets(firstNode, size);
-        
-        firstNode = nullptr;
+
+        add_right_spine(first_node->left);
+
+        std::vector<Node*> consolidated_roots = consolidate_buckets(first_node, size);
+
+        first_node = nullptr;
         size--;
-        
-        push(consolidatedRoots);
-        
-        delete minNode;
-        return minKey;
+
+        push(consolidated_roots);
+
+        delete min_node;
     }
 
     bool empty() const override {
-        return firstNode == nullptr;
+        return first_node == nullptr;
     }
 
     /**
@@ -93,26 +92,26 @@ public:
      * 
      * @param other The heap to be merged into this one
      */
-    void meld(RankPairingHeap& other) {
+    void merge(RankPairingHeap& other) {
         if (&other == this) return;
         if (other.empty()) return;
-        
+
         if (empty()) {
-            firstNode = other.firstNode;
+            first_node = other.first_node;
             size = other.size;
-            other.firstNode = nullptr;
+            other.first_node = nullptr;
             other.size = 0;
             return;
         }
-        
-        firstNode->next->linkLists(other.firstNode);
-        
-        if (comp(other.firstNode->key, firstNode->key)) {
-            firstNode = other.firstNode;
+
+        first_node->next->linkLists(other.first_node);
+
+        if (comp(other.first_node->key, first_node->key)) {
+            first_node = other.first_node;
         }
-        
+
         size += other.size;
-        other.firstNode = nullptr;
+        other.first_node = nullptr;
         other.size = 0;
     }
 
@@ -124,21 +123,21 @@ public:
     void decreaseKey(Node* node, Key newKey) {
         node->key = newKey;
         Node* parent = node->parent;
-        
+
         if (!parent) {
-            if (comp(node->key, firstNode->key)) {
-                firstNode = node;
+            if (comp(node->key, first_node->key)) {
+                first_node = node;
             }
             return;
         }
-        
-        detachFromParent(node, parent);
-        
+
+        detach_from_parent(node, parent);
+
         push(node);
-        
-        recalculateRank(parent);
+
+        recalculate_rank(parent);
     }
-    
+
     struct Node {
         Key key;
         int rank;
@@ -165,65 +164,65 @@ public:
         }
     };
 
-private:
-    Node* firstNode;
+ private:
+    Node* first_node;
     unsigned size;
     Compare comp;
 
-    void detachFromParent(Node* node, Node* parent) {
+    void detach_from_parent(Node* node, Node* parent) {
         if (parent->left == node) {
             parent->left = node->right;
         } else if (parent->right == node) {
             parent->right = node->right;
         }
-        
+
         if (node->right) {
             node->right->parent = parent;
         }
-        
+
         node->right = nullptr;
         node->parent = nullptr;
     }
 
-    static Node* linkNodes(Node* x, Node* y, Compare& comparator) {
+    static Node* link_nodes(Node* x, Node* y, Compare& comparator) {
         if (!x) return y;
         if (!y) return x;
-        
+
         if (comparator(y->key, x->key)) {
             std::swap(x, y);
         }
-        
+
         y->right = x->left;
         if (y->right) {
             y->right->parent = y;
         }
-        
+
         x->left = y;
         y->parent = x;
         y->next = nullptr;
-        
+
         x->rank++;
         return x;
     }
 
-    void addNodeToRootList(Node* node) {
+    void add_node_to_root_list(Node* node) {
         if (empty()) {
-            firstNode = node;
-            firstNode->next = firstNode;
+            first_node = node;
+            first_node->next = first_node;
             return;
         }
-        
-        node->next = firstNode->next;
-        firstNode->next = node;
-        
-        if (comp(node->key, firstNode->key)) {
-            firstNode = node;
+
+        node->next = first_node->next;
+        first_node->next = node;
+
+        if (comp(node->key, first_node->key)) {
+            first_node = node;
         }
     }
 
     void push(Node* node) {
         node->parent = nullptr;
-        addNodeToRootList(node);
+        add_node_to_root_list(node);
     }
 
     void push(const std::vector<Node*>& nodes) {
@@ -232,86 +231,87 @@ private:
         }
     }
 
-    void addRightSpine(Node* node) {
+    void add_right_spine(Node* node) {
         while (node) {
             node->parent = nullptr;
             Node* right = node->right;
             node->right = nullptr;
-            
-            node->next = firstNode->next;
-            firstNode->next = node;
-            
+
+            node->next = first_node->next;
+            first_node->next = node;
+
             node = right;
         }
     }
 
-    int getRank(Node* node) const {
+    int get_rank(Node* node) const {
         return node ? node->rank : -1;
     }
 
-    void recalculateRank(Node* node) {
+    void recalculate_rank(Node* node) {
         while (node) {
             int oldRank = node->rank;
-            
+
             if (node->parent == nullptr) {
-                node->rank = getRank(node->left) + 1;
+                node->rank = get_rank(node->left) + 1;
                 break;
             }
-            
-            int leftRank = getRank(node->left);
-            int rightRank = getRank(node->right);
 
-            int newRank = (std::abs(leftRank - rightRank) > 1) ? std::max(leftRank, rightRank) : std::max(leftRank, rightRank) + 1;
-            
+            int leftRank = get_rank(node->left);
+            int rightRank = get_rank(node->right);
+
+            int newRank = (std::abs(leftRank - rightRank) > 1)
+                ? std::max(leftRank, rightRank)
+                : std::max(leftRank, rightRank) + 1;
+
             if (newRank >= oldRank) break;
-            
+
             node->rank = newRank;
             node = node->parent;
         }
     }
 
-    void deleteNode(Node* node) {
+    void delete_node(Node* node) {
         if (!node) return;
-        if (node->left) deleteNode(node->left);
-        if (node->right) deleteNode(node->right);
+        if (node->left) delete_node(node->left);
+        if (node->right) delete_node(node->right);
         delete node;
     }
 
-    std::vector<Node*> consolidateBuckets(Node* root, unsigned nodeCount) {
+    std::vector<Node*> consolidate_buckets(Node* root, unsigned nodeCount) {
         std::vector<Node*> result;
-        
+
         if (root->next == root) {
             return result;
         }
-        
-        constexpr double PHI = (1.0 + std::sqrt(5.0)) / 2.0;
-        int maxRank = static_cast<int>(std::log(nodeCount) / std::log(PHI)) + 1;
+
+        int maxRank = static_cast<int>(std::log(nodeCount) / std::log(std::numbers::phi)) + 1;
         std::vector<Node*> buckets(maxRank, nullptr);
-        
+
         auto current = root->next;
-        
+
         buckets[current->rank] = current;
         current = current->next;
-        
+
         while (current != root) {
             auto next = current->next;
             auto rank = current->rank;
-            
+
             if (buckets[rank]) {
-                auto merged = linkNodes(current, buckets[rank], comp);
+                auto merged = link_nodes(current, buckets[rank], comp);
                 buckets[rank] = nullptr;
                 result.push_back(merged);
             } else {
                 buckets[rank] = current;
             }
-            
+
             current = next;
         }
-        
+
         for (auto node : buckets) {
             if (node) result.push_back(node);
         }
-        
+
         return result;
     }
 };

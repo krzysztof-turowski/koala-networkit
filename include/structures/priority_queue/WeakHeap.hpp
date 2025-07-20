@@ -34,25 +34,23 @@ class WeakHeap : public PriorityQueue<Key, Compare> {
             flip[index / 2] = 0;
         }
 
-        siftUp(index);
+        sift_up(index);
     }
 
-    Key pop() override {
+    void pop() override {
         if (empty()) {
             throw std::runtime_error("Priority queue is empty");
         }
-        Key minimum = data[0];
         std::size_t last = data.size() - 1;
         data[0] = data[last];
         data.pop_back();
         flip.pop_back();
         if (last > 1) {
-            siftDown(0);
+            sift_down(0);
         }
-        return minimum;
     }
 
-    Key peek() const override {
+    Key& top() override {
         if (empty()) {
             throw std::runtime_error("Priority queue is empty");
         }
@@ -68,7 +66,7 @@ class WeakHeap : public PriorityQueue<Key, Compare> {
     std::vector<bool> flip;
     Compare comp;
 
-    std::size_t distinguishedAncestor(std::size_t index) const {
+    std::size_t distinguished_ancestor(std::size_t index) const {
         while ((index % 2) == flip[index / 2]) {
             index = index / 2;
         }
@@ -84,10 +82,10 @@ class WeakHeap : public PriorityQueue<Key, Compare> {
         return true;
     }
 
-    void siftUp(std::size_t start) {
+    void sift_up(std::size_t start) {
         std::size_t current = start;
         while (current != 0) {
-            std::size_t ancestor = distinguishedAncestor(current);
+            std::size_t ancestor = distinguished_ancestor(current);
             if (join(ancestor, current)) {
                 break;
             }
@@ -95,7 +93,7 @@ class WeakHeap : public PriorityQueue<Key, Compare> {
         }
     }
 
-    void siftDown(std::size_t start) {
+    void sift_down(std::size_t start) {
         std::size_t size = data.size();
         std::size_t descendant = 2 * start + 1 - flip[start];
         while (2 * descendant + flip[descendant] < size) {

@@ -7,9 +7,10 @@
 
 #pragma once
 
-#include <cstdlib>
+#include <random>
 #include <type_traits>
 #include <stdexcept>
+#include <limits>
 
 namespace Koala {
 
@@ -32,7 +33,7 @@ class Treap {
     Key kth(int k) const { return kth(root, k); }
     int size() const { return getSize(root); }
 
-    void mergeFrom(Treap& other) {
+    void merge(Treap& other) {
         root = merge(root, other.root);
         other.root = nullptr;
     }
@@ -47,6 +48,9 @@ class Treap {
     }
 
  private:
+    static std::mt19937 rng;
+    static std::uniform_int_distribution<int> dist;
+
     struct Node {
         Key key;
         int priority;
@@ -55,7 +59,7 @@ class Treap {
         Node* right;
 
         explicit Node(Key k)
-            : key(k), priority(rand()), size(1), left(nullptr), right(nullptr) {}
+            : key(k), priority(dist(rng)), size(1), left(nullptr), right(nullptr) {}
     };
 
     Node* root;
@@ -142,4 +146,9 @@ class Treap {
     }
 };
 
+template <class Key, class Compare>
+std::mt19937 Treap<Key, Compare>::rng(std::random_device {}());
+
+template <class Key, class Compare>
+std::uniform_int_distribution<int> Treap<Key, Compare>::dist(0, std::numeric_limits<int>::max());
 }  // namespace Koala

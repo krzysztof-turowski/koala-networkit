@@ -31,13 +31,13 @@ class YFastTrie : public PriorityQueue<Key, Compare> {
 
  public:
     explicit YFastTrie(Key universeSize)
-        : universeSize(universeSize),
-          bitWidth(calculateBitWidth(universeSize)),
+        : universe_size(universeSize),
+          bit_width(calculate_bit_width(universeSize)),
           representatives(universeSize),
           minimum(std::nullopt) {}
 
     void push(const Key& key) override {
-        if (key >= universeSize) {
+        if (key >= universe_size) {
             throw std::out_of_range("Key is out of range");
         }
         if (contains(key)) {
@@ -46,20 +46,19 @@ class YFastTrie : public PriorityQueue<Key, Compare> {
         insert(key);
     }
 
-    Key peek() const override {
+    Key& top() override {
         if (empty()) {
             throw std::runtime_error("Priority queue is empty");
         }
         return *minimum;
     }
 
-    Key pop() override {
+    void pop() override {
         if (empty()) {
             throw std::runtime_error("Priority queue is empty");
         }
         Key minKey = *minimum;
         remove(minKey);
-        return minKey;
     }
 
     bool empty() const override {
@@ -67,19 +66,19 @@ class YFastTrie : public PriorityQueue<Key, Compare> {
     }
 
  private:
-    Key universeSize;
-    int bitWidth;
+    Key universe_size;
+    int bit_width;
     XFastTrie<Key, Compare> representatives;
     std::optional<Key> minimum;
     size_t size = 0;
     std::map<Key, std::shared_ptr<Koala::Treap<Key>>> buckets;
 
-    int calculateBitWidth(Key universeSize) {
+    int calculate_bit_width(Key universeSize) {
         return universeSize == 0 ? 1 : static_cast<int>(std::log2(universeSize)) + 1;
     }
 
     bool contains(Key key) const {
-        auto representative = findRepresentative(key);
+        auto representative = find_representative(key);
         if (!representative.has_value()) {
             return false;
         }
@@ -91,12 +90,12 @@ class YFastTrie : public PriorityQueue<Key, Compare> {
     }
 
     void insert(const Key& key) {
-        auto representative = findRepresentative(key);
+        auto representative = find_representative(key);
         std::shared_ptr<Koala::Treap<Key>> bucket;
 
         if (!representative.has_value()) {
             if (!empty()) {
-                Key rep = representatives.peek();
+                Key rep = representatives.top();
                 bucket = buckets[rep];
                 representative = rep;
             } else {
@@ -125,13 +124,13 @@ class YFastTrie : public PriorityQueue<Key, Compare> {
             representative = newRepresentative;
         }
 
-        if (bucket->size() > 2 * bitWidth) {
-            splitBucket(bucket);
+        if (bucket->size() > 2 * bit_width) {
+            split_bucket(bucket);
         }
     }
 
     void remove(const Key& key) {
-        auto representative = findRepresentative(key);
+        auto representative = find_representative(key);
         if (!representative.has_value()) {
             return;
         }
@@ -157,39 +156,39 @@ class YFastTrie : public PriorityQueue<Key, Compare> {
 
             if (minimum.has_value() && key == *minimum) {
                 if (!representatives.empty())
-                    minimum = representatives.peek();
+                    minimum = representatives.top();
                 else
                     minimum = std::nullopt;
             }
         }
 
-        if (bucket->size() > 0 && bucket->size() < (bitWidth + 1) / 2) {
+        if (bucket->size() > 0 && bucket->size() < (bit_width + 1) / 2) {
             Key currentRep = bucket->kth(1);
             auto it = buckets.find(currentRep);
             if (it != buckets.end()) {
                 auto nextIt = std::next(it);
                 if (nextIt != buckets.end()) {
                     auto nextRepresentative = nextIt->first;
-                    it->second->mergeFrom(*nextIt->second);
+                    it->second->merge(*nextIt->second);
                     representatives.remove(nextRepresentative);
                     buckets.erase(nextRepresentative);
-                    if (it->second->size() > 2 * bitWidth) {
-                        splitBucket(it->second);
+                    if (it->second->size() > 2 * bit_width) {
+                        split_bucket(it->second);
                     }
                 } else if (it != buckets.begin()) {
                     auto prevIt = std::prev(it);
-                    prevIt->second->mergeFrom(*it->second);
+                    prevIt->second->merge(*it->second);
                     representatives.remove(currentRep);
                     buckets.erase(currentRep);
-                    if (prevIt->second->size() > 2 * bitWidth) {
-                        splitBucket(prevIt->second);
+                    if (prevIt->second->size() > 2 * bit_width) {
+                        split_bucket(prevIt->second);
                     }
                 }
             }
         }
     }
 
-    std::optional<Key> findRepresentative(const Key& key) const {
+    std::optional<Key> find_representative(const Key& key) const {
         auto it = buckets.find(key);
         if (it != buckets.end()) {
             return key;
@@ -207,7 +206,7 @@ class YFastTrie : public PriorityQueue<Key, Compare> {
         return std::nullopt;
     }
 
-    void splitBucket(std::shared_ptr<Koala::Treap<Key>>& bucket) {
+    void split_bucket(std::shared_ptr<Koala::Treap<Key>>& bucket) {
         auto left = std::make_shared<Koala::Treap<Key>>();
         auto right = std::make_shared<Koala::Treap<Key>>();
         bucket->splitInHalf(*left, *right);
