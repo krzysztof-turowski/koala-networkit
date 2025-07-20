@@ -7,24 +7,25 @@
 #include <set>
 #include <map>
 
-#include <Eigen/Dense>
+#include <NTL/mat_ZZ_p.h>
+#include <NTL/ZZ_p.h>
 #include <networkit/graph/GraphTools.hpp>
 
 using namespace std;
-using namespace Eigen;
+using namespace NTL;
 using namespace NetworKit;
 
 namespace Koala {
-    void dfs(int u, vector<bool>& visited, set<int>& connected, function<vector<int>(int)> edgesOf);
-    vector<set<int>> getSimpleComponents(const Graph& graph, const MatrixXd& AG);
-    vector<set<int>> getConnectedComponents(const Graph& graph, vector<bool> visited);
-    set<int> getNontrivialClass(const MatrixXd& AG);
+    void dfs(int u, vector<bool>& visited, std::set<int>& connected, function<vector<int>(int)> edgesOf);
+    vector<std::set<int>> getSimpleComponents(const Graph& graph, const MatZp& AG);
+    vector<std::set<int>> getConnectedComponents(const Graph& graph, vector<bool> visited);
+    std::set<int> getNontrivialClass(const MatZp& AG);
 
     Matching greedyMatching(const Graph& G);
-    Matching generalMatching(const Graph& G, const MatrixXd& AG);
-    Matching partition(const Graph& graph, const MatrixXd& AG);
-    Matching simplePartition(const Graph& graph, const MatrixXd& AG);
-    MatrixXd generateMatrix(const Graph& G);
+    Matching generalMatching(const Graph& G, const MatZp& AG);
+    Matching partition(const Graph& graph, const MatZp& AG);
+    Matching simplePartition(const Graph& graph, const MatZp& AG);
+    MatZp generateMatrix(const Graph& G);
 
     GeneralGaussianMatching::GeneralGaussianMatching(const Graph& G1) {
         if (G1.numberOfNodes() == 0) return;
@@ -34,8 +35,10 @@ namespace Koala {
     };
 
     void GeneralGaussianMatching::run() {
+        initZp(7);
+
         if (G.numberOfNodes() == 0) return;
-        MatrixXd AG = generateMatrix(G);
+        MatZp AG = generateMatrix(G);
         M = generalMatching(G, AG);
     }
 
@@ -53,18 +56,17 @@ namespace Koala {
         Matching M;
 
         vector<bool> isMatched(n, false);
-        G.forEdges([&](node u, node v) {
+        for (const auto& [u, v] : G.edgeRange()) {
             if (!isMatched[u] && !isMatched[v]) {
                 isMatched[u] = isMatched[v] = true;
                 M.insert({ u,v });
             }
-            });
-
+        }
         return M;
     }
 
-    Matching getMaximalMatching(const MatrixXd& AG, const Matching& M) {
-        int n = AG.cols();
+    Matching getMaximalMatching(const MatZp& AG, const Matching& M) {
+        int n = AG.NumCols();
         int k = 2 * M.size();
 
         vector<int> rowIndices(n), colIndices(n);
@@ -79,14 +81,14 @@ namespace Koala {
             rowIndices[i] = colIndices[i] = i;
         }
 
-        MatrixXd AGr(n, n);
+        auto AGr = zeroMat(n, n);
         for (int i = 0; i < n; ++i) {
-            AGr.row(i) = AG.row(rowIndices[i]);
+            setRow(AGr, i, getRow(AG, rowIndices[i]));
         }
 
-        MatrixXd AGrc(n, n);
+        auto AGrc = zeroMat(n, n);
         for (int i = 0; i < n; ++i) {
-            AGrc.col(i) = AGr.col(colIndices[i]);
+            setCol(AGrc, i, getCol(AGr, colIndices[i]));
         }
 
         auto eliminated = simpleElimination(AGrc, k);
@@ -99,7 +101,7 @@ namespace Koala {
         return M1;
     }
 
-    Matching partition(const Graph& G, const MatrixXd& AG) {
+    Matching partition(const Graph& G, const MatZp& AG) {
         cout << "PARTITION G:" << G.numberOfNodes() << endl;
         int n = G.numberOfNodes();
 
@@ -130,20 +132,19 @@ namespace Koala {
         return M;
     }
 
-    Matching simplePartition(const Graph& G, const MatrixXd& AG) {
+    Matching simplePartition(const Graph& G, const MatZp& AG) {
         cout << "SIMPLE_PARTITION G:" << endl;
 
         Matching M;
         DynamicComponents DC(G);
 
         auto Sv = getNontrivialClass(AG);
-        if (Sv.size() == 0) { 
+        if (Sv.size() == 0) {
             GeneralGaussianMatching gen(G);
             gen.run();
             M = gen.getMatching();
             assert(M.size() == G.numberOfNodes() / 2);
             return M;
-            // return M;
         }
         int sSize = Sv.size();
         vector<bool> isInS(G.numberOfNodes(), false);
@@ -151,12 +152,12 @@ namespace Koala {
             isInS[v] = true;
         }
 
-        set<int> Tv;
+        std::set<int> Tv;
         for (auto sv : Sv) {
-            G.forNeighborsOf(sv, [&](node t) {
+            for (const auto& t : G.neighborRange(sv)) {
                 DC.removeEdge(sv, t);
                 if (!isInS[t]) Tv.insert(t);
-                });
+            }
         }
 
         // Get largest component of G\S
@@ -170,7 +171,7 @@ namespace Koala {
         }
 
         // Get vertices of smaller component that were connected to S
-        set<int> Dv;
+        std::set<int> Dv;
         for (auto u : Tv) {
             if (!DC.isConnected(maxComponentV, u)) {
                 Dv.insert(u);
@@ -178,12 +179,12 @@ namespace Koala {
         }
 
         // Get vertices of all components of G\S and S
-        vector<set<int>> components({ {} });
+        vector<std::set<int>> components({ {} });
         for (auto v : G.nodeRange()) components[0].insert(v);
         for (auto v : Sv) components[0].erase(v);
 
         for (auto v : Dv) {
-            components.push_back(set<int>({}));
+            components.push_back(std::set<int>({}));
             auto& comp = components[components.size() - 1];
 
             vector<bool> visited(G.numberOfNodes(), false);
@@ -265,8 +266,9 @@ namespace Koala {
             for (int i = 0; auto sv : Sv) {
                 int cv = componentOf[v];
                 if (cv == 0) continue;
-                if (G.hasEdge(sv, v))
-                SG.addEdge(sv, contractedNodes[cv]);
+                if (G.hasEdge(sv, v)) {
+                    SG.addEdge(sv, contractedNodes[cv]);
+                }
             }
         }
 
@@ -280,7 +282,7 @@ namespace Koala {
         // Eliminated matched vertex s with some vertex from corresponding smaller component
         cout << "Add matching from S:" << endl;
         for (auto [s, cv] : MS) {
-             if (contractedComponents.find(cv) == contractedComponents.end())
+            if (contractedComponents.find(cv) == contractedComponents.end())
                 swap(s, cv);
 
             int c = contractedComponents[cv];
@@ -319,23 +321,23 @@ namespace Koala {
             }
         }
 
-        assert(M.size() == G.numberOfNodes()/2);
+        assert(M.size() == G.numberOfNodes() / 2);
         return M;
     }
 
-    Matching generalMatching(const Graph& G, const MatrixXd& AG) {
+    Matching generalMatching(const Graph& G, const MatZp& AG) {
         cout << "GENERAL_MATCHING G:" << G.numberOfNodes() << endl;
 
-        int n = G.numberOfNodes();
+        const int n = G.numberOfNodes();
         if (n == 0) return {};
 
         Matching M = greedyMatching(G);
-        if (M.size() == n / 2) {
+        if (2 * M.size() == n) {
             return M;
         }
         Matching M1 = getMaximalMatching(AG, M);
 
-        vector<set<int>> components(2, set<int>());
+        vector<std::set<int>> components(2, std::set<int>());
         for (auto [u, v] : M1) {
             components[0].insert(u);
             components[0].insert(v);
@@ -360,11 +362,11 @@ namespace Koala {
             assert(u != v);
             M1.insert({ oldIdx[u], oldIdx[v] });
         }
+
         return M1;
     }
 
-
-    void dfs(int u, vector<bool>& visited, set<int>& connected, function<vector<int>(int)> edgesOf) {
+    void dfs(int u, vector<bool>& visited, std::set<int>& connected, function<vector<int>(int)> edgesOf) {
         visited[u] = true;
         connected.insert(u);
         for (auto v : edgesOf(u)) {
@@ -373,56 +375,54 @@ namespace Koala {
         }
     };
 
-    vector<set<int>> getSimpleComponents(const Graph& G, const MatrixXd& AG) {
+    vector<std::set<int>> getSimpleComponents(const Graph& G, const MatZp& AG) {
         int n = G.numberOfNodes();
 
         vector<bool> visited(n, false);
-        vector<set<int>> connected;
+        vector<std::set<int>> connected;
         function<vector<int>(int)> edgesOf = [&](int u) {
             vector<int> edges;
-            G.forNeighborsOf(u, [&](int v) {
-                if (!eq(AG(u, v), 0)) edges.push_back(v);
-                });
+            for (const auto& v : G.neighborRange(u)) {
+                if (AG(u, v) != 0) {
+                    edges.push_back(v);
+                }
+            }
             return edges;
             };
 
         for (int v = 0; v < n; ++v) {
             if (visited[v]) continue;
-            connected.push_back(set<int>());
+            connected.push_back(std::set<int>());
             dfs(v, visited, connected[connected.size() - 1], edgesOf);
         }
         return connected;
     }
 
-    vector<set<int>> getConnectedComponents(const Graph& G, vector<bool> visited) {
+    vector<std::set<int>> getConnectedComponents(const Graph& G, vector<bool> visited) {
         int n = G.numberOfNodes();
 
-        vector<set<int>> connected;
-        function<vector<int>(int)> edgesOf = [&](int u) {
-            vector<int> edges;
-            G.forEdgesOf(u, [&](int v) {
-                edges.push_back(v);
-                });
-            return edges;
+        vector<std::set<int>> connected;
+        auto edgesOf = [&](int u) {
+            return vector<int>(G.neighborRange(u).begin(), G.neighborRange(u).end());
             };
 
         for (int v = 0; v < n; ++v) {
             if (visited[v]) continue;
-            connected.push_back(set<int>());
+            connected.push_back(std::set<int>());
             dfs(v, visited, connected[connected.size() - 1], edgesOf);
         }
         return connected;
     }
 
-    set<int> getNontrivialClass(const MatrixXd& AG) {
-        int n = AG.cols();
+    std::set<int> getNontrivialClass(const MatZp& AG) {
+        int n = AG.NumCols();
 
         vector<bool> visited(n, false);
-        set<int> S;
+        std::set<int> S;
         function<vector<int>(int)> edgesOf = [&](int u) {
             vector<int> edges;
             for (int v = 0; v < n; ++v) {
-                if (eq(AG(u, v), 0)) {
+                if (AG(u, v) == 0) {
                     edges.push_back(v);
                 }
             }
@@ -431,7 +431,7 @@ namespace Koala {
 
         for (int u = 0; u < n; ++u) {
             for (int v = u + 1; v < n; ++v) {
-                if (eq(AG(u, v), 0)) {
+                if (AG(u, v) == 0) {
                     dfs(u, visited, S, edgesOf);
                     return S;
                 }
@@ -440,16 +440,19 @@ namespace Koala {
         return {};
     }
 
-    MatrixXd generateMatrix(const Graph& G) {
+    MatZp generateMatrix(const Graph& G) {
         int n = G.numberOfNodes();
 
-        MatrixXd AG = ArrayXXd::Zero(n, n);
+        auto AG = zeroMat(n, n);
         G.forEdges([&](node u, node v) {
             auto Xuv = generateRandom();
             AG(u, v) = Xuv;
             AG(v, u) = -Xuv;
             });
-        return AG.inverse();
+
+        MatZp Ainv;
+        inv(Ainv, AG);
+        return Ainv;
     }
 }
 

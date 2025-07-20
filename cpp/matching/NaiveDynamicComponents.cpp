@@ -1,11 +1,9 @@
 #include <networkit/graph/Graph.hpp>
-#include <Eigen/Core>
 
 #include <matching/DynamicComponents.hpp>
 #include <matching/utils.hpp>
 
 using namespace NetworKit;
-using namespace Eigen;
 using namespace std;
 
 namespace Koala {

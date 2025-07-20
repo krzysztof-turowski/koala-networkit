@@ -1,11 +1,14 @@
 #pragma once
 
 #include <Eigen/Core>
+#include <NTL/ZZ_p.h>
+#include <NTL/mat_ZZ_p.h>
+#include <matching/utils.hpp>
 
 namespace Koala {
-    void eliminate(Eigen::MatrixXd& A, int r, int c);
+    void eliminate(MatZp& A, int r, int c);
 
-    std::vector<int> pivotElimination(Eigen::MatrixXd& A, std::function<bool(int, int)> isCellAllowed);
+    std::vector<int> pivotElimination(MatZp& A, std::function<bool(int, int)> isCellAllowed);
 
-    std::vector<int> simpleElimination(Eigen::MatrixXd& A, int k);
+    std::vector<int> simpleElimination(MatZp& A, int k);
 }

@@ -1,30 +1,36 @@
-#include <Eigen/Core>
-#include <Eigen/Dense>
-
 #include <matching/utils.hpp>
+#include <matching/EigenZpField.hpp>
+
+#include <NTL/ZZ_p.h>
+#include <NTL/mat_ZZ_p.h>
+#include <NTL/vector.h>
 
 #include <iostream>
 
 using namespace std;
-using namespace Eigen;
 
 namespace Koala {
-    bool eliminate(MatrixXd& A, int r, int c) {
-        if (eq(A(r, c), 0)) return false;
-
-        A -= A.col(c) * A.row(r) / A(r, c);
+    bool eliminate(MatZp& A, int r, int c) {
+        if (A[r][c] == 0) return false;
+        
+        auto B = zeroMat(A.NumCols(), A.NumRows());
+        for (int i = 0; i < A.NumCols(); i++) {
+            for (int j = 0; j < A.NumRows(); j++) {
+                B[i][j]=A[r][j]*A[i][c]/A[r][c];
+            }
+        }
+        A -= B;
         return true;
     }
 
-    vector<int> pivotElimination(MatrixXd& A, function<bool(int, int)> isCellAllowed) {
-        int n = A.cols();
+    vector<int> pivotElimination(MatZp& A, function<bool(int, int)> isCellAllowed) {
+        int n = A.NumCols();
 
         vector<int> res(n);
         for (int c = 0; c < n; ++c) {
             for (int r = 0; r < n; ++r) {
-                if (eq(A(r, c), 0) || !isCellAllowed(c, r))
+                if (A[r][c] == 0 || !isCellAllowed(c, r))
                     continue;
-
                 eliminate(A, r, c);
                 res[c] = r;
                 break;
@@ -34,7 +40,7 @@ namespace Koala {
         return res;
     }
 
-    vector<int> simpleElimination(MatrixXd& A, int k) {
+    vector<int> simpleElimination(MatZp& A, int k) {
         vector<int> res;
 
         for (int i = 0; i < k; ++i) {
