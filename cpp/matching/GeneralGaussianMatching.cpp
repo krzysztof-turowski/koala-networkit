@@ -35,7 +35,7 @@ namespace Koala {
     };
 
     void GeneralGaussianMatching::run() {
-        initZp(7);
+        initZp(7727);
 
         if (G.numberOfNodes() == 0) return;
         MatZp AG = generateMatrix(G);
@@ -383,7 +383,7 @@ namespace Koala {
         function<vector<int>(int)> edgesOf = [&](int u) {
             vector<int> edges;
             for (const auto& v : G.neighborRange(u)) {
-                if (AG(u, v) != 0) {
+                if (AG[u][v] != 0) {
                     edges.push_back(v);
                 }
             }
@@ -422,7 +422,7 @@ namespace Koala {
         function<vector<int>(int)> edgesOf = [&](int u) {
             vector<int> edges;
             for (int v = 0; v < n; ++v) {
-                if (AG(u, v) == 0) {
+                if (AG[u][v] == 0) {
                     edges.push_back(v);
                 }
             }
@@ -431,7 +431,7 @@ namespace Koala {
 
         for (int u = 0; u < n; ++u) {
             for (int v = u + 1; v < n; ++v) {
-                if (AG(u, v) == 0) {
+                if (AG[u][v] == 0) {
                     dfs(u, visited, S, edgesOf);
                     return S;
                 }
@@ -444,11 +444,11 @@ namespace Koala {
         int n = G.numberOfNodes();
 
         auto AG = zeroMat(n, n);
-        G.forEdges([&](node u, node v) {
+        for (auto [u,v]: G.edgeRange()) {
             auto Xuv = generateRandom();
-            AG(u, v) = Xuv;
-            AG(v, u) = -Xuv;
-            });
+            AG[u][v] = Xuv;
+            AG[v][u] = -Xuv;
+        }
 
         MatZp Ainv;
         inv(Ainv, AG);
