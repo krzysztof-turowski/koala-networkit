@@ -1,0 +1,198 @@
+
+\section{Introduction}
+
+The push-relabel algorithm, introduced by Goldberg and Tarjan \cite{PushRelabel} in the late 1980s, represented a significant conceptual shift in maximum flow computation. Unlike classical augmenting path algorithms such as Ford-Fulkerson or Edmonds-Karp, which focus on iteratively augmenting flow along paths from the source to the sink, the push-relabel method operates by locally redistributing excess flow within the network. 
+
+This approach introduces the notion of a \emph{preflow} and employs \emph{distance labels} to guide the flow towards the sink, allowing for more flexible and efficient manipulation of intermediate states. Unlike augmenting path algorithms, the Push-Relabel method temporarily violates flow conservation but never exceeds edge capacities. The push-relabel framework brought new insights into how flow could be pushed in a network without requiring strictly augmenting paths at every step. It enabled highly efficient implementations and performance improvements in a variety of settings. 
+
+While the algorithm maintains strong polynomial time guarantees, its practical performance surpasses that of all previous methods \cite{cherkassky1997pushrelabel}. This efficiency has made push-relabel a popular choice not only in classical network optimization problems but also in modern applications such as network design, and data mining, where large-scale graphs with complex structures arise.
+
+\section{Definitions}
+
+\begin{defn}[from \cite{PushRelabel}]
+A preflow $f:E \to \mathbb{R_+} $ is a function satisfying a weaker constraints than a flow function:
+$$ 0 \leq f(u,v) \leq c(u,v) $$
+$$ 
+\forall u \in V \setminus \{s, t\}, \quad
+\sum_{v \in V} f(v,u)  \geq \sum_{v \in V} f(u,v)
+$$
+That is, the total flow into any vertex $v \neq s$ is at least as great as the total flow out of $v$.
+\end{defn}
+
+\begin{defn}[from \cite{PushRelabel}]
+We call \emph{excess flow} $excess(u)$ the difference in incoming and outgoing flow 
+$$ excess(u) = \sum_{v \in V} f(v,u)  - \sum_{v \in V} f(u,v)$$
+If the vertex has a positive excess flow it is called \emph{active}.
+\end{defn}
+
+\begin{defn}[from \cite{PushRelabel}]
+Let $G = (V, E)$ be a flow network with source $s$ and sink $t$.  
+A \emph{labeling} or \emph{distance function} is a function $d : V \to \mathbb{N} \cup \{\infty\}$ that assigns an integer (or $\infty$) to each vertex. A labeling $d$ is called \emph{valid} with respect to flow $f$ if it satisfies the following conditions:
+\begin{itemize}
+    \item $d(s) = |V|$,
+    \item $d(t) = 0$,
+    \item for every edge $(u,v) \in E$ such that $c_f(u,v) > 0$, it holds that $d(u) \leq d(v) + 1$.
+\end{itemize}
+\end{defn}
+The value $d(v)$ serves as an estimate of the shortest distance from vertex $v$ to the sink $t$ in the residual graph. If $d(v) < |V|$, then $d(v)$ is a lower bound on the shortest-path distance from $v$ to $t$ in the residual graph $G_f$.
+
+
+\section{Algorithm}
+
+The algorithm begins by initializing a \emph{preflow}: all outgoing edges from the source node $s$ are saturated, pushing their full capacity to adjacent vertices. These neighbors then accumulate \emph{excess flow} and become \emph{active}. A \emph{labeling function} is maintained, initialized to $ d(s) = |V| $, $ d(t) = 0 $, and $ d(v) = 0 $ for all other vertices. This label provides a heuristic estimate of the shortest path from a vertex to the sink and determines directions for pushing flow.
+
+While there exists an active vertex $v$, the algorithm performs a \textsc{Discharge} operation. This procedure attempts to push excess flow from $v$ to its neighbors along \emph{admissible edges}, i.e., residual edges  $(v, u)$  such that $ c(v, u) - f(v, u) > 0 $ and $ d(v) = d(u) + 1 $. For each admissible edge, the \textsc{Push} operation transfers flow from $v$ to $u$, decreasing $excess(v)$ and increasing $excess(u)$. If $u$ accumulates positive excess and is not $s$ or $t$, it is added to the queue of active vertices.
+
+If no admissible edge exists for  $v$ , a \textsc{Relabel} operation is invoked. This increases $d(v)$ to one more than the minimum label among its neighbors connected by residual edges, thereby enabling future pushes. The \textsc{Discharge} operation is repeated until the excess of $v$ becomes zero or its label reaches $|V|$, at which point it can no longer participate in the flow propagation.
+
+This process repeats until no active vertices remain. Since a vertex is active if it has positive excess, then at this point of the algorithm each vertex satisfies the flow conservation $ \sum_{v \in V} f(v,u)  - \sum_{v \in V} f(u,v) = 0$ and thus the preflow function is a valid flow.
+
+
+\begin{algorithm}[H]
+\caption{\textsc{Push}$(v, e = (v, w))$}
+\begin{algorithmic}[1]
+\State $\text{pushable} \gets \min\{c(v, w) - f(v, w), \text{excess}[v]\}$
+\State $\text{excess}[v] \gets \text{excess}[v] - \text{pushable}$
+\State $\text{excess}[w] \gets \text{excess}[w] + \text{pushable}$
+\State $f(e) \gets f(e) + \text{pushable}$
+\If{$\text{excess}[w] > 0$ and $w \neq s$ and $w \neq t$}
+    \State $\text{queue}.\text{push}(w)$
+\EndIf
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]
+\caption{\textsc{Relabel}$(v)$}
+\begin{algorithmic}[1]
+\State $\text{min\_label} \gets \infty$
+\For{each edge $(v,w) \in E$}
+    \If{$c(v, w) - f(v, w) > 0$}
+        \State $\text{min\_label} \gets \min \left\lbrace \text{min\_label}, \text{d}(w) \right\rbrace$
+    \EndIf
+\EndFor
+\If{$\text{min\_label} < \infty$}
+    \State $\text{d}(v) \gets \text{min\_label} + 1$
+\EndIf
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]
+\caption{\textsc{Discharge}$(v)$}
+\begin{algorithmic}[1]
+\While{$\text{excess}(v) > 0$}
+    \While{$\text{nextEdge}(v) < \deg(v)$} \Comment{Index of last saturated outgoing edge}
+        \State $u \gets \text{getIthNeighbor}(v, \text{nextEdge}(v))$
+        \If{$c(v, u) - f(v, u) > 0$ \textbf{and} $\text{d}(v) = \text{d}(u) + 1$}
+            \State \textsc{Push}$(v, (v, u))$
+            \If{$\text{excess}[v] = 0$}
+                \State \Return
+            \EndIf
+        \EndIf
+        \State $\text{nextEdge}(v) \gets \text{nextEdge}(v) + 1$
+    \EndWhile
+    \State \textsc{Relabel}$(v)$
+    \State $\text{nextEdge}(v) \gets 0$
+    \If{$\text{d}(v) \geq |V|$}
+        \State \textbf{break}
+    \EndIf
+\EndWhile
+\end{algorithmic}
+\end{algorithm}
+
+\section{Correctness and Complexity}
+We start by stating a few simple lemmas taken from \cite{PushRelabel}:
+
+\begin{lemma}[Lemma 3.3 in \cite{PushRelabel}]\label{lem:aug}
+ If $f$ is a preflow and $d$ is any valid labeling of nodes, then the sink $t$ is
+not reachable from the source $s$ in the residual graph $G_f$. In other words an augmenting path doesn't exist.
+\end{lemma}
+
+\begin{proof}
+The label function satisfies $d(u) \leq d(v) + 1$ if the residual capacity $c_f(u,v) > 0$. An augmenting path from $s$ to $t$ will have a length of at most $|V| - 1$, and each edge can decrease the label by at most by one, which is impossible when the first label $d(s) = |V|$ and the last label is $d(t) = 0$.
+\end{proof}
+
+\begin{lemma}[Lemma 3.5 in \cite{PushRelabel}]\label{lem:path}
+If $f$ is a preflow and $v$ is a vertex with positive excess, then the source $s$ is reachable from $v$ in the residual graph $G_f$.
+\end{lemma}
+
+\begin{proof}
+Let $S$ be the set of vertices reachable from $v$ in the residual graph $G_f$, and suppose the source $s \notin S$. Let $\bar{S} = V \setminus S$. By the choice of $S$, for every edge $(u, w)$ with $u \in \bar{S}$ and $w \in S$, there is no residual capacity from $u$ to $w$. That is, $f(u, w) \leq 0$ for all such edges.
+Now consider the total excess in $S$:
+$$
+\sum_{w \in S} excess(w) = \sum_{\substack{u \in V \\ w \in S}}f(u, w) = \sum_{\substack{u \in S \\ w \in S}} f(u, w) + \sum_{\substack{u \in \bar{S} \\ w \in S}} f(u, w).
+$$
+The first term, $\sum_{u, w \in S} f(u, w)$, is zero by antisymmetry of flow: every internal flow is canceled by its reverse. The second term satisfies: $\sum_{\substack{u \in \bar{S} \\ w \in S}} f(u, w) \leq 0,$
+by the construction of $S$. Combining these two we get $\sum_{w \in S} excess(w) \leq 0.$
+
+But since $f$ is a preflow, all nodes except the source have non-negative excess, and $v \in S$ has $excess(v) > 0$, which contradicts $\sum_{w \in S} excess(w) \leq 0$. Therefore, the assumption $s \notin S$ must be false, and so $s$ is reachable from $v$ in the residual graph.
+\end{proof}
+
+\begin{lemma}[Lemma 3.6 in \cite{PushRelabel}]\label{lem:dist}
+ For any vertex $v$, the label $d(v)$ never decreases. Each relabeling operation applied to $v$ increases $d(v)$ by at least $1$.
+\end{lemma}
+
+\begin{proof}
+The \textsc{Relabel} operation is called on a node $u$ only when for all neighbours $v$ such that $c_f(u,v) >0$ and $d(u) \neq d(v) + 1$. But from the definition $d(u) \leq d(v) + 1$, so it must be that $d(u) \leq min\{d(v) \colon (u,v) \in E \}$. Thus when \textsc{Relabel} sets $d(u) = min\{d(v) \colon (u,v) \in E \} + 1$ it must increase the value by at least 1.
+\end{proof}
+
+
+\begin{lemma}[Lemma 3.7 in \cite{PushRelabel}]\label{lem:dist2}
+ At any time during the execution of the algorithm for any
+vertex $v \in V$ the following is true:
+$$
+d(v) \leq 2|V|-1.
+$$
+\end{lemma}
+
+\begin{proof}
+A vertex $v$ is only relabeled when it has $excess(v) > 0$. By \Cref{lem:path}, there exists a path in the residual graph $G_f$ with at most $|V| - 1$ edges. Each vertex in the path can lower the label function by one at each step. So traversing the path from $v$ to $s$ decreases the label by at most $|V| - 1$, and ends up with $d(s) = |V|$. Therefore, $d(v) \leq 2|V| - 1$.
+\end{proof}
+
+\subsection*{Termination}
+ If the algorithm terminates and all distance labels are finite, all vertices
+in $V \setminus \{s, t\}$ must have zero excess, because there are no active vertices. Therefore
+$f$ must be a flow. By \Cref{lem:aug} there is no augmenting path between $s$ and $t$. From \Cref{thm:max} stated in the introduction this means the flow is maximal.
+
+\subsection*{Complexity}
+To find the complexity of the algorithm we will distinguish three types of operations and count the number of times each operation is performed.
+\begin{enumerate}
+    \item \textbf{Relabel operations}
+    \item \textbf{Saturating pushes} — pushes that saturate an edge, i.e., reduce its residual capacity to zero
+    \item \textbf{Non-saturating pushes}
+\end{enumerate}
+
+\begin{theorem}[Lemma 3.8 in \cite{PushRelabel}]\label{thm:relabel}
+The number of relabel operations is $O(|V|^2)$.
+\end{theorem}
+
+\begin{proof}
+We know from \Cref{lem:dist} and \Cref{lem:dist2} that each relabel operation increases label by at least one and each vertex has a label at most $2|V|-1$. Then the number of relabel operations is bounded by $(2|V|-1)|V| = O(|V|^2)$.
+\end{proof}
+
+\begin{theorem}[Lemma 3.9 in \cite{PushRelabel}]
+The number of saturated pushes is $O(|V||E|)$.
+\end{theorem}
+
+\begin{proof}
+For each edge $(v,u)$ after a saturated push has been performed, for it to happen again we must first have a push from $(u,v)$. For a push to be possible $d(u)$ must grow by at least $2$. Since $d(u)$ is at most $2|V|-1$, for each edge there will be $O(|V|)$ saturating pushes, bringing the total to $O(|V||E|)$.
+\end{proof}
+
+\begin{theorem}\label{thm:queue}
+A pass over the queue is defined as a list of operations until all nodes which were on the queue have been removed. The first pass starts at the beginning of the algoritm. The number of passes over the queue is $O(|V|^2)$.
+\end{theorem}
+
+\begin{proof}
+Let $\Delta = \max\{ d(v) \colon v \text{ is active} \}$. Consider the effect of a single pass over the queue on $\Delta$. If no distance label changes during the pass, each vertex has its excess pushed to lower-labeled vertices, so $\Delta$ decreases during the pass. If $\Delta$ is not changed by the pass, then at least one vertex's label must increase by at least 1. Notice that if $\Delta$ increases, some vertex label must increase by at least as much as $\Delta$ increases. From \Cref{thm:relabel} we can conclude that the total number of label increases is at most $2|V|^2$, so the number of passes in which $\Delta$ stays the same or increases is at most $2|V|^2$.
+
+Since $\Delta = 0$ both at the beginning and end of the algorithm, the number of passes in which $\Delta$ decreases is also at most $O(|V|^2)$. Therefore, the total number of passes is $O(|V|^2)$.
+\end{proof}
+
+\begin{theorem}[Corollary 4.4 in \cite{PushRelabel}]
+The number of non-saturated pushes is $O(|V|^3)$.
+\end{theorem}
+
+\begin{proof}
+We notice that each non-saturating push is followed by a removal from the queue. Then since by \Cref{thm:queue} there is at most $|V|^2$ passes over the queue each node will be removed from the queue this many times. Summing over all nodes we get $O(|V|^3)$.
+\end{proof}
+
+Combining these results, the push-relabel algorithm with a FIFO queue runs in $O(|V|^3)$ time in the worst case.
