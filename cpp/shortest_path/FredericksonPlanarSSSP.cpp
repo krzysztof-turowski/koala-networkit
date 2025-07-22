@@ -225,7 +225,7 @@ pair_distance_t get_distance_between_boundary_nodes_Level_1(
 
 void FredericksonPlanarSSSP::run() {
     normal_graph = PlanarGraphTools::convertToMaxDegree3(graph);
-    // parameters described by the paper
+    //TODO(kturowski): make these parameters described by the paper configurable
     // int r1 = log(normal_graph.numberOfNodes());
     // int r2 = (log(log(normal_graph.numberOfNodes())))^2
 

@@ -72,6 +72,7 @@ void HenzingerPlanarSSSP::run() {
     auto graph_for_division = GraphTools::convertDirectedGraphToUndirected(normal_graph);
     r = log(graph_for_division.numberOfNodes());
     int c = 3;  // arbitrary parameter. Bounds number of boundary nodes in region of division
+    //TODO(kturowski): make these parameters described by the paper configurable
     // int r4 = r * r * r * r; //log(n)^4
     int r4 = 25;
     auto division = findSuitableRDivision(graph_for_division, r4, 3);

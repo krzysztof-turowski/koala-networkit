@@ -56,43 +56,28 @@ NetworKit::Graph convert_boost_to_networKit(
     return result;
 }
 
-void print_embeding(const planar_embedding_t& embedding_storage, const boost_graph_t& boost_graph) {
-    for (auto [k, v] : embedding_storage) {
-        std::cout << "Vertex " << k << ": ";
-        for (auto x : v) {
-            std::cout << x << " ";
-        }
-        std::cout << std::endl;
-    }
-}
-
-planar_embedding_t findPlanarEmbeding(const NetworKit::Graph& G, bool verbose = false) {
+planar_embedding_t findPlanarEmbedding(const NetworKit::Graph& G, bool verbose = false) {
     auto [boost_graph, node_map] = convert_networKit_to_boost(G);
     embedding_storage_t embedding_storage(num_vertices(boost_graph));
     embedding_t embedding(embedding_storage.begin(), get(vertex_index, boost_graph));
 
-    if (!boyer_myrvold_planarity_test(boyer_myrvold_params::graph = boost_graph,
+    if (!boyer_myrvold_planarity_test(
+            boyer_myrvold_params::graph = boost_graph,
             boyer_myrvold_params::embedding = embedding)) {
         throw std::runtime_error("Graph have to be planar!");
-        return;
     }
 
     planar_embedding_t result;
-
     for (NetworKit::index i = 0; i < embedding_storage.size(); i++) {
         for (auto& edge : embedding_storage[i]) {
-            NetworKit::node node = source(edge, boost_graph) == i ? target(edge, boost_graph)
-                                                                  : source(edge, boost_graph);
+            NetworKit::node node = (
+                source(edge, boost_graph) == i
+                ? target(edge, boost_graph) : source(edge, boost_graph));
             if (result[node_map[i]].empty() || result[node_map[i]].back() != node_map[node]) {
                 result[node_map[i]].push_back(node_map[node]);
             }
         }
     }
-
-    if (verbose) {
-        print_embeding(result, boost_graph);
-    }
-
     return result;
 }
 
@@ -130,7 +115,7 @@ NetworKit::Graph makeMaximalPlanar(NetworKit::Graph& G) {
 }
 
 NetworKit::Graph convertToMaxDegree3(NetworKit::Graph& G, bool directed = false) {
-    planar_embedding_t embedding = findPlanarEmbeding(G);
+    planar_embedding_t embedding = findPlanarEmbedding(G);
     NetworKit::count result_size = G.numberOfNodes();
 
     for (auto [i, node_embeding] : embedding) {

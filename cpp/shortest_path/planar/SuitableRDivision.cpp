@@ -120,7 +120,7 @@ Separator find_separator(NetworKit::Graph& G) {
 
     std::queue<std::pair<NetworKit::node, NetworKit::count>> queue;
 
-    auto planar_embeding = PlanarGraphTools::findPlanarEmbeding(maximal_graph);
+    auto planar_embeding = PlanarGraphTools::findPlanarEmbedding(maximal_graph);
     parent[root_node] = NetworKit::none;
     depth[root_node] = 0;
     visited[root_node] = true;
