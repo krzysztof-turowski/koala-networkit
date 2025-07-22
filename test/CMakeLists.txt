@@ -1,5 +1,6 @@
 koala_make_test(test_graph_io testGraphIO.cpp)
 koala_make_test(test_heap testHeap.cpp)
+koala_make_test(test_priority_queue testPriorityQueue.cpp)
 koala_make_test(test_graph_recognition testGraphRecognition.cpp)
 koala_make_test(test_pathwidth testPathwidth.cpp)
 koala_make_test(test_vertex_coloring testVertexColoring.cpp)
