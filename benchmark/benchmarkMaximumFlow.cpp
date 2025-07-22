@@ -11,15 +11,13 @@
 #include <flow/MalhotraKumarMaheshwariFlow.hpp>
 #include <io/DimacsGraphReader.hpp>
 
-using namespace std::chrono;
-
 template <typename FlowAlgorithm>
 void run_flow_algorithm(const std::string &file_path, const std::string &name) {
     auto [G, s, t] = Koala::DimacsGraphReader().read_all(file_path);
-    auto start = high_resolution_clock::now();
+    auto start = std::chrono::high_resolution_clock::now();
     auto maximum_flow = FlowAlgorithm(G, s, t);
     maximum_flow.run();
-    auto end = high_resolution_clock::now();
+    auto end = std::chrono::high_resolution_clock::now();
     duration<double> elapsed = end - start;
     std::cout << name << ": Maximum flow = " << maximum_flow.getFlowSize()
               << ", Time taken = " << elapsed.count() << " seconds\n";
