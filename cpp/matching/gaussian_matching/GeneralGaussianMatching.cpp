@@ -1,8 +1,8 @@
-#include <matching/GeneralGaussianMatching.hpp>
-#include <matching/GaussElimination.hpp>
-#include <matching/utils.hpp>
-#include <matching/BipartiteGaussianMatching.hpp>
-#include <matching/DynamicComponents.hpp>
+#include <matching/gaussian_matching/GeneralGaussianMatching.hpp>
+#include <matching/gaussian_matching/GaussElimination.hpp>
+#include <matching/gaussian_matching/utils.hpp>
+#include <matching/gaussian_matching/BipartiteGaussianMatching.hpp>
+#include <matching/gaussian_matching/DynamicComponents.hpp>
 
 #include <set>
 #include <map>

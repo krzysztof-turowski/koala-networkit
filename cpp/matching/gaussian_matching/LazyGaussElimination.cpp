@@ -1,8 +1,8 @@
-#include <matching/GaussElimination.hpp>
+#include <matching/gaussian_matching/GaussElimination.hpp>
 #include <NTL/ZZ_p.h>
 #include <NTL/mat_ZZ_p.h>
 #include <NTL/vector.h>
-#include <matching/utils.hpp>
+#include <matching/gaussian_matching/utils.hpp>
 #include <iostream>
 #include <vector>
 

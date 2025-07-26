@@ -4,7 +4,7 @@
 #include <set>
 #include <NTL/ZZ_p.h>
 #include <NTL/mat_ZZ_p.h>
-#include <matching/utils.hpp>
+#include <matching/gaussian_matching/utils.hpp>
 
 typedef std::set<std::pair<int, int>> Matching;
 

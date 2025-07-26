@@ -29,7 +29,7 @@ set(FETCHCONTENT_QUIET FALSE)
 FetchContent_Declare(
     networkit
     GIT_REPOSITORY "https://github.com/networkit/networkit.git"
-    GIT_TAG d02983db69e27cadad573ba0e677da4d7ec60a05
+    GIT_TAG master
     GIT_PROGRESS TRUE
     SOURCE_DIR "${CMAKE_SOURCE_DIR}/lib/networkit"
 )

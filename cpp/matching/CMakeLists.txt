@@ -6,11 +6,9 @@ koala_add_module(matching
     MicaliVaziraniMatching.cpp
     GabowScalingMatching.cpp
 
-    BipartiteGaussianMatching.cpp
-    GeneralGaussianMatching.cpp
-    
-    # NaiveGaussElimination.cpp
-    LazyGaussElimination.cpp
-
-    NaiveDynamicComponents.cpp
+    gaussian_matching/BipartiteGaussianMatching.cpp
+    gaussian_matching/GeneralGaussianMatching.cpp
+    # gaussian_matching/NaiveGaussElimination.cpp
+    gaussian_matching/LazyGaussElimination.cpp
+    gaussian_matching/NaiveDynamicComponents.cpp
 )

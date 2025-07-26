@@ -2,7 +2,7 @@
 #include <vector>
 #include <random>
 
-#include <matching/GeneralGaussianMatching.hpp>
+#include <matching/gaussian_matching/GeneralGaussianMatching.hpp>
 #include <io/DimacsGraphReader.hpp>
 
 #include "../helpers.hpp"

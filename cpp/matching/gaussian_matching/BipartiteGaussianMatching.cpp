@@ -1,14 +1,12 @@
-#include <matching/GaussElimination.hpp>
-#include <matching/BipartiteGaussianMatching.hpp>
-#include <matching/utils.hpp>
+#include <matching/gaussian_matching/GaussElimination.hpp>
+#include <matching/gaussian_matching/BipartiteGaussianMatching.hpp>
+#include <matching/gaussian_matching/utils.hpp>
 
 #include <networkit/graph/Graph.hpp>
 #include <NTL/ZZ_p.h>
-#include <Eigen/Core>
-#include <Eigen/Dense>
 
 using namespace std;
-using namespace Eigen;
+using namespace NTL;
 using namespace NetworKit;
 
 namespace Koala {

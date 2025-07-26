@@ -1,7 +1,7 @@
 #include <networkit/graph/Graph.hpp>
 
-#include <matching/DynamicComponents.hpp>
-#include <matching/utils.hpp>
+#include <matching/gaussian_matching/DynamicComponents.hpp>
+#include <matching/gaussian_matching/utils.hpp>
 
 using namespace NetworKit;
 using namespace std;

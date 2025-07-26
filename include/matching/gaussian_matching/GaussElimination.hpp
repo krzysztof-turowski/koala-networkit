@@ -3,7 +3,7 @@
 #include <Eigen/Core>
 #include <NTL/ZZ_p.h>
 #include <NTL/mat_ZZ_p.h>
-#include <matching/utils.hpp>
+#include <matching/gaussian_matching/utils.hpp>
 
 namespace Koala {
     void eliminate(MatZp& A, int r, int c);

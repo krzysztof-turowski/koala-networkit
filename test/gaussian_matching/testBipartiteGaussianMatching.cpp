@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <vector>
 
-#include <matching/BipartiteGaussianMatching.hpp>
+#include <matching/gaussian_matching/BipartiteGaussianMatching.hpp>
 
 #include "../helpers.hpp"
 
