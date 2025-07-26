@@ -3,6 +3,7 @@
 #include <matching/utils.hpp>
 
 #include <networkit/graph/Graph.hpp>
+#include <NTL/ZZ_p.h>
 #include <Eigen/Core>
 #include <Eigen/Dense>
 
@@ -42,21 +43,25 @@ namespace Koala {
     }
 
     void BipartiteGaussianMatching::run() {
+        initZp(7727);
+
+        assert(U.size() == V.size());
         int n = max(U.size(), V.size());
-        AG = ArrayXXd::Zero(n, n);
-        for (auto& u : U) {
-            G.forEdgesOf(u, [&](int v) {
+        AG = zeroMat(n, n);
+        for (auto u : U) {
+            for (auto v: G.neighborRange(u)) {
                 int ui = bpIdx[u], vi = bpIdx[v];
                 auto Xuv = generateRandom();
-                AG(ui, vi) = Xuv;
-                });
+                AG[ui][vi] = Xuv;
+            }
         }
-        
-        if (eq(AG.determinant(), 0))
+
+        if (determinant(AG) == 0)
             return;
 
-        MatrixXd B = AG.inverse();
-        auto eliminated = pivotElimination(B, [this](int r, int c) {return !eq(AG(r, c), 0);});
+        MatZp B;
+        inv(B, AG);
+        auto eliminated = pivotElimination(B, [this](int r, int c) {return AG[r][c] != 0;});
 
         for (int i = 0; i < eliminated.size(); ++i) {
             M.insert({ i, eliminated[i] });
@@ -83,16 +88,16 @@ namespace Koala {
     }
 
     bool dfs(const Graph& G, int v, vector<int>& colors) {
-        bool broken = false;
-        G.forEdgesOf(v, [&](int u) {
-            if (broken) return;
+        for (auto u: G.neighborRange(v)) {
             if (colors[u] == -1) {
                 colors[u] = (colors[v] + 1) % 2;
-                broken = dfs(G, u, colors);
+                if (dfs(G, u, colors)) {
+                    return true;
+                }
             } else if (colors[v] == colors[u]) {
-                broken = true;
+                return true;
             }
-            });
-        return broken;
+        }
+        return false;
     };
 }
