@@ -61,6 +61,10 @@ std::pair<int, int> DynamicTree::pathMin(int u, int v) {
             m = w;
             mv = {path[i-1], path[i]};
         }
+         else if (w < 0 && 1.0+w <= m) {
+            m = 1.0+w;
+            mv = {path[i-1], path[i]};
+        }
     }
     return mv;
 }

@@ -26,6 +26,18 @@ double FlowNetwork::lowerCapacity(int u, int v) const {
   return graph.weight(u, v) + flow[u][v];
 }
 
+void cutIntegral(DynamicTree& dt, int u, int v) {
+  if (u == v) {
+    return;
+  }
+  auto [mx,my] = dt.pathMin(u,v);
+  if (abs(dt.weights[mx][my]) <= EPS) {
+    dt.cut(mx, my);
+    cutIntegral(dt, u, mx);
+    cutIntegral(dt, my, v);
+  }
+}
+
 void FlowNetwork::roundFlow() {
   vector<vector<double>> weights(N, vector<double>(N, 0));
   for (auto [u, v]: graph.edgeRange()) {
@@ -37,14 +49,6 @@ void FlowNetwork::roundFlow() {
     flow[v][u] = -intFlow;
   }
 
-  for (int i = 0; i < N; ++i) {
-    for (int j = 0; j < N; ++j) {
-      cout << weights[i][j] << ' ';
-    }
-    cout << endl;
-  }
-  cout << endl;
-
   DynamicTree dt(N, weights);
 
   for (auto [u,v]: graph.edgeRange()) {
@@ -54,42 +58,26 @@ void FlowNetwork::roundFlow() {
         swap(u,v);
       }
       auto [mx,my] = dt.pathMin(u,v);
-      if (dt.weights[v][u] >= 0 && dt.weights[v][u] < dt.weights[mx][my]) {
-        mx=v, my=u;
-      }
-      double mf = dt.weights[mx][my];
+      double mf = dt.weights[mx][my] < 0 ? 1.0 + dt.weights[mx][my] : dt.weights[mx][my];
+      double vuf = dt.weights[v][u] < 0 ? 1.0 + dt.weights[v][u] : dt.weights[v][u];
+      mf = min(mf, vuf);
+      
       dt.pathAdd(u, v, mf);
       dt.weights[v][u] -= mf;
       dt.weights[u][v] += mf;
 
-      for (auto [x,y]: dt.graph.edgeRange()) {
-        if (abs(dt.weights[x][y]) <= EPS) {
-          dt.cut(x, y);
-        }
-      }
+      cutIntegral(dt, u, v);
     }
     if (abs(dt.weights[u][v]) > EPS) {
       dt.link(u,v);
     }
   }
 
-  // for (auto [u,v]: dt.graph.edgeRange()) {
-    // dt.weights[v][v] = round(dt.weights[v][v]);
-    // dt.weights[v][u] = round(dt.weights[v][v]);
-    // cout << u << ' ' << v << ' ' << dt.weights[u][v] << endl;
-  // }
-
-  for (int  i = 0; i < N; ++i) {
-  for (int  j = 0; j < N; ++j)
-    cout << dt.weights[i][j] << ' ';
-  cout << endl;
+  for (auto [u,v]: graph.edgeRange()) {
+      double f = dt.weights[u][v] >=0 ? ceil(dt.weights[u][v]) : floor(dt.weights[u][v]);
+      flow[u][v] += f;
+      flow[v][u] -= f;
   }
-
-
-  // for (auto [u,v]: graph.edgeRange()) {
-  //     flow[u][v] += dt.weights[u][v];
-  //     flow[v][u] -= dt.weights[u][v];
-  // }
 }
 
 void FlowNetwork::pushValue(int s, int t, double f) {\

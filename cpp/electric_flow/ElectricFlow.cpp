@@ -55,7 +55,7 @@ void ElectricFlow::run() {
 
   targetFlow = maxFlow;
   routeFlow();
-  // primal.roundFlow();
+  primal.roundFlow();
 }
 
 bool ElectricFlow::isFeasible() {
@@ -114,15 +114,15 @@ void ElectricFlow::augmentationStep() {
 
   // DEBUG
   {
-  auto coupling = getCoupling(primal,dual);
-  int i = 0;
-  for (auto [u,v]: primal.graph.edgeRange()) {
-    bool l = abs(coupling[u][v])*min(primal.upperCapacity(u,v), primal.lowerCapacity(u,v));
-    bool r = 4.0/3.0*violation[i] + 7.0*pow(stepSize*congestion[i], 2);
-    assert(l <= r);
-    i++;
-  }
-  assert(LNorm(getViolation(primal, dual),2) <= 1.0/50.0);
+    auto coupling = getCoupling(primal,dual);
+    int i = 0;
+    for (auto [u,v]: primal.graph.edgeRange()) {
+      bool l = abs(coupling[u][v])*min(primal.upperCapacity(u,v), primal.lowerCapacity(u,v));
+      bool r = 4.0/3.0*violation[i] + 7.0*pow(stepSize*congestion[i], 2);
+      assert(l <= r);
+      i++;
+    }
+    assert(LNorm(getViolation(primal, dual),2) <= 1.0/50.0);
   }
 }
 
