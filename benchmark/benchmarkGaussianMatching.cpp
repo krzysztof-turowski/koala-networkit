@@ -1,53 +1,142 @@
 #include <cassert>
 #include <filesystem>
 #include <iostream>
-#include <ctime>
-#include <random>
+#include <map>
+#include <chrono>
+#include <functional>
+#include <sstream>
 
-#include <matching/gaussian_matching/GeneralGaussianMatching.hpp>
 #include <io/DimacsGraphReader.hpp>
 
-int main(int argc, char** argv) {
-    if (argc < 2) {
-        std::cout << "Usage: " << argv[0] << " filename" << std::endl;
+#include <matching/gaussian_matching/BipartiteGaussianMatching.hpp>
+#include <matching/gaussian_matching/GeneralGaussianMatching.hpp>
+#include <matching/gaussian_matching/NaiveGaussianMatching.hpp>
+#include <matching/MaximumMatching.hpp>
+
+using namespace std;
+using namespace chrono;
+using namespace NetworKit;
+
+struct MatchingBenchmark {
+    MatchingBenchmark(string name, int matchingSize, int perfectSize, steady_clock::time_point begin, steady_clock::time_point end) :
+        name(name),
+        matchingSize(matchingSize),
+        perfectSize(perfectSize),
+        duration(duration_cast<microseconds>(end - begin).count()) {}
+
+    string name;
+    int matchingSize, perfectSize;
+    uint64_t duration;
+
+    friend ostream& operator<<(ostream& os, const MatchingBenchmark& mb) {
+        os << "Benchmark for " << mb.name << "algorithm:\n";
+        os << "\tMatching size:\t" << mb.matchingSize << "/" << mb.perfectSize << '\n';
+        os << "\tTime:\t" << mb.duration << "μs\n";
+        return os;
+    }
+};
+
+MatchingBenchmark runGeneralGaussianMatching(Graph& G) {
+    auto begin = steady_clock::now();
+    Koala::GeneralGaussianMatching algo(G);
+    algo.run();
+    auto matchingSize = algo.getMatching().size(); // only one of (u,v), (v,u)
+    auto end = steady_clock::now();
+    return { "GeneralGaussianMatching", matchingSize, G.numberOfNodes() / 2, begin, end };
+}
+
+MatchingBenchmark runBipartiteGaussianMatching(Graph& G) {
+    auto begin = steady_clock::now();
+    Koala::GeneralGaussianMatching algo(G);
+    algo.run();
+    auto matchingSize = algo.getMatching().size(); // only one of (u,v), (v,u)
+    auto end = steady_clock::now();
+    return { "BipartiteGaussianMatching", matchingSize, G.numberOfNodes() / 2, begin, end };
+}
+
+MatchingBenchmark runNaiveGaussianMatching(Graph& G) {
+    auto begin = steady_clock::now();
+    Koala::NaiveGaussianMatching algo(G);
+    algo.run();
+    auto matchingSize = algo.getMatching().size() / 2; // both (u,v), (v,u)
+    auto end = steady_clock::now();
+    return { "NaiveGaussianMatching", matchingSize, G.numberOfNodes() / 2, begin, end };
+}
+
+MatchingBenchmark runEndmondsMatching(Graph& G) {
+    auto begin = steady_clock::now();
+    Koala::EdmondsMaximumMatching algo(G, true, Koala::BlossomMaximumMatching::empty);
+    algo.run();
+    auto matchingSize = algo.getMatching().size() / 2; // both (u,v), (v,u)
+    auto end = steady_clock::now();
+    return { "EdmondsMaximumMatching", matchingSize, G.numberOfNodes() / 2, begin, end };
+}
+
+MatchingBenchmark runGabowMatching(Graph& G) {
+    auto begin = steady_clock::now();
+    Koala::GabowMaximumMatching algo(G, true, Koala::BlossomMaximumMatching::empty);
+    algo.run();
+    auto matchingSize = algo.getMatching().size() / 2; // both (u,v), (v,u)
+    auto end = steady_clock::now();
+    return { "GabowMaximumMatching", matchingSize, G.numberOfNodes() / 2, begin, end };
+}
+
+Graph readGraph(const string& filepath) {
+    if (!filesystem::exists(filepath)) {
+        cout << "File " << filepath << " does not exist" << endl;
         return 1;
     }
-    std::string path(argv[1]);
-    if (!std::filesystem::exists(path)) {
-        std::cout << "File " << path << " does not exist" << std::endl;
-        return 1;
+    return Koala::DimacsGraphReader().read(filepath);
+}
+
+void benchmarkAverage(function<MatchingBenchmark(Graph&)> runAlgorithm, vector<vector<string>> testCases) {
+    vector<uint64_t> benchmark;
+    string name;
+    for (auto testCase: testCases) {
+        uint64_t totalTime = 0;
+        for (auto testPath: testCase) {
+            auto G = readGraph(testPath);
+            G.indexEdges();
+            auto result = runAlgorithm(G);
+            totalTime += result.duration;
+            name = result.name;
+        }
+        benchmark.push_back(totalTime/testCase.size());
     }
 
-    auto G = Koala::DimacsGraphReader().read(path);
-    int n = G.numberOfNodes();
-
-    srand( atoi(argv[2]) );
-    Koala::GeneralGaussianMatching gen(G);
-    gen.run();
-
-    auto M = gen.getMatching();
-    if (M.size() != n / 2) {
-        std::cout << "Matching found size is incorrect: " << M.size() << "(instead of " << n/2 << ")\n";
-        return 1;
+    cout << name << '\n';
+    for (auto time: benchmark) {
+        cout << '\t' << time << "μs\n";
     }
+}
 
-    std::vector<int> counts(n, 0);
-    for (auto [u, v] : M) {
-        counts[u]++;
-        counts[v]++;
+int main() {
+    string types[] = {"gen", "bp"};
+    pair<int,int> sizes[] = {{100,2000}, {1000, 200000}};
+    int K = 2;
 
-        if (!G.hasEdge(u, v)) {
-            std::cout << "Match (" << u << ", " << v << ") is not a correct edge\n";
-            return 2;
+    vector<vector<string>> testCases;
+    vector<vector<string>> bpTestCases;
+    for (auto type: types) {
+        for (auto [N, M]: sizes) {
+            vector<string> testCase;
+            for (int i = 1; i <= K; ++i) {
+                std::stringstream ss;
+                ss << "./input/test_" << N << "_" << M << "_" << i << "." << type;
+                testCase.push_back(ss.str());
+            }
+            testCases.push_back(testCase);
+            if (type == "bp") {
+                bpTestCases.push_back(testCase);
+            }
         }
     }
-
-    for (int v = 0; v < n; ++v) {
-        if (counts[v] != 1) {
-            std::cout << "Vertex " << v << "was matched " << counts[v] << "times\n";
-            return 3;
-        }
-    }
+    
+    benchmarkAverage(runEndmondsMatching, testCases);
+    benchmarkAverage(runGabowMatching, testCases);
+    benchmarkAverage(runGeneralGaussianMatching, testCases);
+    benchmarkAverage(runBipartiteGaussianMatching, bpTestCases);
+    benchmarkAverage(runNaiveGaussianMatching, testCases);
 
     return 0;
 }
