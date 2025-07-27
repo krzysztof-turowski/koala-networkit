@@ -1,4 +1,4 @@
-#include <matching/gaussian_matching/GaussElimination.hpp>
+#include <matching/gaussian_matching/LazyGaussElimination.hpp>
 #include <NTL/ZZ_p.h>
 #include <NTL/mat_ZZ_p.h>
 #include <NTL/vector.h>
@@ -34,7 +34,7 @@ namespace Koala {
         return U * V;
     }
 
-    vector<int> pivotElimination(MatZp& A, function<bool(int, int)> isCellAllowed) {
+    vector<int> LazyGaussElimination::pivotElimination(MatZp& A, function<bool(int, int)> isCellAllowed) {
         int n = A.NumCols();
 
         vector<tuple<VecZp, ZZ_p>>lazy(n);
@@ -86,7 +86,7 @@ namespace Koala {
     }
 
 
-    vector<int> simpleElimination(MatZp& A, int k) {
+    vector<int> LazyGaussElimination::simpleElimination(MatZp& A, int k) {
         int n = A.NumCols();
         vector<int> res;
 

@@ -1,4 +1,4 @@
-#include <matching/gaussian_matching/GaussElimination.hpp>
+#include <matching/gaussian_matching/LazyGaussElimination.hpp>
 #include <matching/gaussian_matching/BipartiteGaussianMatching.hpp>
 #include <matching/gaussian_matching/utils.hpp>
 
@@ -59,7 +59,7 @@ namespace Koala {
 
         MatZp B;
         inv(B, AG);
-        auto eliminated = pivotElimination(B, [this](int r, int c) {return AG[r][c] != 0;});
+        auto eliminated = LazyGaussElimination::pivotElimination(B, [this](int r, int c) {return AG[r][c] != 0;});
 
         for (int i = 0; i < eliminated.size(); ++i) {
             M.insert({ i, eliminated[i] });

@@ -9,6 +9,12 @@
 #include <NTL/ZZ_p.h>
 #include <networkit/graph/Graph.hpp>
 
+#if DEBUG_GAUSSIAN_MATCHING
+    #define DEBUG(msg) cout << msg << endl;
+#else
+    #define DEBUG(msg) ((void)0)
+#endif
+
 namespace Koala {
     constexpr double EPS = 1e-8;
     typedef NTL::ZZ_p Zp;

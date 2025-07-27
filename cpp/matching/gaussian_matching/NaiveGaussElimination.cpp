@@ -1,5 +1,5 @@
 #include <matching/gaussian_matching/utils.hpp>
-#include <matching/gaussian_matching/EigenZpField.hpp>
+#include <matching/gaussian_matching/NaiveGaussElimination.hpp>
 
 #include <NTL/ZZ_p.h>
 #include <NTL/mat_ZZ_p.h>
@@ -23,7 +23,7 @@ namespace Koala {
         return true;
     }
 
-    vector<int> pivotElimination(MatZp& A, function<bool(int, int)> isCellAllowed) {
+    vector<int> NaiveGaussElimination::pivotElimination(MatZp& A, function<bool(int, int)> isCellAllowed, bool bipartite=false) {
         int n = A.NumCols();
 
         vector<int> res(n);
@@ -31,7 +31,12 @@ namespace Koala {
             for (int r = 0; r < n; ++r) {
                 if (A[r][c] == 0 || !isCellAllowed(c, r))
                     continue;
+
                 eliminate(A, r, c);
+                if (!bipartite) {
+                    eliminate(A, c, r);
+                }
+
                 res[c] = r;
                 break;
             }
@@ -40,7 +45,7 @@ namespace Koala {
         return res;
     }
 
-    vector<int> simpleElimination(MatZp& A, int k) {
+    vector<int> NaiveGaussElimination::simpleElimination(MatZp& A, int k) {
         vector<int> res;
 
         for (int i = 0; i < k; ++i) {

@@ -1,5 +1,5 @@
 #include <matching/gaussian_matching/GeneralGaussianMatching.hpp>
-#include <matching/gaussian_matching/GaussElimination.hpp>
+#include <matching/gaussian_matching/LazyGaussElimination.hpp>
 #include <matching/gaussian_matching/utils.hpp>
 #include <matching/gaussian_matching/BipartiteGaussianMatching.hpp>
 #include <matching/gaussian_matching/DynamicComponents.hpp>
@@ -21,11 +21,11 @@ namespace Koala {
     vector<std::set<int>> getConnectedComponents(const Graph& graph, vector<bool> visited);
     std::set<int> getNontrivialClass(const MatZp& AG);
 
-    Matching greedyMatching(const Graph& G);
-    Matching generalMatching(const Graph& G, const MatZp& AG);
-    Matching partition(const Graph& graph, const MatZp& AG);
-    Matching simplePartition(const Graph& graph, const MatZp& AG);
-    MatZp generateMatrix(const Graph& G);
+    static Matching greedyMatching(const Graph& G);
+    static Matching generalMatching(const Graph& G, const MatZp& AG);
+    static Matching partition(const Graph& graph, const MatZp& AG);
+    static Matching simplePartition(const Graph& graph, const MatZp& AG);
+    static MatZp generateMatrix(const Graph& G);
 
     GeneralGaussianMatching::GeneralGaussianMatching(const Graph& G1) {
         if (G1.numberOfNodes() == 0) return;
@@ -91,7 +91,7 @@ namespace Koala {
             setCol(AGrc, i, getCol(AGr, colIndices[i]));
         }
 
-        auto eliminated = simpleElimination(AGrc, k);
+        auto eliminated = LazyGaussElimination::simpleElimination(AGrc, k);
         Matching M1;
         for (auto i : eliminated) {
             int u = min(rowIndices[i], colIndices[i]);
@@ -102,7 +102,7 @@ namespace Koala {
     }
 
     Matching partition(const Graph& G, const MatZp& AG) {
-        cout << "PARTITION G:" << G.numberOfNodes() << endl;
+        DEBUG("PARTITION G:" << G.numberOfNodes() << endl);
         int n = G.numberOfNodes();
 
         auto components = getSimpleComponents(G, AG);
@@ -112,7 +112,7 @@ namespace Koala {
         }
 
         Matching M;
-        cout << "Partition of " << subgraphs.size() << " simple components" << endl;
+        DEBUG("Partition of " << subgraphs.size() << " simple components" << endl);
         for (int c = 0; c < subgraphs.size(); ++c) {
             auto [Gc, oldIdx, AGc] = subgraphs[c];
             auto M1 = simplePartition(Gc, AGc);
@@ -133,7 +133,7 @@ namespace Koala {
     }
 
     Matching simplePartition(const Graph& G, const MatZp& AG) {
-        cout << "SIMPLE_PARTITION G:" << endl;
+        DEBUG("SIMPLE_PARTITION G:" << endl);
 
         Matching M;
         DynamicComponents DC(G);
@@ -221,7 +221,7 @@ namespace Koala {
         auto& C1G = subgraphs[0];
 
         // Match the biggest component
-        cout << "Match C0 component" << endl;
+        DEBUG("Match C0 component" << endl);
         GeneralGaussianMatching genC1(C1G); // TODO non-trivial class
         genC1.run();
         auto MC1 = genC1.getMatching();
@@ -230,9 +230,9 @@ namespace Koala {
 
 
         // Remove vertex matched with the contracted biggest component
-        cout << "Removed s matched with C0" << endl;
+        DEBUG("Removed s matched with C0" << endl);
         for (auto [u, v] : MC1) {
-            cout << u << ' ' << v << ' ' << s << endl;
+            DEBUG(u << ' ' << v << ' ' << s << endl);
             if (u == s || v == s) {
                 int cv = v == s ? u : v;
                 for (auto sv : Sv) {
@@ -254,7 +254,7 @@ namespace Koala {
         assert(Sv.size() == sSize - 1);
 
         // Create a graph of S and a contracted vertex for each of the smaller components of G\S
-        cout << "contract smaller components" << endl;
+        DEBUG("contract smaller components" << endl);
         vector<int> contractedNodes(sSize);
         map<int, int> contractedComponents;
         for (int i = 1; i < sSize; ++i) {
@@ -272,7 +272,7 @@ namespace Koala {
             }
         }
 
-        cout << "bp matching of S:" << endl;
+        DEBUG("bp matching of S:" << endl);
         BipartiteGaussianMatching bpS(SG);
         bpS.run();
         auto MS = bpS.getMatching();
@@ -280,7 +280,7 @@ namespace Koala {
         for (auto [u, v] : MS) assert(u != v);
 
         // Eliminated matched vertex s with some vertex from corresponding smaller component
-        cout << "Add matching from S:" << endl;
+        DEBUG("Add matching from S:" << endl);
         for (auto [s, cv] : MS) {
             if (contractedComponents.find(cv) == contractedComponents.end())
                 swap(s, cv);
@@ -308,7 +308,7 @@ namespace Koala {
         // Match smaller components
         for (int i = 1; i < sSize; ++i) {
             auto& SCi = subgraphs[i];
-            cout << "Match C" << i << endl;
+            DEBUG("Match C" << i << endl);
             GeneralGaussianMatching gen(SCi);
             gen.run();
             auto MCi = gen.getMatching();
@@ -326,7 +326,7 @@ namespace Koala {
     }
 
     Matching generalMatching(const Graph& G, const MatZp& AG) {
-        cout << "GENERAL_MATCHING G:" << G.numberOfNodes() << endl;
+        DEBUG("GENERAL_MATCHING G:" << G.numberOfNodes() << endl);
 
         const int n = G.numberOfNodes();
         if (n == 0) return {};
@@ -366,7 +366,7 @@ namespace Koala {
         return M1;
     }
 
-    void dfs(int u, vector<bool>& visited, std::set<int>& connected, function<vector<int>(int)> edgesOf) {
+    static void dfs(int u, vector<bool>& visited, std::set<int>& connected, function<vector<int>(int)> edgesOf) {
         visited[u] = true;
         connected.insert(u);
         for (auto v : edgesOf(u)) {
@@ -375,7 +375,7 @@ namespace Koala {
         }
     };
 
-    vector<std::set<int>> getSimpleComponents(const Graph& G, const MatZp& AG) {
+    static vector<std::set<int>> getSimpleComponents(const Graph& G, const MatZp& AG) {
         int n = G.numberOfNodes();
 
         vector<bool> visited(n, false);
@@ -398,7 +398,7 @@ namespace Koala {
         return connected;
     }
 
-    vector<std::set<int>> getConnectedComponents(const Graph& G, vector<bool> visited) {
+    static vector<std::set<int>> getConnectedComponents(const Graph& G, vector<bool> visited) {
         int n = G.numberOfNodes();
 
         vector<std::set<int>> connected;
@@ -414,7 +414,7 @@ namespace Koala {
         return connected;
     }
 
-    std::set<int> getNontrivialClass(const MatZp& AG) {
+    static std::set<int> getNontrivialClass(const MatZp& AG) {
         int n = AG.NumCols();
 
         vector<bool> visited(n, false);
@@ -440,7 +440,7 @@ namespace Koala {
         return {};
     }
 
-    MatZp generateMatrix(const Graph& G) {
+    static MatZp generateMatrix(const Graph& G) {
         int n = G.numberOfNodes();
 
         auto AG = zeroMat(n, n);
