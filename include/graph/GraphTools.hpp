@@ -14,6 +14,8 @@ namespace Koala {
 namespace GraphTools {
 
 NetworKit::Graph toComplement(const NetworKit::Graph&);
+NetworKit::Graph convertDirectedGraphToUndirected(NetworKit::Graph&);
+void printGraph(const NetworKit::Graph&);
 
 }  // namespace GraphTools
 

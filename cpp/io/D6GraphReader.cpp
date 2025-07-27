@@ -13,8 +13,8 @@
 
 namespace Koala {
 
-NetworKit::Graph D6GraphReader::read(const std::string &path) {
-    std::ifstream graphFile(path);
+NetworKit::Graph D6GraphReader::read(std::string_view path) {
+    std::ifstream graphFile(std::string{path});
     Aux::enforceOpened(graphFile);
     std::string line;
     std::getline(graphFile, line);

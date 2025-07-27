@@ -29,7 +29,7 @@ set(FETCHCONTENT_QUIET FALSE)
 FetchContent_Declare(
     networkit
     GIT_REPOSITORY "https://github.com/networkit/networkit.git"
-    GIT_TAG d02983db69e27cadad573ba0e677da4d7ec60a05
+    GIT_TAG master
     GIT_PROGRESS TRUE
     SOURCE_DIR "${CMAKE_SOURCE_DIR}/lib/networkit"
 )
@@ -96,6 +96,7 @@ add_subdirectory(cpp)
 function(koala_make_test testname testfile)
     add_executable(${testname} ${CMAKE_CURRENT_LIST_DIR}/${testfile})
     target_link_libraries(${testname} ${PROJECT_NAME} gtest gtest_main)
+
     set_target_properties(${testname} PROPERTIES
         COMPILE_FLAGS ${KOALA_CXX_FLAGS}
         LINK_FLAGS ${KOALA_LINKER_FLAGS})

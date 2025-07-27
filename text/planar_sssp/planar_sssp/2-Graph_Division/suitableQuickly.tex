@@ -1,0 +1,91 @@
+\section{Quick suitable graph division}
+
+In the previous section, we proved that it is possible to compute a suitable $r$-division in $O(n \log n)$ time. For the algorithms presented in this paper to achieve their desired time complexity, the preprocessing phase that divides the graph into regions must take no more time than the main part of the algorithm itself. This section focuses on reducing the complexity of the division algorithm.
+
+\subsection{Clusters}
+
+The main idea presented in \cite{frederickson} is to reduce input size to the suitable $r$-division algorithm from \Cref{suitableT}. We will shrink input graph on clusters resulting from \Cref{findclusters} described below.
+
+As a reminder we operate under the assumption that graph has been modified to have degree of every vertex to be at most 3.
+
+\begin{algorithm}[H]
+\caption{\textsc{CSearch} \cite{clusters} }\label{csearch}
+\begin{algorithmic}[1]
+\Require Graph $G$, current node $v$, cluster size $z$
+\Ensure Last cluster with size less than $z$
+\State \textbf{global} R \Comment{see \Cref{findclusters}}
+\Procedure{CSearch}{$G$,$v$, $z$}
+    \State $C \gets \{v\}$
+    \ForEach{child $w$ of $v$}
+        \State $C \gets C \cup$ \Call{CSearch}{$G$, $w$, $z$}
+    \EndFor
+    \If{$|C| < z$}
+        \State \Return{$C$}
+    \Else
+        \State $R \gets R \cup \{C\}$ \Comment{saves cluster $C$ to $R$}
+        \State \Return{$\emptyset$}
+    \EndIf
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]
+\caption{\textsc{FindClusters} \cite{clusters} }\label{findclusters}
+\begin{algorithmic}[1]
+\Require Graph $G$, cluster size $z$
+\Ensure Clusters of $G$ with size $O(z)$
+\Procedure{FindClusters}{G, z}
+    \State $R \gets \emptyset$
+    \State $lastCluster \gets$ \Call{CSearch}{$G$,any vertex of $G$, $z$, $R$}
+    \If{$lastCluster \neq \emptyset$}
+        \State $L \gets \text{last saved cluster in } R$ 
+        \State $R \gets R \setminus \{L\}$
+        \State $R \gets R \cup \{ L \cup lastCluster \}$
+    \EndIf
+    \State \Return{$R$}
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+\begin{lemma}
+A \textsc{FindClusters} procedure given integer $z$ and a graph $G$ on $n$ vertices will divide vertex set of $G$ into clusters of $O(z)$ size. The whole procedure will take $O(n)$ time.
+\end{lemma}
+
+\begin{proof}
+The procedure is based on depth-first search, so for a planar graph it runs in $O(n)$ time. The \textsc{CSearch} procedure can return a set containing at most $z - 1$ vertices. Since graph $G$ has bounded degree, any cluster saved by the procedure can have size at most $3z - 2$. That is, the union of three neighboring clusters plus the root node. Thus, for any given vertex, the largest saved cluster is of size $O(z)$. The last cluster saved may be a union of two clusters. This guarantees that the subgraph induced by the last cluster is connected, since both $lastCluster$ and $L$ are connected and does not affect the asymptotic bound.
+\end{proof}
+
+\subsection{Suitable $r$-division algorithm improvement}
+
+Now we can present the improved algorithm for suitable $r$-division.
+
+\begin{algorithm}
+\caption{\textsc{FindSuitableRDivisionQuickly}}\label{findSuitable}
+\begin{algorithmic}[1]
+\Require Planar graph $G=(V,E)$, region size parameter $r$
+\Ensure Suitable $r$-division of $G$
+
+\State ${A_1,...,A_k} \gets$ \Call{FindClusters}{$G$, $\sqrt{r}$}
+\State $G_s \gets$ \Call{ShrinkClustersToVertices}{$G$, ${A_1,...,A_k}$}
+\State ${R_1, ..., R_L} \gets$ \Call{FindSuitableRDivision}{$G_s$, $r$} \Statex \Comment{$|R_i| = O(r)$ and $L = O(n / r^{3/2})$}
+\State ${B_1,...,B_l,I_1,..., I_m} \gets $ \Call{ExpandVertices}{${R_1, ..., R_L}$,$G$, ${A_1,...,A_k}$} \Statex \Comment{$|B_i| = O(\sqrt{r})$, $l = O(n / r^{3/2})$ from boundary vertices of $G_s$ and $|I_i| = O(r^{3/2})$, $m = O(n/r^{3/2})$ from interiors of $R_i$}
+\State Infer boundary vertices and expand regions ${B_1,...,B_l,I_1,..., I_m}$ that share these boundary vertices
+\State $division \gets$ \Call{FindSuitableRDivision}{${B_1,...,B_l,I_1,..., I_m}$, $r$} \Statex \Comment{Starting from $\{B_1,...,B_l,I_1,..., I_m\}$ instead of set of vertices $\{V\}$}
+\State \Return{$division$}
+\end{algorithmic}
+\end{algorithm}
+
+
+\begin{theorem} [Lemma 4. in \cite{frederickson}]
+A suitable r-division of graph on n vertices can be found in $O(n \log r + (n/\sqrt{r})\log n)$ time.
+\end{theorem}
+
+\begin{proof}
+    
+We claim that the \Cref{findSuitable} generates required division in a given time.
+The time complexity claim: 
+
+It takes $O(n)$ to shrink graph $G$ into $G_s$ and $$O((n/\sqrt{r})(\log(n/\sqrt{r})) = O((n/\sqrt{r})\log n)$$ time to get suitable $r$-division of graph $G_s$. The boundary vertices can be inferred by iterating over the set of edges of graph $G$, thus it takes $O(n)$ time. To expand graph $G_s$ back to $G$ also takes $O(n)$ time. And finally to divide remaining sets of size $O(r^{3/2})$ it takes $O(n \log r)$ time which in total gives us $O(n \log r + (n/\sqrt{r})\log{n})$.
+
+The original proof in \cite{frederickson} lacked one step: bounding the number of boundary vertices after \textsc{ExpandVertices} step. The number of boundary vertices can be bounded by number of vertices in $O(n / r)$ regions of size $O(\sqrt{r})$. This gives as a total of $O(n/\sqrt{r})$ new induced boundary vertices. It is also worth noting that further dividing the regions $O(n / r^{3/2})$ regions of size $O(r^{3/2})$ will only result in $O(r^{3/2}/\sqrt{r}) = O(r)$ vertices per region which gives in total $O(n/\sqrt{r})$ new vertices.
+\end{proof}
