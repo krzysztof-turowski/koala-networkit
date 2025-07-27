@@ -1,4 +1,4 @@
-#include "networkit/graph/Graph.hpp"
+#include <networkit/graph/Graph.hpp>
 #include <vector>
 
 using namespace std;

@@ -1,6 +1,6 @@
 #include <cassert>
-#include <electric_flow/ElectricNetwork.hpp>
-#include <electric_flow/LaplaceSolver.hpp>
+#include <flow/electric_flow/ElectricNetwork.hpp>
+#include <flow/electric_flow/LaplaceSolver.hpp>
 
 namespace Koala {
 ElectricNetwork::ElectricNetwork(const Graph &graph,

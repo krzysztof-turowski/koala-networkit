@@ -1,4 +1,4 @@
-#include "electric_flow/DynamicTree.hpp"
+#include "flow/electric_flow/DynamicTree.hpp"
 
 #include <algorithm>
 #include <stack>

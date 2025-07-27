@@ -7,4 +7,11 @@ koala_add_module(flow
     PushRelabel.cpp
     MalhotraKumarMaheshwariFlow.cpp
     BoykovKolmogorovFlow.cpp
+
+    # Electric Flow
+    electric_flow/ElectricFlow.cpp
+    electric_flow/ElectricNetwork.cpp
+    electric_flow/FlowNetwork.cpp 
+    electric_flow/NaiveLaplaceSolver.cpp
+    electric_flow/NaiveDynamicTree.cpp
 )

@@ -1,6 +1,6 @@
-#include <electric_flow/ElectricFlow.hpp>
-#include <electric_flow/ElectricNetwork.hpp>
-#include <electric_flow/FlowNetwork.hpp>
+#include <flow/electric_flow/ElectricFlow.hpp>
+#include <flow/electric_flow/ElectricNetwork.hpp>
+#include <flow/electric_flow/FlowNetwork.hpp>
 
 namespace Koala {
 

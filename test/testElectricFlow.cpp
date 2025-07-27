@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <electric_flow/ElectricFlow.hpp>
+#include <flow/electric_flow/ElectricFlow.hpp>
 #include <io/DimacsGraphReader.hpp>
 
 #include "helpers.hpp"

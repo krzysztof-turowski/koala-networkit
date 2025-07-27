@@ -4,7 +4,7 @@
 #include <map>
 #include <chrono>
 
-#include <electric_flow/ElectricFlow.hpp>
+#include <flow/electric_flow/ElectricFlow.hpp>
 #include <io/DimacsGraphReader.hpp>
 #include <networkit/flow/EdmondsKarp.hpp>
 

@@ -1,4 +1,4 @@
-#include "electric_flow/FlowNetwork.hpp"
+#include <flow/electric_flow/FlowNetwork.hpp>
 #include <networkit/graph/Graph.hpp>
 #include <vector>
 

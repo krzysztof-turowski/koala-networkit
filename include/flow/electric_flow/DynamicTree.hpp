@@ -4,7 +4,7 @@
 #include <vector>
 #include <map>
 
-#include "networkit/graph/Graph.hpp"
+#include <networkit/graph/Graph.hpp>
 
 namespace Koala {
 
