@@ -25,19 +25,18 @@ public:
     void meld(SoftHeap&&);
     T extractMin();
 
-private:
-    using 
-    class Node {
-        std::optional<std::unique_ptr<Node>> left;
-        std::optional<std::unique_ptr<Node>> right;
-        T val;
-        int rank;
-        std::list<T>
-    };
+// private:
+    // class Node {
+    //     std::optional<std::unique_ptr<Node>> left;
+    //     std::optional<std::unique_ptr<Node>> right;
+    //     T val;
+    //     int rank;
+    //     std::list<T>
+    // };
 
-    class Tree {
-        std::optional<std::unique_ptr<Node>> root;
-    };
+    // class Tree {
+    //     std::optional<std::unique_ptr<Node>> root;
+    // };
 
 };
 
@@ -61,10 +60,10 @@ SoftHeap<T>::SoftHeap(SoftHeap&&) {
 
 }
 
-template<typename T>
-SoftHeap<T>::~SoftHeap() {
+// template<typename T>
+// SoftHeap<T>::~SoftHeap() {
 
-}
+// }
 
 template<typename T>
 SoftHeap<T>& SoftHeap<T>::operator=(const SoftHeap&) {

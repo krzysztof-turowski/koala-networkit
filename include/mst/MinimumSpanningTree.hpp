@@ -160,17 +160,10 @@ public:
    void run();
 
 private:
-   NetworKit::Graph msf(NetworKit::Graph G, std::map<NodePair, int>& edgeId, int t);
-   std::tuple<NetworKit::Graph, std::map<NodePair, int>, NetworKit::Graph> boruvkaSteps(NetworKit::Graph G, std::map<NodePair, int>& edgeId, int c);
-
-   struct EdgeInfo {
-      bool bad = false;
-      bool in_msf = false;
-      int original_cost = 0;
-   };
-   std::vector<EdgeInfo> edges; 
+   NetworKit::Graph mst(NetworKit::Graph G, int t);
+   std::tuple<NetworKit::Graph, std::map<NodePair, NodePair>, NetworKit::Graph> boruvkaSteps(NetworKit::Graph G, int c);
    static constexpr int MIN_NUMBER_NODES = 10;
-   static constexpr int C = 10;
+   static constexpr int C = 3; // Based on the complexity analysis should be at >=16 though then practically it's just a Boruvka
 };
 
 }  /* namespace Koala */
