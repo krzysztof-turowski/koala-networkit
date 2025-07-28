@@ -37,12 +37,16 @@ vector<double> getViolation(const FlowNetwork &f, const vector<double> &y) {
   return violation;
 }
 
-ElectricFlow::ElectricFlow(const Graph &graph, int s, int t)
-    : graph(graph), s(s), t(t), maxFlow(0), primal(graph) {
+ElectricFlow::ElectricFlow(const Graph &graph, int s, int t, bool round=true)
+    : graph(graph), s(s), t(t), maxFlow(0), primal(graph), round(round) {
+    U=0;
+    for (auto v: graph.neighborRange(t)) {
+      U += graph.weight(v, t);
     }
+  }
 
 void ElectricFlow::run() {
-  int L = 0, R = primal.U + 1;
+  int L = 0, R = U + 1;
   while (L < R) {
     targetFlow = (L + R) / 2;
     if (routeFlow()) {
@@ -55,7 +59,10 @@ void ElectricFlow::run() {
 
   targetFlow = maxFlow;
   routeFlow();
-  primal.roundFlow();
+
+  if (round) {
+    primal.roundFlow();
+  }
 }
 
 bool ElectricFlow::isFeasible() {
@@ -103,7 +110,7 @@ void ElectricFlow::augmentationStep() {
   for (auto [u, v]: graph.edgeRange()) {
     congestion[i++] = electric.flow[u][v] / min(primal.upperCapacity(u,v), primal.lowerCapacity(u,v));
   }
-  double stepSize = 1/(33.0*LNorm(congestion, 4));
+  double stepSize = 1.0/(33.0*LNorm(congestion, 4));
 
   graph.forNodes([&](node u) {
     graph.forNeighborsOf(

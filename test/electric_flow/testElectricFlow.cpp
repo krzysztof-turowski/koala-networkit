@@ -3,7 +3,7 @@
 #include <flow/electric_flow/ElectricFlow.hpp>
 #include <io/DimacsGraphReader.hpp>
 
-#include "helpers.hpp"
+#include "../helpers.hpp"
 
 using namespace std;
 
@@ -22,19 +22,19 @@ TEST(GenTest, testSuccess) {
     double demand = 0;
     for (int v = 0; v < N; ++v) {
       demand += ef.primal.flow[u][v];
-      // EXPECT_LE(abs(ef.primal.flow[u][v]), ef.graph.weight(u,v));
-      // EXPECT_EQ(ef.primal.flow[u][v], -ef.primal.flow[v][u]);
+      EXPECT_LE(abs(ef.primal.flow[u][v]), ef.graph.weight(u,v));
+      EXPECT_EQ(ef.primal.flow[u][v], -ef.primal.flow[v][u]);
       cout << ef.primal.flow[u][v] << "/" << ef.graph.weight(u, v) << "\t\t";
     }
     cout << '\n';
     
-    // if (u == s) {
-    //   EXPECT_EQ(demand, -F);
-    // } else if (u == t) {
-    //    EXPECT_EQ(demand, F);
-    // } else {
-    //   EXPECT_EQ(demand, 0);
-    // }
+    if (u == s) {
+      EXPECT_EQ(demand, -F);
+    } else if (u == t) {
+       EXPECT_EQ(demand, F);
+    } else {
+      EXPECT_EQ(demand, 0);
+    }
   }
 
   EXPECT_EQ(ef.getMaxFlow(), F);

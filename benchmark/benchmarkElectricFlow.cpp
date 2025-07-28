@@ -3,13 +3,21 @@
 #include <iostream>
 #include <map>
 #include <chrono>
+#include <functional>
+#include <sstream>
+
+#include <io/DimacsGraphReader.hpp>
+
+#include <networkit/flow/EdmondsKarp.hpp>
 
 #include <flow/electric_flow/ElectricFlow.hpp>
-#include <io/DimacsGraphReader.hpp>
-#include <networkit/flow/EdmondsKarp.hpp>
+#include <flow/BoykovKolmogorovFlow.hpp>
+#include <flow/KingRaoTarjanMaximumFlow.hpp>
+#include <flow/PushRelabel.hpp>
 
 using namespace std;
 using namespace chrono;
+using namespace NetworKit;
 
 struct FlowBenchmark {
     FlowBenchmark(string name, int maxFlow, steady_clock::time_point begin, steady_clock::time_point end) :
@@ -21,7 +29,7 @@ struct FlowBenchmark {
     int maxFlow;
     uint64_t duration;
 
-    friend std::ostream& operator<<( std::ostream& os, const FlowBenchmark& fb ) {
+    friend std::ostream& operator<<(std::ostream& os, const FlowBenchmark& fb) {
         os << "Benchmark for " << fb.name << "algorithm:\n";
         os << "\tMaximum flow:\t" << fb.maxFlow << '\n';
         os << "\tTime:\t" << fb.duration << "μs\n";
@@ -47,21 +55,95 @@ FlowBenchmark runElectricFlow(const NetworKit::Graph& G, int s, int t) {
     return { "ElectricFlow", maxFlow, begin, end };
 }
 
-int main(int argc, char** argv) {
-    if (argc <= 1) {
-        std::cout << "Filename is empty" << std::endl;
-        return 1;
-    }
+FlowBenchmark runFractionalElectricFlow(const NetworKit::Graph& G, int s, int t) {
+    auto begin = steady_clock::now();
+    Koala::ElectricFlow algo(G, s, t, false);
+    algo.run();
+    auto maxFlow = algo.getMaxFlow();
+    auto end = steady_clock::now();
+    return { "ElectricFlow w/o rounding", maxFlow, begin, end };
+}
 
-    std::string path(argv[1]);
-    if (!std::filesystem::exists(path)) {
-        std::cout << "File " << path << " does not exist" << std::endl;
-        return 1;
-    }
+FlowBenchmark runBoykovKolmogorovFlow(NetworKit::Graph& G, int s, int t) {
+    auto begin = steady_clock::now();
+    Koala::BoykovKolmogorovFlow algo(G, s, t);
+    algo.run();
+    auto maxFlow = algo.getFlowSize();
+    auto end = steady_clock::now();
+    return { "BoykovKolmogorovFlow", maxFlow, begin, end };
+}
 
-    auto [G, s, t] = Koala::DimacsGraphReader().read_all(path);
+FlowBenchmark runKingRaoTarjanMaximumFlow(NetworKit::Graph& G, int s, int t) {
+    auto begin = steady_clock::now();
+    Koala::KingRaoTarjanMaximumFlow algo(G, s, t);
+    algo.run();
+    auto maxFlow = algo.getFlowSize();
+    auto end = steady_clock::now();
+    return { "KingRaoTarjanFlow", maxFlow, begin, end };
+}
+
+FlowBenchmark runPushRelabel(NetworKit::Graph& G, int s, int t) {
+    auto begin = steady_clock::now();
+    Koala::PushRelabel algo(G, s, t);
+    algo.run();
+    auto maxFlow = algo.getFlowSize();
+    auto end = steady_clock::now();
+    return { "PushRelabel", maxFlow, begin, end };
+}
+
+tuple<Graph, node, node> readGraph(const string& filepath) {
+    if (!filesystem::exists(filepath)) {
+        std::stringstream ss;
+        ss << "File " << filepath << " does not exist";
+        throw ss.str();
+    }
+    auto [G, s, t] = Koala::DimacsGraphReader().read_all(filepath);
     G.indexEdges();
-    cout << runElectricFlow(G, s, t) << '\n';
-    cout << runEdmondsKarp(G, s, t) << '\n';
+    return { G, s, t };
+}
+
+void benchmarkAverage(function<FlowBenchmark(Graph&, node s, node t)> runAlgorithm, vector<vector<string>> testCases) {
+    vector<uint64_t> benchmark;
+    string name;
+    for (auto testCase : testCases) {
+        uint64_t totalTime = 0;
+        for (auto testPath : testCase) {
+            auto [G, s, t] = readGraph(testPath);
+            G.indexEdges();
+            auto result = runAlgorithm(G, s, t);
+            totalTime += result.duration;
+            name = result.name;
+        }
+        benchmark.push_back(totalTime / testCase.size());
+    }
+
+    cout << name << '\n';
+    for (auto time : benchmark) {
+        cout << '\t' << time << "μs\n";
+    }
+}
+
+int main() {
+    tuple<int, int, int> sizes[] = { {20,100,5}, {100,2000,5} };
+    int K = 10;
+
+    vector<vector<string>> testCases;
+    for (auto [N, M, U] : sizes) {
+        vector<string> testCase;
+        for (int i = 0; i < K; ++i) {
+            std::stringstream ss;
+            ss << "./input/test_" << N << "_" << M << "_" << U << "_" << i << ".flow";
+            testCase.push_back(ss.str());
+        }
+        testCases.push_back(testCase);
+    }
+
+    benchmarkAverage(runElectricFlow, testCases);
+    benchmarkAverage(runFractionalElectricFlow, testCases);
+    benchmarkAverage(runBoykovKolmogorovFlow, testCases);
+    benchmarkAverage(runKingRaoTarjanMaximumFlow, testCases);
+    benchmarkAverage(runEdmondsKarp, testCases);
+    benchmarkAverage(runPushRelabel, testCases);
+
     return 0;
 }

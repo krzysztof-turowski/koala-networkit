@@ -22,7 +22,7 @@ public:
 // private:
   const Graph &graph;
   vector<vector<double>> flow;
-  const int N, M, U;
+  const int N, M;
 };
 
 } // namespace Koala

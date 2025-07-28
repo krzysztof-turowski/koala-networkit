@@ -6,15 +6,7 @@ double constexpr EPS = 1e-8;
 
 namespace Koala {
 
-inline int getU(const Graph& graph) {
-  int U = 0;
-  for (auto [u,v]: graph.edgeRange()) {
-    U += abs(graph.weight(u,v));
-  }
-  return U;
-}
-
-FlowNetwork::FlowNetwork(const Graph &graph) : graph(graph), N(graph.numberOfNodes()), M(graph.numberOfEdges()), U(getU(graph)) {
+FlowNetwork::FlowNetwork(const Graph &graph) : graph(graph), N(graph.numberOfNodes()), M(graph.numberOfEdges()) {
   flow.assign(N, vector<double>(N, 0));
 }
 

@@ -10,7 +10,7 @@ using namespace NetworKit;
 namespace Koala {
 class ElectricFlow {
 public:
-  ElectricFlow(const Graph &graph, int s, int t);
+  ElectricFlow(const Graph &graph, int s, int t, bool round=true);
   void run();
   double getMaxFlow() const;
 
@@ -23,6 +23,8 @@ public:
 
   const Graph &graph;
   const int s, t;
+  int U;
+  bool round;
   double maxFlow;
 
   vector<double> demand;
