@@ -31,7 +31,7 @@ class HenzingerPlanarSSSP : public PlanarSSSP {
     std::vector<std::vector<NetworKit::node>> regions;
     std::vector<int> is_boundary;
     NetworKit::count number_of_regions;
-    int r;
+    int r = NetworKit::none;
 
     void initialize_queues(node_subsets_t& division);
     void main_thrust();
@@ -40,6 +40,8 @@ class HenzingerPlanarSSSP : public PlanarSSSP {
     HenzingerPlanarSSSP(
         NetworKit::Graph& graph, NetworKit::node source, NetworKit::node target = NetworKit::none)
         : PlanarSSSP(graph, source, target) {}
+
+    void setDivisionParameter(int r);
 
     void run();
 };
