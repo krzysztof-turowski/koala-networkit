@@ -33,13 +33,6 @@ NetworKit::Graph toComplement(const NetworKit::Graph &G) {
     return GC;
 }
 
-void printGraph(const NetworKit::Graph& graph) {
-    std::cout << "Graph structure" << std::endl;
-    for (auto edge : graph.edgeWeightRange()) {
-        std::cout << edge.u << " - " << edge.v << " weight: " << edge.weight << std::endl;
-    }
-}
-
 NetworKit::Graph convertDirectedGraphToUndirected(NetworKit::Graph& graph) {
     NetworKit::Graph result(graph.numberOfNodes());
     for (auto [u, v] : graph.edgeRange()) {
