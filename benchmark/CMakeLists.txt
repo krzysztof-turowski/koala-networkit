@@ -28,10 +28,11 @@ koala_make_benchmark(
     benchmarkMaximumWeightMatching.cpp
     benchmarkMaximumWeightMatching.sh)
 
+# # todo: Errors in this package
 # koala_make_benchmark(
-#     benchmark_maximum_flow
-#     benchmarkMaximumFlow.cpp
-#     benchmarkMaximumFlow.sh)
+# #     benchmark_maximum_flow
+# #     benchmarkMaximumFlow.cpp
+# #     benchmarkMaximumFlow.sh)
 
 koala_make_benchmark(
     benchmark_independent_set
@@ -57,6 +58,11 @@ koala_make_benchmark(
     benchmark_priority_queue
     benchmarkPriorityQueue.cpp
     benchmarkPriorityQueue.sh)
+
+koala_make_benchmark(
+    benchmark_gaussian_matching
+    benchmarkGaussianMatching.cpp
+    benchmarkGaussianMatching.sh)
 
 koala_make_benchmark(
     benchmark_electric_flow
