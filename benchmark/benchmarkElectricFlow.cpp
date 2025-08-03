@@ -124,7 +124,7 @@ void benchmarkAverage(function<FlowBenchmark(Graph&, node s, node t)> runAlgorit
 }
 
 int main() {
-    tuple<int, int, int> sizes[] = { {20,100,5}, {100,2000,5} };
+    tuple<int, int, int> sizes[] = { { 100, 2000, 5 }, { 500, 10000, 2 } };
     int K = 10;
 
     vector<vector<string>> testCases;
@@ -140,10 +140,10 @@ int main() {
 
     benchmarkAverage(runElectricFlow, testCases);
     benchmarkAverage(runFractionalElectricFlow, testCases);
-    benchmarkAverage(runBoykovKolmogorovFlow, testCases);
     benchmarkAverage(runKingRaoTarjanMaximumFlow, testCases);
-    benchmarkAverage(runEdmondsKarp, testCases);
+    benchmarkAverage(runBoykovKolmogorovFlow, testCases);
     benchmarkAverage(runPushRelabel, testCases);
+    benchmarkAverage(runEdmondsKarp, testCases);
 
     return 0;
 }
