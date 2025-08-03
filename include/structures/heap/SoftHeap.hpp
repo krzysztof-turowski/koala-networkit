@@ -1,11 +1,3 @@
-/**
- * SoftHeap.hpp
- * 
- *  Created on: 07.07.2025
- *      Author: Hubert Bernacki (hubert.bernacki@student.uj.edu.pl)
- */
-
-#pragma once
 
 #include <list>
 #include <memory>
@@ -21,6 +13,7 @@ concept SoftHeapElement = requires(T a){
     { a.key } -> std::convertible_to<int>;
     { a.ckey } -> std::convertible_to<int>;
     { a.corrupted } -> std::convertible_to<bool>;
+    { a.deleted } -> std::convertible_to<bool>;
 };
 
 template<SoftHeapElement T>
@@ -38,6 +31,9 @@ public:
     template<SoftHeapElement R>
     friend SoftHeap<R> insert(SoftHeap<R>&&, R);
     T extractMin();
+    T extractMinInternal();
+    std::vector<T> corruptedElements();
+
     void assertValidState(int expectedElements, bool checkSize = true, bool checkMinSuf = true);
     template<SoftHeapElement R>
     friend SoftHeap<R> meld(SoftHeap<R>&&, SoftHeap<R>&&);
@@ -49,18 +45,21 @@ public:
         int ckey = 0;
         int rank = 0;
         int size = 1;
-        std::list<T> l;
+        std::list<T> corruptedList;
+        std::list<T> originalList;
         
         TreeNode() {}
         TreeNode(T val) {
             ckey = val.key;
-            l = std::list{val};
+            originalList = std::list{val};
         }
 
+        void pushCorruptedElementsOnVector(std::vector<T>& vec);
         T pickElement();
         void sift();
         bool leaf();
         int corruptedCount();
+        int listsSize();
     };
 
     struct ListNode {
@@ -190,30 +189,65 @@ bool SoftHeap<T>::TreeNode::leaf() {
 }
 
 template<SoftHeapElement T>
+void SoftHeap<T>::TreeNode::pushCorruptedElementsOnVector(std::vector<T>& vec) {
+    for (T t: corruptedList) {
+        vec.push_back(t);
+    }
+    if (left) {
+        left->pushCorruptedElementsOnVector(vec);
+    }
+    if (right) {
+        right->pushCorruptedElementsOnVector(vec);
+    }
+}
+
+template<SoftHeapElement T>
 T SoftHeap<T>::TreeNode::pickElement() {
     // std::cout << "TreeNode::pickElement" << std::endl;
-    if(l.empty()){
+    if(originalList.empty() && corruptedList.empty()){
         throw std::runtime_error("EMPTY LIST POP");
     }
-    T ret = l.front();
+    T ret;
+    if (!originalList.empty()) {
+        ret = originalList.front();
+        originalList.pop_front(); 
+    } else {
+        ret = corruptedList.front();
+        corruptedList.pop_front();
+    }
     ret.ckey = ckey;
     if (ret.ckey != ret.key) {
         ret.corrupted = true;
     }
-    l.pop_front(); 
     return ret;
+}
+
+template<SoftHeapElement T>
+int SoftHeap<T>::TreeNode::listsSize() {
+    return originalList.size() + corruptedList.size();
 }
 
 template<SoftHeapElement T>
 void SoftHeap<T>::TreeNode::sift() {
     // std::cout << "TreeNode::sift" << std::endl;
-    while (l.size() < size && !leaf()) {
+    while (listsSize() < size && !leaf()) {
         if(!left || (right && left->ckey > right->ckey)) {
             std::swap(left, right);
         }
-        l.splice(l.end(), left->l);
+        if (left->ckey != ckey) {
+            // all elements from originalList become now corrupted
+            for (T t: originalList) {
+                t.corrupted = true;
+                corruptedList.push_back(t);
+            }
+            originalList.clear();
+        }
+        originalList.splice(originalList.end(), left->originalList);
+        corruptedList.splice(corruptedList.end(), left->corruptedList);
         ckey = left->ckey;
-        left->l = std::list<T>{};
+        left->originalList = std::list<T>{};
+        left->corruptedList = std::list<T>{};
+
         if (left->leaf()) {
             left.reset();
         } else {
@@ -221,7 +255,7 @@ void SoftHeap<T>::TreeNode::sift() {
         }
     }
 
-    assert(leaf() || (size <= l.size() && l.size() <= 3 * size));
+    assert(leaf() || (size <= listsSize() && listsSize() <= 3 * size));
 }
 
 template<SoftHeapElement T>
@@ -287,7 +321,6 @@ void SoftHeap<T>::repeatedCombine(int k) {
     updateSuffixMin(t);
 }
 
-
 template<SoftHeapElement T>
 SoftHeap<T> meld(SoftHeap<T>&& p, SoftHeap<T>&& q) {
     // std::cout << "meld" << std::endl;
@@ -297,8 +330,6 @@ SoftHeap<T> meld(SoftHeap<T>&& p, SoftHeap<T>&& q) {
     q.repeatedCombine(prank);
     return std::move(q);
 }
-
-
 
 template<SoftHeapElement T>
 void SoftHeap<T>::insertTree(
@@ -310,10 +341,7 @@ void SoftHeap<T>::insertTree(
     l2->prev.lock()->next = l1;
     l1->prev = l2->prev.lock();
     l2->prev = l1;
-    // Why don't update every ptr ???
-    // l2->prev = l1;
 }
-    
 
 template<SoftHeapElement T>
 void SoftHeap<T>::mergeInto(SoftHeap<T>&& p) {
@@ -335,18 +363,41 @@ void SoftHeap<T>::mergeInto(SoftHeap<T>&& p) {
 }
 
 template<SoftHeapElement T>
+std::vector<T> SoftHeap<T>::corruptedElements() {
+    auto lnode = this->first();
+
+    std::vector<T> ret;
+    while (!lnode->isGuard) {
+        lnode->tree->pushCorruptedElementsOnVector(ret);
+        lnode = lnode->next;
+    }
+    return ret;
+}
+
+template<SoftHeapElement T>
 T SoftHeap<T>::extractMin() {
+    while(true) {
+        // std::cout << "loooooop\n";
+        T ret = extractMinInternal();
+        if (!ret.deleted) {
+            return ret;
+        }
+    }
+}
+
+template<SoftHeapElement T>
+T SoftHeap<T>::extractMinInternal() {
     // std::cout << "extractMin" << std::endl;
     if (first()->isGuard) throw std::runtime_error("EXTRACT FROM EMPTY HEAP");
     auto t = first()->sufMin.lock();
     auto x = t->tree;
     auto e = x->pickElement();
 
-    if (x->l.size() <= x->size / 2) {
+    if (x->listsSize() <= x->size / 2) {
         if (!x->leaf()) {
             x->sift();
             updateSuffixMin(t);
-        }else if (x->l.empty()) {
+        }else if (x->listsSize() == 0) {
             removeTree(t);
         }
     }
@@ -387,13 +438,15 @@ void SoftHeap<T>::assertValidListNode(std::shared_ptr<SoftHeap<T>::ListNode> nod
 template<SoftHeapElement T>
 int SoftHeap<T>::assertValidTreeNode(std::shared_ptr<SoftHeap<T>::TreeNode> node) {
     assert(node);
-    int c = node->l.size();
+    int c = node->listsSize();
     // std :: cout << "TREE NODE" << std::endl;
     // std :: cout << "RANK " << node->rank << std::endl;
     // std :: cout << "SIZE " << node->size << std::endl;
-    // std :: cout << "LIST LENGTH " << node->l.size() << std::endl;
 
-    for (auto e : node->l) {
+    for (auto e : node->originalList) {
+        assert(e.key <= node->ckey);
+    }
+    for (auto e : node->corruptedList) {
         assert(e.key <= node->ckey);
     }
 
@@ -412,11 +465,20 @@ int SoftHeap<T>::assertValidTreeNode(std::shared_ptr<SoftHeap<T>::TreeNode> node
 template<SoftHeapElement T>
 int SoftHeap<T>::TreeNode::corruptedCount() {
     int c = 0;
-    for (T e : l) {
+    int cOG = 0;
+    int cCorr = 0;
+    for (T e : originalList) {
         if (e.key < ckey) {
-            c += 1;
+            cOG += 1;
         }
     }
+    for (T e : corruptedList) {
+        if (e.key < ckey) {
+            cCorr += 1;
+        }
+    }
+    assert(cOG == 0);
+    c = cCorr + cOG;
 
     if (left) {
         c += left->corruptedCount();
@@ -459,12 +521,13 @@ void SoftHeap<T>::assertValidState(int expectedElements, bool checkSize, bool ch
     
     assert(corruptedCount() <= (eps) * insertCount);
 }
+
 /**
  * TODO 
  * 0. Top (without pop)
  * 1. Delete operation, lazy / delete from the linked list - maybe need SoftHeapElement to be ptr and have ->iterator so that we have access to the list...
- * 2. need access to all of the corrupted elements (!but only once! or maybe not idk), as elements cannot (? or maybe can uncorrupt themselves) it's easiest to just have a 
- *    list<T> corrupted to which we add elements when they become corrupted (what about corrupted -> not -> corrupted -> ... cycles???)
+ * 2. need access to all of the corrupted elements (!but only once!), as elements cannot (? or maybe can uncorrupt themselves) it's easiest to just have a 
+ *    set<T> corrupted (or possibly even a next set<T> corrupted previously so that we don't send them twice) and then we only retrieve corrupted once...
  * *3. assert that sufMin's link correctly
  * 
  * Remarks:
