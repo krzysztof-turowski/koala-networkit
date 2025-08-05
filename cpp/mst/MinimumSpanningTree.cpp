@@ -1382,6 +1382,8 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
             extension();
         }
     }
+    // [TODO] do retractions to all leftover T hierarchy
+    // while (Cz.size() > 0) { retraction(true); } // true because we want to remove last Cz... 
 
     // [TODO] REMOVE THIS
     G0.forEdges([&](node u, node v, edgeweight ew){
