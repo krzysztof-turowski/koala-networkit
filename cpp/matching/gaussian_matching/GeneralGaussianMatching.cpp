@@ -444,11 +444,13 @@ namespace Koala {
         int n = G.numberOfNodes();
 
         auto AG = zeroMat(n, n);
-        for (auto [u,v]: G.edgeRange()) {
-            auto Xuv = generateRandom();
-            AG[u][v] = Xuv;
-            AG[v][u] = -Xuv;
-        }
+        do {
+            for (auto [u,v]: G.edgeRange()) {
+                auto Xuv = generateRandom();
+                AG[u][v] = Xuv;
+                AG[v][u] = -Xuv;
+            }
+        } while (determinant(AG) == 0);
 
         MatZp Ainv;
         inv(Ainv, AG);

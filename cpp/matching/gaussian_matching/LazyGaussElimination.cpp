@@ -57,9 +57,6 @@ namespace Koala {
             for (int i = 0; i < j2; ++i) {
                 auto [l, l2] = get2div(i + 1);
 
-                auto v = getRow(A, order[c - j2 + 1 + i]);
-                auto [u, a] = lazy[c - j2 + 1 + i];
-
                 auto from = superLazy.begin() + max(0, i - l2 + 1);
                 auto to = superLazy.begin() + i; // todo
                 auto acc = vector<tuple<VecZp, VecZp, ZZ_p>>(from, to);
