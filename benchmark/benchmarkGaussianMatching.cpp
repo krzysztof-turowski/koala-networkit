@@ -92,15 +92,20 @@ Graph readGraph(const string& filepath) {
 void benchmarkAverage(function<MatchingBenchmark(Graph&)> runAlgorithm, vector<vector<string>> testCases) {
     vector<uint64_t> benchmark;
     string name;
-    for (auto testCase: testCases) {
+    for (int i = 0; i < testCases.size(); ++i) {
+        auto testCase = testCases[i];
         uint64_t totalTime = 0;
+        cerr << "Running tc " << i << "...\n";
         for (auto testPath: testCase) {
             auto G = readGraph(testPath);
             G.indexEdges();
+            cerr << "\tRunning " << testPath << "...";
             auto result = runAlgorithm(G);
+            cerr << "\tdone\n";
             totalTime += result.duration;
             name = result.name;
         }
+        cerr << "done\n";
         benchmark.push_back(totalTime/testCase.size());
     }
 
@@ -113,14 +118,14 @@ void benchmarkAverage(function<MatchingBenchmark(Graph&)> runAlgorithm, vector<v
 int main() {
     string types[] = {"gen", "bp"};
     pair<int,int> sizes[] = {{100,2000}, {1000, 200000}};
-    int K = 2;
+    int K = 10;
 
     vector<vector<string>> testCases;
     vector<vector<string>> bpTestCases;
     for (auto type: types) {
         for (auto [N, M]: sizes) {
             vector<string> testCase;
-            for (int i = 1; i <= K; ++i) {
+            for (int i = 0; i < K; ++i) {
                 std::stringstream ss;
                 ss << "./input/test_" << N << "_" << M << "_" << i << "." << type;
                 testCase.push_back(ss.str());
