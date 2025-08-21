@@ -58,10 +58,10 @@ namespace Koala {
                 auto [l, l2] = get2div(i + 1);
 
                 auto from = superLazy.begin() + max(0, i - l2 + 1);
-                auto to = superLazy.begin() + i; // todo
+                auto to = superLazy.begin() + i;
                 auto acc = vector<tuple<VecZp, VecZp, ZZ_p>>(from, to);
 
-                int r1 = 0, r2 = n - 1; // todo
+                int r1 = 0, r2 = n - 1;
                 int c1 = c + 1, c2 = min(c + j2, n - 1);
 
                 if (r1 <= r2 && c1 <= c2) {
