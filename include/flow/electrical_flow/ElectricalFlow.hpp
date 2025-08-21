@@ -1,4 +1,4 @@
-#include <flow/electric_flow/FlowNetwork.hpp>
+#include <flow/electrical_flow/FlowNetwork.hpp>
 #include <networkit/graph/Graph.hpp>
 #include <vector>
 
@@ -8,9 +8,9 @@ using namespace NetworKit;
 #pragma once
 
 namespace Koala {
-class ElectricFlow {
+class ElectricalFlow {
 public:
-  ElectricFlow(const Graph &graph, int s, int t, bool round=true);
+  ElectricalFlow(const Graph &graph, int s, int t, bool round=true);
   void run();
   double getMaxFlow() const;
 

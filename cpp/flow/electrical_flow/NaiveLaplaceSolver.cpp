@@ -1,6 +1,6 @@
 #include <Eigen/Core>
 #include <Eigen/Dense>
-#include <flow/electric_flow/LaplaceSolver.hpp>
+#include <flow/electrical_flow/LaplaceSolver.hpp>
 
 using namespace Eigen;
 

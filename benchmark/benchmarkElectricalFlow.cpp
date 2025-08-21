@@ -10,7 +10,7 @@
 
 #include <networkit/flow/EdmondsKarp.hpp>
 
-#include <flow/electric_flow/ElectricFlow.hpp>
+#include <flow/electrical_flow/ElectricalFlow.hpp>
 #include <flow/BoykovKolmogorovFlow.hpp>
 #include <flow/KingRaoTarjanMaximumFlow.hpp>
 #include <flow/PushRelabel.hpp>
@@ -46,22 +46,22 @@ FlowBenchmark runEdmondsKarp(const NetworKit::Graph& G, int s, int t) {
     return { "EdmondsKarp", maxFlow, begin, end };
 }
 
-FlowBenchmark runElectricFlow(const NetworKit::Graph& G, int s, int t) {
+FlowBenchmark runElectricalFlow(const NetworKit::Graph& G, int s, int t) {
     auto begin = steady_clock::now();
-    Koala::ElectricFlow algo(G, s, t);
+    Koala::ElectricalFlow algo(G, s, t);
     algo.run();
     auto maxFlow = algo.getMaxFlow();
     auto end = steady_clock::now();
-    return { "ElectricFlow", maxFlow, begin, end };
+    return { "ElectricalFlow", maxFlow, begin, end };
 }
 
-FlowBenchmark runFractionalElectricFlow(const NetworKit::Graph& G, int s, int t) {
+FlowBenchmark runFractionalElectricalFlow(const NetworKit::Graph& G, int s, int t) {
     auto begin = steady_clock::now();
-    Koala::ElectricFlow algo(G, s, t, false);
+    Koala::ElectricalFlow algo(G, s, t, false);
     algo.run();
     auto maxFlow = algo.getMaxFlow();
     auto end = steady_clock::now();
-    return { "ElectricFlow w/o rounding", maxFlow, begin, end };
+    return { "ElectricalFlow w/o rounding", maxFlow, begin, end };
 }
 
 FlowBenchmark runBoykovKolmogorovFlow(NetworKit::Graph& G, int s, int t) {
@@ -143,8 +143,8 @@ int main() {
         testCases.push_back(testCase);
     }
 
-    benchmarkAverage(runElectricFlow, testCases);
-    benchmarkAverage(runFractionalElectricFlow, testCases);
+    benchmarkAverage(runElectricalFlow, testCases);
+    benchmarkAverage(runFractionalElectricalFlow, testCases);
     benchmarkAverage(runKingRaoTarjanMaximumFlow, testCases);
     benchmarkAverage(runBoykovKolmogorovFlow, testCases);
     benchmarkAverage(runPushRelabel, testCases);

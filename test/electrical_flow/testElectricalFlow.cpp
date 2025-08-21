@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <flow/electric_flow/ElectricFlow.hpp>
+#include <flow/electrical_flow/ElectricalFlow.hpp>
 #include <io/DimacsGraphReader.hpp>
 
 #include "../helpers.hpp"
@@ -14,7 +14,7 @@ TEST(GenTest, testSuccess) {
 
   int s=5, t=4, F=100;
 
-  Koala::ElectricFlow ef(G, s, t);
+  Koala::ElectricalFlow ef(G, s, t);
   ef.run();
 
   int N = ef.graph.numberOfNodes();

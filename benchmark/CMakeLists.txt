@@ -65,6 +65,6 @@ koala_make_benchmark(
     benchmarkGaussianMatching.sh)
 
 koala_make_benchmark(
-    benchmark_electric_flow
-    benchmarkElectricFlow.cpp
-    benchmarkElectricFlow.sh)
+    benchmark_electrical_flow
+    benchmarkElectricalFlow.cpp
+    benchmarkElectricalFlow.sh)

@@ -1,6 +1,6 @@
-#include <flow/electric_flow/ElectricFlow.hpp>
-#include <flow/electric_flow/ElectricNetwork.hpp>
-#include <flow/electric_flow/FlowNetwork.hpp>
+#include <flow/electrical_flow/ElectricalFlow.hpp>
+#include <flow/electrical_flow/ElectricalNetwork.hpp>
+#include <flow/electrical_flow/FlowNetwork.hpp>
 
 namespace Koala {
 
@@ -37,7 +37,7 @@ vector<double> getViolation(const FlowNetwork &f, const vector<double> &y) {
   return violation;
 }
 
-ElectricFlow::ElectricFlow(const Graph &graph, int s, int t, bool round=true)
+ElectricalFlow::ElectricalFlow(const Graph &graph, int s, int t, bool round=true)
     : graph(graph), s(s), t(t), maxFlow(0), primal(graph), round(round) {
     U=0;
     for (auto v: graph.neighborRange(t)) {
@@ -45,7 +45,7 @@ ElectricFlow::ElectricFlow(const Graph &graph, int s, int t, bool round=true)
     }
   }
 
-void ElectricFlow::run() {
+void ElectricalFlow::run() {
   int L = 0, R = U + 1;
   while (L < R) {
     targetFlow = (L + R) / 2;
@@ -65,7 +65,7 @@ void ElectricFlow::run() {
   }
 }
 
-bool ElectricFlow::isFeasible() {
+bool ElectricalFlow::isFeasible() {
   int N = graph.numberOfNodes(), M = graph.numberOfEdges();
 
   double value = 0;
@@ -75,7 +75,7 @@ bool ElectricFlow::isFeasible() {
   return value <= 2.0 * M / (1.0 - progress);
 }
 
-bool ElectricFlow::routeFlow() {
+bool ElectricalFlow::routeFlow() {
   init();
   while ((1.0 - progress)*demand[t] > 1.0) {
     if (!isFeasible()) {
@@ -87,9 +87,9 @@ bool ElectricFlow::routeFlow() {
   return true;
 }
 
-double ElectricFlow::getMaxFlow() const { return maxFlow; }
+double ElectricalFlow::getMaxFlow() const { return maxFlow; }
 
-void ElectricFlow::init() {
+void ElectricalFlow::init() {
   int N = graph.numberOfNodes();
 
   demand.assign(N, 0);
@@ -99,23 +99,23 @@ void ElectricFlow::init() {
   progress = 0;
 }
 
-void ElectricFlow::augmentationStep() {
+void ElectricalFlow::augmentationStep() {
   auto violation = getViolation(primal,dual);
 
-  ElectricNetwork electric(graph, demand);
-  electric.compute(getResistance(primal));
+  ElectricalNetwork electrical(graph, demand);
+  electrical.compute(getResistance(primal));
 
   vector<double> congestion(graph.numberOfEdges());
   int i = 0;
   for (auto [u, v]: graph.edgeRange()) {
-    congestion[i++] = electric.flow[u][v] / min(primal.upperCapacity(u,v), primal.lowerCapacity(u,v));
+    congestion[i++] = electrical.flow[u][v] / min(primal.upperCapacity(u,v), primal.lowerCapacity(u,v));
   }
   double stepSize = 1.0/(33.0*LNorm(congestion, 4));
 
   graph.forNodes([&](node u) {
     graph.forNeighborsOf(
-        u, [&](node v) { primal.flow[u][v] += stepSize * electric.flow[u][v]; });
-    dual[u] += stepSize * electric.potentials[u];
+        u, [&](node v) { primal.flow[u][v] += stepSize * electrical.flow[u][v]; });
+    dual[u] += stepSize * electrical.potentials[u];
   });
   progress += stepSize;
 
@@ -133,7 +133,7 @@ void ElectricFlow::augmentationStep() {
   }
 }
 
-void ElectricFlow::fixingStep() {
+void ElectricalFlow::fixingStep() {
   int N = graph.numberOfNodes();
 
   auto resistance = getResistance(primal);
@@ -160,13 +160,13 @@ void ElectricFlow::fixingStep() {
     }
   }
 
-  ElectricNetwork electric(graph, correctionDemand);
-  electric.compute(getResistance(primal));
+  ElectricalNetwork electrical(graph, correctionDemand);
+  electrical.compute(getResistance(primal));
 
   graph.forNodes([&](node u) {
     graph.forNeighborsOf(
-        u, [&](node v) { primal.flow[u][v] += electric.flow[u][v]; });
-    dual[u] += electric.potentials[u];
+        u, [&](node v) { primal.flow[u][v] += electrical.flow[u][v]; });
+    dual[u] += electrical.potentials[u];
   });
 
   assert(LNorm(getViolation(primal, dual),2) <= 1.0/100.0);

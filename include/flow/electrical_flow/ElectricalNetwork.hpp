@@ -6,9 +6,9 @@ using namespace NetworKit;
 
 #pragma once
 namespace Koala {
-class ElectricNetwork {
+class ElectricalNetwork {
 public:
-  ElectricNetwork(const Graph &G, const vector<double> &demand);
+  ElectricalNetwork(const Graph &G, const vector<double> &demand);
 
   void compute(const vector<vector<double>> &resistance);
 

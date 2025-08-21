@@ -1,9 +1,9 @@
 #include <cassert>
-#include <flow/electric_flow/ElectricNetwork.hpp>
-#include <flow/electric_flow/LaplaceSolver.hpp>
+#include <flow/electrical_flow/ElectricalNetwork.hpp>
+#include <flow/electrical_flow/LaplaceSolver.hpp>
 
 namespace Koala {
-ElectricNetwork::ElectricNetwork(const Graph &graph,
+ElectricalNetwork::ElectricalNetwork(const Graph &graph,
                                  const vector<double> &demand)
     : graph(graph), demand(demand) {
   int N = graph.numberOfNodes();
@@ -11,7 +11,7 @@ ElectricNetwork::ElectricNetwork(const Graph &graph,
   flow.assign(N, vector<double>(N, 0));
 };
 
-void ElectricNetwork::compute(const vector<vector<double>> &resistance) {
+void ElectricalNetwork::compute(const vector<vector<double>> &resistance) {
   int N = graph.numberOfNodes();
   
   vector<vector<double>> weights(N, vector<double>(N, 0));

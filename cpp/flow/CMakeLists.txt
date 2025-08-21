@@ -8,10 +8,10 @@ koala_add_module(flow
     MalhotraKumarMaheshwariFlow.cpp
     BoykovKolmogorovFlow.cpp
 
-    # Electric Flow
-    electric_flow/ElectricFlow.cpp
-    electric_flow/ElectricNetwork.cpp
-    electric_flow/FlowNetwork.cpp 
-    electric_flow/NaiveLaplaceSolver.cpp
-    electric_flow/NaiveDynamicTree.cpp
+    # Electrical Flow
+    electrical_flow/ElectricalFlow.cpp
+    electrical_flow/ElectricalNetwork.cpp
+    electrical_flow/FlowNetwork.cpp 
+    electrical_flow/NaiveLaplaceSolver.cpp
+    electrical_flow/NaiveDynamicTree.cpp
 )
