@@ -83,7 +83,7 @@ For convenience we will be focusing on a maximum flow problem for a specific dem
 
 \begin{definition}[\cite{madry}]
 For each edge $e=(u,w)\in E$ we define the capacities $u^+_e, u^-_e$ to be:
-\[ u^+_{(v,w)} = u_{(v,w)} \hspace{10pt} \text{and} \hspace{10pt} u^-_{(v,w)} = -u_{(w,v)}. \].
+\[ u^+_{(v,w)} = u_{(v,w)} \hspace{10pt} \text{and} \hspace{10pt} u^-_{(v,w)} = -u_{(w,v)}. \]
 \end{definition}
 
 \begin{definition}[Feasibility \cite{madry}]
@@ -91,12 +91,11 @@ We say that $\sigma$-flow $f$ is \textbf{feasible} in $G$ if and only if the cap
 \[ -u^-_e \le f_e \le u^+_e \hspace{10pt} \text{for all} \hspace{5pt} e\in E.\]
 \end{definition}
 
-
 Note that for a specific demand vector (denoted later as $F\chi_{s,t}$) with $\delta_s=F, \delta_t=-F$ and zeros elsewhere, we get the standard definition for maximum flow problem.
 We call such flow a $s$-$t$ flow with value $F$.
 
 \begin{problem}[Maximum $s$-$t$ flow optimization problem]\label{max_flow_problem}
-Given a directed, weighted graph $G$, a source vertex $s$ and a target vertex $t$, find a feasible $s$-$t$ flow with maximum possible value.
+For a given a directed weighted graph $G$, a source vertex $s$ and a target vertex $t$, find a feasible $s$-$t$ flow with maximum possible value.
 \end{problem}
 
 Given a specific demand vector, we can also formulate a maximum flow decision problem.
@@ -109,7 +108,7 @@ Given a graph $G$, solving maximum flow problem is to find a feasible $s$-$t$ fl
 
 \begin{definition}[Upper and lower capacities \cite{madry}]
 We define \textbf{upper} and \textbf{lower} capacities to be:
-\[ \hat u_e^+(f) := u_e^+-f_e \hspace{10pt} \text{and} \hspace{10pt} \hat u_e^-(f) := u_e^-+f_e \]
+\[ \hat u_e^+(f) := u_e^+-f_e \hspace{10pt} \text{and} \hspace{10pt} \hat u_e^-(f) := u_e^-+f_e. \]
 We also define a \textbf{minimal capacity} $\hat u_e(f) := \min\{u_e^+(f),u_e^-(f)\}$. Note that for a feasible flow $f$, we have $\hat u_e(f) \ge 0$.
 \end{definition}
 

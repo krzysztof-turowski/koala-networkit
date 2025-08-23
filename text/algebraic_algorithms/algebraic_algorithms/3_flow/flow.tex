@@ -318,13 +318,13 @@ thus
 \]
 \end{proof}
 
-To safely perform another augmentation step and consequently make progress in routing $\chi$-flow we have to maintain several constraints:
+To safely perform next augmentation step and consequently make progress in routing $\chi$-flow we have to maintain several constraints:
 \begin{enumerate}
-    \item The feasibility of $\hat f$ -- we already covered that with a sufficiently small step size (\ref{step_congestion_bound}).
-    \item The well-coupling of $(\hat f,\hat y)$. The augmentation step breaks the well-coupling but only to a small degree. We will develop a fixing step to counteract this divergence. 
+    \item the feasibility of $\hat f$ -- we already covered that with a sufficiently small step size (\ref{step_congestion_bound}).
+    \item the well-coupling of $(\hat f,\hat y)$ -- the augmentation step violates the well-coupling but only to a small degree. We will develop a fixing step to counteract this divergence. 
 \end{enumerate}
 
-First we prove a simple lemma
+First, we prove a simple lemma:
 \begin{lemma}[\cite{madry}] \label{augmentation_taylor_fact}
 For any $u_1,u_2>0$, with  $u=\min\{u_1,u_2\}$ and $x$ such that $|x|\le\frac{u}{4}$, we have that
 \[
@@ -511,13 +511,14 @@ Applying \Cref{congestion_energy_bound} we get
 \[ ||\hat{\rho}||_2^2 \stackrel{\ref{congestion_energy_bound}}{\le} \emph{\textepsilon}_{\hat r}(\hat{\theta}) \le \emph{\textepsilon}_{\hat r}(-\theta) \le \frac{1}{2000} \]
 
 Using \Cref{violation_bound} we get that $(\overline{g},\overline{z})$ is $\overline{\gamma}-$coupled with
-\[
+\begin{equation}
+\begin{split}
 ||\overline{\gamma}||_2
-= \sqrt{\sum_e\overline{\gamma}_e^2}
-\stackrel{\ref{violation_bound}}{\le} \sqrt{\sum_e\left(\frac{4}{3}\tilde{\gamma}_e+7\hat{\rho}_e^2\right)^2}
-\le \frac{4}{3}||\hat{\gamma_e}||_2+7||\hat{\rho}||_2^2
-\le \frac{204}{75000}+\frac{7}{2000} < \frac{1}{100}
-\]
+    & = \sqrt{\sum_e\overline{\gamma}_e^2}\stackrel{\ref{violation_bound}}{\le} \sqrt{\sum_e\left(\frac{4}{3}\tilde{\gamma}_e+7\hat{\rho}_e^2\right)^2}
+      \le \frac{4}{3}||\hat{\gamma_e}||_2+7||\hat{\rho}||_2^2 \\
+    & \le \frac{204}{75000}+\frac{7}{2000} < \frac{1}{100}.
+\end{split}
+\end{equation}
 This confirms that $(\overline{g},\overline{z})$ is well-coupled.
 \end{proof}
 
@@ -530,7 +531,7 @@ Now we need to prove the well-coupling of $(f^+,y^+)$.
 
 To use above lemma and complete the proof we need to show that $(\hat f,\hat y)$ computed in the augmentation step is $\hat{\gamma}$-coupled with $||\hat{\gamma}||_2 \le \frac{1}{50}$.
 
-We know that $(f,y)$ was $\gamma$-coupled with $\gamma \le \frac{1}{100}$. Once again, by \Cref{violation_bound} we have
+We know that $(f,y)$ was $\gamma$-coupled with $\gamma \le \frac{1}{100}$. Once again by \Cref{violation_bound} we have
 \begin{equation}
 \begin{split}
 ||\hat{\gamma}||_2
@@ -593,11 +594,11 @@ The algorithm consists of multiple progress steps, each trying to improve the th
 
 To upper-bound the time complexity of the algorithm we could find a lower-bound on the progress made in each step.
 \begin{lemma}\label{lemma_step_bound}
-The progress made in each step of the \textsc{RouteFlow} algorithm can be lowerbounded by $(1-\alpha)\hat{\delta}$ for some constant value $\hat{\delta}$.
+The progress made in each step of the \textsc{RouteFlow} algorithm can be bounded from below by $(1-\alpha)\hat{\delta}$ for some constant value $\hat{\delta}$.
 \end{lemma}
 We will prove this fact later in this section. For now, let's see how we can use this lemma to determine the time complexity of \textsc{ElectricalFlow} algorithm.
 
-As a consequence of \cref{lemma_step_bound}, we get:
+As a consequence of \Cref{lemma_step_bound}, we get:
 \begin{lemma}
 The \textsc{RouteFlow} takes at most $O(\hat{\delta}^{-1}\log mU)$ iterations.
 \end{lemma}
@@ -608,15 +609,16 @@ We compute a $\log_{1-\hat\delta}$ of both sides of the equation: $t \ge \log_{1
 Since $\ln(1-x) \le -x$ for every $x\ge 0$ we have $t \ge \frac{\ln(1/F)}{\ln(1-\hat\delta)} \ge \frac{\ln(F)}{\hat\delta}$. Using the upper-bound for $F$: $F \le mU$ we finally get $t \in O(\hat\delta^{-1}\ln(mU))$.
 \end{proof}
 
-Now we are ready to determine the time complexity behind \textsc{ElectricalFlow}.
+Now we are ready to determine the time complexity of \textsc{ElectricalFlow}:
 \begin{theorem}
+\label{time_complexity_flow}
 The \textsc{ElectricalFlow} algorithm runs in $\tilde  O(\hat{\delta}^{-1}m\log U$) time.
 \end{theorem}
 \begin{proof}
-\textsc{RouetFlow} executes $O(\hat{\delta}^{-1}\log mU)$ iterations, each running in $\tilde O(m)$ time. We thus get the $\tilde O(\hat{\delta}^{-1}m\log U)$ running time for the \textsc{RouetFlow} algorithm. We also need to route at most one remaining unit of flow. This can be done in $O(m)$. Lastly, we execute the \textsc{FlowRounding} procedure that runs in $\tilde O(m)$ time. The time complexity of \textsc{ElectricalFlow} is thus $\tilde  O(\hat{\delta}^{-1}m\log U)$.
+\textsc{RouteFlow} executes $O(\hat{\delta}^{-1}\log mU)$ iterations, each running in $\tilde O(m)$ time. We thus get the $\tilde O(\hat{\delta}^{-1}m\log U)$ running time for the \textsc{RouteFlow} algorithm. We also need to route at most one remaining unit of flow. This can be done in $O(m)$. Lastly, we execute the \textsc{FlowRounding} procedure that runs in $\tilde O(m)$ time. The time complexity of \textsc{ElectricalFlow} is thus $\tilde  O(\hat{\delta}^{-1}m\log U)$.
 \end{proof}
 
-Showing a lower-bounding $\delta$ is however not easy. First of all we do not know if target flow can be fully routed through $G$. If it is not the case, the algorithm terminates through $y$. Even if the demand can be satisfied, we are still yet to prove the algorithm reaches the desired flow.
+Showing a good lower bound $\delta$ is however not easy. First of all we do not know if target flow can be fully routed through $G$. If it is not the case, the algorithm terminates through $y$. Even if the demand can be satisfied, we are still yet to prove the algorithm reaches the desired flow.
 
 Note that in the algorithm $\hat u^+(f)$ and $\hat u^-(f)$ were always symmetric. We either used $\hat u(f)=\min\{\hat u^+(f), \hat u^-(f)\}$ or some other expression (e.g. resistance) symmetric in terms of $\hat u^+(f)$ and $\hat u^-(f)$. The flows computed in an electrical flow must be feasible in a symmetrized version of the residual graph.\\
 Formally, we define symmetrization $\hat G_f$ of a residual graph $G_f$ to be an undirected graph (constructed from $G$) with each edge holding a capacity equal to $\hat u(f)$.
@@ -719,11 +721,11 @@ However an electrical $\chi$-flow $\tilde f$ induced by the resistances $r$ mini
 ||\rho||_2^2
 \stackrel{\ref{congestion_energy_bound}}{\le} \emph{\textepsilon}_r(\tilde f)
 \le \emph{\textepsilon}_r(f'')
-\le \frac{200}{(1-\alpha)^2}m
+\le \frac{200}{(1-\alpha)^2}m.
 \]
 \end{proof}
 
-Now we can construct an upper-bound on $\delta$. From \Cref{step_upperbound} we have
+Now we can construct an upper-bound on $\delta$ necessary to prove \Cref{lemma_step_bound}. From \Cref{step_upperbound} we have
 \[
 \delta
 \ge \frac{1}{33||\rho||_4}
@@ -731,7 +733,6 @@ Now we can construct an upper-bound on $\delta$. From \Cref{step_upperbound} we 
 \stackrel{\ref{step_upperbound}}{\ge} \frac{1}{33}\cdot\sqrt{\frac{(1-\alpha)^2}{200 m}}
 = \frac{(1-\alpha)}{33\sqrt{200 m}}
 \]
-Taking $\hat{\delta} := (33\sqrt{200 m})^{-1}$ we get the desired $\delta \ge (1-\alpha)\hat{\delta}$.
-
-Finally, the time complexity of this algorithm is
+Thus, it is sufficient to take $\hat{\delta} := (33\sqrt{200 m})^{-1}$ to meet the desired condition $\delta \ge (1-\alpha)\hat{\delta}$.
+This, in turn, in conjunction with \Cref{time_complexity_flow} completes the proof that the time complexity of this algorithm is
 $\tilde  O(m\cdot\hat{\delta}^{-1}\log U) = \tilde  O(m^\frac{3}{2}\log U)$.

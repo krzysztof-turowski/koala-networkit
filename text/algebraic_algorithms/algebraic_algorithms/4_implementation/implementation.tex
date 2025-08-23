@@ -1,6 +1,6 @@
 \chapter{Implementation and benchmarks}
 
-Both algorithms are implemented in \texttt{C++20} as a contribution to \texttt{Koala NetworKit} \cite{koala_networkit} open-source library. In order to implement these algorithms, we used three helper libraries: \texttt{NetworKit} \cite{networkit}, \texttt{Eigen} \cite{eigen} and \texttt{NTL} \cite{ntl}. The first one provides a graph class, as well as some graph related utility functions. Because of the algebraic nature of the presented algorithms, we also decided to include the \texttt{Eigen} and the \texttt{NTL} library.
+Both algorithms are implemented in \texttt{C++20} as a contribution to an open-source library \texttt{Koala NetworKit} \cite{koala_networkit}. In order to implement these algorithms, we used three helper libraries: \texttt{NetworKit} \cite{networkit}, \texttt{Eigen} \cite{eigen} and \texttt{NTL} \cite{ntl}. The first one provides a graph class, as well as some graph related utility functions. Because of the algebraic nature of the presented algorithms, we also decided to include the \texttt{Eigen} and the \texttt{NTL} library.
 
 \section{Gaussian matching}
 \subsection{Implementation details}
@@ -69,7 +69,7 @@ We present a benchmark comparing the running time of the implemented algorithms.
 
 The implemented \textsc{GeneralGaussianMatching} and \textsc{BipartiteGaussianMatching} algorithms are slower than the compared algorithms. There are some improvements to be made that can improve the running time of both these algorithms. We will discuss them in the later section.
 
-It is also worth noticing that there is a substantial improvement between these algorithms and the \textsc{NaiveGaussianMatching} algorithm running in $O(n^3)$.
+It is also noteworthy that there is a substantial improvement between these algorithms and the \textsc{NaiveGaussianMatching} algorithm running in $O(n^3)$.
 
 We also consider a different benchmark. We present a graph showing how does the \textsc{GeneralGaussianMatching} changes for a different density graphs. Each test case consists of $10$ random graphs with $500$ vertices and varying number of edges $m\in\{1000,5000,10000,50000,100000\}$. As we can see, there is little to no change between the test cases with $m = 5000$ and $m = 100000$. Furthermore, the running time decreases for the largest test. This may be caused by the fact that more edges become allowed in dense graphs. This causes the greedy algorithm to match more vertices, thus reducing the total running time of the algorithm.
 
