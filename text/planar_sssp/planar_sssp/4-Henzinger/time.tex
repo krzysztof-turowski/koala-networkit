@@ -1,0 +1,52 @@
+\section{Analysis}
+Given the Lemma \ref{invariant} holds we will conduct the analysis in two parts. We will bound the time spent on the procedures \textsc{Process} and \textsc{UpdateGlobal} separately. First, we will bound the number of invocations $s_i$ at each level $i$ and the time $t_i$ spent by a single call to \textsc{Process} at level $i$. This allows us to calculate the total time spent by the entire algorithm using the formula $\sum_{i=0}^2 t_i s_i$. Second, we will bound the time spent in the \textsc{UpdateGlobal} procedure. The bounds for level 0 invocations are particularly important, as \textsc{UpdateGlobal} is called only when processing level 0 regions. Together, these two bounds will complete our analysis.
+
+\subsubsection{Procedure \textsc{Process}}
+Given the invariant from \Cref{invariant} we want to bound number of truncated invocations to bound time complexity of \Cref{henzingerFormal}. Firstly we can start by bounding by bounding the number
+of invocations charging to a pair $(R, v)$. As a reminder the Algorithm uses two parameters  $\alpha_2 = 1$ and $\alpha_1 = \log n$ which bound number of children per invocation. The number of charging invocation to a pair changes depending on a region level:
+\begin{itemize}
+    \item for level 0 region $R$ and its entry node $v$, $(R, v)$ is charged by at most one invocation,
+   \item for level 1 region $R$ and its entry node $v$, $(R, v)$ is charged by at most one level 1 invocation and at most $\alpha_1 = \log n$ level 0 invocations,
+   \item for level 2 region $R$ and its entry node $v$, $(R, v)$ is charged by at most one level 2 invocation, at most $\alpha_2 = 1$ level 1 invocation and at most $\alpha_1 = \log n$ level 0 invocation. Which gives in $\log n$ in total.
+\end{itemize}
+
+Now we can bound the number of truncated invocations at each level.
+At level 2, there can be only one truncated invocation, since there is only one pair $(R, v)$ where $R$ is a level 2 region.
+
+At level 1, there is one truncated invocation charging to the level 2 pair. There are $O((n/\log^4n)\log^2 n) = O(n/\log^2 n)$ pairs involving level 1 regions, which gives us at most $O(n/\log^2 n) + 1 = O(n/\log^2 n)$ level 1 truncated invocations.
+
+At level 0, there are $\log n$ invocations charging to the level 2 pair and $\log n$ invocations per each level 1 pair, which gives $O(n/\log^2 (n\log n)) = O(n/\log n)$ invocations charging to level 1 pairs, and $O(n)$ invocations charging to $O(n)$ level 0 pairs. Summing up, the total number of truncated level 0 invocations is $O(n)$.
+
+Now count number of all invocations $s_i$ and time $t_i$ for procedure \textsc{Process} to take with out counting time needed for \textsc{UpdateGlobal}.
+\begin{itemize}
+    \item Level 0 regions: Every invocation on level 0 is truncated which means $s_0 = O(n)$ and obviously all operation during invocation on level 0 take constant amount of time - $t_0 = O(1)$.
+\item Level 1 regions:
+Every level 1 invocation, which is not truncated can cause at most $\alpha_1 = \log n$ level 0 invocation thus:
+$$ s_1 \leq s_0/\log n + O(n/ \log^2n) = O(n/\log n) $$
+Each level 1 invocation uses priority queue of size $\log^4 n$ and calls operation on the queue at most $\log n$ times and thus $t_1 = O(\log n \log\log n)$
+\item Level 2 region:
+In a similar fashion to the proof for level 1 invocations:
+$$ s_2 \leq s_1 + 1 = O(n/\log n)$$
+Because $\alpha_2 = 1$ every level 2 invocation result in single operation on queue of size $O(n/\log^4 n)$, thus $t_2 = O(\log n)$.
+\end{itemize}
+
+As mentioned before time taken by algorithm excluding operations by procedure \textsc{UpdateGlobal} is equal to $\sum_{i=0}^2 t_i s_i = O(n \log \log n)$
+
+\subsubsection{Procedure $\textsc{UpdateGlobal}$}
+
+Now we will analyze the running time of the algorithm, excluding the time spent in the \textsc{Process} procedure. An important observation is that \textsc{UpdateGlobal} is only called from level 0 invocations, and each call-depending on changes in the priority queue-may recursively trigger the procedure at higher levels. Since there are at most $O(n)$ level 0 invocations, the procedure can be called at most $O(n)$ times. The running time for a single call to \textsc{UpdateGlobal} at level 0 is $O(1)$. At level 1, the procedure updates a queue of size $O(\log^4 n)$, which takes $O(\log \log n)$ time. At level 2, it operates on a queue of size $O(n / \log^4 n)$, so each call takes $O(\log n)$ time.Not every level 0 call results in a level 2 \textsc{UpdateGlobal} call. We can bound the total number of calls that result in updates at most at level 1 by $O(n \log \log n)$, since there are at most $O(n)$ calls, each taking at most $O(\log \log n)$ time.It remains to show that the number of calls to \textsc{UpdateGlobal} that result in an update at the level 2 region is at most $O(n / \log n)$.
+
+We can distinguish two case. Level 0 invocations that are charged to level 1 and 2 regions and the rest. In the first case it was calculated that there are at most $O(n/\log n)$ such invocation which gives us at most $O((n/\log n)\log n) = O(n)$ time for all calls to \textsc{UpdateGlobal}.
+
+Now, it remains to bound the time spent in the \textsc{UpdateGlobal} procedure for level 0 invocations that are charged to the corresponding level 0 regions and result in \textsc{UpdateGlobal} being called with a level 2 region. There is at most one such invocation per pair $(R, u)$, where $R$ is a level 0 region.Let us focus on a single vertex $v$ and count how many such invocations can be made on regions of the form $R(uv)$. Since $v$ can belong to at most a constant number of regions (due to the bounded degree and overlap), and its in-degree is also constant, there can only be a constant number of invocations on regions $R(uv)$ for a single vertex $v$. Furthermore, because the call to \textsc{UpdateGlobal} results in a level 2 update, it indicates that $v$ is an entry node for some region. There are at most $O(n/\log^2 n)$ such entry nodes.
+
+Therefore, the total time spent in \textsc{UpdateGlobal} for these cases is
+$$O((n/\log^2n) \log n) = O(n/\log n)$$
+
+Summing the time spent in the procedures \textsc{UpdateGlobal} and \textsc{Process} gives a total complexity of $O(n \log \log n)$. As a corollary of this analysis, we obtain the following theorem:
+
+\begin{theorem}
+The SSSP problem on an $n$-vertex directed planar graph can be solved using the simplified Henzinger's algorithm in $O(n \log \log n)$ time.
+\end{theorem}
+
+
