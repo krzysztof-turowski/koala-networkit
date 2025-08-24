@@ -1113,7 +1113,9 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
     /* GT nodes */
     Graph GT;
     vector<set<node>> Cz;
-    vector<vector<NodePair>> minLink;
+    vector<vector<pair<NodePair, double>>> minLink;
+    // vector<vector<double>> minLink;
+
     vector<NodePair> chainLink;
     /* maps */
     map<NodePair, NodePair> edge_GT_to_G0;
@@ -1168,11 +1170,19 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
 
     auto findAndDeleteEdgeFromHeaps = [&](NodePair edgeG0) {
         // [TODO] Implement
-        return edge{};
+        auto eid = G0_edge_id[minmax(edgeG0)];
+        edges[eid].removed = true;
+        return edges[eid];
     };
 
     auto insertNewBorderEdges = [&](const vector<edge>& newBorderEdges) {
         // [TODO] Implement
+        for (auto e: newBorderEdges) {
+            NodePair np = minmax{e.u, e.v};
+            auto eid = G0_edge_id[np];
+            edges[eid] = e;
+            heaps = std::move(insert(std::move(heaps), &edges[eid]));
+        }
         return;
     };
 
@@ -1185,7 +1195,18 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
         int i = 0;
         int j = 0;
         NodePair abGT;
-        return tuple<int, int, NodePair>{i, j, abGT};
+
+        for (; i < minLink.size(); ++i) {
+            for (; j < minLink[i].size(); ++j) {
+                // doesnt exist
+                if (minLink[i][j].second < 0) continue;
+                if (minLink[i][j].second <= ckey) {
+                    return tuple<int, int, NodePair>{i, j, minLink[i][j].first};
+                }
+            }
+        }
+
+        return tuple<int, int, NodePair>{-1, -1, abGT};
     };
 
     auto contractGTedge = [&](node u, node v){
@@ -1195,17 +1216,31 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
     };
 
     auto updateMinLinks = [&](int last_i) {
-
+        for (int i = 0; i < last_i; ++i) {
+            int best_j = last_i;
+            double best_val = minLink[i][last_i].second;
+            for (int j = last_i + 1; j < minLink[i].size(); ++j) {
+                if (minLink[i][j].second < 0) continue;
+                if (minLink[i][j].second >= best_val) continue;
+                best_j = j;
+                best_val = minLink[i][j].second;
+            }
+            minLink[i][last_i] = minLink[i][best_j];
+        }
+        minLink.resize(last_i + 1);
     };
 
     auto updateHeaps = [&](int last_i) {
-
+        // [TODO] when heaps
     };
 
     auto fusion = [&](){
         auto [uvEdge, mini, minj] = minBorderEdge();
         node uG0{uvEdge->u}, vG0{uvEdge->v};
         auto [link_i, link_j, abGT] = leftmostSmallerMinLink(uvEdge->ckey); // [TODO CHECK] ckey ???
+        if (link_i == -1) return uvEdge;
+        
+        
         auto [aGT, bGT] = abGT;
         // [TODO] check wheter we need to swap a and b, this may apply to every edge retrieval...
 
@@ -1276,6 +1311,7 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
         }
         // [TODO CHECK] Same as for chain links
         Cz.resize(link_i + 1);
+        return uvEdge;
     };
 
     auto extension = [&](){
@@ -1286,6 +1322,10 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
 
         node vGT = GT.addNode();
         Cz.push_back(set{vGT});
+        minLink.push_back(vector<pair<NodePair, double>>());
+        for (auto& v: minLink) {
+            v.push_back({{-1, -1}, -1});
+        }
         // [TODO] update minLinks - resize
         // [TODO] check whether that's correct for chainlink
         // chainLink.push_back(makeEdge(uG0, vG0, uvEdge->ckey));
@@ -1318,8 +1358,20 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
             // [TODO CHECK] In GT we can store edge with OG key
             // as it will only be used in the recursion
             GT.addEdge(vGT, wGT, e.key);
-            // [TODO] maybe we need to also add wv edge?
+            
             // [TODO] update minLinks - e is a min link
+            int wCzi = -1;
+            for (int i = 0; i < Cz.size(); ++i) {
+                if (Cz[i].contains(wCzi)) {
+                    wCzi = i;
+                    break;
+                }
+            }
+            assert(wCzi != -1);
+            if (minLink[wCzi][Cz.size() - 1] > e.ckey) {
+                minLink[wCzi][Cz.size() - 1] = e.ckey;
+            }
+            // [TODO] maybe we need to also add wv edge?
         }
     };
 
@@ -1394,7 +1446,10 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
         // updateHeaps(heaps.size() - 1);
     };
 
-    auto needFusion = [&](){return false;};
+    auto needFusion = [&](){
+
+        return false;
+    };
     auto heapsEmpty = [&](){
         // for (auto& hs : heaps) {
         //     for (auto& h : hs) {
@@ -1412,10 +1467,11 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
         if (shouldRetract()) {
             retraction();
         } else {
-            if (needFusion()){
-                fusion();
-            }
-            extension();
+            edge e = fusion();
+            // if (needFusion()){
+            //     fusion();
+            // }
+            extension(e);
         }
     }
     while (!Cz.empty()) {
