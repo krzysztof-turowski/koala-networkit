@@ -10,31 +10,41 @@
 #include <io/DimacsGraphReader.hpp>
 #include <mst/MinimumSpanningTree.hpp>
 
+int x = 0xFF; 
+int D = 200; 
+float eps = 0.1; 
+
 template <typename T>
 NetworKit::edgeweight run_algorithm(NetworKit::Graph &G) {
     auto algorithm = T(G);
+
+    auto start = std::chrono::high_resolution_clock::now();
     algorithm.run();
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
     auto &spanning_tree = algorithm.getForest();
-    std::cout << spanning_tree.totalEdgeWeight() << " " << std::flush;
-    std::cout << "BRUUUH 0" << std::endl;
+    std::cout << duration.count() << ' ' << spanning_tree.totalEdgeWeight() << '\n';
+    // std::cout << "BRUUUH 0" << std::endl;
     // Check doesn't work for any graph so why bother.
     // algorithm.check();
-    std::cout << "BRUUUH 1" << std::endl;
+    // std::cout << "BRUUUH 1" << std::endl;
     return spanning_tree.totalEdgeWeight();
 }
 
 template<>
 NetworKit::edgeweight run_algorithm<Koala::ChazelleRubinfeldTrevisanMinimumSpanningTree>(NetworKit::Graph &G) {
     auto algorithm = Koala::ChazelleRubinfeldTrevisanMinimumSpanningTree(G);
-    float eps = 0.01;
 
-    int max_w = 0;
-    G.forEdges([&max_w](NetworKit::node, NetworKit::node, NetworKit::edgeweight ew, NetworKit::edgeid) {
-        max_w = std::max(max_w, static_cast<int>(ew));
-    });
+    int max_w = x;
+    // G.forEdges([&max_w](NetworKit::node, NetworKit::node, NetworKit::edgeweight ew, NetworKit::edgeid) {
+    //     max_w = std::max(max_w, static_cast<int>(ew));
+    // });
 
+    auto start = std::chrono::high_resolution_clock::now();
     algorithm.run(max_w, eps);
-    std::cout << algorithm.getTreeWeight() << " " << std::flush;
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    std::cout << duration.count() << ' ' << algorithm.getTreeWeight() << '\n';
     return algorithm.getTreeWeight();
 }
 namespace {
@@ -76,7 +86,7 @@ void run_g6_tests(const std::string &path, const std::string &algorithm) {
             }
         });
         std::set<NetworKit::edgeweight> T;
-        std::cout << line << " " << std::flush;
+        // std::cout << line << " " << std::flush;
         switch (ALGORITHM[algorithm]) {
         case Algorithm::EXACT:
             T.insert(run_algorithm<Koala::KruskalMinimumSpanningTree>(G));
@@ -109,23 +119,65 @@ void run_g6_tests(const std::string &path, const std::string &algorithm) {
 void run_dimacs_tests(const std::string &path, const std::string &algorithm) {
     auto G_directed = Koala::DimacsGraphReader().read(path);
     auto G = NetworKit::Graph(G_directed.numberOfNodes(), true, false);
+    // int count1 = 0;
+    // int countMax = 0;
     G_directed.forEdges([&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight w) {
         if (!G.hasEdge(u, v) && !G.hasEdge(v, u) && w > 0) {
+            // int new_w = std::min((int)w / D + 1, x);
+            // if (new_w == 1) count1 += 1;
+            // if (new_w == x) countMax += 1;
             G.addEdge(u, v, w);
         }
     });
-    std::cout << path << " " << std::flush;
+    // std::cout << "Num 1 " << count1 << '\n'; 
+    // std::cout << "Num X " << countMax << '\n'; 
+    // std::cout << path << " " << std::flush;
     std::set<NetworKit::edgeweight> T;
     // std::cout << "BEFORE KRUSKAL" << std::endl;
     // T.insert(run_algorithm<Koala::KruskalMinimumSpanningTree>(G));
     // std::cout << "Run Kruskal" << std::endl;
     // std::cout << "Run Kruskal" << std::endl;
     // T.insert(run_algorithm<Koala::PrimMinimumSpanningTree>(G));
-    std::cout << "RUN BORUVKA" << std::endl;
-    T.insert(run_algorithm<Koala::BoruvkaMinimumSpanningTree>(G));
-    // for (int i = 0; i < 5; i++) {
-    //     T.insert(run_algorithm<Koala::KargerKleinTarjanMinimumSpanningTree>(G));
+    // std::cout << "RUN BORUVKA" << std::endl;
+    // T.insert(run_algorithm<Koala::BoruvkaMinimumSpanningTree>(G));
+    
+    
+    
+    // std::cout << path << " " << std::flush;
+    // std::cout << "time weight\n";
+    // for (int xx : std::vector{0xFF, 0x7F, 0xF}) {
+    //     x = xx;
+    //     auto GNow = NetworKit::Graph(G_directed.numberOfNodes(), true, false);
+    //     int count1 = 0;
+    //     int countMax = 0;
+    //     G_directed.forEdges([&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight w) {
+    //         if (!GNow.hasEdge(u, v) && !GNow.hasEdge(v, u) && w > 0) {
+    //             int new_w = std::min((int)w / D + 1, x);
+    //             if (new_w == 1) count1 += 1;
+    //             if (new_w == x) countMax += 1;
+    //             GNow.addEdge(u, v, new_w);
+    //         }
+    //     });
+    //     std::cout << "Num 1 " << count1 << '\n'; 
+    //     std::cout << "Num X " << countMax << '\n'; 
+        
+    //     for (float ee : std::vector{.01, .05, 0.1}) {
+    //         eps = ee;
+    //         std :: cout << '\n';
+    //         std :: cout << "x: " << x << ", eps: " << eps << '\n';
+    //         for (int i = 0; i < 5; ++i) {
+    //             T.insert(run_algorithm<Koala::BoruvkaMinimumSpanningTree>(GNow));
+    //             // T.insert(run_algorithm<Koala::ChazelleRubinfeldTrevisanMinimumSpanningTree>(GNow));
+    //         }
+    //     }
     // }
+    // std::cout << "Original graph" << '\n';
+    // for (int i = 0; i < 5; i++) {
+    //     T.insert(run_algorithm<Koala::BoruvkaMinimumSpanningTree>(G));
+    //     // T.insert(run_algorithm<Koala::ChazelleRubinfeldTrevisanMinimumSpanningTree>(G));
+    // }
+
+    
     std::cout<< "Running chazelle now!" << std::endl;
     T.insert(run_algorithm<Koala::Chazelle2000MinimumSpanningTree>(G));
     std::cout << "Run Chazelle" << std::endl;

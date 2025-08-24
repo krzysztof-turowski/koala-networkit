@@ -10,10 +10,10 @@
 
 template<typename T>
 concept SoftHeapElement = requires(T a){
-    { a.key } -> std::convertible_to<int>;
-    { a.ckey } -> std::convertible_to<int>;
-    { a.corrupted } -> std::convertible_to<bool>;
-    { a.deleted } -> std::convertible_to<bool>;
+    { a->key } -> std::convertible_to<int>;
+    { a->ckey } -> std::convertible_to<int>;
+    { a->corrupted } -> std::convertible_to<bool>;
+    { a->removed } -> std::convertible_to<bool>;
 };
 
 template<SoftHeapElement T>
@@ -33,6 +33,7 @@ public:
     T extractMin();
     T extractMinInternal();
     std::vector<T> corruptedElements();
+    bool empty(){return elements <= 0;}
 
     void assertValidState(int expectedElements, bool checkSize = true, bool checkMinSuf = true);
     template<SoftHeapElement R>
@@ -50,7 +51,7 @@ public:
         
         TreeNode() {}
         TreeNode(T val) {
-            ckey = val.key;
+            ckey = val->key;
             originalList = std::list{val};
         }
 
@@ -97,6 +98,7 @@ public:
         return guard->next;
     }
 
+    int elements = 0;
     float eps;
     float r;
     int rank = 0;
@@ -110,7 +112,7 @@ public:
 // }
 
 template<SoftHeapElement T>
-SoftHeap<T>::SoftHeap(T val, float eps) : eps(eps) {
+SoftHeap<T>::SoftHeap(T val, float eps) : eps(eps), elements(1) {
     // std::cout << "SoftHeap::SoftHeap(T, float)" << std::endl;
     r = ceil(log(1 / eps) / log(2.0)) + 5;
 
@@ -139,7 +141,7 @@ SoftHeap<T>::SoftHeap(T val, float eps) : eps(eps) {
 
 template<SoftHeapElement T>
 SoftHeap<T>::SoftHeap(const SoftHeap& other)
-    : eps(other.eps), r(other.r), rank(other.rank), guard(other.guard)
+    : eps(other.eps), r(other.r), rank(other.rank), guard(other.guard), elements(elements)
 {
     // std::cout << "SoftHeap::SoftHeap(const SoftHeap&)" << std::endl;
     // TODO It actually doesn't copy...
@@ -148,7 +150,7 @@ SoftHeap<T>::SoftHeap(const SoftHeap& other)
 
 template<SoftHeapElement T>
 SoftHeap<T>::SoftHeap(SoftHeap<T>&& other)
-    : eps(other.eps), r(other.r), rank(other.rank), guard(other.guard)
+    : eps(other.eps), r(other.r), rank(other.rank), guard(other.guard), elements(elements)
 {
     // std::cout << "SoftHeap::SoftHeap(SoftHeap&&)" << std::endl;
     other.guard.reset();
@@ -168,6 +170,7 @@ SoftHeap<T>& SoftHeap<T>::operator=(SoftHeap<T>&& other) {
     r = other.r;
     rank = other.rank;
     guard = other.guard;
+    elements = other.elements;
 
     other.guard.reset();
     return *this;
@@ -215,9 +218,9 @@ T SoftHeap<T>::TreeNode::pickElement() {
         ret = corruptedList.front();
         corruptedList.pop_front();
     }
-    ret.ckey = ckey;
-    if (ret.ckey != ret.key) {
-        ret.corrupted = true;
+    ret->ckey = ckey;
+    if (ret->ckey != ret->key) {
+        ret->corrupted = true;
     }
     return ret;
 }
@@ -237,7 +240,7 @@ void SoftHeap<T>::TreeNode::sift() {
         if (left->ckey != ckey) {
             // all elements from originalList become now corrupted
             for (T t: originalList) {
-                t.corrupted = true;
+                t->corrupted = true;
                 corruptedList.push_back(t);
             }
             originalList.clear();
@@ -323,11 +326,13 @@ void SoftHeap<T>::repeatedCombine(int k) {
 
 template<SoftHeapElement T>
 SoftHeap<T> meld(SoftHeap<T>&& p, SoftHeap<T>&& q) {
+    int newElements = p.elements + q.elements;
     // std::cout << "meld" << std::endl;
     if(p.rank > q.rank) std::swap(p, q);
     int prank = p.rank;
     q.mergeInto(std::move(p));
     q.repeatedCombine(prank);
+    q.elements = newElements;
     return std::move(q);
 }
 
@@ -379,7 +384,7 @@ T SoftHeap<T>::extractMin() {
     while(true) {
         // std::cout << "loooooop\n";
         T ret = extractMinInternal();
-        if (!ret.deleted) {
+        if (!ret->removed) {
             return ret;
         }
     }
@@ -388,6 +393,7 @@ T SoftHeap<T>::extractMin() {
 template<SoftHeapElement T>
 T SoftHeap<T>::extractMinInternal() {
     // std::cout << "extractMin" << std::endl;
+    elements -= 1;
     if (first()->isGuard) throw std::runtime_error("EXTRACT FROM EMPTY HEAP");
     auto t = first()->sufMin.lock();
     auto x = t->tree;
@@ -444,10 +450,10 @@ int SoftHeap<T>::assertValidTreeNode(std::shared_ptr<SoftHeap<T>::TreeNode> node
     // std :: cout << "SIZE " << node->size << std::endl;
 
     for (auto e : node->originalList) {
-        assert(e.key <= node->ckey);
+        assert(e->key <= node->ckey);
     }
     for (auto e : node->corruptedList) {
-        assert(e.key <= node->ckey);
+        assert(e->key <= node->ckey);
     }
 
     if (node->left) {
@@ -468,12 +474,12 @@ int SoftHeap<T>::TreeNode::corruptedCount() {
     int cOG = 0;
     int cCorr = 0;
     for (T e : originalList) {
-        if (e.key < ckey) {
+        if (e->key < ckey) {
             cOG += 1;
         }
     }
     for (T e : corruptedList) {
-        if (e.key < ckey) {
+        if (e->key < ckey) {
             cCorr += 1;
         }
     }

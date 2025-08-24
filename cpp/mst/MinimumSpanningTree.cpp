@@ -25,6 +25,7 @@
 
 #include <structures/Heap.hpp>
 #include <structures/LCA.hpp>
+// #include <structures/heap/SoftHeap.hpp>
 
 std::random_device device;
 std::default_random_engine generator{device()};
@@ -672,18 +673,21 @@ std::tuple<NetworKit::Graph, std::map<Koala::MinimumSpanningTree::NodePair, Koal
     return {gMinor, gMinor_to_G, F};
 }
 
-struct edge {
-    int u;          // G0 node
-    int v;          // G0 node
-    double key;        //
-    double ckey;       // for soft heap
-    int id;         // for soft heap delete
-    bool removed;   // lazy removal from SoftHeap
-
-    friend bool operator<(edge e1, edge e2) {
-        return e1.key < e2.key;
-    }
-};
+namespace{
+    struct edge {
+        int u;          // G0 node
+        int v;          // G0 node
+        double key;        //
+        double ckey;       // for soft heap
+        int id;         // for soft heap delete
+        bool removed;   // lazy removal from SoftHeap
+        bool corrupted;
+    
+        friend bool operator<(edge e1, edge e2) {
+            return e1.key < e2.key;
+        }
+    };
+}
 
 // NetworKit::Graph Chazelle2000MinimumSpanningTree::msf2(NetworKit::Graph G, std::map<NodePair, int>& edgeId, int t) {
 //     using std::minmax;
@@ -1045,11 +1049,27 @@ struct edge {
 //     // return msf( F + B, t);
 
 // }
+namespace{
+    int pow2Clamped(int b) {
+        if (b > 30) {
+            return 1 << 30;
+        } else {
+            return 1 << b;
+        }
+    }
+}
 
+int Chazelle2000MinimumSpanningTree::verticesOnLevel(int t) {
+    // it should be some kind of ackermann function
+    // but for now let's make it 2**(2**n)
+    // it's easier to compute and actually has some small values for the first couple of values.
+    return pow2Clamped(pow2Clamped(t));
+}
 
 /**
  * Expects that:
  * G is connected
+ * G is undirected
  */
 NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t) {
     using std::minmax;
@@ -1082,7 +1102,11 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
 
     // [STEP 3]
     /* G0 nodes */
-    vector<vector<Koala::BinomialHeap<edge*>>> heaps;
+    // vector<vector<Koala::BinomialHeap<edge*>>> heaps;
+    // for now let's make it work with only 1 heap
+    edge dummy_edge;
+    SoftHeap<edge*> heaps(&dummy_edge, 0.1);
+    heaps.extractMin();
     Graph F = NetworKit::GraphTools::copyNodes(G0);
     Graph B = NetworKit::GraphTools::copyNodes(G0);
     vector<edge> edges(G0.numberOfEdges());
@@ -1119,22 +1143,27 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
     auto minBorderEdge = [&](){
         int minKey = INT32_MAX;
         int mini = -1, minj = -1;
-        for (int i = 0; i < heaps.size(); ++i) {
-            for (int j = 0; j < heaps[i].size(); ++j) {
-                // lazy delete, will work well with soft heaps
-                while (!heaps[i][j].empty() && heaps[i][j].top()->removed) {
-                    heaps[i][j].pop();
-                }
-                if (!heaps[i][j].empty() && heaps[i][j].top()->key < minKey ) {
-                    mini = i;
-                    minj = j;
-                    minKey = heaps[i][j].top()->key;
-                }
-            }
+        // [TODO heaps]
+        // for (int i = 0; i < heaps.size(); ++i) {
+        //     for (int j = 0; j < heaps[i].size(); ++j) {
+        //         // lazy delete, will work well with soft heaps
+        //         while (!heaps[i][j].empty() && heaps[i][j].top()->removed) {
+        //             heaps[i][j].pop();
+        //         }
+        //         if (!heaps[i][j].empty() && heaps[i][j].top()->key < minKey ) {
+        //             mini = i;
+        //             minj = j;
+        //             minKey = heaps[i][j].top()->key;
+        //         }
+        //     }
+        // }
+        // edge minEdge = *heaps[mini][minj].top();
+        // return std::tuple{minEdge, mini, minj};
+        edge* minEdge = heaps.extractMin();
+        while(minEdge->removed) {
+            minEdge = heaps.extractMin();
         }
-
-        edge minEdge = *heaps[mini][minj].top();
-        return std::tuple{minEdge, mini, minj};
+        return std::tuple{minEdge, 0, 0};
     };
 
     auto findAndDeleteEdgeFromHeaps = [&](NodePair edgeG0) {
@@ -1175,8 +1204,8 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
 
     auto fusion = [&](){
         auto [uvEdge, mini, minj] = minBorderEdge();
-        node uG0{uvEdge.u}, vG0{uvEdge.v};
-        auto [link_i, link_j, abGT] = leftmostSmallerMinLink(uvEdge.ckey); // [TODO CHECK] ckey ???
+        node uG0{uvEdge->u}, vG0{uvEdge->v};
+        auto [link_i, link_j, abGT] = leftmostSmallerMinLink(uvEdge->ckey); // [TODO CHECK] ckey ???
         auto [aGT, bGT] = abGT;
         // [TODO] check wheter we need to swap a and b, this may apply to every edge retrieval...
 
@@ -1231,7 +1260,10 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
         }
 
         updateMinLinks(link_i);
-        updateHeaps(link_i);
+
+        // [TODO heaps] 
+        // updateHeaps(link_i);
+
         // [TODO CHECK] of by one error ??? And what about the complexity ???
         chainLink.resize(link_i); 
         for (node uGT : nodesToFuse) {
@@ -1249,13 +1281,14 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
     auto extension = [&](){
         // [TODO] assert(uv.u inside GT && uv.v outside GT)
         auto [uvEdge, mini, minj] = minBorderEdge();
-        node uG0{uvEdge.u}, vG0{uvEdge.v};
+        node uG0{uvEdge->u}, vG0{uvEdge->v};
         node uGT{node_G0_to_GT[uG0]};
 
         node vGT = GT.addNode();
         Cz.push_back(set{vGT});
         // [TODO] update minLinks - resize
-        // [TODO] update chainLink
+        // [TODO] check whether that's correct for chainlink
+        // chainLink.push_back(makeEdge(uG0, vG0, uvEdge->ckey));
         node_G0_to_GT[vG0] = vGT;
 
         map<node, edge> smallestIncidentEdge;
@@ -1298,7 +1331,8 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
         });
     };
 
-    auto retraction = [&](){
+    auto retraction = [&](bool force = false){
+        assert(!force || Cz.size() > 1);
         vector<edge> outsideEdges;
         Graph GMinor;
         map<NodePair, NodePair> edge_GMinor_to_G0;
@@ -1356,21 +1390,23 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
         updateMinLinks(minLink.size() - 1);
         chainLink.pop_back();
         Cz.pop_back();
-        updateHeaps(heaps.size() - 1);
+        // [TODO heaps]
+        // updateHeaps(heaps.size() - 1);
     };
 
     auto needFusion = [&](){return false;};
     auto heapsEmpty = [&](){
-        for (auto& hs : heaps) {
-            for (auto& h : hs) {
-                if (!h.empty()) {
-                    return false;
-                }
-            }
-        }
-        return true;
+        // for (auto& hs : heaps) {
+        //     for (auto& h : hs) {
+        //         if (!h.empty()) {
+        //             return false;
+        //         }
+        //     }
+        // }
+        // return true;
+        return heaps.empty();
     };
-    auto shouldRetract = [&](){return (rand() & 0xFF) == 0;};
+    auto shouldRetract = [&](){return (rand() & 0xFF) == 0  && Cz.size() > 1;};
 
     while (!heapsEmpty()) {
         if (shouldRetract()) {
@@ -1381,6 +1417,9 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
             }
             extension();
         }
+    }
+    while (!Cz.empty()) {
+        retraction(true);
     }
 
     // [TODO] REMOVE THIS
