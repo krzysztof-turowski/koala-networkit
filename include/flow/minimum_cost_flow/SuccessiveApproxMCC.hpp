@@ -17,7 +17,7 @@ class SuccessiveApproxMCC : public MinimumCostFlow {
         edge_map<MCFEdgeParams>&, NetworKit::node, NetworKit::node, int);
 
  private:
-    void runImpl();
+    void runImpl() override;
     void initialize();
     bool push_relabel(NetworKit::node const&);
     void push(NetworKit::node const&, NetworKit::node const&);
