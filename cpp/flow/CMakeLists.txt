@@ -6,4 +6,5 @@ koala_add_module(flow
     maximum_flow/dynamic_tree/dyn_splay.cpp
     MinimumCostFlow.cpp
     minimum_cost_flow/SuccessiveApproxMCC.cpp
+    minimum_cost_flow/OrlinMCF.cpp
 )

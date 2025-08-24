@@ -23,6 +23,7 @@ using node_map = std::map<NetworKit::node, T>;
 
 class MinimumCostFlow : public NetworKit::Algorithm {
  public:
+        
     // flow
     MinimumCostFlow(NetworKit::Graph&, edge_map<MCFEdgeParams>&,
         NetworKit::node, NetworKit::node, int);
@@ -55,5 +56,13 @@ class MinimumCostFlow : public NetworKit::Algorithm {
     int min_cost{0};
     bool feasible{true};
 };
+
+class MCFGraph {
+ public:
+    MCFGraph();
+    
+};
+
+
 
 } /* namespace Koala */
