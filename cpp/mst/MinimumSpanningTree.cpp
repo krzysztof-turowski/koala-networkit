@@ -636,6 +636,7 @@ namespace {
 
 void Chazelle2000MinimumSpanningTree::run() {
     // TODO Find proper starting t value
+    // TODO Connected components in here
     auto G = graph.value();
     std::cout << "RUNNNING MST CHAZELLE ALGORITHM" << std::endl;
     tree = mst(G, 10);
@@ -1066,6 +1067,460 @@ int Chazelle2000MinimumSpanningTree::verticesOnLevel(int t) {
     return pow2Clamped(pow2Clamped(t));
 }
 
+// /**
+//  * Expects that:
+//  * G is connected
+//  * G is undirected
+//  */
+// NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t) {
+//     using std::minmax;
+//     using std::swap;
+//     using std::set;
+//     using std::pair;
+//     using std::map;
+//     using std::tuple;
+//     using std::vector;
+//     using NetworKit::Graph;
+//     using NetworKit::node;
+//     using NetworKit::edgeweight;
+    
+//     std::cout << "INSIDE CHAZELLE" << std::endl;
+//     // [STEP 1]
+//     if (t <= 1 || G.numberOfNodes() < MIN_NUMBER_NODES) {
+//         BoruvkaMinimumSpanningTree boruvka(G);
+//         boruvka.run();
+//         return boruvka.getForest();
+//     }
+    
+//     // [STEP 2]
+//     std::cout << "BEFORE BORUVKA STEPS" << std::endl;
+//     auto [G0, edge_G0_to_G, forest] = boruvkaSteps(G, C);
+//     if (G0.numberOfEdges() == 0) {
+//         std::cout << "BORUVKA STEPS FINISHED" << std::endl;
+//         // assert(false);
+//         return forest;
+//     }
+
+//     // [STEP 3]
+//     /* G0 nodes */
+//     // vector<vector<Koala::BinomialHeap<edge*>>> heaps;
+//     // for now let's make it work with only 1 heap
+//     edge dummy_edge;
+//     SoftHeap<edge*> heaps(&dummy_edge, 0.1);
+//     heaps.extractMin();
+//     Graph F = NetworKit::GraphTools::copyNodes(G0);
+//     Graph B = NetworKit::GraphTools::copyNodes(G0);
+//     vector<edge> edges(G0.numberOfEdges());
+//     /* GT nodes */
+//     Graph GT;
+//     vector<set<node>> Cz;
+//     vector<vector<pair<NodePair, double>>> minLink;
+//     // vector<vector<double>> minLink;
+
+//     vector<NodePair> chainLink;
+//     /* maps */
+//     map<NodePair, NodePair> edge_GT_to_G0;
+//     // map<int, NodePair> eid_2_G0;
+//     map<node, node> node_G0_to_GT;
+//     map<NodePair, int> G0_edge_id;
+
+//     assert(!G.isDirected());
+//     assert(!G0.isDirected());
+//     assert(!GT.isDirected());
+
+//     int eidNow = 0;
+//     G0.forEdges([&](node u, node v, edgeweight ew){
+//         edges[eidNow] = edge{u, v, ew, ew, eidNow, false};
+//         G0_edge_id[minmax(u, v)] = eidNow;
+//         eidNow += 1;
+//     });
+
+//     auto removeGTNode = [&](node u) {
+//         GT.forEdgesOf(u, [&](node uGT, node vGT){
+//             edge_GT_to_G0.erase(minmax(uGT, vGT));
+//         });
+//         GT.removeNode(u);
+//     };
+
+//     // Returns a tuple {minEdge, min_i, min_j} so that heaps[min_i][min_j].top() == minEdge;
+//     auto minBorderEdge = [&](){
+//         int minKey = INT32_MAX;
+//         int mini = -1, minj = -1;
+//         // [TODO heaps]
+//         // for (int i = 0; i < heaps.size(); ++i) {
+//         //     for (int j = 0; j < heaps[i].size(); ++j) {
+//         //         // lazy delete, will work well with soft heaps
+//         //         while (!heaps[i][j].empty() && heaps[i][j].top()->removed) {
+//         //             heaps[i][j].pop();
+//         //         }
+//         //         if (!heaps[i][j].empty() && heaps[i][j].top()->key < minKey ) {
+//         //             mini = i;
+//         //             minj = j;
+//         //             minKey = heaps[i][j].top()->key;
+//         //         }
+//         //     }
+//         // }
+//         // edge minEdge = *heaps[mini][minj].top();
+//         // return std::tuple{minEdge, mini, minj};
+//         edge* minEdge = heaps.extractMin();
+//         while(minEdge->removed) {
+//             minEdge = heaps.extractMin();
+//         }
+//         return std::tuple{minEdge, 0, 0};
+//     };
+
+//     auto findAndDeleteEdgeFromHeaps = [&](NodePair edgeG0) {
+//         // [TODO] Implement
+//         auto eid = G0_edge_id[minmax(edgeG0)];
+//         edges[eid].removed = true;
+//         return edges[eid];
+//     };
+
+//     auto insertNewBorderEdges = [&](const vector<edge>& newBorderEdges) {
+//         // [TODO] Implement
+//         for (auto e: newBorderEdges) {
+//             NodePair np = minmax{e.u, e.v};
+//             auto eid = G0_edge_id[np];
+//             edges[eid] = e;
+//             heaps = std::move(insert(std::move(heaps), &edges[eid]));
+//         }
+//         return;
+//     };
+
+//     // [TODO] Check all edge{} constructions and change to this...
+//     auto makeEdge = [&](node u, node v, edgeweight ew) {
+//         return edge{u, v, ew, ew, G0_edge_id[minmax(u, v)], false};
+//     };
+
+//     auto leftmostSmallerMinLink = [&](int ckey){
+//         int i = 0;
+//         int j = 0;
+//         NodePair abGT;
+
+//         for (; i < minLink.size(); ++i) {
+//             for (; j < minLink[i].size(); ++j) {
+//                 // doesnt exist
+//                 if (minLink[i][j].second < 0) continue;
+//                 if (minLink[i][j].second <= ckey) {
+//                     return tuple<int, int, NodePair>{i, j, minLink[i][j].first};
+//                 }
+//             }
+//         }
+
+//         return tuple<int, int, NodePair>{-1, -1, abGT};
+//     };
+
+//     auto contractGTedge = [&](node u, node v){
+//         auto [uG0, vG0] = edge_GT_to_G0[minmax(u, v)];
+//         int key = edges[G0_edge_id[minmax(uG0, vG0)]].key;
+//         F.addEdge(uG0, vG0, key);
+//     };
+
+//     auto updateMinLinks = [&](int last_i) {
+//         for (int i = 0; i < last_i; ++i) {
+//             int best_j = last_i;
+//             double best_val = minLink[i][last_i].second;
+//             for (int j = last_i + 1; j < minLink[i].size(); ++j) {
+//                 if (minLink[i][j].second < 0) continue;
+//                 if (minLink[i][j].second >= best_val) continue;
+//                 best_j = j;
+//                 best_val = minLink[i][j].second;
+//             }
+//             minLink[i][last_i] = minLink[i][best_j];
+//         }
+//         minLink.resize(last_i + 1);
+//     };
+
+//     auto updateHeaps = [&](int last_i) {
+//         // [TODO] when heaps
+//     };
+
+//     auto fusion = [&](){
+//         auto [uvEdge, mini, minj] = minBorderEdge();
+//         node uG0{uvEdge->u}, vG0{uvEdge->v};
+//         auto [link_i, link_j, abGT] = leftmostSmallerMinLink(uvEdge->ckey); // [TODO CHECK] ckey ???
+//         if (link_i == -1) return uvEdge;
+        
+        
+//         auto [aGT, bGT] = abGT;
+//         // [TODO] check wheter we need to swap a and b, this may apply to every edge retrieval...
+
+//         set<node> nodesToFuse;
+//         nodesToFuse.insert(aGT);
+//         // Better insert it twice than never
+//         nodesToFuse.insert(bGT);
+//         vector<pair<NodePair, edgeweight>> edgesToProcess;
+//         map<node, edge> smallestEdge;
+//         for (int i = link_i + 1; i < Cz.size(); ++i) {
+//             for (node w : Cz[i]) {
+//                 nodesToFuse.insert(w);
+//                 GT.forEdgesOf(w, [&](node w, node x, edgeweight ew){
+//                     edgesToProcess.push_back({{w, x}, ew});
+//                 });
+//             }
+//         }
+//         GT.forEdgesOf(aGT, [&](node aGT2, node xGT, edgeweight ew) {
+//             assert(aGT == aGT2);
+//             if (nodesToFuse.contains(xGT)) return;
+//             smallestEdge[xGT] = edge {
+//                 aGT, xGT, ew, ew
+//             };
+//         });
+
+//         for (auto [wxGT, ew] : edgesToProcess) {
+//             auto [wGT, xGT] = wxGT;
+//             if (nodesToFuse.contains(xGT)) swap(wGT, xGT);
+//             if (nodesToFuse.contains(xGT)) {
+//                 // contract edge
+//                 contractGTedge(wGT, xGT);
+//             } else {
+//                 if (!smallestEdge.contains(xGT)) {
+//                     smallestEdge[xGT] = edge {
+//                         wGT, xGT, ew, ew
+//                     };
+//                 }
+
+//                 if (ew < smallestEdge[xGT].key) {
+//                     smallestEdge[xGT] = edge {
+//                         wGT, xGT, ew, ew
+//                     };
+//                 }
+//             }
+//         }
+
+//         GT.removeAdjacentEdges(aGT, [](node _){return true;}, false);
+//         GT.removeAdjacentEdges(aGT, [](node _){return true;}, true);
+//         for (auto [xGT, axGT]: smallestEdge) {
+//             GT.addEdge(aGT, xGT, axGT.key);
+//             // [TODO] check if we need to add xa edge also...
+//         }
+
+//         updateMinLinks(link_i);
+
+//         // [TODO heaps] 
+//         // updateHeaps(link_i);
+
+//         // [TODO CHECK] of by one error ??? And what about the complexity ???
+//         chainLink.resize(link_i); 
+//         for (node uGT : nodesToFuse) {
+//             if (uGT == aGT) {
+//                 continue;
+//             }
+//             removeGTNode(uGT);
+//             // [TODO] check wheter removal works correctly
+//             // GT.removeNode(uGT);
+//         }
+//         // [TODO CHECK] Same as for chain links
+//         Cz.resize(link_i + 1);
+//         return uvEdge;
+//     };
+
+//     auto extension = [&](){
+//         // [TODO] assert(uv.u inside GT && uv.v outside GT)
+//         auto [uvEdge, mini, minj] = minBorderEdge();
+//         node uG0{uvEdge->u}, vG0{uvEdge->v};
+//         node uGT{node_G0_to_GT[uG0]};
+
+//         node vGT = GT.addNode();
+//         Cz.push_back(set{vGT});
+//         minLink.push_back(vector<pair<NodePair, double>>());
+//         for (auto& v: minLink) {
+//             v.push_back({{-1, -1}, -1});
+//         }
+//         // [TODO] update minLinks - resize
+//         // [TODO] check whether that's correct for chainlink
+//         // chainLink.push_back(makeEdge(uG0, vG0, uvEdge->ckey));
+//         node_G0_to_GT[vG0] = vGT;
+
+//         map<node, edge> smallestIncidentEdge;
+//         std::vector<edge> newBorderEdges;
+//         G0.forEdgesOf(vG0, [&](node vG0, node wG0, edgeweight ew){
+//             if (node_G0_to_GT.contains(wG0)) {
+//                 node wGT = node_G0_to_GT[wG0];
+//                 // border edge, need to delete it from the heap it's in
+//                 // edges[G0_edge_id[minmax(v, w)]].removed = true;
+//                 edge e = findAndDeleteEdgeFromHeaps(minmax(vG0, wG0));
+//                 if (!smallestIncidentEdge.contains(wGT)) {
+//                     smallestIncidentEdge[wGT] = e;
+//                 } else if (e.ckey < smallestIncidentEdge[wGT].ckey) {
+//                     // [TODO] compare ckey or key?
+//                     smallestIncidentEdge[wGT] = e;
+//                 } else {
+//                     // [TODO] can we just ignore that edge ???
+//                 }
+//             } else {
+//                 // w lays outside GT => need to add it to a heap
+//                 newBorderEdges.push_back(makeEdge(vG0, wG0, ew));
+//             }
+//         });
+        
+//         insertNewBorderEdges(newBorderEdges);
+//         for (auto [wGT, e] : smallestIncidentEdge) {
+//             // [TODO CHECK] In GT we can store edge with OG key
+//             // as it will only be used in the recursion
+//             GT.addEdge(vGT, wGT, e.key);
+            
+//             // [TODO] update minLinks - e is a min link
+//             int wCzi = -1;
+//             for (int i = 0; i < Cz.size(); ++i) {
+//                 if (Cz[i].contains(wCzi)) {
+//                     wCzi = i;
+//                     break;
+//                 }
+//             }
+//             assert(wCzi != -1);
+//             if (minLink[wCzi][Cz.size() - 1] > e.ckey) {
+//                 minLink[wCzi][Cz.size() - 1] = e.ckey;
+//             }
+//             // [TODO] maybe we need to also add wv edge?
+//         }
+//     };
+
+//     auto minorMst = [&](const Graph& gMinor, const map<NodePair, NodePair>& edge_GMinor_to_G0){
+//         Graph minorTree = mst(gMinor, t - 1);
+//         minorTree.forEdges([&](node uMinor, node vMinor, edgeweight ew) {
+//             auto [uG0, vG0] = edge_GMinor_to_G0[minmax(uMinor, vMinor)];
+//             F.addEdge(uG0, vG0, ew);
+//         });
+//     };
+
+//     auto retraction = [&](bool force = false){
+//         assert(!force || Cz.size() > 1);
+//         vector<edge> outsideEdges;
+//         Graph GMinor;
+//         map<NodePair, NodePair> edge_GMinor_to_G0;
+//         map<node, node> node_GT_to_GMinor;
+//         auto& CzLast = Cz[Cz.size() - 1];
+
+//         for (node uGT: CzLast) {
+//             node uGMinor = GMinor.addNode();
+//             node_GT_to_GMinor[uGT] = uGMinor;
+//         } 
+
+//         for (node uGT: CzLast) {
+//             GT.forEdgesOf(uGT, [&](node uGT2, node vGT, edgeweight ew) {
+//                 assert(uGT == uGT2);
+//                 if (CzLast.contains(vGT)) {
+//                     auto uGMinor = node_GT_to_GMinor[uGT];
+//                     auto vGMinor = node_GT_to_GMinor[vGT];
+//                     GMinor.addEdge(uGMinor, vGMinor, ew);
+
+//                     auto uvG0 = edge_GT_to_G0[minmax(uGT, vGT)];
+//                     edge_GMinor_to_G0[minmax(uGMinor, vGMinor)] = uvG0;
+//                 } else {
+//                     outsideEdges.push_back(edge{
+//                         uGT,
+//                         vGT,
+//                         ew,
+//                         ew
+//                     });
+//                 }
+//             });
+//         }
+//         minorMst(GMinor, edge_GMinor_to_G0);
+
+//         //
+//         // Now need to change the GT graph
+//         //  This will also update GT maps...
+//         //
+//         for (node uGT: CzLast) {
+//             removeGTNode(uGT);
+//         }
+//         node contractedNode = GT.addNode();
+
+//         map<node, edgeweight> smallestEdge;
+//         for (edge e: outsideEdges) {
+//             assert(CzLast.contains(e.u) && !CzLast.contains(e.v));
+//             if (!smallestEdge.contains(e.v) || e.key < smallestEdge[e.v]) {
+//                 smallestEdge[e.v] = e.key;
+//             }
+//         }
+
+//         for(auto [vGT, ew]: smallestEdge) {
+//             GT.addEdge(contractedNode, vGT, ew);
+//         }
+
+//         updateMinLinks(minLink.size() - 1);
+//         chainLink.pop_back();
+//         Cz.pop_back();
+//         // [TODO heaps]
+//         // updateHeaps(heaps.size() - 1);
+//     };
+
+//     auto needFusion = [&](){
+
+//         return false;
+//     };
+//     auto heapsEmpty = [&](){
+//         // for (auto& hs : heaps) {
+//         //     for (auto& h : hs) {
+//         //         if (!h.empty()) {
+//         //             return false;
+//         //         }
+//         //     }
+//         // }
+//         // return true;
+//         return heaps.empty();
+//     };
+//     auto shouldRetract = [&](){return (rand() & 0xFF) == 0  && Cz.size() > 1;};
+
+//     while (!heapsEmpty()) {
+//         if (shouldRetract()) {
+//             retraction();
+//         } else {
+//             edge e = fusion();
+//             // if (needFusion()){
+//             //     fusion();
+//             // }
+//             extension(e);
+//         }
+//     }
+//     while (!Cz.empty()) {
+//         retraction(true);
+//     }
+//     // [TODO] do retractions to all leftover T hierarchy
+//     // while (Cz.size() > 0) { retraction(true); } // true because we want to remove last Cz... 
+
+//     // [TODO] REMOVE THIS
+//     G0.forEdges([&](node u, node v, edgeweight ew){
+//         if(rand() & 1) {
+//             F.addEdge(u, v, ew);
+//         } else {
+//             B.addEdge(u, v, ew);
+//         }
+//     });
+
+//     // [STEP 4]
+//     // This step is done during [STEP 3] retractions.
+
+//     // [STEP 5]
+//     B.forEdges([&](node u, node v, edgeweight ew) {
+//         F.addEdge(u, v, ew);
+//     });
+//     Graph res = mst(F, t);
+//     res.forEdges([&](node u, node v, edgeweight ew) {
+//         auto [uG, vG] = edge_G0_to_G[minmax(u, v)];
+//         forest.addEdge(uG, vG, ew);
+//     });
+//     return forest;
+// }
+
+// Max number of nodes ~ billion
+std::pair<int, std::vector<int>> tHierarchySize(int n, int m) {
+    // Arbitrary sequence for now that grows really fast -- no point in using Ackermann sequence...
+    int desiredNumberOfLeaves[5] = {1, 1 << 2, 1 << 6, 1 << 16, 1 << 30};
+    int desiredNumberOfChildren[5];
+    desiredNumberOfChildren[0] = 1;
+    for (int i = 1; i < 5; ++i) desiredNumberOfChildren[i] = desiredNumberOfLeaves[i] / desiredNumberOfLeaves[i - 1];
+
+    std::vector<int> desiredSize;
+    int d = 0;
+    for (; d < 5 && desiredNumberOfLeaves[d] < n; ++d) {}
+    for (int i = d - 1; i >= 0; --i) desiredSize.push_back(desiredNumberOfChildren[i]);
+
+    return {d, desiredSize};
+}
+
 /**
  * Expects that:
  * G is connected
@@ -1100,85 +1555,54 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
         return forest;
     }
 
-    // [STEP 3]
-    /* G0 nodes */
-    // vector<vector<Koala::BinomialHeap<edge*>>> heaps;
-    // for now let's make it work with only 1 heap
     edge dummy_edge;
     SoftHeap<edge*> heaps(&dummy_edge, 0.1);
     heaps.extractMin();
-    Graph F = NetworKit::GraphTools::copyNodes(G0);
-    Graph B = NetworKit::GraphTools::copyNodes(G0);
+    set<NodePair> contractedEdges;
+    set<NodePair> badEdges;
     vector<edge> edges(G0.numberOfEdges());
-    /* GT nodes */
-    Graph GT;
-    vector<set<node>> Cz;
+    vector<set<int>> Cz;
+    vector<int> parent(G0.numberOfNodes());
+    vector<bool> fusionNode(G0.numberOfNodes(), false);
     vector<vector<pair<NodePair, double>>> minLink;
-    // vector<vector<double>> minLink;
-
-    vector<NodePair> chainLink;
-    /* maps */
-    map<NodePair, NodePair> edge_GT_to_G0;
-    // map<int, NodePair> eid_2_G0;
-    map<node, node> node_G0_to_GT;
     map<NodePair, int> G0_edge_id;
-
+    vector<bool> visited(G0.numberOfNodes(), false);
     assert(!G.isDirected());
     assert(!G0.isDirected());
-    assert(!GT.isDirected());
+    auto [d, desiredSize] = tHierarchySize(G0.numberOfNodes(), G0.numberOfEdges());
 
-    int eidNow = 0;
-    G0.forEdges([&](node u, node v, edgeweight ew){
-        edges[eidNow] = edge{u, v, ew, ew, eidNow, false};
-        G0_edge_id[minmax(u, v)] = eidNow;
-        eidNow += 1;
-    });
 
-    auto removeGTNode = [&](node u) {
-        GT.forEdgesOf(u, [&](node uGT, node vGT){
-            edge_GT_to_G0.erase(minmax(uGT, vGT));
-        });
-        GT.removeNode(u);
+    // we have Cz0, Cz1, .... Czk
+    auto k = [&](){return Cz.size() - 1;};
+
+    // [TODO] Check all edge{} constructions AFTER THIS and change to this...
+    auto makeEdge = [&](node u, node v, edgeweight ew) {
+        return edge{u, v, ew, ew, G0_edge_id[minmax(u, v)], false, false};
     };
 
-    // Returns a tuple {minEdge, min_i, min_j} so that heaps[min_i][min_j].top() == minEdge;
     auto minBorderEdge = [&](){
         int minKey = INT32_MAX;
         int mini = -1, minj = -1;
-        // [TODO heaps]
-        // for (int i = 0; i < heaps.size(); ++i) {
-        //     for (int j = 0; j < heaps[i].size(); ++j) {
-        //         // lazy delete, will work well with soft heaps
-        //         while (!heaps[i][j].empty() && heaps[i][j].top()->removed) {
-        //             heaps[i][j].pop();
-        //         }
-        //         if (!heaps[i][j].empty() && heaps[i][j].top()->key < minKey ) {
-        //             mini = i;
-        //             minj = j;
-        //             minKey = heaps[i][j].top()->key;
-        //         }
-        //     }
-        // }
-        // edge minEdge = *heaps[mini][minj].top();
-        // return std::tuple{minEdge, mini, minj};
+
+        // [TODO] Implement heaps
         edge* minEdge = heaps.extractMin();
         while(minEdge->removed) {
             minEdge = heaps.extractMin();
         }
-        return std::tuple{minEdge, 0, 0};
+        return std::tuple{*minEdge, 0, 0};
     };
 
-    auto findAndDeleteEdgeFromHeaps = [&](NodePair edgeG0) {
-        // [TODO] Implement
-        auto eid = G0_edge_id[minmax(edgeG0)];
+    auto findAndDeleteEdgeFromHeaps = [&](node u, node v) {
+        // [TODO] Implement heaps
+        auto eid = G0_edge_id[minmax(u, v)];
         edges[eid].removed = true;
         return edges[eid];
     };
 
     auto insertNewBorderEdges = [&](const vector<edge>& newBorderEdges) {
-        // [TODO] Implement
+        // [TODO] Implement heaps
         for (auto e: newBorderEdges) {
-            NodePair np = minmax{e.u, e.v};
+            NodePair np = minmax(e.u, e.v);
             auto eid = G0_edge_id[np];
             edges[eid] = e;
             heaps = std::move(insert(std::move(heaps), &edges[eid]));
@@ -1186,15 +1610,10 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
         return;
     };
 
-    // [TODO] Check all edge{} constructions and change to this...
-    auto makeEdge = [&](node u, node v, edgeweight ew) {
-        return edge{u, v, ew, ew, G0_edge_id[minmax(u, v)], false};
-    };
-
     auto leftmostSmallerMinLink = [&](int ckey){
         int i = 0;
         int j = 0;
-        NodePair abGT;
+        NodePair ab;
 
         for (; i < minLink.size(); ++i) {
             for (; j < minLink[i].size(); ++j) {
@@ -1206,16 +1625,11 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
             }
         }
 
-        return tuple<int, int, NodePair>{-1, -1, abGT};
+        return tuple<int, int, NodePair>{-1, -1, ab};
     };
 
-    auto contractGTedge = [&](node u, node v){
-        auto [uG0, vG0] = edge_GT_to_G0[minmax(u, v)];
-        int key = edges[G0_edge_id[minmax(uG0, vG0)]].key;
-        F.addEdge(uG0, vG0, key);
-    };
-
-    auto updateMinLinks = [&](int last_i) {
+    auto updateMinLinks = [&]() {
+        int last_i = k();
         for (int i = 0; i < last_i; ++i) {
             int best_j = last_i;
             double best_val = minLink[i][last_i].second;
@@ -1227,243 +1641,141 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
             }
             minLink[i][last_i] = minLink[i][best_j];
         }
-        minLink.resize(last_i + 1);
+
+        for (int i = 0; i < d; ++i) {
+            for (int j = 0; j < d; ++j) {
+                if (i >= k() || j > k()) {
+                    minLink[i][j] = {{-1, -1}, -1};
+                }
+            }
+        }
+        // minLink.resize(last_i + 1);
     };
 
     auto updateHeaps = [&](int last_i) {
         // [TODO] when heaps
     };
 
-    auto fusion = [&](){
+    auto nodeTopParent = [&](node u) {
+        int p = static_cast<int>(u);
+        while(parent[p] != p) p = parent[p];
+        return p;
+    };
+
+    auto CziOfNode = [&](node u) {
+        int p = nodeTopParent(u);
+        for (int i = 0; i < Cz.size(); ++i) {
+            if (Cz[i].contains(p)) {
+                return i;
+            }
+        }
+        throw std::runtime_error("u node should be found");
+    };
+
+    auto fusion = [&]() -> edge {
         auto [uvEdge, mini, minj] = minBorderEdge();
-        node uG0{uvEdge->u}, vG0{uvEdge->v};
-        auto [link_i, link_j, abGT] = leftmostSmallerMinLink(uvEdge->ckey); // [TODO CHECK] ckey ???
+        node uG0{uvEdge.u}, vG0{uvEdge.v};
+        auto [link_i, link_j, ab] = leftmostSmallerMinLink(uvEdge.ckey); // [TODO CHECK] ckey ???
         if (link_i == -1) return uvEdge;
-        
-        
-        auto [aGT, bGT] = abGT;
-        // [TODO] check wheter we need to swap a and b, this may apply to every edge retrieval...
+        auto [a, b] = ab;
+        auto ap = nodeTopParent(a); 
+        auto bp = nodeTopParent(b);
+        if (!Cz[link_i].contains(ap)) {
+            swap(a, b);
+            swap(ap, bp);
+        }
 
-        set<node> nodesToFuse;
-        nodesToFuse.insert(aGT);
-        // Better insert it twice than never
-        nodesToFuse.insert(bGT);
-        vector<pair<NodePair, edgeweight>> edgesToProcess;
-        map<node, edge> smallestEdge;
-        for (int i = link_i + 1; i < Cz.size(); ++i) {
-            for (node w : Cz[i]) {
-                nodesToFuse.insert(w);
-                GT.forEdgesOf(w, [&](node w, node x, edgeweight ew){
-                    edgesToProcess.push_back({{w, x}, ew});
-                });
+        int newP = parent.size();
+        parent.push_back(newP);
+        fusionNode.push_back(true);
+        while (k() > link_i) {
+            for (auto v: Cz[k()]) {
+                parent[v] = newP;
             }
+            Cz.pop_back();
         }
-        GT.forEdgesOf(aGT, [&](node aGT2, node xGT, edgeweight ew) {
-            assert(aGT == aGT2);
-            if (nodesToFuse.contains(xGT)) return;
-            smallestEdge[xGT] = edge {
-                aGT, xGT, ew, ew
-            };
-        });
+        Cz[k()].erase(ap);
+        parent[ap] = newP;
+        Cz[k()].insert(newP);
 
-        for (auto [wxGT, ew] : edgesToProcess) {
-            auto [wGT, xGT] = wxGT;
-            if (nodesToFuse.contains(xGT)) swap(wGT, xGT);
-            if (nodesToFuse.contains(xGT)) {
-                // contract edge
-                contractGTedge(wGT, xGT);
-            } else {
-                if (!smallestEdge.contains(xGT)) {
-                    smallestEdge[xGT] = edge {
-                        wGT, xGT, ew, ew
-                    };
-                }
-
-                if (ew < smallestEdge[xGT].key) {
-                    smallestEdge[xGT] = edge {
-                        wGT, xGT, ew, ew
-                    };
-                }
-            }
-        }
-
-        GT.removeAdjacentEdges(aGT, [](node _){return true;}, false);
-        GT.removeAdjacentEdges(aGT, [](node _){return true;}, true);
-        for (auto [xGT, axGT]: smallestEdge) {
-            GT.addEdge(aGT, xGT, axGT.key);
-            // [TODO] check if we need to add xa edge also...
-        }
-
-        updateMinLinks(link_i);
-
-        // [TODO heaps] 
-        // updateHeaps(link_i);
-
-        // [TODO CHECK] of by one error ??? And what about the complexity ???
-        chainLink.resize(link_i); 
-        for (node uGT : nodesToFuse) {
-            if (uGT == aGT) {
-                continue;
-            }
-            removeGTNode(uGT);
-            // [TODO] check wheter removal works correctly
-            // GT.removeNode(uGT);
-        }
-        // [TODO CHECK] Same as for chain links
-        Cz.resize(link_i + 1);
+        updateMinLinks();
         return uvEdge;
     };
 
-    auto extension = [&](){
-        // [TODO] assert(uv.u inside GT && uv.v outside GT)
-        auto [uvEdge, mini, minj] = minBorderEdge();
-        node uG0{uvEdge->u}, vG0{uvEdge->v};
-        node uGT{node_G0_to_GT[uG0]};
-
-        node vGT = GT.addNode();
-        Cz.push_back(set{vGT});
-        minLink.push_back(vector<pair<NodePair, double>>());
-        for (auto& v: minLink) {
-            v.push_back({{-1, -1}, -1});
+    auto updateMinLinksWithEdge = [&](edge e) {
+        int i = CziOfNode(e.u), j = CziOfNode(e.v);
+        if (i > j) swap(i, j);
+        if (minLink[i][j].second > e.ckey) {
+            minLink[i][j] = {minmax(e.u, e.v), e.ckey};
         }
-        // [TODO] update minLinks - resize
-        // [TODO] check whether that's correct for chainlink
-        // chainLink.push_back(makeEdge(uG0, vG0, uvEdge->ckey));
-        node_G0_to_GT[vG0] = vGT;
+    };
 
-        map<node, edge> smallestIncidentEdge;
-        std::vector<edge> newBorderEdges;
-        G0.forEdgesOf(vG0, [&](node vG0, node wG0, edgeweight ew){
-            if (node_G0_to_GT.contains(wG0)) {
-                node wGT = node_G0_to_GT[wG0];
-                // border edge, need to delete it from the heap it's in
-                // edges[G0_edge_id[minmax(v, w)]].removed = true;
-                edge e = findAndDeleteEdgeFromHeaps(minmax(vG0, wG0));
-                if (!smallestIncidentEdge.contains(wGT)) {
-                    smallestIncidentEdge[wGT] = e;
-                } else if (e.ckey < smallestIncidentEdge[wGT].ckey) {
-                    // [TODO] compare ckey or key?
-                    smallestIncidentEdge[wGT] = e;
-                } else {
-                    // [TODO] can we just ignore that edge ???
-                }
+    int extensions = 0;
+    auto extension = [&](edge e) {
+        extensions += 1;
+        node u = e.u, v = e.v;
+        if (!visited[u]) swap(u, v);
+        assert(visited[u]);
+
+        Cz.push_back({v});
+        visited[v] = true;
+
+        G0.forEdgesOf(v, [&](node v, node w, edgeweight ew) {
+            if (visited[w]) {
+                edge e = findAndDeleteEdgeFromHeaps(v, w);
+                updateMinLinksWithEdge(e);
             } else {
-                // w lays outside GT => need to add it to a heap
-                newBorderEdges.push_back(makeEdge(vG0, wG0, ew));
+                int eid = G0_edge_id[minmax({v, w})];
+                heaps = std::move(insert(std::move(heaps), &edges[eid]));
             }
-        });
-        
-        insertNewBorderEdges(newBorderEdges);
-        for (auto [wGT, e] : smallestIncidentEdge) {
-            // [TODO CHECK] In GT we can store edge with OG key
-            // as it will only be used in the recursion
-            GT.addEdge(vGT, wGT, e.key);
-            
-            // [TODO] update minLinks - e is a min link
-            int wCzi = -1;
-            for (int i = 0; i < Cz.size(); ++i) {
-                if (Cz[i].contains(wCzi)) {
-                    wCzi = i;
-                    break;
-                }
-            }
-            assert(wCzi != -1);
-            if (minLink[wCzi][Cz.size() - 1] > e.ckey) {
-                minLink[wCzi][Cz.size() - 1] = e.ckey;
-            }
-            // [TODO] maybe we need to also add wv edge?
-        }
-    };
-
-    auto minorMst = [&](const Graph& gMinor, const map<NodePair, NodePair>& edge_GMinor_to_G0){
-        Graph minorTree = mst(gMinor, t - 1);
-        minorTree.forEdges([&](node uMinor, node vMinor, edgeweight ew) {
-            auto [uG0, vG0] = edge_GMinor_to_G0[minmax(uMinor, vMinor)];
-            F.addEdge(uG0, vG0, ew);
         });
     };
 
-    auto retraction = [&](bool force = false){
-        assert(!force || Cz.size() > 1);
-        vector<edge> outsideEdges;
-        Graph GMinor;
-        map<NodePair, NodePair> edge_GMinor_to_G0;
-        map<node, node> node_GT_to_GMinor;
-        auto& CzLast = Cz[Cz.size() - 1];
-
-        for (node uGT: CzLast) {
-            node uGMinor = GMinor.addNode();
-            node_GT_to_GMinor[uGT] = uGMinor;
-        } 
-
-        for (node uGT: CzLast) {
-            GT.forEdgesOf(uGT, [&](node uGT2, node vGT, edgeweight ew) {
-                assert(uGT == uGT2);
-                if (CzLast.contains(vGT)) {
-                    auto uGMinor = node_GT_to_GMinor[uGT];
-                    auto vGMinor = node_GT_to_GMinor[vGT];
-                    GMinor.addEdge(uGMinor, vGMinor, ew);
-
-                    auto uvG0 = edge_GT_to_G0[minmax(uGT, vGT)];
-                    edge_GMinor_to_G0[minmax(uGMinor, vGMinor)] = uvG0;
-                } else {
-                    outsideEdges.push_back(edge{
-                        uGT,
-                        vGT,
-                        ew,
-                        ew
-                    });
-                }
-            });
-        }
-        minorMst(GMinor, edge_GMinor_to_G0);
-
-        //
-        // Now need to change the GT graph
-        //  This will also update GT maps...
-        //
-        for (node uGT: CzLast) {
-            removeGTNode(uGT);
-        }
-        node contractedNode = GT.addNode();
-
-        map<node, edgeweight> smallestEdge;
-        for (edge e: outsideEdges) {
-            assert(CzLast.contains(e.u) && !CzLast.contains(e.v));
-            if (!smallestEdge.contains(e.v) || e.key < smallestEdge[e.v]) {
-                smallestEdge[e.v] = e.key;
-            }
-        }
-
-        for(auto [vGT, ew]: smallestEdge) {
-            GT.addEdge(contractedNode, vGT, ew);
-        }
-
-        updateMinLinks(minLink.size() - 1);
-        chainLink.pop_back();
+    auto retraction = [&]() {
+        assert(Cz.size() > 1);
+        int newP = parent.size();
+        parent.push_back(newP);
+        fusionNode.push_back(false);
+        auto vertices = Cz[Cz.size() - 1];
         Cz.pop_back();
-        // [TODO heaps]
-        // updateHeaps(heaps.size() - 1);
+
+        for (auto v: vertices) {
+            parent[v] = newP;
+        }
+        Cz[Cz.size() - 1].insert(newP);
+        
+        updateMinLinks();
     };
 
-    auto needFusion = [&](){
-
-        return false;
+    auto shouldRetract = [&]() {
+        return Cz[k()].size() >= desiredSize[k()];
+        // return (rand() & 0xFF) == 0  && Cz.size() > 1;
     };
-    auto heapsEmpty = [&](){
-        // for (auto& hs : heaps) {
-        //     for (auto& h : hs) {
-        //         if (!h.empty()) {
-        //             return false;
-        //         }
-        //     }
-        // }
-        // return true;
-        return heaps.empty();
-    };
-    auto shouldRetract = [&](){return (rand() & 0xFF) == 0  && Cz.size() > 1;};
 
-    while (!heapsEmpty()) {
+    auto shouldFinish = [&]() {
+        return extensions >= G0.numberOfNodes() - 1;
+    };
+
+    auto initialization = [&]() {
+        int eidNow = 0;
+        G0.forEdges([&](node u, node v, edgeweight ew){
+            edges[eidNow] = edge{u, v, ew, ew, eidNow, false, false};
+            G0_edge_id[minmax(u, v)] = eidNow;
+            eidNow += 1;
+        });
+
+        for(int i = 0; i < parent.size(); i++) parent[i] = i;
+        Cz.push_back({0});
+        G0.forEdgesOf(0, [&](node u, node v, edgeweight ew) {
+            int eid = G0_edge_id[minmax(u, v)];
+            heaps = std::move(insert(std::move(heaps), &edges[eid]));
+        });
+        minLink = vector<vector<pair<NodePair, double>>>(d, vector<pair<NodePair, double>>(d, {{-1, -1}, -1}));
+        visited[0] = true;
+    };
+
+    initialization();
+    while (!shouldFinish()) {
         if (shouldRetract()) {
             retraction();
         } else {
@@ -1474,34 +1786,29 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
             extension(e);
         }
     }
-    while (!Cz.empty()) {
-        retraction(true);
-    }
-    // [TODO] do retractions to all leftover T hierarchy
-    // while (Cz.size() > 0) { retraction(true); } // true because we want to remove last Cz... 
+    // [TODO] consider Cz.size() == 1 carefully
+    while (Cz.size() > 1) {
+        int newP = parent.size();
+        parent.push_back(newP);
+        fusionNode.push_back(false);
+        auto vertices = Cz[Cz.size() - 1];
+        Cz.pop_back();
 
-    // [TODO] REMOVE THIS
-    G0.forEdges([&](node u, node v, edgeweight ew){
-        if(rand() & 1) {
-            F.addEdge(u, v, ew);
-        } else {
-            B.addEdge(u, v, ew);
+        for (auto v: vertices) {
+            parent[v] = newP;
         }
-    });
+        Cz[Cz.size() - 1].insert(newP);
+    }
+    int root = parent.size();
+    parent.push_back(root);
+    fusionNode.push_back(false);
+    for (int v: Cz[0]) {
+        parent[v] = root;
+    }
 
     // [STEP 4]
-    // This step is done during [STEP 3] retractions.
-
+    
     // [STEP 5]
-    B.forEdges([&](node u, node v, edgeweight ew) {
-        F.addEdge(u, v, ew);
-    });
-    Graph res = mst(F, t);
-    res.forEdges([&](node u, node v, edgeweight ew) {
-        auto [uG, vG] = edge_G0_to_G[minmax(u, v)];
-        forest.addEdge(uG, vG, ew);
-    });
-    return forest;
 }
 
 }  /* namespace Koala */
