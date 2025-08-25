@@ -245,7 +245,7 @@ void SoftHeap<T>::TreeNode::sift() {
             // all elements from originalList become now corrupted
             for (T t: originalList) {
                 t->corrupted = true;
-                t->ckey = left->ckey;
+                // t->ckey = left->ckey;
                 corruptedList.push_back(t);
             }
             originalList.clear();

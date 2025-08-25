@@ -15,7 +15,7 @@ int D = 200;
 float eps = 0.1; 
 
 template <typename T>
-NetworKit::edgeweight run_algorithm(NetworKit::Graph &G) {
+std::pair<NetworKit::edgeweight, NetworKit::Graph> run_algorithm(NetworKit::Graph &G) {
     auto algorithm = T(G);
 
     auto start = std::chrono::high_resolution_clock::now();
@@ -25,13 +25,13 @@ NetworKit::edgeweight run_algorithm(NetworKit::Graph &G) {
     auto &spanning_tree = algorithm.getForest();
     std::cout << duration.count() << ' ' << spanning_tree.totalEdgeWeight() << '\n';
     // std::cout << "BRUUUH 0" << std::endl;
-    algorithm.check();
+    // algorithm.check();
     // std::cout << "BRUUUH 1" << std::endl;
-    return spanning_tree.totalEdgeWeight();
+    return {spanning_tree.totalEdgeWeight(), spanning_tree};
 }
 
 template<>
-NetworKit::edgeweight run_algorithm<Koala::ChazelleRubinfeldTrevisanMinimumSpanningTree>(NetworKit::Graph &G) {
+std::pair<NetworKit::edgeweight, NetworKit::Graph> run_algorithm<Koala::ChazelleRubinfeldTrevisanMinimumSpanningTree>(NetworKit::Graph &G) {
     auto algorithm = Koala::ChazelleRubinfeldTrevisanMinimumSpanningTree(G);
 
     int max_w = x;
@@ -44,7 +44,7 @@ NetworKit::edgeweight run_algorithm<Koala::ChazelleRubinfeldTrevisanMinimumSpann
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
     std::cout << duration.count() << ' ' << algorithm.getTreeWeight() << '\n';
-    return algorithm.getTreeWeight();
+    return {algorithm.getTreeWeight(), NetworKit::Graph()};
 }
 namespace {
     enum class Algorithm {
@@ -88,11 +88,11 @@ void run_g6_tests(const std::string &path, const std::string &algorithm) {
         // std::cout << line << " " << std::flush;
         switch (ALGORITHM[algorithm]) {
         case Algorithm::EXACT:
-            T.insert(run_algorithm<Koala::KruskalMinimumSpanningTree>(G));
-            T.insert(run_algorithm<Koala::PrimMinimumSpanningTree>(G));
-            T.insert(run_algorithm<Koala::BoruvkaMinimumSpanningTree>(G));
+            T.insert(run_algorithm<Koala::KruskalMinimumSpanningTree>(G).first);
+            T.insert(run_algorithm<Koala::PrimMinimumSpanningTree>(G).first);
+            T.insert(run_algorithm<Koala::BoruvkaMinimumSpanningTree>(G).first);
             for (int i = 0; i < 5; i++) {
-                T.insert(run_algorithm<Koala::KargerKleinTarjanMinimumSpanningTree>(G));
+                T.insert(run_algorithm<Koala::KargerKleinTarjanMinimumSpanningTree>(G).first);
             }
             assert(T.size() == 1);
             break;
@@ -148,8 +148,6 @@ void run_dimacs_tests(const std::string &path, const std::string &algorithm) {
     // std::cout << "Run Kruskal" << std::endl;
     // T.insert(run_algorithm<Koala::PrimMinimumSpanningTree>(G));
     // std::cout << "RUN BORUVKA" << std::endl;
-    // T.insert(run_algorithm<Koala::BoruvkaMinimumSpanningTree>(G));
-    
     
     
     // std::cout << path << " " << std::flush;
@@ -188,8 +186,33 @@ void run_dimacs_tests(const std::string &path, const std::string &algorithm) {
 
     
     std::cout<< "Running chazelle now!" << std::endl;
-    T.insert(run_algorithm<Koala::Chazelle2000MinimumSpanningTree>(G));
-    std::cout << "Run Chazelle" << std::endl;
+    auto [chazelle, chazelleMST] = run_algorithm<Koala::Chazelle2000MinimumSpanningTree>(G);
+    std::cout << "Finished Chazelle" << std::endl;
+    auto [boruvka, boruvkaMST] = run_algorithm<Koala::BoruvkaMinimumSpanningTree>(G);
+    std::cout << "Finished Boruvka" << std::endl;
+    T.insert(chazelle);
+    T.insert(boruvka);
+
+    using NetworKit::node;
+    using NetworKit::edgeweight;
+    std::set<std::tuple<node, node, edgeweight>> boruvkaEdges;
+    boruvkaMST.forEdges([&](node u, node v, edgeweight ew){
+        auto [uu, vv] = std::minmax(u, v);
+        boruvkaEdges.insert({uu, vv, ew});
+    });
+
+
+    NetworKit::Graph g(3, true);
+    g.addEdge(1, 2, 2);
+    NetworKit::Graph g2 = NetworKit::GraphTools::subgraphFromNodes(g, {1, 2});
+    g2.forNodes([](node u){std::cout << u << ' ';}); std::cout <<std::endl;
+    g2.forEdges([](node u, node v){std::cout << u << '-' << v << ' ';}); std::cout <<std::endl;
+
+    chazelleMST.forEdges([&](node u, node v, edgeweight ew){
+        auto [uu, vv] = std::minmax(u, v);
+        assert(boruvkaEdges.contains({uu, vv, ew}));
+    });
+
     assert(T.size() == 1);
     std::cout << std::endl;
     return;

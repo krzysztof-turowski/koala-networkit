@@ -1570,6 +1570,53 @@ std::pair<int, std::vector<int>> tHierarchySize(int n, int m) {
     return {d, desiredSize};
 }
 
+NetworKit::Graph Chazelle2000MinimumSpanningTree::msf(NetworKit::Graph G, int t) {
+    std::cout << "Inside msf" << std::endl;
+    auto tree = NetworKit::GraphTools::copyNodes(G);
+    auto connected_components = NetworKit::ConnectedComponents(G);
+    connected_components.run();
+    auto components = connected_components.getComponents();
+    for (auto i = 0; i < connected_components.numberOfComponents(); i++) {
+        std::cout << "Inside cc " << i << std::endl;
+        auto subgraph = NetworKit::GraphTools::subgraphFromNodes(G, [](const auto& components){
+            std::unordered_set<NetworKit::node> s;
+            for (auto n: components){
+                s.insert(n);
+            }
+            return s;
+        }(components[i]));
+
+        using NetworKit::node;
+        using NetworKit::edgeweight;
+        std::unordered_map<node, node> mappingTo;
+        std::unordered_map<node, node> mappingFrom;
+        subgraph.forNodes([&](node u){
+            int n = mappingTo.size();
+            mappingTo[u] = n;
+            mappingFrom[n] = u;
+        });
+        subgraph = NetworKit::GraphTools::getCompactedGraph(subgraph, mappingTo);
+        subgraph.forNodes([](node u){std::cout<< u << " ";}); std::cout << std::endl;
+        subgraph.forEdges([](node u, node v, edgeweight ew){std::cout << "{"<< u << " " << v << " "<< ew << "} ";}); std::cout << std::endl;
+
+        std::cout << "Calling mst on " << i << std::endl;
+        auto tree1 = mst(subgraph, t);
+        tree1.forEdges([&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight ew){
+            tree.addEdge(mappingFrom[u], mappingFrom[v], ew);
+        });
+    }
+    return tree;
+}
+
+namespace {
+    bool isConnected(NetworKit::Graph G) {
+        auto connected_components = NetworKit::ConnectedComponents(G);
+        connected_components.run();
+        auto components = connected_components.getComponents();
+        return components.size() == 1;
+    }
+}
+
 /**
  * Expects that:
  * G is connected
@@ -1586,6 +1633,9 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
     using NetworKit::Graph;
     using NetworKit::node;
     using NetworKit::edgeweight;
+
+    assert(isConnected(G));
+    assert(!G.isDirected());
     
     std::cout << "INSIDE CHAZELLE" << std::endl;
     // [STEP 1]
@@ -1638,6 +1688,9 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
         edge* minEdge = heaps.extractMin();
         while(minEdge->removed) {
             minEdge = heaps.extractMin();
+        }
+        if (minEdge->corrupted) {
+            badEdges.insert(minmax(minEdge->u, minEdge->v));
         }
         return std::tuple{*minEdge, 0, 0};
     };
@@ -1877,12 +1930,109 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
     for (int v: Cz[0]) {
         parent[v] = root;
     }
+    assert(parent.size() == fusionNode.size());
 
     // [STEP 4]
-    // vector<Graph> CzGraphs(Graph());
+    vector<map<node, node>> fromG0Maps(parent.size());
+    vector<map<NodePair, NodePair>> toG0edgeMaps(parent.size());
+    vector<int> depth(parent.size(), 0);
 
+    for (int i = 0; i < G0.numberOfNodes(); ++i) {
+        int v = i;
+        while (v != parent[v]) {
+            v = parent[v];
+            depth[i] += 1;
+        }
+        assert(v == root);
+
+        int d = depth[i];
+        v = i;
+        while (v != parent[v]) {
+            int prev_v = v;
+            v = parent[v];
+            d -= 1;
+
+            depth[v] = d;
+            int new_v = fromG0Maps[v].size();
+            std::cout << v << ' ' << fromG0Maps[v].size() << std::endl;
+            fromG0Maps[v].insert({prev_v, new_v});
+        }
+    }
+    std :: cout << "depth calculated" << std::endl;
+    
+    vector<Graph> CzGraphs(parent.size(), Graph(0, true));
+    for (int i = G0.numberOfNodes(); i < parent.size(); ++i) {
+        CzGraphs[i] = Graph(fromG0Maps[i].size(), true);
+        // for (int j = 0; j < fromG0Maps[i].size(); ++j) CzGraphs[i].addNode();
+    }
+    std :: cout << "Cz graphs calculated" << std::endl;
+
+    
+    auto lcaLR = [&](int l, int r) {
+        int prev_l = l, prev_r = r;
+        while (depth[l] > depth[r]) {
+            prev_l = l;
+            l = parent[l];
+        }
+        while (depth[l] < depth[r]) {
+            prev_r = r;
+            r = parent[r];
+        }
+
+        while(l != r) {
+            prev_l = l; prev_r = r;
+            l = parent[l]; r = parent[r];
+        }
+
+        return tuple<int, int, int>{l, prev_l, prev_r};
+    };
+
+    G0.forEdges([&](node u, node v, edgeweight ew) {
+        if (badEdges.contains(minmax(u, v))) return;
+
+        
+        auto [lca, l, r] = lcaLR(u, v);
+        for (auto [key, val]: fromG0Maps[lca]) {
+            std :: cout << "{ "<< key << " -> " << val << "}, ";
+        }std :: cout << std::endl;
+        auto minorL = fromG0Maps[lca][l];
+        auto minorR = fromG0Maps[lca][r];
+        std :: cout << "lca " << lca << " l " << l << " r " << r << " minorL " << minorL << " minorR " << minorR << std::endl; 
+        std :: cout << "N: " << CzGraphs[lca].numberOfNodes() << " " << fromG0Maps[lca].size() << std::endl;
+        CzGraphs[lca].addEdge(minorL, minorR, ew);
+        toG0edgeMaps[lca][minmax(minorL, minorR)] = minmax(u, v);
+    });
+    std :: cout << "Cz graphs edges added" << std::endl;
+    for (int i = G0.numberOfNodes(); i < CzGraphs.size(); ++i) {
+        std::cout << "recursive call depth: " << depth[i] << " size: " << CzGraphs[i].numberOfNodes() << std::endl;
+        std::cout << i << " out of " << CzGraphs.size() << std::endl;
+        CzGraphs[i].forNodes([](node u){std::cout<< u << " ";}); std::cout << std::endl;
+        CzGraphs[i].forEdges([](node u, node v, edgeweight ew){std::cout << "{"<< u << " " << v << " "<< ew << "} ";}); std::cout << std::endl;
+        if (fusionNode[i]) continue;
+        CzGraphs[i] = msf(CzGraphs[i], t - 1);
+    }
+    std :: cout << "msts called" << std::endl;
+    
+    auto F = NetworKit::GraphTools::copyNodes(G0);
+    for (int i = G0.numberOfNodes(); i < CzGraphs.size(); ++i) {
+        CzGraphs[i].forEdges([&](node u, node v){
+            auto [x, y] = toG0edgeMaps[i][minmax(u, v)];
+            F.addEdge(x, y, edges[G0_edge_id[minmax(x, y)]].key);
+        });
+    }
+    std :: cout << "edges from step 4 added" << std::endl;
+    for (auto [x, y]: badEdges) {
+        F.addEdge(x, y, edges[G0_edge_id[minmax(x, y)]].key);
+    }
+    std :: cout << "bad edges added" << std::endl;
 
     // [STEP 5]
+    Graph res = msf(F, t);
+    res.forEdges([&](node u, node v, edgeweight ew) {
+        auto [uG, vG] = edge_G0_to_G[minmax(u, v)];
+        forest.addEdge(uG, vG, ew);
+    });
+    return forest;
 }
 
 }  /* namespace Koala */
