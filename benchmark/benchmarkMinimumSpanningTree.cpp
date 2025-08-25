@@ -5,7 +5,7 @@
 #include <string>
 
 #include <networkit/graph/GraphTools.hpp>
-
+#include <networkit/components/ConnectedComponents.hpp>
 #include <io/G6GraphReader.hpp>
 #include <io/DimacsGraphReader.hpp>
 #include <mst/MinimumSpanningTree.hpp>
@@ -25,8 +25,7 @@ NetworKit::edgeweight run_algorithm(NetworKit::Graph &G) {
     auto &spanning_tree = algorithm.getForest();
     std::cout << duration.count() << ' ' << spanning_tree.totalEdgeWeight() << '\n';
     // std::cout << "BRUUUH 0" << std::endl;
-    // Check doesn't work for any graph so why bother.
-    // algorithm.check();
+    algorithm.check();
     // std::cout << "BRUUUH 1" << std::endl;
     return spanning_tree.totalEdgeWeight();
 }
@@ -129,6 +128,16 @@ void run_dimacs_tests(const std::string &path, const std::string &algorithm) {
             G.addEdge(u, v, w);
         }
     });
+
+    // Ensure that the graph is connected...
+    auto connected_components = NetworKit::ConnectedComponents(G);
+    connected_components.run();
+    auto components = connected_components.getComponents();
+    for (auto i = 1; i < connected_components.numberOfComponents(); i++) {
+        G.addEdge(
+            components[0][0], components[i][0], D);
+    }
+
     // std::cout << "Num 1 " << count1 << '\n'; 
     // std::cout << "Num X " << countMax << '\n'; 
     // std::cout << path << " " << std::flush;

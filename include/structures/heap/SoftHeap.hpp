@@ -104,7 +104,11 @@ public:
     int rank = 0;
     int insertCount = 0;
     std::shared_ptr<ListNode> guard;
+    // static std::list<T>* justCorruptedElementsList;
 };
+
+// template<SoftHeapElement T>
+// std::list<T>* SoftHeap<T>::justCorruptedElementsList = nullptr;
 
 // template<SoftHeapElement T>
 // SoftHeap<T>::~SoftHeap(){
@@ -241,6 +245,7 @@ void SoftHeap<T>::TreeNode::sift() {
             // all elements from originalList become now corrupted
             for (T t: originalList) {
                 t->corrupted = true;
+                t->ckey = left->ckey;
                 corruptedList.push_back(t);
             }
             originalList.clear();
@@ -382,11 +387,12 @@ std::vector<T> SoftHeap<T>::corruptedElements() {
 template<SoftHeapElement T>
 T SoftHeap<T>::extractMin() {
     while(true) {
-        // std::cout << "loooooop\n";
+        std::cout << "extract min\n";
         T ret = extractMinInternal();
         if (!ret->removed) {
             return ret;
         }
+        std::cout << "oopsies\n";
     }
 }
 
@@ -394,6 +400,7 @@ template<SoftHeapElement T>
 T SoftHeap<T>::extractMinInternal() {
     // std::cout << "extractMin" << std::endl;
     elements -= 1;
+    assert(!first()->isGuard);
     if (first()->isGuard) throw std::runtime_error("EXTRACT FROM EMPTY HEAP");
     auto t = first()->sufMin.lock();
     auto x = t->tree;
