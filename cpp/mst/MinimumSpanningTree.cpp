@@ -1738,9 +1738,10 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
     std::cout << '\n';
     std::cout << "////////////////////////////////" << std::endl;
 
-    edge dummy_edge{0, 0, 0, 0, 0, false, false};
-    SoftHeap<edge*> heaps(&dummy_edge, 0.1);
-    heaps.extractMin();
+    // edge dummy_edge{0, 0, 0, 0, 0, false, false};
+    // SoftHeap<edge*> heaps(0.1);
+    std::vector<SoftHeap<edge*>> heaps;
+    // heaps.extractMin();
     // std::priority_queue<edge> heaps;
     set<NodePair> contractedEdges;
     set<NodePair> badEdges;
@@ -1766,7 +1767,7 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
     };
 
     auto minBorderEdge = [&](){
-        int minKey = INT32_MAX;
+        double minKey = __DBL_MAX__;
         int mini = -1, minj = -1;
 
         // edge minEdge = heaps.top();
@@ -1777,13 +1778,22 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
         // }
         // return std::tuple{minEdge, 0, 0};
         // [TODO] Implement heaps
-        edge* minEdge = heaps.extractMin();
-        while(minEdge->removed) {
-            minEdge = heaps.extractMin();
+        for (int i = 0; i < heaps.size(); ++i) {
+            auto ret = heaps[i].lookupMin();
+            if (std::holds_alternative<bool>(ret)) continue;
+            auto val = std::get<edge*>(ret);
+            if (val->ckey < minKey) {
+                mini = i;
+                minKey = val->ckey;
+            }
+        }
+        edge* minEdge = heaps[mini].extractMin();
+        // while(minEdge->removed) {
+            // minEdge = heaps.extractMin();
             // if (minEdge->corrupted) {
             //     badEdges.insert(minmax(minEdge->u, minEdge->v));
             // }
-        }
+        // }
         
         return std::tuple{*minEdge, 0, 0};
     };
@@ -1806,7 +1816,7 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
             auto eid = G0_edge_id[np];
             edges[eid] = e;
             // [TODO] Implement heaps
-            heaps = std::move(insert(std::move(heaps), &edges[eid]));
+            heaps[k()] = std::move(insert(std::move(heaps[k()]), &edges[eid]));
             // heaps.push(e);
         }
         return;
@@ -1913,6 +1923,8 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
         parent.push_back(newP);
         fusionNode.push_back(false);
         auto vertices = Cz[Cz.size() - 1];
+        heaps[k() - 1] = std::move(meld(std::move(heaps[k()]), std::move(heaps[k() - 1])));
+        heaps.pop_back();
         Cz.pop_back();
         if (vertices.size() == 1) {
             parent.pop_back();
@@ -1959,6 +1971,8 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
             for (auto v: Cz[k()]) {
                 parent[v] = newP;
             }
+            heaps[k() - 1] = std::move(meld(std::move(heaps[k()]), std::move(heaps[k() - 1])));
+            heaps.pop_back();
             Cz.pop_back();
         }
         Cz[k()].erase(ap);
@@ -1993,6 +2007,7 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
         // std::cout << "BRUH 3" <<std::endl;
 
         Cz.push_back({v});
+        heaps.push_back(SoftHeap<edge*>(0.1));
         visited[v] = true;
         // std::cout << "BRUH 4" <<std::endl;
         G0.forEdgesOf(v, [&](node vv, node w, edgeweight ew) {
@@ -2005,7 +2020,7 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
             } else {
                 int eid = G0_edge_id[minmax({v, w})];
                 // [TODO] impelment heaps
-                heaps = std::move(insert(std::move(heaps), &edges[eid]));
+                heaps[k()] = std::move(insert(std::move(heaps[k()]), &edges[eid]));
                 // heaps.push(edges[eid]);
             }
         });
@@ -2041,12 +2056,13 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
         // std::cout << "Inside initialization 2" << std::endl;
         for(int i = 0; i < parent.size(); i++) parent[i] = i;
         Cz.push_back({0});
+        heaps.push_back(SoftHeap<edge*>(0.1));
         G0.forEdgesOf(0, [&](node u, node v, edgeweight ew) {
             // std::cout << "Second edge loop" << std::endl;
             int eid = G0_edge_id[minmax(u, v)];
             // std::cout << u << ' ' << v << ' ' << ew << ' ' << eid << ' ' << edges[eid].toString() << std::endl;
             // [TODO] implement heaps
-            heaps = std::move(insert(std::move(heaps), &edges[eid]));
+            heaps[0] = std::move(insert(std::move(heaps[0]), &edges[eid]));
             // heaps.push(edges[eid]);
         });
         std::cout << "Inside initialization 3" << std::endl;
@@ -2083,6 +2099,9 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
         parent.push_back(newP);
         fusionNode.push_back(false);
         auto vertices = Cz[Cz.size() - 1];
+
+        heaps[k() - 1] = std::move(meld(std::move(heaps[k()]), std::move(heaps[k() - 1])));
+        heaps.pop_back();
         Cz.pop_back();
 
         for (auto v: vertices) {

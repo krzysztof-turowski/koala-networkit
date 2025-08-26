@@ -7,6 +7,7 @@
 #include <vector>
 #include <iostream>
 #include <cassert>
+#include <variant>
 
 template<typename T>
 concept SoftHeapElement = requires(T a){
@@ -20,7 +21,7 @@ template<SoftHeapElement T>
 class SoftHeap {
 public:
     // [TODO] implement other constructors
-    SoftHeap() = delete;
+    SoftHeap(float eps = 0.3);
     SoftHeap(T e, float eps = 0.3);
     SoftHeap(const SoftHeap&);
     SoftHeap(SoftHeap&&);
@@ -32,6 +33,8 @@ public:
     friend SoftHeap<R> insert(SoftHeap<R>&&, R);
     T extractMin();
     T extractMinInternal();
+    std::variant<T, bool> lookupMin();
+    std::variant<T, bool> lookupMinInternal();
     std::vector<T> corruptedElements();
     bool empty(){return elements <= 0;}
 
@@ -56,7 +59,7 @@ public:
         }
 
         void pushCorruptedElementsOnVector(std::vector<T>& vec);
-        T pickElement();
+        T pickElement(bool lookup = false);
         void sift();
         bool leaf();
         int corruptedCount();
@@ -116,6 +119,25 @@ public:
 // }
 
 template<SoftHeapElement T>
+SoftHeap<T>::SoftHeap(float eps) : eps(eps), elements(0) {
+    r = ceil(log(1 / eps) / log(2.0)) + 5;
+
+    guard = std::make_shared<ListNode>();
+    guard->isGuard = true;
+    guard->rank = -1;
+
+    // auto node = std::make_shared<ListNode>();
+    // node->next = guard;
+    // node->prev = guard;
+    // node->sufMin = node;
+    // node->tree = std::make_shared<TreeNode>(val);
+
+    guard->next = guard;
+    guard->prev = guard;
+    guard->sufMin = guard;
+}
+
+template<SoftHeapElement T>
 SoftHeap<T>::SoftHeap(T val, float eps) : eps(eps), elements(1) {
     // std::cout << "SoftHeap::SoftHeap(T, float)" << std::endl;
     r = ceil(log(1 / eps) / log(2.0)) + 5;
@@ -149,7 +171,7 @@ SoftHeap<T>::SoftHeap(const SoftHeap& other)
 {
     // std::cout << "SoftHeap::SoftHeap(const SoftHeap&)" << std::endl;
     // TODO It actually doesn't copy...
-    throw std::runtime_error("COPY CONSTRUCTOR");
+    // throw std::runtime_error("COPY CONSTRUCTOR");
 }
 
 template<SoftHeapElement T>
@@ -209,7 +231,7 @@ void SoftHeap<T>::TreeNode::pushCorruptedElementsOnVector(std::vector<T>& vec) {
 }
 
 template<SoftHeapElement T>
-T SoftHeap<T>::TreeNode::pickElement() {
+T SoftHeap<T>::TreeNode::pickElement(bool lookup) {
     // std::cout << "TreeNode::pickElement" << std::endl;
     if(originalList.empty() && corruptedList.empty()){
         throw std::runtime_error("EMPTY LIST POP");
@@ -217,10 +239,14 @@ T SoftHeap<T>::TreeNode::pickElement() {
     T ret;
     if (!originalList.empty()) {
         ret = originalList.front();
-        originalList.pop_front(); 
+        if (!lookup) {
+            originalList.pop_front(); 
+        }
     } else {
         ret = corruptedList.front();
-        corruptedList.pop_front();
+        if (!lookup) {
+            corruptedList.pop_front();
+        }
     }
     ret->ckey = ckey;
     if (ret->ckey != ret->key) {
@@ -332,6 +358,9 @@ void SoftHeap<T>::repeatedCombine(int k) {
 template<SoftHeapElement T>
 SoftHeap<T> meld(SoftHeap<T>&& p, SoftHeap<T>&& q) {
     int newElements = p.elements + q.elements;
+    if (std::holds_alternative<bool>(p.lookupMin())) return q;
+    if (std::holds_alternative<bool>(q.lookupMin())) return p;
+
     // std::cout << "meld" << std::endl;
     if(p.rank > q.rank) std::swap(p, q);
     int prank = p.rank;
@@ -382,6 +411,29 @@ std::vector<T> SoftHeap<T>::corruptedElements() {
         lnode = lnode->next;
     }
     return ret;
+}
+
+template<SoftHeapElement T>
+std::variant<T, bool> SoftHeap<T>::lookupMinInternal() {
+    // assert(!first()->isGuard);
+    if (first()->isGuard) return false;
+    auto t = first()->sufMin.lock();
+    auto x = t->tree;
+    auto e = x->pickElement(true);
+    return e;
+}
+
+template<SoftHeapElement T>
+std::variant<T, bool> SoftHeap<T>::lookupMin() {
+    while(true) {
+        auto retVal = lookupMinInternal();
+        if (std::holds_alternative<bool>(retVal)) return retVal;
+        auto ret = std::get<T>(retVal);
+        if (!ret->removed) {
+            return ret;
+        }
+        extractMinInternal();
+    }
 }
 
 template<SoftHeapElement T>
