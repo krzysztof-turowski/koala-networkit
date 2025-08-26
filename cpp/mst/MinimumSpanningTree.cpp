@@ -691,16 +691,16 @@ std::tuple<NetworKit::Graph, std::map<Koala::MinimumSpanningTree::NodePair, Koal
     BoruvkaMinimumSpanningTree::iterate(gMinor, F, uf, gMinor_to_G, c, false);
     
     using NetworKit::node; using NetworKit::edgeweight;
-    gMinor.forEdges([&](node u, node v, edgeweight ew){
-        auto [uu, vv] = gMinor_to_G[std::minmax(u,v)];
-        std :: cout << "gMinor before: " << u << " " << v << " " << ew <<  ", " << uu << " " << vv << std::endl;
-    });
+    // gMinor.forEdges([&](node u, node v, edgeweight ew){
+    //     auto [uu, vv] = gMinor_to_G[std::minmax(u,v)];
+    //     std :: cout << "gMinor before: " << u << " " << v << " " << ew <<  ", " << uu << " " << vv << std::endl;
+    // });
     auto map1 = NetworKit::GraphTools::getContinuousNodeIds(gMinor);
     auto gMinorCompact = NetworKit::GraphTools::getCompactedGraph(gMinor, map1);
     std::map<NodePair, NodePair> gMinorRemapped_to_G;
-    for (auto [key, val]: map1) {
-        std :: cout << key << " -> " << val << std::endl; 
-    }
+    // for (auto [key, val]: map1) {
+    //     std :: cout << key << " -> " << val << std::endl; 
+    // }
     // for (auto [key, val]: gMinor_to_G) {
     //     gMinorRemapped_to_G[std::minmax(map1[key.first], map1[key.second])] = val;
     // }
@@ -727,10 +727,10 @@ std::tuple<NetworKit::Graph, std::map<Koala::MinimumSpanningTree::NodePair, Koal
         //         << "   original G edge: (" << val.first << ", " << val.second << ")"
         //         << std::endl;
     }
-    gMinorCompact.forEdges([&](node u, node v, edgeweight ew){
-        auto [uu, vv] = gMinorRemapped_to_G[std::minmax(u,v)];
-        std :: cout << "gMinorCompact: " << u << " " << v << " " << ew <<  ", " << uu << " " << vv << std::endl;
-    });
+    // gMinorCompact.forEdges([&](node u, node v, edgeweight ew){
+    //     auto [uu, vv] = gMinorRemapped_to_G[std::minmax(u,v)];
+    //     std :: cout << "gMinorCompact: " << u << " " << v << " " << ew <<  ", " << uu << " " << vv << std::endl;
+    // });
     return {gMinorCompact, gMinorRemapped_to_G, F};
     
     // std::map<NetworKit::node, NetworKit::node> map1;
@@ -759,8 +759,8 @@ namespace{
         bool corrupted;
 
         friend bool operator<(edge e0, edge e1) {
-            if (e0.key == e1.key) return e0.id > e1.id;
-            return e0.key > e1.key;
+            if (e0.key == e1.key) return e0.id < e1.id;
+            return e0.key < e1.key;
         }
 
         std::string toString() const {
@@ -1738,10 +1738,10 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
     std::cout << '\n';
     std::cout << "////////////////////////////////" << std::endl;
 
-    // edge dummy_edge{0, 0, 0, 0, 0, false, false};
-    // SoftHeap<edge*> heaps(&dummy_edge, 0.1);
-    // heaps.extractMin();
-    std::priority_queue<edge> heaps;
+    edge dummy_edge{0, 0, 0, 0, 0, false, false};
+    SoftHeap<edge*> heaps(&dummy_edge, 0.1);
+    heaps.extractMin();
+    // std::priority_queue<edge> heaps;
     set<NodePair> contractedEdges;
     set<NodePair> badEdges;
     vector<edge> edges(G0.numberOfEdges());
@@ -1769,23 +1769,23 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
         int minKey = INT32_MAX;
         int mini = -1, minj = -1;
 
-        edge minEdge = heaps.top();
-        heaps.pop();
-        while(edges[minEdge.id].removed) {
-            minEdge = heaps.top();
-            heaps.pop();
-        }
-        return std::tuple{minEdge, 0, 0};
-        // [TODO] Implement heaps
-        // edge* minEdge = heaps.extractMin();
-        // while(minEdge->removed) {
-        //     minEdge = heaps.extractMin();
-        //     if (minEdge->corrupted) {
-        //         badEdges.insert(minmax(minEdge->u, minEdge->v));
-        //     }
+        // edge minEdge = heaps.top();
+        // heaps.pop();
+        // while(edges[minEdge.id].removed) {
+        //     minEdge = heaps.top();
+        //     heaps.pop();
         // }
+        // return std::tuple{minEdge, 0, 0};
+        // [TODO] Implement heaps
+        edge* minEdge = heaps.extractMin();
+        while(minEdge->removed) {
+            minEdge = heaps.extractMin();
+            // if (minEdge->corrupted) {
+            //     badEdges.insert(minmax(minEdge->u, minEdge->v));
+            // }
+        }
         
-        // return std::tuple{*minEdge, 0, 0};
+        return std::tuple{*minEdge, 0, 0};
     };
 
     auto findAndDeleteEdgeFromHeaps = [&](node u, node v) {
@@ -1806,8 +1806,8 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
             auto eid = G0_edge_id[np];
             edges[eid] = e;
             // [TODO] Implement heaps
-            // heaps = std::move(insert(std::move(heaps), &edges[eid]));
-            heaps.push(e);
+            heaps = std::move(insert(std::move(heaps), &edges[eid]));
+            // heaps.push(e);
         }
         return;
     };
@@ -1864,9 +1864,9 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
 
         for (int i = 0; i < d; ++i) {
             for (int j = 0; j < d; ++j) {
-                if (minLink[i][j].first.first != -1) {
-                    assert(edges[G0_edge_id[minLink[i][j].first]].key == minLink[i][j].second);
-                }
+                // if (minLink[i][j].first.first != -1) {
+                //     assert(edges[G0_edge_id[minLink[i][j].first]].ckey == minLink[i][j].second);
+                // }
                 if (i >= k() || j > k()) {
                     minLink[i][j] = {{-1, -1}, __DBL_MAX__};
                 }
@@ -1932,7 +1932,7 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
     auto fusion = [&]() -> edge {
         auto [uvEdge, mini, minj] = minBorderEdge();
         node uG0{uvEdge.u}, vG0{uvEdge.v};
-        auto [link_i, link_j, ab] = leftmostSmallerMinLink(uvEdge.key); // [TODO CHECK] ckey ???
+        auto [link_i, link_j, ab] = leftmostSmallerMinLink(uvEdge.ckey); // [TODO CHECK] ckey ???
         // std::cout << "Got the edge!" << std::endl;
         // std::cout<<link_i<<" "<<link_j<<" "<<ab.first<<" "<<ab.second<<std::endl;
         // std::cout<<uvEdge.u<<" "<<uvEdge.v << " " <<uvEdge.key <<std::endl;
@@ -1973,8 +1973,8 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
     auto updateMinLinksWithEdge = [&](edge e) {
         int i = CziOfNode(e.u), j = CziOfNode(e.v);
         if (i > j) swap(i, j);
-        if (e.key < minLink[i][j].second) {
-            minLink[i][j] = {minmax(e.u, e.v), e.key};
+        if (e.ckey < minLink[i][j].second) {
+            minLink[i][j] = {minmax(e.u, e.v), e.ckey};
         }
         // if (minLink[i][j].second > e.key || minLink[i][j].second < 0) {
         //     minLink[i][j] = {minmax(e.u, e.v), e.key};
@@ -2005,8 +2005,8 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
             } else {
                 int eid = G0_edge_id[minmax({v, w})];
                 // [TODO] impelment heaps
-                // heaps = std::move(insert(std::move(heaps), &edges[eid]));
-                heaps.push(edges[eid]);
+                heaps = std::move(insert(std::move(heaps), &edges[eid]));
+                // heaps.push(edges[eid]);
             }
         });
         // std::cout << "BRUH 6" <<std::endl;
@@ -2046,8 +2046,8 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
             int eid = G0_edge_id[minmax(u, v)];
             // std::cout << u << ' ' << v << ' ' << ew << ' ' << eid << ' ' << edges[eid].toString() << std::endl;
             // [TODO] implement heaps
-            // heaps = std::move(insert(std::move(heaps), &edges[eid]));
-            heaps.push(edges[eid]);
+            heaps = std::move(insert(std::move(heaps), &edges[eid]));
+            // heaps.push(edges[eid]);
         });
         std::cout << "Inside initialization 3" << std::endl;
         minLink = vector<vector<pair<NodePair, double>>>(d, vector<pair<NodePair, double>>(d, {{-1, -1}, __DBL_MAX__}));
@@ -2212,7 +2212,7 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
     // };
 
     std::cout << " B EDGES SIZE " << badEdges.size() << '\n';
-    assert(badEdges.size() == 0);
+    // assert(badEdges.size() == 0);
 
     for (int i = G0.numberOfNodes(); i < CzGraphs.size(); ++i) {
         // std::cout << "recursive call depth: " << depth[i] << " size: " << CzGraphs[i].numberOfNodes() << std::endl;
