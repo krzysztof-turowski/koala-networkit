@@ -165,7 +165,7 @@ private:
    std::tuple<NetworKit::Graph, std::map<NodePair, NodePair>, NetworKit::Graph> boruvkaSteps(NetworKit::Graph G, int c);
    int verticesOnLevel(int dz);
    static constexpr int MIN_NUMBER_NODES = 10;
-   static constexpr int C = 5; // Based on the complexity analysis should be at >=16 though then practically it's just a Boruvka
+   static constexpr int C = 4; // Based on the complexity analysis should be at >=16 though then practically it's just a Boruvka
 };
 
 }  /* namespace Koala */

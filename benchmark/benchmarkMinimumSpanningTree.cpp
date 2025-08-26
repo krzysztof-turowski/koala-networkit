@@ -146,7 +146,7 @@ void run_dimacs_tests(const std::string &path, const std::string &algorithm) {
     auto components = connected_components.getComponents();
     for (auto i = 1; i < connected_components.numberOfComponents(); i++) {
         G.addEdge(
-            components[0][0], components[i][0], D);
+            components[0][0], components[i][0], ++max_ew);
     }
 
     // std::cout << "Num 1 " << count1 << '\n'; 
