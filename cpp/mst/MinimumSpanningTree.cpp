@@ -1740,7 +1740,7 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
 
     // edge dummy_edge{0, 0, 0, 0, 0, false, false};
     // SoftHeap<edge*> heaps(0.1);
-    std::vector<SoftHeap<edge*>> heaps;
+    vector<vector<SoftHeap<edge*>>> heaps;
     // heaps.extractMin();
     // std::priority_queue<edge> heaps;
     set<NodePair> contractedEdges;
@@ -1779,15 +1779,18 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
         // return std::tuple{minEdge, 0, 0};
         // [TODO] Implement heaps
         for (int i = 0; i < heaps.size(); ++i) {
-            auto ret = heaps[i].lookupMin();
-            if (std::holds_alternative<bool>(ret)) continue;
-            auto val = std::get<edge*>(ret);
-            if (val->ckey < minKey) {
-                mini = i;
-                minKey = val->ckey;
+            for (int j = 0; j < heaps[i].size(); ++j) {
+                auto ret = heaps[i][j].lookupMin();
+                if (std::holds_alternative<bool>(ret)) continue;
+                auto val = std::get<edge*>(ret);
+                if (val->ckey < minKey) {
+                    mini = i;
+                    minj = j;
+                    minKey = val->ckey;
+                }
             }
         }
-        edge* minEdge = heaps[mini].extractMin();
+        edge* minEdge = heaps[mini][minj].extractMin();
         // while(minEdge->removed) {
             // minEdge = heaps.extractMin();
             // if (minEdge->corrupted) {
@@ -1809,6 +1812,10 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
         return edges[eid];
     };
 
+    auto insertNewBorderEdge = [&](edge* e) {
+        heaps[k()][k()] = std::move(insert(std::move(heaps[k()][k()]), e));
+    };
+
     auto insertNewBorderEdges = [&](const vector<edge>& newBorderEdges) {
         // [TODO] Implement heaps
         for (auto e: newBorderEdges) {
@@ -1816,7 +1823,7 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
             auto eid = G0_edge_id[np];
             edges[eid] = e;
             // [TODO] Implement heaps
-            heaps[k()] = std::move(insert(std::move(heaps[k()]), &edges[eid]));
+            insertNewBorderEdge(&edges[eid]);
             // heaps.push(e);
         }
         return;
@@ -1917,14 +1924,23 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
         throw std::runtime_error("u node should be found");
     };
 
+    auto popHeaps = [&]() {
+        heaps[k() - 1][k() - 1] = std::move(meld(std::move(heaps[k()][k()]), std::move(heaps[k() - 1][k() - 1])));
+        heaps.pop_back();
+        for (auto& h: heaps) {
+            h.pop_back();
+        }
+    };
+
     auto retraction = [&]() {
         assert(Cz.size() > 1);
         int newP = parent.size();
         parent.push_back(newP);
         fusionNode.push_back(false);
         auto vertices = Cz[Cz.size() - 1];
-        heaps[k() - 1] = std::move(meld(std::move(heaps[k()]), std::move(heaps[k() - 1])));
-        heaps.pop_back();
+        popHeaps();
+        // heaps[k() - 1][k() - 1] = std::move(meld(std::move(heaps[k()]), std::move(heaps[k() - 1])));
+        // heaps.pop_back();
         Cz.pop_back();
         if (vertices.size() == 1) {
             parent.pop_back();
@@ -1971,8 +1987,9 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
             for (auto v: Cz[k()]) {
                 parent[v] = newP;
             }
-            heaps[k() - 1] = std::move(meld(std::move(heaps[k()]), std::move(heaps[k() - 1])));
-            heaps.pop_back();
+            popHeaps();
+            // heaps[k() - 1] = std::move(meld(std::move(heaps[k()]), std::move(heaps[k() - 1])));
+            // heaps.pop_back();
             Cz.pop_back();
         }
         Cz[k()].erase(ap);
@@ -2006,8 +2023,10 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
         assert(!visited[v]);
         // std::cout << "BRUH 3" <<std::endl;
 
+        heaps.push_back(vector<SoftHeap<edge*>>());
+        for (int i = 0; i < Cz.size(); ++i) heaps[Cz.size()].push_back(SoftHeap<edge*>(0.1));
         Cz.push_back({v});
-        heaps.push_back(SoftHeap<edge*>(0.1));
+        for (int i = 0; i < Cz.size(); ++i) heaps[i].push_back(SoftHeap<edge*>(0.1));
         visited[v] = true;
         // std::cout << "BRUH 4" <<std::endl;
         G0.forEdgesOf(v, [&](node vv, node w, edgeweight ew) {
@@ -2020,7 +2039,7 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
             } else {
                 int eid = G0_edge_id[minmax({v, w})];
                 // [TODO] impelment heaps
-                heaps[k()] = std::move(insert(std::move(heaps[k()]), &edges[eid]));
+                heaps[k()][k()] = std::move(insert(std::move(heaps[k()][k()]), &edges[eid]));
                 // heaps.push(edges[eid]);
             }
         });
@@ -2056,13 +2075,13 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
         // std::cout << "Inside initialization 2" << std::endl;
         for(int i = 0; i < parent.size(); i++) parent[i] = i;
         Cz.push_back({0});
-        heaps.push_back(SoftHeap<edge*>(0.1));
+        heaps.push_back({SoftHeap<edge*>(0.1)});
         G0.forEdgesOf(0, [&](node u, node v, edgeweight ew) {
             // std::cout << "Second edge loop" << std::endl;
             int eid = G0_edge_id[minmax(u, v)];
             // std::cout << u << ' ' << v << ' ' << ew << ' ' << eid << ' ' << edges[eid].toString() << std::endl;
             // [TODO] implement heaps
-            heaps[0] = std::move(insert(std::move(heaps[0]), &edges[eid]));
+            heaps[0][0] = std::move(insert(std::move(heaps[0][0]), &edges[eid]));
             // heaps.push(edges[eid]);
         });
         std::cout << "Inside initialization 3" << std::endl;
@@ -2100,7 +2119,7 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
         fusionNode.push_back(false);
         auto vertices = Cz[Cz.size() - 1];
 
-        heaps[k() - 1] = std::move(meld(std::move(heaps[k()]), std::move(heaps[k() - 1])));
+        heaps[k() - 1][k() - 1] = std::move(meld(std::move(heaps[k()][k()]), std::move(heaps[k() - 1][k() - 1])));
         heaps.pop_back();
         Cz.pop_back();
 
