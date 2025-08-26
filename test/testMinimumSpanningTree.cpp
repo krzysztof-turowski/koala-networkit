@@ -61,7 +61,25 @@ class MinimumSpanningTreeTest : public testing::TestWithParam<SpanningTreeParame
 
 auto example_trees = testing::Values(
     SpanningTreeParameters{
-        4, {{0, 1, 10}, {0, 2, 5}, {1, 2, 15}, {1, 3, 5}, {2, 3, 10}}, 20}
+        4, {{0, 1, 10}, {0, 2, 5}, {1, 2, 15}, {1, 3, 5}, {2, 3, 10}}, 20},
+    SpanningTreeParameters{
+        10, 
+        {
+            {0, 3, 1},
+            {7, 8, 2},
+            {6, 9, 3},
+            {4, 5, 4},
+            {1, 2, 5},
+            {0, 1, 6},
+            {2, 6, 7},
+            {8, 9, 8},
+            {5, 6, 9},
+            {4, 8, 10},
+            {1, 4, 11},
+            {3, 7, 12},
+            {3, 4, 13}
+        }, 45
+    }
 );
 
 class KruskalMinimumSpanningTreeTest
