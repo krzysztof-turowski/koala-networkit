@@ -16,7 +16,7 @@ MinimumCostFlow::MinimumCostFlow(NetworKit::Graph &graph,
     : graph(graph), edge_params(ep), excess({{s, fl}, {t, -fl}}) {}
 
 int MinimumCostFlow::getFlow(const edge& e) {
-    return flow[e];
+    return flow[flowEdgeToId[e]];
 }
 
 int MinimumCostFlow::getMinCost() const {
@@ -46,6 +46,33 @@ void MinimumCostFlow::constructCirculation() {
 
 void MinimumCostFlow::constructFlow() {
     // TODO
+}
+
+void MinimumCostFlow::makeUncapacitated() {
+    int nodes = graph.numberOfNodes();
+    NetworKit::Graph newGraph(nodes, false, true, true);
+    node_map<int> newB;
+    edgeid_map<int> newCosts;
+
+    graph.forEdges(
+    [&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight weight, NetworKit::edgeid id) {
+        auto k = newGraph.addNode();
+        auto ukId = newGraph.upperEdgeIdBound();
+        newGraph.addEdge(u,k);
+        auto vkId = newGraph.upperEdgeIdBound();
+        newGraph.addEdge(v,k);
+        newB[u] = b[u];
+        newB[v] = weight + b[v];
+        newB[k] = -weight;
+
+        newCosts[ukId] = 0;
+        newCosts[vkId] = costs[id];
+        flowEdgeToId[{u,v}] = vkId;
+    });
+
+    b = newB;
+    graph = newGraph;
+    costs = newCosts;
 }
 
 } /* namespace Koala */
