@@ -1600,7 +1600,8 @@ std::pair<int, std::vector<int>> tHierarchySize(int n, int m) {
         return {{3}, {10,4,1}};
     }
     // Arbitrary sequence for now that grows really fast -- no point in using Ackermann sequence...
-    int desiredNumberOfLeaves[7] = {1, 1 << 1, 1 << 2, 1 << 3, 1 << 4, 1 << 30, 1 << 30};
+    // int desiredNumberOfLeaves[7] = {1, 1 << 1, 1 << 2, 1 << 3, 1 << 4, 1 << 30, 1 << 30};
+    int desiredNumberOfLeaves[7] = {1, 1 << 2, 1 << 6, 1 << 16, 1 << 30, 1 << 30, 1 << 30};
     // int desiredNumberOfLeaves[7] = {1,  1 << 2, 1 << 30, 1 << 30, 1 << 30, 1 << 30, 1 << 30};
     int desiredNumberOfChildren[7];
     desiredNumberOfChildren[0] = 1;
@@ -2091,7 +2092,7 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
     }
     int root = parent.size();
     parent.push_back(root);
-    fusionNode.push_back(true);
+    fusionNode.push_back(false);
     for (int v: Cz[0]) {
         parent[v] = root;
     }
