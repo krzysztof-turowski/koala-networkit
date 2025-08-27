@@ -1,5 +1,5 @@
-#include <Eigen/Core>
-#include <Eigen/Dense>
+#include <eigen3/Eigen/Core>
+#include <eigen3/Eigen/Dense>
 #include <flow/electrical_flow/LaplaceSolver.hpp>
 
 using namespace Eigen;

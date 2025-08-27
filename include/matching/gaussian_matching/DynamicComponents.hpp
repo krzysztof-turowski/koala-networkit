@@ -1,7 +1,7 @@
 #pragma once
 
 #include <networkit/graph/Graph.hpp>
-#include <Eigen/Core>
+#include <eigen3/Eigen/Core>
 
 namespace Koala {
     class DynamicComponents {
