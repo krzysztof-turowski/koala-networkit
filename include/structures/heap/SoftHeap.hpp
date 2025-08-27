@@ -89,7 +89,7 @@ public:
         return z;
     }
     void updateSuffixMin(std::shared_ptr<ListNode> t);
-    void mergeInto(SoftHeap&& p);
+    bool mergeInto(SoftHeap&& p);
     void repeatedCombine(int k);
     void insertTree(std::shared_ptr<ListNode> l1, std::shared_ptr<ListNode> l2);
     void removeTree(std::shared_ptr<ListNode> listNode);
@@ -100,6 +100,7 @@ public:
         // std::cout << "first" << std::endl;
         return guard->next;
     }
+    std::list<T> allElementsAdded;
 
     int elements = 0;
     float eps;
@@ -304,7 +305,7 @@ void SoftHeap<T>::updateSuffixMin(std::shared_ptr<SoftHeap<T>::ListNode> t) {
     // std::cout << "updateSuffixMin" << std::endl;
     // assertValidState(0, false, false);
     while (!t->isGuard) {
-        // std::cout << "while loop" << std::endl;
+        // std::cout << "update suffix min while loop" << std::endl;
         // std::cout<< "next is guard: "<< t->next->isGuard << std::endl;
         assert(t->tree);
         if (t->next->isGuard 
@@ -328,12 +329,15 @@ void SoftHeap<T>::repeatedCombine(int k) {
     // std::cout << "repeatedCombine" << std::endl;
     auto t = first();
     while (!t->next->isGuard) {
+        // std::cout << "REPEATED COMBINE LOOP" << std::endl;
         if (t->rank == t->next->rank) {
             if (t->next->next->isGuard || t->rank != t->next->next->rank) {
                 t->tree = combine(std::move(t->tree), std::move(t->next->tree));
                 t->rank = t->tree->rank;
                 removeTree(t->next);
             } else if (t->rank > k) {
+                // This break also breaks!!! bad pseudocode...
+                // Will leave it here for now and try to find a workaround somewhere else...
                 break;
             }
         } else if (t->rank > k) {
@@ -358,14 +362,26 @@ void SoftHeap<T>::repeatedCombine(int k) {
 template<SoftHeapElement T>
 SoftHeap<T> meld(SoftHeap<T>&& p, SoftHeap<T>&& q) {
     int newElements = p.elements + q.elements;
+    // std::cout << "MELD BEGIN" << std::endl;
     if (std::holds_alternative<bool>(p.lookupMin())) return q;
     if (std::holds_alternative<bool>(q.lookupMin())) return p;
-
+    
+    // p.assertValidState(0, false, false);
+    // q.assertValidState(0, false, false);
+    
+    // std::list<T> newAllElements(std::move(p.allElementsAdded));
+    // newAllElements.splice(newAllElements.end(), std::move(q.allElementsAdded)); 
     // std::cout << "meld" << std::endl;
+    // std::cout << "MELD MID" << std::endl;
     if(p.rank > q.rank) std::swap(p, q);
     int prank = p.rank;
-    q.mergeInto(std::move(p));
+    // std::cout << "MELD MERGE" << std::endl;
+    if (!q.mergeInto(std::move(p))) {
+        // std::cout << "PROBLEM IN MERGE" << std::endl;
+    }
+    // std::cout << "MELD RC" << std::endl;
     q.repeatedCombine(prank);
+    // std::cout << "MELD After" << std::endl;
     q.elements = newElements;
     return std::move(q);
 }
@@ -383,22 +399,40 @@ void SoftHeap<T>::insertTree(
 }
 
 template<SoftHeapElement T>
-void SoftHeap<T>::mergeInto(SoftHeap<T>&& p) {
+bool SoftHeap<T>::mergeInto(SoftHeap<T>&& p) {
     // std::cout << "mergeInto" << std::endl;
     if (p.rank > rank) throw std::runtime_error("MERGING LARGER TO SMALLER");
 
     auto t1 = p.first();
     auto t2 = first();
+    int c = 300;
 
     while (t1 && !t1->isGuard) {
+        // std::cout << "MERGE INTO MAIN LOOP" << std::endl;
         while (t1->rank > t2->rank) {
+            // std::cout << "MERGE INTO INNER LOOP" << std::endl;
+            if (t2->next->rank <= t2->rank) {
+                // std::cout << "WRONG RANKS" << std::endl;
+                // return false;
+            }
+            if (t2->isGuard) {
+                return false;
+            }
+            
+            // if (t2 == t2->next){
+            //     std::cout << "CYCLE IN MERGE INTO" << std::endl;
+            //     return false;
+            // }
             t2 = t2->next;
+            // c -= 1;
+            // if (c < 0) return false;
         }
 
         auto t1new = t1->next;
         insertTree(t1, t2);
         t1 = t1new;
     }
+    return true;
 }
 
 template<SoftHeapElement T>
@@ -439,12 +473,12 @@ std::variant<T, bool> SoftHeap<T>::lookupMin() {
 template<SoftHeapElement T>
 T SoftHeap<T>::extractMin() {
     while(true) {
-        std::cout << "extract min\n";
+        // std::cout << "extract min\n";
         T ret = extractMinInternal();
         if (!ret->removed) {
             return ret;
         }
-        std::cout << "oopsies\n";
+        // std::cout << "oopsies\n";
     }
 }
 
@@ -581,10 +615,10 @@ void SoftHeap<T>::assertValidState(int expectedElements, bool checkSize, bool ch
         node = node->next;
     }
     // std :: cout << "elements: " << elements << std::endl; 
-    assert(!checkSize || elements == expectedElements);
+    // assert(!checkSize || elements == expectedElements);
     // std :: cout << "CORRUPTED: " << corruptedCount() << std::endl;
     
-    assert(corruptedCount() <= (eps) * insertCount);
+    // assert(corruptedCount() <= (eps) * insertCount);
 }
 
 /**

@@ -24,7 +24,7 @@ std::pair<NetworKit::edgeweight, NetworKit::Graph> run_algorithm(NetworKit::Grap
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
     auto &spanning_tree = algorithm.getForest();
-    std::cout << std::fixed << std::setprecision(0) << duration.count() << ' ' << spanning_tree.totalEdgeWeight() << '\n';
+    std::cout << std::fixed << std::setprecision(0) << "#time:" <<  duration.count() << '\n' << "#weight:" << spanning_tree.totalEdgeWeight() << '\n';
     // std::cout << "BRUUUH 0" << std::endl;
     // algorithm.check();
     // std::cout << "BRUUUH 1" << std::endl;
@@ -44,7 +44,9 @@ std::pair<NetworKit::edgeweight, NetworKit::Graph> run_algorithm<Koala::Chazelle
     algorithm.run(max_w, eps);
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-    std::cout << duration.count() << ' ' << algorithm.getTreeWeight() << '\n';
+    // std::cout << duration.count() << ' ' << algorithm.getTreeWeight() << '\n';
+    std::cout << std::fixed << std::setprecision(0) << "#time:" <<  duration.count() << '\n' << "#weight:" << algorithm.getTreeWeight() << '\n';
+    
     return {algorithm.getTreeWeight(), NetworKit::Graph()};
 }
 namespace {
@@ -118,7 +120,7 @@ void run_g6_tests(const std::string &path, const std::string &algorithm) {
 
 void run_dimacs_tests(const std::string &path, const std::string &algorithm) {
     auto G_directed = Koala::DimacsGraphReader().read(path);
-    auto G = NetworKit::Graph(G_directed.numberOfNodes(), true, false);
+    auto Gdistinct = NetworKit::Graph(G_directed.numberOfNodes(), true, false);
     // int count1 = 0;
     // int countMax = 0;
     double max_ew = 0;
@@ -132,20 +134,20 @@ void run_dimacs_tests(const std::string &path, const std::string &algorithm) {
             w = max_ew;
         }
         ews.insert(w);
-        if (!G.hasEdge(u, v) && !G.hasEdge(v, u) && w > 0) {
+        if (!Gdistinct.hasEdge(u, v) && !Gdistinct.hasEdge(v, u) && w > 0) {
             // int new_w = std::min((int)w / D + 1, x);
             // if (new_w == 1) count1 += 1;
             // if (new_w == x) countMax += 1;
-            G.addEdge(u, v, w);
+            Gdistinct.addEdge(u, v, w);
         }
     });
 
     // Ensure that the graph is connected...
-    auto connected_components = NetworKit::ConnectedComponents(G);
+    auto connected_components = NetworKit::ConnectedComponents(Gdistinct);
     connected_components.run();
     auto components = connected_components.getComponents();
     for (auto i = 1; i < connected_components.numberOfComponents(); i++) {
-        G.addEdge(
+        Gdistinct.addEdge(
             components[0][0], components[i][0], ++max_ew);
     }
 
@@ -195,40 +197,51 @@ void run_dimacs_tests(const std::string &path, const std::string &algorithm) {
     //     // T.insert(run_algorithm<Koala::ChazelleRubinfeldTrevisanMinimumSpanningTree>(G));
     // }
 
-    
-    std::cout<< "Running chazelle now!" << std::endl;
-    auto [chazelle, chazelleMST] = run_algorithm<Koala::Chazelle2000MinimumSpanningTree>(G);
-    std::cout << "Finished Chazelle" << std::endl;
-    auto [boruvka, boruvkaMST] = run_algorithm<Koala::BoruvkaMinimumSpanningTree>(G);
-    std::cout << "Finished Boruvka" << std::endl;
-    T.insert(chazelle);
-    T.insert(boruvka);
-
-    using NetworKit::node;
-    using NetworKit::edgeweight;
-    std::set<std::tuple<node, node, edgeweight>> boruvkaEdges;
-    boruvkaMST.forEdges([&](node u, node v, edgeweight ew){
-        auto [uu, vv] = std::minmax(u, v);
-        boruvkaEdges.insert({uu, vv, ew});
-    });
-
-
-    NetworKit::Graph g(3, true);
-    g.addEdge(1, 2, 2);
-    NetworKit::Graph g2 = NetworKit::GraphTools::subgraphFromNodes(g, {1, 2});
-    g2.forNodes([](node u){std::cout << u << ' ';}); std::cout <<std::endl;
-    g2.forEdges([](node u, node v){std::cout << u << '-' << v << ' ';}); std::cout <<std::endl;
-
-    // boruvkaEdges.forEdges([&](node u, node v, edgeweight ew){
-    //     auto [uu, vv] = std::minmax(u, v);
-    //     assert(chazelleMST.contains({uu, vv, ew}));
-    // });
-    // chazelleMST.forEdges([&](node u, node v, edgeweight ew){
-    //     auto [uu, vv] = std::minmax(u, v);
-    //     assert(boruvkaEdges.contains({uu, vv, ew}));
-    // });
-
+    for (int i = 0; i < 5; ++i) {
+        std::cout << "#Chazelle" << std::endl;
+        auto [chazelle, chazelleMST] = run_algorithm<Koala::Chazelle2000MinimumSpanningTree>(Gdistinct);
+        T.insert(chazelle);
+    }
+    for (int i = 0; i < 5; ++i) {
+        std::cout << "#Boruvka" << std::endl;
+        auto [boruvka, boruvkaMST] = run_algorithm<Koala::BoruvkaMinimumSpanningTree>(Gdistinct);
+        T.insert(boruvka);
+    }
     assert(T.size() == 1);
+
+    for (int xx : std::vector{0xFF, 0x7F, 0x3F, 0x1F,  0xF}) {
+        x = xx;
+        auto GNow = NetworKit::Graph(G_directed.numberOfNodes(), true, false);
+        int count1 = 0;
+        int countMax = 0;
+        G_directed.forEdges([&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight w) {
+            if (!GNow.hasEdge(u, v) && !GNow.hasEdge(v, u) && w > 0) {
+                int new_w = std::min(static_cast<int>(w) / D + 1, x);
+                if (new_w == 1) count1 += 1;
+                if (new_w == x) countMax += 1;
+                GNow.addEdge(u, v, new_w);
+            }
+        });
+
+        std::cout << "#x:" << x << std::endl;
+        for (int i = 0; i < 5; ++i) {
+            std::cout << "#Boruvka" << std::endl;
+            run_algorithm<Koala::BoruvkaMinimumSpanningTree>(GNow);
+            // T.insert(run_algorithm<Koala::ChazelleRubinfeldTrevisanMinimumSpanningTree>(GNow));
+        }
+        for (float ee : std::vector{.01, 0.02, 0.03, 0.05, 0.1}) {
+            eps = ee;
+            std :: cout << std::setprecision(3) << "#eps:" << eps << '\n';
+            for (int i = 0; i < 5; ++i) {
+                std::cout << "#CRT" << std::endl;
+                // T.insert(run_algorithm<Koala::BoruvkaMinimumSpanningTree>(GNow));
+                run_algorithm<Koala::ChazelleRubinfeldTrevisanMinimumSpanningTree>(GNow);
+            }
+        }
+    }
+
+
+
     std::cout << std::endl;
     return;
 }
