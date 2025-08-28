@@ -18,7 +18,7 @@ void run_flow_algorithm(const std::string &file_path, const std::string &name) {
     auto maximum_flow = FlowAlgorithm(G, s, t);
     maximum_flow.run();
     auto end = std::chrono::high_resolution_clock::now();
-    duration<double> elapsed = end - start;
+    std::chrono::duration<double> elapsed = end - start;
     std::cout << name << ": Maximum flow = " << maximum_flow.getFlowSize()
               << ", Time taken = " << elapsed.count() << " seconds\n";
 }

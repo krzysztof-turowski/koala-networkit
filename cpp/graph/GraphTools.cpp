@@ -33,13 +33,23 @@ NetworKit::Graph toComplement(const NetworKit::Graph &G) {
     return GC;
 }
 
-NetworKit::Graph convertDirectedGraphToUndirected(NetworKit::Graph& graph) {
-    NetworKit::Graph result(graph.numberOfNodes());
-    for (auto [u, v] : graph.edgeRange()) {
-        result.addEdge(u, v);
-    }
-    result.removeMultiEdges();
-    return result;
+NetworKit::Graph convertDirectedGraphToUndirected(NetworKit::Graph &G, bool weighted) {
+    NetworKit::Graph Gout(G.numberOfNodes(), weighted, false);
+    G.forEdges([&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight w) {
+        Gout.addEdge(u, v, w);
+    });
+    Gout.removeMultiEdges();
+    return Gout;
+}
+
+NetworKit::Graph convertUndirectedGraphToDirected(NetworKit::Graph &G, bool weighted) {
+    NetworKit::Graph Gout(G.numberOfNodes(), weighted, true);
+    G.forEdges([&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight w) {
+        Gout.addEdge(u, v, w);
+        Gout.addEdge(v, u, w);
+    });
+    Gout.removeMultiEdges();
+    return Gout;
 }
 
 }  // namespace GraphTools
