@@ -1,0 +1,100 @@
+\documentclass{report}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{import}
+\usepackage[english]{babel}
+\usepackage{amssymb}
+\usepackage{minted}
+\usepackage{tikz}
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+\usepackage{booktabs}
+\usepackage{biblatex}
+\usepackage{longtable}
+\usepackage{csquotes}
+\usepackage[poorman]{cleveref}
+\usepackage{tabularray}
+\usetikzlibrary{positioning}
+
+\addbibresource{bbl.bib}
+\newtheorem{theorem}{Theorem}
+\newtheorem{notation}{Notation}
+\newtheorem{invariant}{Invariant}
+\newtheorem{lemma}{Lemma}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{problem}{Problem}
+\newtheorem{remark}{Remark}
+
+\newcommand{\tiff}{\textit{iff. }}
+\DeclareMathOperator{\Var}{\mathrm{Var}}
+
+\usepackage{listings}
+\usepackage{color}
+\usepackage{placeins}
+
+\newcommand{\algrule}{\Statex \hspace{\algorithmicindent}\hrulefill}
+\algnewcommand\algorithmiccontinue{\textbf{continue}}
+\algnewcommand\Continue{\item[\algorithmiccontinue]}
+
+\makeatletter
+\renewcommand{\Call}[2][]{%
+  \textsc{#2}(#1)%
+}
+\makeatother
+\makeatletter
+\renewcommand{\Call}[2]{\textsc{#1}(#2)}
+\makeatother
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{frame=tb,
+  language=c++,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3,
+  escapeinside={!@}{@!},
+}
+
+
+\begin{document}
+\include{titlepage}
+
+\pagebreak
+\tableofcontents
+
+\pagebreak
+
+\chapter{Introduction}
+\input{Introduction}
+
+\chapter{Chazelle's \boldmath $O(m\alpha(m,n))$ algorithm}
+\input{Chazelle2000}
+
+\chapter {Chazelle-Rubinfeld-Trevisan sublinear weight finding algorithm}
+\input{ChazelleRubinfeldTrevisan}
+
+\chapter{Experiments}
+\input{experiments}
+
+\printbibliography
+\end{document}
