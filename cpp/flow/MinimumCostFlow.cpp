@@ -80,4 +80,25 @@ void MinimumCostFlow::makeUncapacitated() {
     costs = newCosts;
 }
 
+void MinimumCostFlow::makeConnected() {
+    int maxCost{0}; 
+    for (auto [edge, cost] : costs) {
+        maxCost = std::max(maxCost, std::abs(cost));
+    }
+    
+    maxCost *= graph.numberOfEdges() + 1;
+    
+    int sumB{0};
+    for (auto [nd, bval] : b) {
+        if (bval > 0) sumB += bval;
+    }
+
+    NetworKit::node sx = graph.addNode();
+    graph.forNodes([&](NetworKit::node u) {
+        if (sx == u) return;
+        graph.addEdge(u, sx, sumB);
+        graph.addEdge(sx, u, sumB);
+    });
+}
+
 } /* namespace Koala */

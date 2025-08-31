@@ -26,7 +26,6 @@ class OrlinMCF : public MinimumCostFlow {
     NetworKit::Graph generateGraphForSP();
     bool isImbalanced();
     void initialize();
-    void makeConnected();
 
     std::stack<std::pair<NetworKit::node, NetworKit::node>> contractions;
     void contractNodes(NetworKit::node, NetworKit::node);
