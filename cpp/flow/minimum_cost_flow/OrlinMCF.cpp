@@ -1,83 +1,180 @@
 #include <flow/minimum_cost_flow/OrlinMCF.hpp>
-
+#include <flow/MaximumFlow.hpp>
+#include <shortest_path/Dijkstra.hpp>
 
 namespace Koala {
 
-NetworKit::Graph::NodeIntAttribute OrlinMCF::base(NetworKit::Graph &g) {
-    return g.getNodeIntAttribute("base");
-}
-    
-NetworKit::Graph::NodeIntAttribute OrlinMCF::excess(NetworKit::Graph &g) {
-    return g.getNodeIntAttribute("excess");
-}
+using edgeid = NetworKit::edgeid;
+using node = NetworKit::node;
 
-NetworKit::Graph::NodeIntAttribute OrlinMCF::potential(NetworKit::Graph &g) {
-    return g.getNodeIntAttribute("potential");
-}
-
-NetworKit::Graph::EdgeIntAttribute OrlinMCF::flow(NetworKit::Graph &g) {
-    return g.getEdgeIntAttribute("flow");
-}
-
-void OrlinMCF::runImpl() {
-
+OrlinMCF::OrlinMCF(const NetworKit::Graph& graph, const edgeid_map<int>& costs, const node_map<int>& bs) {
+    this->b = bs;
+    this->costs = costs;
+    this->graph = graph;
+    this->graph.indexEdges();
+    makeConnected();
+    makeUncapacitated();
+    makeCostsNonnegative();
 }
 
 void OrlinMCF::initialize() {
-    graph.attachNodeIntAttribute("base");
-    graph.attachNodeIntAttribute("excess");
-    graph.attachNodeIntAttribute("potential");
-
-    graph.indexEdges();
-    graph.attachEdgeIntAttribute("flow");
-
+    flow.clear();
+    originalGraph = graph;
+    excess = b;
+    for(auto [key, value] : excess) {
+        delta = std::max(delta, value); 
+    }
 }
+
+int OrlinMCF::cp(node i, node j, edgeid id) {
+    return flow[id] - potential[i] + potential[j];
+}
+
 
 void OrlinMCF::makeConnected() {
-
+    // TODO
 }
 
+bool OrlinMCF::isImbalanced() {
+    for (auto [node, value] : excess) {
+        if (value != 0) return true;
+    }
+    return false;
+}
 
+NetworKit::Graph OrlinMCF::generateGraphForSP() {
+NetworKit::Graph distGraph(graph.upperNodeIdBound(), true, true);
+    auto [first, last] = uncapacitatedNodesBounds;
+    for (node i = first; i <= last; ++i) {
+        if (graph.hasNode(i)) {
+            std::vector<std::pair<node, edgeid>> neighs;                
+            graph.forInEdgesOf(i, 
+                [&](node u, node v, edgeid id) {
+                neighs.push_back({v,id});
+            });
+
+            for (int j = 0; j < 2; ++j) {
+                int f = flow[neighs[j].second];
+
+                if (f > 0) {
+                    distGraph.addEdge(
+                        neighs[j ^ 1].first,
+                        neighs[j].first,
+                        cp(neighs[j ^ 1].first, i, neighs[j ^ 1].second)
+                    );
+                }
+            }
+        }
+    }
+    graph.forEdges([&](node u, node v, edgeid id) {
+        if (first <= v && v <= last) return;
+        int cost = cp(u, v, id);
+        distGraph.addEdge(u, v, cost);
+        if (flow[id] > 0) {
+            distGraph.addEdge(v, u, -cost);
+        }
+    });
+    return distGraph;
+}
+
+void OrlinMCF::scalingAugmentation(node u, node v) {
+    NetworKit::Graph distGraph = generateGraphForSP();
+    
+    Dijkstra<FibonacciHeap> shortestPath(distGraph, u, true);
+    shortestPath.run();
+    auto path = shortestPath.getPath(v);
+    std::vector<double> distances = shortestPath.getDistances();
+    for(auto & [nd, pt] : potential) {
+        pt -= lround(distances[nd]);
+    }
+    std::vector<std::pair<edgeid, bool>> pathIds;
+    for (int i=0; i<path.size()-1; i++) {
+        std::tuple<int, edgeid, bool> mini = {INT32_MAX, -1, false};
+        node p = path[i], q = path[i+1];
+        graph.forEdgesOf(p, [&](node u, node v, edgeid id) {
+            if (v != q) return;
+            mini = std::min(mini, {costs[id], id , false});
+        });
+        graph.forInEdgesOf(p, [&](node u, node v, edgeid id) {
+            if (v != q || flow[id] < delta) return;
+            mini = std::min(mini, {costs[id], id, true});
+        });
+        auto [_, id, reversed] = mini;
+        pathIds.push_back({id, reversed});
+    }
+    augment(v, u, pathIds, delta);
+}
 
 void OrlinMCF::runImpl() {
-    setupValues();
-    NetworKit::Graph contGraph = graph;
-    auto flowAttr = flow(contGraph);
-    auto excessAttr = excess(contGraph);
+    initialize();
 
-
-    while (imbalanced) {
+    while (isImbalanced()) {
         bool zero = true; 
-        for (auto f : flowAttr) {
+        for (auto f : flow) {
             if (f.second) {
                 zero = false;
+                break;
             } 
         }
         int maxDelta = 0;
         if (zero) { 
-            for (auto ex : excessAttr) {
+            for (auto ex : excess) {
                 maxDelta = std::max(ex.second, maxDelta);
             }
         }
         delta = std::min(delta, maxDelta);
 
-        deltaScalingPhase(contGraph);
+        deltaScalingPhase();
         delta /= 2;
     }
+
+    uncontractAndComputeFlow();
+}
+
+void OrlinMCF::uncontractAndComputeFlow() {
+    while (contractions.size()) {
+        auto [u, v] = contractions.top();
+        contractions.pop(); 
+        potential[v] = potential[u];
+    }
+
+    NetworKit::Graph flowGraph(originalGraph.numberOfNodes(), true, true);
+    node s = flowGraph.addNode();
+    node t = flowGraph.addNode();
+    int bsum{0};
+    originalGraph.forNodes([&](node n) { 
+        int bval = b[n];
+        if (bval > 0) {
+            flowGraph.addEdge(s, n, bval);
+            bsum += bval;
+        } else if (bval < 0) {
+            flowGraph.addEdge(n, t, -bval);
+        }
+    });
+
+    originalGraph.forEdges([&](node u, node v, edgeid id){
+        if (cp(u, v, id) == 0) {
+            flowGraph.addEdge(u, v, bsum);
+        }
+    });
+
+    KingRaoTarjanMaximumFlow maxflow(flowGraph, s, t);
+    maxflow.run();
+    originalGraph.forEdges([&](node u, node v, edgeid id){
+        // set the flows in original graph from the result of maxflow
+    });
 }
 
 
-void OrlinMCF::deltaScalingPhase(NetworKit::Graph &g) {
-    contractionPhase(g);
-    auto excessAttr = excess(g);
+void OrlinMCF::deltaScalingPhase() {
+    contractionPhase();
 
     std::vector<NetworKit::node> s,t;
-    g.forNodes([&](NetworKit::node node) {
-        int ex = excessAttr.get(node);
-        if (ex >= ALPHA*delta) {
+    graph.forNodes([&](NetworKit::node node) {
+        if (excess[node] >= ALPHA*delta) {
             s.push_back(node);
         }
-        if (ex <= -ALPHA*delta) {
+        if (excess[node] <= -ALPHA*delta) {
             t.push_back(node);
         }
     });
@@ -86,115 +183,74 @@ void OrlinMCF::deltaScalingPhase(NetworKit::Graph &g) {
         NetworKit::node k = s.back();
         NetworKit::node v = t.back();
 
-        // compute d
-        
-
-    
+        scalingAugmentation(k,v);
     }
-        
 }
 
-void OrlinMCF::contractionPhase(NetworKit::Graph &g) {
-    auto pi = potential(g);
+void OrlinMCF::augment(node u, node v, edgeid edgeId, bool isReversed, int f) {
+    augment(u, v, {{edgeId, isReversed}}, f);
+} 
 
-    auto forAllNeighbours = [&](std::function<void(const NetworKit::node, const int)> const& fun) {
-        for (auto v: g.nodeRange()) {
-            for (int nei = 0; nei < g.degreeOut(v); ++nei) {
-                fun(v, nei);
+void OrlinMCF::augment(node u, node v, const std::vector<std::pair<edgeid, bool>> &edgeIds, int f) {
+    for(auto [edgeId, reversed] : edgeIds) {
+        flow[edgeId] += (!reversed ? f : -f);
+    }
+
+    excess[u] -= f;
+    excess[v] += f;
+}
+
+void OrlinMCF::contractionPhase() {
+    auto contractible = [&](edgeid& id) -> bool {
+        for (auto [eid, f] : flow) {
+            if (f >= 3*graph.numberOfNodes()*delta) {
+                id = eid;
+                return;
             }
         }
     };
-    
-    auto isBigArc = [&]() -> 
-        std::tuple<bool, NetworKit::node, NetworKit::node> {
-        auto f = flow(g);
-        for (auto v: g.nodeRange()) {
-            for (int nei = 0; nei < g.degreeOut(v); ++nei) {
-                auto [w, id] = g.getIthNeighborWithId(v, nei);
-                if (f.get(id) > 3*graph.numberOfNodes()*delta) {
-                    return { true, v,w };
-                }
-            }
-        }
-        return { false, 0, 0 };
-    };
-    
-    while (true) {
-        auto [is, v, w] = isBigArc();
-        if (!is) {
-            break;
-        }
-        
-        contractNodes(g, v, w);
-        
-        forAllNeighbours(
-            [&](NetworKit::node v, int neigh) {
-                auto [w, weight] = g.getIthNeighborWithWeight(v, neigh);
-                int pi_v = pi.get(v);
-                int pi_w = pi.get(w);
-                g.setWeightAtIthInNeighbor(NetworKit::unsafe, v, neigh, weight - pi_v + pi_w);
-            }
-        );
-        for(auto p : pi) {
-            pi.set(p.first, 0);
-        }
+    edgeid id;
+    while(contractible(id)) {
+        auto [u, v] = graph.edgeById(id);
+        contractNodes(u, v);
     }
-
-
 }
 
-void OrlinMCF::setupValues() {
-    auto baseAttr = base(graph);
-    auto excessAttr = excess(graph);
-    auto potentialAttr = potential(graph);
-
-    imbalanced = 0;
-    delta = 0;
-
-    graph.forNodes(
-        [&](NetworKit::node v) {
-            int e = baseAttr.get(v);
-            excessAttr.set(v, e);
-            potentialAttr.set(v, 0);
-            if (e) {
-                ++imbalanced;
-            }
-
-            delta = std::max(e, delta);
-        }
-    );
-}
-
-void OrlinMCF::contractNodes(NetworKit::Graph &g, NetworKit::node v, NetworKit::node w) {
-    auto flowAttr = flow(g);
+void OrlinMCF::contractNodes(NetworKit::node v, NetworKit::node w) {
     if (w < v) {
         std::swap(v, w);
     }
 
-    g.forEdgesOf(w, 
-        [&](NetworKit::node, NetworKit::node y, NetworKit::edgeweight weight, NetworKit::edgeid id) {
-            if(y == v) return;
-            graph.addEdge(v, y, weight);
-            int upper = graph.upperEdgeIdBound();
-            flowAttr.set(upper - 1, flowAttr.get(id));
+    graph.forEdgesOf(w, 
+        [&](NetworKit::node, NetworKit::node y, NetworKit::edgeid id) {
+            if(y != v) {
+                graph.addEdge(v, y);
+                int upper = graph.upperEdgeIdBound();
+                flow[upper - 1] = flow[id];
+                costs[upper - 1] = costs[id];
+            }
+            
+            flow.erase(id);
+            costs.erase(id);
     });
-    g.forInEdgesOf(w,
+    graph.forInEdgesOf(w,
         [&](NetworKit::node, NetworKit::node y, NetworKit::edgeweight weight, NetworKit::edgeid id) {
-            if(y == v) 
-                return;
-            graph.addEdge(y, v, weight);
-            int upper = graph.upperEdgeIdBound();
-            flowAttr.set(upper - 1, flowAttr.get(id));
+            if (y != v) {
+                graph.addEdge(y, v, weight);
+                int upper = graph.upperEdgeIdBound();
+                flow[upper - 1] = flow[id];
+                costs[upper - 1] = costs[id];
+            }             
+            flow.erase(id);
+            costs.erase(id);
     });
     
-    
-    auto ex = excess(g);
-    auto bs = base(g);
-
-    ex.set(v, ex.get(w) + ex.get(v));
-    bs.set(v, bs.get(w) + bs.get(v));
-
-    g.removeNode(w);
+    excess[v] = excess[w] + excess[v];
+    excess.erase(w);
+    // b[v] = b[v] + b[w];
+    // b.erase(w);
+    graph.removeNode(w);
+    contractions.push({v,w});
 }
 
 } /* namespace Koala */

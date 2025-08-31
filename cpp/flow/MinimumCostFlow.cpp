@@ -49,14 +49,18 @@ void MinimumCostFlow::constructFlow() {
 }
 
 void MinimumCostFlow::makeUncapacitated() {
+    if (!graph.isWeighted()) return;
     int nodes = graph.numberOfNodes();
     NetworKit::Graph newGraph(nodes, false, true, true);
     node_map<int> newB;
     edgeid_map<int> newCosts;
 
+    NetworKit::node firstAdded = graph.upperNodeIdBound()+1;
+    uncapacitatedNodesBounds = {firstAdded, firstAdded-1};
     graph.forEdges(
     [&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight weight, NetworKit::edgeid id) {
         auto k = newGraph.addNode();
+        uncapacitatedNodesBounds.second = k;
         auto ukId = newGraph.upperEdgeIdBound();
         newGraph.addEdge(u,k);
         auto vkId = newGraph.upperEdgeIdBound();
@@ -67,6 +71,7 @@ void MinimumCostFlow::makeUncapacitated() {
 
         newCosts[ukId] = 0;
         newCosts[vkId] = costs[id];
+        uncapacitatedMapping[id] = vkId;
         flowEdgeToId[{u,v}] = vkId;
     });
 

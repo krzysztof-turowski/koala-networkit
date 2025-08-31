@@ -6,25 +6,37 @@
 namespace Koala {
 
 class OrlinMCF : public MinimumCostFlow {
+ public:
+    
+    OrlinMCF(const NetworKit::Graph&, const edgeid_map<int>&, const node_map<int>&);
+
  private:
+    void makeCostsNonnegative();
+
     const double ALPHA = 0.9;
-    int imbalanced = 0;
     int delta = 0;
 
-
     void runImpl() override;
+    int cp(NetworKit::node, NetworKit::node, NetworKit::edgeid);
+
+    void augment(NetworKit::node, NetworKit::node, NetworKit::edgeid, bool, int);
+    void augment(NetworKit::node, NetworKit::node, 
+        const std::vector<std::pair<NetworKit::edgeid, bool>>&, int);
+    
+    NetworKit::Graph generateGraphForSP();
+    bool isImbalanced();
     void initialize();
-    void setupValues();
     void makeConnected();
-    void contractNodes(NetworKit::Graph&, NetworKit::node, NetworKit::node);
-    void deltaScalingPhase(NetworKit::Graph&);
-    void contractionPhase(NetworKit::Graph&);
 
-    NetworKit::Graph::NodeIntAttribute base(NetworKit::Graph &);
-    NetworKit::Graph::NodeIntAttribute excess(NetworKit::Graph &);
-    NetworKit::Graph::NodeIntAttribute potential(NetworKit::Graph &g);
-    NetworKit::Graph::EdgeIntAttribute flow(NetworKit::Graph &g);
-
+    std::stack<std::pair<NetworKit::node, NetworKit::node>> contractions;
+    void contractNodes(NetworKit::node, NetworKit::node);
+    void deltaScalingPhase();
+    void contractionPhase();
+    void uncontractAndComputeFlow();
+    void scalingAugmentation(NetworKit::node, NetworKit::node);
+    edgeid_map<int> potential;
+    NetworKit::Graph originalGraph;
+    int delta = 0;
 };
 
 } /* namespace Koala */

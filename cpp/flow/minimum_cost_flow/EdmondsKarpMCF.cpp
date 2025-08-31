@@ -1,5 +1,5 @@
 #include <flow/minimum_cost_flow/EdmondsKarpMCF.hpp>
-#include <shortest_path/FibonacciDijkstra.hpp>
+#include <shortest_path/Dijkstra.hpp>
 #include <vector>
 
 using node = NetworKit::node;
@@ -8,7 +8,7 @@ using edgeid = NetworKit::edgeid;
 namespace Koala {
 
 void EdmondsKarpMCF::initialize() {
-    // we assume that the network is uncapacitated
+    // we assume that the network is uncapacitated OK NOT REALLY
 
     flow.clear();
     potential.clear();
@@ -64,14 +64,14 @@ void EdmondsKarpMCF::deltaScalingPhase() {
         node l = T.back();
 
         // shortest path
-        auto dijkstra = FibonacciDijkstra(deltaResidual, k, true);
+        auto dijkstra = Dijkstra<FibonacciHeap>(deltaResidual, k, true);
         dijkstra.run();
         std::vector<node> path = dijkstra.getPath(l);
         std::vector<double> distances = dijkstra.getDistances();
         
         // update potential
         for(node v : graph.nodeRange()) {
-            potential[v] -= distances[v];
+            potential[v] -= lround(distances[v]);
         }
         
         // augment
