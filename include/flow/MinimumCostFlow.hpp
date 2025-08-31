@@ -26,7 +26,8 @@ using node_map = std::map<NetworKit::node, T>;
 
 class MinimumCostFlow : public NetworKit::Algorithm {
  public:
-        
+    
+    MinimumCostFlow() {};
     // flow
     MinimumCostFlow(NetworKit::Graph&, edge_map<MCFEdgeParams>&,
         NetworKit::node, NetworKit::node, int);
@@ -47,14 +48,17 @@ class MinimumCostFlow : public NetworKit::Algorithm {
     int getMinCost() const;
     
  protected:
-    virtual void runImpl() {}
+    virtual void runImpl() = 0;
     void constructCirculation();
     void constructFlow();
 
-    bool isUncapacitated = false;
-    edge_map<edge> uncapacitatedMapping;
-    void makeUncapacitated();
+    bool modifiedUncapacitated = false;
+    edgeid_map<edgeid> uncapacitatedMapping;
+    std::pair<NetworKit::node, NetworKit::node> uncapacitatedNodesBounds = {0,-1}; 
 
+    // Makes graph uncapacitated, 
+    // if the graph was uncapacitated before, then returns
+    void makeUncapacitated();
 
     NetworKit::Graph graph;
     edge_map<MCFEdgeParams> edge_params;
@@ -67,13 +71,5 @@ class MinimumCostFlow : public NetworKit::Algorithm {
     int min_cost{0};
     bool feasible{true};
 };
-
-class MCFGraph {
- public:
-    MCFGraph();
-    
-};
-
-
 
 } /* namespace Koala */

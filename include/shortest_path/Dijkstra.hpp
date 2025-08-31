@@ -1,3 +1,16 @@
+/*
+ * Dijkstra.hpp
+ *  
+ * Implementation borrowed from the NetworKit's Dijkstra algorithm 
+ * and extended to allow using own heaps. 
+ * 
+ * 
+ *  Created on: Jul 23, 2013
+ *      Author: Henning, Christian Staudt
+ *  Modified on: Aug 29, 2025
+ *      Author: Oskar Krygier 
+ */
+
 #pragma once
 
 #include <networkit/distance/SSSP.hpp>
@@ -6,12 +19,13 @@
 
 namespace Koala {
     
-class FibonacciDijkstra final : public NetworKit::SSSP {
+template<template <typename...> class THeap> 
+class Dijkstra final : public NetworKit::SSSP {
  private:
-    FibonacciHeap<NetworKit::node> heap;
+    THeap<NetworKit::node> heap;
 
  public:
-    FibonacciDijkstra(const NetworKit::Graph &G, NetworKit::node source,
+    Dijkstra(const NetworKit::Graph &G, NetworKit::node source,
                     bool storePaths = false, bool storeNodesSortedByDistance = false,
                     NetworKit::node target = NetworKit::none)
         : SSSP(G, source, storePaths, storeNodesSortedByDistance, target) {}
@@ -19,7 +33,8 @@ class FibonacciDijkstra final : public NetworKit::SSSP {
     void run() override;
 };
 
-void FibonacciDijkstra::run() {
+template <template <typename...> class THeap> 
+void Dijkstra<THeap>::run() {
     auto infDist = std::numeric_limits<NetworKit::edgeweight>::max();
     std::fill(distances.begin(), distances.end(), infDist);
 
