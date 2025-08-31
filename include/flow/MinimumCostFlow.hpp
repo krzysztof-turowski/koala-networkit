@@ -59,6 +59,7 @@ class MinimumCostFlow : public NetworKit::Algorithm {
     // Makes graph uncapacitated, 
     // if the graph was uncapacitated before, then returns
     void makeUncapacitated();
+    void makeConnected();
 
     NetworKit::Graph graph;
     edge_map<MCFEdgeParams> edge_params;

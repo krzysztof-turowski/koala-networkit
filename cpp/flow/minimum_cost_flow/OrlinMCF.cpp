@@ -30,11 +30,6 @@ int OrlinMCF::cp(node i, node j, edgeid id) {
     return flow[id] - potential[i] + potential[j];
 }
 
-
-void OrlinMCF::makeConnected() {
-    // TODO
-}
-
 bool OrlinMCF::isImbalanced() {
     for (auto [node, value] : excess) {
         if (value != 0) return true;
@@ -43,7 +38,7 @@ bool OrlinMCF::isImbalanced() {
 }
 
 NetworKit::Graph OrlinMCF::generateGraphForSP() {
-NetworKit::Graph distGraph(graph.upperNodeIdBound(), true, true);
+    NetworKit::Graph distGraph(graph.upperNodeIdBound(), true, true);
     auto [first, last] = uncapacitatedNodesBounds;
     for (node i = first; i <= last; ++i) {
         if (graph.hasNode(i)) {
@@ -161,7 +156,7 @@ void OrlinMCF::uncontractAndComputeFlow() {
     KingRaoTarjanMaximumFlow maxflow(flowGraph, s, t);
     maxflow.run();
     originalGraph.forEdges([&](node u, node v, edgeid id){
-        // set the flows in original graph from the result of maxflow
+        // TODO: set the flows in original graph from the result of maxflow
     });
 }
 
