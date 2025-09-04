@@ -74,39 +74,6 @@ void SuccessiveApproxMCC::relabel(NetworKit::node const& v) {
     potential[v] = mi;
 }
 
-bool SuccessiveApproxMCC::push_relabel(node v) {
-    // std::cerr << "PUSH RELABEL NODE " << v << "\n"; 
-    NetworKit::index id = pr_id[v];
-    int degOut = graph.degreeOut(v);
-    int degIn = graph.degreeIn(v);
-    int deg = degOut + degIn;
-    double reducedCost;
-    edgeid eid; 
-    node w;
-    bool reversed = id/degOut;
-    if (!reversed) {
-        // w, eid = graph.getIthNeighborWithId(v, id);
-        reducedCost = cp(v,w, eid);
-    } else {
-        // w = graph.getIthInNeighbor(v, id - degOut);
-        // eid = graph.getIthInNeighbor(v, id - degOut);
-        reducedCost = -cp(v,w,eid);
-    }
-
-    if (uf(eid, reversed) > 0 && reducedCost < 0) {
-        // std::cerr<<"PUSH {" << v<< ", " << w << "} << \n";
-        push(v, w, eid, reversed);
-    } else {
-        pr_id[v] = (pr_id[v] + 1) % deg;
-            // std::cerr<<"RELABEL {" << v << "}\n";
-        if (pr_id[v] == 0) {
-            relabel(v);
-            return true;
-        }
-    }
-    return false;
-}
-
 void SuccessiveApproxMCC::refine() {
     epsi /= 2;
     graph.forEdges([&](node v, node w, edgeid eid) {
