@@ -53,7 +53,7 @@ class MinimumCostFlow : public NetworKit::Algorithm {
     void constructFlow();
 
     bool modifiedUncapacitated = false;
-    edgeid_map<edgeid> uncapacitatedMapping;
+    edgeid_map<NetworKit::edgeid> uncapacitatedMapping;
     std::pair<NetworKit::node, NetworKit::node> uncapacitatedNodesBounds = {0,-1}; 
 
     // Makes graph uncapacitated, 
