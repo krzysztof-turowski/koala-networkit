@@ -19,19 +19,20 @@ class SuccessiveApproxMCC : public MinimumCostFlow {
  private:
     void runImpl() override;
     void initialize();
-    bool push_relabel(NetworKit::node const&);
-    void push(NetworKit::node const&, NetworKit::node const&);
+    bool push_relabel(NetworKit::node);
+    void push(NetworKit::node, NetworKit::node, NetworKit::edgeid, bool reversed);
     void relabel(NetworKit::node const&);
     void refine();
     void wave();
     bool discharge(NetworKit::node const&);
 
-    double cp(NetworKit::node const&, NetworKit::node const&);
-    int uf(NetworKit::node const&, NetworKit::node const&);
-    void force_flow(NetworKit::node const&, NetworKit::node const&, int);
-    node_map<double> price;
+    double cp(NetworKit::node, NetworKit::node, NetworKit::edgeid);
+    int uf(NetworKit::edgeid, bool reversed);
+    void force_flow(NetworKit::node, NetworKit::node, NetworKit::edgeid, int);
+    node_map<double> potential;
     node_map<int> excess;
     node_map<int> pr_id;
+    edgeid_map<int> lowerbound, upperbound;
     std::unordered_set<NetworKit::node> active;
 
     double epsi{0.};

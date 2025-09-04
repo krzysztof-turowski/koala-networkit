@@ -2,7 +2,12 @@
 #include <climits>
 namespace Koala {
 
+using edgeid = NetworKit::edgeid;
+using node = NetworKit::node;
+using Graph = NetworKit::Graph;
+
 static void print_flows(edge_map<int> &printable);
+static void forEachArcOf(Graph const&, node u, std::function<void(node, node, edgeid, bool)> f);
 
 SuccessiveApproxMCC::SuccessiveApproxMCC(NetworKit::Graph& g,
     edge_map<MCFEdgeParams>& ep, node_map<int>& excess)
@@ -16,69 +21,85 @@ SuccessiveApproxMCC::SuccessiveApproxMCC(NetworKit::Graph& g,
     constructCirculation();
 }
 
-inline double SuccessiveApproxMCC::cp(NetworKit::node const& v,
-    NetworKit::node const& w) {
-    return static_cast<double>(edge_params[{v, w}].cost) - price[v] + price[w];
+inline double SuccessiveApproxMCC::cp(node v,
+    node w, edgeid eid) {
+    return static_cast<double>(costs[eid]) - potential[v] + potential[w];
 }
 
-inline int SuccessiveApproxMCC::uf(NetworKit::node const& v,
-    NetworKit::node const& w) {
-    return edge_params[{v, w}].capacity - flow[{v, w}];
+inline int SuccessiveApproxMCC::uf(edgeid eid, bool reversed = false) {
+    if(!reversed)
+        return upperbound[eid] - flow[eid];
+    return flow[eid] - lowerbound[eid];
 }
 
-void SuccessiveApproxMCC::force_flow(NetworKit::node const& v,
-    NetworKit::node const& w, int f) {
-    flow[{v, w}] += f;
-    flow[{w, v}] -= f;
+void SuccessiveApproxMCC::force_flow(node v, node w,
+    edgeid eid, int f) {
+    flow[eid] += f;
     excess[v] -= f;
     excess[w] += f;
-
-    if (excess[v] > 0)
-        active.insert(v);
-    else
-        active.erase(v);
-
-    if (excess[w] > 0)
-        active.insert(w);
-    else
-        active.erase(w);
 }
 
-void SuccessiveApproxMCC::push(NetworKit::node const& v,
-    NetworKit::node const& w) {
-    MCFEdgeParams edge = edge_params[{v, w}];
-    int res = edge.capacity - flow[{v, w}];
-    int change = std::min(res, excess[v]);
-    force_flow(v, w, change);
+void SuccessiveApproxMCC::push(node v, node w, edgeid eid, bool reverse = false) {
+    if (!reverse) { 
+        int residualCapacity = upperbound[eid] - flow[eid];
+        int change = std::min(residualCapacity, excess[v]);
+        force_flow(v, w, eid, change);
+    } else {
+        int residualCapacity = flow[eid] - lowerbound[eid];
+        int change = std::min(residualCapacity, excess[w]);
+        force_flow(v, w, eid, -change);
+    }
 }
 
 void SuccessiveApproxMCC::relabel(NetworKit::node const& v) {
-    double mi = INFINITY;
+    double mi = std::numeric_limits<double>::max();
     graph.forEdgesOf(
         v,
-        [&](NetworKit::node V, NetworKit::node W) {
-            if (uf(V, W) > 0) {
-                mi = std::min(mi, price[W]
+        [&](node i, node j, edgeid eid) {
+            if (uf(eid) > 0) {
+                mi = std::min(mi, potential[j]
                     + epsi
-                    + edge_params[{V, W}].cost);
+                    + costs[eid]);
             }
         });
-    price[v] = mi;
+    graph.forInEdgesOf(
+        v,
+        [&](node i, node j, edgeid eid) {
+            if (uf(eid, true) > 0) {
+                mi = std::min(mi, potential[j]
+                    + epsi
+                    - costs[eid]);
+            }
+        });
+    potential[v] = mi;
 }
 
-bool SuccessiveApproxMCC::push_relabel(NetworKit::node const& v) {
+bool SuccessiveApproxMCC::push_relabel(node v) {
     // std::cerr << "PUSH RELABEL NODE " << v << "\n"; 
-    int id = pr_id[v];
-    NetworKit::node w = graph.getIthNeighbor(v, id);
-    if (uf(v, w) > 0 && cp(v, w) < 0) {
-        // std::cerr<<"PUSH {" << v<< ", " << w << "} << \n";
-        push(v, w);
+    NetworKit::index id = pr_id[v];
+    int degOut = graph.degreeOut(v);
+    int degIn = graph.degreeIn(v);
+    int deg = degOut + degIn;
+    double reducedCost;
+    edgeid eid; 
+    node w;
+    bool reversed = id/degOut;
+    if (!reversed) {
+        // w, eid = graph.getIthNeighborWithId(v, id);
+        reducedCost = cp(v,w, eid);
     } else {
-        if (graph.degreeOut(v) != id+1) {
-            pr_id[v]++;
-        } else {
+        // w = graph.getIthInNeighbor(v, id - degOut);
+        // eid = graph.getIthInNeighbor(v, id - degOut);
+        reducedCost = -cp(v,w,eid);
+    }
+
+    if (uf(eid, reversed) > 0 && reducedCost < 0) {
+        // std::cerr<<"PUSH {" << v<< ", " << w << "} << \n";
+        push(v, w, eid, reversed);
+    } else {
+        pr_id[v] = (pr_id[v] + 1) % deg;
             // std::cerr<<"RELABEL {" << v << "}\n";
-            pr_id[v] = 0;
+        if (pr_id[v] == 0) {
             relabel(v);
             return true;
         }
@@ -88,16 +109,16 @@ bool SuccessiveApproxMCC::push_relabel(NetworKit::node const& v) {
 
 void SuccessiveApproxMCC::refine() {
     epsi /= 2;
-    for(auto v : graph.nodeRange()){
-        // std::cerr<<"NODE "<<v<<"\n";
-        for(auto w : graph.neighborRange(v)){
-            // std::cerr << "FOR EDGE {"<<v<<", "<<w<<"} cp equals " << cp(v,w)<<"\n";
-            if (cp(v, w) < 0) {
-                int add = edge_params[{v, w}].capacity - flow[{v, w}];
-                force_flow(v, w, add);
-            }
+    graph.forEdges([&](node v, node w, edgeid eid) {
+        double reducedCost = cp(v, w, eid);
+        if (reducedCost < 0) {
+            int residualCap = upperbound[eid] - flow[eid];
+            force_flow(v, w, eid, residualCap);
+        } else if (reducedCost > 0) {
+            int residualCap = flow[eid] - lowerbound[eid];
+            force_flow(v, w, eid, -residualCap); 
         }
-    }
+    });
 
     wave();
 }
@@ -118,14 +139,31 @@ void SuccessiveApproxMCC::wave() {
     delete list;
 }
 
-bool SuccessiveApproxMCC::discharge(NetworKit::node const& v) {
-    bool relabeled{false};
-    while (excess[v] > 0 && !(relabeled = push_relabel(v))) {}
-    return relabeled;
+bool SuccessiveApproxMCC::discharge(NetworKit::node const& u) {
+    int& ex = excess[u];
+    graph.forEdgesOf(u, [&](node u, node v, edgeid eid) {
+        if (ex && cp(u, v, eid) < 0 && uf(eid) > 0) {
+            push(u, v, eid);
+        }
+    });
+    if (ex > 0) {
+        // reversed arcs, that enters u can be outgoing in residual graph
+        graph.forInEdgesOf(u, [&](node u, node v, node eid) {
+            if (ex && cp(u, v, eid) > 0 && uf(eid, true) > 0) {
+                push(u, v, eid, true);
+            }
+        });
+    }
+    if (ex > 0) {
+        relabel(u);
+        return true;
+    }
+
+    return false;
 }
 
 void SuccessiveApproxMCC::initialize() {
-    price.clear();
+    potential.clear();
     excess.clear();
     flow.clear();
     active.clear();
@@ -139,30 +177,24 @@ void SuccessiveApproxMCC::initialize() {
     }
 
     int mx = 0;
-    for (auto [a, b] : edge_params) {
-        if (int c = b.capacity < 0) {
-            force_flow(a.first, a.second, c);
-        }
-        mx = std::max(mx, abs(b.cost));
+
+    for (auto [_, cost] : costs) {
+        mx = std::max(mx, abs(cost));
     }
     epsi = static_cast<double>(mx);
+
+    graph.forEdges([&](node u, node v, edgeid eid) {
+        int cap;
+        if ((cap = upperbound[eid]) < 0) {
+            force_flow(u, v, eid, cap);
+        } else if ((cap = lowerbound[eid] > 0)) {
+            force_flow(u, v, eid, cap);
+        }
+    });
 }
 
 void SuccessiveApproxMCC::runImpl() {
     initialize();
-    // std::cerr << "RUN IMPL" <<"\n";
-    /*
-    if (epsi >= 1.0/graph.numberOfNodes()) {
-        refine();
-        for (auto [v, e] : excess) {
-            if (e > 0) {
-                feasible = false;
-                return;
-            }
-        }
-    }
-    print_flows(flow);
-    */
 
     while (epsi >= 1.0/graph.numberOfNodes()) {
         refine();
@@ -171,14 +203,9 @@ void SuccessiveApproxMCC::runImpl() {
 
     min_cost = 0;
     
-    for (auto v : graph.nodeRange()) {
-        for (auto w : graph.neighborRange(v)) {
-            min_cost += flow[{v, w}]*edge_params[{v, w}].cost;
-            // std::cerr << "Add cost for {" << v<< ", "<<w<<"} with cost "<< edge_params[{v, w}].cost << " for flow " << flow[{v, w}] << "\n";
-        }
-    }
-
-    min_cost/=2;
+    graph.forEdges([&](node u, node v, edgeid eid) {
+        min_cost += flow[eid] * costs[eid];
+    });
 }
 
 
@@ -194,13 +221,14 @@ SuccessiveApproxMCC::ToposortList::ToposortList(
 void SuccessiveApproxMCC::ToposortList::dfs(NetworKit::node v){
     vis[v] = true;
 
-    for (auto w : approx.graph.neighborRange(v)) {
-        if (approx.cp(v,w) < 0 && approx.uf(v,w) > 0) {
-            if (!vis[w]) {
-                dfs(w);
+    forEachArcOf(approx.graph, v, [&](node i, node j, edgeid id, bool reversed) {
+        if (approx.cp(i, j, id)*(reversed ? -1 : 1)  < 0 && approx.uf(id, reversed)) {
+            if (!vis[j]) {
+                dfs(j);
             }
         }
-    }
+    });
+    
     nodes.push_front(v);
 }
 
@@ -225,12 +253,27 @@ void SuccessiveApproxMCC::ToposortList::moveToStart() {
     }
 }
 
-static void print_flows(edge_map<int> &printable) {
+static void print_flows(edgeid_map<int> &printable) {
     // std::cerr<< " --- AFTER REFINE TEST --- \n"; 
     for(auto [e, f] : printable){
         // std::cerr << "ARC {" << e.first<< ", "<<e.second<<"} FLOW: " << f <<  "\n";   
     }
     // std:: cerr<< " --- PRINT END --- \n\n";
 }
+
+static void forEachArcOf(
+    Graph const& g,
+    node u,
+    std::function<void(node, node, edgeid, bool)> f) {
+    
+    g.forEdgesOf(u, [&](node u, node v, edgeid id) {
+        f(u, v, id, false);
+    });
+
+    g.forInEdgesOf(u, [&](node u, node v, edgeid id) {
+        f(u, v, id, true);
+    });
+}
+
 
 } /* namespace Koala */
