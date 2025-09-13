@@ -8,16 +8,15 @@
 
 namespace Koala {
 
-class SuccessiveApproxMCC : public MinimumCostFlow {
+class SuccessiveApproxMCC final : public MinimumCostFlow {
  public:   
     using MinimumCostFlow::MinimumCostFlow;
-    SuccessiveApproxMCC::SuccessiveApproxMCC(NetworKit::Graph&, 
-        edge_map<MCFEdgeParams>&, node_map<int>&);
-    SuccessiveApproxMCC::SuccessiveApproxMCC(NetworKit::Graph&, 
-        edge_map<MCFEdgeParams>&, NetworKit::node, NetworKit::node, int);
 
  private:
     void runImpl() override;
+    void initFlow() override;
+    void initCirculation() override;
+
     void initialize();
     void push(NetworKit::node, NetworKit::node, NetworKit::edgeid, bool reversed);
     void relabel(NetworKit::node const&);

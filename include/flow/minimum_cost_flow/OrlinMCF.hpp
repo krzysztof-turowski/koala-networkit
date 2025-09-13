@@ -5,7 +5,7 @@
 
 namespace Koala {
 
-class OrlinMCF : public MinimumCostFlow {
+class OrlinMCF final : public MinimumCostFlow {
  public:
     
     OrlinMCF(const NetworKit::Graph&, const edgeid_map<int>&, const node_map<int>&);
@@ -17,6 +17,8 @@ class OrlinMCF : public MinimumCostFlow {
     int delta = 0;
 
     void runImpl() override;
+    void initFlow() override;
+    void initCirculation() override;
     int cp(NetworKit::node, NetworKit::node, NetworKit::edgeid);
 
     void augment(NetworKit::node, NetworKit::node, NetworKit::edgeid, bool, int);
@@ -35,7 +37,6 @@ class OrlinMCF : public MinimumCostFlow {
     void scalingAugmentation(NetworKit::node, NetworKit::node);
     edgeid_map<int> potential;
     NetworKit::Graph originalGraph;
-    int delta = 0;
 };
 
 } /* namespace Koala */

@@ -4,21 +4,22 @@
 
 using node = NetworKit::node;
 using edgeid = NetworKit::edgeid;
+using edgeweight = NetworKit::edgeweight;
 
 namespace Koala {
 
 void EdmondsKarpMCF::initialize() {
-    // we assume that the network is uncapacitated OK NOT REALLY
-
+    excess = b;
     flow.clear();
     potential.clear();
     NetworKit::edgeweight maxWeight = 0;
-
+    makeConnected();
+    
     for (auto edge : graph.edgeWeightRange()) {
         maxWeight = std::max(maxWeight, edge.weight);
     }
     delta = 1;
-    while (delta < maxWeight) delta <<= 1;
+    while (delta < lround(maxWeight)) delta <<= 1;
 }
 
 int EdmondsKarpMCF::cp(node u, node v, edgeid eid) {
@@ -33,10 +34,14 @@ void EdmondsKarpMCF::send(node u, node v, edgeid eid, int value) {
 
 NetworKit::Graph EdmondsKarpMCF::getDeltaResidual() {
     NetworKit::Graph deltaResidual(graph.numberOfNodes(), true, true);
-    graph.forEdges([&](node u, node v, edgeid id) {
+    graph.forEdges([&](node u, node v, edgeweight weight, edgeid id) {
         int reducedCost = cp(u, v, id);
-        deltaResidual.addEdge(u, v, reducedCost);
-        if (flow[id] >= delta) {
+        int f = flow[id];
+
+        if (f + delta <= lround(weight)) {
+            deltaResidual.addEdge(u, v, reducedCost);
+        }
+        if (f >= delta) {
             deltaResidual.addEdge(v, u, -reducedCost);
         }
     });
@@ -44,10 +49,15 @@ NetworKit::Graph EdmondsKarpMCF::getDeltaResidual() {
 }
 
 void EdmondsKarpMCF::deltaScalingPhase() {
-    graph.forEdges([&](node u, node v, edgeid id) {
-        int resCap = flow[id];
-        if(resCap >= delta && cp(u, v, id) > 0) {
-            send(u, v, id, -resCap);
+
+    graph.forEdges([&](node u, node v, edgeweight weight, edgeid id) {
+        int f = flow[id];
+
+        if(f >= delta && cp(u, v, id) > 0) {
+            send(u, v, id, -f);
+        }
+        else if (f + delta <= lround(weight) && cp(u, v, id) < 0){ 
+            send(u, v, id, lround(weight) - f);
         }
     });
 
@@ -73,20 +83,26 @@ void EdmondsKarpMCF::deltaScalingPhase() {
         for(node v : graph.nodeRange()) {
             potential[v] -= lround(distances[v]);
         }
-        
+
         // augment
         for (int i=0; i<path.size()-1; i++) {
-            std::pair<int, edgeid> mini = {INT32_MAX, -1};
+            std::tuple<int, edgeid, bool> mini = {INT32_MAX, -1, false};
             node p = path[i], q = path[i+1];
-            graph.forEdgesOf(p, [&](node u, node v, edgeid id) {
-                if (v != q) return;
-                mini = std::min(mini, {costs[id], id});
+            graph.forEdgesOf(p, [&](node u, node v, edgeweight weight,  edgeid id) {
+                if (v != q || flow[id] + delta > lround(weight)) return;
+                mini = std::min(mini, {costs[id], id, false});
             });
             graph.forInEdgesOf(p, [&](node u, node v, edgeid id) {
                 if (v != q || flow[id] < delta) return;
-                mini = std::min(mini, {costs[id], id});
+                mini = std::min(mini, {-costs[id], id, true});
             });
-            send(p, q, mini.second, delta);
+            auto [cost, eid, reversed] = mini; 
+            if (reversed) {
+                send(q, p, eid, -delta);
+            } else {
+                send(p, q, eid, delta);
+            }
+            
         }
 
         // update S, T
@@ -102,6 +118,11 @@ void EdmondsKarpMCF::runImpl() {
         deltaScalingPhase();
         delta /= 2;
     }
+
+    min_cost = 0;
+    graph.forEdges([&](node u, node v, edgeid eid) {
+        min_cost += flow[eid] * costs[eid];
+    });
 }
 
 } /* namespace Koala */

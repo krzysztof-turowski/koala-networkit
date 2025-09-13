@@ -22,7 +22,7 @@ namespace Koala {
 template<template <typename...> class THeap> 
 class Dijkstra final : public NetworKit::SSSP {
  private:
-    THeap<NetworKit::node> heap;
+    THeap<std::pair<double, NetworKit::node>, std::greater<std::pair<double, NetworKit::node>>> heap;
 
  public:
     Dijkstra(const NetworKit::Graph &G, NetworKit::node source,
@@ -40,7 +40,6 @@ void Dijkstra<THeap>::run() {
 
     if (distances.size() < G->upperNodeIdBound())
         distances.resize(G->upperNodeIdBound(), infDist);
-
     sumDist = 0.;
     reachedNodes = 1;
 
@@ -60,7 +59,7 @@ void Dijkstra<THeap>::run() {
     // priority queue with distance-node pairs
     distances[source] = 0.;
     heap.clear();
-    heap.push(source);
+    heap.push({0., source});
 
     auto initPath = [&](NetworKit::node u, NetworKit::node v) {
         if (storePaths) {
@@ -72,7 +71,10 @@ void Dijkstra<THeap>::run() {
 
     do {
         // TRACE("pq size: ", heap.size());
-        NetworKit::node u = heap.top();
+        auto [_, u] = heap.top();
+        // std::cerr<<"new guy " << u << "\n";
+        heap.pop();
+        
         sumDist += distances[u];
 
         if ((breakWhenFound && target == u) || distances[u] == infDist)
@@ -82,10 +84,11 @@ void Dijkstra<THeap>::run() {
             nodesSortedByDistance.push_back(u);
 
         G->forNeighborsOf(u, [&](NetworKit::node v, NetworKit::edgeweight w) {
+            // std::cerr << u << " " << v << ": " << w <<'\n';
             double newDist = distances[u] + w;
             if (distances[v] == infDist) {
                 distances[v] = newDist;
-                heap.push(v);
+                heap.push({distances[v], v});
                 ++reachedNodes;
                 if (storePaths)
                     initPath(u, v);
@@ -93,7 +96,7 @@ void Dijkstra<THeap>::run() {
                 if (storePaths)
                     initPath(u, v);
                 distances[v] = newDist;
-                heap.push(v);
+                heap.push({distances[v], v});
             } else if (storePaths && distances[v] == newDist) {
                 previous[v].push_back(u);
                 npaths[v] += npaths[u];

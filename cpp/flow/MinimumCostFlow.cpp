@@ -3,19 +3,42 @@
 
 namespace Koala {
 
-MinimumCostFlow::MinimumCostFlow(NetworKit::Graph &graph,
-    edge_map<MCFEdgeParams>& ep, node_map<int>& np)
-    : graph(graph), edge_params(ep), excess(np) {}
+using index = NetworKit::index;
 
-MinimumCostFlow::MinimumCostFlow(NetworKit::Graph &graph,
-    edge_map<MCFEdgeParams>& ep)
-    : graph(graph), edge_params(ep) {}
+MinimumCostFlow::MinimumCostFlow(
+    NetworKit::Graph const& graph,
+    edgeid_map<int> const& costs,
+    node_map<int> const& b
+) : graph(graph), costs(costs), b(b) {
+    initFlow();
+}
 
-MinimumCostFlow::MinimumCostFlow(NetworKit::Graph &graph,
-    edge_map<MCFEdgeParams>& ep, NetworKit::node s, NetworKit::node t, int fl)
-    : graph(graph), edge_params(ep), excess({{s, fl}, {t, -fl}}) {}
+MinimumCostFlow::MinimumCostFlow(
+    NetworKit::Graph const& graph,
+    edgeid_map<std::pair<int,int>> const& cap_bounds, 
+    edgeid_map<int> const& costs
+) : graph(graph), costs(costs) { 
+    for(auto [key, val] : cap_bounds) {
+        lowerbound[key] = val.first;
+        upperbound[key] = val.second;
+    }
+    initCirculation(); 
+}
 
-int MinimumCostFlow::getFlow(const edge& e) {
+MinimumCostFlow::MinimumCostFlow(
+    NetworKit::Graph const& graph,
+    edgeid_map<int> const& ep,
+    NetworKit::node s, NetworKit::node t, 
+    int fl
+) : graph(graph), costs(ep), b({{s, fl}, {t, -fl}}) {
+    initFlow();
+}
+
+int MinimumCostFlow::getFlow(NetworKit::edgeid e) {
+    return flow[e];
+}
+
+int MinimumCostFlow::getFlow(edge const& e) {
     return flow[flowEdgeToId[e]];
 }
 
@@ -27,25 +50,39 @@ bool MinimumCostFlow::isOk() const {
     return feasible;
 }
 
-void MinimumCostFlow::constructCirculation() {
+void MinimumCostFlow::constructCirculationFromFlow() {
     NetworKit::node n = graph.addNode();
     graph.forNodes(
         [&](NetworKit::node v) {
-            if (excess[v] > 0) {
+            if (b[v] > 0) {
+                index id = graph.upperEdgeIdBound();
                 graph.addEdge(n, v);
-                edge_params[{n,v}].capacity = excess[v];
-                edge_params[{v,n}].capacity = -excess[v];
+                upperbound[id] = excess[v];
+                lowerbound[id] = excess[v];
             }
-            if (excess[v] < 0) {
+            if (b[v] < 0) {
+                index id = graph.upperEdgeIdBound();
                 graph.addEdge(v, n);
-                edge_params[{n,v}].capacity = excess[v];
-                edge_params[{v,n}].capacity = -excess[v];
+                upperbound[id] = excess[v];
+                lowerbound[id] = excess[v];
             }
         });
 }
 
-void MinimumCostFlow::constructFlow() {
-    // TODO
+void MinimumCostFlow::constructFlowFromCirculation() {
+    // TODO    
+    NetworKit::Graph G(graph.numberOfNodes(), true, true, true);
+
+    graph.forEdges([&](NetworKit::node u, NetworKit::node v, NetworKit::edgeid eid) {
+        b[u] += lowerbound[eid];
+        b[v] -= lowerbound[eid];
+        NetworKit::index i = G.upperEdgeIdBound();
+        G.addEdge(u, v, upperbound[eid] - lowerbound[eid]);
+        circulationMapping[eid] = i;
+    });
+
+    graph = G;
+
 }
 
 void MinimumCostFlow::makeUncapacitated() {
@@ -96,6 +133,8 @@ void MinimumCostFlow::makeConnected() {
     NetworKit::node sx = graph.addNode();
     graph.forNodes([&](NetworKit::node u) {
         if (sx == u) return;
+        auto bound = graph.upperEdgeIdBound();
+        costs[bound] = costs[bound+1] = maxCost;
         graph.addEdge(u, sx, sumB);
         graph.addEdge(sx, u, sumB);
     });

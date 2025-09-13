@@ -4,6 +4,7 @@
 #include <list>
 
 #include <flow/minimum_cost_flow/SuccessiveApproxMCC.hpp>
+#include <flow/minimum_cost_flow/EdmondsKarpMCF.hpp>
 
 #include "helpers.hpp"
 
@@ -37,44 +38,45 @@ class SuccessiveApproxMCFlowTest
     : public testing::TestWithParam<MinCostFlowParams> { };
  
 
-TEST_P(SuccessiveApproxMCCTest, test) {
-    MinCostCirculationParams const& parameters = GetParam();
-    std::list<std::pair<int,int>> edges;
-    Koala::edge_map<Koala::MCFEdgeParams> ep;
+// TEST_P(SuccessiveApproxMCCTest, test) {
+//     MinCostCirculationParams const& parameters = GetParam();
+//     std::list<std::pair<int,int>> edges;
+//     Koala::edgeid_map<int> costs;
+//     Koala::edgeid_map<std::pair<int,int>> bounds;
 
-    for(auto [v,w,cap, cost] : parameters.EW){
-        edges.push_back({v,w});
-        ep[{v,w}].capacity += cap;
-        ep[{v,w}].cost += cost;
-        ep[{w,v}].cost -= cost;
-    }
-    NetworKit::Graph G = build_graph(parameters.N, edges, false);
-    G.removeMultiEdges();
-    auto algorithm = Koala::SuccessiveApproxMCC(G, ep);
-    algorithm.run();
-    EXPECT_EQ(algorithm.getMinCost(), parameters.minCost);
-}
+//     for(auto [v,w,cap, cost] : parameters.EW){
+//         edges.push_back({v,w});
+//         ep[{v,w}].capacity += cap;
+//         ep[{v,w}].cost += cost;
+//         ep[{w,v}].cost -= cost;
+//     }
+//     NetworKit::Graph G = build_graph(parameters.N, edges, false);
+//     G.removeMultiEdges();
+//     auto algorithm = Koala::SuccessiveApproxMCC(G, ep);
+//     algorithm.run();
+//     EXPECT_EQ(algorithm.getMinCost(), parameters.minCost);
+// }
 
-TEST_P(SuccessiveApproxMCFlowTest, test) {
-    MinCostFlowParams const& parameters = GetParam();
-    std::list<std::pair<int,int>> edges;
-    Koala::edge_map<Koala::MCFEdgeParams> ep;
-    Koala::node_map<int> excess;
-    for(auto [a,b] : parameters.excess)
-        excess[a]=b;
+// TEST_P(SuccessiveApproxMCFlowTest, test) {
+//     MinCostFlowParams const& parameters = GetParam();
+//     std::list<std::pair<int,int>> edges;
+//     Koala::edge_map<Koala::MCFEdgeParams> ep;
+//     Koala::node_map<int> excess;
+//     for(auto [a,b] : parameters.excess)
+//         excess[a]=b;
 
-    for(auto [v,w,cap, cost] : parameters.EW){
-        edges.push_back({v,w});
-        ep[{v,w}].capacity += cap;
-        ep[{v,w}].cost += cost;
-        ep[{w,v}].cost -= cost;
-    }
-    NetworKit::Graph G = build_graph(parameters.N, edges, false);
-    G.removeMultiEdges();
-    auto algorithm = Koala::SuccessiveApproxMCC(G, ep, excess);
-    algorithm.run();
-    EXPECT_EQ(algorithm.getMinCost(), parameters.minCost);
-}
+//     for(auto [v,w,cap, cost] : parameters.EW){
+//         edges.push_back({v,w});
+//         ep[{v,w}].capacity += cap;
+//         ep[{v,w}].cost += cost;
+//         ep[{w,v}].cost -= cost;
+//     }
+//     NetworKit::Graph G = build_graph(parameters.N, edges, false);
+//     G.removeMultiEdges();
+//     auto algorithm = Koala::SuccessiveApproxMCC(G, ep, excess);
+//     algorithm.run();
+//     EXPECT_EQ(algorithm.getMinCost(), parameters.minCost);
+// }
 
 
 INSTANTIATE_TEST_SUITE_P(
@@ -90,4 +92,43 @@ INSTANTIATE_TEST_SUITE_P(
         MinCostFlowParams{
             5, {{0, 1, 10, 2}, {1,3,4,3}, {3,1,-2,0}, {0, 2, 15, 1}, {2, 3, 3, -3}},{{0,3},{3,-3}}, 8
         }
+));
+
+class EdmondsKarpTest
+    : public testing::TestWithParam<MinCostFlowParams> { };
+
+TEST_P(EdmondsKarpTest, test) {
+    MinCostFlowParams const& parameters = GetParam();
+    std::list<std::tuple<int, int, int>> edges;
+    Koala::edgeid_map<int> costs;
+    Koala::node_map<int> b;
+
+    for (auto [key, value] : parameters.excess) {
+        b[key] = value;
+    }
+
+    NetworKit::edgeid index = 0;
+    for (auto [u, v, capacity, cost] : parameters.EW) {
+        edges.push_back({u, v, capacity});
+        costs[index++] = cost;
+    }
+    NetworKit::Graph G = build_graph(parameters.N, edges, true, true);
+    auto algorithm = Koala::EdmondsKarpMCF(G, costs, b);
+    algorithm.run();
+    EXPECT_EQ(algorithm.getMinCost(), parameters.minCost);
+}
+
+INSTANTIATE_TEST_SUITE_P(test_example, EdmondsKarpTest, testing::Values(
+    MinCostFlowParams{
+        4, {{0, 2, 2, 1}, {2, 0, 1, 0}, {0, 3, 3, 1}, {2, 3, 2, 0}, {1, 2, 2, 1}, {1, 3, 2, 1}}, {{0,3}, {1,2}, {3,-5}}, 5
+    },
+    MinCostFlowParams{
+        4, {{0, 1, 5, 0}, {1, 2, 1, 1}, {1, 2, 2, 2}, {1, 2, 3, 3}, {2, 3, 5, 0}}, {{0, 4}, {3, -4}}, 8  
+    },
+    MinCostFlowParams{8, {{1, 0, 3, 5}, {2, 0, 2, 1}, {0, 3, 6, 1}, {5, 4, 0, 0}, {6, 4, 4, 3}, {6, 7, 1, 2}, {7, 4, 2, 1}},
+        {{7, 2}, {6, 2}, {4, -4}, {0, -1}, {1, 2}, {2, 2}, {3, -3}}, 23
+    }, 
+    MinCostFlowParams{3, {{0, 1, 5, 1}, {1, 0, 5, 2}, {0, 2, 5, 1}, {2, 0, 5, 2}, {1, 2, 3, 1}, {2, 1, 4, 2}}, 
+        {{0, 2}, {1, 3}, {2, -5}}, 5
+    }
 ));

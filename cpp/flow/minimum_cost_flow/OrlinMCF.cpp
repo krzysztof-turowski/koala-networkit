@@ -1,5 +1,5 @@
 #include <flow/minimum_cost_flow/OrlinMCF.hpp>
-#include <flow/MaximumFlow.hpp>
+#include <flow/KingRaoTarjanMaximumFlow.hpp>
 #include <shortest_path/Dijkstra.hpp>
 
 namespace Koala {
@@ -7,14 +7,20 @@ namespace Koala {
 using edgeid = NetworKit::edgeid;
 using node = NetworKit::node;
 
-OrlinMCF::OrlinMCF(const NetworKit::Graph& graph, const edgeid_map<int>& costs, const node_map<int>& bs) {
-    this->b = bs;
-    this->costs = costs;
-    this->graph = graph;
+void OrlinMCF::initFlow() {
     this->graph.indexEdges();
     makeConnected();
     makeUncapacitated();
     makeCostsNonnegative();
+}
+
+void OrlinMCF::makeCostsNonnegative() {
+    
+}
+
+void OrlinMCF::initCirculation() {
+    constructFlowFromCirculation();
+    initFlow();
 }
 
 void OrlinMCF::initialize() {
@@ -156,7 +162,7 @@ void OrlinMCF::uncontractAndComputeFlow() {
     KingRaoTarjanMaximumFlow maxflow(flowGraph, s, t);
     maxflow.run();
     originalGraph.forEdges([&](node u, node v, edgeid id){
-        // TODO: set the flows in original graph from the result of maxflow
+        flow[id] = maxflow.get_flow({u, v});
     });
 }
 

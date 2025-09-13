@@ -14,6 +14,7 @@ class KingRaoTarjanMaximumFlow final : public MaximumFlow {
      * Execute the King-Rao-Tarjan maximum flow algorithm.
      */
     void run();
+    int get_flow(const std::pair<NetworKit::node, NetworKit::node>&);
 
  private:
     std::unordered_map<std::pair<NetworKit::node, NetworKit::node>, int, pair_hash> flow;
@@ -29,7 +30,6 @@ class KingRaoTarjanMaximumFlow final : public MaximumFlow {
     NetworKit::node get_positive_excess_node();
     void update_positive_excess(NetworKit::node);
 
-    int get_flow(const std::pair<NetworKit::node, NetworKit::node>&);
     void set_flow(const std::pair<NetworKit::node, NetworKit::node>&, int);
     void saturate(const std::pair<NetworKit::node, NetworKit::node>&);
     void add_edge(const std::pair<NetworKit::node, NetworKit::node>&);

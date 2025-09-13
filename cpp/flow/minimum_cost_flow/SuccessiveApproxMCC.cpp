@@ -6,20 +6,15 @@ using edgeid = NetworKit::edgeid;
 using node = NetworKit::node;
 using Graph = NetworKit::Graph;
 
-static void print_flows(edge_map<int> &printable);
+// static void print_flows(edge_map<int> &printable);
 static void forEachArcOf(Graph const&, node u, std::function<void(node, node, edgeid, bool)> f);
 
-SuccessiveApproxMCC::SuccessiveApproxMCC(NetworKit::Graph& g,
-    edge_map<MCFEdgeParams>& ep, node_map<int>& excess)
-    : MinimumCostFlow(g,ep,excess) {
-    constructCirculation();
+void SuccessiveApproxMCC::initFlow() {
+    constructCirculationFromFlow();
+    initCirculation();
 }
 
-SuccessiveApproxMCC::SuccessiveApproxMCC(NetworKit::Graph& g, 
-    edge_map<MCFEdgeParams>& ep, NetworKit::node s, NetworKit::node t, int flow)
-    : MinimumCostFlow(g, ep, s, t, flow) {
-    constructCirculation();
-}
+void SuccessiveApproxMCC::initCirculation() {}
 
 inline double SuccessiveApproxMCC::cp(node v,
     node w, edgeid eid) {
@@ -165,7 +160,7 @@ void SuccessiveApproxMCC::runImpl() {
 
     while (epsi >= 1.0/graph.numberOfNodes()) {
         refine();
-        print_flows(flow);
+        // print_flows(flow);
     }
 
     min_cost = 0;
@@ -220,13 +215,13 @@ void SuccessiveApproxMCC::ToposortList::moveToStart() {
     }
 }
 
-static void print_flows(edgeid_map<int> &printable) {
-    // std::cerr<< " --- AFTER REFINE TEST --- \n"; 
-    for(auto [e, f] : printable){
-        // std::cerr << "ARC {" << e.first<< ", "<<e.second<<"} FLOW: " << f <<  "\n";   
-    }
-    // std:: cerr<< " --- PRINT END --- \n\n";
-}
+// static void print_flows(edgeid_map<int> &printable) {
+//     // std::cerr<< " --- AFTER REFINE TEST --- \n"; 
+//     for(auto [e, f] : printable){
+//         // std::cerr << "ARC {" << e.first<< ", "<<e.second<<"} FLOW: " << f <<  "\n";   
+//     }
+//     // std:: cerr<< " --- PRINT END --- \n\n";
+// }
 
 static void forEachArcOf(
     Graph const& g,

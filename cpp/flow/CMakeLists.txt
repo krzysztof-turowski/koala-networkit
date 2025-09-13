@@ -8,6 +8,7 @@ koala_add_module(flow
     MalhotraKumarMaheshwariFlow.cpp
     BoykovKolmogorovFlow.cpp
     MinimumCostFlow.cpp
-    minimum_cost_flow/SuccessiveApproxMCC.cpp
+    minimum_cost_flow/EdmondsKarpMCF.cpp
     minimum_cost_flow/OrlinMCF.cpp
+    minimum_cost_flow/SuccessiveApproxMCC.cpp
 )
