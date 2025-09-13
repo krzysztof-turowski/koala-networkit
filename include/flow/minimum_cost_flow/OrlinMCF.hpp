@@ -7,8 +7,7 @@ namespace Koala {
 
 class OrlinMCF final : public MinimumCostFlow {
  public:
-    
-    OrlinMCF(const NetworKit::Graph&, const edgeid_map<int>&, const node_map<int>&);
+    using MinimumCostFlow::MinimumCostFlow;
 
  private:
     void makeCostsNonnegative();
