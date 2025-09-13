@@ -34,6 +34,11 @@ koala_make_benchmark(
     benchmarkMaximumFlow.sh)
 
 koala_make_benchmark(
+    benchmark_minimum_cost_flow
+    benchmarkMinimumCostFlow.cpp
+    benchmarkMinimumCostFlow.sh)
+
+koala_make_benchmark(
     benchmark_independent_set
     benchmarkIndependentSet.cpp
     benchmarkIndependentSet.sh)

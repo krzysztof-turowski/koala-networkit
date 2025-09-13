@@ -10,6 +10,7 @@
 #include <string>
 
 #include <networkit/io/GraphReader.hpp>
+#include <map>
 
 namespace Koala {
 
@@ -39,6 +40,31 @@ class DimacsGraphReader final : public NetworKit::GraphReader {
      */
     std::tuple<NetworKit::Graph, NetworKit::node, NetworKit::node> read_all(
         const std::string &path);
+
+    /**
+     * Given the path of an input file,
+     * read the graph together with minimum cost flow parameters.
+     *
+     * @param[in]  path  input file path
+     * @param[out]  the graph read from file, together with source and target nodes
+     */
+    std::tuple<NetworKit::Graph, 
+        std::map<NetworKit::edgeid, int>, 
+        std::map<NetworKit::node, int>,
+        NetworKit::node, NetworKit::node> 
+        read_all_mcf(const std::string &path);
+
+    /**
+     * Given the path of an input file, read the graph for minimum cost flow.
+     *
+     * @param[in]  path  input file path
+     * @param[out]  the graph read from file with indexed edges, 
+     *              together with maps mapping edges to costs and nodes to supply/demand
+     */
+    std::tuple<NetworKit::Graph,
+        std::map<NetworKit::edgeid, int>, 
+        std::map<NetworKit::node, int>> 
+        read_minimum_cost_flow(const std::string &path);
 };
 
 } /* namespace Koala */
