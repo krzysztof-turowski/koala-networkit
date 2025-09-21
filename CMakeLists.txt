@@ -8,7 +8,7 @@ set(PROJECT_NAME koala-networkit)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-set(KOALA_CXX_FLAGS "-Wall -Wextra -Wstrict-aliasing -Wpedantic -Werror -Wunreachable-code -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wmissing-include-dirs -Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wsign-promo -Wstrict-overflow=2 -Wswitch-default -Wundef -Wno-error -fpermissive -fdiagnostics-show-option -O3 -pthread -lntl -lgmp")
+set(KOALA_CXX_FLAGS "-Wall -Wextra -Wstrict-aliasing -Wpedantic -Werror -Wunreachable-code -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wmissing-include-dirs -Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wsign-promo -Wstrict-overflow=2 -Wswitch-default -Wundef -Wno-error -fpermissive -fdiagnostics-show-option -O3 -pthread")
 set(KOALA_LINKER_FLAGS "")
 message("Compiled with ${CMAKE_CXX_COMPILER_ID}: ${CMAKE_CXX_COMPILER}")
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -87,7 +87,7 @@ if(KOALA_BUILD_SHARED)
 else()
     add_library(${PROJECT_NAME} STATIC cpp/koala.cpp)
 endif()
-target_link_libraries(${PROJECT_NAME} networkit ntl gmp eigen boost_graph csdp_lib lapack blas gfortran quadmath)
+target_link_libraries(${PROJECT_NAME} networkit ntl eigen boost_graph csdp_lib lapack blas gfortran quadmath)
 set_target_properties(${PROJECT_NAME} PROPERTIES
     COMPILE_FLAGS ${KOALA_CXX_FLAGS}
     LINK_FLAGS ${KOALA_LINKER_FLAGS})
