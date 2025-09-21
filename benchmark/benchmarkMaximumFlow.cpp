@@ -10,6 +10,7 @@
 #include <flow/KingRaoTarjanMaximumFlow.hpp>
 #include <flow/MalhotraKumarMaheshwariFlow.hpp>
 #include <io/DimacsGraphReader.hpp>
+#include <flow/electrical_flow/ElectricalFlow.hpp>
 
 template <typename FlowAlgorithm>
 void run_flow_algorithm(const std::string &file_path, const std::string &name) {
@@ -27,7 +28,8 @@ std::map<std::string, int> ALGORITHM = {
     { "PushRelabel", 1 },
     { "BK", 2 },
     { "MKM", 3 },
-    { "KRT", 4 }
+    { "KRT", 4 },
+    { "ElectricalFlow", 5 }
 };
 
 int main(int argc, char **argv) {
@@ -58,6 +60,8 @@ int main(int argc, char **argv) {
         run_flow_algorithm<Koala::MalhotraKumarMaheshwariFlow>(file_path, "MKMFlow");
     } else if (ALGORITHM[algorithm] == 4) {
         run_flow_algorithm<Koala::KingRaoTarjanMaximumFlow>(file_path, "KingRaoTarjan");
+    } else if (ALGORITHM[algorithm] == 5) {
+        run_flow_algorithm<Koala::ElectricalFlow>(file_path, "ElectricalFlow");
     } else {
         std::cerr << "Unknown algorithm: " << algorithm << std::endl;
         return 1;

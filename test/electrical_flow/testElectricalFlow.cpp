@@ -38,5 +38,5 @@ TEST(GenTest, testSuccess) {
     }
   }
 
-  EXPECT_EQ(ef.getMaximumFlow(), F);
+  EXPECT_EQ(ef.getFlowSize(), F);
 }

@@ -9,7 +9,7 @@ class ElectricalFlow {
 public:
   ElectricalFlow(const NetworKit::Graph &graph, int s, int t, bool round=true);
   void run();
-  double getMaximumFlow() const;
+  double getFlowSize() const;
 
 // private:
   bool routeFlow();

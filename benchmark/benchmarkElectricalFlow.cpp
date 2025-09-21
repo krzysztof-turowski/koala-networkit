@@ -50,7 +50,7 @@ FlowBenchmark runElectricalFlow(const NetworKit::Graph& G, int s, int t) {
     auto begin = steady_clock::now();
     Koala::ElectricalFlow algo(G, s, t);
     algo.run();
-    auto maximumFlow = algo.getMaximumFlow();
+    auto maximumFlow = algo.getFlowSize();
     auto end = steady_clock::now();
     return { "ElectricalFlow", maximumFlow, begin, end };
 }
@@ -59,7 +59,7 @@ FlowBenchmark runFractionalElectricalFlow(const NetworKit::Graph& G, int s, int 
     auto begin = steady_clock::now();
     Koala::ElectricalFlow algo(G, s, t, false);
     algo.run();
-    auto maximumFlow = algo.getMaximumFlow();
+    auto maximumFlow = algo.getFlowSize();
     auto end = steady_clock::now();
     return { "ElectricalFlow w/o rounding", maximumFlow, begin, end };
 }

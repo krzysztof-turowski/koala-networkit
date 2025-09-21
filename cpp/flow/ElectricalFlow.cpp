@@ -93,7 +93,7 @@ bool ElectricalFlow::routeFlow() {
   return true;
 }
 
-double ElectricalFlow::getMaximumFlow() const { return maximumFlow; }
+double ElectricalFlow::getFlowSize() const { return maximumFlow; }
 
 void ElectricalFlow::initialize() {
   int N = graph.numberOfNodes();
