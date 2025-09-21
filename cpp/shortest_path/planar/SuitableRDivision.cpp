@@ -405,7 +405,10 @@ node_subsets_t make_suitable_graph_division_from_queue(
         std::unordered_set<NetworKit::node> nodes_for_subgraph{node_set.begin(), node_set.end()};
         auto subgraph = NetworKit::GraphTools::subgraphFromNodes(graph, nodes_for_subgraph);
         auto sets = create_connected_sets(subgraph, is_boundary);
-
+        if (sets.size() == 1) {
+            small_sets.push_back(std::move(node_set));
+            continue;
+        }
         for (auto& s : sets) {
             number_of_boundary_nodes = 0;
             for (auto node : s) {
@@ -528,6 +531,7 @@ node_subsets_t make_suitable_graph_division_from_queue(
             // we can delay that to simplify the logic as the sets are still good to use
             continue;
         }
+        if (region_neighbors.size() == 0) continue;
 
         NetworKit::index first, second;
         auto it = region_neighbors.begin();
@@ -622,6 +626,9 @@ node_subsets_t find_clusters(NetworKit::Graph& graph, NetworKit::count z) {
 
     auto csearch_result = csearch(*graph.nodeRange().begin(), z, graph);
 
+    if (find_cluster_result.empty()) {
+        find_cluster_result.push_back({});
+    }
     for (auto node : csearch_result) {
         find_cluster_result.back().push_back(node);
     }

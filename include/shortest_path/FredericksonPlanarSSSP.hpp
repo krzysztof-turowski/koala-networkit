@@ -7,13 +7,15 @@ namespace Koala {
 class FredericksonPlanarSSSP : public PlanarSSSP {
  private:
     NetworKit::Graph normal_graph;
-    int c = 3;
-    int r1 = 100;
-    int r2 = 25;
+    int c = 6;
+    int r1 = NetworKit::none;
+    int r2 = NetworKit::none;
 
  public:
     FredericksonPlanarSSSP(NetworKit::Graph& graph, NetworKit::node source, NetworKit::node target)
         : PlanarSSSP(graph, source, target) {}
+
+    void setDivisionParameters(int level_1, int level_2);
 
     void run();
 };

@@ -223,12 +223,33 @@ pair_distance_t get_distance_between_boundary_nodes_Level_1(
     return result;
 }
 
-void FredericksonPlanarSSSP::run() {
-    normal_graph = PlanarGraphTools::convertToMaxDegree3(graph);
-    //TODO(kturowski): make these parameters described by the paper configurable
-    // int r1 = log(normal_graph.numberOfNodes());
-    // int r2 = (log(log(normal_graph.numberOfNodes())))^2
+void FredericksonPlanarSSSP::setDivisionParameters(int level_1, int level_2) {
+    r1 = level_1;
+    r2 = level_2;
+}
 
+void FredericksonPlanarSSSP::run() {
+    if (graph.numberOfNodes() <= 2) {
+        distances[source] = 0;
+        NetworKit::edgeweight max_weight = 0;
+        for (auto edge : graph.edgeWeightRange()) {
+            max_weight = std::max(max_weight, edge.weight);
+        }
+        if (graph.numberOfNodes() == 2) {
+            distances[1] = max_weight;
+        }
+        hasRun = true;
+        return;
+    }
+    normal_graph = PlanarGraphTools::convertToMaxDegree3(graph);
+    if (r1 == NetworKit::none && r2 == NetworKit::none) {
+        // User did not choose the parameters
+        r1 = log(normal_graph.numberOfNodes());
+        r2 = log(log(normal_graph.numberOfNodes()));
+        r2 *= r2;
+        r1 = std::max(100, r1);
+        r2 = std::max(25, r2);
+    }
     auto division_level_1 = findSuitableRDivision(normal_graph, r1, c);
     PlanarGraphTools::assertDivision(division_level_1, normal_graph);
 
@@ -244,6 +265,7 @@ void FredericksonPlanarSSSP::run() {
     auto shortest_distances =
         main_thrust(normal_graph, division_level_1, distances_level_1, source, {});
 
+    shortest_distances[source] = 0;
     mop_up(shortest_distances, division_level_1, normal_graph);
     for (auto node : graph.nodeRange()) {
         distances[node] = shortest_distances[node];
