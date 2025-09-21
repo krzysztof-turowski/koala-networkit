@@ -4,32 +4,37 @@
 
 #pragma once
 
+class GenTest;
+
 namespace Koala {
 class ElectricalFlow {
- public:
+public:
   ElectricalFlow(const NetworKit::Graph &graph, int s, int t,
                  bool round = true);
   void run();
   double getFlowSize() const;
 
-  // private:
-  bool routeFlow();
+  const NetworKit::Graph& getGraph() const { return graph; }
+  const std::vector<std::vector<double>>& getFlow() const { return primal.flow; }
+
+private:
+  bool route_flow();
   void initialize();
-  bool isFeasible();
-  void augmentationStep();
-  void fixingStep();
+  bool is_feasible();
+  void augmentation_step();
+  void fixing_step();
 
   const NetworKit::Graph &graph;
   const int s, t;
   int U;
   bool round;
-  double maximumFlow;
+  double maximum_flow;
 
   std::vector<double> demand;
   FlowNetwork primal;
   std::vector<double> dual;
   double progress;
-  double targetFlow;
+  double target_flow;
 };
 
-}  // namespace Koala
+} // namespace Koala

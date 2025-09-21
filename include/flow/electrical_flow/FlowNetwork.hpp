@@ -15,8 +15,7 @@ class FlowNetwork {
 
   void roundFlow();
   void pushValue(int s, int t, double f);
-
-// private:
+  
   const NetworKit::Graph &graph;
   std::vector<std::vector<double>> flow;
   const int N, M;

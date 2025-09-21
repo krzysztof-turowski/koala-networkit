@@ -8,17 +8,17 @@ using namespace NetworKit;
 
 namespace Koala {
 
-double currentFlow(const FlowNetwork &f, int t);
-vector<vector<double>> getCoupling(const FlowNetwork &f,
+double current_flow(const FlowNetwork &f, int t);
+vector<vector<double>> get_coupling(const FlowNetwork &f,
                                    const vector<double> &y);
-vector<vector<double>> getResistance(const FlowNetwork &f);
+vector<vector<double>> get_resistance(const FlowNetwork &f);
 
 void check_augmentation_step(const FlowNetwork &primal,
                              const vector<double> &dual,
                              const vector<double> &violation,
                              const vector<double> &congestion, double stepSize);
 
-double LNorm(const vector<double> &vec, int l) {
+double l_norm(const vector<double> &vec, int l) {
   double norm = 0;
   if (l == 0) {
     // infinity
@@ -36,9 +36,9 @@ double LNorm(const vector<double> &vec, int l) {
   }
 }
 
-vector<double> getViolation(const FlowNetwork &f, const vector<double> &y) {
+vector<double> get_violation(const FlowNetwork &f, const vector<double> &y) {
   vector<double> violation(f.graph.numberOfEdges());
-  auto coupling = getCoupling(f, y);
+  auto coupling = get_coupling(f, y);
   int i = 0;
   f.graph.forEdges([&](node u, node v) {
     violation[i++] = pow(
@@ -48,7 +48,7 @@ vector<double> getViolation(const FlowNetwork &f, const vector<double> &y) {
 }
 
 ElectricalFlow::ElectricalFlow(const Graph &graph, int s, int t, bool round)
-    : graph(graph), s(s), t(t), maximumFlow(0), primal(graph), round(round) {
+    : graph(graph), s(s), t(t), maximum_flow(0), primal(graph), round(round) {
   U = 0;
   graph.forNeighborsOf(t, [&](node v) { U += graph.weight(v, t); });
 }
@@ -56,24 +56,24 @@ ElectricalFlow::ElectricalFlow(const Graph &graph, int s, int t, bool round)
 void ElectricalFlow::run() {
   int L = 0, R = U + 1;
   while (L < R) {
-    targetFlow = (L + R) / 2;
-    if (routeFlow()) {
-      L = targetFlow + 1;
+    target_flow = (L + R) / 2;
+    if (route_flow()) {
+      L = target_flow + 1;
     } else {
-      R = targetFlow;
+      R = target_flow;
     }
   }
-  maximumFlow = L - 1;
+  maximum_flow = L - 1;
 
-  targetFlow = maximumFlow;
-  routeFlow();
+  target_flow = maximum_flow;
+  route_flow();
 
   if (round) {
     primal.roundFlow();
   }
 }
 
-bool ElectricalFlow::isFeasible() {
+bool ElectricalFlow::is_feasible() {
   int M = graph.numberOfEdges();
 
   double value = 0;
@@ -81,35 +81,35 @@ bool ElectricalFlow::isFeasible() {
   return value <= 2.0 * M / (1.0 - progress);
 }
 
-bool ElectricalFlow::routeFlow() {
+bool ElectricalFlow::route_flow() {
   initialize();
   while ((1.0 - progress) * demand[t] > 1.0) {
-    if (!isFeasible()) {
+    if (!is_feasible()) {
       return false;
     }
-    augmentationStep();
-    fixingStep();
+    augmentation_step();
+    fixing_step();
   }
   return true;
 }
 
-double ElectricalFlow::getFlowSize() const { return maximumFlow; }
+double ElectricalFlow::getFlowSize() const { return maximum_flow; }
 
 void ElectricalFlow::initialize() {
   int N = graph.numberOfNodes();
 
   demand.assign(N, 0);
-  demand[s] = -targetFlow, demand[t] = targetFlow;
+  demand[s] = -target_flow, demand[t] = target_flow;
   primal.flow.assign(N, vector<double>(N, 0));
   dual.assign(N, 0);
   progress = 0;
 }
 
-void ElectricalFlow::augmentationStep() {
-  auto violation = getViolation(primal, dual);
+void ElectricalFlow::augmentation_step() {
+  auto violation = get_violation(primal, dual);
 
   ElectricalNetwork electrical(graph, demand);
-  electrical.compute(getResistance(primal));
+  electrical.compute(get_resistance(primal));
 
   vector<double> congestion(graph.numberOfEdges());
   int i = 0;
@@ -117,7 +117,7 @@ void ElectricalFlow::augmentationStep() {
     congestion[i++] = electrical.flow[u][v] / min(primal.upperCapacity(u, v),
                                                   primal.lowerCapacity(u, v));
   });
-  double stepSize = 1.0 / (33.0 * LNorm(congestion, 4));
+  double stepSize = 1.0 / (33.0 * l_norm(congestion, 4));
 
   graph.forEdges([&](node u, node v) {
     primal.flow[u][v] += stepSize * electrical.flow[u][v];
@@ -131,11 +131,11 @@ void ElectricalFlow::augmentationStep() {
   check_augmentation_step(primal, dual, violation, congestion, stepSize);
 }
 
-void ElectricalFlow::fixingStep() {
+void ElectricalFlow::fixing_step() {
   int N = graph.numberOfNodes();
 
-  auto resistance = getResistance(primal);
-  auto coupling = getCoupling(primal, dual);
+  auto resistance = get_resistance(primal);
+  auto coupling = get_coupling(primal, dual);
 
   vector<vector<double>> correction(N, vector<double>(N, 0));
   graph.forEdges([&](node u, node v) {
@@ -157,7 +157,7 @@ void ElectricalFlow::fixingStep() {
   });
 
   ElectricalNetwork electrical(graph, correctionDemand);
-  electrical.compute(getResistance(primal));
+  electrical.compute(get_resistance(primal));
 
   graph.forEdges([&](node u, node v) {
     primal.flow[u][v] += electrical.flow[u][v];
@@ -168,7 +168,7 @@ void ElectricalFlow::fixingStep() {
   assert(LNorm(getViolation(primal, dual), 2) <= 1.0 / 100.0);
 }
 
-vector<vector<double>> getCoupling(const FlowNetwork &f,
+vector<vector<double>> get_coupling(const FlowNetwork &f,
                                    const vector<double> &y) {
   int N = f.graph.numberOfNodes();
 
@@ -182,7 +182,7 @@ vector<vector<double>> getCoupling(const FlowNetwork &f,
   return strength;
 }
 
-vector<vector<double>> getResistance(const FlowNetwork &f) {
+vector<vector<double>> get_resistance(const FlowNetwork &f) {
   int N = f.graph.numberOfNodes();
 
   vector<vector<double>> resistance(N, vector<double>(N, 0));
@@ -193,7 +193,7 @@ vector<vector<double>> getResistance(const FlowNetwork &f) {
   return resistance;
 }
 
-double currentFlow(const FlowNetwork &f, int t) {
+double current_flow(const FlowNetwork &f, int t) {
   double flow = 0;
   f.graph.forNeighborsOf(t, [&](node v) { flow += f.flow[t][v]; });
   return flow;
@@ -205,7 +205,7 @@ void check_augmentation_step(const FlowNetwork &primal,
                              const vector<double> &violation,
                              const vector<double> &congestion,
                              double stepSize) {
-  auto coupling = getCoupling(primal, dual);
+  auto coupling = get_coupling(primal, dual);
   int i = 0;
   primal.graph.forEdges([&](node u, node v) {
     double l = abs(coupling[u][v]) *
