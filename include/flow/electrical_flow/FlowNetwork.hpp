@@ -5,8 +5,8 @@
 namespace Koala {
 
 class FlowNetwork {
-public:
-  FlowNetwork(const NetworKit::Graph &graph);
+ public:
+  explicit FlowNetwork(const NetworKit::Graph &graph);
 
   double size() const;
 
@@ -22,4 +22,4 @@ public:
   const int N, M;
 };
 
-} // namespace Koala
+}  // namespace Koala

@@ -6,12 +6,13 @@
 
 namespace Koala {
 class ElectricalFlow {
-public:
-  ElectricalFlow(const NetworKit::Graph &graph, int s, int t, bool round=true);
+ public:
+  ElectricalFlow(const NetworKit::Graph &graph, int s, int t,
+                 bool round = true);
   void run();
   double getFlowSize() const;
 
-// private:
+  // private:
   bool routeFlow();
   void initialize();
   bool isFeasible();
@@ -31,4 +32,4 @@ public:
   double targetFlow;
 };
 
-} // namespace Koala
+}  // namespace Koala

@@ -4,7 +4,7 @@
 #pragma once
 namespace Koala {
 class ElectricalNetwork {
-public:
+ public:
   ElectricalNetwork(const NetworKit::Graph &G, const std::vector<double> &demand);
 
   void compute(const std::vector<std::vector<double>> &resistance);
@@ -12,8 +12,8 @@ public:
   std::vector<std::vector<double>> flow;
   std::vector<double> potentials;
 
-private:
+ private:
   const NetworKit::Graph &graph;
   const std::vector<double> &demand;
 };
-} // namespace Koala
+}  // namespace Koala
