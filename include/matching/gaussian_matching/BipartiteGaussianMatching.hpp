@@ -15,8 +15,8 @@ typedef std::set<std::pair<int, int>> Matching;
 
 namespace Koala {
 class BipartiteGaussianMatching : public NetworKit::Algorithm {
-public:
-  BipartiteGaussianMatching(const NetworKit::Graph &G);
+ public:
+  explicit BipartiteGaussianMatching(const NetworKit::Graph &G);
   void run();
   Matching getMatching();
 
@@ -28,4 +28,4 @@ public:
   std::vector<int> bpIdx;
   std::vector<int> oldIdx;
 };
-} // namespace Koala
+}  // namespace Koala

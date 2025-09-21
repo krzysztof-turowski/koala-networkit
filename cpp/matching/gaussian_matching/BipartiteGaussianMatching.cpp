@@ -29,7 +29,7 @@ BipartiteGaussianMatching::BipartiteGaussianMatching(const Graph &G1) {
   for (int i = 0; i < V.size(); ++i) {
     bpIdx[V[i]] = i;
   }
-};
+}
 
 Matching BipartiteGaussianMatching::getMatching() {
   Matching M1;
@@ -99,4 +99,4 @@ pair<vector<int>, vector<int>> getComponents(const Graph &G) {
   return {components[0], components[1]};
 }
 
-} // namespace Koala
+}  // namespace Koala

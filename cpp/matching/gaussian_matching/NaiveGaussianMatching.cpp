@@ -39,4 +39,4 @@ static MatZp generateMatrix(const Graph &G) {
   inv(Ainv, AG);
   return Ainv;
 }
-} // namespace Koala
+}  // namespace Koala

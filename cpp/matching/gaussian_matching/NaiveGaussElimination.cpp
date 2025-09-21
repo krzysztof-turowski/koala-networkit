@@ -54,8 +54,8 @@ vector<int> NaiveGaussElimination::simpleElimination(MatZp &A, int k) {
     if (eliminate(A, i, i)) {
       res.push_back(i);
     }
-  };
+  }
 
   return res;
 }
-} // namespace Koala
+}  // namespace Koala

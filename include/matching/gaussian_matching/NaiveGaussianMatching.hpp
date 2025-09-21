@@ -15,12 +15,12 @@ typedef std::set<std::pair<int, int>> Matching;
 
 namespace Koala {
 class NaiveGaussianMatching : public NetworKit::Algorithm {
-public:
-  NaiveGaussianMatching(const NetworKit::Graph &G);
+ public:
+  explicit NaiveGaussianMatching(const NetworKit::Graph &G);
   void run();
   Matching getMatching();
 
   NetworKit::Graph G;
   Matching M;
 };
-} // namespace Koala
+}  // namespace Koala

@@ -15,8 +15,8 @@ typedef std::set<std::pair<int, int>> Matching;
 
 namespace Koala {
 class GeneralGaussianMatching : public NetworKit::Algorithm {
-public:
-  GeneralGaussianMatching(const NetworKit::Graph &G);
+ public:
+  explicit GeneralGaussianMatching(const NetworKit::Graph &G);
   void run();
   Matching getMatching();
 
@@ -26,4 +26,4 @@ public:
 
   std::vector<int> oldIdx;
 };
-} // namespace Koala
+}  // namespace Koala

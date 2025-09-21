@@ -1,6 +1,5 @@
 #include <cassert>
 #include <chrono>
-#include <filesystem>
 #include <functional>
 #include <iostream>
 #include <map>
@@ -41,7 +40,7 @@ MatchingBenchmark runGeneralGaussianMatching(Graph &G) {
   auto begin = steady_clock::now();
   Koala::GeneralGaussianMatching algo(G);
   algo.run();
-  auto matchingSize = algo.getMatching().size(); // only one of (u,v), (v,u)
+  auto matchingSize = algo.getMatching().size();  // only one of (u,v), (v,u)
   auto end = steady_clock::now();
   return {"GeneralGaussianMatching", matchingSize, G.numberOfNodes() / 2, begin,
           end};
@@ -51,7 +50,7 @@ MatchingBenchmark runBipartiteGaussianMatching(Graph &G) {
   auto begin = steady_clock::now();
   Koala::GeneralGaussianMatching algo(G);
   algo.run();
-  auto matchingSize = algo.getMatching().size(); // only one of (u,v), (v,u)
+  auto matchingSize = algo.getMatching().size();  // only one of (u,v), (v,u)
   auto end = steady_clock::now();
   return {"BipartiteGaussianMatching", matchingSize, G.numberOfNodes() / 2,
           begin, end};
@@ -61,7 +60,7 @@ MatchingBenchmark runNaiveGaussianMatching(Graph &G) {
   auto begin = steady_clock::now();
   Koala::NaiveGaussianMatching algo(G);
   algo.run();
-  auto matchingSize = algo.getMatching().size() / 2; // both (u,v), (v,u)
+  auto matchingSize = algo.getMatching().size() / 2;  // both (u,v), (v,u)
   auto end = steady_clock::now();
   return {"NaiveGaussianMatching", matchingSize, G.numberOfNodes() / 2, begin,
           end};
@@ -72,7 +71,7 @@ MatchingBenchmark runEndmondsMatching(Graph &G) {
   Koala::EdmondsMaximumMatching algo(G, true,
                                      Koala::BlossomMaximumMatching::empty);
   algo.run();
-  auto matchingSize = algo.getMatching().size() / 2; // both (u,v), (v,u)
+  auto matchingSize = algo.getMatching().size() / 2;  // both (u,v), (v,u)
   auto end = steady_clock::now();
   return {"EdmondsMaximumMatching", matchingSize, G.numberOfNodes() / 2, begin,
           end};
@@ -83,17 +82,13 @@ MatchingBenchmark runGabowMatching(Graph &G) {
   Koala::GabowMaximumMatching algo(G, true,
                                    Koala::BlossomMaximumMatching::empty);
   algo.run();
-  auto matchingSize = algo.getMatching().size() / 2; // both (u,v), (v,u)
+  auto matchingSize = algo.getMatching().size() / 2;  // both (u,v), (v,u)
   auto end = steady_clock::now();
   return {"GabowMaximumMatching", matchingSize, G.numberOfNodes() / 2, begin,
           end};
 }
 
 Graph readGraph(const string &filepath) {
-  if (!filesystem::exists(filepath)) {
-    cout << "File " << filepath << " does not exist" << endl;
-    return 1;
-  }
   return Koala::DimacsGraphReader().read(filepath);
 }
 

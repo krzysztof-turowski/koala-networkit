@@ -3,6 +3,7 @@
 #include "networkit/graph/GraphTools.hpp"
 #include <algorithm>
 #include <cmath>
+#include <cstdlib>
 #include <iostream>
 #include <map>
 #include <random>
@@ -24,19 +25,22 @@ inline bool eq(double a, double b) { return fabs(a - b) <= EPS; }
 
 inline void initZp(int p) { Zp::init(NTL::conv<NTL::ZZ>(p)); }
 
-inline Zp generateRandom() { return Zp(rand()); }
+inline Zp generateRandom() {
+  unsigned int seed = (unsigned int)time(NULL);
+  return Zp(rand_r(&seed));
+}
 
 inline VecZp getCol(const MatZp &A, int c) {
   VecZp col;
   col.SetLength(A.NumRows());
-  for (long i = 0; i < col.length(); ++i) {
+  for (int i = 0; i < col.length(); ++i) {
     col[i] = A[i][c];
   }
   return col;
 }
 
 inline void setCol(MatZp &A, int c, const VecZp &vec) {
-  for (long i = 0; i < vec.length(); ++i) {
+  for (int i = 0; i < vec.length(); ++i) {
     A[i][c] = vec[i];
   }
 }
@@ -44,14 +48,14 @@ inline void setCol(MatZp &A, int c, const VecZp &vec) {
 inline VecZp getRow(const MatZp &A, int r) {
   VecZp row;
   row.SetLength(A.NumCols());
-  for (long i = 0; i < row.length(); ++i) {
+  for (int i = 0; i < row.length(); ++i) {
     row[i] = A[r][i];
   }
   return row;
 }
 
 inline void setRow(MatZp &A, int r, const VecZp &vec) {
-  for (long i = 0; i < vec.length(); ++i) {
+  for (int i = 0; i < vec.length(); ++i) {
     A[r][i] = vec[i];
   }
 }
@@ -59,16 +63,16 @@ inline void setRow(MatZp &A, int r, const VecZp &vec) {
 inline VecZp divVec(const VecZp &vec, Zp a) {
   VecZp res;
   res.SetLength(vec.length());
-  for (long i = 0; i < vec.length(); ++i) {
+  for (int i = 0; i < vec.length(); ++i) {
     res[i] = vec[i] / a;
   }
   return res;
 }
 
-inline VecZp segment(const VecZp &vec, long b, long e) {
+inline VecZp segment(const VecZp &vec, int b, int e) {
   VecZp seg;
   seg.SetLength(e - b);
-  for (long i = b; i < e; ++i) {
+  for (int i = b; i < e; ++i) {
     seg[i - b] = vec[i];
   }
   return seg;
@@ -86,9 +90,9 @@ inline MatZp zeroMat(int r, int c) {
   return A;
 }
 
-inline void subBlock(MatZp &A, long r1, long c1, const MatZp &B) {
-  for (long i = 0; i < B.NumRows(); ++i) {
-    for (long j = 0; j < B.NumCols(); ++j) {
+inline void subBlock(MatZp &A, int r1, int c1, const MatZp &B) {
+  for (int i = 0; i < B.NumRows(); ++i) {
+    for (int j = 0; j < B.NumCols(); ++j) {
       A[r1 + i][c1 + j] -= B[i][j];
     }
   }
@@ -100,7 +104,7 @@ reindexGraph(const NetworKit::Graph &G) {
   auto G1 = NetworKit::GraphTools::getCompactedGraph(G, indexes);
 
   std::vector<int> labels(G1.numberOfNodes());
-  for (auto [k, v]: indexes) {
+  for (auto [k, v] : indexes) {
     labels[v] = k;
   }
 
@@ -121,4 +125,4 @@ reindexGraph(const NetworKit::Graph &G, const MatZp &AG) {
 
   return {G1, labels, AG1};
 }
-} // namespace Koala
+}  // namespace Koala

@@ -123,4 +123,4 @@ vector<int> LazyGaussElimination::simpleElimination(MatZp &A, int k) {
 
   return res;
 }
-} // namespace Koala
+}  // namespace Koala

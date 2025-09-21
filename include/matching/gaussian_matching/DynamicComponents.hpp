@@ -5,8 +5,8 @@
 
 namespace Koala {
 class DynamicComponents {
-public:
-  DynamicComponents(const NetworKit::Graph &G);
+ public:
+  explicit DynamicComponents(const NetworKit::Graph &G);
 
   void addEdge(int u, int v);
   void removeEdge(int u, int v);
@@ -15,4 +15,4 @@ public:
 
   NetworKit::Graph G;
 };
-} // namespace Koala
+}  // namespace Koala

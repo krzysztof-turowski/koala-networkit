@@ -39,8 +39,5 @@ void dfs(const Graph &G, vector<bool> &visited, int v) {
     dfs(G, visited, u);
   });
 }
-} // namespace Koala
+}  // namespace Koala
 
-// TODO: find poly-logarithmic version such as:
-// TODO:
-// https://github.com/Jonathan-Uy/CSES-Solutions/blob/main/Advanced%20Techniques/Dynamic%20Connectivity.cpp

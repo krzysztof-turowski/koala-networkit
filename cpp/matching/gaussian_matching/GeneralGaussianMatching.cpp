@@ -35,7 +35,7 @@ GeneralGaussianMatching::GeneralGaussianMatching(const Graph &G1) {
   auto [_G, _oldIdx] = reindexGraph(G1);
   G = _G;
   oldIdx = _oldIdx;
-};
+}
 
 void GeneralGaussianMatching::run() {
   initZp(ZP_MOD);
@@ -137,7 +137,6 @@ Matching partition(const Graph &G, const MatZp &AG) {
 }
 
 Matching simplePartition(const Graph &G, const MatZp &AG) {
-
   Matching M;
   DynamicComponents DC(G);
 
@@ -230,7 +229,7 @@ Matching simplePartition(const Graph &G, const MatZp &AG) {
   auto &C1G = subgraphs[0];
 
   // Match the biggest component
-  GeneralGaussianMatching genC1(C1G); // TODO non-trivial class
+  GeneralGaussianMatching genC1(C1G);
   genC1.run();
   auto MC1 = genC1.getMatching();
   assert(MC1.size() == C1G.numberOfNodes() / 2);
@@ -332,7 +331,6 @@ Matching simplePartition(const Graph &G, const MatZp &AG) {
 }
 
 Matching generalMatching(const Graph &G, const MatZp &AG) {
-
   const int n = G.numberOfNodes();
   if (n == 0)
     return {};
@@ -382,7 +380,7 @@ static void dfs(int u, vector<bool> &visited, std::set<int> &connected,
       continue;
     dfs(v, visited, connected, edgesOf);
   }
-};
+}
 
 static vector<std::set<int>> getSimpleComponents(const Graph &G,
                                                  const MatZp &AG) {
@@ -469,4 +467,4 @@ static MatZp generateMatrix(const Graph &G) {
   inv(Ainv, AG);
   return Ainv;
 }
-} // namespace Koala
+}  // namespace Koala
