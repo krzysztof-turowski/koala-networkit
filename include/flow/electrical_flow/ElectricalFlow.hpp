@@ -8,7 +8,7 @@ class GenTest;
 
 namespace Koala {
 class ElectricalFlow {
-public:
+ public:
   ElectricalFlow(const NetworKit::Graph &graph, int s, int t,
                  bool round = true);
   void run();
@@ -17,7 +17,7 @@ public:
   const NetworKit::Graph& getGraph() const { return graph; }
   const std::vector<std::vector<double>>& getFlow() const { return primal.flow; }
 
-private:
+ private:
   bool route_flow();
   void initialize();
   bool is_feasible();
@@ -37,4 +37,4 @@ private:
   double target_flow;
 };
 
-} // namespace Koala
+}  // namespace Koala
