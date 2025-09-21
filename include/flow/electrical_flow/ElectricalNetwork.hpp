@@ -1,22 +1,19 @@
 #include <networkit/graph/Graph.hpp>
 #include <vector>
 
-using namespace std;
-using namespace NetworKit;
-
 #pragma once
 namespace Koala {
 class ElectricalNetwork {
 public:
-  ElectricalNetwork(const Graph &G, const vector<double> &demand);
+  ElectricalNetwork(const NetworKit::Graph &G, const std::vector<double> &demand);
 
-  void compute(const vector<vector<double>> &resistance);
+  void compute(const std::vector<std::vector<double>> &resistance);
 
-  vector<vector<double>> flow;
-  vector<double> potentials;
+  std::vector<std::vector<double>> flow;
+  std::vector<double> potentials;
 
 private:
-  const Graph &graph;
-  const vector<double> &demand;
+  const NetworKit::Graph &graph;
+  const std::vector<double> &demand;
 };
 } // namespace Koala

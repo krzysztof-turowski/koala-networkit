@@ -20,18 +20,18 @@ using namespace chrono;
 using namespace NetworKit;
 
 struct FlowBenchmark {
-    FlowBenchmark(string name, int maxFlow, steady_clock::time_point begin, steady_clock::time_point end) :
+    FlowBenchmark(string name, int maximumFlow, steady_clock::time_point begin, steady_clock::time_point end) :
         name(name),
-        maxFlow(maxFlow),
+        maximumFlow(maximumFlow),
         duration(duration_cast<microseconds>(end - begin).count()) {}
 
     string name;
-    int maxFlow;
+    int maximumFlow;
     uint64_t duration;
 
     friend std::ostream& operator<<(std::ostream& os, const FlowBenchmark& fb) {
         os << "Benchmark for " << fb.name << "algorithm:\n";
-        os << "\tMaximum flow:\t" << fb.maxFlow << '\n';
+        os << "\tMaximum flow:\t" << fb.maximumFlow << '\n';
         os << "\tTime:\t" << fb.duration << "μs\n";
         return os;
     }
@@ -41,54 +41,54 @@ FlowBenchmark runEdmondsKarp(const NetworKit::Graph& G, int s, int t) {
     auto begin = steady_clock::now();
     NetworKit::EdmondsKarp algo(G, s, t);
     algo.run();
-    auto maxFlow = algo.getMaxFlow();
+    auto maximumFlow = algo.getMaxFlow();
     auto end = steady_clock::now();
-    return { "EdmondsKarp", maxFlow, begin, end };
+    return { "EdmondsKarp", maximumFlow, begin, end };
 }
 
 FlowBenchmark runElectricalFlow(const NetworKit::Graph& G, int s, int t) {
     auto begin = steady_clock::now();
     Koala::ElectricalFlow algo(G, s, t);
     algo.run();
-    auto maxFlow = algo.getMaxFlow();
+    auto maximumFlow = algo.getMaximumFlow();
     auto end = steady_clock::now();
-    return { "ElectricalFlow", maxFlow, begin, end };
+    return { "ElectricalFlow", maximumFlow, begin, end };
 }
 
 FlowBenchmark runFractionalElectricalFlow(const NetworKit::Graph& G, int s, int t) {
     auto begin = steady_clock::now();
     Koala::ElectricalFlow algo(G, s, t, false);
     algo.run();
-    auto maxFlow = algo.getMaxFlow();
+    auto maximumFlow = algo.getMaximumFlow();
     auto end = steady_clock::now();
-    return { "ElectricalFlow w/o rounding", maxFlow, begin, end };
+    return { "ElectricalFlow w/o rounding", maximumFlow, begin, end };
 }
 
 FlowBenchmark runBoykovKolmogorovFlow(NetworKit::Graph& G, int s, int t) {
     auto begin = steady_clock::now();
     Koala::BoykovKolmogorovFlow algo(G, s, t);
     algo.run();
-    auto maxFlow = algo.getFlowSize();
+    auto maximumFlow = algo.getFlowSize();
     auto end = steady_clock::now();
-    return { "BoykovKolmogorovFlow", maxFlow, begin, end };
+    return { "BoykovKolmogorovFlow", maximumFlow, begin, end };
 }
 
 FlowBenchmark runKingRaoTarjanMaximumFlow(NetworKit::Graph& G, int s, int t) {
     auto begin = steady_clock::now();
     Koala::KingRaoTarjanMaximumFlow algo(G, s, t);
     algo.run();
-    auto maxFlow = algo.getFlowSize();
+    auto maximumFlow = algo.getFlowSize();
     auto end = steady_clock::now();
-    return { "KingRaoTarjanFlow", maxFlow, begin, end };
+    return { "KingRaoTarjanFlow", maximumFlow, begin, end };
 }
 
 FlowBenchmark runPushRelabel(NetworKit::Graph& G, int s, int t) {
     auto begin = steady_clock::now();
     Koala::PushRelabel algo(G, s, t);
     algo.run();
-    auto maxFlow = algo.getFlowSize();
+    auto maximumFlow = algo.getFlowSize();
     auto end = steady_clock::now();
-    return { "PushRelabel", maxFlow, begin, end };
+    return { "PushRelabel", maximumFlow, begin, end };
 }
 
 tuple<Graph, node, node> readGraph(const string& filepath) {

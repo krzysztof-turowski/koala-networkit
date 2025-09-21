@@ -6,6 +6,7 @@
 #include "../helpers.hpp"
 
 using namespace std;
+using namespace NetworKit;
 
 class GenTest : public testing::Test {};
 
@@ -37,5 +38,5 @@ TEST(GenTest, testSuccess) {
     }
   }
 
-  EXPECT_EQ(ef.getMaxFlow(), F);
+  EXPECT_EQ(ef.getMaximumFlow(), F);
 }

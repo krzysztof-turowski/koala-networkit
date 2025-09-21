@@ -1,15 +1,12 @@
 #include <networkit/graph/Graph.hpp>
 
-using namespace std;
-using namespace NetworKit;
-
 #pragma once
 
 namespace Koala {
 
 class FlowNetwork {
 public:
-  FlowNetwork(const Graph &graph);
+  FlowNetwork(const NetworKit::Graph &graph);
 
   double size() const;
 
@@ -20,8 +17,8 @@ public:
   void pushValue(int s, int t, double f);
 
 // private:
-  const Graph &graph;
-  vector<vector<double>> flow;
+  const NetworKit::Graph &graph;
+  std::vector<std::vector<double>> flow;
   const int N, M;
 };
 
