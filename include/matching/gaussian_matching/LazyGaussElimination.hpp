@@ -6,9 +6,10 @@
 #include <matching/gaussian_matching/utils.hpp>
 
 namespace Koala {
-    class LazyGaussElimination {
-    public:
-        static std::vector<int> pivotElimination(MatZp& A, std::function<bool(int, int)> isCellAllowed);
-        static std::vector<int> simpleElimination(MatZp& A, int k);
-    };  
-}
+class LazyGaussElimination {
+public:
+  static std::vector<int>
+  pivotElimination(MatZp &A, std::function<bool(int, int)> isCellAllowed);
+  static std::vector<int> simpleElimination(MatZp &A, int k);
+};
+} // namespace Koala
