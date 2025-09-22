@@ -2,36 +2,39 @@
 #include <networkit/graph/Graph.hpp>
 #include <vector>
 
-using namespace std;
-using namespace NetworKit;
-
 #pragma once
+
+class GenTest;
 
 namespace Koala {
 class ElectricalFlow {
-public:
-  ElectricalFlow(const Graph &graph, int s, int t, bool round=true);
+ public:
+  ElectricalFlow(const NetworKit::Graph &graph, int s, int t,
+                 bool round = true);
   void run();
-  double getMaxFlow() const;
+  double getFlowSize() const;
 
-// private:
-  bool routeFlow();
-  void init();
-  bool isFeasible();
-  void augmentationStep();
-  void fixingStep();
+  const NetworKit::Graph& getGraph() const { return graph; }
+  const std::vector<std::vector<double>>& getFlow() const { return primal.flow; }
 
-  const Graph &graph;
+ private:
+  bool route_flow();
+  void initialize();
+  bool is_feasible();
+  void augmentation_step();
+  void fixing_step();
+
+  const NetworKit::Graph &graph;
   const int s, t;
   int U;
   bool round;
-  double maxFlow;
+  double maximum_flow;
 
-  vector<double> demand;
+  std::vector<double> demand;
   FlowNetwork primal;
-  vector<double> dual;
+  std::vector<double> dual;
   double progress;
-  double targetFlow;
+  double target_flow;
 };
 
-} // namespace Koala
+}  // namespace Koala

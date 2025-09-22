@@ -9,7 +9,7 @@ koala_add_module(flow
     BoykovKolmogorovFlow.cpp
 
     # Electrical Flow
-    electrical_flow/ElectricalFlow.cpp
+    ElectricalFlow.cpp
     electrical_flow/ElectricalNetwork.cpp
     electrical_flow/FlowNetwork.cpp 
     electrical_flow/NaiveLaplaceSolver.cpp

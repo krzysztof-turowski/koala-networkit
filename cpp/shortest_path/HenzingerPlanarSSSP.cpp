@@ -67,15 +67,40 @@ void HenzingerPlanarSSSP::initialize_queues(node_subsets_t& division) {
     }
 }
 
+void HenzingerPlanarSSSP::setDivisionParameter(int division_parametr) {
+    r = division_parametr;
+}
+
 void HenzingerPlanarSSSP::run() {
+    if (graph.numberOfNodes() <= 2) {
+        distances[source] = 0;
+        NetworKit::edgeweight max_weight = 0;
+        for (auto edge : graph.edgeWeightRange()) {
+            max_weight = std::max(max_weight, edge.weight);
+        }
+        if (graph.numberOfNodes() == 2) {
+            distances[1] = max_weight;
+        }
+        hasRun = true;
+        return;
+    }
     normal_graph = PlanarGraphTools::convertToMaxDegree3(graph, true);
     auto graph_for_division = GraphTools::convertDirectedGraphToUndirected(normal_graph);
-    r = log(graph_for_division.numberOfNodes());
-    int c = 3;  // arbitrary parameter. Bounds number of boundary nodes in region of division
-    //TODO(kturowski): make these parameters described by the paper configurable
-    // int r4 = r * r * r * r; //log(n)^4
-    int r4 = 25;
-    auto division = findSuitableRDivision(graph_for_division, r4, 3);
+    int c = 6;  // arbitrary parameter. Bounds number of boundary nodes in region of division
+    int r4;
+    if (r == NetworKit::none) {
+        r = log(graph_for_division.numberOfNodes());
+        r4 = r * r * r * r;  // log(n)^4
+        if (r4 > normal_graph.numberOfNodes()) {
+            // Graph is too small constant is used as a parameter
+            r4 = 25;
+        }
+        r4 = std::max(r4, 25);
+    } else {
+        // User choose the parameter
+        r4 = r * r * r * r;
+    }
+    auto division = findSuitableRDivision(graph_for_division, r4, c);
     PlanarGraphTools::assertDivision(division, graph_for_division);
     number_of_regions = division.size();
 

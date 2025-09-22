@@ -4,15 +4,15 @@
 #include <eigen3/Eigen/Core>
 
 namespace Koala {
-    class DynamicComponents {
-        public:
-        DynamicComponents(const NetworKit::Graph& G);
+class DynamicComponents {
+ public:
+  explicit DynamicComponents(const NetworKit::Graph &G);
 
-        void addEdge(int u, int v);
-        void removeEdge(int u, int v);
-        bool isConnected(int u, int v) const;
-        int getComponentSize(int v) const;
+  void addEdge(int u, int v);
+  void removeEdge(int u, int v);
+  bool isConnected(int u, int v) const;
+  int getComponentSize(int v) const;
 
-        NetworKit::Graph G;
-    };
-}
+  NetworKit::Graph G;
+};
+}  // namespace Koala

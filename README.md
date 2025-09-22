@@ -3,13 +3,16 @@
 This project is a KOALA library fork built on top of the structures provided by the NetworKit library.
 
 #### Table of Contents
-1. [Overview of the library](#overview)
-    * [NetworKit](#networkit)
-    * [KOALA](#koala)
-    * [List of algorithms](#algorithms)
-2. [Installation](#installation)
-3. [Usage](#usage)
-4. [References](#references)
+- [koala-networkit](#koala-networkit)
+      - [Table of Contents](#table-of-contents)
+  - [Overview of the library](#overview-of-the-library)
+    - [NetworKit](#networkit)
+    - [Koala](#koala)
+    - [List of algorithms](#list-of-algorithms)
+    - [List of datasets](#list-of-datasets)
+  - [Installation](#installation)
+  - [Usage](#usage)
+  - [References](#references)
 
 ## <a name="overview"></a>Overview of the library
 
