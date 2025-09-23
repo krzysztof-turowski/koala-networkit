@@ -14,10 +14,7 @@ vector<int> getPath(const Graph &graph, int u, int v);
 DynamicTree::DynamicTree(int n, vector<vector<double>> &weights)
     : graph(Graph(n)), weights(weights) {}
 
-void DynamicTree::link(int u, int v) {
-  assert(findRoot(u) != findRoot(v));
-  graph.addEdge(u, v);
-}
+void DynamicTree::link(int u, int v) { graph.addEdge(u, v); }
 
 void DynamicTree::cut(int u, int v) {
   if (graph.hasEdge(u, v)) {
@@ -109,4 +106,4 @@ vector<int> getPath(const Graph &graph, int u, int v) {
   return path;
 }
 
-}  // namespace Koala
+} // namespace Koala

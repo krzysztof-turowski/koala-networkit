@@ -3,19 +3,21 @@
 #include <flow/electrical_flow/ElectricalFlow.hpp>
 #include <io/DimacsGraphReader.hpp>
 #include <networkit/graph/Graph.hpp>
+#include <graph/GraphTools.hpp>
+
 
 #include "../helpers.hpp"
 
 using namespace std;
 using namespace NetworKit;
 
-class GenTest : public testing::Test {
-};
+class GenTest : public testing::Test {};
 
 TEST(GenTest, testSuccess) {
-  auto G = Koala::DimacsGraphReader().read("input/flow.dat");
-
-  int s = 5, t = 4, F = 100;
+  auto [G, s, t] = Koala::DimacsGraphReader().read_all("input/example.flow");
+  G = Koala::GraphTools::convertDirectedGraphToUndirected(G, true);
+  G = Koala::GraphTools::convertUndirectedGraphToDirected(G, true);
+  int F = 15;
 
   Koala::ElectricalFlow ef(G, s, t);
   ef.run();
