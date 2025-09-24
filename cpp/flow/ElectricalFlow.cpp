@@ -1,7 +1,11 @@
-#include "networkit/Globals.hpp"
 #include <flow/electrical_flow/ElectricalFlow.hpp>
 #include <flow/electrical_flow/ElectricalNetwork.hpp>
 #include <flow/electrical_flow/FlowNetwork.hpp>
+#include <graph/GraphTools.hpp>
+#include <vector>
+#include <cmath>
+#include <cassert>
+
 
 using namespace std;
 using namespace NetworKit;
@@ -24,8 +28,8 @@ double l_norm(const vector<double> &vec, int l) {
     // infinity
     for (auto x : vec) {
       norm = max(norm, x);
-      return norm;
     }
+    return norm;
   } else if (l > 0) {
     for (auto x : vec) {
       norm += pow(abs(x), l);
@@ -47,10 +51,13 @@ vector<double> get_violation(const FlowNetwork &f, const vector<double> &y) {
   return violation;
 }
 
-ElectricalFlow::ElectricalFlow(const Graph &graph, int s, int t, bool round)
-    : graph(graph), s(s), t(t), maximum_flow(0), primal(graph), round(round) {
-  U = 0;
-  graph.forNeighborsOf(t, [&](node v) { U += graph.weight(v, t); });
+ElectricalFlow::ElectricalFlow(Graph graph, int s, int t, bool round)
+    : graph(Koala::GraphTools::convertDirectedGraphToUndirected(graph, true)),
+      s(s), t(t), U(0), round(round), maximum_flow(0), primal(this->graph) {
+  this->graph.forEdges([&](node u, node v) {
+    this->graph.setWeight(u, v, this->graph.weight(u, v) / 2.0);
+  });
+  this->graph.forNeighborsOf(t, [&](node v) { U += this->graph.weight(v, t); });
 }
 
 void ElectricalFlow::run() {
@@ -148,7 +155,7 @@ void ElectricalFlow::fixing_step() {
     primal.flow[v][u] += correction[v][u];
   });
 
-  assert(LNorm(getViolation(primal, dual), 2) <= 51.0 / 25000.0);
+  assert(l_norm(get_violation(primal, dual), 2) <= 51.0 / 25000.0);
 
   vector<double> correctionDemand(N, 0);
   graph.forEdges([&](node u, node v) {
@@ -165,7 +172,7 @@ void ElectricalFlow::fixing_step() {
   });
   graph.forNodes([&](node u) { dual[u] += electrical.potentials[u]; });
 
-  assert(LNorm(getViolation(primal, dual), 2) <= 1.0 / 100.0);
+  assert(l_norm(get_violation(primal, dual), 2) <= 1.0 / 100.0);
 }
 
 vector<vector<double>> get_coupling(const FlowNetwork &f,
@@ -215,7 +222,7 @@ void check_augmentation_step(const FlowNetwork &primal,
     assert(l <= r);
     i++;
   });
-  assert(LNorm(getViolation(primal, dual), 2) <= 1.0 / 50.0);
+  assert(l_norm(get_violation(primal, dual), 2) <= 1.0 / 50.0);
 }
 
 }  // namespace Koala

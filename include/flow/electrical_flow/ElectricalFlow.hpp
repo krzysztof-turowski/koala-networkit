@@ -9,7 +9,7 @@ class GenTest;
 namespace Koala {
 class ElectricalFlow {
  public:
-  ElectricalFlow(const NetworKit::Graph &graph, int s, int t,
+  ElectricalFlow(NetworKit::Graph graph, int s, int t,
                  bool round = true);
   void run();
   double getFlowSize() const;
@@ -24,7 +24,7 @@ class ElectricalFlow {
   void augmentation_step();
   void fixing_step();
 
-  const NetworKit::Graph &graph;
+  NetworKit::Graph graph;
   const int s, t;
   int U;
   bool round;
