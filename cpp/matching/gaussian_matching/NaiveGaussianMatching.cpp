@@ -34,6 +34,8 @@ static MatZp generateMatrix(const Graph &G) {
     AG[u][v] = Xuv;
     AG[v][u] = -Xuv;
   }
+
+  MatZp Ainv;
   inv(Ainv, AG);
   return Ainv;
 }
