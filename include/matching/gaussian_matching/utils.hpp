@@ -23,11 +23,9 @@ typedef NTL::Mat<Zp> MatZp;
 
 inline bool eq(double a, double b) { return fabs(a - b) <= EPS; }
 
-inline void initZp(int p) { Zp::init(NTL::conv<NTL::ZZ>(p)); }
-
-inline Zp generateRandom() {
-  unsigned int seed = (unsigned int)time(NULL);
-  return Zp(rand_r(&seed));
+inline void initZp(int p) {
+  Zp::init(NTL::conv<NTL::ZZ>(p));
+  SetSeed(NTL::conv<NTL::ZZ>(12345));
 }
 
 inline VecZp getCol(const MatZp &A, int c) {

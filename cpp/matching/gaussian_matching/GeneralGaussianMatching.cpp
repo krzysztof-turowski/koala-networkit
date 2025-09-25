@@ -457,7 +457,7 @@ static MatZp generateMatrix(const Graph &G) {
   auto AG = zeroMat(n, n);
   do {
     for (auto [u, v] : G.edgeRange()) {
-      auto Xuv = generateRandom();
+      auto Xuv = NTL::random_ZZ_p();
       AG[u][v] = Xuv;
       AG[v][u] = -Xuv;
     }

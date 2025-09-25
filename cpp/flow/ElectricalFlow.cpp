@@ -62,17 +62,15 @@ ElectricalFlow::ElectricalFlow(Graph graph, int s, int t, bool round)
 
 void ElectricalFlow::run() {
   int L = 0, R = U + 1;
-  while (L < R) {
-    target_flow = (L + R) / 2;
+  while (L + 1 < R) {
+    target_flow = L + (R - L) / 2;
     if (route_flow()) {
-      L = target_flow + 1;
+      L = target_flow;
     } else {
       R = target_flow;
     }
   }
-  maximum_flow = L - 1;
-
-  target_flow = maximum_flow;
+  target_flow = maximum_flow = L;
   route_flow();
 
   if (round) {

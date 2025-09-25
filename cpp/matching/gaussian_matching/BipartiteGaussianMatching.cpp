@@ -50,7 +50,7 @@ void BipartiteGaussianMatching::run() {
   for (auto u : U) {
     for (auto v : G.neighborRange(u)) {
       int ui = bpIdx[u], vi = bpIdx[v];
-      auto Xuv = generateRandom();
+      auto Xuv = NTL::random_ZZ_p();
       AG[ui][vi] = Xuv;
     }
   }

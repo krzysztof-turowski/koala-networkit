@@ -88,8 +88,11 @@ Moreover, they set up an online graph editor <a href="https://stos.eti.pg.gda.pl
     1. [Algorithm for treewidth and pathwidth in cographs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/pathwidth/CographPathwidth.hpp)
 1. [Minimum spanning tree algorithms](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/mst/): Kruskal, Prim, Borůvka, Klein-Karger-Tarjan
     1. Hagerup algorithm for minimum spanning tree verification
+1. [Maximum matching algorithms](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/matching/)
+    1. Micali-Vazirani, Mucha-Sankowski algorithms for maximum cardinality matching
+    1. Edwards, Gabow, Galil-Micali-Gabow (all blossom-based) and Galil (scaling) algorithms for maximum weighted matching
 1. [Flow algorithms](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/flow/)
-    1. [Maximum flow](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/flow/MaximumFlow.hpp): King-Rao-Tarjan
+    1. [Maximum flow](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/flow/MaximumFlow.hpp): PushRelabel, Malhotra-Kumar-Maheshwari, King-Rao-Tarjan, Mądry (ElectricalFlow), Boykov-Kolmogorov
 1. [Vertex coloring](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/coloring/)
     1. [Greedy heuristics](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/coloring/GreedyVertexColoring.hpp): RandomSequential, LargestFirst, SmallestLast, SaturatedLargestFirst, GreedyIndependentSet
     1. [Exact exponential-time algorithms](https://github.com/krzysztof-turowski/koala-networkit/blob/master/include/coloring/ExactVertexColoring.hpp): Brown, Christofides, Brélaz, Korman

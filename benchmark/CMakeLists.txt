@@ -62,13 +62,3 @@ koala_make_benchmark(
     benchmark_planar_shortest_path
     benchmarkPlanarShortestPath.cpp
     benchmarkPlanarShortestPath.sh)
-
-koala_make_benchmark(
-    benchmark_gaussian_matching
-    benchmarkGaussianMatching.cpp
-    benchmarkGaussianMatching.sh)
-
-koala_make_benchmark(
-    benchmark_electrical_flow
-    benchmarkElectricalFlow.cpp
-    benchmarkElectricalFlow.sh)
