@@ -4,12 +4,13 @@ This project is a KOALA library fork built on top of the structures provided by 
 
 #### Table of Contents
 1. [Overview of the library](#overview)
-    * [NetworKit](#networkit)
-    * [KOALA](#koala)
-    * [List of algorithms](#algorithms)
-2. [Installation](#installation)
-3. [Usage](#usage)
-4. [References](#references)
+    - [NetworKit](#networkit)
+    - [Koala](#koala)
+    - [List of algorithms](#algorithms)
+    - [List of datasets](#datasets)
+1. [Installation](#installation)
+1. [Usage](#usage)
+1. [References](#references)
 
 ## <a name="overview"></a>Overview of the library
 
@@ -85,8 +86,11 @@ Moreover, they set up an online graph editor <a href="https://stos.eti.pg.gda.pl
     1. [Algorithm for treewidth and pathwidth in cographs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/pathwidth/CographPathwidth.hpp)
 1. [Minimum spanning tree algorithms](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/mst/): Kruskal, Prim, Borůvka, Klein-Karger-Tarjan
     1. Hagerup algorithm for minimum spanning tree verification
+1. [Maximum matching algorithms](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/matching/)
+    1. Micali-Vazirani, Mucha-Sankowski algorithms for maximum cardinality matching
+    1. Edwards, Gabow, Galil-Micali-Gabow (all blossom-based) and Galil (scaling) algorithms for maximum weighted matching
 1. [Flow algorithms](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/flow/)
-    1. [Maximum flow](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/flow/MaximumFlow.hpp): King-Rao-Tarjan
+    1. [Maximum flow](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/flow/MaximumFlow.hpp): PushRelabel, Malhotra-Kumar-Maheshwari, King-Rao-Tarjan, Mądry (ElectricalFlow), Boykov-Kolmogorov
 1. [Vertex coloring](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/coloring/)
     1. [Greedy heuristics](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/coloring/GreedyVertexColoring.hpp): RandomSequential, LargestFirst, SmallestLast, SaturatedLargestFirst, GreedyIndependentSet
     1. [Exact exponential-time algorithms](https://github.com/krzysztof-turowski/koala-networkit/blob/master/include/coloring/ExactVertexColoring.hpp): Brown, Christofides, Brélaz, Korman
@@ -115,7 +119,7 @@ cmake --build build --parallel 4
 ```
 > Note: it may take a while to download and compile dependencies (e.g. googletest, networkit, and boost).
 
-Additionally, users need to install beforehand the following packages (or their equivalents): <tt>g++/clang</tt>, <tt>cpplint</tt>, <tt>gfortran</tt>, <tt>libblas-dev</tt>, <tt>liblapack-dev</tt>, <tt>libgtest-dev</tt>, <tt>libboost-all-dev</tt>.
+Additionally, users need to install beforehand the following packages (or their equivalents): <tt>g++/clang</tt>, <tt>cpplint</tt>, <tt>gfortran</tt>, <tt>libblas-dev</tt>, <tt>liblapack-dev</tt>, <tt>libgtest-dev</tt>, <tt>libboost-graph-dev</tt>, <tt>libeigen3-dev</tt>, <tt>libntl-dev</tt>.
 
 ## <a name="usage"></a>Usage
 

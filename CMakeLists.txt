@@ -49,6 +49,8 @@ FetchContent_MakeAvailable(csdp)
 
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
+find_package(Eigen3 3.4 REQUIRED NO_MODULE)
+
 add_custom_target(csdp ALL
     COMMAND CFLAGS=-I"${CMAKE_SOURCE_DIR}/lib/csdp/include" make libsdp.a
     WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/lib/csdp/lib")
@@ -76,7 +78,7 @@ if(KOALA_BUILD_SHARED)
 else()
     add_library(${PROJECT_NAME} STATIC cpp/koala.cpp)
 endif()
-target_link_libraries(${PROJECT_NAME} networkit boost_graph csdp_lib lapack blas gfortran quadmath)
+target_link_libraries(${PROJECT_NAME} networkit ntl Eigen3::Eigen boost_graph csdp_lib lapack blas gfortran quadmath)
 set_target_properties(${PROJECT_NAME} PROPERTIES
     COMPILE_FLAGS ${KOALA_CXX_FLAGS}
     LINK_FLAGS ${KOALA_LINKER_FLAGS})

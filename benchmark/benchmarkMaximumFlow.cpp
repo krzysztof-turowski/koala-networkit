@@ -1,5 +1,5 @@
 #include <cassert>
-#include <chrono>
+#include <exception>
 #include <filesystem>
 #include <iostream>
 #include <map>
@@ -9,59 +9,89 @@
 #include <flow/BoykovKolmogorovFlow.hpp>
 #include <flow/KingRaoTarjanMaximumFlow.hpp>
 #include <flow/MalhotraKumarMaheshwariFlow.hpp>
+#include <flow/electrical_flow/ElectricalFlow.hpp>
+#include <graph/GraphTools.hpp>
 #include <io/DimacsGraphReader.hpp>
 
-template <typename FlowAlgorithm>
-void run_flow_algorithm(const std::string &file_path, const std::string &name) {
-    auto [G, s, t] = Koala::DimacsGraphReader().read_all(file_path);
-    auto start = std::chrono::high_resolution_clock::now();
-    auto maximum_flow = FlowAlgorithm(G, s, t);
-    maximum_flow.run();
-    auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> elapsed = end - start;
-    std::cout << name << ": Maximum flow = " << maximum_flow.getFlowSize()
-              << ", Time taken = " << elapsed.count() << " seconds\n";
-}
-
 std::map<std::string, int> ALGORITHM = {
+    { "all", 0 },
     { "PushRelabel", 1 },
     { "BK", 2 },
     { "MKM", 3 },
-    { "KRT", 4 }
+    { "KRT", 4 },
+    { "ElectricalFlow", 5 }
 };
 
-int main(int argc, char **argv) {
+template <typename Algorithm>
+NetworKit::edgeweight run_algorithm(NetworKit::Graph &G, NetworKit::node s, NetworKit::node t) {
+    auto flow = Algorithm(G, s, t);
+    flow.run();
+    std::cout << flow.getFlowSize() << " " << std::flush;
+    return flow.getFlowSize();
+}
+
+void run_test(
+        NetworKit::Graph &G, NetworKit::node s, NetworKit::node t, const std::string &algorithm) {
+    std::set<NetworKit::edgeweight> T;
+    switch (ALGORITHM[algorithm]) {
+    case 0:
+        T.insert(run_algorithm<Koala::PushRelabel>(G, s, t));
+        T.insert(run_algorithm<Koala::BoykovKolmogorovFlow>(G, s, t));
+        T.insert(run_algorithm<Koala::MalhotraKumarMaheshwariFlow>(G, s, t));
+        T.insert(run_algorithm<Koala::KingRaoTarjanMaximumFlow>(G, s, t));
+        T.insert(run_algorithm<Koala::ElectricalFlow>(G, s, t));
+        assert(T.size() == 1);
+        break;
+    case 1:
+        T.insert(run_algorithm<Koala::PushRelabel>(G, s, t));
+        break;
+    case 2:
+        T.insert(run_algorithm<Koala::BoykovKolmogorovFlow>(G, s, t));
+        break;
+    case 3:
+        T.insert(run_algorithm<Koala::MalhotraKumarMaheshwariFlow>(G, s, t));
+        break;
+    case 4:
+        T.insert(run_algorithm<Koala::KingRaoTarjanMaximumFlow>(G, s, t));
+        break;
+    case 5:
+        T.insert(run_algorithm<Koala::ElectricalFlow>(G, s, t));
+        break;
+    default:
+        std::cout << "Unknown algorithm: " << algorithm << std::endl;
+        throw std::exception();
+    }
+    std::cout << std::endl;
+}
+
+void run_dimacs_tests(const std::string &path, const std::string &algorithm) {
+    auto [G, s, t] = Koala::DimacsGraphReader().read_all(path);
+    G = Koala::GraphTools::convertDirectedGraphToUndirected(G, true);
+    G = Koala::GraphTools::convertUndirectedGraphToDirected(G, true);
+    std::cout << path << " " << std::flush;
+    run_test(G, s, t, algorithm);
+}
+
+int main(int argc, const char *argv[]) {
     if (argc != 3) {
         std::cerr << "Usage: " << argv[0] << " <algorithm> <file>" << std::endl;
         return 1;
     }
 
-    std::string algorithm(argv[1]);
-    std::string file_path(argv[2]);
-
-    if (!std::filesystem::exists(file_path)) {
-        std::cerr << "File " << file_path << " does not exist" << std::endl;
+    std::string algorithm(argv[1]), path(argv[2]);
+    if (!std::filesystem::exists(path)) {
+        std::cerr << "File " << path << " does not exist" << std::endl;
         return 1;
     }
-    if (std::filesystem::is_directory(file_path)) {
-        std::cerr << file_path << " is a directory" << std::endl;
+    if (std::filesystem::is_directory(path)) {
+        std::cerr << path << " is a directory" << std::endl;
         return 1;
     }
 
-    std::cout << "\nProcessing file: " << file_path << std::endl;
-
-    if (ALGORITHM[algorithm] == 1) {
-        run_flow_algorithm<Koala::PushRelabel>(file_path, "PushRelabel");
-    } else if (ALGORITHM[algorithm] == 2) {
-        run_flow_algorithm<Koala::BoykovKolmogorovFlow>(file_path, "BKFlow");
-    } else if (ALGORITHM[algorithm] == 3) {
-        run_flow_algorithm<Koala::MalhotraKumarMaheshwariFlow>(file_path, "MKMFlow");
-    } else if (ALGORITHM[algorithm] == 4) {
-        run_flow_algorithm<Koala::KingRaoTarjanMaximumFlow>(file_path, "KingRaoTarjan");
+    if (path.substr(path.find_last_of(".") + 1) == "max") {
+        run_dimacs_tests(path, algorithm);
     } else {
-        std::cerr << "Unknown algorithm: " << algorithm << std::endl;
-        return 1;
+        std::cerr << "File type not supported: " << path << std::endl;
     }
-
     return 0;
 }
