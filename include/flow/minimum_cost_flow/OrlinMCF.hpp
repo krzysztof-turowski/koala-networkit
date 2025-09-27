@@ -7,22 +7,36 @@ namespace Koala {
 
 class OrlinMCF final : public MinimumCostFlow {
  public:
-    using MinimumCostFlow::MinimumCostFlow;
+    // flow
+    OrlinMCF(NetworKit::Graph const& g, edgeid_map<long long> const& costs,
+        NetworKit::node s, NetworKit::node t, long long f) : MinimumCostFlow(g, costs, s, t, f) {
+        initFlow();
+    }
+    // flow
+    OrlinMCF(NetworKit::Graph const& g, edgeid_map<long long> const& costs,
+            node_map<long long> const& b) : MinimumCostFlow(g, costs, b) {
+        initFlow();
+    }
+    // circulation
+    OrlinMCF(NetworKit::Graph const& g, edgeid_map<std::pair<long long,long long>> const& bounds,
+            edgeid_map<long long> const& costs) : MinimumCostFlow(g, bounds, costs) {
+        initCirculation();
+    }
 
  private:
     void makeCostsNonnegative();
 
     const double ALPHA = 0.9;
-    int delta = 0;
+    long long delta = 0;
 
     void runImpl() override;
     void initFlow() override;
     void initCirculation() override;
-    int cp(NetworKit::node, NetworKit::node, NetworKit::edgeid);
+    long long cp(NetworKit::node, NetworKit::node, NetworKit::edgeid);
 
-    void augment(NetworKit::node, NetworKit::node, NetworKit::edgeid, bool, int);
+    void augment(NetworKit::node, NetworKit::node, NetworKit::edgeid, bool, long long);
     void augment(NetworKit::node, NetworKit::node, 
-        const std::vector<std::pair<NetworKit::edgeid, bool>>&, int);
+        const std::vector<std::pair<NetworKit::edgeid, bool>>&, long long);
     
     NetworKit::Graph generateGraphForSP();
     bool isImbalanced();
@@ -34,7 +48,7 @@ class OrlinMCF final : public MinimumCostFlow {
     void contractionPhase();
     void uncontractAndComputeFlow();
     void scalingAugmentation(NetworKit::node, NetworKit::node);
-    edgeid_map<int> potential;
+    void fillDistancesUncapacitated(std::vector<double>&);
     NetworKit::Graph originalGraph;
 };
 

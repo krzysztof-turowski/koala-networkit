@@ -7,42 +7,39 @@ using index = NetworKit::index;
 
 MinimumCostFlow::MinimumCostFlow(
     NetworKit::Graph const& graph,
-    edgeid_map<int> const& costs,
-    node_map<int> const& b
+    edgeid_map<long long> const& costs,
+    node_map<long long> const& b
 ) : graph(graph), costs(costs), b(b) {
-    initFlow();
 }
 
 MinimumCostFlow::MinimumCostFlow(
     NetworKit::Graph const& graph,
-    edgeid_map<std::pair<int,int>> const& cap_bounds, 
-    edgeid_map<int> const& costs
+    edgeid_map<std::pair<long long,long long>> const& cap_bounds, 
+    edgeid_map<long long> const& costs
 ) : graph(graph), costs(costs) { 
     for(auto [key, val] : cap_bounds) {
         lowerbound[key] = val.first;
         upperbound[key] = val.second;
     }
-    initCirculation(); 
 }
 
 MinimumCostFlow::MinimumCostFlow(
     NetworKit::Graph const& graph,
-    edgeid_map<int> const& ep,
+    edgeid_map<long long> const& ep,
     NetworKit::node s, NetworKit::node t, 
-    int fl
+    long long fl
 ) : graph(graph), costs(ep), b({{s, fl}, {t, -fl}}) {
-    initFlow();
 }
 
-int MinimumCostFlow::getFlow(NetworKit::edgeid e) {
+long long MinimumCostFlow::getFlow(NetworKit::edgeid e) {
     return flow[e];
 }
 
-int MinimumCostFlow::getFlow(edge const& e) {
+long long MinimumCostFlow::getFlow(edge const& e) {
     return flow[flowEdgeToId[e]];
 }
 
-int MinimumCostFlow::getMinCost() const {
+long long MinimumCostFlow::getMinCost() const {
     return min_cost;
 }
 
@@ -89,10 +86,10 @@ void MinimumCostFlow::makeUncapacitated() {
     if (!graph.isWeighted()) return;
     int nodes = graph.numberOfNodes();
     NetworKit::Graph newGraph(nodes, false, true, true);
-    node_map<int> newB;
-    edgeid_map<int> newCosts;
+    node_map<long long> newB;
+    edgeid_map<long long> newCosts;
 
-    NetworKit::node firstAdded = graph.upperNodeIdBound()+1;
+    NetworKit::node firstAdded = graph.upperNodeIdBound();
     uncapacitatedNodesBounds = {firstAdded, firstAdded-1};
     graph.forEdges(
     [&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight weight, NetworKit::edgeid id) {
@@ -118,14 +115,14 @@ void MinimumCostFlow::makeUncapacitated() {
 }
 
 void MinimumCostFlow::makeConnected() {
-    int maxCost{0}; 
+    long long maxCost{0}; 
     for (auto [edge, cost] : costs) {
         maxCost = std::max(maxCost, std::abs(cost));
     }
     
     maxCost *= graph.numberOfEdges() + 1;
     
-    int sumB{0};
+    long long sumB{0};
     for (auto [nd, bval] : b) {
         if (bval > 0) sumB += bval;
     }

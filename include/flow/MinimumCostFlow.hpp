@@ -27,16 +27,16 @@ using node_map = std::map<NetworKit::node, T>;
 class MinimumCostFlow : public NetworKit::Algorithm {
  public:
     
-    MinimumCostFlow() {};
+    // MinimumCostFlow() {};
     // flow
-    MinimumCostFlow(NetworKit::Graph const&, edgeid_map<int> const&,
-        NetworKit::node, NetworKit::node, int);
+    MinimumCostFlow(NetworKit::Graph const&, edgeid_map<long long> const&,
+        NetworKit::node, NetworKit::node, long long);
     // flow
-    MinimumCostFlow(NetworKit::Graph const&, edgeid_map<int> const&,
-        node_map<int> const&);
+    MinimumCostFlow(NetworKit::Graph const&, edgeid_map<long long> const&,
+        node_map<long long> const&);
     // circulation
-    MinimumCostFlow(NetworKit::Graph const&, edgeid_map<std::pair<int,int>> const&,
-        edgeid_map<int> const&);
+    MinimumCostFlow(NetworKit::Graph const&, edgeid_map<std::pair<long long,long long>> const&,
+        edgeid_map<long long> const&);
 
     void run() {
         hasRun = false;
@@ -45,14 +45,17 @@ class MinimumCostFlow : public NetworKit::Algorithm {
     }
     bool isOk() const;
 
-    int getFlow(const edge&);
-    int getFlow(NetworKit::edgeid);
-    int getMinCost() const;
+    long long getFlow(const edge&);
+    long long getFlow(NetworKit::edgeid);
+    long long getMinCost() const;
     
  protected:
     virtual void runImpl() = 0;
-    virtual void initCirculation() {};
-    virtual void initFlow() {};
+    virtual void initCirculation() = 0;
+    virtual void initFlow() = 0;
+    void initFlowWrapper() { initFlow();}
+    void initCirculationWrapper() { initFlow();}
+
     void constructCirculationFromFlow();
     void constructFlowFromCirculation();
 
@@ -71,16 +74,17 @@ class MinimumCostFlow : public NetworKit::Algorithm {
     NetworKit::Graph graph;
     edge_map<MCFEdgeParams> edge_params;
     // flow
-    node_map<int> b;
-    node_map<int> excess;
+    node_map<long long> b;
+    node_map<long long> excess;
 
     edge_map<NetworKit::edgeid> flowEdgeToId;
-    edgeid_map<int> flow;
-    edgeid_map<int> costs;
-    edgeid_map<int> upperbound;
-    edgeid_map<int> lowerbound;
+    edgeid_map<long long> flow;
+    edgeid_map<long long> costs;
+    edgeid_map<long long> upperbound;
+    edgeid_map<long long> lowerbound;
+    edgeid_map<long long> potential; 
 
-    int min_cost{0};
+    long long min_cost{0};
     bool feasible{true};
 };
 

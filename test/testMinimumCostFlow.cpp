@@ -5,6 +5,7 @@
 
 #include <flow/minimum_cost_flow/SuccessiveApproxMCC.hpp>
 #include <flow/minimum_cost_flow/EdmondsKarpMCF.hpp>
+#include <flow/minimum_cost_flow/OrlinMCF.hpp>
 
 #include "helpers.hpp"
 
@@ -78,6 +79,25 @@ class SuccessiveApproxMCFlowTest
 //     EXPECT_EQ(algorithm.getMinCost(), parameters.minCost);
 // }
 
+std::tuple<NetworKit::Graph, Koala::edgeid_map<long long>, Koala::node_map<long long>> getInstance(MinCostFlowParams const& params) {
+    std::list<std::tuple<int, int, int>> edges;
+    Koala::edgeid_map<long long> costs;
+    Koala::node_map<long long> b;
+
+    for (auto [key, value] : params.excess) {
+        b[key] = value;
+    }
+
+    NetworKit::edgeid index = 0;
+    for (auto [u, v, capacity, cost] : params.EW) {
+        edges.push_back({u, v, capacity});
+        costs[index++] = cost;
+    }
+    NetworKit::Graph G = build_graph(params.N, edges, true, true);
+
+    return { G, costs, b }; 
+}
+
 
 INSTANTIATE_TEST_SUITE_P(
     test_example, SuccessiveApproxMCCTest, testing::Values(
@@ -99,26 +119,65 @@ class EdmondsKarpTest
 
 TEST_P(EdmondsKarpTest, test) {
     MinCostFlowParams const& parameters = GetParam();
-    std::list<std::tuple<int, int, int>> edges;
-    Koala::edgeid_map<int> costs;
-    Koala::node_map<int> b;
-
-    for (auto [key, value] : parameters.excess) {
-        b[key] = value;
-    }
-
-    NetworKit::edgeid index = 0;
-    for (auto [u, v, capacity, cost] : parameters.EW) {
-        edges.push_back({u, v, capacity});
-        costs[index++] = cost;
-    }
-    NetworKit::Graph G = build_graph(parameters.N, edges, true, true);
+    auto [ G, costs, b ] = getInstance(parameters);
     auto algorithm = Koala::EdmondsKarpMCF(G, costs, b);
     algorithm.run();
     EXPECT_EQ(algorithm.getMinCost(), parameters.minCost);
 }
 
 INSTANTIATE_TEST_SUITE_P(test_example, EdmondsKarpTest, testing::Values(
+    MinCostFlowParams{
+        4, {{0, 2, 2, 1}, {2, 0, 1, 0}, {0, 3, 3, 1}, {2, 3, 2, 0}, {1, 2, 2, 1}, {1, 3, 2, 1}}, {{0,3}, {1,2}, {3,-5}}, 5
+    },
+    MinCostFlowParams{
+        4, {{0, 1, 5, 0}, {1, 2, 1, 1}, {1, 2, 2, 2}, {1, 2, 3, 3}, {2, 3, 5, 0}}, {{0, 4}, {3, -4}}, 8  
+    },
+    MinCostFlowParams{8, {{1, 0, 3, 5}, {2, 0, 2, 1}, {0, 3, 6, 1}, {5, 4, 0, 0}, {6, 4, 4, 3}, {6, 7, 1, 2}, {7, 4, 2, 1}},
+        {{7, 2}, {6, 2}, {4, -4}, {0, -1}, {1, 2}, {2, 2}, {3, -3}}, 23
+    }, 
+    MinCostFlowParams{3, {{0, 1, 5, 1}, {1, 0, 5, 2}, {0, 2, 5, 1}, {2, 0, 5, 2}, {1, 2, 3, 1}, {2, 1, 4, 2}}, 
+        {{0, 2}, {1, 3}, {2, -5}}, 5
+    }
+));
+
+class OrlinTest
+    : public testing::TestWithParam<MinCostFlowParams> { };
+
+TEST_P(OrlinTest, test) {
+    MinCostFlowParams const& parameters = GetParam();
+    auto [ G, costs, b ] = getInstance(parameters);
+    auto algorithm = Koala::OrlinMCF(G, costs, b);
+    algorithm.run();
+    EXPECT_EQ(algorithm.getMinCost(), parameters.minCost);
+}
+
+INSTANTIATE_TEST_SUITE_P(test_example, OrlinTest, testing::Values(
+    MinCostFlowParams{
+        4, {{0, 2, 2, 1}, {2, 0, 1, 0}, {0, 3, 3, 1}, {2, 3, 2, 0}, {1, 2, 2, 1}, {1, 3, 2, 1}}, {{0,3}, {1,2}, {3,-5}}, 5
+    },
+    MinCostFlowParams{
+        4, {{0, 1, 5, 0}, {1, 2, 1, 1}, {1, 2, 2, 2}, {1, 2, 3, 3}, {2, 3, 5, 0}}, {{0, 4}, {3, -4}}, 8  
+    },
+    MinCostFlowParams{8, {{1, 0, 3, 5}, {2, 0, 2, 1}, {0, 3, 6, 1}, {5, 4, 0, 0}, {6, 4, 4, 3}, {6, 7, 1, 2}, {7, 4, 2, 1}},
+        {{7, 2}, {6, 2}, {4, -4}, {0, -1}, {1, 2}, {2, 2}, {3, -3}}, 23
+    }, 
+    MinCostFlowParams{3, {{0, 1, 5, 1}, {1, 0, 5, 2}, {0, 2, 5, 1}, {2, 0, 5, 2}, {1, 2, 3, 1}, {2, 1, 4, 2}}, 
+        {{0, 2}, {1, 3}, {2, -5}}, 5
+    }
+));
+
+class SuccessiveApproxTest
+    : public testing::TestWithParam<MinCostFlowParams> { };
+
+TEST_P(SuccessiveApproxTest, test) {
+    MinCostFlowParams const& parameters = GetParam();
+    auto [ G, costs, b ] = getInstance(parameters);
+    auto algorithm = Koala::SuccessiveApproxMCC(G, costs, b);
+    algorithm.run();
+    EXPECT_EQ(algorithm.getMinCost(), parameters.minCost);
+}
+
+INSTANTIATE_TEST_SUITE_P(test_example, SuccessiveApproxTest, testing::Values(
     MinCostFlowParams{
         4, {{0, 2, 2, 1}, {2, 0, 1, 0}, {0, 3, 3, 1}, {2, 3, 2, 0}, {1, 2, 2, 1}, {1, 3, 2, 1}}, {{0,3}, {1,2}, {3,-5}}, 5
     },

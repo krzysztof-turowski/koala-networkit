@@ -8,6 +8,7 @@ using edgeid = NetworKit::edgeid;
 using node = NetworKit::node;
 
 void OrlinMCF::initFlow() {
+    std::cerr<<"INIT FLOW\n";
     this->graph.indexEdges();
     makeConnected();
     makeUncapacitated();
@@ -32,7 +33,7 @@ void OrlinMCF::initialize() {
     }
 }
 
-int OrlinMCF::cp(node i, node j, edgeid id) {
+long long OrlinMCF::cp(node i, node j, edgeid id) {
     return flow[id] - potential[i] + potential[j];
 }
 
@@ -46,6 +47,7 @@ bool OrlinMCF::isImbalanced() {
 NetworKit::Graph OrlinMCF::generateGraphForSP() {
     NetworKit::Graph distGraph(graph.upperNodeIdBound(), true, true);
     auto [first, last] = uncapacitatedNodesBounds;
+    std::cerr<< "bounds: "<<first << " " << last << '\n';
     for (node i = first; i <= last; ++i) {
         if (graph.hasNode(i)) {
             std::vector<std::pair<node, edgeid>> neighs;                
@@ -55,7 +57,7 @@ NetworKit::Graph OrlinMCF::generateGraphForSP() {
             });
 
             for (int j = 0; j < 2; ++j) {
-                int f = flow[neighs[j].second];
+                long long f = flow[neighs[j].second];
 
                 if (f > 0) {
                     distGraph.addEdge(
@@ -69,13 +71,25 @@ NetworKit::Graph OrlinMCF::generateGraphForSP() {
     }
     graph.forEdges([&](node u, node v, edgeid id) {
         if (first <= v && v <= last) return;
-        int cost = cp(u, v, id);
+        long long cost = cp(u, v, id);
         distGraph.addEdge(u, v, cost);
         if (flow[id] > 0) {
             distGraph.addEdge(v, u, -cost);
         }
     });
     return distGraph;
+}
+
+void OrlinMCF::fillDistancesUncapacitated(std::vector<double>& distances) {
+    auto [first, last] = uncapacitatedNodesBounds;   
+    for(node i = first; i <= last; ++i) {
+        if (!graph.hasNode(i)) 
+            continue;
+
+        graph.forInEdgesOf(i, [&](node _, node j, edgeid id) {
+            distances[i] = std::min(distances[i], distances[j] + costs[id]);
+        });
+    }
 }
 
 void OrlinMCF::scalingAugmentation(node u, node v) {
@@ -85,13 +99,17 @@ void OrlinMCF::scalingAugmentation(node u, node v) {
     shortestPath.run();
     auto path = shortestPath.getPath(v);
     std::vector<double> distances = shortestPath.getDistances();
+    fillDistancesUncapacitated(distances);
+
     for(auto & [nd, pt] : potential) {
         pt -= lround(distances[nd]);
     }
     std::vector<std::pair<edgeid, bool>> pathIds;
+
     for (int i=0; i<path.size()-1; i++) {
-        std::tuple<int, edgeid, bool> mini = {INT32_MAX, -1, false};
+        std::tuple<long long, edgeid, bool> mini = {INT64_MAX, -1, false};
         node p = path[i], q = path[i+1];
+
         graph.forEdgesOf(p, [&](node u, node v, edgeid id) {
             if (v != q) return;
             mini = std::min(mini, {costs[id], id , false});
@@ -117,7 +135,7 @@ void OrlinMCF::runImpl() {
                 break;
             } 
         }
-        int maxDelta = 0;
+        long long maxDelta = 0;
         if (zero) { 
             for (auto ex : excess) {
                 maxDelta = std::max(ex.second, maxDelta);
@@ -142,9 +160,9 @@ void OrlinMCF::uncontractAndComputeFlow() {
     NetworKit::Graph flowGraph(originalGraph.numberOfNodes(), true, true);
     node s = flowGraph.addNode();
     node t = flowGraph.addNode();
-    int bsum{0};
+    long long bsum{0};
     originalGraph.forNodes([&](node n) { 
-        int bval = b[n];
+        long long bval = b[n];
         if (bval > 0) {
             flowGraph.addEdge(s, n, bval);
             bsum += bval;
@@ -188,11 +206,11 @@ void OrlinMCF::deltaScalingPhase() {
     }
 }
 
-void OrlinMCF::augment(node u, node v, edgeid edgeId, bool isReversed, int f) {
+void OrlinMCF::augment(node u, node v, edgeid edgeId, bool isReversed, long long f) {
     augment(u, v, {{edgeId, isReversed}}, f);
 } 
 
-void OrlinMCF::augment(node u, node v, const std::vector<std::pair<edgeid, bool>> &edgeIds, int f) {
+void OrlinMCF::augment(node u, node v, const std::vector<std::pair<edgeid, bool>> &edgeIds, long long f) {
     for(auto [edgeId, reversed] : edgeIds) {
         flow[edgeId] += (!reversed ? f : -f);
     }
@@ -206,9 +224,10 @@ void OrlinMCF::contractionPhase() {
         for (auto [eid, f] : flow) {
             if (f >= 3*graph.numberOfNodes()*delta) {
                 id = eid;
-                return;
+                return true;
             }
         }
+        return false;
     };
     edgeid id;
     while(contractible(id)) {
@@ -221,6 +240,8 @@ void OrlinMCF::contractNodes(NetworKit::node v, NetworKit::node w) {
     if (w < v) {
         std::swap(v, w);
     }
+
+    std::cerr<<"CONTRACTION " << v << ' ' << w <<'\n';
 
     graph.forEdgesOf(w, 
         [&](NetworKit::node, NetworKit::node y, NetworKit::edgeid id) {

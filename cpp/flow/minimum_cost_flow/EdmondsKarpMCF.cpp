@@ -22,11 +22,11 @@ void EdmondsKarpMCF::initialize() {
     while (delta < lround(maxWeight)) delta <<= 1;
 }
 
-int EdmondsKarpMCF::cp(node u, node v, edgeid eid) {
+long long EdmondsKarpMCF::cp(node u, node v, edgeid eid) {
     return costs[eid] - potential[u] + potential[v];
 }
 
-void EdmondsKarpMCF::send(node u, node v, edgeid eid, int value) {
+void EdmondsKarpMCF::send(node u, node v, edgeid eid, long long value) {
     excess[u] -= value;
     excess[v] += value;
     flow[eid] += value;
@@ -35,7 +35,7 @@ void EdmondsKarpMCF::send(node u, node v, edgeid eid, int value) {
 NetworKit::Graph EdmondsKarpMCF::getDeltaResidual() {
     NetworKit::Graph deltaResidual(graph.numberOfNodes(), true, true);
     graph.forEdges([&](node u, node v, edgeweight weight, edgeid id) {
-        int reducedCost = cp(u, v, id);
+        long long reducedCost = cp(u, v, id);
         int f = flow[id];
 
         if (f + delta <= lround(weight)) {
@@ -51,7 +51,7 @@ NetworKit::Graph EdmondsKarpMCF::getDeltaResidual() {
 void EdmondsKarpMCF::deltaScalingPhase() {
 
     graph.forEdges([&](node u, node v, edgeweight weight, edgeid id) {
-        int f = flow[id];
+        long long f = flow[id];
 
         if(f >= delta && cp(u, v, id) > 0) {
             send(u, v, id, -f);
