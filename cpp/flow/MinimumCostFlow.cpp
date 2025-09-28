@@ -7,15 +7,15 @@ using index = NetworKit::index;
 
 MinimumCostFlow::MinimumCostFlow(
     NetworKit::Graph const& graph,
-    edgeid_map<long long> const& costs,
+    edge_map<long long> const& costs,
     node_map<long long> const& b
 ) : graph(graph), costs(costs), b(b) {
 }
 
 MinimumCostFlow::MinimumCostFlow(
     NetworKit::Graph const& graph,
-    edgeid_map<std::pair<long long,long long>> const& cap_bounds, 
-    edgeid_map<long long> const& costs
+    edge_map<std::pair<long long,long long>> const& cap_bounds, 
+    edge_map<long long> const& costs
 ) : graph(graph), costs(costs) { 
     for(auto [key, val] : cap_bounds) {
         lowerbound[key] = val.first;
@@ -25,18 +25,15 @@ MinimumCostFlow::MinimumCostFlow(
 
 MinimumCostFlow::MinimumCostFlow(
     NetworKit::Graph const& graph,
-    edgeid_map<long long> const& ep,
+    edge_map<long long> const& ep,
     NetworKit::node s, NetworKit::node t, 
     long long fl
 ) : graph(graph), costs(ep), b({{s, fl}, {t, -fl}}) {
 }
 
-long long MinimumCostFlow::getFlow(NetworKit::edgeid e) {
-    return flow[e];
-}
-
 long long MinimumCostFlow::getFlow(edge const& e) {
-    return flow[flowEdgeToId[e]];
+    edge ed = modifiedUncapacitated ? uncapacitatedMapping[e] : e;
+    return flow[ed] + shouldAddLowerbounds ? lowerbound[ed] : 0;
 }
 
 long long MinimumCostFlow::getMinCost() const {
@@ -52,30 +49,25 @@ void MinimumCostFlow::constructCirculationFromFlow() {
     graph.forNodes(
         [&](NetworKit::node v) {
             if (b[v] > 0) {
-                index id = graph.upperEdgeIdBound();
                 graph.addEdge(n, v);
-                upperbound[id] = excess[v];
-                lowerbound[id] = excess[v];
+                upperbound[{n, v}] = excess[v];
+                lowerbound[{n, v}] = excess[v];
             }
             if (b[v] < 0) {
-                index id = graph.upperEdgeIdBound();
                 graph.addEdge(v, n);
-                upperbound[id] = excess[v];
-                lowerbound[id] = excess[v];
+                upperbound[{v, n}] = excess[v];
+                lowerbound[{v, n}] = excess[v];
             }
         });
 }
 
 void MinimumCostFlow::constructFlowFromCirculation() {
-    // TODO    
     NetworKit::Graph G(graph.numberOfNodes(), true, true, true);
 
-    graph.forEdges([&](NetworKit::node u, NetworKit::node v, NetworKit::edgeid eid) {
-        b[u] += lowerbound[eid];
-        b[v] -= lowerbound[eid];
-        NetworKit::index i = G.upperEdgeIdBound();
-        G.addEdge(u, v, upperbound[eid] - lowerbound[eid]);
-        circulationMapping[eid] = i;
+    graph.forEdges([&](NetworKit::node u, NetworKit::node v) {
+        b[u] -= lowerbound[{u, v}];
+        b[v] += lowerbound[{u, v}];
+        G.addEdge(u, v, upperbound[{u, v}] - lowerbound[{u, v}]);
     });
 
     graph = G;
@@ -87,26 +79,25 @@ void MinimumCostFlow::makeUncapacitated() {
     int nodes = graph.numberOfNodes();
     NetworKit::Graph newGraph(nodes, false, true, true);
     node_map<long long> newB;
-    edgeid_map<long long> newCosts;
+    edge_map<long long> newCosts;
 
     NetworKit::node firstAdded = graph.upperNodeIdBound();
     uncapacitatedNodesBounds = {firstAdded, firstAdded-1};
     graph.forEdges(
-    [&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight weight, NetworKit::edgeid id) {
+    [&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight weight) {
         auto k = newGraph.addNode();
         uncapacitatedNodesBounds.second = k;
-        auto ukId = newGraph.upperEdgeIdBound();
+
         newGraph.addEdge(u,k);
-        auto vkId = newGraph.upperEdgeIdBound();
         newGraph.addEdge(v,k);
         newB[u] = b[u];
         newB[v] = weight + b[v];
         newB[k] = -weight;
 
-        newCosts[ukId] = 0;
-        newCosts[vkId] = costs[id];
-        uncapacitatedMapping[id] = vkId;
-        flowEdgeToId[{u,v}] = vkId;
+        newCosts[{u, k}] = 0;
+        newCosts[{v, k}] = costs[{u, v}];
+        uncapacitatedMapping[{u, v}] = {v, k};
+        // flowEdgeToId[{u,v}] = {u, v};
     });
 
     b = newB;
@@ -131,7 +122,7 @@ void MinimumCostFlow::makeConnected() {
     graph.forNodes([&](NetworKit::node u) {
         if (sx == u) return;
         auto bound = graph.upperEdgeIdBound();
-        costs[bound] = costs[bound+1] = maxCost;
+        costs[{u, sx}] = costs[{sx, u}] = maxCost;
         graph.addEdge(u, sx, sumB);
         graph.addEdge(sx, u, sumB);
     });

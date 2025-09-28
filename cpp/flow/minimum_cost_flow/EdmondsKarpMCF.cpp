@@ -22,21 +22,21 @@ void EdmondsKarpMCF::initialize() {
     while (delta < lround(maxWeight)) delta <<= 1;
 }
 
-long long EdmondsKarpMCF::cp(node u, node v, edgeid eid) {
-    return costs[eid] - potential[u] + potential[v];
+long long EdmondsKarpMCF::cp(node u, node v) {
+    return costs[{u, v}] - potential[u] + potential[v];
 }
 
-void EdmondsKarpMCF::send(node u, node v, edgeid eid, long long value) {
+void EdmondsKarpMCF::send(node u, node v, long long value) {
     excess[u] -= value;
     excess[v] += value;
-    flow[eid] += value;
+    flow[{u, v}] += value;
 }
 
 NetworKit::Graph EdmondsKarpMCF::getDeltaResidual() {
     NetworKit::Graph deltaResidual(graph.numberOfNodes(), true, true);
-    graph.forEdges([&](node u, node v, edgeweight weight, edgeid id) {
-        long long reducedCost = cp(u, v, id);
-        int f = flow[id];
+    graph.forEdges([&](node u, node v, edgeweight weight) {
+        long long reducedCost = cp(u, v);
+        int f = flow[{u, v}];
 
         if (f + delta <= lround(weight)) {
             deltaResidual.addEdge(u, v, reducedCost);
@@ -50,14 +50,14 @@ NetworKit::Graph EdmondsKarpMCF::getDeltaResidual() {
 
 void EdmondsKarpMCF::deltaScalingPhase() {
 
-    graph.forEdges([&](node u, node v, edgeweight weight, edgeid id) {
-        long long f = flow[id];
+    graph.forEdges([&](node u, node v, edgeweight weight) {
+        long long f = flow[{u, v}];
 
-        if(f >= delta && cp(u, v, id) > 0) {
-            send(u, v, id, -f);
+        if(f >= delta && cp(u, v) > 0) {
+            send(u, v, -f);
         }
-        else if (f + delta <= lround(weight) && cp(u, v, id) < 0){ 
-            send(u, v, id, lround(weight) - f);
+        else if (f + delta <= lround(weight) && cp(u, v) < 0){ 
+            send(u, v, lround(weight) - f);
         }
     });
 
@@ -86,23 +86,13 @@ void EdmondsKarpMCF::deltaScalingPhase() {
 
         // augment
         for (int i=0; i<path.size()-1; i++) {
-            std::tuple<int, edgeid, bool> mini = {INT32_MAX, -1, false};
             node p = path[i], q = path[i+1];
-            graph.forEdgesOf(p, [&](node u, node v, edgeweight weight,  edgeid id) {
-                if (v != q || flow[id] + delta > lround(weight)) return;
-                mini = std::min(mini, {costs[id], id, false});
-            });
-            graph.forInEdgesOf(p, [&](node u, node v, edgeid id) {
-                if (v != q || flow[id] < delta) return;
-                mini = std::min(mini, {-costs[id], id, true});
-            });
-            auto [cost, eid, reversed] = mini; 
-            if (reversed) {
-                send(q, p, eid, -delta);
+
+            if (flow[{q, p}] >= delta) {
+                send(q, p, -delta);
             } else {
-                send(p, q, eid, delta);
+                send(p, q, delta);
             }
-            
         }
 
         // update S, T
@@ -121,7 +111,7 @@ void EdmondsKarpMCF::runImpl() {
 
     min_cost = 0;
     graph.forEdges([&](node u, node v, edgeid eid) {
-        min_cost += flow[eid] * costs[eid];
+        min_cost += getFlow({u, v}) * costs[{u, v}];
     });
 }
 

@@ -29,14 +29,14 @@ class MinimumCostFlow : public NetworKit::Algorithm {
     
     // MinimumCostFlow() {};
     // flow
-    MinimumCostFlow(NetworKit::Graph const&, edgeid_map<long long> const&,
+    MinimumCostFlow(NetworKit::Graph const&, edge_map<long long> const&,
         NetworKit::node, NetworKit::node, long long);
     // flow
-    MinimumCostFlow(NetworKit::Graph const&, edgeid_map<long long> const&,
+    MinimumCostFlow(NetworKit::Graph const&, edge_map<long long> const&,
         node_map<long long> const&);
     // circulation
-    MinimumCostFlow(NetworKit::Graph const&, edgeid_map<std::pair<long long,long long>> const&,
-        edgeid_map<long long> const&);
+    MinimumCostFlow(NetworKit::Graph const&, edge_map<std::pair<long long,long long>> const&,
+        edge_map<long long> const&);
 
     void run() {
         hasRun = false;
@@ -45,8 +45,7 @@ class MinimumCostFlow : public NetworKit::Algorithm {
     }
     bool isOk() const;
 
-    long long getFlow(const edge&);
-    long long getFlow(NetworKit::edgeid);
+    long long getFlow(edge const&);
     long long getMinCost() const;
     
  protected:
@@ -60,11 +59,12 @@ class MinimumCostFlow : public NetworKit::Algorithm {
     void constructFlowFromCirculation();
 
     bool modifiedUncapacitated = false;
-    edgeid_map<NetworKit::edgeid> uncapacitatedMapping;
+    edge_map<std::pair<NetworKit::node, NetworKit::node>> uncapacitatedMapping;
     std::pair<NetworKit::node, NetworKit::node> uncapacitatedNodesBounds = {0,-1}; 
 
-    bool fromCirculation = false;
-    edgeid_map<NetworKit::edgeid> circulationMapping;
+    bool shouldAddLowerbounds = false;
+    // bool fromCirculation = false;
+    // edge_map<NetworKit::edgeid> circulationMapping;
 
     // Makes graph uncapacitated, 
     // if the graph was uncapacitated before, then returns
@@ -76,13 +76,13 @@ class MinimumCostFlow : public NetworKit::Algorithm {
     // flow
     node_map<long long> b;
     node_map<long long> excess;
+    node_map<long long> potential; 
 
     edge_map<NetworKit::edgeid> flowEdgeToId;
-    edgeid_map<long long> flow;
-    edgeid_map<long long> costs;
-    edgeid_map<long long> upperbound;
-    edgeid_map<long long> lowerbound;
-    edgeid_map<long long> potential; 
+    edge_map<long long> flow;
+    edge_map<long long> costs;
+    edge_map<long long> upperbound;
+    edge_map<long long> lowerbound;
 
     long long min_cost{0};
     bool feasible{true};
