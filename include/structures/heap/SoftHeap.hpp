@@ -329,7 +329,6 @@ bool SoftHeap<T>::mergeInto(SoftHeap<T>&& p) {
 
     auto t1 = p.first();
     auto t2 = first();
-    int c = 300;
 
     while (t1 && !t1->isGuard) {
         while (t1->rank > t2->rank) {
@@ -453,29 +452,22 @@ int SoftHeap<T>::assertValidTreeNode(std::shared_ptr<SoftHeap<T>::TreeNode> node
 
 template<SoftHeapElement T>
 int SoftHeap<T>::TreeNode::corruptedCount() {
-    int c = 0;
-    int cOG = 0;
-    int cCorr = 0;
-    for (T e : originalList) {
-        if (e->key < ckey) {
-            cOG += 1;
-        }
-    }
-    for (T e : corruptedList) {
-        if (e->key < ckey) {
-            cCorr += 1;
-        }
-    }
-    assert(cOG == 0);
-    c = cCorr + cOG;
+    int corrupted_count = 0;
+    int corrupted_count_original = std::count_if(originalList.begin(), originalList.end(),
+        [this](T e) { return e->key < ckey; });
+    int corrupted_count_corrupted = std::count_if(corruptedList.begin(), corruptedList.end(),
+        [this](T e) { return e->key < ckey; });
+
+    assert(corrupted_count_original == 0);
+    corrupted_count = corrupted_count_corrupted + corrupted_count_corrupted;
 
     if (left) {
-        c += left->corruptedCount();
+        corrupted_count += left->corruptedCount();
     }
     if (right) {
-        c += right->corruptedCount();
+        corrupted_count += right->corruptedCount();
     }
-    return c;
+    return corrupted_count;
 }
 
 template<SoftHeapElement T>

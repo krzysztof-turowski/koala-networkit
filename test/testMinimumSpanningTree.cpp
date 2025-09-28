@@ -48,7 +48,7 @@ class MinimumSpanningTreeTest : public testing::TestWithParam<SpanningTreeParame
             float tree_weight = mst.getTreeWeight();
 
             // Logging information as this is an approxmiate algorithm
-            // and the tests may be not pass in rare cases.
+            // and the tests may not pass in rare cases.
             std::cout << "Approx MST with eps = " << eps << std::endl;
             std::cout << "expected tree weight: " << parameters.treeWeight << std::endl;
             std::cout << "algorithm got: " << tree_weight << std::endl;
