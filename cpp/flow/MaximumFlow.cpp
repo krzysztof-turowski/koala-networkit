@@ -8,8 +8,7 @@
 
 #include <iostream>
 #include <ranges>
-
-#include <flow/MaximumFlow.hpp>
+#include <flow/KingRaoTarjanMaximumFlow.hpp>
 
 using edge = std::pair<NetworKit::node, NetworKit::node>;
 
@@ -20,7 +19,7 @@ edge reverse(const edge &p) {
 namespace Koala {
 
 MaximumFlow::MaximumFlow(NetworKit::Graph &graph, NetworKit::node s, NetworKit::node t)
-    : graph(std::make_optional(graph)), source(s), target(t) { }
+: graph(std::make_optional(graph)), source(s), target(t) { }
 
 int MaximumFlow::getFlowSize() const {
     assureFinished();

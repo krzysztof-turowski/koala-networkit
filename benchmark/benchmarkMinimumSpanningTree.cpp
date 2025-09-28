@@ -5,9 +5,8 @@
 #include <string>
 #include <iomanip>
 #include <algorithm>
-
-#include <networkit/graph/GraphTools.hpp>
 #include <networkit/components/ConnectedComponents.hpp>
+#include <graph/GraphTools.hpp>
 #include <io/G6GraphReader.hpp>
 #include <io/DimacsGraphReader.hpp>
 #include <mst/MinimumSpanningTree.hpp>
@@ -67,12 +66,7 @@ void run_g6_tests(const std::string &path, const std::string &algorithm) {
             break;
         }
         auto G_directed = Koala::G6GraphReader().readline(line);
-        auto G = NetworKit::Graph(G_directed.numberOfNodes(), true, false);
-        G_directed.forEdges([&](NetworKit::node u, NetworKit::node v) {
-            if (!G.hasEdge(u, v) && !G.hasEdge(v, u)) {
-                G.addEdge(u, v);
-            }
-        });
+        auto G = Koala::GraphTools::convertDirectedGraphToUndirected(G_directed, true);
         std::set<NetworKit::edgeweight> T;
         std::cout << line << " " << std::flush;
         switch (ALGORITHM[algorithm]) {
@@ -132,6 +126,7 @@ void run_dimacs_tests(const std::string &path, const std::string &algorithm) {
             components[0][0], components[i][0], ++max_ew);
     }
 
+    std::cout << path << " " << std::flush;
     std::set<NetworKit::edgeweight> T;
     T.insert(run_algorithm<Koala::KruskalMinimumSpanningTree>(G_distinct));
     T.insert(run_algorithm<Koala::PrimMinimumSpanningTree>(G_distinct));

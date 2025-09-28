@@ -1,0 +1,55 @@
+The primary goal of this dissertation is to provide a thorough analysis and clean, efficient implementations of several lesser-known data structures that conform to a unified priority queue interface.
+
+\hyperref[chap:intro]{Chapter~1} introduces the fundamental functionality of priority queues and briefly surveys the most widely used and well-understood implementation strategies. \hyperref[chap:integer]{Chapter~2} explores priority queue variants designed for scenarios where keys are drawn from a bounded universe (specifically, a finite set of unsigned integers), with performance characteristics that depend on the size of this universe. \hyperref[chap:general]{Chapter~3} presents alternative data structures to those discussed in the introductory chapter, focusing on designs that may offer simpler implementations or improved performance under specific conditions. Finally, \hyperref[chap:benchmark]{Chapter~4} evaluates the practical efficiency of all implemented structures through benchmarking on large datasets.
+
+\section{Definitions}
+
+A priority queue is an abstract data structure that maintains a set of elements, each associated with a specific \emph{priority}. It supports access to the element with the highest or lowest priority, depending on the variant. A \emph{min}-priority queue provides access to the element with the lowest priority, while a \emph{max}-priority queue provides access to the element with the highest priority.
+
+The following definition, as given in \emph{Introduction to Algorithms}~\cite{CLRS2022}, specifies the standard operations supported by a priority queue managing a collection \( S \) of elements:
+
+\begin{itemize}
+    \item \texttt{insert(S, x)}: Insert element \( x \) into the priority queue.
+    \item \texttt{maximum(S)} / \texttt{minimum(S)}: Return the element with the maximum or minimum key.
+    \item \texttt{extractMax(S)} / \texttt{extractMin(S)}: Remove and return the element with the maximum or minimum key.
+    \item \texttt{increaseKey(S, x, k)} / \texttt{decreaseKey(S, x, k)}: Modify the key of element \( x \).
+\end{itemize}
+
+To simplify our analysis and avoid repetition, this work consistently assumes the use of a \emph{min}-priority queue. Where necessary, clarifications are provided in the text to avoid ambiguity. Based on a slightly adapted version of the classical definition, we define a priority queue in terms of three fundamental \emph{base operations}:
+
+\begin{itemize}
+    \item \texttt{push(k)}: Inserts a key into the queue.
+    \item \texttt{peek()}: Returns (without removing) the element with the lowest priority.
+    \item \texttt{pop()}: Removes and returns the element with the lowest priority.
+\end{itemize}
+
+These core operations are sufficient for a wide range of applications and are required in all implemented priority queues.
+
+Additionally, we identify two \emph{optional operations} that, while not universally supported, are important in some use cases. These will be included in selected implementations:
+
+\begin{itemize}
+    \item \texttt{decreaseKey(x, k)}: Decreases the key of element \( x \) to a new value \( k \).
+    \item \texttt{meld(q)}: Merges another priority queue \( q \) into the current one.
+\end{itemize}
+
+To formalize this interface, we define a generic C++ class template capturing the essential functionality of a priority queue:
+
+\begin{minted}{cpp}
+template <class Key, class Compare = std::less<Key>>
+class PriorityQueue {
+public:
+    virtual Key pop() = 0;
+    virtual Key peek() const = 0;
+    virtual void push(const Key& key) = 0;
+    virtual bool empty() const = 0;
+};
+\end{minted}
+
+This interface serves as the foundation for all implementations explored throughout this work.
+
+In priority queue implementations that support optional operations, the operation signatures take the following form. Here, \texttt{PriorityQueue} denotes the specific implementation class, and \texttt{Node} represents the node type used in that implementation:
+
+\begin{minted}{cpp}
+void PriorityQueue::meld(PriorityQueue& other);
+void PriorityQueue::decreaseKey(Node* node, Key newKey);
+\end{minted}

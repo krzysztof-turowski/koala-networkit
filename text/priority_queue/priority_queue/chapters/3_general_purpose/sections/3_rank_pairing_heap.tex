@@ -1,0 +1,388 @@
+\section{Rank-pairing heap}
+
+The \emph{rank-pairing heap} is a priority queue data structure introduced by Bernhard Haeupler, Siddhartha Sen, and Robert Tarjan in their 2011 paper, \emph{Rank-Pairing Heaps}~\cite{HaeuplerSenTarjan2011}. Combining ideas from earlier structures such as binomial heaps, pairing heaps, and Fibonacci heaps, rank-pairing heaps were designed to offer a \emph{simpler implementation} while matching the asymptotic time complexities of Fibonacci heaps.
+
+The structure supports \(O(1)\) worst-case time for \texttt{push}, \texttt{peek}, and \texttt{merge} operations, along with an impressive \(O(1)\) \emph{amortized} time for \texttt{decreaseKey} (which decreases the value stored at a given node, assuming direct access to it). The \texttt{pop} operation has an amortized complexity of \(O(\log n)\).
+
+A key concept underlying the data structure is the notion of \emph{node ranks} (formally defined in a later section), which plays a central role in the analysis of its amortized time bounds. In this chapter, we focus specifically on \emph{Type-2 rank-pairing heaps} as described in the original paper. Type-2 heaps slightly relax the rank rules used in Type-1 heaps, making them significantly easier to analyze while maintaining the same asymptotic time complexities.
+
+\subsection{Definitions}
+
+We first introduce several definitions to simplify the description and analysis of rank-pairing heaps.
+
+A rank-pairing heap is represented as a collection of binary trees. Similar to the representation introduced for weak heaps (with child nodes swapped), each tree corresponds to a multi-way tree using the left-child, right-sibling convention.
+
+In this representation, the left child of a node corresponds to its first child in the multi-way tree, and the right child corresponds to its next sibling. Since the root node of a multi-way tree has no siblings, its representation as a binary tree has an empty right subtree. Each tree is heap-ordered in the multi-way tree representation: the key of any node is smaller than the keys of all nodes in its left subtree.
+
+The \emph{right spine} of a node is the path starting at that node and following right-child pointers repeatedly. We also require a way to link two trees in \(O(1)\) time while preserving the heap property of the multi-way representation. To link two trees rooted at nodes \(a\) and \(b\), we first compare their keys. Assuming \(a\) has the smaller key (we again focus on \emph{min}-priority queues), we detach the left subtree of \(a\) and make it the right subtree of \(b\). We then attach the resulting tree rooted at \(b\) as the new left subtree of \(a\).
+
+Let \(p(x)\) denote the parent of node \(x\), and let \(r(x)\) denote its rank. We say that the rank of a missing child is \(-1\). For a non-root node \(x\), we define its rank difference by \(\Delta r(x) = r(p(x)) - r(x)\). A child node with rank difference \(i\) is called an \(i\)-child. A root with a left \(i\)-child is an \(i\)-node. A node whose two children are \(i\)- and \(j\)-children, is called an \(i, j\)-node. These definitions apply even if one or both children are missing, and they do not distinguish between the left and right children.
+
+We define the \emph{rank rule} as follows: every root is a \(1\)-node, and every child is either a \(1,1\)-node, a \(1,2\)-node, or a \(0, i\)-node for some \(i > 1\). A rank-pairing heap is a set of trees whose nodes obey this rule.
+
+Let \(F_k\) denote the \(k\)th Fibonacci number, and let \(\varphi = (1 + \sqrt{5})/2\) denote the golden ratio. We now prove a very useful lemma bounding the maximum rank of a node in a rank-pairing heap.
+
+\begin{lemma}
+In a rank-pairing heap, every node of rank \(k\) has at least \(\varphi^k\) descendants, including itself. Therefore, \(k \leq \log_\varphi n\).
+\end{lemma}
+
+\begin{proof}
+We use the inequalities \(F_{k+3} - 1 \geq F_{k+2} \geq \varphi^k\), both of which can be proved by a simple induction. The proof proceeds by induction on the height of a node. A leaf has rank 0 and exactly one descendant (the leaf itself), so the base case holds: \(1 = F_{3} - 1 = 1\). Now assume the statement holds for all proper descendants of a node \(x\) of rank \(k\). If \(x\) is a \(0, i\)-node, then its \(0\)-child has at least \(F_{k+3} - 1\) descendants by the induction hypothesis, and therefore so does \(x\). If \(x\) is a \(1,1\)-node or a \(1,2\)-node, then by the induction hypothesis it has at least 
+\[
+(F_{k+1} - 1) + (F_{k+2} - 1) + 1 = F_{k+3} - 1
+\]
+descendants, completing the induction.
+\end{proof}
+
+We will later use the potential method to analyze the amortized cost of both \texttt{pop} and \texttt{decreaseKey}. The potential of a tree is the sum of the potentials of its nodes. The potential of a node is the sum of its \emph{base potential} and \emph{extra potential}. The base potential of a node is the sum of the rank differences of its children, minus one. The extra potential of a node is one for a root, minus one for a \(1,1\)-node, and zero otherwise. In total, the potential of a node is zero for a \(1,1\)-node, one for a root, two for a \(1,2\)-node, and \(i - 1\) for a \(0, i\)-node.
+
+\subsection{Structure}
+
+With the necessary terminology in place, we can now outline the structure of the \texttt{RankPairingHeap} class. Each heap node is defined as follows:
+
+\begin{minted}{cpp}
+struct RankPairingHeap::Node {
+    Key key;
+    int rank;
+    Node* next;
+    Node* left;
+    Node* right;
+    Node* parent;
+}
+\end{minted}
+
+By default, a node has rank \(0\) and is initialized with a key value. The roots of the individual trees in a rank-pairing heap form a circular linked list, where each node points to its successor via a \texttt{next} pointer. In addition, we define several helper functions to operate on nodes:
+
+\begin{minted}{cpp}
+void RankPairingHeap::Node::getChildren(std::vector<Node*>& result) {
+    result.push_back(this);
+    if (left) left->getChildren(result);
+    if (right) right->getChildren(result);
+}
+
+void RankPairingHeap::Node::linkLists(Node* other) {
+    Node* nextNode = this->next;
+    this->next = other->next;
+    other->next = nextNode;
+}
+\end{minted}
+
+The \texttt{getChildren} function performs an in-order traversal of the subtree rooted at a given node and returns a list of all visited nodes. The \texttt{linkLists} function merges two circular linked lists of nodes into a single circular list.
+
+The overall structure of the \texttt{RankPairingHeap} class is straightforward:
+
+\begin{minted}{cpp}
+class RankParingHeap : public PriorityQueue<Key, Compare> {
+    Node* firstNode;
+    unsigned size;
+    Compare comp;
+};
+\end{minted}
+
+It maintains a single pointer, \texttt{firstNode}, which always refers to the node with the minimum key. This node also serves as the logical "start" of the circular list of tree roots.
+
+\subsection{Push and merge operations}
+
+The \texttt{push} operation inserts a new element into the rank-pairing heap by creating a node and appending it to the circular linked list that represents the root list.
+
+\begin{minted}{cpp}
+void RankPairingHeap::push(const Key& key) override {
+    Node* newNode = new Node(key);
+    size++;
+    addNodeToRootList(newNode);
+}
+\end{minted}
+
+This insertion is managed by the helper function \texttt{addNodeToRootList}, which performs the necessary pointer updates to maintain the circular structure.
+
+\begin{minted}{cpp}
+void RankPairingHeap::addNodeToRootList(Node* node) {
+    if (empty()) {
+        firstNode = node;
+        firstNode->next = firstNode;
+        return;
+    }
+    
+    node->next = firstNode->next;
+    firstNode->next = node;
+    
+    if (comp(node->key, firstNode->key)) {
+        firstNode = node;
+    }
+}
+\end{minted}
+
+If the heap is empty, the \texttt{firstNode} pointer is set to the new node, and the node's \texttt{next} pointer is initialized to point to itself, forming a singleton circular list. Otherwise, the new node is inserted immediately after \texttt{firstNode} within the circular root list. Following insertion, the minimum pointer is updated if the new node's key is smaller. Each of these steps runs in constant time, so the overall time complexity of \texttt{push} is \(O(1)\).
+
+The \texttt{meld} operation combines two rank-pairing heaps:
+
+\begin{minted}{cpp}
+void RankPairingHeap::meld(RankPairingHeap& other) {
+    if (&other == this) return;
+    if (other.empty()) return;
+
+    if (empty()) {
+        firstNode = other.firstNode;
+        size = other.size;
+        other.firstNode = nullptr;
+        other.size = 0;
+        return;
+    }
+\end{minted}
+
+The merging process begins by addressing edge cases. If the two heaps refer to the same object, the operation exits immediately. If one of the heaps is empty, the result is simply the other, non-empty heap.
+
+\begin{minted}{cpp}
+    firstNode->next->linkLists(other.firstNode);
+
+    if (comp(other.firstNode->key, firstNode->key)) {
+        firstNode = other.firstNode;
+    }
+
+    size += other.size;
+    other.firstNode = nullptr;
+    other.size = 0;
+}
+\end{minted}
+
+In the general case, where both heaps contain nodes, their circular root lists are merged, and the \texttt{firstNode} pointer is updated to point to the node with the smaller key. As all steps involve only pointer manipulation, the total time complexity of \texttt{meld} remains \(O(1)\).
+
+\subsection{Pop operation}
+
+The \texttt{pop} operation removes and returns the node with the smallest key from the heap.
+
+To support this, the helper method \texttt{addRightSpine} traverses the right spine starting at a given node and adds each encountered node to the circular list of roots.
+
+\begin{minted}{cpp}
+void RankPairingHeap::addRightSpine(Node* node) {
+    while (node) {
+        node->parent = nullptr;
+        Node* right = node->right;
+        node->right = nullptr;
+        
+        node->next = firstNode->next;
+        firstNode->next = node;
+        
+        node = right;
+    }
+}
+\end{minted}
+
+To maintain structural invariants, we must link all trees in the rank-pairing heap that share the same rank. This is achieved through the \texttt{consolidateBuckets} method.
+
+\begin{minted}{cpp}
+std::vector<Node*> RankPairingHeap::consolidateBuckets(
+    Node* root,
+    unsigned nodeCount
+) {
+    std::vector<Node*> result;
+    
+    if (root->next == root) {
+        return result;
+    }
+    
+    constexpr double PHI = (1.0 + std::sqrt(5.0)) / 2.0;
+    int maxRank = static_cast<int>(std::log(nodeCount) / std::log(PHI)) + 1;
+    std::vector<Node*> buckets(maxRank, nullptr);
+\end{minted}
+
+We begin by creating a list of empty buckets, with the size determined by the theoretical maximum rank established in Lemma 3.3.1.
+
+\begin{minted}{cpp}
+    auto current = root->next;
+    
+    buckets[current->rank] = current;
+    current = current->next;
+    
+    while (current != root) {
+        auto next = current->next;
+        auto rank = current->rank;
+        
+        if (buckets[rank]) {
+            auto merged = linkNodes(current, buckets[rank], comp);
+            buckets[rank] = nullptr;
+            result.push_back(merged);
+        } else {
+            buckets[rank] = current;
+        }
+        
+        current = next;
+    }
+    
+    for (auto node : buckets) {
+        if (node) result.push_back(node);
+    }
+    
+    return result;
+}
+\end{minted}
+
+Next, we iterate over the root list, merging trees whenever two nodes share the same rank. Once consolidation is complete, we return a new set of roots, each with a distinct rank.
+
+With this infrastructure in place, we can now implement \texttt{pop} for rank-pairing heaps:
+
+\begin{minted}{cpp}
+Key pop() override {
+    if (empty()) throw std::runtime_error("Heap is empty!");
+
+    Node* minNode = firstNode;
+    Key minKey = minNode->key;
+
+    if (size == 1) {
+        delete firstNode;
+        firstNode = nullptr;
+        size = 0;
+        return minKey;
+    }
+
+\end{minted}
+
+If the heap contains only a single node, that node is deleted, \texttt{firstNode} is set to \texttt{nullptr}, and the corresponding key is returned immediately.
+
+\begin{minted}{cpp}
+    addRightSpine(firstNode->left);
+        
+    std::vector<Node*> consolidatedRoots = 
+        consolidateBuckets(firstNode, size);
+
+    firstNode = nullptr;
+    size--;
+
+    push(consolidatedRoots);
+
+    delete minNode;
+    return minKey;
+}
+\end{minted}
+
+If the heap contains only a single node, it is deleted, \texttt{firstNode} is set to \texttt{nullptr}, and its key is returned immediately.
+
+In the general case, when multiple nodes are present, the algorithm extracts the children (in the multi-way representation) of the node being removed and adds them to the root list. It then consolidates trees with matching ranks, updates the root list, and finally deletes the removed node.
+
+\begin{lemma}
+The amortized running time of \texttt{pop} is \(O(\log n)\).
+\end{lemma}
+
+\begin{proof}
+Each new root created by disassembling the right spine, starting at the left child of the deleted node, has at least one unit of potential unless it was already a \(1,1\)-node. For each rank less than that of the deleted root, at most one \(1,1\)-node can become a new root, since each subsequent \(1,1\)-node has a strictly smaller rank, and the spine begins with a node of rank lower than the root’s. By Lemma 3.3.1, there are at most \(\log_\varphi n\) such \(1,1\)-nodes, so the increase in potential from disassembling the spine is bounded by \(\log_\varphi n\).
+
+Let \(h\) denote the number of trees produced after disassembly. The entire deletion of the minimum takes \(O(h)\) time. If we scale time such that the processing of a single tree costs \(1/2\) unit, the total time becomes \(h/2 + O(1)\) units.
+
+Each link operation during consolidation reduces the potential, as it transforms one of the roots into a \(1,1\)-node. Because the number of unique ranks is at most \(\log_\varphi n + 1\), at most that many trees do not participate in any link. Thus, there are at least \((h - (\log_\varphi n + 1))/2\) links, each decreasing the potential.
+
+Consequently, the change in potential is at most \(O(\log n) - h/2\) units, while the actual work is bounded by \(h/2 + O(1)\) units, yielding an amortized time complexity of \(O(\log n)\).
+\end{proof}
+
+\subsection{DecreaseKey operation}
+
+The \texttt{decreaseKey} operation decreases the key of a given node, assuming direct access to that node is available.
+
+To perform this operation correctly, we must be able to detach a node \(x\) from its parent, thereby promoting it to a new root. This functionality is provided by the helper function \texttt{detachFromParent}:
+
+\begin{minted}{cpp}
+void RankPairingHeap::detachFromParent(Node* node, Node* parent) {
+    if (parent->left == node) {
+        parent->left = node->right;
+    } else if (parent->right == node) {
+        parent->right = node->right;
+    }
+    
+    if (node->right) {
+        node->right->parent = parent;
+    }
+    
+    node->right = nullptr;
+    node->parent = nullptr;
+}
+\end{minted}
+
+For \(x\) to become a new root, it must not have a right child. Detachment is performed by moving \(x\)'s right subtree into \(x\)'s current position in the parent's structure and severing the link from \(x\) to that subtree.
+
+To restore the rank rule after decreasing a key, we apply the following procedure:
+
+\textbf{Rank-reduction:} If \(a\) is a root, set \(r(a) = r(\text{left}(a)) + 1\) and terminate. Otherwise, let \(b\) and \(c\) be the children of \(a\), and compute:
+\[
+k = 
+\begin{cases}
+\max\{r(b), r(c)\} & \text{if } |r(b) - r(c)| > 1, \\
+\max\{r(b), r(c)\} + 1 & \text{if } |r(b) - r(c)| \leq 1.
+\end{cases}
+\]
+If \(k \geq r(a)\), the rank-reduction process is complete. Otherwise, set \(r(a) = k\) and continue the process recursively with \(a = p(a)\).
+
+This procedure is implemented precisely in the following method:
+
+\begin{minted}{cpp}
+void RankPairingHeap::recalculateRank(Node* node) {
+    while (node) {
+        int oldRank = node->rank;
+        
+        if (node->parent == nullptr) {
+            node->rank = getRank(node->left) + 1;
+            break;
+        }
+        
+        int leftRank = getRank(node->left);
+        int rightRank = getRank(node->right);
+
+        int newRank = (std::abs(leftRank - rightRank) > 1) ?
+            std::max(leftRank, rightRank) :
+            std::max(leftRank, rightRank) + 1;
+        
+        if (newRank >= oldRank) break;
+        
+        node->rank = newRank;
+        node = node->parent;
+    }
+}
+\end{minted}
+
+\begin{lemma}
+The rank-reduction process restores the rank rule.
+\end{lemma}
+\begin{proof}
+Decreasing the rank of a node \(a\) may cause only its parent \(p(a)\) to violate the rank rule. If \(a\) violates the rule before a rank-reduction step, the first case of the procedure transforms it into a \(0,i\)-node, while the second case yields either a \(1,1\)-node or a \(1,2\)-node. In each case, the rule is restored at \(a\). An inductive argument on the number of steps establishes the lemma.
+\end{proof}
+
+We are now ready to describe the \texttt{decreaseKey} operation. Suppose we wish to decrease the key at node \(x\).
+
+\begin{minted}{cpp}
+void RankPairingHeap::decreaseKey(Node* node, Key newKey) {
+    node->key = newKey;
+    Node* parent = node->parent;
+    
+    if (!parent) {
+        if (comp(node->key, firstNode->key)) {
+            firstNode = node;
+        }
+        return;
+    }
+\end{minted}
+
+If \(x\) is already a root, we simply check whether it now holds the minimum key and update \texttt{firstNode} accordingly. If \(x\) is not a root, we must promote it to one.
+
+\begin{minted}{cpp}
+    detachFromParent(node, parent);
+    
+    push(node);
+    
+    recalculateRank(parent);
+}
+\end{minted}
+
+To do so, we first detach the subtree rooted at \(x\) from its parent. We then replace \(x\)'s position in the tree with the subtree of its right child and insert \(x\) into the root list. If the new key at \(x\) is smaller than the current minimum, we update \texttt{firstNode} to point to it. Finally, we invoke the rank-reduction procedure at \(x\)'s former parent to restore the rank rule.
+
+We are now ready to state the key lemma establishing the amortized time complexity of \texttt{decreaseKey}, the most complex result in the analysis of rank-pairing heaps.
+
+\begin{lemma}
+The amortized running time of \texttt{decreaseKey} is \(O(1)\).
+\end{lemma}
+\begin{proof}
+Suppose we are decreasing the key at node \(x\). If \(x\) is a root, the key decrease takes \(O(1)\) actual time and does not change the potential. Suppose \(x\) is not a root. Let \(u_0 = \text{left}(x)\), \(u_1 = x\), and let \(u_2, \ldots, u_k\) be such that \(u_j\) is the parent of \(u_{j-1}\), where \(u_j\) for \(2 \leq j < k\) have their ranks decreased, and \(u_k\) is the final node in the rank-reduction process (either a root or a node that retains its rank). Let \(v_j\), for \(0 \leq j < k\), be the sibling of \(u_{j}\). Denote by \(r\) and \(r'\) the ranks before and after the key decrease.
+
+The only nodes whose base potential changes as a result of the operation are \(u_1, \ldots, u_k\). We now try to bound this potential change. The expression \(\Delta r(v_0) + \sum_{i=1}^{k-1}\Delta r(u_i)\) telescopes to \(r(u_k) - r(v_0)\). Similarly, \(\Delta r'(v_0) + \sum_{i=2}^{k-1}\Delta r'(u_i)\) (we don't include \(u_1\) since it is a new root after the key decrease) telescopes to \(r'(u_k) - r'(v_0)\). Note that \(r'(u_k) - r'(v_0) \leq r(u_k) - r(v_0)\), because \(r'(u_k) \leq r(u_k)\) and \(r'(v_0) = r(v_0)\). Moreover, \(\Delta r'(u_0) = 1 \leq \Delta r(u_0) + 1\), and \(\Delta r'(v_j) \leq \Delta r(v_j) - 1\) for \(0 \leq j \leq k-2\). In total, the sum of potentials of \(u_1, \ldots, u_k\) drops by at least \(k - 3\) and increases by at most \(1\), so it decreases by at least \(k - 2\) after decreasing the key.
+
+We now bound the change in extra potentials of \(u_1, \ldots, u_k\). At most two of these nodes can be \(1,1\)-nodes before the key decrease, by the following argument: Let \(j\) be the minimum such that \(u_j\) is a \(1,1\)-node. Of course, it can decrease in rank by at most one to maintain non-negative rank differences. Hence, \(u_{j'}\), for \(j' > j\), can also decrease in rank by at most one by the rank rule. If \(u_{j'}\) for \(j' > j\) is a \(1,1\)-node, it becomes a \(1,2\)-node as a result of \(u_{j'-1}\) decreasing in rank by one, so \(u_{j'}\) does not itself decrease in rank, and the rank-reduction process ends at \(u_{j'}\). All in all, the sum of extra potentials of \(u_0, u_1, \ldots, u_k\) increases by at most three as a result of the key decrease: at most two \(1,1\)-nodes become non-\(1,1\)-nodes, increasing the sum by two, and \(u_1 = x\) becomes a root, increasing the sum by one.
+
+We see that the key decrease operation causes the total potential to drop by at least \(k - 5\) units. If we scale the time of a single rank-reduction step to be \(1\) unit, the amortized time of the key decrease is \(O(1)\).
+\end{proof}
