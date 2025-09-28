@@ -19,13 +19,12 @@ concept SoftHeapElement = requires(T a){
 
 template<SoftHeapElement T>
 class SoftHeap {
-public:
-    // [TODO] implement other constructors
-    SoftHeap(float eps = 0.3);
-    SoftHeap(T e, float eps = 0.3);
+ public:
+    explicit SoftHeap(float eps = 0.3);
+    explicit SoftHeap(T e, float eps = 0.3);
     SoftHeap(const SoftHeap&);
     SoftHeap(SoftHeap&&);
-    // ~SoftHeap();
+
     SoftHeap& operator=(const SoftHeap&);
     SoftHeap& operator=(SoftHeap&&);
 
@@ -36,7 +35,7 @@ public:
     std::variant<T, bool> lookupMin();
     std::variant<T, bool> lookupMinInternal();
     std::vector<T> corruptedElements();
-    bool empty(){return elements <= 0;}
+    bool empty() { return elements <= 0; }
 
     void assertValidState(int expectedElements, bool checkSize = true, bool checkMinSuf = true);
     template<SoftHeapElement R>
@@ -51,9 +50,9 @@ public:
         int size = 1;
         std::list<T> corruptedList;
         std::list<T> originalList;
-        
+
         TreeNode() {}
-        TreeNode(T val) {
+        explicit TreeNode(T val) {
             ckey = val->key;
             originalList = std::list{val};
         }
@@ -75,7 +74,6 @@ public:
         bool isGuard = false;
     };
     std::shared_ptr<TreeNode> combine(std::shared_ptr<TreeNode> x, std::shared_ptr<TreeNode> y) {
-        // std::cout << "combine" << std::endl;
         auto z = std::make_shared<TreeNode>();
         z->left = std::move(x);
         z->right = std::move(y);
@@ -97,7 +95,6 @@ public:
     int assertValidTreeNode(std::shared_ptr<TreeNode>);
     int corruptedCount();
     std::shared_ptr<ListNode> first() {
-        // std::cout << "first" << std::endl;
         return guard->next;
     }
     std::list<T> allElementsAdded;
@@ -108,16 +105,7 @@ public:
     int rank = 0;
     int insertCount = 0;
     std::shared_ptr<ListNode> guard;
-    // static std::list<T>* justCorruptedElementsList;
 };
-
-// template<SoftHeapElement T>
-// std::list<T>* SoftHeap<T>::justCorruptedElementsList = nullptr;
-
-// template<SoftHeapElement T>
-// SoftHeap<T>::~SoftHeap(){
-
-// }
 
 template<SoftHeapElement T>
 SoftHeap<T>::SoftHeap(float eps) : eps(eps), elements(0) {
@@ -127,12 +115,6 @@ SoftHeap<T>::SoftHeap(float eps) : eps(eps), elements(0) {
     guard->isGuard = true;
     guard->rank = -1;
 
-    // auto node = std::make_shared<ListNode>();
-    // node->next = guard;
-    // node->prev = guard;
-    // node->sufMin = node;
-    // node->tree = std::make_shared<TreeNode>(val);
-
     guard->next = guard;
     guard->prev = guard;
     guard->sufMin = guard;
@@ -140,7 +122,6 @@ SoftHeap<T>::SoftHeap(float eps) : eps(eps), elements(0) {
 
 template<SoftHeapElement T>
 SoftHeap<T>::SoftHeap(T val, float eps) : eps(eps), elements(1) {
-    // std::cout << "SoftHeap::SoftHeap(T, float)" << std::endl;
     r = ceil(log(1 / eps) / log(2.0)) + 5;
 
     guard = std::make_shared<ListNode>();
@@ -158,41 +139,24 @@ SoftHeap<T>::SoftHeap(T val, float eps) : eps(eps), elements(1) {
     guard->sufMin = node;
 }
 
-
-
-// template<SoftHeapElement T>
-// SoftHeap<T>::SoftHeap() {
-//     // std::cout << "SoftHeap::SoftHeap()" << std::endl;
-//     throw std::runtime_error("DEFAULT CONSTRUCTOR");
-// }
-
 template<SoftHeapElement T>
 SoftHeap<T>::SoftHeap(const SoftHeap& other)
     : eps(other.eps), r(other.r), rank(other.rank), guard(other.guard), elements(elements)
-{
-    // std::cout << "SoftHeap::SoftHeap(const SoftHeap&)" << std::endl;
-    // TODO It actually doesn't copy...
-    // throw std::runtime_error("COPY CONSTRUCTOR");
-}
+{}
 
 template<SoftHeapElement T>
 SoftHeap<T>::SoftHeap(SoftHeap<T>&& other)
-    : eps(other.eps), r(other.r), rank(other.rank), guard(other.guard), elements(elements)
-{
-    // std::cout << "SoftHeap::SoftHeap(SoftHeap&&)" << std::endl;
+    : eps(other.eps), r(other.r), rank(other.rank), guard(other.guard), elements(elements) {
     other.guard.reset();
 }
 
 template<SoftHeapElement T>
 SoftHeap<T>& SoftHeap<T>::operator=(const SoftHeap&) {
-    // std::cout << "SoftHeap::operator=(const SoftHeap&)" << std::endl;
-    
     throw std::runtime_error("COPY ASSIGNMENT");
 }
 
 template<SoftHeapElement T>
 SoftHeap<T>& SoftHeap<T>::operator=(SoftHeap<T>&& other) {
-    // std::cout << "SoftHeap::operator=(SoftHeap&&)" << std::endl;
     eps = other.eps;
     r = other.r;
     rank = other.rank;
@@ -205,7 +169,6 @@ SoftHeap<T>& SoftHeap<T>::operator=(SoftHeap<T>&& other) {
 
 template<SoftHeapElement T>
 SoftHeap<T> insert(SoftHeap<T>&& p, T val) {
-    // std::cout << "insert" << std::endl;
     auto pInserts = p.insertCount;
     auto sh = meld(std::move(p), std::move(SoftHeap<T>(val)));
     sh.insertCount = pInserts + 1;
@@ -214,13 +177,12 @@ SoftHeap<T> insert(SoftHeap<T>&& p, T val) {
 
 template<SoftHeapElement T>
 bool SoftHeap<T>::TreeNode::leaf() {
-    // std::cout << "TreeNode::leaf" << std::endl;
-    return !left && !right; 
+    return !left && !right;
 }
 
 template<SoftHeapElement T>
 void SoftHeap<T>::TreeNode::pushCorruptedElementsOnVector(std::vector<T>& vec) {
-    for (T t: corruptedList) {
+    for ( T t : corruptedList ) {
         vec.push_back(t);
     }
     if (left) {
@@ -233,15 +195,14 @@ void SoftHeap<T>::TreeNode::pushCorruptedElementsOnVector(std::vector<T>& vec) {
 
 template<SoftHeapElement T>
 T SoftHeap<T>::TreeNode::pickElement(bool lookup) {
-    // std::cout << "TreeNode::pickElement" << std::endl;
-    if(originalList.empty() && corruptedList.empty()){
+    if (originalList.empty() && corruptedList.empty()) {
         throw std::runtime_error("EMPTY LIST POP");
     }
     T ret;
     if (!originalList.empty()) {
         ret = originalList.front();
         if (!lookup) {
-            originalList.pop_front(); 
+            originalList.pop_front();
         }
     } else {
         ret = corruptedList.front();
@@ -263,16 +224,13 @@ int SoftHeap<T>::TreeNode::listsSize() {
 
 template<SoftHeapElement T>
 void SoftHeap<T>::TreeNode::sift() {
-    // std::cout << "TreeNode::sift" << std::endl;
     while (listsSize() < size && !leaf()) {
-        if(!left || (right && left->ckey > right->ckey)) {
+        if (!left || (right && left->ckey > right->ckey)) {
             std::swap(left, right);
         }
         if (left->ckey != ckey) {
-            // all elements from originalList become now corrupted
-            for (T t: originalList) {
+            for (T t : originalList) {
                 t->corrupted = true;
-                // t->ckey = left->ckey;
                 corruptedList.push_back(t);
             }
             originalList.clear();
@@ -295,58 +253,41 @@ void SoftHeap<T>::TreeNode::sift() {
 
 template<SoftHeapElement T>
 void SoftHeap<T>::removeTree(std::shared_ptr<SoftHeap<T>::ListNode> t) {
-    // std::cout << "removeTree" << std::endl;
     t->prev.lock()->next = t->next;
     t->next->prev = t->prev.lock();
 }
 
 template<SoftHeapElement T>
 void SoftHeap<T>::updateSuffixMin(std::shared_ptr<SoftHeap<T>::ListNode> t) {
-    // std::cout << "updateSuffixMin" << std::endl;
-    // assertValidState(0, false, false);
     while (!t->isGuard) {
-        // std::cout << "update suffix min while loop" << std::endl;
-        // std::cout<< "next is guard: "<< t->next->isGuard << std::endl;
         assert(t->tree);
-        if (t->next->isGuard 
+        if (t->next->isGuard
             || t->tree->ckey <= t->next->sufMin.lock()->tree->ckey) {
-            // std::cout << "if" << std::endl;
             t->sufMin = t;
         } else {
-            // std::cout << "else" << std::endl;
             t->sufMin = t->next->sufMin;
         }
-        
-        // std::cout << "after if" << std::endl;
         t = t->prev.lock();
-        // std::cout << "after prev.lock()" << std::endl;
     }
-    // std::cout<<"exited updateSuffixMin" << std::endl;
 }
 
 template<SoftHeapElement T>
 void SoftHeap<T>::repeatedCombine(int k) {
-    // std::cout << "repeatedCombine" << std::endl;
     auto t = first();
     while (!t->next->isGuard) {
-        // std::cout << "REPEATED COMBINE LOOP" << std::endl;
         if (t->rank == t->next->rank) {
             if (t->next->next->isGuard || t->rank != t->next->next->rank) {
                 t->tree = combine(std::move(t->tree), std::move(t->next->tree));
                 t->rank = t->tree->rank;
                 removeTree(t->next);
             } else if (t->rank > k) {
-                // This break also breaks!!! bad pseudocode...
-                // Will leave it here for now and try to find a workaround somewhere else...
                 break;
             }
         } else if (t->rank > k) {
-            // This break breaks probably because combine operation 
-            // creates a heap with a larger rank so we need to keep combining... 
-            // I think this else if was supposed to be inside the previous if...
+            // This break breaks probably because combine operation
+            // creates a heap with a larger rank so we need to keep combining...
             //
             // break;
-            // std :: cout << "NO BREAKS" << std::endl;
         }
         t = t->next;
     }
@@ -354,7 +295,6 @@ void SoftHeap<T>::repeatedCombine(int k) {
     if (t->rank > rank) {
         rank = t->rank;
     }
-    // assertValidState(0, false, false);
     assert(!t->isGuard);
     updateSuffixMin(t);
 }
@@ -362,26 +302,12 @@ void SoftHeap<T>::repeatedCombine(int k) {
 template<SoftHeapElement T>
 SoftHeap<T> meld(SoftHeap<T>&& p, SoftHeap<T>&& q) {
     int newElements = p.elements + q.elements;
-    // std::cout << "MELD BEGIN" << std::endl;
     if (std::holds_alternative<bool>(p.lookupMin())) return q;
     if (std::holds_alternative<bool>(q.lookupMin())) return p;
-    
-    // p.assertValidState(0, false, false);
-    // q.assertValidState(0, false, false);
-    
-    // std::list<T> newAllElements(std::move(p.allElementsAdded));
-    // newAllElements.splice(newAllElements.end(), std::move(q.allElementsAdded)); 
-    // std::cout << "meld" << std::endl;
-    // std::cout << "MELD MID" << std::endl;
-    if(p.rank > q.rank) std::swap(p, q);
+    if (p.rank > q.rank) std::swap(p, q);
     int prank = p.rank;
-    // std::cout << "MELD MERGE" << std::endl;
-    if (!q.mergeInto(std::move(p))) {
-        // std::cout << "PROBLEM IN MERGE" << std::endl;
-    }
-    // std::cout << "MELD RC" << std::endl;
+    q.mergeInto(std::move(p));
     q.repeatedCombine(prank);
-    // std::cout << "MELD After" << std::endl;
     q.elements = newElements;
     return std::move(q);
 }
@@ -391,7 +317,6 @@ void SoftHeap<T>::insertTree(
     std::shared_ptr<SoftHeap<T>::ListNode> l1,
     std::shared_ptr<SoftHeap<T>::ListNode> l2
 ) {
-    // std::cout << "insertTree" << std::endl;
     l1->next = l2;
     l2->prev.lock()->next = l1;
     l1->prev = l2->prev.lock();
@@ -400,7 +325,6 @@ void SoftHeap<T>::insertTree(
 
 template<SoftHeapElement T>
 bool SoftHeap<T>::mergeInto(SoftHeap<T>&& p) {
-    // std::cout << "mergeInto" << std::endl;
     if (p.rank > rank) throw std::runtime_error("MERGING LARGER TO SMALLER");
 
     auto t1 = p.first();
@@ -408,24 +332,11 @@ bool SoftHeap<T>::mergeInto(SoftHeap<T>&& p) {
     int c = 300;
 
     while (t1 && !t1->isGuard) {
-        // std::cout << "MERGE INTO MAIN LOOP" << std::endl;
         while (t1->rank > t2->rank) {
-            // std::cout << "MERGE INTO INNER LOOP" << std::endl;
-            if (t2->next->rank <= t2->rank) {
-                // std::cout << "WRONG RANKS" << std::endl;
-                // return false;
-            }
             if (t2->isGuard) {
                 return false;
             }
-            
-            // if (t2 == t2->next){
-            //     std::cout << "CYCLE IN MERGE INTO" << std::endl;
-            //     return false;
-            // }
             t2 = t2->next;
-            // c -= 1;
-            // if (c < 0) return false;
         }
 
         auto t1new = t1->next;
@@ -449,7 +360,6 @@ std::vector<T> SoftHeap<T>::corruptedElements() {
 
 template<SoftHeapElement T>
 std::variant<T, bool> SoftHeap<T>::lookupMinInternal() {
-    // assert(!first()->isGuard);
     if (first()->isGuard) return false;
     auto t = first()->sufMin.lock();
     auto x = t->tree;
@@ -459,7 +369,7 @@ std::variant<T, bool> SoftHeap<T>::lookupMinInternal() {
 
 template<SoftHeapElement T>
 std::variant<T, bool> SoftHeap<T>::lookupMin() {
-    while(true) {
+    while (true) {
         auto retVal = lookupMinInternal();
         if (std::holds_alternative<bool>(retVal)) return retVal;
         auto ret = std::get<T>(retVal);
@@ -472,19 +382,16 @@ std::variant<T, bool> SoftHeap<T>::lookupMin() {
 
 template<SoftHeapElement T>
 T SoftHeap<T>::extractMin() {
-    while(true) {
-        // std::cout << "extract min\n";
+    while (true) {
         T ret = extractMinInternal();
         if (!ret->removed) {
             return ret;
         }
-        // std::cout << "oopsies\n";
     }
 }
 
 template<SoftHeapElement T>
 T SoftHeap<T>::extractMinInternal() {
-    // std::cout << "extractMin" << std::endl;
     elements -= 1;
     assert(!first()->isGuard);
     if (first()->isGuard) throw std::runtime_error("EXTRACT FROM EMPTY HEAP");
@@ -496,17 +403,11 @@ T SoftHeap<T>::extractMinInternal() {
         if (!x->leaf()) {
             x->sift();
             updateSuffixMin(t);
-        }else if (x->listsSize() == 0) {
+        } else if (x->listsSize() == 0) {
             removeTree(t);
         }
     }
-    // I think this is neccessary...
-    // The problem is that it affects the complexity, potentially makes it
-    // something like O(log (size))
-    // updateSuffixMin(guard->prev.lock());
-    
-    // We may only need to call it if prev.sufMin == t
-    // Also we could call it starting at the previous node...
+
     if (t->prev.lock()->sufMin.lock() == t) {
         updateSuffixMin(t->prev.lock());
     }
@@ -514,7 +415,8 @@ T SoftHeap<T>::extractMinInternal() {
 }
 
 template<SoftHeapElement T>
-void SoftHeap<T>::assertValidListNode(std::shared_ptr<SoftHeap<T>::ListNode> node, bool checkMinSuf) {
+void SoftHeap<T>::assertValidListNode(std::shared_ptr<SoftHeap<T>::ListNode> node,
+    bool checkMinSuf) {
     assert(node);
     assert(node->next);
     assert(node->prev.lock());
@@ -523,24 +425,12 @@ void SoftHeap<T>::assertValidListNode(std::shared_ptr<SoftHeap<T>::ListNode> nod
     assert(node->next->prev.lock() == node);
     assert(node->prev.lock()->next == node);
     assert(node->isGuard || node->tree);
-
-    // std :: cout << "List Node" << std::endl; 
-    // std :: cout << "Is guard " << (node->isGuard) << std::endl;
-    // std :: cout << "THIS " << ((long long)node.get() & 0xFFFFll) << std::endl;
-    // std :: cout << "NEXT " << ((long long)node->next.get() & 0xFFFFll) << std::endl;
-    // std :: cout << "PREV " << ((long long)node->prev.lock().get() & 0xFFFFll) << std::endl;
-    // if (checkMinSuf) {
-    //     std :: cout << "SUF MIN " << ((long long)node->sufMin.lock().get() & 0xFFFFll) << std::endl;
-    // }
 }
 
 template<SoftHeapElement T>
 int SoftHeap<T>::assertValidTreeNode(std::shared_ptr<SoftHeap<T>::TreeNode> node) {
     assert(node);
     int c = node->listsSize();
-    // std :: cout << "TREE NODE" << std::endl;
-    // std :: cout << "RANK " << node->rank << std::endl;
-    // std :: cout << "SIZE " << node->size << std::endl;
 
     for (auto e : node->originalList) {
         assert(e->key <= node->ckey);
@@ -606,7 +496,7 @@ void SoftHeap<T>::assertValidState(int expectedElements, bool checkSize, bool ch
     assertValidListNode(guard);
     auto node = guard->next;
     int elements = 0;
-    
+
     while (node != guard) {
         assert(!node->isGuard);
         assertValidListNode(node, checkMinSuf);
@@ -614,23 +504,4 @@ void SoftHeap<T>::assertValidState(int expectedElements, bool checkSize, bool ch
 
         node = node->next;
     }
-    // std :: cout << "elements: " << elements << std::endl; 
-    // assert(!checkSize || elements == expectedElements);
-    // std :: cout << "CORRUPTED: " << corruptedCount() << std::endl;
-    
-    // assert(corruptedCount() <= (eps) * insertCount);
 }
-
-/**
- * TODO 
- * 0. Top (without pop)
- * 1. Delete operation, lazy / delete from the linked list - maybe need SoftHeapElement to be ptr and have ->iterator so that we have access to the list...
- * 2. need access to all of the corrupted elements (!but only once!), as elements cannot (? or maybe can uncorrupt themselves) it's easiest to just have a 
- *    set<T> corrupted (or possibly even a next set<T> corrupted previously so that we don't send them twice) and then we only retrieve corrupted once...
- * *3. assert that sufMin's link correctly
- * 
- * Remarks:
- * 1. If delete is not lazy it's not obvious what to do and if elements can uncorrupt themselves by some funny list change.
- * 2. Generally it maybe so that an element can uncorrupt itselves when changing lists but don't think so as the lists get concatenated => max only rises
- * 3. CKEY HANDLING IN SIFT SEEMS BS - ITS THE OPPOSITE OF WHAT SHOULD HAPPEN....
- */
