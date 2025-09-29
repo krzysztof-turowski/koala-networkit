@@ -40,7 +40,7 @@ class MinimumCostFlow : public NetworKit::Algorithm {
 
     void run() {
         hasRun = false;
-        runImpl();
+        run_impl();
         hasRun = true;
     }
     bool isOk() const;
@@ -49,27 +49,25 @@ class MinimumCostFlow : public NetworKit::Algorithm {
     long long getMinCost() const;
     
  protected:
-    virtual void runImpl() = 0;
-    virtual void initCirculation() = 0;
-    virtual void initFlow() = 0;
-    void initFlowWrapper() { initFlow();}
-    void initCirculationWrapper() { initFlow();}
+    virtual void run_impl() = 0;
+    virtual void init_circulation() = 0;
+    virtual void init_flow() = 0;
 
-    void constructCirculationFromFlow();
-    void constructFlowFromCirculation();
+    void construct_circulation_from_flow();
+    void construct_flow_from_circulation();
 
-    bool modifiedUncapacitated = false;
-    edge_map<std::pair<NetworKit::node, NetworKit::node>> uncapacitatedMapping;
-    std::pair<NetworKit::node, NetworKit::node> uncapacitatedNodesBounds = {0,-1}; 
-
-    bool shouldAddLowerbounds = false;
+    bool modified_uncapacitated = false;
+    edge_map<std::pair<NetworKit::node, NetworKit::node>> uncapacitated_mapping;
+    std::pair<NetworKit::node, NetworKit::node> uncapacitated_nodes_bounds = {0,-1}; 
+    bool is_added_uncapacitated(NetworKit::node);
+    bool should_add_lowerbounds = false;
     // bool fromCirculation = false;
     // edge_map<NetworKit::edgeid> circulationMapping;
 
     // Makes graph uncapacitated, 
     // if the graph was uncapacitated before, then returns
-    void makeUncapacitated();
-    void makeConnected();
+    void make_uncapacitated();
+    void make_connected();
 
     NetworKit::Graph graph;
     edge_map<MCFEdgeParams> edge_params;

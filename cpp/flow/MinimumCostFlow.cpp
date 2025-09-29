@@ -32,8 +32,8 @@ MinimumCostFlow::MinimumCostFlow(
 }
 
 long long MinimumCostFlow::getFlow(edge const& e) {
-    edge ed = modifiedUncapacitated ? uncapacitatedMapping[e] : e;
-    return flow[ed] + shouldAddLowerbounds ? lowerbound[ed] : 0;
+    edge ed = modified_uncapacitated ? uncapacitated_mapping[e] : e;
+    return flow[ed] + should_add_lowerbounds ? lowerbound[ed] : 0;
 }
 
 long long MinimumCostFlow::getMinCost() const {
@@ -44,7 +44,7 @@ bool MinimumCostFlow::isOk() const {
     return feasible;
 }
 
-void MinimumCostFlow::constructCirculationFromFlow() {
+void MinimumCostFlow::construct_circulation_from_flow() {
     NetworKit::node n = graph.addNode();
     graph.forNodes(
         [&](NetworKit::node v) {
@@ -61,7 +61,7 @@ void MinimumCostFlow::constructCirculationFromFlow() {
         });
 }
 
-void MinimumCostFlow::constructFlowFromCirculation() {
+void MinimumCostFlow::construct_flow_from_circulation() {
     NetworKit::Graph G(graph.numberOfNodes(), true, true, true);
 
     graph.forEdges([&](NetworKit::node u, NetworKit::node v) {
@@ -74,7 +74,7 @@ void MinimumCostFlow::constructFlowFromCirculation() {
 
 }
 
-void MinimumCostFlow::makeUncapacitated() {
+void MinimumCostFlow::make_uncapacitated() {
     if (!graph.isWeighted()) return;
     int nodes = graph.numberOfNodes();
     NetworKit::Graph newGraph(nodes, false, true, true);
@@ -82,11 +82,11 @@ void MinimumCostFlow::makeUncapacitated() {
     edge_map<long long> newCosts;
 
     NetworKit::node firstAdded = graph.upperNodeIdBound();
-    uncapacitatedNodesBounds = {firstAdded, firstAdded-1};
+    uncapacitated_nodes_bounds = {firstAdded, firstAdded-1};
     graph.forEdges(
     [&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight weight) {
         auto k = newGraph.addNode();
-        uncapacitatedNodesBounds.second = k;
+        uncapacitated_nodes_bounds.second = k;
 
         newGraph.addEdge(u,k);
         newGraph.addEdge(v,k);
@@ -96,7 +96,7 @@ void MinimumCostFlow::makeUncapacitated() {
 
         newCosts[{u, k}] = 0;
         newCosts[{v, k}] = costs[{u, v}];
-        uncapacitatedMapping[{u, v}] = {v, k};
+        uncapacitated_mapping[{u, v}] = {v, k};
         // flowEdgeToId[{u,v}] = {u, v};
     });
 
@@ -105,7 +105,12 @@ void MinimumCostFlow::makeUncapacitated() {
     costs = newCosts;
 }
 
-void MinimumCostFlow::makeConnected() {
+bool MinimumCostFlow::is_added_uncapacitated(NetworKit::node v) {
+    return uncapacitated_nodes_bounds.first <= v 
+        && v <= uncapacitated_nodes_bounds.second;
+}
+
+void MinimumCostFlow::make_connected() {
     long long maxCost{0}; 
     for (auto [edge, cost] : costs) {
         maxCost = std::max(maxCost, std::abs(cost));
