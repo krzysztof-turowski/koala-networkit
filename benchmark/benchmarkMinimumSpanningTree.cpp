@@ -5,15 +5,13 @@
 #include <string>
 #include <iomanip>
 #include <algorithm>
+
 #include <networkit/components/ConnectedComponents.hpp>
+
 #include <graph/GraphTools.hpp>
 #include <io/G6GraphReader.hpp>
 #include <io/DimacsGraphReader.hpp>
 #include <mst/MinimumSpanningTree.hpp>
-
-int x = 0xFF;
-int D = 200;
-float eps = 0.1;
 
 template <typename T>
 NetworKit::edgeweight run_algorithm(NetworKit::Graph &G) {
@@ -24,17 +22,15 @@ NetworKit::edgeweight run_algorithm(NetworKit::Graph &G) {
     return spanning_tree.totalEdgeWeight();
 }
 
-template<>
-NetworKit::edgeweight
-    run_algorithm<Koala::ChazelleRubinfeldTrevisanMinimumSpanningTree>(NetworKit::Graph &G) {
-    auto algorithm = Koala::ChazelleRubinfeldTrevisanMinimumSpanningTree(G);
-    int max_w = x;
+template <typename T>
+NetworKit::edgeweight run_algorithm(NetworKit::Graph &G, float eps) {
+    auto algorithm = T(G);
+    int max_w = 0xFF;
     algorithm.run(max_w, eps);
     std::cout << algorithm.getTreeWeight() << " " << std::flush;
     return algorithm.getTreeWeight();
 }
 
-namespace {
 enum class Algorithm : uint32_t{
     EXACT = 0,
     KRUSKAL,
@@ -44,7 +40,6 @@ enum class Algorithm : uint32_t{
     CRT,
     CHAZELLE = 100,
 };
-}  // namespace
 
 std::map<std::string, Algorithm> ALGORITHM = {
     { "exact", Algorithm::EXACT},
@@ -88,11 +83,11 @@ void run_g6_tests(const std::string &path, const std::string &algorithm) {
         case Algorithm::BORUVKA:
             run_algorithm<Koala::BoruvkaMinimumSpanningTree>(G);
             break;
-        case Algorithm::CRT:
-            run_algorithm<Koala::ChazelleRubinfeldTrevisanMinimumSpanningTree>(G);
-            break;
         case Algorithm::CHAZELLE:
             run_algorithm<Koala::Chazelle2000MinimumSpanningTree>(G);
+            break;
+        case Algorithm::CRT:
+            run_algorithm<Koala::ChazelleRubinfeldTrevisanMinimumSpanningTree>(G, 0.1);
         }
         std::cout << std::endl;
     }
@@ -117,13 +112,12 @@ void run_dimacs_tests(const std::string &path, const std::string &algorithm) {
         }
     });
 
-    // Ensure that the graph is connected...
+    // Ensure that the graph is connected
     auto connected_components = NetworKit::ConnectedComponents(G_distinct);
     connected_components.run();
     auto components = connected_components.getComponents();
     for (auto i = 1; i < connected_components.numberOfComponents(); i++) {
-        G_distinct.addEdge(
-            components[0][0], components[i][0], ++max_ew);
+        G_distinct.addEdge(components[0][0], components[i][0], ++max_ew);
     }
 
     std::cout << path << " " << std::flush;
@@ -132,42 +126,18 @@ void run_dimacs_tests(const std::string &path, const std::string &algorithm) {
     T.insert(run_algorithm<Koala::PrimMinimumSpanningTree>(G_distinct));
     T.insert(run_algorithm<Koala::BoruvkaMinimumSpanningTree>(G_distinct));
     T.insert(run_algorithm<Koala::Chazelle2000MinimumSpanningTree>(G_distinct));
-
     for (int i = 0; i < 5; i++) {
-        run_algorithm<Koala::ChazelleRubinfeldTrevisanMinimumSpanningTree>(G_distinct);
+        T.insert(run_algorithm<Koala::KargerKleinTarjanMinimumSpanningTree>(G_distinct));
     }
-
     assert(T.size() == 1);
 
-    for (int xx : std::vector{0xFF, 0x7F, 0x3F, 0x1F,  0xF}) {
-        x = xx;
-        auto GNow = NetworKit::Graph(G_directed.numberOfNodes(), true, false);
-        int count1 = 0;
-        int countMax = 0;
-        G_directed.forEdges([&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight w) {
-            if (!GNow.hasEdge(u, v) && !GNow.hasEdge(v, u) && w > 0) {
-                int new_w = std::min(static_cast<int>(w) / D + 1, x);
-                if (new_w == 1) count1 += 1;
-                if (new_w == x) countMax += 1;
-                GNow.addEdge(u, v, new_w);
-            }
-        });
-
-        std::cout << "#x:" << x << std::endl;
-        for (int i = 0; i < 5; ++i) {
-            std::cout << "#Boruvka" << std::endl;
-            run_algorithm<Koala::BoruvkaMinimumSpanningTree>(GNow);
-        }
-        for (float ee : std::vector{.01, 0.02, 0.03, 0.05, 0.1}) {
-            eps = ee;
-            std :: cout << std::setprecision(3) << "#eps:" << eps << '\n';
-            for (int i = 0; i < 5; ++i) {
-                std::cout << "#CRT" << std::endl;
-                run_algorithm<Koala::ChazelleRubinfeldTrevisanMinimumSpanningTree>(GNow);
-            }
-        }
+    float eps = 0.1;
+    for (int i = 0; i < 5; i++) {
+        auto w = run_algorithm<Koala::ChazelleRubinfeldTrevisanMinimumSpanningTree>(
+            G_distinct, eps);
+        assert((1 - eps) * (*T.begin()) <= w);
+        assert((1 + eps) * (*T.begin()) >= w);
     }
-
     std::cout << std::endl;
     return;
 }
