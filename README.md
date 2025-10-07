@@ -84,8 +84,9 @@ Moreover, they set up an online graph editor <a href="https://stos.eti.pg.gda.pl
 1. [Graph traversal](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/traversal/): [BFS](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/traversal/BFS.hpp), [DFS](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/traversal/DFS.hpp)
 1. Graph width parameters:
     1. [Algorithm for treewidth and pathwidth in cographs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/pathwidth/CographPathwidth.hpp)
-1. [Minimum spanning tree algorithms](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/mst/): Kruskal, Prim, Borůvka, Klein-Karger-Tarjan
+1. [Minimum spanning tree algorithms](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/mst/): Kruskal, Prim, Borůvka, Klein-Karger-Tarjan, Chazelle
     1. Hagerup algorithm for minimum spanning tree verification
+    1. Chazelle-Rubinfeld-Trevisan approximate algorithm for minimum spanning tree weight
 1. [Maximum matching algorithms](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/matching/)
     1. Micali-Vazirani, Mucha-Sankowski algorithms for maximum cardinality matching
     1. Edwards, Gabow, Galil-Micali-Gabow (all blossom-based) and Galil (scaling) algorithms for maximum weighted matching

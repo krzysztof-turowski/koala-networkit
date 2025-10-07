@@ -1,0 +1,235 @@
+The problem of finding the minimum spanning tree for a given graph requires at least linear time in terms of edges and vertices. However there might be a case in which only the weight of the MST is needed. This still would require linear time for a deterministic algorithm as each edge potentially can be in the MST, but it opens a possibility for faster approximate algorithms. 
+
+\begin{problem}[Minimum spanning tree weight approximation]
+    Given a graph $G$ and parameter $\epsilon$ return an approximation $M^*(G)$ of the $M(G)$ such that $\mathbb{P}(|M^*(G) - M(G)| \leq \epsilon M(G)) \geq \frac34$.
+\label{mstapprox}
+\end{problem}
+
+Chazelle, Rubinfeld and Trevisan devised an algorithm that solves this problem \cite{crt}. To achieve this result they put additional constraint on the input graph -- all edge weights have to be in the set $\{1, 2,\dots, w\}$. Their algorithm's expected running time is $O(dw\epsilon^{-2}\log{\frac{dw}\epsilon})$ so it depends on $\epsilon$ and the average degree $d$ of the input graph. Clearly e.g. for constant $\epsilon$ and constant upper bound $w$ on edge weights the algorithm runs in time $O(d\log{d})$ which is sublinear for sparse graphs.
+
+\section{Definitions}
+\begin{definition}
+     For a given graph $G$ we denote by $G^{(i)}$ a subgraph of G which contains only the edges with weight at most $i$. That is, $E(G^{(i)}) = \{e \in E(G): w_e \leq i\}$ 
+\end{definition}
+\begin{definition}
+For a given graph $G$ and its minimum spanning tree $T$ we denote by $\alpha_i$ the number of edges in $T$ with weight equal to $i$.
+\end{definition}
+\begin{lemma}
+For a given graph $G$ with all edge weights from $\{1, 2, \ldots, w\}$ each MST of $G$ has the same sequence $(\alpha_1, \alpha_2, \ldots\alpha_w)$.
+\label{alfas}
+\end{lemma}
+\begin{proof}
+    Let's assume that the claim is false, and take the smallest $i$ for which there are two MST's $T$ and $T'$ with $\alpha_i < \alpha_i'$ respectively. Consider the connected components of $T^{(i)}$ and $T'^{(i)}$ -- as the number of edges in each $T$ differs and each edge removes $1$ connected component it has to be that their connected components are different. 
+
+    Now as $T^{(i)}$ has less connected components it has to have at least one connected component which is not a subset of any connected component in $T'^{(i)}$. And thus inside it has to be an edge $uv$ such that in $T'^{(i)}$ $u$ and $v$ are in a different connected component. That is a contradiction with cycle property (see \Cref{cycle-property}) as they will be connected by an edge with a larger cost, completing a cycle in which it will be the largest.
+\end{proof}
+\section{Idea and pseudocode}
+
+The main idea behind the algorithm is to reduce the problem to counting connected components in subgraphs of the given graph. The reduction is based on the \Cref{mg} (defined later) which states that: 
+\begin{equation}
+    M(G) = n - w + \sum\limits_{i=1}^{w-1}c(G^{(i)})
+\end{equation}
+So given a function \textsc{approximate-ccs} which returns an estimate of the number of connected components in a graph we can find an approximation for the $M(G)$ like this:
+\begin{algorithm}[H]
+\caption{Approximate MST Weight}
+\begin{algorithmic}[1]
+\Function{approximate-mst-weight}{$G \colon\texttt{Graph}$, $\epsilon \colon\texttt{float}$}
+    \State $ans \gets |V(G)| - w$
+    \For{$i \gets 1$ to $w-1$}
+        \State $ans \gets ans +$ \Call{approximate-ccs}{$G^{(i)},\ \epsilon,\ \tfrac{4w}{\epsilon},\ d^*$}
+    \EndFor
+    \State \Return $ans$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+The arguments with which the \textsc{approximate-ccs} is called are tuned so that the complexity and running time of the algorithm is optimal. They will be discussed in the next section.
+
+\subsubsection{Approximating number of connected components}
+We denote by $m_u$  the number of edges in the connected component of $u$.
+
+The estimation of the connected component count is driven by the modified handshaking lemma:
+\begin{lemma}[Handshaking lemma]
+    Let $G = (V, E)$ be a graph and let $\frac{d_u}{|E|} = 2$ if $|E| = 0$. Then the following equality holds:
+    \begin{equation*}
+    \sum\limits_{u \in V(G)}\frac12 \frac{d_u}{|E|} = 1.
+    \end{equation*}
+    \label{hand}
+\end{lemma}
+\begin{proof}
+    Each edge has two ends and contributes to two vertex degrees thus:
+    \begin{equation*}
+        2|E| = \sum\limits_{u\in V}d_u
+    \end{equation*}
+    Dividing both sides by $2|E|$ we get the claim.
+\end{proof}
+\begin{theorem}
+\label{mg}
+    Let $G = (V, E)$ be a graph with $c$ connected components. Assume that for its isolated vertices $\frac{d_u}{m_u} = 2$. 
+    \begin{equation}
+    \sum\limits_{u \in V}\frac12 \frac{d_u}{m_u} = c.
+    \end{equation} 
+\end{theorem}
+\begin{proof}
+     For every connected component $G_i \subseteq V$ we have from the handshaking lemma (see \Cref{hand}):
+    \begin{equation*}
+    \sum\limits_{u \in V(G_i)}\frac12 \frac{d_u}{m_u} = 1.
+    \end{equation*}
+     Now if $V(G) = \bigcup\limits_{i=1}^cV(G_i)$ and each $G_i$ is a connected component then we have that:
+     \begin{equation*}
+     \sum\limits_{u \in V}\frac12 \frac{d_u}{m_u} = \sum\limits_{i = 1}^c\sum\limits_{u \in V(G_i)}\frac12 \frac{d_u}{m_u} = c.
+     \end{equation*}
+\end{proof}
+This theorem may be used as an estimator for the number of connected components. Additionally, we cannot compute $\frac{d_u}{m_u}$ for a fixed $u$ directly, as it could require linear time, so we need to find its estimator $\beta_u$:
+\begin{definition}[$\tfrac{d_u}{m_u}$ estimator]
+Given a vertex $u \in V(G)$ and constants $W, d^*$ denote $S\subseteq V(G)$ the set of vertices which lie in connected components with fewer than $W$ vertices which all have degrees $d_v \leq d^*$. 
+\[
+\beta_u =
+\begin{cases}
+0 & \text{if } u \notin S, \\
+2 & \text{if } m_u = 0 \text{ with probability } \tfrac{1}{2}, \\
+\dfrac{d_u}{m_u} \cdot 2^{\lceil \log(\tfrac{m_u}{d_u}) \rceil} 
+  & \text{with probability } 2^{-\lceil \log(\tfrac{m_u}{d_u}) \rceil}, \\
+0 & \text{otherwise.}
+\end{cases}
+\]
+\end{definition}
+ Calculation of the $\beta$ estimator will use BFS, constant $W$ and an estimate $d^*$ of $d$ to bound the number of vertices visited in the BFS. 
+
+The whole approximation scheme with the $\beta$ estimator is:
+\begin{algorithm}[H]
+\caption{Approximate the number of connected components}
+\begin{algorithmic}[1]
+\Function{approx-number-ccs(}{}
+    \State $G \colon\texttt{Graph}$
+    \State $\epsilon \colon\texttt{float}$
+    \State $W \colon\texttt{int}$ \Comment{Upper bound on the number of visited vertices in the BFS}
+    \State $d^* \colon\texttt{float}$ \Comment{Approximation of $d(G)$} 
+\Statex )
+    \State $r \gets O\!\left(\tfrac{1}{\epsilon^2}\right)$
+    \State $V^* \gets\emptyset, E^*\gets\emptyset$  \Comment{visited vertices and edges.}
+    \For{$i = 1, 2, \ldots, r$}
+        \State $u_i \gets$ uniformly and independently drawn vertex from $V(G)$
+        \State $\beta_i \gets 0$
+        \State \texttt{coin-flips} $\gets 0$
+        \State \Call{bfs-visit-vertex}{$u_i, V^*, E^*$} \Comment{visits all adjacent edges.}
+        \State \textbf{(*)} \texttt{bit} $\gets$ \Call{random-bit}{}
+        \State \texttt{coin-flips} $\gets$ \texttt{coin-flips} $+ 1$ 
+        \If{$\texttt{bit} = 1$ \textbf{and} $|V^*| \leq W$ \textbf{and} $\forall_{v \in V^*} d_v \le d^*$}
+            \State \texttt{target-edges} $\gets 2\ \cdot\ |E^*|$
+            \While{$|E^*| <$ \texttt{target-edges} \textbf{and not} \Call{bfs-terminated}{}}
+                \State \Call{bfs-visit-next-vertex}{\texttt{visited-edges}}
+            \EndWhile
+            
+            \If{\Call{bfs-terminated}{}}
+                \If{$E^* = \emptyset$}
+                    \State $\beta_i \gets 2$
+                \Else
+                    \State $\beta_i \gets 2^{\texttt{coin-flips}} \cdot \tfrac{d_{u_i}}{|E^*|}$
+                \EndIf
+            \Else
+                \State \textbf{goto} 13: \textbf{(*)} 
+            \EndIf
+        \EndIf
+    \EndFor
+    \State \Return $\hat{c} = \tfrac{n}{2r} \sum_{i=1}^{r} \beta_i$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\section {Correctness and running time analysis}
+\begin{theorem}[Theorem 2 in \cite{crt}]
+\label{approx-ccs}
+    Let $c$ be the number of connected components in a graph $G$ with $n$ vertices and average degree $d$. Then \textsc{approximate-number-ccs} runs in time $O(d\epsilon^{-2}log(\frac{d}\epsilon))$ and returns $\hat{c}$ such that $\mathbb{P}(|c - \hat{c}| \leq \epsilon n) \geq \frac34.$
+\end{theorem}
+
+\begin{proof}
+Let's first bound the estimator $\beta_i$ for a fixed $i$. \\By the choice $W = \frac{4}{\epsilon}$ there are at most $\frac{\epsilon n}{2}$ components with vertices not in $S$ thus:
+\begin{equation*}
+ c -\frac{\epsilon n}2 \leq \mathbb{E}[\hat{c}] \leq c   
+\end{equation*}
+
+As $\beta_i \leq 2$ we can bound its variance by:
+\begin{equation*}
+ \Var(\beta_i) \leq \mathbb{E}[\beta_i^2] \leq 2\mathbb{E}[\beta_i] = \frac{2}{n} \sum\limits_{u \in S}\frac{d_u}{m_u} \leq \frac{4c}{n}   
+\end{equation*}
+
+Then looking at the algorithm we can bound the variance of $\hat c$ like this:
+
+\begin{equation*}
+ \Var (\hat c) = \Var\left(\frac{n}{2r}\sum\limits_{i=1}^{r}\beta_i\right) = \frac{n^2}{4r^2}\cdot r \cdot \Var(\beta_i) \leq \frac{nc}{r}   
+\end{equation*}
+
+Now from Chebyshev inequality and our choice $r = A\epsilon^{-2}$ for some constant $A$ we get:
+
+\begin{equation*}
+\mathbb{P}(|\hat c - c| > \epsilon n) \leq \mathbb{P}\left(|\hat c - \mathbb{E}[\hat c]| > \frac{\epsilon n}{2}\right) \leq \frac{4c}{\epsilon^2 r n} = \frac{Ac}{n}
+\end{equation*}
+
+
+By modifing $A$ constant constant we can bound the probability of the event $|c - \hat{c}| > \epsilon n$ by an arbitrarily small constant, even when $c = \Theta(n)$.
+
+The runtime analysis is quite simple. Denote $X_i$ the number of edges visited when considering the vertex $u_i$ and let $X = \sum\limits_{i = 1}^r X_i$. If $u_i\in S$ and \textsc{random-bit} returned $1$ exactly $k$ times then we have visited no more than $d_{u_i}2^k$ edges. Such event happens with probability $2^{-k}$. Note that $k \leq \lceil \log{(Wd^*)} \rceil$ as there are at most $Wd^*$ edges in the connected component containing $u_i$. 
+
+So we have the following:
+
+\begin{equation*}
+    \mathbb{E}[X_i] \leq \sum\limits_{i = 1}^{\lceil \log{Wd^*} \rceil} \frac{1}{2^i} d_{u_i} \cdot2^i \leq  \lceil \log{Wd^*} \rceil d_{u_i}
+\end{equation*}
+
+Now we can use the linearity of expectations together with our choices of $ r = O(\epsilon^{-2})\texttt{ and } Wd^* = O(\frac{d}\epsilon)$ to get that:
+
+\begin{equation*}
+    \mathbb{E}[X] = \sum\limits_{i=1}^r \mathbb{E}[X_i] \leq r \cdot d\lceil \log{(Wd^*)}\rceil = O\left(d\epsilon^{-2} \cdot \log{\frac{d}\epsilon}\right).
+\end{equation*}
+\end{proof}
+
+
+\begin{theorem}[Claim 5 in \cite{crt}]
+    For integer $w \geq 2$ it holds that
+    \begin{equation}
+    M(G) = n - w + \sum\limits_{i=1}^{w-1}c^{(i)}.
+    \end{equation}
+\end{theorem}
+\begin{proof}
+    Let $\alpha_i$ be the number of edges of weight $i$ in an MST of $G$ (From \Cref{alfas} we know that each MST has the same $\alpha_i$). \\
+    Note that because each tree edge reduces the number of connected components by one, then for any $l \in \{0, 1,\ldots, w - 1\}$ we have 
+    \begin{equation}
+    \sum\limits_{i>l} \alpha_i = c^{(l)} - 1.
+    \end{equation}
+    
+    Now the MST weight is just:
+    \begin{equation*}
+      M(G) = \sum\limits_{i = 1}^{w} i\alpha_i = \sum\limits_{i = 1}^{w}\sum\limits_{k=1}^i \alpha_i = \sum\limits_{l = 0}^{w - 1}\sum\limits_{i = l + 1}^{w} \alpha_i = 
+    \end{equation*}
+    \begin{equation*}
+           = \sum\limits_{l = 0}^{w - 1} (c^{(l)} - 1) = - w +  \sum\limits_{l = 0}^{w - 1} c^{(l)} =  n - w +  \sum\limits_{l = 1}^{w - 1} c^{(l)} 
+    \end{equation*}
+\end{proof}
+\begin{theorem}[Theorem 6 in \cite{crt}]
+        Let $\frac{w}n < \frac12$. For any graph $G$ the algorithm \textsc{approximate-mst-weight} runs in time $O(dw\epsilon^{-2}\log{\frac{dw}\epsilon})$ and returns a value $M^*(G)$ such that for $M(G)\ \text{we have }\mathbb{P}(|M^*(G) - M(G)| \leq \epsilon M(G)) \geq \frac34$.
+\end{theorem}
+\begin{proof}
+    Repeating the analysis from \Cref{approx-ccs}, but with $W = \frac{4w}{\epsilon}$ we get that the running time of the algorithm is $w \cdot O(d\epsilon^{-2}log(\frac{dw}{\epsilon}))$.
+
+    Let $c = \sum\limits_{i = 1}^{w -1} c^{(i)}$.
+    To prove the correctness we need to first repeat the analysis of each $c^{(i)}$ estimation but with the new $W$ value: 
+    \begin{equation*}
+        c^{(i)} - \frac{\epsilon n}{2 w} \leq \mathbb{E}[\hat{c}^{(i)}] \leq c^{(i)} \textrm{ and } \Var(\hat{c}^{(i)}) \leq \frac{nc^{(i)}}{r} 
+    \end{equation*}
+    Then after summing it over all $i$'s we get:
+
+    \begin{equation}
+     c - \frac{\epsilon n}{2} \leq \mathbb{E}[\hat{c}] \leq c\textrm{ and }\Var(\hat{c}) \leq \frac{nc}{r}.   
+    \end{equation}
+
+    Once again apply the Chebyshev inequality to get: 
+    \begin{equation}
+     \mathbb{P}\left(|\hat{c} - c| > (n - w + c)\frac\epsilon3\right) < \frac{9nc}{r\epsilon^2(n-w+c)^2}   
+    \end{equation}
+    
+    which is arbitrarily small for $r = \Omega(\epsilon^{-2})$. Now combining (3.12) and (3.13) we get the bound on the error of the whole estimate:
+    \begin{equation*}
+     |M^*(G) - M(G)| = |\hat{c} - c| \leq \frac{\epsilon n}{2} + \frac{\epsilon (n - w +c)}{3} \leq \epsilon M(G).   
+    \end{equation*}
+\end{proof}

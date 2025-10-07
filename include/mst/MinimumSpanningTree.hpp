@@ -82,6 +82,7 @@ class PrimMinimumSpanningTree final : public MinimumSpanningTree {
  */
 class BoruvkaMinimumSpanningTree : public MinimumSpanningTree {
     friend class MinimumSpanningTree;
+    friend class Chazelle2000MinimumSpanningTree;
  public:
     using MinimumSpanningTree::MinimumSpanningTree;
 
@@ -114,6 +115,63 @@ class KargerKleinTarjanMinimumSpanningTree final : public BoruvkaMinimumSpanning
     static void recurse(NetworKit::Graph &G, NetworKit::Graph &F);
     static void discard_random_edges(NetworKit::Graph &G, NetworKit::Graph &subgraph);
     static void remove_heavy_edges(NetworKit::Graph &G, NetworKit::Graph &subgraph);
+};
+
+class ChazelleRubinfeldTrevisanMinimumSpanningTree final : public MinimumSpanningTree{
+ public:
+    using MinimumSpanningTree::MinimumSpanningTree;
+    /**
+     * Execute Chazelle-Rubinfeld-Trevisan randomized minimum spanning tree weight algorithm.
+     * 
+     * eps - a constant in (0, 0.5), used to bound running time and result accuracy.
+     * The smaller the eps, the more accurate the output.
+     * 
+     * w - maximum edge weight - the algorithm assumes all edges have weights from {1,...,w}
+     * as the algorithm is sublinear, w cannot be determined at runtime.
+     */
+    void run(unsigned int w, float eps = 0.1);
+
+    /**
+     * Do not use this function, instead use run with parameters
+     * This function is neccessary for the class to compile, but is not implemented.
+     */
+    void run();
+
+    /**
+     * The algorithm does not calculate minimum spanning tree, only it's approximate weight.
+     * Thus getForest method throws an exception.
+     */
+    const NetworKit::Graph& getForest() const;
+
+    /** 
+     * Get the approximate weight of minimum spanning tree, calculated in run() method.
+    */
+    float getTreeWeight() const;
+
+ private:
+    float calculateApproximateDegree(float eps) const;
+    float calculateApproximateCCsCount(float eps, int bfs_bound,
+      unsigned int w, unsigned int w_bound) const;
+    float calculateApproximateTreeWeight(float eps, unsigned int w) const;
+    float treeWeight = -1;
+};
+
+class Chazelle2000MinimumSpanningTree final : public MinimumSpanningTree {
+ public:
+    using MinimumSpanningTree::MinimumSpanningTree;
+    void run();
+
+ private:
+    NetworKit::Graph mst(NetworKit::Graph G, int t);
+    NetworKit::Graph msf(NetworKit::Graph G, int t);
+    std::tuple<NetworKit::Graph, std::map<NodePair, NodePair>, NetworKit::Graph>
+        boruvkaSteps(NetworKit::Graph G, int c);
+    int verticesOnLevel(int dz);
+
+    // Based on the complexity analysis should be at >=16
+    // However then practically it's just a Boruvka
+    static constexpr int C = 4;
+    static constexpr int MIN_NUMBER_NODES = 10;
 };
 
 }  /* namespace Koala */
