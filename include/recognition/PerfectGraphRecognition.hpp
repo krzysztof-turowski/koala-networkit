@@ -74,6 +74,7 @@ class PerfectGraphRecognition : public NetworKit::Algorithm {
         const NetworKit::Graph &graph, const std::vector<NetworKit::node> &X);
     static std::vector<std::vector<NetworKit::node>> getAuxiliaryComponents(
         const NetworKit::Graph &graph, const std::vector<NetworKit::node> &V);
+
  private:
     std::optional<NetworKit::Graph> graph;
     State is_perfect;

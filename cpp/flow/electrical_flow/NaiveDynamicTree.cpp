@@ -1,18 +1,15 @@
-#include "flow/electrical_flow/DynamicTree.hpp"
+#include <flow/electrical_flow/DynamicTree.hpp>
 
 #include <algorithm>
 #include <cassert>
 #include <stack>
 
-using namespace std;
-using namespace NetworKit;
-
 namespace Koala {
 
-vector<int> getPath(const Graph &graph, int u, int v);
+std::vector<int> getPath(const NetworKit::Graph &graph, int u, int v);
 
-DynamicTree::DynamicTree(int n, vector<vector<double>> &weights)
-    : graph(Graph(n)), weights(weights) {}
+DynamicTree::DynamicTree(int n, std::vector<std::vector<double>> &weights)
+    : graph(NetworKit::Graph(n)), weights(weights) {}
 
 void DynamicTree::link(int u, int v) { graph.addEdge(u, v); }
 
@@ -24,14 +21,14 @@ void DynamicTree::cut(int u, int v) {
 
 int DynamicTree::findRoot(int v) {
   int root = v;
-  vector<int> s;
-  vector<bool> visited(graph.numberOfNodes(), false);
+  std::vector<int> s;
+  std::vector<bool> visited(graph.numberOfNodes(), false);
   s.push_back(v);
   while (!s.empty()) {
     int x = s.back();
     s.pop_back();
     visited[x] = true;
-    root = min(root, x);
+    root = std::min(root, x);
     graph.forNeighborsOf(x, [&](int y) {
       if (!visited[y]) {
         s.push_back(y);
@@ -75,9 +72,9 @@ double DynamicTree::pathSum(int u, int v) {
   return s;
 }
 
-vector<int> getPath(const Graph &graph, int u, int v) {
-  vector<int> s;
-  vector<int> parent(graph.numberOfNodes(), -1);
+std::vector<int> getPath(const NetworKit::Graph &graph, int u, int v) {
+  std::vector<int> s;
+  std::vector<int> parent(graph.numberOfNodes(), -1);
   s.push_back(u);
   parent[u] = u;
   while (!s.empty()) {
@@ -93,7 +90,7 @@ vector<int> getPath(const Graph &graph, int u, int v) {
       }
     });
   }
-  vector<int> path;
+  std::vector<int> path;
   int x = v;
   while (x != u) {
     path.push_back(x);
@@ -106,4 +103,4 @@ vector<int> getPath(const Graph &graph, int u, int v) {
   return path;
 }
 
-} // namespace Koala
+}  // namespace Koala

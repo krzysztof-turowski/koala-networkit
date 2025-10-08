@@ -4,14 +4,11 @@
 
 double constexpr EPS = 1e-8;
 
-using namespace std;
-using namespace NetworKit;
-
 namespace Koala {
 
-FlowNetwork::FlowNetwork(const Graph &graph)
+FlowNetwork::FlowNetwork(const NetworKit::Graph &graph)
     : graph(graph), N(graph.numberOfNodes()), M(graph.numberOfEdges()) {
-  flow.assign(N, vector<double>(N, 0));
+  flow.assign(N, std::vector<double>(N, 0));
 }
 
 double FlowNetwork::upperCapacity(int u, int v) const {
@@ -35,7 +32,7 @@ void cutIntegral(DynamicTree &dt, int u, int v) {
 }
 
 void FlowNetwork::roundFlow() {
-  vector<vector<double>> weights(N, vector<double>(N, 0));
+  std::vector<std::vector<double>> weights(N, std::vector<double>(N, 0));
   for (auto [u, v] : graph.edgeRange()) {
     double intFlow;
     weights[u][v] = modf(flow[u][v], &intFlow);
@@ -51,14 +48,12 @@ void FlowNetwork::roundFlow() {
     if (dt.findRoot(u) == dt.findRoot(v)) {
       double s = dt.pathSum(u, v) + dt.weights[v][u];
       if (s < 0) {
-        swap(u, v);
+        std::swap(u, v);
       }
       auto [mx, my] = dt.pathMin(u, v);
-      double mf = dt.weights[mx][my] < 0 ? 1.0 + dt.weights[mx][my]
-                                         : dt.weights[mx][my];
-      double vuf =
-          dt.weights[v][u] < 0 ? 1.0 + dt.weights[v][u] : dt.weights[v][u];
-      mf = min(mf, vuf);
+      double mf = dt.weights[mx][my] < 0 ? 1.0 + dt.weights[mx][my] : dt.weights[mx][my];
+      double vuf = dt.weights[v][u] < 0 ? 1.0 + dt.weights[v][u] : dt.weights[v][u];
+      mf = std::min(mf, vuf);
 
       dt.pathAdd(u, v, mf);
       dt.weights[v][u] -= mf;
@@ -81,8 +76,8 @@ void FlowNetwork::roundFlow() {
 
 void FlowNetwork::pushValue(int s, int t, double f) {
   while (f > EPS) {
-    vector<int> st;
-    vector<pair<int, double>> parent(graph.numberOfNodes(), {-1, 0.0});
+    std::vector<int> st;
+    std::vector<std::pair<int, double>> parent(graph.numberOfNodes(), {-1, 0.0});
 
     parent[t] = {t, f};
     st.push_back(t);
@@ -91,11 +86,10 @@ void FlowNetwork::pushValue(int s, int t, double f) {
       int v = st.back();
       st.pop_back();
 
-      graph.forNeighborsOf(v, [&](node u) {
+      graph.forNeighborsOf(v, [&](NetworKit::node u) {
         if (parent[u].first == -1) {
           st.push_back(u);
-          parent[u] = {v,
-                       min(parent[v].second, graph.weight(u, v) - flow[u][v])};
+          parent[u] = { v, std::min(parent[v].second, graph.weight(u, v) - flow[u][v]) };
         }
       });
     }

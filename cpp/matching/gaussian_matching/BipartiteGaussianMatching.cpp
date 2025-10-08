@@ -7,14 +7,10 @@
 #include <networkit/graph/DFS.hpp>
 #include <networkit/graph/Graph.hpp>
 
-using namespace std;
-using namespace NTL;
-using namespace NetworKit;
-
 namespace Koala {
-pair<vector<int>, vector<int>> getComponents(const Graph &G);
+std::pair<std::vector<int>, std::vector<int>> getComponents(const NetworKit::Graph &G);
 
-BipartiteGaussianMatching::BipartiteGaussianMatching(const Graph &G1) {
+BipartiteGaussianMatching::BipartiteGaussianMatching(const NetworKit::Graph &G1) {
   auto [_G, _oldIdx] = reindexGraph(G1);
   G = _G;
   oldIdx = _oldIdx;
@@ -45,7 +41,7 @@ void BipartiteGaussianMatching::run() {
   initZp(ZP_MOD);
 
   assert(U.size() == V.size());
-  int n = max(U.size(), V.size());
+  int n = std::max(U.size(), V.size());
   AG = zeroMat(n, n);
   for (auto u : U) {
     for (auto v : G.neighborRange(u)) {
@@ -59,7 +55,7 @@ void BipartiteGaussianMatching::run() {
     return;
 
   MatZp B;
-  inv(B, AG);
+  NTL::inv(B, AG);
   auto eliminated = LazyGaussElimination::pivotElimination(
       B, [this](int r, int c) { return AG[r][c] != 0; });
 
@@ -68,31 +64,31 @@ void BipartiteGaussianMatching::run() {
   }
 }
 
-pair<vector<int>, vector<int>> getComponents(const Graph &G) {
+std::pair<std::vector<int>, std::vector<int>> getComponents(const NetworKit::Graph &G) {
   int n = G.numberOfNodes();
 
-  vector<int> components[2] = {vector<int>(), vector<int>()};
-  vector<int> colors(n, -1);
-  bool isBipartite = true;
+  std::vector<int> components[2] = {std::vector<int>(), std::vector<int>()};
+  std::vector<int> colors(n, -1);
+  bool is_bipartite = true;
   for (int r = 0; r < n; ++r) {
     if (colors[r] == -1) {
       colors[r] = 0;
       components[0].push_back(r);
 
-      Traversal::DFSfrom(G, r, [&](node u) {
-        G.forNeighborsOf(u, [&](node v) {
+      NetworKit::Traversal::DFSfrom(G, r, [&](NetworKit::node u) {
+        G.forNeighborsOf(u, [&](NetworKit::node v) {
           if (colors[v] == -1) {
             colors[v] = (colors[u] + 1) % 2;
             components[colors[v]].push_back(v);
           } else if (colors[u] == colors[v]) {
-            isBipartite = false;
+            is_bipartite = false;
           }
         });
       });
     }
   }
 
-  if (!isBipartite) {
+  if (!is_bipartite) {
     return {};
   }
 

@@ -1,8 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <list>
-#include <shortest_path/FredericksonPlanarSSSP.hpp>
-#include <shortest_path/HenzingerPlanarSSSP.hpp>
+#include <shortest_path/PlanarSSSP.hpp>
 
 #include "helpers.hpp"
 

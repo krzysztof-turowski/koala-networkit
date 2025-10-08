@@ -1,4 +1,4 @@
-#include "shortest_path/FredericksonPlanarSSSP.hpp"
+#include "shortest_path/PlanarSSSP.hpp"
 
 #include <algorithm>
 #include <cmath>

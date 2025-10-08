@@ -9,8 +9,6 @@
 #include <graph/GraphTools.hpp>
 #include <io/DimacsGraphReader.hpp>
 #include <io/G6GraphReader.hpp>
-#include <shortest_path/FredericksonPlanarSSSP.hpp>
-#include <shortest_path/HenzingerPlanarSSSP.hpp>
 #include <shortest_path/PlanarSSSP.hpp>
 
 template <typename T>

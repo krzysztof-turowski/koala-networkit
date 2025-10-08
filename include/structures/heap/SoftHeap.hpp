@@ -1,4 +1,3 @@
-
 #include <list>
 #include <memory>
 #include <optional>
@@ -10,7 +9,7 @@
 #include <variant>
 
 template<typename T>
-concept SoftHeapElement = requires(T a){
+concept SoftHeapElement = requires(T a) {
     { a->key } -> std::convertible_to<int>;
     { a->ckey } -> std::convertible_to<int>;
     { a->corrupted } -> std::convertible_to<bool>;

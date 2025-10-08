@@ -42,7 +42,7 @@ void EnumerationVertexColoring::forwards() {
     NetworKit::node maximal_color_index = NetworKit::none;
     int maximal_color = 0;
     for (int i = 0; i < graph->numberOfNodes(); ++i) {
-        if (current_solution[i] > maximal_color) {            
+        if (current_solution[i] > maximal_color) {
             maximal_color_index = i, maximal_color = current_solution[i];
         }
     }
@@ -97,7 +97,8 @@ std::vector<NetworKit::node> BrownEnumerationVertexColoring::greedy_largest_firs
         }
         return std::get<0>(a) > std::get<0>(b);
     };
-    std::set<std::tuple<int, int, NetworKit::node>, decltype(compare)> number_of_neighbours_in_ordering_queue;
+    std::set<std::tuple<int, int, NetworKit::node>, decltype(compare)>
+        neighbours_in_ordering_queue;
     NetworKit::node current_node;
 
     NetworKit::node max_degree_node = [](const NetworKit::Graph& graph) {
@@ -120,13 +121,13 @@ std::vector<NetworKit::node> BrownEnumerationVertexColoring::greedy_largest_firs
             return;
         }
         number_of_neighbours_in_ordering[u] = graph->hasEdge(u, max_degree_node);
-        number_of_neighbours_in_ordering_queue.insert(
-        std::make_tuple(number_of_neighbours_in_ordering[u], graph->degree(u), u));
+        neighbours_in_ordering_queue.insert(
+            std::make_tuple(number_of_neighbours_in_ordering[u], graph->degree(u), u));
     });
     while (already_ordered.size() < graph->numberOfNodes()) {
-        current_node = get<2>(*number_of_neighbours_in_ordering_queue.begin());
-        number_of_neighbours_in_ordering_queue.erase(
-        number_of_neighbours_in_ordering_queue.begin());
+        current_node = get<2>(*neighbours_in_ordering_queue.begin());
+        neighbours_in_ordering_queue.erase(
+        neighbours_in_ordering_queue.begin());
 
         ordering.push_back(current_node);
         already_ordered.insert(current_node);
@@ -134,10 +135,10 @@ std::vector<NetworKit::node> BrownEnumerationVertexColoring::greedy_largest_firs
         graph->forNeighborsOf(current_node, [&](NetworKit::node v) {
             if (already_ordered.find(v) == already_ordered.end()) {
                 number_of_neighbours_in_ordering[v]++;
-                number_of_neighbours_in_ordering_queue.erase(
-                std::make_tuple(number_of_neighbours_in_ordering[v] - 1, graph->degree(v), v));
-                number_of_neighbours_in_ordering_queue.insert(
-                std::make_tuple(number_of_neighbours_in_ordering[v], graph->degree(v), v));
+                neighbours_in_ordering_queue.erase(
+                    std::make_tuple(number_of_neighbours_in_ordering[v] - 1, graph->degree(v), v));
+                neighbours_in_ordering_queue.insert(
+                    std::make_tuple(number_of_neighbours_in_ordering[v], graph->degree(v), v));
             }
         });
     }
@@ -307,11 +308,12 @@ bool BrelazEnumerationVertexColoring::is_interchangeable(
     return false;
 }
 
-std::vector<NetworKit::node> BrelazEnumerationVertexColoring::saturation_largest_first_with_interchange() {
+std::vector<NetworKit::node>
+BrelazEnumerationVertexColoring::saturation_largest_first_with_interchange() {
     std::map<NetworKit::node, int> solution;
     std::vector<NetworKit::node> ordering;
     NetworKit::node max_degree_node = 0;
-    uint max_degree = 0;
+    NetworKit::count max_degree = 0;
 
     graph->forNodes([&](NetworKit::node u) {
         if (graph->degree(u) > max_degree) {

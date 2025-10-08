@@ -180,8 +180,7 @@ void BruteForceIndependentSet::run() {
         testSet.push_back(false);
     });
     int best = 0;
-    uint64_t max = (1 << graph->numberOfNodes());
-    for (unsigned long long binary = 1; binary != max; ++binary) {
+    for (uint64_t binary = 1, max = (1 << graph->numberOfNodes()); binary != max; ++binary) {
         std::bitset<8 * sizeof(uint64_t)> testSet(binary);
         size_t testSetSize = testSet.count();
         if (testSetSize <= best) {

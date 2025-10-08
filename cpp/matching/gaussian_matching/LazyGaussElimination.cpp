@@ -1,25 +1,23 @@
-#include <NTL/ZZ_p.h>
-#include <NTL/mat_ZZ_p.h>
-#include <NTL/vector.h>
-#include <iostream>
 #include <matching/gaussian_matching/LazyGaussElimination.hpp>
 #include <matching/gaussian_matching/utils.hpp>
+
+#include <iostream>
 #include <vector>
 
-using namespace std;
-using namespace NTL;
+#include <NTL/ZZ_p.h>
+#include <NTL/mat_ZZ_p.h>
 
 namespace Koala {
-static pair<int, int> get2div(int n) {
-  // return m such that largest m: 2^m|n
+static std::pair<int, int> get2div(int n) {
+  // return the largest m such that 2^m|n
   int m = 0, m2 = 1;
   while (n % (m2 * 2) == 0)
     m = m + 1, m2 *= 2;
   return {m, m2};
 }
 
-static MatZp update(int r1, int r2, int c1, int c2,
-                    vector<tuple<VecZp, VecZp, ZZ_p>> acc) {
+static MatZp update(
+    int r1, int r2, int c1, int c2, std::vector<std::tuple<VecZp, VecZp, NTL::ZZ_p>> acc) {
   int k = acc.size();
   MatZp U, V, R;
   U.SetDims(r2 - r1 + 1, k);
@@ -32,13 +30,12 @@ static MatZp update(int r1, int r2, int c1, int c2,
   return U * V;
 }
 
-vector<int>
-LazyGaussElimination::pivotElimination(MatZp &A,
-                                       function<bool(int, int)> isCellAllowed) {
+std:: vector<int> LazyGaussElimination::pivotElimination(
+    MatZp &A, std::function<bool(int, int)> isCellAllowed) {
   int n = A.NumCols();
 
-  vector<tuple<VecZp, ZZ_p>> lazy(n);
-  vector<int> order(n);
+  std::vector<std::tuple<VecZp, NTL::ZZ_p>> lazy(n);
+  std::vector<int> order(n);
   for (int c = 0; c < n; ++c) {
     int r;
     for (r = 0; r < n; ++r) {
@@ -53,16 +50,16 @@ LazyGaussElimination::pivotElimination(MatZp &A,
     auto a = A[r][c];
     lazy[c] = {getCol(A, c), a};
 
-    vector<tuple<VecZp, VecZp, ZZ_p>> superLazy(j2);
+    std::vector<std::tuple<VecZp, VecZp, NTL::ZZ_p>> superLazy(j2);
     for (int i = 0; i < j2; ++i) {
       auto [l, l2] = get2div(i + 1);
 
-      auto from = superLazy.begin() + max(0, i - l2 + 1);
+      auto from = superLazy.begin() + std::max(0, i - l2 + 1);
       auto to = superLazy.begin() + i;
-      auto acc = vector<tuple<VecZp, VecZp, ZZ_p>>(from, to);
+      auto acc = std::vector<std::tuple<VecZp, VecZp, NTL::ZZ_p>>(from, to);
 
       int r1 = 0, r2 = n - 1;
-      int c1 = c + 1, c2 = min(c + j2, n - 1);
+      int c1 = c + 1, c2 = std::min(c + j2, n - 1);
 
       if (r1 <= r2 && c1 <= c2) {
         auto B = update(0, n - 1, c1, c2, acc);
@@ -82,14 +79,14 @@ LazyGaussElimination::pivotElimination(MatZp &A,
   return order;
 }
 
-vector<int> LazyGaussElimination::simpleElimination(MatZp &A, int k) {
+std::vector<int> LazyGaussElimination::simpleElimination(MatZp &A, int k) {
   int n = A.NumCols();
-  vector<int> res;
+  std::vector<int> res;
 
-  vector<tuple<VecZp, VecZp, ZZ_p>> lazy(k);
+  std::vector<std::tuple<VecZp, VecZp, NTL::ZZ_p>> lazy(k);
   for (int i = 0; i < k; ++i) {
     if (A[i][i] == 0) {
-      lazy[i] = {zeroVec(A.NumCols()), zeroVec(A.NumRows()), ZZ_p(1)};
+      lazy[i] = {zeroVec(A.NumCols()), zeroVec(A.NumRows()), NTL::ZZ_p(1)};
     } else {
       lazy[i] = {getCol(A, i), getRow(A, i), A[i][i]};
       res.push_back(i);
@@ -98,11 +95,11 @@ vector<int> LazyGaussElimination::simpleElimination(MatZp &A, int k) {
 
     auto [j, j2] = get2div(i + 1);
 
-    auto from = lazy.begin() + max(0, i - j2 + 1);
+    auto from = lazy.begin() + std::max(0, i - j2 + 1);
     auto to = lazy.begin() + i + 1;
-    auto acc = vector<tuple<VecZp, VecZp, ZZ_p>>(from, to);
+    auto acc = std::vector<std::tuple<VecZp, VecZp, NTL::ZZ_p>>(from, to);
 
-    int r1 = i + 1, r2 = min(i + j2, n - 1);
+    int r1 = i + 1, r2 = std::min(i + j2, n - 1);
     int c1 = i + 1, c2 = n - 1;
     if (r1 <= r2 && c1 <= c2) {
       auto B = update(r1, r2, c1, c2, acc);
@@ -110,7 +107,7 @@ vector<int> LazyGaussElimination::simpleElimination(MatZp &A, int k) {
     }
 
     r1 = i + j2 + 1, r2 = n - 1;
-    c1 = i + 1, c2 = min(i + j2, n - 1);
+    c1 = i + 1, c2 = std::min(i + j2, n - 1);
     if (r1 <= r2 && c1 <= c2) {
       auto B = update(r1, r2, c1, c2, acc);
       subBlock(A, r1, c1, B);
