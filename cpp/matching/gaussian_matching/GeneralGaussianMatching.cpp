@@ -101,17 +101,15 @@ Matching getMaximalMatching(const MatZp &AG, const Matching &M) {
 }
 
 Matching partition(const NetworKit::Graph &G, const MatZp &AG) {
-  int n = G.numberOfNodes();
-
   auto components = getSimpleComponents(G, AG);
   std::vector<std::tuple<NetworKit::Graph, std::vector<int>, MatZp>> subgraphs(components.size());
-  for (int i = 0; i < components.size(); ++i) {
+  for (unsigned i = 0; i < components.size(); ++i) {
     subgraphs[i] = reindexGraph(NetworKit::GraphTools::subgraphFromNodes(
         G, components[i].begin(), components[i].end()), AG);
   }
 
   Matching M;
-  for (int c = 0; c < subgraphs.size(); ++c) {
+  for (unsigned c = 0; c < subgraphs.size(); ++c) {
     auto [Gc, oldIdx, AGc] = subgraphs[c];
     auto M1 = simplePartition(Gc, AGc);
     // auto AGc = generateMatrix(Gc);
@@ -158,7 +156,7 @@ Matching simplePartition(const NetworKit::Graph &G, const MatZp &AG) {
   }
 
   // Get largest component of G\S
-  int maxComponentSize = 0, maxComponentV;
+  int maxComponentSize = 0, maxComponentV = 0;
   for (auto t : Tv) {
     int s = DC.getComponentSize(t);
     if (s > maxComponentSize) {

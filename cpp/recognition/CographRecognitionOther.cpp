@@ -1,4 +1,4 @@
-#include "recognition/CographRecognitionOther.hpp"
+#include <recognition/CographRecognitionOther.hpp>
 
 namespace Koala {
 

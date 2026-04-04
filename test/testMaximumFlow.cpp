@@ -22,7 +22,7 @@ class KingRaoTarjanMaximumFlowTest
 TEST_P(KingRaoTarjanMaximumFlowTest, test) {
     MaximumFlowParameters const& parameters = GetParam();
     NetworKit::Graph G = build_graph(parameters.N, parameters.EW, true);
-    auto algorithm = Koala::KingRaoTarjanMaximumFlow(G, parameters.s, parameters.t); 
+    auto algorithm = Koala::KingRaoTarjanMaximumFlow(G, parameters.s, parameters.t);
     algorithm.run();
     EXPECT_EQ(algorithm.getFlowSize(), parameters.flowSize);
 }
@@ -49,7 +49,7 @@ class PushRelabelMaximumFlowTest
 TEST_P(PushRelabelMaximumFlowTest, test) {
     MaximumFlowParameters const& parameters = GetParam();
     NetworKit::Graph G = build_graph(parameters.N, parameters.EW, true);
-    auto algorithm = Koala::PushRelabel(G, parameters.s, parameters.t); 
+    auto algorithm = Koala::PushRelabel(G, parameters.s, parameters.t);
     algorithm.run();
     EXPECT_EQ(algorithm.getFlowSize(), parameters.flowSize);
 }
@@ -76,7 +76,7 @@ class MKMFlowTest
 TEST_P(MKMFlowTest, test) {
     MaximumFlowParameters const& parameters = GetParam();
     NetworKit::Graph G = build_graph(parameters.N, parameters.EW, true);
-    auto algorithm = Koala::MalhotraKumarMaheshwariFlow(G, parameters.s, parameters.t); 
+    auto algorithm = Koala::MalhotraKumarMaheshwariFlow(G, parameters.s, parameters.t);
     algorithm.run();
     EXPECT_EQ(algorithm.getFlowSize(), parameters.flowSize);
 }
@@ -103,7 +103,7 @@ class BKFlowTest
 TEST_P(BKFlowTest, test) {
     MaximumFlowParameters const& parameters = GetParam();
     NetworKit::Graph G = build_graph(parameters.N, parameters.EW, true);
-    auto algorithm = Koala::BoykovKolmogorovFlow(G, parameters.s, parameters.t); 
+    auto algorithm = Koala::BoykovKolmogorovFlow(G, parameters.s, parameters.t);
     algorithm.run();
     EXPECT_EQ(algorithm.getFlowSize(), parameters.flowSize);
 }

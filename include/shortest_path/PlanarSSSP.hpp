@@ -15,21 +15,20 @@ class PlanarSSSP : public NetworKit::Algorithm {
     explicit PlanarSSSP(
         NetworKit::Graph& graph, NetworKit::node source, NetworKit::node target = NetworKit::none);
 
-protected:
+ protected:
     NetworKit::Graph &graph;
     NetworKit::node source, target;
     std::vector<NetworKit::edgeweight> distances;
 };
 
-class FredericksonPlanarSSSP : public PlanarSSSP
-{
-private:
+class FredericksonPlanarSSSP : public PlanarSSSP {
+ private:
     NetworKit::Graph normal_graph;
     int c = 6;
     int r1 = NetworKit::none;
     int r2 = NetworKit::none;
 
-public:
+ public:
     FredericksonPlanarSSSP(NetworKit::Graph &graph, NetworKit::node source, NetworKit::node target)
         : PlanarSSSP(graph, source, target) {}
 

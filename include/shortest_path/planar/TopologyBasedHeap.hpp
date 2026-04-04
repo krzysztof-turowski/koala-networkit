@@ -8,7 +8,7 @@ struct pair_hash {
     size_t operator()(const std::pair<NetworKit::node, NetworKit::node>& pair) const {
         return pair.first ^
                (pair.second + 0x9e3779b97f4a7c15 + (pair.first << 12) + (pair.first >> 4));
-    };
+    }
 };
 
 using pair_distance_t = std::unordered_map<std::pair<NetworKit::node, NetworKit::node>,

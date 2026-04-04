@@ -18,8 +18,8 @@ constexpr double EPS = 1e-8;
 constexpr int ZP_MOD = 7727;
 
 typedef NTL::ZZ_p Zp;
-typedef NTL::Vec<Zp> VecZp;
-typedef NTL::Mat<Zp> MatZp;
+typedef NTL::Vec<NTL::ZZ_p> VecZp;
+typedef NTL::Mat<NTL::ZZ_p> MatZp;
 
 inline bool eq(double a, double b) { return fabs(a - b) <= EPS; }
 

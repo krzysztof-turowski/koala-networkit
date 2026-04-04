@@ -14,7 +14,7 @@ concept SoftHeapElement = requires(T a) {
     { a->ckey } -> std::convertible_to<int>;
     { a->corrupted } -> std::convertible_to<bool>;
     { a->removed } -> std::convertible_to<bool>;
-};
+}
 
 template<SoftHeapElement T>
 class SoftHeap {
