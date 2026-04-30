@@ -1,15 +1,17 @@
 #include <gtest/gtest.h>
-#include <structures/priority_queue/VanEmdeBoasTree.hpp>
-#include <structures/priority_queue/XFastTrie.hpp>
-#include <structures/priority_queue/YFastTrie.hpp>
-#include <structures/priority_queue/WeakHeap.hpp>
-#include <structures/priority_queue/SkewHeap.hpp>
-#include <structures/priority_queue/RankPairingHeap.hpp>
+
 #include <algorithm>
-#include <vector>
-#include <stdexcept>
 #include <memory>
+#include <stdexcept>
 #include <string>
+#include <vector>
+
+#include "structures/priority_queue/VanEmdeBoasTree.hpp"
+#include "structures/priority_queue/XFastTrie.hpp"
+#include "structures/priority_queue/YFastTrie.hpp"
+#include "structures/heap/WeakHeap.hpp"
+#include "structures/heap/SkewHeap.hpp"
+#include "structures/heap/RankPairingHeap.hpp"
 
 class PriorityQueueTest :
     public testing::TestWithParam<std::shared_ptr<Koala::PriorityQueue<uint32_t>>> {

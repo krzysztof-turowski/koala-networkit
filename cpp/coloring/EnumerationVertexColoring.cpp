@@ -5,10 +5,12 @@
  *   Author: Zofia Glapa (zofia.glapa@student.uj.edu.pl)
  */
 
-#include <coloring/ExactVertexColoring.hpp>
 #include <iostream>
 #include <limits>
+
 #include <networkit/auxiliary/BucketPQ.hpp>
+
+#include "coloring/ExactVertexColoring.hpp"
 
 namespace Koala {
 

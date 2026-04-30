@@ -2,12 +2,13 @@
 
 #include <list>
 
-#include <flow/MaximumFlow.hpp>
-#include <flow/PushRelabel.hpp>
-#include <flow/BoykovKolmogorovFlow.hpp>
-#include <flow/KingRaoTarjanMaximumFlow.hpp>
-#include <flow/MalhotraKumarMaheshwariFlow.hpp>
-#include "helpers.hpp"
+#include "flow/MaximumFlow.hpp"
+#include "flow/PushRelabel.hpp"
+#include "flow/BoykovKolmogorovFlow.hpp"
+#include "flow/KingRaoTarjanMaximumFlow.hpp"
+#include "flow/MalhotraKumarMaheshwariFlow.hpp"
+
+#include "test/helpers.hpp"
 
 struct MaximumFlowParameters {
     int N;

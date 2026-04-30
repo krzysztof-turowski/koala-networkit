@@ -2,12 +2,11 @@
 #include <iostream>
 #include <map>
 
+#include <coloring/CographVertexColoring.hpp>
 #include <coloring/ExactVertexColoring.hpp>
 #include <coloring/GreedyVertexColoring.hpp>
 #include <coloring/PerfectGraphVertexColoring.hpp>
-#include <coloring/CographVertexColoring.hpp>
 #include <io/G6GraphReader.hpp>
-
 #include <recognition/CographRecognitionOther.hpp>
 
 template<typename T>

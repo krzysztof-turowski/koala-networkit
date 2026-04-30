@@ -7,8 +7,12 @@
 
 #pragma once
 
+#include <functional>
 #include <iterator>
 #include <list>
+#include <queue>
+#include <utility>
+#include <vector>
 
 #include <networkit/graph/Graph.hpp>
 

@@ -1,12 +1,16 @@
+#pragma once
+
+#include <concepts>
+
+#include <cassert>
+#include <cmath>
+#include <iostream>
 #include <list>
 #include <memory>
 #include <optional>
-#include <concepts>
-#include <cmath>
-#include <vector>
-#include <iostream>
-#include <cassert>
+#include <utility>
 #include <variant>
+#include <vector>
 
 template<typename T>
 concept SoftHeapElement = requires(T a) {
@@ -14,7 +18,7 @@ concept SoftHeapElement = requires(T a) {
     { a->ckey } -> std::convertible_to<int>;
     { a->corrupted } -> std::convertible_to<bool>;
     { a->removed } -> std::convertible_to<bool>;
-}
+};
 
 template<SoftHeapElement T>
 class SoftHeap {

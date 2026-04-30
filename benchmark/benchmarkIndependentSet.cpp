@@ -2,10 +2,11 @@
 #include <iostream>
 #include <map>
 
-#include <io/G6GraphReader.hpp>
-#include <io/DimacsGraphReader.hpp>
-#include <independent_set/IndependentSet.hpp>
+#include "io/DimacsGraphReader.hpp"
+#include "io/G6GraphReader.hpp"
+#include "independent_set/IndependentSet.hpp"
 #include "independent_set/CographIndependentSet.hpp"
+#include "recognition/CographRecognitionOther.hpp"
 
 template<typename T>
 int run_algorithm(NetworKit::Graph &G) {

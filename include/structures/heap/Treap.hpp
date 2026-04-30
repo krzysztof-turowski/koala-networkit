@@ -7,10 +7,11 @@
 
 #pragma once
 
-#include <random>
-#include <type_traits>
-#include <stdexcept>
+#include <functional>
 #include <limits>
+#include <random>
+#include <stdexcept>
+#include <type_traits>
 
 namespace Koala {
 

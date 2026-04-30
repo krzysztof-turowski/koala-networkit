@@ -1,11 +1,12 @@
-#include <flow/electrical_flow/ElectricalFlow.hpp>
-#include <flow/electrical_flow/ElectricalNetwork.hpp>
-#include <flow/electrical_flow/FlowNetwork.hpp>
-#include <graph/GraphTools.hpp>
-#include <vector>
-#include <cmath>
-#include <cassert>
+#include "flow/electrical_flow/ElectricalFlow.hpp"
 
+#include <cassert>
+#include <cmath>
+#include <vector>
+
+#include "flow/electrical_flow/ElectricalNetwork.hpp"
+#include "flow/electrical_flow/FlowNetwork.hpp"
+#include "graph/GraphTools.hpp"
 
 using namespace std;
 using namespace NetworKit;

@@ -9,6 +9,8 @@
 
 #include <functional>
 #include <stdexcept>
+#include <utility>
+
 #include "structures/PriorityQueue.hpp"
 
 namespace Koala {

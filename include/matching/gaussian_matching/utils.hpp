@@ -1,18 +1,22 @@
 #pragma once
 
-#include "networkit/graph/GraphTools.hpp"
+#include <NTL/ZZ_p.h>
+#include <NTL/mat_ZZ_p.h>
+
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
 #include <map>
 #include <random>
+#include <tuple>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
-#include <NTL/ZZ_p.h>
-#include <NTL/mat_ZZ_p.h>
 #include <networkit/graph/Graph.hpp>
+#include <networkit/graph/GraphTools.hpp>
+
 namespace Koala {
 constexpr double EPS = 1e-8;
 constexpr int ZP_MOD = 7727;

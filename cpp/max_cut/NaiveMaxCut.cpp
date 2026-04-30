@@ -11,7 +11,7 @@
 #include <algorithm>
 #include <limits>
 
-#include <max_cut/NaiveMaxCut.hpp>
+#include "max_cut/NaiveMaxCut.hpp"
 
 namespace Koala {
 

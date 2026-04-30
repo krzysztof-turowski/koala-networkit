@@ -7,7 +7,10 @@
 
 #pragma once
 
+#include <map>
 #include <optional>
+#include <utility>
+#include <tuple>
 
 #include <networkit/base/Algorithm.hpp>
 #include <networkit/graph/Graph.hpp>

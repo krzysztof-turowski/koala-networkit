@@ -2,12 +2,12 @@
 
 #include <list>
 
-#include <coloring/ExactVertexColoring.hpp>
-#include <coloring/GreedyVertexColoring.hpp>
-#include <coloring/CographVertexColoring.hpp>
-#include <coloring/PerfectGraphVertexColoring.hpp>
+#include "coloring/ExactVertexColoring.hpp"
+#include "coloring/GreedyVertexColoring.hpp"
+#include "coloring/CographVertexColoring.hpp"
+#include "coloring/PerfectGraphVertexColoring.hpp"
 
-#include "helpers.hpp"
+#include "test/helpers.hpp"
 
 struct VertexColoringParameters {
     int N;

@@ -1,19 +1,20 @@
-#include "shortest_path/planar/SuitableRDivision.hpp"
-
 #include <algorithm>
 #include <cmath>
+#include <set>
+#include <stdexcept>
+#include <unordered_map>
+#include <utility>
+
 #include <networkit/components/ConnectedComponents.hpp>
 #include <networkit/distance/Dijkstra.hpp>
 #include <networkit/distance/MultiTargetDijkstra.hpp>
 #include <networkit/graph/BFS.hpp>
 #include <networkit/graph/DFS.hpp>
 #include <networkit/graph/GraphTools.hpp>
-#include <set>
-#include <stdexcept>
-#include <unordered_map>
-#include <utility>
 
 #include "graph/PlanarGraphTools.hpp"
+
+#include "shortest_path/planar/SuitableRDivision.hpp"
 
 namespace Koala {
 NetworKit::node root_node = 0;

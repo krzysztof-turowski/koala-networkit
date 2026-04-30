@@ -3,8 +3,9 @@
 #include <list>
 
 #include "clique/CographClique.hpp"
+#include "recognition/CographRecognitionOther.hpp"
 
-#include "helpers.hpp"
+#include "test/helpers.hpp"
 
 struct MaxCliqueParameters {
     int N;

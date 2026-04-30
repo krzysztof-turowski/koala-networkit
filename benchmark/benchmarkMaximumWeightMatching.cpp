@@ -1,10 +1,10 @@
 #include <cassert>
+#include <chrono>
 #include <filesystem>
 #include <iostream>
-#include <chrono>
 
-#include <matching/MaximumMatching.hpp>
 #include <io/DimacsGraphReader.hpp>
+#include <matching/MaximumMatching.hpp>
 
 enum OutputFormat { weight, csv };
 

@@ -48,6 +48,7 @@ FetchContent_MakeAvailable(csdp)
 #</Csdp>
 
 set(CMAKE_VERBOSE_MAKEFILE OFF)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(Eigen3 3.4 REQUIRED NO_MODULE)
 
@@ -86,6 +87,7 @@ add_subdirectory(cpp)
 
 function(koala_make_test testname testfile)
     add_executable(${testname} ${CMAKE_CURRENT_LIST_DIR}/${testfile})
+    target_include_directories(${testname} PRIVATE "${CMAKE_SOURCE_DIR}")
     target_link_libraries(${testname} ${PROJECT_NAME} gtest gtest_main)
 
     set_target_properties(${testname} PROPERTIES

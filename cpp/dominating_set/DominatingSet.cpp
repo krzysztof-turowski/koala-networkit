@@ -5,7 +5,7 @@
  *      Author: Piotr Kubaty
  */
 
-#include <dominating_set/DominatingSet.hpp>
+#include "dominating_set/DominatingSet.hpp"
 
 namespace Koala {
 

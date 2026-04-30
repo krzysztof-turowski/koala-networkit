@@ -4,12 +4,12 @@
 #include <iostream>
 #include <map>
 
-#include <flow/MaximumFlow.hpp>
-#include <flow/PushRelabel.hpp>
 #include <flow/BoykovKolmogorovFlow.hpp>
+#include <flow/electrical_flow/ElectricalFlow.hpp>
 #include <flow/KingRaoTarjanMaximumFlow.hpp>
 #include <flow/MalhotraKumarMaheshwariFlow.hpp>
-#include <flow/electrical_flow/ElectricalFlow.hpp>
+#include <flow/MaximumFlow.hpp>
+#include <flow/PushRelabel.hpp>
 #include <graph/GraphTools.hpp>
 #include <io/DimacsGraphReader.hpp>
 

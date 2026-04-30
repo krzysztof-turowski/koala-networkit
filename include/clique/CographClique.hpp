@@ -1,8 +1,10 @@
 #pragma once
 
-#include "Clique.hpp"
+#include <stack>
+#include <vector>
 
-#include "recognition/CographRecognitionOther.hpp"
+#include "clique/Clique.hpp"
+#include "structures/Cotree.hpp"
 
 namespace Koala {
 

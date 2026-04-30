@@ -6,14 +6,15 @@
  *      Ported by: Krzysztof Turowski (krzysztof.szymon.turowski@gmail.com)
  */
 
-#include <cassert>
 #include <ranges>
+
+#include <cassert>
 #include <set>
 
 #include <boost/dynamic_bitset.hpp>
 
-#include <traversal/PathInplace.hpp>
-#include <recognition/PerfectGraphRecognition.hpp>
+#include "recognition/PerfectGraphRecognition.hpp"
+#include "traversal/PathInplace.hpp"
 
 namespace Koala {
 

@@ -1,9 +1,10 @@
-#include <matching/gaussian_matching/NaiveGaussElimination.hpp>
-#include <matching/gaussian_matching/NaiveGaussianMatching.hpp>
-#include <matching/gaussian_matching/utils.hpp>
-
 #include <NTL/ZZ_p.h>
+
 #include <networkit/graph/Graph.hpp>
+
+#include "matching/gaussian_matching/NaiveGaussElimination.hpp"
+#include "matching/gaussian_matching/NaiveGaussianMatching.hpp"
+#include "matching/gaussian_matching/utils.hpp"
 
 namespace Koala {
 static MatZp generateMatrix(const NetworKit::Graph &G);

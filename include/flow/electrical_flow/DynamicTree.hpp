@@ -2,6 +2,7 @@
 
 #include <map>
 #include <tuple>
+#include <utility>
 #include <vector>
 
 #include <networkit/graph/Graph.hpp>

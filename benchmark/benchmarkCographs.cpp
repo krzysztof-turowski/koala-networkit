@@ -1,8 +1,8 @@
-#include <io/G6GraphReader.hpp>
-
 #include <iostream>
 #include <map>
 #include <string>
+
+#include <io/G6GraphReader.hpp>
 
 #include "recognition/CographRecognition.hpp"
 

@@ -2,14 +2,13 @@
 
 #include <list>
 
-#include <min_cut/HaoOrlinMinCut.hpp>
-#include <min_cut/KargerMinCut.hpp>
-#include <min_cut/KargerSteinMinCut.hpp>
-#include <min_cut/StoerWagnerMinCut.hpp>
+#include "flow/MaximumFlow.hpp"
+#include "min_cut/HaoOrlinMinCut.hpp"
+#include "min_cut/KargerMinCut.hpp"
+#include "min_cut/KargerSteinMinCut.hpp"
+#include "min_cut/StoerWagnerMinCut.hpp"
 
-#include <flow/MaximumFlow.hpp>
-
-#include "helpers.hpp"
+#include "test/helpers.hpp"
 
 struct MinCutParameters {
     int N;

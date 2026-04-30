@@ -4,12 +4,12 @@
  *  Created on: 21.04.2024
  *      Author: fixikmila
  */
-#include <graph/GraphTools.hpp>
+#include <list>
+
+#include "graph/GraphTools.hpp"
 
 #include "recognition/CographRecognition.hpp"
 #include "recognition/CoTree.hpp"
-
-#include <list>
 
 namespace Koala {
 

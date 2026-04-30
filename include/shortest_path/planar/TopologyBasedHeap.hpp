@@ -1,7 +1,11 @@
 #pragma once
 
-#include <networkit/graph/Graph.hpp>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
 #include <vector>
+
+#include <networkit/graph/Graph.hpp>
 
 // Based on boost::hash_combine
 struct pair_hash {

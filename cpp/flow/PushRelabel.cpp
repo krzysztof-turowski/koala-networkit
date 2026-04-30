@@ -1,6 +1,6 @@
 #include <limits>
 #include <algorithm>
-#include <flow/PushRelabel.hpp>
+#include "flow/PushRelabel.hpp"
 
 using edge = NetworKit::Edge;
 

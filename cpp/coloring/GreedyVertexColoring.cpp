@@ -5,10 +5,10 @@
  *      Author: Krzysztof Turowski (krzysztof.szymon.turowski@gmail.com)
  */
 
-#include <coloring/GreedyVertexColoring.hpp>
-
 #include <networkit/auxiliary/BucketPQ.hpp>
 #include <networkit/graph/GraphTools.hpp>
+
+#include "coloring/GreedyVertexColoring.hpp"
 
 namespace Koala {
 

@@ -1,6 +1,9 @@
 #pragma once
 
-#include <graph/GraphTools.hpp>
+#include <utility>
+#include <vector>
+
+#include "graph/GraphTools.hpp"
 
 namespace Koala {
 enum class NodeType {

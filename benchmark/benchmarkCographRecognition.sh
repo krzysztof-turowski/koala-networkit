@@ -1,1 +1,1 @@
-echo "benchmarkCograph_rec.sh $@"
+echo "benchmarkCographRecognition.sh $@"

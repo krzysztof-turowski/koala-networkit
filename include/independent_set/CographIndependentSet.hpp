@@ -1,8 +1,10 @@
 #pragma once
 
-#include "IndependentSet.hpp"
+#include <vector>
+#include <stack>
 
-#include "recognition/CographRecognitionOther.hpp"
+#include "independent_set/IndependentSet.hpp"
+#include "structures/Cotree.hpp"
 
 namespace Koala {
 

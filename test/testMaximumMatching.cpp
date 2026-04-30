@@ -2,7 +2,7 @@
 
 #include <list>
 
-#include <matching/MaximumMatching.hpp>
+#include "matching/MaximumMatching.hpp"
 
 using Edge = std::pair<int, int>;
 using WeightedEdge = std::tuple<int, int, int>;

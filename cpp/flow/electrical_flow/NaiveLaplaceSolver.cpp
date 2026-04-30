@@ -1,6 +1,7 @@
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Dense>
-#include <flow/electrical_flow/LaplaceSolver.hpp>
+
+#include "flow/electrical_flow/LaplaceSolver.hpp"
 
 namespace Koala {
 Eigen::VectorXd solveLaplace(

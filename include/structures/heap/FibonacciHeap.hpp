@@ -7,8 +7,11 @@
 
 #pragma once
 
+#include <functional>
 #include <iterator>
 #include <list>
+#include <queue>
+#include <vector>
 
 namespace Koala {
 

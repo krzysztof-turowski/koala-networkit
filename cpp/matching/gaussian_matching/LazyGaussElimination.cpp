@@ -1,11 +1,11 @@
-#include <matching/gaussian_matching/LazyGaussElimination.hpp>
-#include <matching/gaussian_matching/utils.hpp>
+#include <NTL/ZZ_p.h>
+#include <NTL/mat_ZZ_p.h>
 
 #include <iostream>
 #include <vector>
 
-#include <NTL/ZZ_p.h>
-#include <NTL/mat_ZZ_p.h>
+#include "matching/gaussian_matching/LazyGaussElimination.hpp"
+#include "matching/gaussian_matching/utils.hpp"
 
 namespace Koala {
 static std::pair<int, int> get2div(int n) {

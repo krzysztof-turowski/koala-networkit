@@ -5,32 +5,32 @@
  *      Author: Krzysztof Turowski (krzysztof.szymon.turowski@gmail.com)
  */
 
-#include <mst/MinimumSpanningTree.hpp>
-
-#include <random>
 #include <ranges>
-#include <queue>
-#include <unordered_set>
+
 #include <algorithm>
-#include <unordered_map>
-#include <utility>
 #include <limits>
 #include <map>
+#include <queue>
+#include <random>
 #include <set>
-#include <vector>
 #include <sstream>
 #include <stack>
-#include <variant>
 #include <string>
 #include <tuple>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <variant>
+#include <vector>
 
 #include <networkit/auxiliary/Parallel.hpp>
 #include <networkit/components/ConnectedComponents.hpp>
 #include <networkit/graph/GraphTools.hpp>
 
-#include <structures/Heap.hpp>
-#include <structures/LCA.hpp>
-// #include <structures/heap/SoftHeap.hpp>
+#include "structures/Heap.hpp"
+#include "structures/LCA.hpp"
+
+#include "mst/MinimumSpanningTree.hpp"
 
 std::random_device device;
 std::default_random_engine generator{device()};

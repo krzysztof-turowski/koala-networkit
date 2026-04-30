@@ -5,12 +5,13 @@
  *      Author: Artur Salawa
  */
 
-#include <independent_set/IndependentSet.hpp>
+#include <limits>
 
 #include <networkit/graph/GraphTools.hpp>
-#include <traversal/DFS.hpp>
 
-#include <limits>
+#include "traversal/DFS.hpp"
+
+#include "independent_set/IndependentSet.hpp"
 
 namespace Koala {
 

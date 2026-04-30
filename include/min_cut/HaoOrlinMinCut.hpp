@@ -8,9 +8,10 @@
 
 #pragma once
 
+#include <algorithm>
 #include <vector>
 
-#include "MinCut.hpp"
+#include "min_cut/MinCut.hpp"
 
 namespace Koala {
 

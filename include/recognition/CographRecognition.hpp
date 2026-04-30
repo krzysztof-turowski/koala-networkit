@@ -8,6 +8,8 @@
 #pragma once
 
 #include <optional>
+#include <queue>
+#include <utility>
 #include <vector>
 
 #include <networkit/base/Algorithm.hpp>

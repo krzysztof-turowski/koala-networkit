@@ -6,16 +6,16 @@
  * Author: Michał Miziołek
  */
 
-#include <cstdlib>
-#include <cmath>
-#include <cstring>
-#include <random>
-
 extern "C" {
 #include <declarations.h>
 }
 
-#include <max_cut/GoemansWilliamsonMaxCut.hpp>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
+#include <random>
+
+#include "max_cut/GoemansWilliamsonMaxCut.hpp"
 
 namespace Koala {
 

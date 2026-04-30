@@ -1,4 +1,4 @@
-#include <matching/MaximumMatching.hpp>
+#include "matching/MaximumMatching.hpp"
 
 namespace Koala {
 

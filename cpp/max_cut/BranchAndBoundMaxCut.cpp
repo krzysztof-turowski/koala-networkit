@@ -11,7 +11,7 @@
 #include <algorithm>
 #include <limits>
 
-#include <max_cut/BranchAndBoundMaxCut.hpp>
+#include "max_cut/BranchAndBoundMaxCut.hpp"
 
 namespace Koala {
 

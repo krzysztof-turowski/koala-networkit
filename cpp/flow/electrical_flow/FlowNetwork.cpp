@@ -1,6 +1,8 @@
 #include "flow/electrical_flow/FlowNetwork.hpp"
+
+#include <networkit/graph/Graph.hpp>
+
 #include "flow/electrical_flow/DynamicTree.hpp"
-#include "networkit/graph/Graph.hpp"
 
 double constexpr EPS = 1e-8;
 

@@ -2,8 +2,6 @@
 
 #include "clique/Clique.hpp"
 
-#include "recognition/CographRecognitionOther.hpp"
-
 namespace Koala {
 
 MaxClique::MaxClique(const NetworKit::Graph &graph)

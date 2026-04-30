@@ -1,16 +1,16 @@
+#include <algorithm>
 #include <cassert>
+#include <iomanip>
 #include <iostream>
 #include <map>
 #include <set>
 #include <string>
-#include <iomanip>
-#include <algorithm>
 
 #include <networkit/components/ConnectedComponents.hpp>
 
 #include <graph/GraphTools.hpp>
-#include <io/G6GraphReader.hpp>
 #include <io/DimacsGraphReader.hpp>
+#include <io/G6GraphReader.hpp>
 #include <mst/MinimumSpanningTree.hpp>
 
 template <typename T>

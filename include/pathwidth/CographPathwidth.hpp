@@ -1,8 +1,10 @@
 #pragma once
 
-#include "Pathwidth.hpp"
+#include <stack>
+#include <vector>
 
-#include "recognition/CographRecognitionOther.hpp"
+#include "pathwidth/Pathwidth.hpp"
+#include "structures/Cotree.hpp"
 
 namespace Koala {
 

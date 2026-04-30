@@ -1,7 +1,9 @@
-#include <networkit/graph/Graph.hpp>
+#pragma once
+
 #include <vector>
 
-#pragma once
+#include <networkit/graph/Graph.hpp>
+
 namespace Koala {
 class ElectricalNetwork {
  public:

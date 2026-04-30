@@ -6,13 +6,16 @@
  */
 #pragma once
 
+#include <numbers>
+
+#include <algorithm>
 #include <cmath>
 #include <functional>
 #include <iostream>
 #include <limits>
 #include <stdexcept>
+#include <utility>
 #include <vector>
-#include <numbers>
 
 #include "structures/PriorityQueue.hpp"
 

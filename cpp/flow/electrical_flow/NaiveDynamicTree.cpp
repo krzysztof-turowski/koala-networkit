@@ -1,8 +1,8 @@
-#include <flow/electrical_flow/DynamicTree.hpp>
-
 #include <algorithm>
 #include <cassert>
 #include <stack>
+
+#include "flow/electrical_flow/DynamicTree.hpp"
 
 namespace Koala {
 

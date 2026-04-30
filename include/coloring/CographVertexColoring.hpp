@@ -1,7 +1,9 @@
 #pragma once
 
-#include "VertexColoring.hpp"
+#include <stack>
+#include <vector>
 
+#include "coloring/VertexColoring.hpp"
 #include "recognition/CographRecognitionOther.hpp"
 
 namespace Koala {
@@ -30,4 +32,3 @@ class CographVertexColoring : public VertexColoring {
 };
 
 } /* namespace Koala */
-

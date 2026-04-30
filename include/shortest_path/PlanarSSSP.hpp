@@ -1,8 +1,12 @@
 #pragma once
 
+#include <set>
+#include <unordered_map>
+#include <utility>
+#include <vector>
+
 #include <networkit/base/Algorithm.hpp>
 #include <networkit/graph/Graph.hpp>
-#include <set>
 
 namespace Koala {
 class PlanarSSSP : public NetworKit::Algorithm {

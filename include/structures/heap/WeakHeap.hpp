@@ -7,10 +7,12 @@
 
 #pragma once
 
-#include <vector>
-#include <stdexcept>
-#include <functional>
 #include <cstddef>
+#include <functional>
+#include <stdexcept>
+#include <utility>
+#include <vector>
+
 #include "structures/PriorityQueue.hpp"
 
 namespace Koala {

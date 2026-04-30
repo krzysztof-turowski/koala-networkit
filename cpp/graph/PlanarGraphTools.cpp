@@ -1,16 +1,18 @@
 #include "graph/PlanarGraphTools.hpp"
 
+#include <set>
+#include <unordered_map>
+#include <utility>
+#include <vector>
+
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/biconnected_components.hpp>
 #include <boost/graph/boyer_myrvold_planar_test.hpp>
 #include <boost/graph/make_biconnected_planar.hpp>
 #include <boost/graph/make_maximal_planar.hpp>
+
 #include <networkit/graph/BFS.hpp>
 #include <networkit/graph/GraphTools.hpp>
-#include <set>
-#include <unordered_map>
-#include <utility>
-#include <vector>
 
 using namespace boost;
 

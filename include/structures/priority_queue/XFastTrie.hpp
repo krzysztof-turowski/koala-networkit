@@ -7,13 +7,16 @@
 
 #pragma once
 
-#include "structures/PriorityQueue.hpp"
-#include <memory>
 #include <cmath>
+#include <functional>
 #include <limits>
-#include <unordered_map>
-#include <vector>
+#include <memory>
 #include <optional>
+#include <unordered_map>
+#include <utility>
+#include <vector>
+
+#include "structures/PriorityQueue.hpp"
 
 namespace Koala {
 

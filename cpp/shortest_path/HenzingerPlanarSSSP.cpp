@@ -1,18 +1,18 @@
-#include "shortest_path/PlanarSSSP.hpp"
-
 #include <algorithm>
 #include <cmath>
+#include <set>
+#include <unordered_map>
+#include <utility>
+
 #include <networkit/distance/Dijkstra.hpp>
 #include <networkit/distance/MultiTargetDijkstra.hpp>
 #include <networkit/graph/BFS.hpp>
 #include <networkit/graph/DFS.hpp>
 #include <networkit/graph/GraphTools.hpp>
-#include <set>
-#include <unordered_map>
-#include <utility>
 
 #include "graph/GraphTools.hpp"
 #include "graph/PlanarGraphTools.hpp"
+#include "shortest_path/PlanarSSSP.hpp"
 #include "shortest_path/planar/SuitableRDivision.hpp"
 
 namespace Koala {

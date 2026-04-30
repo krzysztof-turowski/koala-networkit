@@ -1,5 +1,8 @@
 #pragma once
 
+#include <unordered_map>
+#include <vector>
+
 #include <networkit/graph/Graph.hpp>
 
 namespace Koala {

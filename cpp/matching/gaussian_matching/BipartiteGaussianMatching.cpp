@@ -1,11 +1,13 @@
-#include <cassert>
-#include <matching/gaussian_matching/BipartiteGaussianMatching.hpp>
-#include <matching/gaussian_matching/LazyGaussElimination.hpp>
-#include <matching/gaussian_matching/utils.hpp>
-
 #include <NTL/ZZ_p.h>
+
+#include <cassert>
+
 #include <networkit/graph/DFS.hpp>
 #include <networkit/graph/Graph.hpp>
+
+#include "matching/gaussian_matching/BipartiteGaussianMatching.hpp"
+#include "matching/gaussian_matching/LazyGaussElimination.hpp"
+#include "matching/gaussian_matching/utils.hpp"
 
 namespace Koala {
 std::pair<std::vector<int>, std::vector<int>> getComponents(const NetworKit::Graph &G);

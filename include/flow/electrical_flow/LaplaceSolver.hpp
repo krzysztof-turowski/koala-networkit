@@ -1,6 +1,9 @@
 #pragma once
 
 #include <eigen3/Eigen/Core>
+
+#include <vector>
+
 #include <networkit/graph/Graph.hpp>
 
 namespace Koala {

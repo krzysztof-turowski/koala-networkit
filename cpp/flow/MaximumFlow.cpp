@@ -6,9 +6,11 @@
  *      Ported by: Krzysztof Turowski (krzysztof.szymon.turowski@gmail.com)
  */
 
-#include <iostream>
 #include <ranges>
-#include <flow/KingRaoTarjanMaximumFlow.hpp>
+#include <iostream>
+
+#include "flow/MaximumFlow.hpp"
+#include "flow/KingRaoTarjanMaximumFlow.hpp"
 
 using edge = std::pair<NetworKit::node, NetworKit::node>;
 

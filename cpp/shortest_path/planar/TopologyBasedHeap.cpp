@@ -1,9 +1,10 @@
-#include "shortest_path/planar/TopologyBasedHeap.hpp"
+#include <vector>
 
 #include <networkit/distance/MultiTargetDijkstra.hpp>
 #include <networkit/graph/Graph.hpp>
 #include <networkit/graph/GraphTools.hpp>
-#include <vector>
+
+#include "shortest_path/planar/TopologyBasedHeap.hpp"
 
 namespace Koala {
 static const NetworKit::edgeweight INF = std::numeric_limits<NetworKit::edgeweight>::max();

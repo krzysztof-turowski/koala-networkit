@@ -1,15 +1,18 @@
 #pragma once
 
+#include <list>
 #include <optional>
 #include <vector>
+#include <utility>
+
 #include <networkit/base/Algorithm.hpp>
 #include <networkit/components/ConnectedComponents.hpp>
 #include <networkit/graph/Graph.hpp>
 
-#include "structures/Cotree.hpp"
 #include "сograph/FactorizingPermutation.hpp"
 #include "сograph/Part.hpp"
 #include "сograph/Twins.hpp"
+#include "structures/Cotree.hpp"
 
 namespace Koala {
 

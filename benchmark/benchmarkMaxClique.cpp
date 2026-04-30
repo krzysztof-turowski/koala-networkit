@@ -1,8 +1,9 @@
 #include <iostream>
 
-#include <io/G6GraphReader.hpp>
+#include "io/G6GraphReader.hpp"
 #include "clique/Clique.hpp"
 #include "clique/CographClique.hpp"
+#include "recognition/CographRecognitionOther.hpp"
 
 template<typename T>
 int run_algorithm(NetworKit::Graph &G) {

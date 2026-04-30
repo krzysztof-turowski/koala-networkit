@@ -1,22 +1,22 @@
 #include <cassert>
-#include <iostream>
-#include <map>
 #include <chrono>
-#include <limits>
-#include <vector>
-#include <string>
-#include <queue>
 #include <iomanip>
+#include <iostream>
+#include <limits>
+#include <map>
+#include <queue>
+#include <string>
 #include <type_traits>
+#include <vector>
 
 #include <networkit/graph/Graph.hpp>
+
 #include <io/DimacsGraphReader.hpp>
 
 #include "structures/PriorityQueue.hpp"
-
-#include "structures/priority_queue/RankPairingHeap.hpp"
-#include "structures/priority_queue/SkewHeap.hpp"
-#include "structures/priority_queue/WeakHeap.hpp"
+#include "structures/heap/RankPairingHeap.hpp"
+#include "structures/heap/SkewHeap.hpp"
+#include "structures/heap/WeakHeap.hpp"
 
 class Dijkstra {
  private:

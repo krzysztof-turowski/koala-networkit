@@ -6,15 +6,15 @@
  * Author: Michał Miziołek
  */
 
-#include <iostream>
-#include <vector>
 #include <algorithm>
 #include <cmath>
+#include <iostream>
 #include <limits>
 #include <numeric>
 #include <random>
+#include <vector>
 
-#include <max_cut/RankTwoRelaxationMaxCut.hpp>
+#include "max_cut/RankTwoRelaxationMaxCut.hpp"
 
 namespace Koala {
 

@@ -6,16 +6,16 @@
  *      Ported by: Krzysztof Turowski (krzysztof.szymon.turowski@gmail.com)
  */
 
-#include <map>
-#include <optional>
-#include <tuple>
-
 extern "C" {
 #include <declarations.h>
 }
 
-#include <coloring/PerfectGraphVertexColoring.hpp>
-#include <graph/GraphTools.hpp>
+#include <map>
+#include <optional>
+#include <tuple>
+
+#include "coloring/PerfectGraphVertexColoring.hpp"
+#include "graph/GraphTools.hpp"
 
 constexpr int CACHE_LIMIT = 6;
 

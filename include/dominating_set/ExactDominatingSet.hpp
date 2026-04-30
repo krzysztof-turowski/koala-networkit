@@ -8,8 +8,9 @@
 #pragma once
 
 #include <set>
+#include <vector>
 
-#include <dominating_set/DominatingSet.hpp>
+#include "dominating_set/DominatingSet.hpp"
 
 namespace Koala {
 
