@@ -1,13 +1,12 @@
 #include <gtest/gtest.h>
+
 #include <random>
 #include <vector>
 
-#include <io/DimacsGraphReader.hpp>
-#include <matching/gaussian_matching/GeneralGaussianMatching.hpp>
+#include "io/DimacsGraphReader.hpp"
+#include "matching/gaussian_matching/GeneralGaussianMatching.hpp"
 
 #include "../helpers.hpp"
-
-using namespace std;
 
 class GenTest : public testing::Test {};
 
@@ -22,7 +21,7 @@ TEST(GenTest, testSuccess) {
   auto M = gen.getMatching();
   EXPECT_EQ(M.size(), n / 2);
 
-  vector<int> counts(n, 0);
+  std::vector<int> counts(n, 0);
   for (auto [u, v] : M) {
     counts[u]++;
     counts[v]++;

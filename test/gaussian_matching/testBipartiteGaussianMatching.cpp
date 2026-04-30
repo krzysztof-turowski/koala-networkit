@@ -1,15 +1,15 @@
 #include <gtest/gtest.h>
+
+#include <list>
 #include <vector>
 
-#include <matching/gaussian_matching/BipartiteGaussianMatching.hpp>
+#include "matching/gaussian_matching/BipartiteGaussianMatching.hpp"
 
 #include "../helpers.hpp"
 
-using namespace std;
-
 // Example graph definition
 const int N = 10;
-const list<pair<int, int>> adj = {
+const std::list<std::pair<int, int>> adj = {
     {0, 1}, {1, 2}, {2, 3}, {3, 4}, {4, 5}, {5, 6}, {6, 7}, {7, 8}, {8, 9},
 };
 
@@ -24,7 +24,7 @@ TEST(BpTest, testSuccess) {
   auto M = bp.getMatching();
   EXPECT_EQ(M.size(), N / 2);
 
-  vector<int> counts(N, 0);
+  std::vector<int> counts(N, 0);
   for (auto m : M) {
     counts[m.first]++;
     counts[m.second]++;

@@ -1,15 +1,13 @@
 #include <gtest/gtest.h>
 
-#include <flow/electrical_flow/ElectricalFlow.hpp>
-#include <io/DimacsGraphReader.hpp>
 #include <networkit/graph/Graph.hpp>
-#include <graph/GraphTools.hpp>
 
+#include "io/DimacsGraphReader.hpp"
+#include "graph/GraphTools.hpp"
+
+#include "flow/electrical_flow/ElectricalFlow.hpp"
 
 #include "../helpers.hpp"
-
-using namespace std;
-using namespace NetworKit;
 
 class GenTest : public testing::Test {};
 
@@ -32,9 +30,9 @@ TEST(GenTest, testSuccess) {
       demand += flow[u][v];
       EXPECT_LE(abs(flow[u][v]), graph.weight(u, v));
       EXPECT_EQ(flow[u][v], -flow[v][u]);
-      cout << flow[u][v] << "/" << graph.weight(u, v) << "\t\t";
+      std::cout << flow[u][v] << "/" << graph.weight(u, v) << "\t\t";
     }
-    cout << '\n';
+    std::cout << '\n';
 
     if (u == s) {
       EXPECT_EQ(demand, -F);
