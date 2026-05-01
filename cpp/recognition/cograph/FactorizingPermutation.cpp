@@ -1,4 +1,4 @@
-#include <graph/GraphTools.hpp>
+#include "graph/GraphTools.hpp"
 
 #include "recognition/сograph/FactorizingPermutation.hpp"
 

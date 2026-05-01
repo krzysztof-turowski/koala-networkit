@@ -1,7 +1,10 @@
-#include <graph/GraphTools.hpp>
+#include <algorithm>
+#include <vector>
+
+#include "graph/GraphTools.hpp"
 
 #include "clique/CographClique.hpp"
-#include "recognition/CographRecognitionOther.hpp"
+#include "recognition/CographRecognition.hpp"
 
 namespace Koala {
 

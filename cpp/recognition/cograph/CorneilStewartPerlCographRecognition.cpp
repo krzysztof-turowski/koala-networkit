@@ -5,10 +5,16 @@
  *      Author: fixikmila
  */
 
-#include <graph/GraphTools.hpp>
+#include <map>
+#include <queue>
+#include <stack>
+#include <utility>
+#include <vector>
+
+#include "graph/GraphTools.hpp"
 
 #include "recognition/CographRecognition.hpp"
-#include "recognition/CoTree.hpp"
+#include "structures/CoTree.hpp"
 
 namespace Koala {
 

@@ -1,7 +1,7 @@
 koala_make_benchmark(
-    benchmark_cograph_recognition
-    benchmarkCographRecognition.cpp
-    benchmarkCographRecognition.sh)
+    benchmark_cographs
+    benchmarkCographs.cpp
+    benchmarkCographs.sh)
 
 koala_make_benchmark(
     benchmark_perfect_graphs

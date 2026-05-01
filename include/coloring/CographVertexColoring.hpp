@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "coloring/VertexColoring.hpp"
-#include "recognition/CographRecognitionOther.hpp"
+#include "recognition/CographRecognition.hpp"
 
 namespace Koala {
 

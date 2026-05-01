@@ -6,7 +6,7 @@
 #include "io/G6GraphReader.hpp"
 #include "independent_set/IndependentSet.hpp"
 #include "independent_set/CographIndependentSet.hpp"
-#include "recognition/CographRecognitionOther.hpp"
+#include "recognition/CographRecognition.hpp"
 
 template<typename T>
 int run_algorithm(NetworKit::Graph &G) {

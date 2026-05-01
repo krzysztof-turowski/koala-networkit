@@ -9,7 +9,7 @@
 #include "graph/GraphTools.hpp"
 
 #include "recognition/CographRecognition.hpp"
-#include "recognition/CoTree.hpp"
+#include "structures/CoTree.hpp"
 
 namespace Koala {
 

@@ -3,7 +3,7 @@
 #include <list>
 
 #include "clique/CographClique.hpp"
-#include "recognition/CographRecognitionOther.hpp"
+#include "recognition/CographRecognition.hpp"
 
 #include "test/helpers.hpp"
 

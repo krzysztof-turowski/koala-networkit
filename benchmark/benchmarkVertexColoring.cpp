@@ -7,7 +7,7 @@
 #include <coloring/GreedyVertexColoring.hpp>
 #include <coloring/PerfectGraphVertexColoring.hpp>
 #include <io/G6GraphReader.hpp>
-#include <recognition/CographRecognitionOther.hpp>
+#include <recognition/CographRecognition.hpp>
 
 template<typename T>
 int run_algorithm(NetworKit::Graph &G) {

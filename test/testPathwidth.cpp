@@ -3,7 +3,7 @@
 #include <list>
 
 #include "pathwidth/CographPathwidth.hpp"
-#include "recognition/CographRecognitionOther.hpp"
+#include "recognition/CographRecognition.hpp"
 
 #include "test/helpers.hpp"
 
