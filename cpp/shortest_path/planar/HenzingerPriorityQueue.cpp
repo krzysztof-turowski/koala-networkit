@@ -1,6 +1,7 @@
+#include <limits>
 #include <set>
 
-#include "shortest_path/PlanarSSSP.hpp"
+#include <shortest_path/PlanarSSSP.hpp>
 
 namespace Koala {
 

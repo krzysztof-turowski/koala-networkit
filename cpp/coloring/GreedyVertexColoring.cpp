@@ -5,6 +5,11 @@
  *      Author: Krzysztof Turowski (krzysztof.szymon.turowski@gmail.com)
  */
 
+#include <map>
+#include <set>
+#include <utility>
+#include <vector>
+
 #include <networkit/auxiliary/BucketPQ.hpp>
 #include <networkit/graph/GraphTools.hpp>
 

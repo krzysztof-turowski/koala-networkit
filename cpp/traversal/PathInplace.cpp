@@ -5,7 +5,9 @@
  *      Author: Krzysztof Turowski (krzysztof.szymon.turowski@gmail.com)
  */
 
+#include <algorithm>
 #include <set>
+#include <vector>
 
 #include <traversal/PathInplace.hpp>
 

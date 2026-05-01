@@ -1,8 +1,9 @@
-#include <vector>
+#include <algorithm>
+#include <climits>
 #include <cstdlib>
 #include <ctime>
-#include <climits>
 #include <random>
+#include <vector>
 
 #include <min_cut/KargerMinCut.hpp>
 

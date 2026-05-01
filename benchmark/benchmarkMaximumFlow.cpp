@@ -3,6 +3,8 @@
 #include <filesystem>
 #include <iostream>
 #include <map>
+#include <set>
+#include <string>
 
 #include <flow/BoykovKolmogorovFlow.hpp>
 #include <flow/electrical_flow/ElectricalFlow.hpp>

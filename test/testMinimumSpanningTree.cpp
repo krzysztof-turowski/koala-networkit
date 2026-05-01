@@ -1,13 +1,13 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <list>
 #include <iostream>
 
 #include <networkit/graph/GraphTools.hpp>
+#include <test/helpers.hpp>
 
-#include "mst/MinimumSpanningTree.hpp"
-
-#include "test/helpers.hpp"
+#include <mst/MinimumSpanningTree.hpp>
 
 struct SpanningTreeParameters {
     int N;

@@ -14,8 +14,9 @@ extern "C" {
 #include <cstdlib>
 #include <cstring>
 #include <random>
+#include <vector>
 
-#include "max_cut/GoemansWilliamsonMaxCut.hpp"
+#include <max_cut/GoemansWilliamsonMaxCut.hpp>
 
 namespace Koala {
 

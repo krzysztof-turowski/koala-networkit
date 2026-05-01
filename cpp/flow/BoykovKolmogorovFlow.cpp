@@ -1,6 +1,8 @@
-#include <limits>
 #include <algorithm>
+#include <limits>
 #include <queue>
+#include <vector>
+
 #include <flow/BoykovKolmogorovFlow.hpp>
 
 using edge = NetworKit::Edge;

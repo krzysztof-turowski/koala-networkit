@@ -2,6 +2,8 @@
 #include <iostream>
 #include <map>
 #include <set>
+#include <string>
+#include <vector>
 
 #include <networkit/components/ConnectedComponents.hpp>
 #include <networkit/distance/Dijkstra.hpp>

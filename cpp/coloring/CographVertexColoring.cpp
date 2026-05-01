@@ -1,4 +1,4 @@
-#include "coloring/CographVertexColoring.hpp"
+#include <coloring/CographVertexColoring.hpp>
 
 namespace Koala {
 
@@ -74,7 +74,6 @@ void CographVertexColoring::run() {
     used.resize(2 * n + 1, false);
     st.push(n);
     end_of_coloring();
-    std::cout << number_of_colors[n] << std::endl;
     for (const auto &u : graph->nodeRange()) {
         colors[u] = color[u];
     }

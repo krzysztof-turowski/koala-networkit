@@ -1,9 +1,10 @@
 #include <gtest/gtest.h>
 
-#include "dominating_set/ExactDominatingSet.hpp"
-#include "set_cover/BranchAndReduceSetCover.hpp"
+#include <list>
 
-#include "test/helpers.hpp"
+#include <dominating_set/ExactDominatingSet.hpp>
+#include <set_cover/BranchAndReduceSetCover.hpp>
+#include <test/helpers.hpp>
 
 struct DominatingSetParameters {
     int N;

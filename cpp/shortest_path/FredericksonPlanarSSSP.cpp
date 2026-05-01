@@ -1,9 +1,12 @@
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <set>
 #include <stdexcept>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
+#include <vector>
 
 #include <networkit/components/ConnectedComponents.hpp>
 #include <networkit/distance/Dijkstra.hpp>
@@ -81,8 +84,9 @@ pair_distance_t get_distance_between_boundary_nodes_level_2(NetworKit::Graph& gr
     return result;
 }
 
-void mop_up(std::vector<NetworKit::edgeweight>& shortest_distance, node_subsets_t& regions,
-    NetworKit::Graph& G) {
+void mop_up(
+        std::vector<NetworKit::edgeweight>& shortest_distance, node_subsets_t& regions,
+        NetworKit::Graph& G) {
     for (auto& region : regions) {
         std::unordered_set<NetworKit::node> subgraph_nodes(region.begin(), region.end());
         NetworKit::Graph subgraph = NetworKit::GraphTools::subgraphFromNodes(G, subgraph_nodes);
@@ -104,9 +108,10 @@ void mop_up(std::vector<NetworKit::edgeweight>& shortest_distance, node_subsets_
     }
 }
 
-std::vector<NetworKit::edgeweight> main_thrust(NetworKit::Graph& graph, node_subsets_t& regions,
-    pair_distance_t& distances, NetworKit::node s,
-    const std::unordered_set<NetworKit::node>& extra_boudary_nodes) {
+std::vector<NetworKit::edgeweight> main_thrust(
+        NetworKit::Graph& graph, node_subsets_t& regions,
+        pair_distance_t& distances, NetworKit::node s,
+        const std::unordered_set<NetworKit::node>& extra_boudary_nodes) {
     std::vector<NetworKit::edgeweight> shortest_distance(graph.numberOfNodes(), -1);
 
     TopologyHeap heap(graph, regions, distances, s, extra_boudary_nodes);
@@ -122,7 +127,8 @@ std::vector<NetworKit::edgeweight> main_thrust(NetworKit::Graph& graph, node_sub
 }
 
 pair_distance_t get_distance_in_region_level_1(
-    NetworKit::Graph& graph, std::vector<NetworKit::node>& level_1_boundary_nodes, int r2, int c) {
+        NetworKit::Graph& graph, std::vector<NetworKit::node>& level_1_boundary_nodes,
+        NetworKit::count r2, NetworKit::count c) {
     pair_distance_t result;
 
     NetworKit::ConnectedComponents cc(graph);
@@ -179,7 +185,8 @@ pair_distance_t get_distance_in_region_level_1(
 }
 
 pair_distance_t get_distance_between_boundary_nodes_Level_1(
-    NetworKit::Graph& graph, node_subsets_t& division, int r2, int c) {
+        NetworKit::Graph& graph, node_subsets_t& division,
+        NetworKit::count r2, NetworKit::count c) {
     std::vector<pair_distance_t> result_per_region(division.size());
     pair_distance_t result;
 

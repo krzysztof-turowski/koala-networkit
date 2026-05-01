@@ -6,6 +6,7 @@
  */
 
 #include <fstream>
+#include <string>
 
 #include <networkit/auxiliary/Enforce.hpp>
 

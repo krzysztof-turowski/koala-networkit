@@ -13,9 +13,12 @@ extern "C" {
 #include <map>
 #include <optional>
 #include <tuple>
+#include <utility>
+#include <vector>
+
+#include "graph/GraphTools.hpp"
 
 #include "coloring/PerfectGraphVertexColoring.hpp"
-#include "graph/GraphTools.hpp"
 
 constexpr int CACHE_LIMIT = 6;
 

@@ -1,8 +1,10 @@
 #include <gtest/gtest.h>
 
 #include <list>
+#include <utility>
+#include <tuple>
 
-#include "matching/MaximumMatching.hpp"
+#include <matching/MaximumMatching.hpp>
 
 using Edge = std::pair<int, int>;
 using WeightedEdge = std::tuple<int, int, int>;

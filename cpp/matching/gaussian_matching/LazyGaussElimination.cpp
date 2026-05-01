@@ -1,18 +1,21 @@
 #include <NTL/ZZ_p.h>
 #include <NTL/mat_ZZ_p.h>
 
+#include <algorithm>
 #include <iostream>
+#include <utility>
 #include <vector>
 
-#include "matching/gaussian_matching/LazyGaussElimination.hpp"
-#include "matching/gaussian_matching/utils.hpp"
+#include <matching/gaussian_matching/LazyGaussElimination.hpp>
+#include <matching/gaussian_matching/utils.hpp>
 
 namespace Koala {
 static std::pair<int, int> get2div(int n) {
   // return the largest m such that 2^m|n
   int m = 0, m2 = 1;
-  while (n % (m2 * 2) == 0)
+  while (n % (m2 * 2) == 0) {
     m = m + 1, m2 *= 2;
+  }
   return {m, m2};
 }
 

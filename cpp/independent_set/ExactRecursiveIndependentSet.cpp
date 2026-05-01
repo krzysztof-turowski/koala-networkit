@@ -1,17 +1,20 @@
 /*
- * ExactRecrusvieIndependentSet.cpp
+ * ExactRecursiveIndependentSet.cpp
  *
  *  Created on: 26.08.2023
  *      Author: Artur Salawa
  */
 
 #include <limits>
+#include <map>
+#include <set>
+#include <stdexcept>
+#include <vector>
 
 #include <networkit/graph/GraphTools.hpp>
 
-#include "traversal/DFS.hpp"
-
-#include "independent_set/IndependentSet.hpp"
+#include <independent_set/IndependentSet.hpp>
+#include <traversal/DFS.hpp>
 
 namespace Koala {
 
@@ -517,8 +520,7 @@ std::vector<NetworKit::node> MeasureAndConquerIndependentSet::recursive() {
                 break;
             }
             case 1: {
-                std::cout << "CAN'T BE HERE !!! (a)" << std::endl;
-                break;
+                throw std::domain_error("Invalid vertex with degree 1");
             }
             case 2: {
                 // this also works: shallFold = true;
@@ -568,7 +570,8 @@ std::vector<NetworKit::node> MeasureAndConquerIndependentSet::recursive() {
                     if (inducedEdges.size() == 1) {  // other cases removed by domination
                         shallFold = true;
                     } else {
-                        std::cout << "CAN'T BE HERE !!! (b)" << std::endl;
+                      throw std::domain_error(
+                          "Invalid vertex with degree 3 with more than one induced edge");
                     }
                 }
                 break;

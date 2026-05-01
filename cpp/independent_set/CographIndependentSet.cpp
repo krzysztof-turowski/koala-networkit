@@ -1,6 +1,8 @@
-#include <graph/GraphTools.hpp>
+#include <algorithm>
+#include <vector>
 
-#include "independent_set/CographIndependentSet.hpp"
+#include <graph/GraphTools.hpp>
+#include <independent_set/CographIndependentSet.hpp>
 
 namespace Koala {
 

@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <cassert>
 #include <set>
+#include <utility>
 #include <vector>
 
 #include "recognition/PerfectGraphRecognition.hpp"

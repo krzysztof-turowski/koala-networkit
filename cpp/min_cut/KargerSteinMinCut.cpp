@@ -1,8 +1,10 @@
+#include <algorithm>
+#include <climits>
+#include <cmath>
 #include <cstdlib>
 #include <ctime>
-#include <cmath>
 #include <iostream>
-#include <climits>
+#include <vector>
 
 #include <min_cut/KargerSteinMinCut.hpp>
 
@@ -35,7 +37,7 @@ int KargerSteinMinCut::recursiveMinCut(int currentV) {
 
     int T = static_cast<int>(std::ceil(currentV / std::sqrt(2)));
     std::vector<int> parent(graph->numberOfNodes()), rank(graph->numberOfNodes(), 0);
-    for (int i = 0; i < graph->numberOfNodes(); ++i) {
+    for (NetworKit::count i = 0; i < graph->numberOfNodes(); ++i) {
         parent[i] = i;
     }
 
@@ -57,7 +59,7 @@ int KargerSteinMinCut::recursiveMinCut(int currentV) {
         double cumulativeWeight = 0;
 
         int selectedEdge = -1;
-        for (int i = 0; i < weightedEdges.size(); ++i) {
+        for (size_t i = 0; i < weightedEdges.size(); ++i) {
             cumulativeWeight += weightedEdges[i].weight;
             if (cumulativeWeight >= pick) {
                 selectedEdge = i;
@@ -80,7 +82,7 @@ int KargerSteinMinCut::recursiveMinCut(int currentV) {
 }
 
 int KargerSteinMinCut::standardMinCut() {
-    int vertices = graph->numberOfNodes();
+    NetworKit::count vertices = graph->numberOfNodes();
     std::vector<int> parent(vertices), rank(vertices, 0);
     double minCut = 0;
 
@@ -96,7 +98,7 @@ int KargerSteinMinCut::standardMinCut() {
 
     std::uniform_real_distribution<> dis(0.0, totalWeight);
 
-    for (int i = 0; i < graph->numberOfNodes(); ++i) {
+    for (NetworKit::count i = 0; i < graph->numberOfNodes(); ++i) {
         parent[i] = i;
     }
 
@@ -105,7 +107,7 @@ int KargerSteinMinCut::standardMinCut() {
         double cumulativeWeight = 0;
 
         int selectedEdge = -1;
-        for (int i = 0; i < edges.size(); ++i) {
+        for (size_t i = 0; i < edges.size(); ++i) {
             cumulativeWeight += edges[i].weight;
             if (cumulativeWeight >= pick) {
                 selectedEdge = i;

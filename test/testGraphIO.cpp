@@ -1,19 +1,20 @@
 #include <gtest/gtest.h>
 
 #include <list>
+#include <string>
 
-#include "io/D6GraphReader.hpp"
-#include "io/D6GraphWriter.hpp"
-#include "io/DimacsBinaryGraphReader.hpp"
-#include "io/DimacsBinaryGraphWriter.hpp"
-#include "io/DimacsGraphReader.hpp"
-#include "io/DimacsGraphWriter.hpp"
-#include "io/G6GraphReader.hpp"
-#include "io/G6GraphWriter.hpp"
-#include "io/S6GraphReader.hpp"
-#include "io/S6GraphWriter.hpp"
+#include <io/D6GraphReader.hpp>
+#include <io/D6GraphWriter.hpp>
+#include <io/DimacsBinaryGraphReader.hpp>
+#include <io/DimacsBinaryGraphWriter.hpp>
+#include <io/DimacsGraphReader.hpp>
+#include <io/DimacsGraphWriter.hpp>
+#include <io/G6GraphReader.hpp>
+#include <io/G6GraphWriter.hpp>
+#include <io/S6GraphReader.hpp>
+#include <io/S6GraphWriter.hpp>
 
-#include "test/helpers.hpp"
+#include <test/helpers.hpp>
 
 struct GraphIOParameters {
     std::string G;

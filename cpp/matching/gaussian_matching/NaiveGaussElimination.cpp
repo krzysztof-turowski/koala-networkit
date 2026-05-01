@@ -2,9 +2,10 @@
 #include <NTL/vector.h>
 
 #include <iostream>
+#include <vector>
 
-#include "matching/gaussian_matching/NaiveGaussElimination.hpp"
-#include "matching/gaussian_matching/utils.hpp"
+#include <matching/gaussian_matching/NaiveGaussElimination.hpp>
+#include <matching/gaussian_matching/utils.hpp>
 
 namespace Koala {
 bool eliminate(MatZp &A, int r, int c) {

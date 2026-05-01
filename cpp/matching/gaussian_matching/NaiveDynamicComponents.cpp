@@ -1,7 +1,9 @@
+#include <vector>
+
 #include <networkit/graph/Graph.hpp>
 
-#include "matching/gaussian_matching/DynamicComponents.hpp"
-#include "matching/gaussian_matching/utils.hpp"
+#include <matching/gaussian_matching/DynamicComponents.hpp>
+#include <matching/gaussian_matching/utils.hpp>
 
 namespace Koala {
   void dfs(const NetworKit::Graph &G, std::vector<bool> &visited, int v) {

@@ -1,3 +1,5 @@
+#include <set>
+
 #include <graph/GraphTools.hpp>
 
 #include "clique/Clique.hpp"

@@ -8,6 +8,8 @@
 
 #include <ranges>
 
+#include <vector>
+
 #include <min_cut/MinCut.hpp>
 
 namespace Koala {

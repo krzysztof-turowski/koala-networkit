@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 
-#include "structures/Heap.hpp"
+#include <functional>
+
+#include <structures/Heap.hpp>
 
 typedef testing::Types<
     Koala::BinomialHeap<int, std::greater<int>>,

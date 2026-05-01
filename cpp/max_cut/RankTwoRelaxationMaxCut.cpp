@@ -19,7 +19,7 @@
 namespace Koala {
 
 void RankTwoRelaxationMaxCut::distributeThetaEvenly() {
-    for (int i = 0; i < graph->numberOfNodes(); ++i) {
+    for (NetworKit::count i = 0; i < graph->numberOfNodes(); ++i) {
         theta[i] = 2 * M_PI * i / graph->numberOfNodes();
     }
 }
@@ -29,7 +29,7 @@ std::vector<bool> RankTwoRelaxationMaxCut::procedureCut() {
     std::vector<bool> bestCut(graph->numberOfNodes()), x(graph->numberOfNodes());
 
     for (double alpha = 0; alpha <= M_PI; alpha += 0.01) {
-        for (int i = 0; i < graph->numberOfNodes(); ++i) {
+        for (NetworKit::count i = 0; i < graph->numberOfNodes(); ++i) {
             x[i] = (theta[i] >= alpha && theta[i] < alpha + M_PI) ? true : false;
         }
 
@@ -55,12 +55,12 @@ std::vector<double> RankTwoRelaxationMaxCut::calculateGradient(const std::vector
 void RankTwoRelaxationMaxCut::gradientDescent(double alpha, int maxIterations) {
     for (int iter = 0; iter < maxIterations; ++iter) {
         std::vector<double> gradient = calculateGradient(theta);
-        for (int j = 0; j < graph->numberOfNodes(); ++j) {
+        for (NetworKit::count j = 0; j < graph->numberOfNodes(); ++j) {
             theta[j] -= alpha * gradient[j];
         }
     }
 
-    for (int i = 0; i < graph->numberOfNodes(); ++i) {
+    for (NetworKit::count i = 0; i < graph->numberOfNodes(); ++i) {
         if (theta[i] < 0) theta[i] += 2 * M_PI;
         if (theta[i] >= 2 * M_PI) theta[i] -= 2 * M_PI;
     }

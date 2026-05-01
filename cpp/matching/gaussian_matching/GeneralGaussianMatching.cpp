@@ -1,16 +1,19 @@
 #include <NTL/ZZ_p.h>
 #include <NTL/mat_ZZ_p.h>
 
+#include <algorithm>
 #include <map>
 #include <set>
+#include <utility>
+#include <vector>
 
 #include <networkit/graph/GraphTools.hpp>
 
-#include "matching/gaussian_matching/BipartiteGaussianMatching.hpp"
-#include "matching/gaussian_matching/DynamicComponents.hpp"
-#include "matching/gaussian_matching/GeneralGaussianMatching.hpp"
-#include "matching/gaussian_matching/LazyGaussElimination.hpp"
-#include "matching/gaussian_matching/utils.hpp"
+#include <matching/gaussian_matching/BipartiteGaussianMatching.hpp>
+#include <matching/gaussian_matching/DynamicComponents.hpp>
+#include <matching/gaussian_matching/GeneralGaussianMatching.hpp>
+#include <matching/gaussian_matching/LazyGaussElimination.hpp>
+#include <matching/gaussian_matching/utils.hpp>
 
 namespace Koala {
 void dfs(int u, std::vector<bool> &visited, std::set<int> &connected,

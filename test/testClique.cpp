@@ -1,11 +1,11 @@
 #include <gtest/gtest.h>
 
 #include <list>
+#include <set>
 
-#include "clique/CographClique.hpp"
-#include "recognition/CographRecognition.hpp"
-
-#include "test/helpers.hpp"
+#include <clique/CographClique.hpp>
+#include <recognition/CographRecognition.hpp>
+#include <test/helpers.hpp>
 
 struct MaxCliqueParameters {
     int N;

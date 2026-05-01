@@ -6,7 +6,7 @@ namespace Koala {
 
 class FenwickTree {
  public:
-    int sum(int index) {
+    int sum(std::size_t index) {
         index++;
         int res = 0;
         for (; index > 0; index -= index & (-index))
@@ -14,15 +14,15 @@ class FenwickTree {
         return res;
     }
 
-    void add(int index, int val) {
+    void add(std::size_t index, int val) {
         index++;
         for (; index < T.size(); index += index & (-index))
             T[index] += val;
     }
 
-    void reset(int size) {
+    void reset(std::size_t size) {
         T.resize(size + 1);
-        for (int i = 0; i <= size; ++i)
+        for (std::size_t i = 0; i <= size; ++i)
             T[i] = 0;
     }
 

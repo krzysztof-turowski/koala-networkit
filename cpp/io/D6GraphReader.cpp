@@ -1,4 +1,5 @@
 /*
+/*
  * D6GraphReader.cpp
  *
  *  Created on: 27.10.2021
@@ -6,6 +7,7 @@
  */
 
 #include <fstream>
+#include <string>
 
 #include <networkit/auxiliary/Enforce.hpp>
 

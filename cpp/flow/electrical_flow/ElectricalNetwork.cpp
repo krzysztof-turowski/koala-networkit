@@ -1,9 +1,9 @@
-#include <flow/electrical_flow/ElectricalNetwork.hpp>
-
 #include <cassert>
+#include <vector>
 
 #include <networkit/graph/Graph.hpp>
 
+#include <flow/electrical_flow/ElectricalNetwork.hpp>
 #include <flow/electrical_flow/LaplaceSolver.hpp>
 
 namespace Koala {

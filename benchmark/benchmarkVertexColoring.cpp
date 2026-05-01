@@ -1,6 +1,9 @@
+#include <algorithm>
 #include <cassert>
 #include <iostream>
 #include <map>
+#include <set>
+#include <string>
 
 #include <coloring/CographVertexColoring.hpp>
 #include <coloring/ExactVertexColoring.hpp>

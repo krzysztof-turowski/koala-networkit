@@ -40,7 +40,7 @@ class BranchAndReduceDominatingSet : public DominatingSet {
         auto set_cover_algorithm = SetCoverAlgorithm(family, occurences);
         set_cover_algorithm.run();
         auto set_cover = set_cover_algorithm.getSetCover();
-        for (int i = 0; i < set_cover.size(); i++) {
+        for (std::size_t i = 0; i < set_cover.size(); i++) {
             if (set_cover[i]) {
                 dominating_set.insert(i);
             }

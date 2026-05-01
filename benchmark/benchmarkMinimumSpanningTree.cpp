@@ -116,7 +116,7 @@ void run_dimacs_tests(const std::string &path, const std::string &algorithm) {
     auto connected_components = NetworKit::ConnectedComponents(G_distinct);
     connected_components.run();
     auto components = connected_components.getComponents();
-    for (auto i = 1; i < connected_components.numberOfComponents(); i++) {
+    for (NetworKit::count i = 1; i < connected_components.numberOfComponents(); i++) {
         G_distinct.addEdge(components[0][0], components[i][0], ++max_ew);
     }
 

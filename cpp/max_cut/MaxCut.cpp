@@ -8,7 +8,9 @@
 
 #include <ranges>
 
-#include "max_cut/MaxCut.hpp"
+#include <vector>
+
+#include <max_cut/MaxCut.hpp>
 
 namespace Koala {
 

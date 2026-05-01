@@ -1,6 +1,8 @@
 #include <cassert>
 #include <iostream>
 #include <map>
+#include <set>
+#include <string>
 
 #include "io/DimacsGraphReader.hpp"
 #include "io/G6GraphReader.hpp"

@@ -9,7 +9,9 @@
 #include <ranges>
 
 #include <cassert>
+#include <limits>
 #include <set>
+#include <vector>
 
 #include <boost/dynamic_bitset.hpp>
 

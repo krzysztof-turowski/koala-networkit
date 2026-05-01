@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 
+#include <iostream>
 #include <list>
+#include <string>
 
 #include "shortest_path/PlanarSSSP.hpp"
 

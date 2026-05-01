@@ -5,8 +5,16 @@
  *   Author: Zofia Glapa (zofia.glapa@student.uj.edu.pl)
  */
 
+#include <functional>
 #include <iostream>
 #include <limits>
+#include <map>
+#include <queue>
+#include <set>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
 #include <networkit/auxiliary/BucketPQ.hpp>
 

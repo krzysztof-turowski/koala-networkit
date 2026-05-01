@@ -1,13 +1,14 @@
 #include <gtest/gtest.h>
 
+#include <iostream>
+
 #include <networkit/graph/Graph.hpp>
 
-#include "io/DimacsGraphReader.hpp"
-#include "graph/GraphTools.hpp"
+#include <io/DimacsGraphReader.hpp>
+#include <graph/GraphTools.hpp>
+#include <test/helpers.hpp>
 
-#include "flow/electrical_flow/ElectricalFlow.hpp"
-
-#include "../helpers.hpp"
+#include <flow/electrical_flow/ElectricalFlow.hpp>
 
 class GenTest : public testing::Test {};
 
@@ -23,10 +24,10 @@ TEST(GenTest, testSuccess) {
   auto graph = ef.getGraph();
   auto flow = ef.getFlow();
 
-  int N = graph.numberOfNodes();
-  for (int u = 0; u < N; ++u) {
+  NetworKit::count N = graph.numberOfNodes();
+  for (NetworKit::index u = 0; u < N; ++u) {
     double demand = 0;
-    for (int v = 0; v < N; ++v) {
+    for (NetworKit::index v = 0; v < N; ++v) {
       demand += flow[u][v];
       EXPECT_LE(abs(flow[u][v]), graph.weight(u, v));
       EXPECT_EQ(flow[u][v], -flow[v][u]);

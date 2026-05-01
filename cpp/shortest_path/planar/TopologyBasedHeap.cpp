@@ -1,3 +1,8 @@
+#include <algorithm>
+#include <deque>
+#include <limits>
+#include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include <networkit/distance/MultiTargetDijkstra.hpp>
