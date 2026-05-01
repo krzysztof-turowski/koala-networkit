@@ -1,4 +1,7 @@
 koala_add_module(recognition
+    ChordalGraphRecognition.cpp
+    chordal/MaximumCardinalitySearchChordalGraphRecognition.cpp
+    chordal/LexBFSChordalGraphRecognition.cpp
     PerfectGraphRecognition.cpp
     perfect/OddHoles.cpp
     perfect/Jewels.cpp
