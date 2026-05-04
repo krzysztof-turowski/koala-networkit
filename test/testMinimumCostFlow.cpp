@@ -257,31 +257,22 @@ INSTANTIATE_TEST_SUITE_P(test_example_orlin, OrlinTest, testing::ValuesIn(basic_
 INSTANTIATE_TEST_CASE_P(test_complex_orlin, OrlinTest, testing::ValuesIn(complex_tests));
 
 
-/*
+
 class SuccessiveApproxTest
     : public testing::TestWithParam<MinCostFlowParams> { };
 
 TEST_P(SuccessiveApproxTest, test) {
     MinCostFlowParams const& parameters = GetParam();
-    auto [ G, costs, b ] = getInstance(parameters);
-    auto algorithm = Koala::SuccessiveApproxMCC(G, costs, b);
+    auto network = getInstance(parameters);
+    auto algorithm = Koala::OrlinMCF(network);
     algorithm.run();
+
+    network.getGraph().forEdges([&](NetworKit::node u, NetworKit::node v) {
+        DBG(u << ' ' << v << " -> " << algorithm.getFlow({u, v}) << '\n');
+    });
+
     EXPECT_EQ(algorithm.getMinCost(), parameters.minCost);
 }
 
-INSTANTIATE_TEST_SUITE_P(test_example, SuccessiveApproxTest, testing::Values(
-    MinCostFlowParams{
-        4, {{0, 2, 2, 1}, {2, 0, 1, 0}, {0, 3, 3, 1}, {2, 3, 2, 0}, {1, 2, 2, 1}, {1, 3, 2, 1}}, {{0,3}, {1,2}, {3,-5}}, 5
-    },
-    MinCostFlowParams{
-        4, {{0, 1, 5, 0}, {1, 2, 1, 1}, {1, 2, 2, 2}, {1, 2, 3, 3}, {2, 3, 5, 0}}, {{0, 4}, {3, -4}}, 8  
-    },
-    MinCostFlowParams{8, {{1, 0, 3, 5}, {2, 0, 2, 1}, {0, 3, 6, 1}, {5, 4, 0, 0}, {6, 4, 4, 3}, {6, 7, 1, 2}, {7, 4, 2, 1}},
-        {{7, 2}, {6, 2}, {4, -4}, {0, -1}, {1, 2}, {2, 2}, {3, -3}}, 23
-    }, 
-    MinCostFlowParams{3, {{0, 1, 5, 1}, {1, 0, 5, 2}, {0, 2, 5, 1}, {2, 0, 5, 2}, {1, 2, 3, 1}, {2, 1, 4, 2}}, 
-        {{0, 2}, {1, 3}, {2, -5}}, 5
-    }
-));
-
-*/
+INSTANTIATE_TEST_SUITE_P(test_example_successive, SuccessiveApproxTest, testing::ValuesIn(basic_tests));
+INSTANTIATE_TEST_SUITE_P(test_complex_successive, SuccessiveApproxTest, testing::ValuesIn(complex_tests));
