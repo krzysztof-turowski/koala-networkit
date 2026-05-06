@@ -3,7 +3,7 @@
 
 #include <list>
 
-// #include <flow/minimum_cost_flow/SuccessiveApproxMCC.hpp>
+#include <flow/minimum_cost_flow/SuccessiveApproxMCC.hpp>
 #include <flow/minimum_cost_flow/EdmondsKarpMCF.hpp>
 #include <flow/minimum_cost_flow/OrlinMCF.hpp>
 
@@ -264,7 +264,7 @@ class SuccessiveApproxTest
 TEST_P(SuccessiveApproxTest, test) {
     MinCostFlowParams const& parameters = GetParam();
     auto network = getInstance(parameters);
-    auto algorithm = Koala::OrlinMCF(network);
+    auto algorithm = Koala::SuccessiveApproxMCC(network);
     algorithm.run();
 
     network.getGraph().forEdges([&](NetworKit::node u, NetworKit::node v) {

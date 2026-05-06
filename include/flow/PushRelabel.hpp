@@ -6,6 +6,7 @@ class PushRelabel final : public MaximumFlow {
  public:
     using MaximumFlow::MaximumFlow;
     void run();
+    int get_flow(const NetworKit::Edge&) const;
  private:
     int V;
     std::unordered_map<NetworKit::Edge, int, EdgeHash, EdgeEqual> flow;

@@ -1,7 +1,10 @@
- #include <networkit/graph/Graph.hpp>
+#pragma once
+
+#include <networkit/graph/Graph.hpp>
 #include <networkit/graph/EdgeIterators.hpp>
 #include <unordered_map>
 #include <vector>
+
 namespace Koala {
 
 class MCFlowNetwork {

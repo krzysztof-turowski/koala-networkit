@@ -1,5 +1,12 @@
 #include <flow/minimum_cost_flow/SuccessiveApproxMCC.hpp>
 #include <climits>
+// #define DEBUG_DUMP
+#ifdef DEBUG_DUMP
+#define DBG(x) std::cerr << x
+#else 
+#define DBG(x)
+#endif
+
 namespace Koala {
 
 using node = NetworKit::node;
@@ -10,7 +17,7 @@ inline double SuccessiveApproxMCC::cp(uint64_t eid) {
 }
 
 inline int64_t SuccessiveApproxMCC::uf(uint64_t eid) {
-    return edges[eid].capacity - edges[eid].cost;
+    return edges[eid].capacity - edges[eid].flow;
 }
 
 bool SuccessiveApproxMCC::is_imbalanced() {
@@ -67,6 +74,7 @@ void SuccessiveApproxMCC::wave() {
     NetworKit::node v = list->getNext();
     while (is_imbalanced()) {
         if (excess[v] > 0) {
+            DBG("Discharging " << v << " with excess " << excess[v] << "\n");
             bool relabeled = discharge(v);
             if (relabeled) {
                 list->moveToStart();
@@ -80,12 +88,15 @@ void SuccessiveApproxMCC::wave() {
 bool SuccessiveApproxMCC::discharge(NetworKit::node const& u) {
     int64_t& ex = excess[u];
     for (uint64_t eid : neigh_list[u]) {
+        DBG("Trying to push on edge " << edges[eid].from << "->" << edges[eid].to << " with cost " << edges[eid].cost << " and flow " << edges[eid].flow << "/" << edges[eid].capacity << "\n");
+        DBG("Reduced cost: " << cp(eid) << " Residual capacity: " << uf(eid) << "\n");
         if (ex && cp(eid) < 0 && uf(eid) > 0) {
             push(eid);
         }
     }
 
     if (ex > 0) {
+        DBG("Relabeling " << u << "\n");
         relabel(u);
         return true;
     }
@@ -155,6 +166,7 @@ void SuccessiveApproxMCC::run_impl() {
     initialize();
 
     while (epsi >= 1.0/nodes_number) {
+        DBG("Refine with epsilon = " << epsi << "\n");
         refine();
     }
 

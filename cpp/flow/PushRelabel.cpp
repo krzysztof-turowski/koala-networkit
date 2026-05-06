@@ -94,4 +94,13 @@ void PushRelabel::run() {
     flow_size = excess[target];
     hasRun = true;
 }
+
+int PushRelabel::get_flow(const NetworKit::Edge& e) const {
+    auto it = flow.find(e);
+    if (it == flow.end()) {
+        return 0;
+    }
+    return it->second;
+}
+
 }  // namespace Koala
