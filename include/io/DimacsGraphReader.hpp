@@ -29,7 +29,7 @@ class DimacsGraphReader final : public NetworKit::GraphReader {
      * @param[in]  path  input file path
      * @param[out]  the graph read from file
      */
-    NetworKit::Graph read(const std::string &path) override;
+    NetworKit::Graph read(std::string_view path) override;
 
     /**
      * Given the path of an input file, read the graph.
@@ -38,7 +38,7 @@ class DimacsGraphReader final : public NetworKit::GraphReader {
      * @param[out]  the graph read from file, together with source and target nodes
      */
     std::tuple<NetworKit::Graph, NetworKit::node, NetworKit::node> read_all(
-        const std::string &path);
+        std::string_view path);
 };
 
 } /* namespace Koala */

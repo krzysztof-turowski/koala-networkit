@@ -15,14 +15,14 @@
 
 namespace Koala {
 
-void DimacsBinaryGraphWriter::write(const NetworKit::Graph &G, const std::string &path) {
-    std::ofstream graphFile(path);
-    Aux::enforceOpened(graphFile);
+void DimacsBinaryGraphWriter::write(const NetworKit::Graph &G, std::string_view path) {
+    std::ofstream graph_file{std::string{path}};
+    Aux::enforceOpened(graph_file);
 
-    std::stringstream preambleFile;
-    preambleFile << "p edge " << G.numberOfNodes() << ' ' << G.numberOfEdges() << '\n';
-    std::string preamble(preambleFile.str());
-    graphFile << preamble.size() << std::endl << preamble;
+    std::stringstream preamble_file;
+    preamble_file << "p edge " << G.numberOfNodes() << ' ' << G.numberOfEdges() << '\n';
+    std::string preamble(preamble_file.str());
+    graph_file << preamble.size() << std::endl << preamble;
 
     std::string data((G.numberOfNodes() >> 3) + 1, 0);
     const unsigned char MASKS[] = { 0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01 };
@@ -33,7 +33,7 @@ void DimacsBinaryGraphWriter::write(const NetworKit::Graph &G, const std::string
                 data[u >> 3] |= MASKS[u & 7];
             }
         });
-        graphFile.write(data.data(), (v >> 3) + 1);
+        graph_file.write(data.data(), (v >> 3) + 1);
     });
 }
 

@@ -13,11 +13,11 @@
 
 namespace Koala {
 
-void G6GraphWriter::write(const NetworKit::Graph &G, const std::string &path) {
-    std::ofstream graphFile(path);
-    Aux::enforceOpened(graphFile);
-    std::string g6String = writeline(G);
-    graphFile << g6String << std::endl;
+void G6GraphWriter::write(const NetworKit::Graph &G, std::string_view path) {
+    std::ofstream graph_file{std::string{path}};
+    Aux::enforceOpened(graph_file);
+    std::string g6 = writeline(G);
+    graph_file << g6 << std::endl;
 }
 
 std::string G6GraphWriter::writeline(const NetworKit::Graph &G) {
@@ -45,8 +45,8 @@ std::string G6GraphWriter::writeline(const NetworKit::Graph &G) {
     int length = (G.numberOfNodes() * (G.numberOfNodes() - 1) / 2) / LENGTH + 1;
     output.append(length, 0x0);
     const char MASKS[] = { 0x20, 0x10, 0x08, 0x04, 0x02, 0x01 };
-    for (const NetworKit::node v : G.nodeRange()) {
-        for (const NetworKit::node u : G.neighborRange(v)) {
+    for (auto v : G.nodeRange()) {
+        for (auto u : G.neighborRange(v)) {
             if (u < v) {
                 int position = shift + u;
                 output[start + position / LENGTH] |= MASKS[position % LENGTH];
@@ -54,7 +54,7 @@ std::string G6GraphWriter::writeline(const NetworKit::Graph &G) {
         }
         shift += index, index++;
     }
-    for (unsigned i = start; i < output.size(); i++) {
+    for (size_t i = start; i < output.size(); i++) {
         output[i] += LOW;
     }
     return output;

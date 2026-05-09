@@ -13,14 +13,14 @@
 
 namespace Koala {
 
-void DimacsGraphWriter::write(const NetworKit::Graph &G, const std::string &path) {
-    std::ofstream graphFile(path);
-    Aux::enforceOpened(graphFile);
+void DimacsGraphWriter::write(const NetworKit::Graph &G, std::string_view path) {
+    std::ofstream graph_file{std::string{path}};
+    Aux::enforceOpened(graph_file);
 
-    graphFile << "p edge " << G.numberOfNodes() << ' ' << G.numberOfEdges() << std::endl;
+    graph_file << "p edge " << G.numberOfNodes() << ' ' << G.numberOfEdges() << std::endl;
     std::string edge_type = G.isDirected() ? "a" : "e";
     G.forEdges([&](NetworKit::node u, NetworKit::node v) {
-        graphFile << edge_type << ' ' << u + 1 << ' ' << v + 1 << std::endl;
+        graph_file << edge_type << ' ' << u + 1 << ' ' << v + 1 << std::endl;
     });
 }
 

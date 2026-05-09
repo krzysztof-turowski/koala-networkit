@@ -17,11 +17,11 @@ constexpr NetworKit::count log2(NetworKit::count n) {
     return n > 1 ? 1 + log2(n >> 1) : n;
 }
 
-void S6GraphWriter::write(const NetworKit::Graph &G, const std::string &path) {
-    std::ofstream graphFile(path);
-    Aux::enforceOpened(graphFile);
-    std::string s6String = writeline(G);
-    graphFile << s6String << std::endl;
+void S6GraphWriter::write(const NetworKit::Graph &G, std::string_view path) {
+    std::ofstream graph_file{std::string{path}};
+    Aux::enforceOpened(graph_file);
+    std::string s6 = writeline(G);
+    graph_file << s6 << std::endl;
 }
 
 std::string S6GraphWriter::writeline(const NetworKit::Graph &G) {

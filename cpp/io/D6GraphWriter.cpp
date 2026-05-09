@@ -13,11 +13,11 @@
 
 namespace Koala {
 
-void D6GraphWriter::write(const NetworKit::Graph &G, const std::string &path) {
-    std::ofstream graphFile(path);
-    Aux::enforceOpened(graphFile);
-    std::string d6String = writeline(G);
-    graphFile << d6String << std::endl;
+void D6GraphWriter::write(const NetworKit::Graph &G, std::string_view path) {
+    std::ofstream graph_file{std::string{path}};
+    Aux::enforceOpened(graph_file);
+    std::string d6 = writeline(G);
+    graph_file << d6 << std::endl;
 }
 
 std::string D6GraphWriter::writeline(const NetworKit::Graph &G) {
@@ -52,7 +52,7 @@ std::string D6GraphWriter::writeline(const NetworKit::Graph &G) {
         }
         shift += G.numberOfNodes();
     }
-    for (unsigned i = start; i < output.size(); i++) {
+    for (size_t i = start; i < output.size(); i++) {
         output[i] += LOW;
     }
     return output;

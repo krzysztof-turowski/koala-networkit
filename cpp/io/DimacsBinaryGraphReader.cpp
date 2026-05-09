@@ -14,30 +14,30 @@
 
 namespace Koala {
 
-NetworKit::Graph DimacsBinaryGraphReader::read(const std::string &path) {
-    std::ifstream graphFile(path, std::ios::binary);
-    Aux::enforceOpened(graphFile);
+NetworKit::Graph DimacsBinaryGraphReader::read(std::string_view path) {
+    std::ifstream graph_file(std::string{path}, std::ios::binary);
+    Aux::enforceOpened(graph_file);
 
     int preamble_size = 0;
-    graphFile >> preamble_size;
+    graph_file >> preamble_size;
     const int MAX = 2048;
-    graphFile.ignore(MAX, '\n');
+    graph_file.ignore(MAX, '\n');
     std::string preamble(preamble_size, 0);
-    graphFile.read(preamble.data(), preamble_size);
-    std::stringstream preambleFile(preamble);
+    graph_file.read(preamble.data(), preamble_size);
+    std::stringstream preamble_file(preamble);
 
     NetworKit::Graph graph(0, false, false);
     char command = 0;
     std::string format;
     NetworKit::count nodes = 0, edges = 0;
     while (true) {
-        preambleFile >> command;
-        if (preambleFile.eof()) {
+        preamble_file >> command;
+        if (preamble_file.eof()) {
             break;
         }
         switch (command) {
             case 'p':
-                preambleFile >> format >> nodes >> edges;
+                preamble_file >> format >> nodes >> edges;
                 graph.addNodes(nodes);
                 break;
             case 'c':
@@ -45,13 +45,13 @@ NetworKit::Graph DimacsBinaryGraphReader::read(const std::string &path) {
             default:
                 throw std::runtime_error("Unknown line type");
         }
-        preambleFile.ignore(MAX, '\n');
+        preamble_file.ignore(MAX, '\n');
     }
 
     const unsigned char MASKS[] = { 0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01 };
     std::string data((nodes >> 3) + 1, 0);
     for (NetworKit::node u = 0; u < nodes; u++) {
-        graphFile.read(data.data(), (u >> 3) + 1);
+        graph_file.read(data.data(), (u >> 3) + 1);
         for (NetworKit::node v = 0; v <= u; v++) {
             unsigned char mask = MASKS[v & 7];
             if ((data[v >> 3] & mask) == mask) {

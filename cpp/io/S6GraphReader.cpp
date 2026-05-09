@@ -17,11 +17,11 @@ constexpr NetworKit::count log2(NetworKit::count n) {
     return n > 1 ? 1 + log2(n >> 1) : n;
 }
 
-NetworKit::Graph S6GraphReader::read(const std::string &path) {
-    std::ifstream graphFile(path);
-    Aux::enforceOpened(graphFile);
+NetworKit::Graph S6GraphReader::read(std::string_view path) {
+    std::ifstream graph_file{std::string{path}};
+    Aux::enforceOpened(graph_file);
     std::string line;
-    std::getline(graphFile, line);
+    std::getline(graph_file, line);
     return readline(line);
 }
 

@@ -29,7 +29,7 @@ class D6GraphReader final : public NetworKit::GraphReader {
      * @param[in]  path  input file path
      * @param[out]  the graph read from file
      */
-    NetworKit::Graph read(const std::string &path) override;
+    NetworKit::Graph read(std::string_view path) override;
 
     /**
      * Given an input string, read the graph from it.

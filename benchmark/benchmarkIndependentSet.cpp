@@ -29,7 +29,7 @@ const std::map<std::string, int> ALGORITHM = {
     { "exact", 0 },
     { "MIS1", 1 }, { "MIS2", 2 }, { "MIS3", 3 }, { "MIS4", 4 }, { "MIS5", 5 },
     { "MeasureAndConquer", 6 },
-    { "baker", 10 }, { "bodlaender", 11 }
+    { "Baker", 10 }, { "Bodlaender", 11 }
 };
 
 const double epsilon = 0.5;
