@@ -243,7 +243,8 @@ class create_tree_decomposition {
 
         for (outer_face_it = 0; outer_face_it < vertices_in_face.size(); outer_face_it++) {
             auto& face = vertices_in_face[outer_face_it];
-            if (std::search(temp_outer_face.begin(), temp_outer_face.end(), face.begin(), face.end()) != temp_outer_face.end()) {
+            if (std::search(temp_outer_face.begin(), temp_outer_face.end(), face.begin(), face.end())
+            != temp_outer_face.end()) {
                 break;
             }
         }
