@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cmath>
+#include <iterator>
 #include <queue>
 #include <set>
 #include <stdexcept>
@@ -121,7 +122,6 @@ Separator find_separator(NetworKit::Graph& G) {
         depth[node] = NetworKit::none;
         visited[node] = 0;
     }
-    std::vector<NetworKit::Edge> tree_edges;
     std::vector<NetworKit::Edge> non_tree_edges;
 
     std::queue<std::pair<NetworKit::node, NetworKit::count>> queue;
@@ -146,7 +146,6 @@ Separator find_separator(NetworKit::Graph& G) {
             parent[n] = node;
             visited[n] = true;
             depth[n] = d + 1;
-            tree_edges.push_back({node, n});
             queue.push({n, d + 1});
         }
     }
@@ -184,23 +183,16 @@ Separator find_separator(NetworKit::Graph& G) {
 std::vector<std::vector<NetworKit::node>> post_processing(
     Separator& separator, NetworKit::Graph& G, std::vector<int>& is_boundary) {
     auto [A, B, C] = separator;
-    std::unordered_set<NetworKit::node> C_prime;
     std::unordered_set<NetworKit::node> C_bis;
     NetworKit::Graph copy_G(G);
 
     for (auto c : C) {
-        bool is_prime = true;
         for (auto x : G.neighborRange(c)) {
             if (A.find(x) != A.end() || B.find(x) != B.end()) {
-                is_prime = false;
                 C_bis.insert(c);
                 copy_G.removeNode(c);
                 break;
             }
-        }
-
-        if (is_prime) {
-            C_prime.insert(c);
         }
     }
     NetworKit::ConnectedComponents cc(copy_G);
@@ -268,10 +260,7 @@ std::vector<std::vector<NetworKit::node>> post_processing(
     }
 
     for (auto& [k, v] : regions_of_node) {
-        NetworKit::count count_neighbors = 0;
-        for (auto nei : G.neighborRange(k)) {
-            count_neighbors++;
-        }
+        NetworKit::count count_neighbors = G.degree(k);
         assert(v.size() > 0);
         assert(v.size() <= count_neighbors);
         if (new_boundary_node[k]) assert(v.size() > 1);
@@ -554,7 +543,7 @@ node_subsets_t make_suitable_graph_division_from_queue(
     std::pair<NetworKit::index, NetworKit::index> last_pair = {NetworKit::none, NetworKit::none};
     for (auto [f, s, i] : regions_to_merge) {
         if (!is_mergable(i)) continue;
-        if (last_component = NetworKit::none) {
+        if (last_component == NetworKit::none) {
             last_component = i;
             last_pair = {f, s};
             continue;
@@ -672,7 +661,7 @@ node_subsets_t get_division_from_clusters(
         auto node_set = std::move(queue.front());
         queue.pop();
 
-        int number_of_boundary_nodes = 0;
+        NetworKit::count number_of_boundary_nodes = 0;
         for (auto node : node_set) {
             if (is_boundary[node]) {
                 number_of_boundary_nodes++;

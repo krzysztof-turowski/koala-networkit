@@ -121,7 +121,7 @@ std::vector<int> PerfectGraphVertexColoring::get_stable_set_intersecting_all_max
             return stable_set;
         }
         auto clique = get_maximum_clique(subgraph);
-        for (int i = 0; i < clique.size(); i++) {
+        for (std::size_t i = 0; i < clique.size(); i++) {
             cliques[i] += clique[i];
         }
     }

@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <functional>
 #include <iterator>
 #include <list>
@@ -55,10 +56,10 @@ class BinomialHeap {
      public:
         explicit iterator(NetworKit::index data = NetworKit::none) : data(data) { }
         iterator(const iterator &other) : data(other.data) { }
-        bool operator==(const iterator &other) { return data == other.data; }
-        bool operator!=(const iterator &other) { return !(*this == other); }
+        bool operator==(const iterator &other) const { return data == other.data; }
+        bool operator!=(const iterator &other) const { return !(*this == other); }
         NetworKit::index operator*() const { return data; }
-        NetworKit::index* operator->() const { return &**this; }
+        const NetworKit::index* operator->() const { return &data; }
     };
 
     explicit BinomialHeap(const Compare& = Compare());

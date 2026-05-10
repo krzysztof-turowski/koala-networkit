@@ -38,12 +38,11 @@ class TopologyHeap {
     void fix_index(NetworKit::index i);
     void initial_distances();
 
+    NetworKit::Graph& graph;
     NetworKit::node source;
     NetworKit::node target;
-
-    NetworKit::Graph& graph;
-    node_subsets_t& regions;
     pair_distance_t& distances;
+    node_subsets_t& regions;
     std::vector<NetworKit::index> node_storage_index;
     std::vector<int> is_closed;
     const std::unordered_set<NetworKit::node> extra_boundary_nodes;

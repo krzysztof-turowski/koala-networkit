@@ -30,6 +30,7 @@ GabowScalingMatching::GabowScalingMatching(NetworKit::Graph &graph, bool perfect
     MaximumWeightMatching(graph, perfect),
     workingGraph(perfect ? graph : reduce_to_MWPM(graph)),
     graph_edges(workingGraph.upperEdgeIdBound()),
+    current_w(),
     current_y(workingGraph.upperNodeIdBound()),
     trivial_blossom(workingGraph.upperNodeIdBound(), nullptr),
     matched_vertex(workingGraph.upperNodeIdBound()),
@@ -37,9 +38,10 @@ GabowScalingMatching::GabowScalingMatching(NetworKit::Graph &graph, bool perfect
     edge_in_matching(workingGraph.upperEdgeIdBound()),
     actual_to_contracted(workingGraph.upperNodeIdBound()),
     current_blossom(workingGraph.upperNodeIdBound(), nullptr),
-    event_queue(workingGraph.upperNodeIdBound()),
     vertex_path(workingGraph.upperNodeIdBound(), nullptr),
     current_shell(workingGraph.upperNodeIdBound()),
+    search_done(false),
+    event_queue(workingGraph.upperNodeIdBound()),
     y0(workingGraph.upperNodeIdBound()),
     t_shell(workingGraph.upperNodeIdBound()),
     Delta(workingGraph.upperNodeIdBound()),
@@ -126,7 +128,7 @@ GabowScalingMatching::scale(const std::vector<MaximumWeightMatching::intweight>&
 
     // Scale down weights
     std::vector<int> w1(w.size());
-    for (int i = 0; i < w.size(); ++i)
+    for (std::size_t i = 0; i < w.size(); ++i)
         w1[i] = 2 * (w[i] / 4);  // Keep all weights even
 
     // Recursive call to scale for reduced weights
@@ -547,8 +549,6 @@ void GabowScalingMatching::augmentPaths() {
     for (NetworKit::index cv = 0; cv < counter; ++cv) {
         if (matching[cv] == NetworKit::none || cv > matching[cv])
             continue;
-
-        auto cu = matching[cv];
 
         // Find the edge in cu's adjacency list
         auto edge = no_edge;

@@ -31,7 +31,7 @@ NetworKit::edgeweight run_algorithm(NetworKit::Graph &G, float eps) {
     return algorithm.getTreeWeight();
 }
 
-enum class Algorithm : uint32_t{
+enum class Algorithm : uint32_t {
     EXACT = 0,
     KRUSKAL,
     PRIM,
@@ -97,7 +97,7 @@ void run_dimacs_tests(const std::string &path, const std::string &algorithm) {
     auto G_directed = Koala::DimacsGraphReader().read(path);
     auto G_distinct = NetworKit::Graph(G_directed.numberOfNodes(), true, false);
     double max_ew = 0;
-    G_directed.forEdges([&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight ew){
+    G_directed.forEdges([&](NetworKit::node, NetworKit::node, NetworKit::edgeweight ew){
         max_ew = std::max(max_ew, ew);
     });
     std::set<double> ews;

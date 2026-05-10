@@ -210,7 +210,7 @@ void OptimalLCA<T>::populate_sparse_table() {
     for (NetworKit::index l = 0; l < A_prim.size(); l++) {
         M[l].push_back(l);
     }
-    for (int size = 2; size < A_prim.size(); size *= 2) {
+    for (std::size_t size = 2; size < A_prim.size(); size <<= 1) {
         for (NetworKit::index l = 0; l + size < A_prim.size(); l++) {
             NetworKit::index leftArgMin = M[l].back(), rightArgMin = M[l + (size / 2)].back();
             NetworKit::index argMinForCurrentSize =

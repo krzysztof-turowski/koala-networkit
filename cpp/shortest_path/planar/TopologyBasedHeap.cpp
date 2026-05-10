@@ -89,9 +89,9 @@ TopologyHeap::TopologyHeap(NetworKit::Graph& graph, node_subsets_t& regions,
     pair_distance_t& distances, NetworKit::node source,
     const std::unordered_set<NetworKit::node>& extra_boundary_nodes)
     : graph(graph),
-      regions(regions),
-      distances(distances),
       source(source),
+      distances(distances),
+      regions(regions),
       extra_boundary_nodes(extra_boundary_nodes) {
     // get list per node of regions a node is a part of
     node_regions.assign(graph.numberOfNodes(), std::vector<NetworKit::index>{});

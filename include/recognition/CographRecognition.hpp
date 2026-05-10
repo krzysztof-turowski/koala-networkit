@@ -147,7 +147,7 @@ class DahlhausCographRecognition : public CographRecognition {
     void run();
 
  private:
-    const int A = 10;
+    const NetworKit::count A = 10;
     std::vector<CoNode*> pointer;
     std::vector<CoTree> save;
 

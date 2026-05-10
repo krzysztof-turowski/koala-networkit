@@ -213,7 +213,7 @@ class AugmentedGraph {
             std::vector<NetworKit::node>& answer) {
         P[depth[v]] = v;  // push current node on stack
         // sup{j' \in down(Dv, Su) : w(Pv(j')) > w(v)}
-        int k = binary_search(P, getWeight(v), down(D[v], S));
+        auto k = binary_search(P, getWeight(v), down(D[v], S));
         // BUG in the paper: S = down(D[v], S & (1 << (k + 1) - 1) | (1 << depth[v]));
         S = down(D[v], S & ((1 << (k + 1)) - 1) | (1 << depth[v]));
         for (auto i = L[v]; i != NetworKit::none; i = Lnext[i]) {
@@ -313,12 +313,10 @@ std::optional<NetworKit::Graph> BoruvkaMinimumSpanningTree::iterate(
         NetworKit::UnionFind &union_find, std::map<NodePair, NodePair> &E,
         NetworKit::count steps, bool get_branching_tree) {
     BranchingTree B;
-    std::unordered_map<NetworKit::node, NetworKit::node> V_B;
     if (get_branching_tree) {
         B.initialize(G);
     }
     while (G.numberOfNodes() > 1 && G.numberOfEdges() > 0 && steps-- > 0) {
-        std::unordered_map<NetworKit::node, NetworKit::edgeweight> B_edges;
         G.forNodes([&](NetworKit::node x) {
             const auto &[y, w] = *std::min_element(
                 G.weightNeighborRange(x).begin(), G.weightNeighborRange(x).end(),
@@ -347,7 +345,7 @@ std::optional<NetworKit::Graph> BoruvkaMinimumSpanningTree::iterate(
         std::map<NetworKit::node, std::vector<NetworKit::WeightedEdge>> second_pass;
         for (const auto &[v_prim, E_v] : (first_pass | std::views::reverse)) {
             for (const auto &e : E_v) {
-                second_pass[union_find.find(e.u)].emplace_back(std::move(e));
+                second_pass[union_find.find(e.u)].emplace_back(e);
             }
         }
         auto G_prim = NetworKit::GraphTools::copyNodes(G);
@@ -458,19 +456,19 @@ void KargerKleinTarjanMinimumSpanningTree::remove_heavy_edges(
 
 float ChazelleRubinfeldTrevisanMinimumSpanningTree::calculateApproximateDegree(float eps) const {
     const int C = 100;
-    int d_est = 0;
+    NetworKit::count d_est = 0;
     std::uniform_int_distribution<int> uniform_distribution(0, graph->numberOfNodes() - 1);
 
     for (int i = 0; i < C / eps; ++i) {
-        int v = uniform_distribution(generator);
-        d_est = std::max(d_est, static_cast<int>(graph->degreeOut(v)));
+        NetworKit::count v = uniform_distribution(generator);
+        d_est = std::max(d_est, graph->degreeOut(v));
     }
     return d_est;
 }
 
 float ChazelleRubinfeldTrevisanMinimumSpanningTree::calculateApproximateCCsCount(
     float eps, NetworKit::count bfs_bound, unsigned int, unsigned int w_bound) const {
-    int n = graph->numberOfNodes();
+    NetworKit::count n = graph->numberOfNodes();
     int r = 1/eps/eps + 1;
     float estimate = 0;
 
@@ -478,21 +476,21 @@ float ChazelleRubinfeldTrevisanMinimumSpanningTree::calculateApproximateCCsCount
     std::uniform_int_distribution<int> uniform_distribution(0, n-1);
 
     for (int i = 0; i < r; ++i) {
-        int u = uniform_distribution(generator);
+        NetworKit::node u = uniform_distribution(generator);
         float coin_flips = 0;
         float b = 0;
-        int max_d = 0;
-        int visited_edges = 0;
-        std::unordered_set<int> vis;
-        std::queue<int> q;
+        NetworKit::count max_d = 0;
+        NetworKit::count visited_edges = 0;
+        std::unordered_set<NetworKit::node> vis;
+        std::queue<NetworKit::node> q;
 
         if (graph->degreeOut(u) > d_est) {
             continue;
         }
 
-        int d_actual = 0;
+        NetworKit::count d_actual = 0;
 
-        graph->forEdgesOf(u, [this, w_bound, &d_actual](
+        graph->forEdgesOf(u, [w_bound, &d_actual](
                 NetworKit::node, NetworKit::node, NetworKit::edgeweight ew, NetworKit::edgeid) {
             if (ew > w_bound) {
                 return;
@@ -509,7 +507,7 @@ float ChazelleRubinfeldTrevisanMinimumSpanningTree::calculateApproximateCCsCount
 
 
         vis.insert(u);
-        graph->forEdgesOf(u, [this, w_bound, &visited_edges, &q](
+        graph->forEdgesOf(u, [w_bound, &visited_edges, &q](
                 NetworKit::node, NetworKit::node v, NetworKit::edgeweight ew, NetworKit::edgeid) {
             if (ew > w_bound) {
                 return;
@@ -524,9 +522,9 @@ float ChazelleRubinfeldTrevisanMinimumSpanningTree::calculateApproximateCCsCount
                 break;
             }
 
-            int prev_visited_edges = 2*visited_edges;
+            auto prev_visited_edges = 2 * visited_edges;
             while (!q.empty() && visited_edges <= prev_visited_edges) {
-                int v = q.front();
+                auto v = q.front();
                 q.pop();
 
                 if (vis.contains(v)) {
@@ -534,7 +532,7 @@ float ChazelleRubinfeldTrevisanMinimumSpanningTree::calculateApproximateCCsCount
                 }
                 vis.insert(v);
 
-                graph->forEdgesOf(v, [this, w_bound, &visited_edges, &q, &vis](
+                graph->forEdgesOf(v, [w_bound, &visited_edges, &q, &vis](
                         NetworKit::node, NetworKit::node v, NetworKit::edgeweight ew,
                         NetworKit::edgeid) {
                     if (ew > w_bound) {
@@ -551,8 +549,7 @@ float ChazelleRubinfeldTrevisanMinimumSpanningTree::calculateApproximateCCsCount
                 if (visited_edges == 0) {
                     b = 2;
                 } else {
-                    b = powl(2, coin_flips) *
-                        static_cast<float>(d_actual) / static_cast<float>(visited_edges);
+                    b = powl(2, coin_flips) * d_actual / visited_edges;
                 }
                 break;
             }
@@ -561,12 +558,12 @@ float ChazelleRubinfeldTrevisanMinimumSpanningTree::calculateApproximateCCsCount
         estimate += b;
     }
 
-    return estimate * static_cast<float>(n) / 2.0f / r;
+    return estimate * n / 2.0f / r;
 }
 
 float ChazelleRubinfeldTrevisanMinimumSpanningTree::calculateApproximateTreeWeight(
         float eps, unsigned int w) const {
-    float approx = graph->numberOfNodes() - static_cast<float>(w);
+    float approx = graph->numberOfNodes() - w;
 
     for (unsigned int w_bound = 1; w_bound < w; ++w_bound) {
         float ccs = calculateApproximateCCsCount(eps, 4 / eps, w, w_bound);
@@ -826,10 +823,6 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
 
     // we have Cz0, Cz1, .... Czk
     auto k = [&](){return Cz.size() - 1;};
-
-    auto makeEdge = [&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight ew) {
-        return edge{u, v, ew, ew, G0_edge_id[std::minmax(u, v)], false, false};
-    };
 
     auto minBorderEdge = [&](){
         double minKey = __DBL_MAX__;

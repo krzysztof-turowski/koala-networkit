@@ -230,7 +230,8 @@ pair_distance_t get_distance_between_boundary_nodes_Level_1(
     return result;
 }
 
-void FredericksonPlanarSSSP::setDivisionParameters(NetworKit::count level_1, NetworKit::count level_2) {
+void FredericksonPlanarSSSP::setDivisionParameters(
+        NetworKit::count level_1, NetworKit::count level_2) {
     r1 = level_1;
     r2 = level_2;
 }
