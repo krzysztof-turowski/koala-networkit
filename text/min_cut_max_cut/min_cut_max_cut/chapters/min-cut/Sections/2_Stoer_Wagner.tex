@@ -1,0 +1,160 @@
+\section{Stoer-Wagner algorithm}
+\label{sec:stoerwagner}
+
+\subsection{Idea}
+
+The Stoer-Wagner algorithm is a pivotal algorithm in graph theory, specifically designed to find the minimum cut in an \emph{undirected graph} (\Cref{def:graph}). The Stoer-Wagner algorithm is built on the concept of successively finding and contracting the most tightly connected (in terms of the total weight of edges between them) pairs of vertices until the entire graph is reduced to a single vertex. The intuition behind this method involves repeatedly identifying the smallest cuts in progressively contracted graphs, which ensures that no minimum cut is overlooked.
+
+\paragraph{Graph Contraction}
+Graph contraction is a technique where two vertices $u$ and $v$ are merged into a single vertex, \(s_{uv}\). All edges previously incident to $u$ or $v$ are now incident to \(s_{uv}\), and any parallel edges between $u$ and $v$ are summed up. This contraction process reduces the complexity of the graph, making it simpler to identify cuts as the algorithm proceeds.
+
+\subsection{Implementation}
+
+The \texttt{run} function orchestrates the overall execution of the Stoer-Wagner algorithm. It begins by preparing the graph's nodes and edges for processing. The core of this function is a loop that continues contracting the graph until only one vertex remains. Within each iteration of this loop, the function calls \texttt{minCutPhase} to determine the minimum cut for the current state of the graph. By repeatedly finding and applying these minimum cuts, the algorithm ensures that the global minimum cut is identified. The value of the minimum cut found in each phase is compared and updated to keep track of the smallest cut found during the entire process.
+
+\begin{minted}[linenos]{cpp}
+void StoerWagnerMinCut::run() {
+    std::vector<node> localVertices(graph->numberOfNodes());
+    std::vector<std::vector<double>> edges(graph->numberOfNodes(),
+            std::vector<double>(graph->numberOfNodes(), 0));
+    minCutValue = INT_MAX;
+    graph->forNodes([&](node u) {
+        localVertices[u] = u;
+    });
+    graph->forEdges([&](node u, node v, double w) {
+        edges[u][v] = w;
+        edges[v][u] = w;
+    });
+    while (localVertices.size() > 1) {
+        minCutValue = std::min(minCutValue, minCutPhase(localVertices, edges));
+    }
+}
+\end{minted}
+
+The \texttt{minCutPhase} function is responsible for executing one phase of the Stoer-Wagner algorithm, which involves finding a minimum cut within a subset of the graph. The function starts by determining the connectivity weights of the vertices, identifying the most tightly connected vertex at each step. It iteratively selects the vertex with the highest connectivity to the growing set of selected vertices. This selection process continues until only one vertex remains unselected. At this point, the weight of the last added vertex represents the minimum cut for this phase.
+
+The function then updates the graph by merging the last added vertex with its predecessor in the sequence, adjusting the edge weights accordingly. This merging (or contraction) of vertices simulates the reduction of the graph, ensuring that all possible cuts are considered in subsequent iterations. By updating the weights and repeating the selection process, the algorithm guarantees that no potential minimum cut is overlooked.
+
+\begin{minted}[linenos]{cpp}
+double StoerWagnerMinCut::minCutPhase(std::vector<node>& vertices,
+        std::vector<std::vector<double>>& edges) {
+    int size = vertices.size();
+    std::vector<double> weightsPhase(size, 0);
+    std::vector<bool> added(size, false);
+    int prev, last = 0;
+    for (int i = 0; i < size; ++i) {
+        prev = last, last = -1;
+        for (int j = 0; j < size; ++j) {
+            if (!added[j] && (last == -1 || weightsPhase[j] > weightsPhase[last])) {
+                last = j;
+            }
+        }
+        if (i == size - 1) {
+            double minCut = weightsPhase[last];
+            for (int j = 0; j < size; ++j) {
+                if (j != last) {
+                    edges[vertices[prev]][vertices[j]] += 
+                                    edges[vertices[last]][vertices[j]];
+                    edges[vertices[j]][vertices[prev]] += 
+                                    edges[vertices[j]][vertices[last]];
+                }
+            }
+            vertices.erase(vertices.begin() + last);
+            return minCut;
+        }
+        added[last] = true;
+        for (int j = 0; j < size; ++j) {
+            if (!added[j]) {
+                weightsPhase[j] += edges[vertices[last]][vertices[j]];
+            }
+        }
+    }
+    return INT_MAX;
+}
+\end{minted}
+
+\subsection{Correctness}
+The algorithm is based on two main principles: the preservation of a global minimum cut through edge contractions and the accurate identification of the minimum cut during each phase. Below, we provide a proof of correctness, demonstrating that the algorithm reliably finds the minimum cut.
+
+\begin{theorem}
+    The global minimum cut is preserved through edge contraction.
+\end{theorem}
+
+\begin{proof}
+    
+    Let us apply \Cref{def:capacityCut} to an undirected graph \( G = (V, E, w) \). The capacity of a cut \((S, T)\) is given by:
+    \[
+    w(S, T) = \sum_{\substack{(u,v) \in E: u \in S, v \in T}} w(u, v).
+    \]
+    where the \emph{minimum cut} is the cut \((S, T)\) that minimizes \( w(S, T) \) (\Cref{def:minCut}).
+    
+    During the execution of the Stoer-Wagner algorithm, vertices are iteratively contracted. Let \( G' \) be the graph obtained after contracting an edge \((u, v)\) in \( G \). The key property is that any cut in \( G' \) corresponds to a cut in \( G \), and vice versa, with the same cut weight.
+    
+    If \( u \) and \( v \) are in the same part of the cut (i.e., both in \( S \) or both in \( T \)), contracting \( u \) and \( v \) into a single vertex \( s_{uv} \) does not change the cut value. This is because the edge \((u, v)\) is internal to \( S \) or \( T \) and does not cross the cut. Formally, if \( u, v \in S \), then after contraction, the new vertex \( s_{uv} \) will still be in \( S \), and the cut value remains the same:
+    \[
+    w(S, T) = w((S \cup \{s_{uv}\}) \setminus \{u, v\}, T).
+    \]
+    
+    If \( u \) and \( v \) are in different parts of the cut (i.e., \( u \in S \) and \( v \in T \)), the contraction must ensure that the sum of the weights of the edges crossing the cut remains unchanged. When \( u \) and \( v \) are contracted into a single vertex \( s_{uv} \), the weight of the edge connecting \( s_{uv} \) to any other vertex \( x \) is the sum of the weights of the edges connecting \( u \) and \( v \) to \( x \). Specifically, the new weight \( w(s_{uv}, x) \) is defined as follows:
+    
+    - If \( x \) was a neighbor of both \( u \) and \( v \), then:
+    \[
+    w(s_{uv}, x) = w(u, x) + w(v, x).
+    \]
+    
+    - If \( x \) was a neighbor of only one of \( u \) or \( v \), then (without loss of generality we assume it was \(u\)):
+    \[
+    w(s_{uv}, x) = w(u, x).
+    \]
+    
+    Thus, the contraction process preserves the minimum cut property, as the cut weight remains unchanged whether \( u \) and \( v \) are in the same or different parts of the cut.
+\end{proof}
+
+
+\begin{theorem}
+    The algorithm correctly finds the minimum cut during each phase.
+\end{theorem}
+
+\begin{proof}
+    Let \( A \) be the set of vertices selected in a phase, and let \( v \) be the last vertex added to \( A \). The cut \((A \setminus \{v\}, \{v\})\) is identified as a candidate for the minimum cut. The correctness of this identification relies on the property that the last added vertex, being the most tightly connected to the rest, represents a critical point for evaluating the cut weight.
+    
+    To formally prove the correctness, we use mathematical induction on the number of vertices \( n \) in the graph. We claim that for any graph with \( k \) vertices (where \( k \leq n \)), the Stoer-Wagner algorithm correctly identifies the minimum cut.
+    
+    For \( n = 2 \), the algorithm trivially identifies the cut between the two vertices, which is the only possible cut and thus the minimum cut.
+    
+    Assume that the algorithm correctly identifies the minimum cut for any graph with \( k \) vertices, where \( k < n \). Now, Consider a graph \( G \) with \( n \) vertices. During a phase, the algorithm contracts the graph to \( G' \) with \( n-1 \) vertices. By the induction hypothesis, the algorithm correctly finds the minimum cut in \( G' \). Since the contraction preserves the minimum cut property, the identified cut in \( G' \) corresponds to the minimum cut in \( G \).
+    
+    By iteratively applying this process, the algorithm eventually reduces the graph to two vertices, ensuring that the minimum cut identified in each phase is correct. Therefore, by mathematical induction, the Stoer-Wagner algorithm correctly finds the minimum cut in any undirected, weighted graph.
+\end{proof}
+
+Overall, the Stoer-Wagner algorithm systematically reduces the graph while preserving the minimum cut properties, ensuring that all potential cuts are considered. By leveraging the properties of edge contraction and maximum adjacency, the algorithm guarantees that the smallest cut is found efficiently and accurately. This rigorous approach underpins the correctness of the Stoer-Wagner algorithm.
+
+
+\subsection{Time Complexity}
+
+The time complexity of the Stoer-Wagner algorithm is an important aspect to consider, as it impacts the algorithm's efficiency and practicality for large graphs. The algorithm's time complexity can be analyzed by examining the key operations performed during its execution.
+
+\begin{lemma}
+    \label{lemma:stoer_2}
+    The single pass of the \texttt{minCutPhase} function takes \( O(|V|^2 + |E|) \) time.
+\end{lemma}
+
+\begin{proof}
+    Selection of the most tightly connected vertex involves finding the vertex with the maximum weight among those not yet added to the growing set. This requires scanning all vertices, resulting in a time complexity of \( O(|V|) \) for each selection. Since this selection is performed \( |V| \) times in each phase, the total time complexity for this operation is \( O(|V|^2) \).
+    
+    After selecting a vertex, the edge weights are updated to reflect the new connectivity. This involves updating the weights for all edges incident to the selected vertex. The time complexity for updating the edge weights is \( O(|E|) \).
+\end{proof}
+
+\begin{lemma}
+    The overall time complexity of the Stoer-Wagner algorithm is \(O(|V|^3 + |V| \cdot |E|).\)
+\end{lemma}
+
+\begin{proof}
+    First observe that the \texttt{run} function performs \( |V|-1 \) iterations, as in each iteration, one vertex is contracted. Then by combining this observation with \Cref{lemma:stoer_2} we get that overall time complexity is:
+    \[
+    O(|V| \cdot (|V|^2 + |E|)) = O(|V|^3 + |V| \cdot |E|).
+    \]
+\end{proof}
+
+
+It is worth noting that the time complexity of the \texttt{minCutPhase} function can be improved to \( O(|E| + |V| \log |V|) \) by using a heap (priority queue) to manage the selection of the vertex that has the largest sum of edge weights connecting it \cite{stoer1997simple}. This optimization leverages the efficient logarithmic time complexity for insertion and extraction operations provided by the heap data structure.

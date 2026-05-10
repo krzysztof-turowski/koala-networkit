@@ -1,0 +1,85 @@
+\section{Skew heap}
+
+The skew heap is a priority queue implemented as a binary tree, where all operations are based on a self-adjusting merge procedure. It was introduced by Robert Tarjan and Andrew Sleator in their 1986 paper \emph{Self-adjusting heaps}~\cite{SleatorTarjan1986}. Skew heaps are notable for their remarkably simple implementation and their ability to efficiently merge two heaps in \( O(\log n) \) amortized time. What makes them particularly interesting from the analysis standpoint is that, despite having no structural constraints, their efficiency can be proven through a concise and elegant amortized analysis.
+
+\subsection{Structure and merge operation}
+
+The basic structure of the \texttt{SkewHeap} class is identical to that of a standard binary tree, so we omit its full definition here.
+
+As noted earlier, the most important and complex operation on a skew heap is the \texttt{merge} operation. Given the roots of two skew heaps, denoted \texttt{a} and \texttt{b}, \texttt{merge} produces a new skew heap rooted at the smaller of the two (we continue to assume a \emph{min}-priority queue). At the same time, it rearranges the subtrees to maintain the efficiency of subsequent operations.
+
+Assuming that \texttt{a} is the smaller of the two roots, we recursively merge \texttt{a}'s right subtree with the heap rooted at \texttt{b}, and set the result as \texttt{a}'s new right subtree. Finally, we swap \texttt{a}'s left and right subtrees to complete the merge.
+
+\begin{minted}{cpp}
+Node* SkewHeap::merge(Node* a, Node* b) {
+    if (!a) return b;
+    if (!b) return a;
+    if (comp_(b->key, a->key)) {
+        std::swap(a, b);
+    }
+    a->right = merge(a->right, b);
+    std::swap(a->left, a->right);
+    return a;
+}
+\end{minted}
+
+A more intuitive way to visualize how \texttt{merge} works is as follows: we first merge the rightmost paths of the two input heaps into a single right-leaning path with increasing keys. Along this path, each node retains its original left subtree unchanged. Once this combined path is formed, we simply swap the children at each node.
+
+The running time of \texttt{merge} is proportional to the length of this merged path, as a constant amount of work is performed at each node. To guarantee that this operation is sufficiently efficient for our purposes, we will prove the following lemma using amortized analysis and the potential method:
+
+\begin{lemma}
+The \texttt{merge} operation has \(O(\log n)\) amortized complexity.
+\end{lemma}
+
+\begin{proof}
+Let \( W(x) \) denote the size of the subtree rooted at node \(x\), including \(x\) itself. We refer to a non-root node \(x\) as \emph{heavy} if \( W(x) > W(\mathrm{parent}(x))/2\), and as \emph{light} otherwise. Naturally, at most one child of any node can be heavy, since a heavy child's subtree accounts for more than half of the parent's subtree. 
+
+A key fact we will use extensively is that any downward path in a binary tree of \(n\) nodes contains at most \(\lfloor \log n \rfloor\) light nodes. This follows because, for any path from node \(x\) to node \(y\) containing \(k\) light nodes, the subtree sizes satisfy \(W(y) \leq W(x) / 2^k\), as each light node contributes at most a halving of its parent's size. Therefore, \(2^k \leq W(x) / W(y)\), which gives \(k \leq \log(W(x)/W(y)) \leq \log n\).
+
+We define the \emph{potential} of our data structure as the number of heavy nodes that are right children. Initially, before any operations are performed, this potential is zero. It remains non-negative at all times and is bounded above by \(n - 1\) for a skew heap with \(n\) nodes.
+
+Now consider performing a \texttt{merge} operation on two heaps \(h_1\) and \(h_2\), containing \(n_1\) and \(n_2\) elements, respectively, and let \(n = n_1 + n_2\). The number of light nodes along the rightmost paths of \(h_1\) and \(h_2\) is bounded by \(\lfloor \log n_1 \rfloor\) and \(\lfloor \log n_2 \rfloor\), respectively, so the total number of light nodes on these paths is at most \(2 \lfloor \log n \rfloor\).
+
+Let \(k_1\) and \(k_2\) denote the number of heavy nodes on the merged path originating from each of the two heaps. We can notice that all of those nodes become left children after the merge. Further, let \(k_3\) be the number of nodes that become right heavy children as a result of the merge. Each node counted in \(k_3\) corresponds to a light node on the merge path. Specifically, this corresponding node is its light sibling in the original heap. If the child of the last node on the merge path has no sibling, we include the root itself in the count. From our earlier derivations, it follows that \(k_3 \leq \lfloor \log n \rfloor\).
+
+Additionally, both roots of the original heaps participate in the merge path, contributing two more nodes to its length. With this setup in place, we can now bound the amortized time of \texttt{merge}. The total number of nodes on the merge path is at most
+\[
+2 + 2 \lfloor \log n \rfloor + k_1 + k_2.
+\]
+The change in potential is given by 
+\[
+k_3 - (k_1 + k_2) \leq \lfloor \log n \rfloor - k_1 - k_2.
+\]
+Thus, the amortized time of \texttt{merge} is bounded by 
+\[
+2 + 2 \lfloor \log n \rfloor + k_1 + k_2 + \lfloor \log n \rfloor - k_1 - k_2 = 3\lfloor \log n \rfloor + 2 = O(\log n).
+\]
+\end{proof}
+
+\subsection{Push and pop operations}
+
+With the \texttt{merge} operation thoroughly understood, implementing \texttt{push} and \texttt{pop} becomes remarkably straightforward, requiring only a few lines of code. Their analysis is similarly simple, as each operation involves a single call to \texttt{merge} along with a constant amount of additional work.
+
+\begin{minted}{cpp}
+void SkewHeap::push(const Key& key) override {
+    Node* new_node = new Node(key);
+    root = merge(root, new_node);
+}
+\end{minted}
+
+The \texttt{push} operation creates a new node and merges it with the \texttt{root}. Since it only requires a single call to \texttt{merge}, its amortized time complexity is \(O(\log n)\).
+
+\begin{minted}{cpp}
+SkewHeap::Key pop() override {
+    if (empty()) {
+        throw std::runtime_error("Priority queue is empty");
+    }
+    Key top = root->key;
+    Node* old_root = root;
+    root = merge(root->left, root->right);
+    delete old_root;
+    return top;
+}
+\end{minted}
+
+The \texttt{pop} operation first retrieves the value stored at the root, which will be returned. It then merges the root’s left and right subtrees to form a single skew heap. As before, the single call to \texttt{merge} ensures an amortized time complexity of \(O(\log n)\).

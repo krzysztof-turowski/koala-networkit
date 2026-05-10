@@ -1,0 +1,120 @@
+\section{Karger algorithm}
+\label{sec:karger}
+
+    \subsection{Idea}
+    
+    Karger's algorithm is a randomized algorithm designed to find the minimum cut in an unweighted graph. The algorithm leverages randomness to repeatedly contract edges until only two vertices remain, at which point the remaining edges between these two vertices represent a cut in the original graph. The key insight is that, by contracting edges in a certain manner, the probability of retaining a minimum cut in the contracted graph is sufficiently high, making the algorithm efficient in finding such cuts with high probability.
+
+    The process begins with an undirected graph \(G = (V, E)\), where \(V\) is the set of vertices and \(E\) is the set of edges. The algorithm proceeds by randomly selecting an edge \((u, v) \in E\) and contracting it, effectively merging the vertices \(u\) and \(v\) into a single vertex while preserving the multiplicity of edges. This contraction reduces the number of vertices by one and the total number of edges is adjusted accordingly. The process is repeated until only two vertices remain.
+
+    Formally, the contraction of an edge \((u, v)\) involves the following steps:
+    \begin{itemize}
+        \item Merge vertices \(u\) and \(v\) into a single vertex \(w\).
+        \item Replace all edges \((u, x)\) and \((v, x)\) with edges \((w, x)\) for all \(x \in V \setminus \{u, v\}\).
+        \item Remove self-loops, i.e., edges of the form \((w, w)\).
+    \end{itemize}
+
+
+    \subsection{Implementation}
+    
+    The \texttt{run()} function is responsible for executing the algorithm multiple times and recording the smallest cut value encountered. This repetition leverages the probabilistic nature of Karger's algorithm, which increases the likelihood of identifying the true minimum cut through multiple independent trials. The function iterates over a predetermined number of repetitions, each time invoking \texttt{runOnce} to perform a single iteration of the algorithm. The smallest cut value found across all iterations is stored as the final result.
+
+\begin{minted}[linenos]{cpp}
+void KargerMinCut::run() {
+    double bestMinCutValue = INT_MAX;
+    for (int i = 0; i < repeat; ++i) {
+        runOnce();
+        bestMinCutValue = std::min(bestMinCutValue, minCutValue);
+    }
+    minCutValue = bestMinCutValue;
+}
+\end{minted}
+
+The \texttt{runOnce} function embodies the core of Karger's algorithm, executing the edge contraction process until only two vertices remain. Initially, the function sets up the required data structures, including the parent and rank vectors used for the union-find operations \cite{galler1964}, which help efficiently manage the merging of vertex subsets.
+
+The algorithm begins by calculating the total weight of all edges and selecting edges randomly based on their weights. This weighted random selection ensures that edges with higher weights have a proportional chance of being selected, which is crucial for maintaining the algorithm's probabilistic guarantees. 
+
+The main loop continues contracting edges until only two vertices are left. During each iteration, a random edge is selected, and its endpoints' subsets are identified using the \texttt{find} function. If the selected edge connects two different subsets, the subsets are merged using the \texttt{unionSub} function, and the number of vertices is decremented. The weight of the selected edge is also subtracted from the total weight to maintain the correct probabilities for subsequent selections.
+
+\begin{minted}[linenos]{cpp}
+void KargerMinCut::runOnce() {
+    int vertices = graph->numberOfNodes();
+    std::vector<int> parent(vertices), rank(vertices, 0);
+    minCutValue = 0;
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    double totalWeight = 0;
+    std::vector<WeightedEdge> edges;
+    graph->forEdges([&](node u, node v, edgeweight weight) {
+        edges.emplace_back(u, v, weight);
+        totalWeight += weight;
+    });
+    std::uniform_real_distribution<> dis(0.0, totalWeight);
+    for (int i = 0; i < graph->numberOfNodes(); ++i) {
+        parent[i] = i;
+    }
+    while (vertices > 2) {
+        double pick = dis(gen);
+        double cumulativeWeight = 0;
+        int selectedEdge = -1;
+        for (int i = 0; i < edges.size(); ++i) {
+            cumulativeWeight += edges[i].weight;
+            if (cumulativeWeight >= pick) {
+                selectedEdge = i;
+                break;
+            }
+        }
+        int subset1 = find(parent, edges[selectedEdge].u);
+        int subset2 = find(parent, edges[selectedEdge].v);
+        if (subset1 != subset2) {
+            unionSub(parent, rank, subset1, subset2);
+            vertices--;
+            totalWeight -= edges[selectedEdge].weight;
+        }
+    }
+    graph->forEdges([&](node u, node v, edgeweight weight) {
+        int subset1 = find(parent, u), subset2 = find(parent, v);
+        if (subset1 != subset2) {
+            minCutValue += weight;
+        }
+    });
+}
+\end{minted}
+
+
+\subsection{Correctness and time complexity}
+    
+    The correctness of Karger's algorithm is rooted in its probabilistic nature, specifically the probability that the minimum cut survives through the random edge contractions. Here, we provide a formal proof of this probability and determine the number of iterations required to achieve at most \( \frac{1}{|V|} \) chance of error. Additionally, we discuss the time complexity of the algorithm for both a single run and multiple iterations.
+
+    Karger's algorithm repeatedly contracts edges until only two vertices remain. Each contraction step merges two vertices into one, reducing the number of vertices while preserving the structure of the graph with a high probability of retaining the minimum cut.
+
+    Let \( G = (V, E) \) be an undirected graph (\Cref{def:graph}) with \( |V| \) vertices and let \( C \) be a minimum cut in \( G \). Initially, the probability of not selecting an edge from the minimum cut \( C \) in the first contraction is:
+    \[
+    1 - \frac{|C|}{m}
+    \]
+    For each subsequent contraction, the probability that the minimum cut survives is proportional. The overall probability that the minimum cut survives through \( |V| - 2 \) contractions is:
+    \[
+    \prod_{i=0}^{n-3} \left( 1 - \frac{2}{ |V| - i} \right) = \frac{2}{|V| \cdot (|V| - 1)}
+    \]
+
+    Thus, the probability of finding the minimum cut in one run of Karger's algorithm is \( \frac{2}{|V| \cdot (|V| - 1)} \). To increase the probability of finding the minimum cut, the algorithm is repeated multiple times. To achieve a high probability of finding the minimum cut, consider repeating the algorithm \( t \) times. The probability of failing to find the minimum cut in one run is \( 1 - \frac{2}{|V| \cdot (|V| - 1)} \). The probability of failing in all \( t \) runs is:
+    \[
+    \left(1 - \frac{2}{|V| \cdot (|V| - 1)}\right)^t
+    \]
+    If we set \( t \geq \frac{|V| \cdot (|V| - 1) \cdot \ln(|V|)}{2} \) then we can obtain that
+    \[ \left(1 - \frac{2}{|V| \cdot (|V| - 1)}\right)^t  \leq \frac{1}{|V|}\]
+    Therefore, to achieve a \( \frac{1}{|V|} \) probability of error, the algorithm should be repeated \( O(|V|^2 \cdot \log |V|) \) times. This ensures a high probability of finding the minimum cut in the graph.
+
+    The time complexity of one run of Karger's algorithm can be analyzed based on the steps involved in each contraction. The algorithm involves:
+    \begin{itemize}
+        \item Selecting a random edge: \( O(|E|) \) time.
+        \item Contracting the selected edge: \( O(\log |V|) \) time, using the union-find data structure with path compression and union by rank.
+        \item Updating the graph and edge weights: \( O(|E|) \) time.
+    \end{itemize}
+    Since there are \( |V| - 2 \) contractions, the total time complexity for one run is \(O(|V|^2)\)
+
+    Given that the algorithm needs to be repeated \( O(|V|^2 \cdot \log |V|) \) times to achieve a high probability of finding the minimum cut, the overall time complexity becomes \(O(|V|^2 \cdot |V|^2 \cdot \log |V|) = O(|V|^4 \cdot \log |V|)\)
+    
+    It is noteworthy that our implementation currently operates in \( O(|V|^2) \) time for each run. However, this can be optimized using Kruskal's algorithm for constructing minimum spanning trees. By leveraging Kruskal's algorithm, the contraction steps can be performed more efficiently, reducing the time complexity for each run to \( O(|E| \log |E|) \) \cite{kruskal1956shortest}. In dense graphs, where \( |E| = O(|V|^2) \), this can further be improved to \( O(|E|) \) time using more advanced data structures \cite{karger1993global}. Consequently, the overall time complexity for multiple iterations becomes \( O(|V|^2 \cdot \log |V|) \cdot O(|E| \cdot \log |E|) = O(|V|^2 \cdot |E| \cdot \log |V| \log |E|) \) or even, this could be further reduced to \( O(|V|^2 \cdot |E| \cdot \log |V|) \).
+
+    In summary, with the proper settings, Karger's algorithm is both correct with high probability and computationally feasible. The probabilistic guarantee is ensured by multiple independent iterations, while the time complexity remains manageable for practical applications. By repeating the algorithm \( O(|V|^2 \cdot \log |V|) \) times, we achieve a high probability of identifying the minimum cut, making Karger's algorithm a robust and efficient solution for the minimum cut problem in undirected graphs.

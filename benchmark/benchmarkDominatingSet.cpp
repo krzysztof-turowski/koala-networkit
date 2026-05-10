@@ -1,13 +1,15 @@
 #include <cassert>
 #include <iostream>
 #include <map>
+#include <set>
+#include <string>
 
 #include <dominating_set/ExactDominatingSet.hpp>
 #include <io/G6GraphReader.hpp>
 #include <set_cover/BranchAndReduceSetCover.hpp>
 
 template <typename T>
-int run_algorithm(NetworKit::Graph &G, bool print = false) {
+int run_algorithm(NetworKit::Graph &G) {
     auto algorithm = T(G);
     algorithm.run();
     auto &dominating_set = algorithm.getDominatingSet();

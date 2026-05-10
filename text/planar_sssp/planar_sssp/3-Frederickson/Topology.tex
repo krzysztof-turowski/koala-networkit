@@ -1,0 +1,148 @@
+\section{Topology based heap}
+
+\begin{defn}[boundary set]
+A \emph{boundary set} is a maximal subset of boundary nodes such that every member of a set is shared by exactly the same set of regions.
+\end{defn}
+
+The structure will provide two main operations:
+
+\begin{itemize}
+    \item look up of the boundary vertex with smallest current value in $O(1)$ time,
+    \item update of all vertices in boundary set $S$ called \emph{batch-update}. The required time will be described later.
+\end{itemize}
+
+But first, we need to identify all boundary sets. The \Cref{sortsets} identifies all boundary sets by creating for every boundary node a sorted list of all regions that contains it. After sorting all the lists using linear sorting algorithm e.g. \emph{radix-sort}, boundary sets can be identified as groups of identical lists.
+
+\begin{algorithm}
+\caption{\textsc{FindBoundarySets}}\label{sortsets}
+\begin{algorithmic}[1]
+\Require Partition of graph into regions $R$
+\Ensure Boundary sets for all boundary vertices
+\State ${R_1,..., R_k} \gets R$ \Comment{number all regions}
+
+\ForEach{boundary vertex $v$}
+    \State $S[v] \gets$ sorted list of numbers associated with regions that contain $v$
+\EndFor
+\State Sort a set of all lists $S$ using radix sort
+\State $lastList \gets \emptyset$
+\State $id \gets 0$
+\ForEach{$S[v] \in S$}
+    \If{$S[v] \neq lastList $}
+        \State $id \gets id + 1$
+        \State $lastList \gets S[v]$
+    \EndIf 
+    \State $B_{id} \gets B_{id} \cup \{v\}$
+\EndFor
+\State \Return{$B_1, ..., B_l$}
+\end{algorithmic}
+\end{algorithm}
+
+
+Note that every boundary vertex is shared by at most three regions, so the entire procedure takes $O(n)$ time.
+
+Now, given all boundary sets, we can define the structure. The topology-based heap is represented as a balanced binary tree, in which the values associated with boundary nodes are stored at the leaves. The values corresponding to a particular boundary set are stored in consecutive leaves, in the order determined by the sorted list in \Cref{sortsets}. Thus, the entire initialization procedure can be performed in $O(n)$ time. For the purpose of \Cref{batchupdate} parent of an node $v$ in binary tree is denoted as $parent(v)$.
+
+To perform a \emph{batch update} on some boundary set $S$, we update all leaves associated with $S$. Then, moving layer by layer up the tree, we update the corresponding interior nodes. It is easy to see that this procedure will modify at most $\log n + 2|S|$ nodes. This follows from the fact that there are at most $|S|$ interior nodes in the tree whose descendants correspond to nodes in the boundary set. The only other affected nodes are the interior nodes adjacent to ancestors of the boundary set nodes, and there are at most two such nodes per tree level.
+
+\begin{algorithm}
+\caption{\textsc{BatchUpdate}}\label{batchupdate}
+\begin{algorithmic}[1]
+\Require Topology-based heap $H$, boundary set $S$, node $v$, distances $dist(v,w)$ for all $w \in S$ to $v$
+\Ensure Updates all values in $H$ for $S$ and propagates changes up the tree
+\State $P \gets \emptyset$ \Comment{queue of parents}
+\ForEach{leaf node $w$ in $H$ corresponding to $w \in S$}
+    \State $value \gets H[w]$
+    \If{$d[v] + dist(v,w) < value$}
+        \State $H[w] \gets \min(d[v] + dist(v,w), value)$    
+        \State $P.push(parent(w))$
+    \EndIf
+\EndFor
+\While{$P$ is not empty}{
+    \State $v \gets P.front()$
+    \State $H.fixHeap(v)$
+    \State $P.remove(v)$
+    \State $P.push(parent(v))$
+\EndWhile
+}
+\end{algorithmic}
+\end{algorithm}
+
+We can now describe how the heap is used during the main phase of the algorithm. The algorithm requires the distances between every pair of boundary vertices within each region. These distances can be precomputed before the main phase begins.
+
+Before main thrust we initialize $d[v] = \infty$ for all boundary vertices and $d[s] = 0$ for the source node s. We also calculate distances from $s$ to all boundary nodes that share region with $s$ using Dijkstra algorithm on subgraph induced by region of $s$.
+
+\begin{algorithm}
+\caption{\textsc{MainThrust}}\label{mainthrust}
+\begin{algorithmic}[1]
+\Require Precomputed distances $dist(\cdot,\cdot)$, source vertex $s$, graph $G$
+\Ensure Array of shortest distances from $s$ to all boundary vertices
+\ForEach{boundary vertex $v$}
+\State $d[v] \gets \infty$
+\EndFor
+\State $d[s] \gets 0$
+\State $H \gets initialize(d)$ \Comment{topology-based heap}
+\ForEach{region $R$ containing $s$}
+    \ForEach{boundary set $S \subseteq R$}
+        \State \Call{BatchUpdate}{$H$, $v$, $S$}
+    \EndFor
+\EndFor
+\While{$H.minValue() \neq \infty$}
+    \State $v \gets H.minVertex()$ \Comment{vertex with minimal value in heap}
+    \State $d[v] \gets H.minValue()$
+    \ForEach{region $R$ containing $v$}
+        \ForEach{boundary set $S \subset R$}
+            \State \Call{BatchUpdate}{$H$, $v$, $S$}
+        \EndFor
+    \EndFor
+\EndWhile
+\State \Return $d$
+\end{algorithmic}
+\end{algorithm}
+
+Given the preprocessing step where all necessary distances between boundary vertices within each region are precomputed, the main phase of the algorithm can then proceed as follows. The topology-based heap is initialized with the distances from the source to the boundary vertices in the region containing the source. Then while there exists an open vertex $v$ we process it similarly to Dijkstra's algorithm, we perform batch-updates for every boundary set of each region that contains $v$. In each batch-update, the values associated with boundary vertices are updated using the precomputed distances and the current value of $d[v]$, in a manner analogous to relaxing edges in Dijkstra's algorithm. Than vertex $v$ is closed.
+
+Importantly, for each pair of a vertex $v$ and a boundary set $S$, a batch-update will be performed at most once, since $v$ is marked as closed after all its updates have been completed. This observation is crucial for proving time complexity of \Cref{mainthrust}
+
+After the main phase is complete, the shortest distances from the source to all boundary vertices are known. To obtain the shortest distances to all other vertices, a final "mop-up" step is performed in each region, using the known distances to the boundary vertices as starting values for the Dijkstra algorithm.
+
+It is a well-know fact that for a shortest path algorithm on w graph $G$ with a source vertex $s$ to be correct 3 conditions must hold.
+\begin{itemize}
+    \item $d[s] = 0$ for the source vertex $s$.
+    \item For every vertex $v \in V$, $d[v]$ must be an upper bound of and actual distance from $s$ to $v$
+    \item For every edge $\{u, v\}$ two inequalities $d[v] \leq d[u] + w(u,v)$ and $d[u] \leq d[v] + w(u,v)$ hold.
+\end{itemize}
+
+\begin{lemma}
+The main thrust of the algorithm, given correctly precomputed distances in each region, will compute the correct distances from the source $s$ to all boundary nodes.
+\end{lemma}
+
+\begin{proof}
+This claim can be easily proven by constructing an appropriate graph $G'$, and observing that all three conditions hold.
+
+The construction of $G'$ is as follows, let $G'$ be the subgraph induced by all boundary nodes and the source $s$. For every pair of vertices for which a distance was precomputed, we add an edge with the corresponding weight. Specifically, we add edges from the source $s$ to all boundary nodes in the region containing $s$, and, for each region, we add edges between every pair of its boundary nodes with weights equal to the precomputed distances.
+
+The first condition is satisfied, since $d[s] = 0$ is set at the beginning of the algorithm. The second condition can be easily proven by induction on the steps of the algorithm. By the induction hypothesis, $d[v]$ is an upper bound on the distance from $s$ to $v$. After any batch update of a boundary set $S$, for every $w \in S$ the value in the heap is set to $d[v] + dist(v, w)$, so the upper bound property is maintained.
+
+To prove that the third condition holds, assume for the sake of contradiction that after the algorithm terminates, there exists an edge $(u, v)$ such that
+
+$$d[u] > d[v] + w(u,v).$$
+
+Consider the moment when vertex $v$ was processed (i.e., removed from the priority queue). At that point, the value $d[v]$ was finalized and was the smallest among all values in the queue. Since $u$ is adjacent to $v$, the value of $d[u]$ would have been set to at most $d[v] + w(u, v)$ during the update step, contradicting our assumption. Thus, the third condition is also satisfied.
+
+\end{proof}
+
+\begin{theorem} [Theorem 2. in \cite{frederickson}]
+Let an planar graph with n vertices be divided into a suitable r-division. Using the associated topology-based heap, the main thrust of Frederickson's SSSP algorithm will perform set of batch-update operations which cost $O(n + (n/\sqrt{r})\log n)$.
+\end{theorem}
+
+\begin{proof}
+Since there are at most $O(\sqrt{r})$ boundary vertices in each region, and each boundary set can belong to at most three regions, a batched update can be performed on any given boundary set at most $O(\sqrt{r})$ times. Therefore, the total work for all batched updates associated with a single boundary set $B$ is $O(\sqrt{r} \log n + \sqrt{r}|B|)$.
+
+The number of boundary sets can be easily estimated using the fact that it is less than the sum of the number of edges and the number of faces in the planar region graph. This yields a total of $O(n/r)$ boundary sets. Thus, the overall cost of the first term is $O((n/\sqrt{r})\log n)$. Since the total number of boundary vertices is $O(n / \sqrt{r})$, the combined cost of the second term over all boundary sets is $O(n)$.
+\end{proof}
+
+
+
+
+
+

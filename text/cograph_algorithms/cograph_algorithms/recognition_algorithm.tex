@@ -1,0 +1,506 @@
+\label{Algorithm}
+\section{General idea}
+We are given a graph $G$. To determine if it is a cograph, we use the second fact from \Cref{Fundamental theorem}: a graph is a cograph if and only if its every nontrivial induced subgraph has a pair of twin vertices. In the second part of this section, we present a linear algorithm that checks whether every induced subgraph of the graph has a pair of twin vertices. For this, the algorithm requires not only the graph $G$ but also a factorizing permutation of its vertices.
+
+Thus, we need an algorithm that constructs a factorizing permutation for a cograph and returns a random permutation for a non-cograph.
+\section{Factorizing permutation}
+
+\subsection{Idea}
+The algorithm maintains a partition $P$ of the vertices of graph $G$. At each step, we refine the partition. To do this, we use two types of operations, which we call Rule 1 and Rule 2. These operations are chosen such that if $G$ is a cograph and factorizing permutation of the vertices of $G$ compatible with $P$ before using the rule exist, then a factorizing permutation compatible with $P$ after using the rule exist. After each partitioning step, the number of parts cannot decrease. Due to the properties of the rules, the number of parts increases. Consequently, at some point, the partition $P$ consists of $|V|$ parts, each with one vertex.
+Later, we prove that for any graph, the number of rules applied cannot exceed $2 \cdot |E|$. If the partition $P$ consists of $|V|$ parts, each with one vertex, then P is a permutation of the vertices of graph $G$. If $G$ is a cograph, a factorizing permutation compatible with the partition $P$ always exist, and therefore $P$ itself is a factorizing permutation. If $G$ is not a cograph, the algorithm returns a random permutation.
+\subsection{Rule 1}
+
+\begin{definition}[Rule 1, Initialization rule in \cite{HABIB2005183}]
+ Let $\rho$ be a part in a partition, then pick an arbitrary vertex $x \in \rho$  hereafter called the \emph{origin} of $\rho$, and refine $\rho$ into $\{  \bar{N}(x) \cap \rho, \{x\}, N(x) \cap \rho \}$.  
+ \label{Rule 1}
+\end{definition}
+
+
+
+This rule has the property that if there is a compatible with partition $P$ factorizing permutation before the operation, there will be also a compatible with partition $P$ factorizing permutation after the operation.
+
+Let us prove that we can use Rule 1 in the first step of the algorithm.
+
+\begin{theorem}[Lemma 14 in \cite{HABIB2005183}]
+  Let $x$ be an arbitrary vertex of a cograph, then there is a factorizing permutation compatible with partition  $P= \{  \bar{N}(x), \{x\}, N(x) \}$.
+  \label{Starting case for the Rule 1}
+\end{theorem}
+
+\begin{proof}
+For every cograph there is a cotree. Let $T$ be any planar representation of the cotree of the cograph $G$. Let us prove that it is always possible to change the order of the subtrees of the vertices such that the order of the leaves in the left-to-right traversal of the new planar representation of the cotree is compatible with the partition $\{\bar{N}(x), \{x\}, N(x)\}$.
+
+For each vertex $u$  an ancestor of vertex $x$ in the planar representation of the cotree $T$, we change the order of its children. Let $Y=\{y_0, y_1, \dots, y_m \}$ be the set of all ancestors of vertex $x$ in the cotree, such that vertex $y_i$ is the parent of vertex $y_{i+1}$ for each $i = 0, 1, \dots, m-1$. If vertex $y_i$ corresponds to a parallel composition, we make vertex $y_{i+1}$ its right child. If vertex $y_i$ corresponds to a series composition, we make vertex 
+$y_{i+1}$ its left child.
+
+We call the such representation of the cotree $T'$. Then for any vertex $z$ in the cograph, if vertices $x$ and $z$ are adjacent, \Cref{Ancestors remark} proves that their least common ancestor in the cotree $T' \colon$ vertex $u$ is a vertex corresponding to a series composition. Additionally, $u$ belongs to the set $Y$. Then vertex $x$ is in the subtree of a left child of $u$. Therefore,in a left-to-right depth-first search of the tree $T'$ vertex $z$ is visited before vertex vertex $x$. The case where vertex 
+$z$ is not adjacent to vertex $x$ can be proved similarly.
+\end{proof}
+
+Now, let us prove the property of Rule 1 after the start of the algorithm.
+
+
+\begin{theorem}[Lemma 19 in \cite{HABIB2005183}]
+    Let $G=(V,E)$ be a cograph and $P$ be a partition with vertex $x$ as origin, that can be refined into a factorizing permutation. Let $v \in $ part $H_v$ be a pivot. Let us assume that any vertex $z$ such that LCA$(x,z)$ is a descendant of
+LCA$(x, v)$ belongs to a singleton part. Let $P_1$ be the partition obtained from $P$ by splitting $H_v$ into $\{\bar{N}(v) \cap H_v, \{y\}, N(v) \cap H_v \}$. Then there is a factorizing permutation compatible with $P_1$.
+\label{General case for the Rule 1}
+\end{theorem}
+
+
+
+\begin{proof}
+Let $T$ be the planar representation of the cotree corresponding to a factorizing permutation compatible with partition $P$. Let the least common ancestor of vertices $x$ and $v$ in tree $T$ be vertex $y_i$. Let $g_0,g_1,\dots,g_k$ be the path from vertex $y_i$ to vertex $v$. We make vertex $g_0$ the next child after vertex $y_{i+1}$. For vertices $g_0,g_1,\dots,g_k$ the same algorithm as in \Cref{Starting case for the Rule 1} is used. That is, if vertex $g_q$ corresponds to a parallel composition,let us make the subtree with vertex $v$ the rightest subtree. If vertex $g_q$ corresponds to a series composition, let us make the subtree with vertex 
+$v$ the leftest subtree.
+
+Let us prove that the factorizing permutation obtained by a left-to-right depth-first search of the new planar representation of the cotree $T'$ is compatible with the partition $P_1$. Let vertex $w \in H_v$ and its least common ancestor with vertex $x$ be a vertex $y_j$. Then, according to the theorem conditions, either $j \le i$ so the least common ancestor of vertices $x$ and $v$ is a descendant of the least common ancestor of vertices $x$ and $w$.
+
+If $j<i$, then LCA$(x,w)=$LCA$(v,w)=y_j$. According to \Cref{Ancestors remark}, $x$ and $w$ are adjacent if and only if $v$ and $w$ are adjacent. Therefore, a left-to-right depth-first search visits vertex $w$ before vertex $x$ if and only if it visits vertex $w$ before vertex $v$.
+
+If $j=i$, then LCA$(v,w)=g_q$ as already proven in \Cref{Starting case for the Rule 1}, a left-to-right depth-first search visits vertex $w$ before vertex $v$ if and only if $w$ and $v$ are not adjacent.
+
+
+Therefore, a factorizing permutation compatible with partition $P_1$ exists after using Rule 1.
+\end{proof}
+
+\begin{figure}
+    \centering
+    \input{tikz/cograph4}
+    \caption{An example of planar representation of a cotree after applying the Rule 1 for vertex $v$}
+    \label{fig:cograph4}
+\end{figure} 
+
+
+
+\subsection{Rule 2}
+
+ \begin{definition}[Rule 2, Refinement rule 2 in \cite{HABIB2005183}]
+If a vertex $x \notin H$ separates two vertices of a part $H$, then $N(x)$ refines $H$ into  $\{  H \cap \bar{N}(x), H \cap N(x) \}$.
+\label{Rule 2}
+\end{definition}
+
+\begin{figure}
+    \centering
+    \input{tikz/cograph3}
+    \caption{Vertex $z$ splits the part formed by $N(x)$}
+    \label{fig:Vertex $z$ splits the part formed by $N(x)$}
+\end{figure} 
+
+First, let us prove a simpler version of the statement.
+
+\begin{theorem}[Lemma 16 in \cite{HABIB2005183}]
+    Let x be a vertex $x \notin H$ for a part H. Let $y$ and $z$ be two vertices of cograph such that $y \in N(x)$ and $z \in \bar{N}(x)$ 
+    and let $P$ be a partition thinner than $\{\bar{N}(x),\{x\} ,N(x) \}$ such that there is a factorizing permutation compatible with $P$. Moreover,
+    \begin{itemize}
+        \item If $y$ splits a part $H \subseteq \bar{N}(x)$ then there is a factorizing permutation compatible with $P_1$ that is obtained from $P$ by refining
+        $H$ into $\{  H \cap \bar{N}(y), H \cap N(y) \}$.
+        \item If $z$ splits a part $H \subseteq N(x)$ then there is a factorizing permutation compatible with $P_1$ that is obtained from $P$ by refining
+        $H$ into $\{  H \cap \bar{N}(z), H \cap N(z) \}$.
+    \end{itemize}
+    \label{General case for the Rule 2}
+\end{theorem}
+
+
+
+
+\begin{proof}
+Let us prove only the second statement, as the first one can be done similarly.
+
+Let $T$ be a planar representation of the cotree such that the corresponding factorizing permutation is compatible with the partition $P$.  Vertex $z$ separates part $H$. Therefore, there is a vertex $w \in H$ such that $w$ and $z$ are adjacent, and there is a vertex $u \in H$ such that $z$ and $u$ are not adjacent. Then, using \Cref{Ancestors remark}, we obtain the following facts:
+\begin{enumerate}
+    \item LCA$(x,u)$ is a descendant of LCA$(x,z)$.
+    \item LCA$(x,z)$ is a descendant of LCA$(z,w)$.
+    \item LCA$(w,z)$  $=$  LCA$(x,w)$.
+    \item LCA$(x,w)$ is a series node.
+    \item LCA$(x,u)$ is a series node.
+    \item LCA$(x,z)$ is a parallel node.
+\end{enumerate}
+Thus $z$ and any vertex $v \in H$ are non-adjacent if and only if LCA$(v,z)$ $=$ LCA$(x,z)$. An example of a possible cotree is shown in \Cref{fig:Vertex $z$ splits the part formed by $N(x)$}. From the theorem statement, we know that the factorizing permutation corresponding to the cotree is thinner than partition $\{\bar{N}(x),\{x\} ,N(x) \}$. Therefore, the depth-first search visits vertex $x$ before all vertices in set $N(x)$ and after all vertices in set $\bar{N}(x)$.
+Then, a left-to-right depth-first search visits all vertices in set $N(x) \cap \bar{N}(z)$ before any vertex in set $N(x) \cap N(z)$. 
+
+Suppose the opposite that the depth-first search visited $w \in N(x) \cap N(z)$ first, then vertex $u \in N(x) \cap \bar{N}(z)$. Then the order of visiting the vertices is as follows: $z, x, w, u$. Let the least common ancestor of vertices $w$ and $x$ be vertex $y_{m-4}$, and $x$ be a descendant of vertex $y_{m-3}$, which is a child of vertex $y_{m-4}$. Since vertex $x$ is visited before vertex $w$, it follows that vertex 
+$w$ is a descendant of a more right child of vertex $y_{m-4}$. 
+In a left-to-right depth-first search, all vertices in the subtree $T_{y_{m-3}}$ must be visited before visiting vertex $w$. Vertex $u$ belongs to  the subtree $T_{y_{m-3}}$ so this leads to a contradiction.
+
+Therefore, the factorizing permutation corresponding to cotree $T$ is compatible with partition obtained from $P$ by refining $H$ into $\{  H \cap \bar{N}(z), H \cap N(z) \}$.
+
+
+\end{proof}
+
+The general idea is as follows: in the algorithm, we always use Rule 1 at least once before using Rule 2. Other relationship options between part $H$ and vertex $x$ are proven similarly. Therefore, if a factorizing permutation compatible with partition $P$ existed before using Rule 2, then a factorizing permutation compatible with the partition $P_1$ obtained after using Rule 2 also exists.
+
+\subsection{Pseudocode}
+The algorithm is based on Algorithm 2 from \cite{HABIB2005183}.
+Its idea for constructing a factorizing permutation is as follows: initially, the partition consists of one part. We use rules to increase the number of parts. And finally, when the number of parts becomes $|V|$, the algorithm stops.
+
+The algorithm works in stages. At the beginning of each stage, a new vertex is chosen as the origin. Next, Rule 1 is applied to it. Then, as long as there is a part of the partition for which a pivot has not been chosen yet, we select any element of this part as the pivot and use it as a splitter for each other part of the partition.
+
+\begin{minted}[
+frame=lines,
+framesep=2mm,
+baselinestretch=1.2,
+fontsize=\footnotesize,
+linenos
+]{c++}
+recognition(graph G) {
+     vector<parts> H;
+     vector<parts> unusedParts;
+     vector<nodes> N;
+     H.push({V});
+     Choose a random vertex of the graph as the origin
+     while (|H| < |N|){
+        if (H[origin].size() > 1) {
+            Rule_1(origin);
+            unusedParts.push(N(origin));
+            unusedParts.push(origin.part / N(origin) / origin);
+        }
+        while (!unusedParts.empty()) {
+            P = unusedParts[0];
+            Choose a random vertex y of P as the pivot
+            Rule_2(y);
+            Mark P as used.
+            for (p : newParts){
+                if (The part p has no pivot){
+                    unusedParts.push(p);
+                }
+            }
+            unusedParts.erase(P);
+        }  
+        Let l and r be the pivots of the nearest non-singleton parts to the vertex origin 
+        respectively, on the left and right sides.
+        if ({l,r} belongs to the E) {
+            origin = l;
+        }
+        else {
+            origin = r;
+        }
+     }
+}
+
+Rule_1(node x) {
+    H.erase(x.Part)
+    H.push(origin.part - N(origin) - origin);
+    H.push(origin);
+    H.push(N(x)); 
+}
+
+Rule_2(node x) {
+    for (p : H) {
+        if (p != x.part) {
+            if (N(x) strictly intersects p) {
+                 part A = intersection of N(x) and p;
+                 H.push(A);
+                 H.push(p/A);
+                 H.erase(p)
+            }          
+        }
+    }
+}
+\end{minted}
+\subsection{Correctness of the algorithm}
+
+\begin{theorem}
+    The algorithm terminates on any graph.
+\end{theorem}
+
+\begin{proof}
+A part of the partition cannot be empty. Therefore, there cannot be more than $|V|$ parts in the partition.
+Each use of Rule 1 increases the number of parts by at least 1.
+Each use of Rule 2 increases the number of used parts in the partition. When all parts of the partition are used, Rule 1 is applied again.
+Therefore, the number of parts increases after $|V|+1$ operations. Consequently, the algorithm executes a finite number of steps.
+\end{proof}
+\begin{invariant}
+    Let $P$ be the current partition with origin $X \in V$. If $G$ is a cograph, then there is a factorizing permutation compatible $P$.
+\end{invariant}
+
+\begin{proof}
+Let us prove the invariant by using induction on the number of used rules.
+
+\begin{description}
+    \item [Base Case] In the first step of the algorithm, we use Rule 1 to the partition consisting of one part containing all the vertices. The existence of a factorizing permutation after this refining is proven in \Cref{Starting case for the Rule 1}.
+    \item [Inductive Step] Assume $P_i$ is the partition obtained after used $i$ rules with origin $x_i$. If $G$ is a cograph, there is a factorizing permutation compatible with $P_i$. If in the next step we use Rule 1 for vertex $v$, then for each vertex $w$ such that LCA$(x_1,w)$ is a descendant of LCA$(x_1,v)$ $H_w=\{w\}$. This is based on the case where we change the origin. We always choose the nearest vertex to the previous origin such that its part is not a singleton to be the next origin.
+
+    The existence of a factorizing permutation after this refining is proven in \Cref{General case for the Rule 1}. If in the last step we used Rule 2, then the existence of a factorizing permutation after this refining is proven in \Cref{General case for the Rule 2} or can be proven similarly.
+\end{description}
+
+
+\end{proof}
+
+\begin{theorem}[Theorem 20 in \cite{HABIB2005183}]
+Algorithm  computes a factorizing permutation if the input graph is a cograph.
+\end{theorem}
+
+\begin{proof}
+When any part is a singleton part, from the invariant follows that a factorizing permutation exists. Therefore the partition $P$ is a factorizing permutation.
+\end{proof}
+
+\subsection{Implementation details of the algorithm}
+In this section, one of the variants of the linear implementation of the algorithm is described. We store the vertices of the graph and the parts of the partition as two doubly linked lists of structures.
+
+
+Each part stores its first element, its last element, the number of elements, and its pivot (if it has one). Each element stores the part it belongs to and the next and previous element in its part.
+
+
+The implementation of Rule 1 is simple. For each neighbor of vertex $x$, we check whether it is in the same part as vertex $x$.
+
+\begin{minted}[
+frame=lines,
+framesep=2mm,
+baselinestretch=1.2,
+fontsize=\footnotesize,
+linenos
+]{c++}
+Rule_1(node x){
+   part newPart;
+   for (y : N(x)) {
+        if (y.part == x.part) {
+            newPart.move(y);
+        }
+   }
+   if (newPart.size() > 0) {
+        H.push(newPart);
+        x.part.next = newPart;
+   }
+   if (x.size() != 1) {
+        part newPart1;
+        newPart1.move(y);
+        H.push(newPart1);
+        x.part.next = newPart1;
+   }
+}
+\end{minted}
+
+From all the neighbors of $x$ that are in the same part as $x$, we create a new part. This new part is placed immediately after the part containing $x$. If there are any vertices in the part containing $x$, we split this part into two parts: the right part consists of vertex $x$, and the left part consists of all other vertices. In this way, we turn one part into 2 or 3 parts and use 
+$O(|N(x))|)$ operations.
+
+Now, let us show how to implement Rule 2 in linear time. First, for each part that contains a vertex that is a neighbor of vertex $x$ and is not equal to $x.part$, we count how many vertices in this part are neighbors of $x$.
+Next, for each part that strictly intersects $N(x)$, we create a new part to the right of it. In the next loop, we move the elements into the new part.
+In the final loop, we clear all the values.
+
+
+\begin{minted}[
+frame=lines,
+framesep=2mm,
+baselinestretch=1.2,
+fontsize=\footnotesize,
+linenos
+]{c++}
+
+Rule_2(node x) {
+   for (y : N(x)) {
+        y.part.amount++
+   }
+   for (y : N(x)) {
+        if (0 < y.part.amount < y.part.size() && !y.part.part_is_created){
+            part newPart_y;
+            H.push(newPart_y);
+            y.part.next = newPart_y;
+            y.part.part_is_created = true;
+        }
+   }
+   for (y : N(x)) {
+        if(y.part.part_is_created){
+            y.part.next.move(y);
+        }
+   }
+   for (y : N(x)) {
+        y.part.previous.amount = 0;
+        y.part.part_is_created = false;
+   } 
+}
+\end{minted}
+
+The total time of Rule 2 for vertex $x$ is $O(|N(x)|)$.
+\label{Implementation}
+
+\subsection{Running time of the algorithm}
+
+\begin{theorem}
+    Rule 1 cannot be used to vertex $x$ more than once.
+\end{theorem}
+\begin{proof}
+After using the rule to vertex $x$, the part $H_x$ becomes equal to $\{x\}$. Rule 1 is not applied to elements from singleton parts.
+\end{proof}
+
+\begin{theorem}
+    Rule 2 cannot be applied to vertex $x$ as a pivot more than once.
+\end{theorem}
+
+\begin{proof}
+After applying Rule 2, part $H_x$ becomes used and remains used until the end of the algorithm. Rule 2 is not applied to the pivot if its part is already used.
+\end{proof}
+
+\begin{theorem}[Theorem 24 in \cite{HABIB2005183}]
+    The algorithm terminates in $O(n+m)$ time for any graph.
+    \label{Running time of the factorizing permutation construction algorithm}
+\end{theorem}
+
+\begin{proof}
+As proven in the \Cref{Implementation}, the time complexity of applying the rule to element $x$ is 
+$O(|N(x)|)$. Each rule was applied to each vertex at most once. Therefore, the total time of the algorithm is at most $\sum\limits_{x \in V} 2 \cdot O(N(x)) = O(n+m)$. 
+
+\end{proof}
+
+\section{Permutation test}
+
+\subsection{Idea}
+We use the definition of a cograph from \Cref{Fundamental theorem}. A graph is called a cograph if and only if for each of its non-trivial subgraphs, there are two twin vertices. In this case, it is easy to prove that a graph is a cograph if and only if there is a twin-elimination ordering of its vertexs.
+\begin{definition}[Twin-elimination ordering \cite{HABIB2005183}]
+   A vertex permutation $\sigma$ is a twin-elimination ordering if and only if $\sigma=x_1,\dots,x_n$ such that for any vertex $x_i$ there are $j,i<j$ such that $x_i$ and $x_j$ are either true twins or false twins in graph $G_i=G[ \{x_i,x_{i+1},\dots,x_{n-1}\} ]$.
+\end{definition}
+\begin{proof}
+If a twin-elimination ordering exists, then a cotree can be constructed for the graph. Thus, the graph is a cograph. More details on this can be found in \Cref{Cotree construction}.
+
+On the other hand if the graph is a cograph, then such two twin vertices 
+always exist. The proof of this follows from \Cref{Theorem on twins in the cograph}. Therefore, for any $G_i$, there is a respective $x_i$.
+\end{proof}
+
+
+In the permutation test algorithm, we attempt to construct a twin-elimination ordering using its vertices of permutation. If it is successful, it indicates that the permutation corresponds that graph is a cograph. Otherwise, the original graph is not a cograph.
+
+
+ We construct the twin-elimination ordering from left to right. Each time when we find a suitable vertex in the obtained permutation, we remove it. Then, we have successfully constructed the twin-elimination ordering if and only if there is exactly one number left in the permutation at the end of the algorithm.
+\subsection{Pseudocode}
+
+The algorithm is based on Algorithm 5 from \cite{HABIB2005183}.
+
+Initially, the main vertex is the first vertex in the permutation. At each step, we check if the main vertex is a twin with any of its neighbors. If it is, we remove the left vertex of this pair. If we have not removed the vertex or if the main vertex is removed, then the next main vertex is the right neighbor of the previous main vertex.
+
+The algorithm stops when there are no more vertices to be designated as the main vertex. In other words, it happens when the rightest vertex of the permutation has been the main vertex. 
+
+For an easier implementation, we add non-existent vertices to the beginning and to the end of the permutation. No vertex is a twin for these two added vertices. Then, the graph is a cograph if and only if, after the algorithm stops, there are exactly 3 vertices in the permutation.
+\begin{minted}[
+frame=lines,
+framesep=2mm,
+baselinestretch=1.2,
+fontsize=\footnotesize,
+linenos
+]{c++}
+
+Permutation test(x permutation of the vertex) {
+    x[0] and x[n+1] added vertices
+    mainVertex = x[1];
+    while (mainVertex != x[n+1]) {
+        if (mainVertex and mainVertex.previous are twins) {
+            erase(mainVertex.previous);
+        }
+        else{
+            if (mainVertex and mainVertex.next are twins) {
+                mainVertex = mainVertex.next;
+                erase(mainVertex.previous);
+            }
+            else{
+                mainVertex = mainVertex.next;
+            }
+        }
+    }
+}
+\end{minted}
+\subsection{Constructing the cotree}
+\label{Cotree construction}
+\label{Constructing the cotree}
+\begin{theorem}[\cite{HABIB2005183}]
+    If two vertices are true (false) twins in a cograph, it is if and only if they are siblings in the cotree and their parent is a series (respective parallel) node.
+    \label{Theorem on twins in the cograph}
+\end{theorem}
+\begin{proof}
+Assume the opposite: let vertices $x$ and $y$ be true twins, but their lowest common ancestor is a parallel node. Then, by \Cref{Ancestors remark}, they are not neighbors; thus, sets $N(x) \cup \{x\}$ and $N(y) \cup \{y\}$ are not equal. Contradiction.
+Assume vertices $x$ and $y$ are true twins, and their LCA is a series node, but the vertices are not siblings. Then, there is a vertex $z$ in the cograph such that the LCA $(x,z)$ is a descendant of the LCA$(x,y)$, and LCA$(x,z)$ is a parallel node. Then, vertices $x$ and $z$ are not neighbors, and vertices $y$ and $z$ are neighbors. Contradiction.
+\end{proof}
+
+Let us demonstrate an algorithm to construct a cotree from a cograph's twin-elimination ordering in linear time.
+
+Let the twin-elimination ordering be denoted as $t=(t_1, \dots, t_n)$. At each step, the algorithm adds the rightest unprocessed vertex of the ordering to the cograph. The cotree obtained after adding vertex $t_i$ is called $T_i$.
+
+Initially, the cotree is only the vertex  $t_{|V|-1}$. At each subsequent step, we add vertex $t_i$. We know it is a twin of some other leaf $t_j$ in the constructed cotree. We create a new internal vertex $w$ that is parallel if 
+$t_i$ and $t_j$ are false twins, or series if they are true twins. To form 
+$T_i$, we replace vertex $t_j$ with $w$ in $T_{i+1}$ and make $t_i$ and $t_j$ children of $w$. This replacement ensures that the LCA for each pair of leaves in $T_{i+1}$ remains unchanged, maintaining the correctness of the cotree.
+
+Note that the resulting cotree is binary but may not always have adjacent internal nodes of different types. If a canonical cotree is needed, a depth-first search can merge adjacent nodes of the same type.
+
+\begin{minted}[
+frame=lines,
+framesep=2mm,
+baselinestretch=1.2,
+fontsize=\footnotesize,
+linenos
+]{c++}
+Build cotree(t twin-elimination ordering) {
+   for (i = |V| - 2; i >= 0; i--) {
+        j = index of vertex i twin;
+        node p = t[j].parent;
+        node newNode;
+        if (t[i] and t[j] are true twins) {
+            newNode.type = series;
+        }
+        else {
+            newNode.type = parallel;
+        }
+        p.addSon(newNode);
+        p.eraseSon(t[j]);
+        newNode.addSon(t[j]);
+        newNode.addSon(t[i]);
+   }
+}
+\end{minted}
+In order the algorithm to run in linear time, it is necessary for each vertex to store with which vertex it was removed in the twin-elimination ordering construction algorithm. Then, the time necessary to find the twin $t_j$ for vertex $t_i$ is $O(1)$. 
+
+\subsection{Correctness of the algorithm}
+It is clear that if the algorithm constructs a twin-elimination ordering, then the graph is a cograph. Let us prove the correctness of the algorithm in the other direction.
+
+\begin{invariant}[Invariant 1 in \cite{HABIB2005183}]
+    At each step of the twin-elimination ordering construction algorithm, the permutation $x$ is a factorizing permutation of the vertices of the graph $G_i$.
+\end{invariant}
+
+\begin{proof}
+A factorizing permutation corresponds to some planar representation of the cotree. If we remove one leaf from this planar representation of the cotree, the leaves of each subtree appear consecutively in the permutation. Consequently, the vertices of each strong module of the new graph also appear consecutively in the permutation. Thus, the new permutation remains factorizing.
+\end{proof}
+
+Let $m_i$ be the index of the vertex that was the main one at the $i$-th iteration of the while loop in the algorithm. Let $G_i$ be the induced subgraph of the permutation $t$ at the $i$-th iteration of the while loop in the algorithm.
+
+\begin{invariant}[Invariant 2 in \cite{HABIB2005183}]
+    For any $k \ge 1$, the subsequence $t_k([m_0, \dots, m_k])$ does not contain any twins vertices in $G_k$ 
+\end{invariant}
+
+\begin{proof}
+We distinguish three cases:
+\begin{enumerate}
+    \item $m_k$ and $m_k.previous$ are twins in $G_k$. But then $m_k.previous$ is deleted from $G_k$ and $m_{k+1} = m_k$, $t_{k+1}([m_0,\dots ,m_{k+1}])$ is included in
+$t_{k}([z_0,\dots ,z_k])$, and therefore invariant is trivially true.
+    \item $m_k$ and $m_k.next$ are twins in $G_k$. But then $m_k$ is deleted from $G_k$ and $m_{k+1} = m_k.next$, $t_{k+1}([m_0, \dots,m_{k+1}]) = t_{k}([m_0,\dots, m_k])$,
+and therefore invariant 2 is trivially true
+    \item  In the last case, we move right on the circular list, and $m_{k+1} = m_k.next$, $t_{k+1}([m_0,\dots,m_{k+1}]) = t_k([m_0,\dots,m_k])$.
+\end{enumerate} 
+\end{proof}
+
+If the original graph is a cograph and after the algorithm finishes there is a permutation $g$ and $g$ has more than one vertex, then the following 3 statements are true:
+\begin{itemize}
+    \item each vertex in $g$ was the main vertex at the same point,
+    \item $g$ is a factorizing permutation,
+    \item there are two vertices belonging to $g$ such that they are twins in the graph $G[g]$.
+\end{itemize}
+
+This contradicts Invariant 2. Therefore, if the graph is a cograph, the size of the permutation after the testing is always equal to 1. 
+Thus, we have proved the following theorem:
+
+\begin{theorem}
+    The size of the permutation after testing is equal to 1 if and only if it is a factorizing permutation of the cograph's vertices.
+\end{theorem}
+
+\subsection{Running time of the algorithm}
+
+It is clear that if the algorithm constructs a twin-elimination ordering, then the graph is a cograph. Let us prove the correctness of the algorithm in the other direction.
+
+\begin{theorem}
+    The permutation algorithm terminates in $O(n+m)$ time for any graph.
+    \label{Running time of the permutation verification algorithm}
+\end{theorem}
+
+\begin{proof}
+Each vertex is the main vertex in no more than 2 twin checks. The twin check for vertices x and y takes a $\min\{|N(x)|,|N(y)|\} $ time. To get this, it is necessary to store the vertexs edges in sorted order. Then, the total time of the testing algorithm is no more than $\sum\limits_{u \in V} 2 \cdot O(|N(x)|) = O(n+m)$.
+\end{proof}
+
+\begin{theorem}
+    The recognition algorithm terminates in $O(n+m)$ time for any graph.
+\end{theorem}
+\begin{proof}
+By \Cref{Running time of the factorizing permutation construction algorithm} and \Cref{Running time of the permutation verification algorithm} both parts of the algorithm run in linear time; therefore, the entire algorithm runs in linear time.
+\end{proof}

@@ -3,4 +3,5 @@ koala_add_module(independent_set
     ExactIndependentSet.cpp
     ExactRecursiveIndependentSet.cpp
     PlanarGraphIndependentSet.cpp
+    CographIndependentSet.cpp
 )

@@ -5,11 +5,11 @@
  *      Author: Krzysztof Turowski (krzysztof.szymon.turowski@gmail.com)
  */
 
+#include <graph/GraphTools.hpp>
+
 #include <set>
 
 #include <networkit/graph/Graph.hpp>
-
-#include <graph/GraphTools.hpp>
 
 namespace Koala {
 
@@ -31,6 +31,25 @@ NetworKit::Graph toComplement(const NetworKit::Graph &G) {
         }
     }
     return GC;
+}
+
+NetworKit::Graph convertDirectedGraphToUndirected(const NetworKit::Graph &G, bool weighted) {
+    NetworKit::Graph Gout(G.numberOfNodes(), weighted, false);
+    G.forEdges([&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight w) {
+        Gout.increaseWeight(u, v, w);
+    });
+    Gout.removeMultiEdges();
+    return Gout;
+}
+
+NetworKit::Graph convertUndirectedGraphToDirected(const NetworKit::Graph &G, bool weighted) {
+    NetworKit::Graph Gout(G.numberOfNodes(), weighted, true);
+    G.forEdges([&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight w) {
+        Gout.increaseWeight(u, v, w);
+        Gout.increaseWeight(v, u, w);
+    });
+    Gout.removeMultiEdges();
+    return Gout;
 }
 
 }  // namespace GraphTools

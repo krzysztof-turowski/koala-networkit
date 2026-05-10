@@ -1,0 +1,30 @@
+\documentclass{report}
+\usepackage{import}
+%\usepackage{fullpage}
+
+\import{./}{preamble.tex}
+
+\author{}
+\date{\today{}}
+\begin{document}
+
+\include{titlepage}
+\pagebreak
+
+\tableofcontents
+
+\pagebreak
+
+\chapter{Introduction}
+\input{introduction}
+\chapter{Push Relabel Algorithm}
+\input{pr}
+\chapter{Malhotra-Kumar-Maheshwari Algorithm}
+\input{mkm.tex}
+\chapter{Boykov-Kolmogorov Algorithm}
+\input{bk.tex}
+\chapter{Implementation and Comparison}
+\input{benchmark}
+\printbibliography
+
+\end{document}

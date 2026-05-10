@@ -1,0 +1,34 @@
+\documentclass{report}
+\usepackage{import}
+
+\import{.}{preamble.tex}
+
+\begin{document}
+
+\include{titlepage}
+\pagebreak
+
+\tableofcontents
+
+\pagebreak
+
+\chapter{Introduction}
+\input{1-introduction/main1}
+
+\chapter{Graph Division}
+\input{2-Graph_Division/main2}
+
+\chapter{Frederickson's Single Source Shortest Path Algorithm}
+\input{3-Frederickson/main3}
+
+\chapter {Henzinger's Single Source Shortest Path Algorithm}
+\input{4-Henzinger/main4}
+
+\chapter {Implementation details and benchmarks}
+\input{5-Details/main5}
+
+% \addappheadtotoc
+
+\printbibliography
+
+\end{document}

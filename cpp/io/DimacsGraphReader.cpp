@@ -8,6 +8,7 @@
 #include <fstream>
 #include <map>
 #include <tuple>
+#include <string>
 
 #include <networkit/auxiliary/Enforce.hpp>
 #include <networkit/graph/GraphTools.hpp>
@@ -65,7 +66,7 @@ void read_edge(std::ifstream &graph_file, NetworKit::Graph &graph, const std::st
 }
 
 NetworKit::Graph DimacsGraphReader::read(std::string_view path) {
-    return std::get<0>(read_all(path));
+    return std::get<0>(read_all(std::string{path}));
 }
 
 std::tuple<NetworKit::Graph, NetworKit::node, NetworKit::node> DimacsGraphReader::read_all(

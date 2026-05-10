@@ -1,0 +1,738 @@
+\chapter{Maximum Flow}
+\section{Introduction}
+In this section we will focus on a crucial optimization problem in graph theory -- the maximum flow problem.
+he first known algorithm for finding a maximum flow in a graph is the Ford-Fulkerson method \cite{ford-fulkerson} running in $O((n+m)\cdot U)$ time.
+The algorithm was later improved by Edmonds and Karp \cite{edmonds-karp} to $O(nm^2)$ making it independent from the maximum flow size $U$.
+In the following years, a number of algorithms were developed, each running in $O(n^3)$ time for a dense graph. 
+
+The work of Mądry has revitalized the research on the maximum flow problem.
+In this section we present a simplified version of his algorithm running in $\tilde O(n^\frac{3}{2}\log U)$ time. 
+Since then a number of algorithms were developed based on his approach.
+The most recent one, published by Bernstein, Blikstad, Saranurak and Tu \cite{new_flow_24} runs in $O(n^{2+o(1)}\log U)$.
+
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{ |p{8cm}||p{3cm}| }
+ \hline
+ Algorithm & \centering Time complexity \tabularnewline
+ \hline
+ Ford, Fulkerson 1955 \cite{ford-fulkerson} & \centering $O(nm\cdot U)$ \tabularnewline Edmonds, Karp 1970 \cite{edmonds-karp} & \centering $O(nm^2)$ \tabularnewline
+ Push-relabel 1988 \cite{push-relabel} & \centering $O(n^3)$ \tabularnewline
+ \hdashline
+ \textbf{Mądry 2016 \cite{madry}} & \centering $\tilde O(m^\frac{3}{2}\log U)$ \tabularnewline
+ \hdashline
+ Mądry 2016 \cite{madry} & \centering $\tilde O(m^\frac{10}{7}U^\frac{1}{7})$ \tabularnewline
+ Bernstein, Blikstad, Saranurak, Tu 2024 \cite{new_flow_24} &  \centering $O(n^{2+o(1)}\log U)$ \tabularnewline
+ \hline
+\end{tabular}
+\caption{An overview of maximum flow algorithms}
+\end{center}
+\end{table}
+
+\section{Preliminaries}
+\subsection{Electrical flow}
+We introduce a similar framework to the one defined along with the maximum flow problem.
+\begin{definition}[\cite{madry}]
+Given a directed graph $G=(V,E)$, a potential vector $\sigma: V\rightarrow \mathbb{R}$ and a mapping from edges to non-negative values called resistances. A $\sigma$-flow $f:E\rightarrow\mathbb{R}$ is called an \textbf{electrical flow} when it minimizes the value of the following equation:
+\begin{equation} \label{energy_def}
+\emph{\textepsilon}_r(f) := \sum_{e \in E} r_e f_e^2
+\end{equation}
+\end{definition}
+
+\begin{theorem}[\cite{madry}] \label{flow_potentials_theorem}
+Flow $f$ is an \textbf{electrical $\sigma$-flow} determined by the resistances $r$ if and only if there exists \textit{vertex potentials} $\phi \in \mathbb{R}^n$ such that
+\begin{equation*}
+f_{u,w} = \frac{\phi_u - \phi_w}{r_{u,w}} \hspace{10pt} \text{for each} \hspace{5pt} (u,w) \in E
+\end{equation*}
+\end{theorem}
+
+Now we can rewrite the equation equation (\ref{energy_def}) as:
+\begin{equation} \label{ohm}
+\emph{\textepsilon}_r(f) := \sum_{e=(u,w)}\frac{(\phi_u - \phi_w)^2}{r_{u,w}}
+\end{equation}
+This allows us to construct a dual characterization of the optimization problem.
+
+The name \textit{electrical flow} is not an accident. We can think of the graph $G$ as an electrical network. Minimizing the equations corresponds to finding current (flow) that minimizes the energy ($\emph{\textepsilon}_r(f)$). Furthermore \Cref{ohm} directly corresponds to the Ohm's law.
+
+It turns out minimizing the energy equation is relatively easy. Theorem \ref{flow_potentials_theorem} implies that electrical flow can be determined simply by calculating the potentials. 
+Given a graph $G$ and a vector of resistances $r$, we only need to find some potentials $\phi: V\rightarrow\mathbb{R}$ such that the demand $\sigma$ is satisfied. 
+Combining the Ohm's law with the system of \Cref{flow_conservation} reduces the task to solving a system of linear equations:
+\[ L_r \cdot \phi = \sigma, \]
+where $L_r$ is a Laplacian (see \Cref{laplacian}) constructed from graph $G$ with weights $w_e:=r_e^{-1}$.
+
+\subsection{Laplacian solvers}
+The equation $L_r \cdot \phi = \sigma$ can be simply solved by calculating $L_r^{-1}$ and calculating the following
+\[ \phi = L_r^{-1} \cdot \sigma \]
+Note that $L_r$ irreversible, since $\det L_r = 0$ for all laplacians. The last row can be determined from the previous rows, because the sum of values in each row is equal to $0$. Instead we can use e.g. Moore-Penrose inverse (\Cref{moore_def} and \Cref{moore_lemma}) to avoid this problem.
+
+Event though this method computes electrical flow correctly, it does not meet our expectations. The time complexity needed for solving this equation is proportional to computing the inverse, that is $O(n^\omega)$. Instead we use a dedicated tool for solving such equations -- a Laplacian solver. 
+
+\begin{theorem}[Theorem 2.3 in \cite{madry}]
+For any $\epsilon > 0$, any graph $G$ with $n$ vertices and m edges, any demand vector
+$\sigma$, and any resistances $r$ , one can compute in $\tilde{O}(m \log \epsilon^{-1})$ time vertex potentials $\tilde{\phi}$ such that
+$||\tilde{\phi} - \phi^*||_L \le \epsilon||\phi^*||_L$, where $L$ is the Laplacian of $G$, $\phi^*$ are potentials inducing the electrical $\sigma$-flow
+determined by resistances $r$ , and $||\phi||_L := \sqrt{\phi^TL\phi}$.
+\end{theorem}
+
+\subsection{Primal-dual coupling}
+For a fixed flow value $F>0$ let us define $\chi_\alpha := \alpha F\chi_{s,t}$, which represents an $\alpha \in [0,1]$ fraction of the desired $F\chi_{s,t}$ demand. We also define the target demand vector $\chi := F\chi_{s,t}$. It is useful to view $\chi_\alpha$ as progress made with routing the $\chi$-flow.
+
+Let $F^*$ be the maximum flow that can be routed through the graph. For a fixed value $F$ we would like to either route the full $\chi$-flow or determine that such flow cannot be routed and consequently $F>F^*$. For this reason we develop a dual solution $y \in \mathbb{R}^n$. From now one we will also call the $\chi_\alpha$-flow $f$ a primal solution.
+
+\begin{definition}[\cite{madry}]
+For each edge $e=(u,v)$, a vector $y\in\mathbb{R}^n$ and vectors $\hat{u}_e^+(f),\hat{u}_e^-(f)\in\mathbb{R}^m$ with respect to flow $f$, we define
+\begin{equation}
+\label{delta_y}
+\Delta_e(y) := y_v - y_u,
+\end{equation}
+and
+\begin{equation}
+\label{phi_f}
+\Phi_e(f) := \frac{1}{\hat u_e^+(f)}-\frac{1}{\hat u_e^-(f)}.
+\end{equation}
+We also establish the following coupling between primal solution $f$ and dual solution $y$:
+\[ \Delta_e(y) = \Phi_e(f) \hspace{10pt} \text{for each} \hspace{5pt} e \in E. \]
+\end{definition}
+
+From a practical standpoint it will be useful to introduce a slightly weaker condition:
+\begin{definition}[\cite{madry}]
+A primal solution $f$ and a dual solution $y$ are \textbf{$\gamma$-coupled} if and only if:
+\begin{equation}
+\label{gamma_couple}
+|\Delta_e(y)-\Phi_e(f)| \le \frac{\gamma_e}{\hat u_e(f)} \hspace{10pt} \text{for each} \hspace{5pt} e \in E,
+\end{equation}
+where $\hat u_e(f) := \min\{\hat u_e^+(f), \hat u_e^-(f)\}$ and for a vector $\gamma \in \mathbb{R^n}$, called a \textit{violation vector}.
+\end{definition}
+
+\begin{definition}[\cite{madry}]
+A primal dual solution $(f, y)$ is \textbf{well-coupled} when the $l_2$ norm of the violation vector is sufficiently small. From now on, we define a solution to be well-coupled if it holds that $||\gamma||_2 \le 0.01$.
+\end{definition}
+The constant $0.01$ is arbitrary and can be replace with any sufficiently small value.
+
+Now we proceed with a key lemma using dual solution $y$ to determine if the current flow can be further improved to reach the $\chi$ demand:
+
+\begin{lemma}[\cite{madry}] \label{stop_lemma}
+Let $(f,y)$ be a well-coupled primal dual solution with a $\chi_\alpha$-flow $f$, for some  $0\le\alpha<1$. If
+$\chi^Ty>\frac{2m}{(1-\alpha)}$
+then the demand $\chi$ cannot be routed in $G$, i.e., $F>F^*$.
+\end{lemma}
+\begin{proof}
+By contradiction, assume that $\chi^Ty>\frac{2m}{(1-\alpha)}$ and the demand $\chi$ can be routed in $G$. Let $f'$ be some flow $\chi_{(1-\alpha)}$-flow that is feasible in the residual graph $G_f$. We will try to get a contradiction by finding a lower and upper-bound of the value $(f')^T\Delta(y)$. First, we will show that $(f')^T\Delta(y) > 2m$.
+\begin{equation}
+\begin{split}
+    (f')^T\Delta(y)
+    &= \sum_e f_e'\Delta_e(y)
+    \stackrel{(\ref{delta_y})}{=} \sum_{e=(u,v)\in E}f_e'(y_v-y_u) \\
+    &= \sum_{v \in V} \left(\sum_{e\in E^+(v)}f_e'-\sum_{e\in E^-(v)}f_e'\right) \\
+    &= (1-\alpha)F(y_t-y_s)
+    = (1-\alpha)\chi^Ty 
+    > 2m
+\end{split}
+\end{equation}
+To complete the proof we now need to show $(f')^T\Delta(y) \le 2m$. Let us fix some edge $e$. We know that
+\[
+f_e'\Delta_e(y)
+\stackrel{(\ref{gamma_couple})}{\le} f_e'\Phi_e(f) + \frac{\gamma_ef_e'}{\hat u_e(f)}
+\stackrel{(\ref{phi_f})}{=} f_e'\left(\frac{1}{\hat u_e^+(f)}-\frac{1}{\hat u_e^-(f)}\right)+\frac{\gamma_ef_e'}{\hat u_e(f)}.
+\]
+From the feasibility of $f'$ we get $f_e'\le \hat u_e^+(f)$.
+There are two cases to consider: either $\hat u_e(f) = \hat u_e^+(f)$ or $\hat u_e(f) = \hat u_e^-(f)$:
+\begin{enumerate}
+\item If $\hat u_e^+(f) = \hat u_e(f) \le \hat u_e^-(f)$, then \\
+    \[
+    f_e'\Delta_e(y)
+    \le f_e'\left(\frac{1}{\hat u_e^+(f)}-\frac{1}{\hat u_e^-(f)}\right)+\frac{\gamma_ef_e'}{\hat u_e(f)}
+    \le \frac{f_e'(1+\gamma_e)}{\hat u_e(f)}
+    \le (1+\gamma_e)
+    \]
+\item $\hat u_e^-(f) = \hat u_e(f) \le \hat u_e^+(f)$.
+ Since $(f,y)$ are well-coupled we get $\gamma_e \le ||\gamma||_\infty \le ||\gamma||_w \le \frac{1}{2}$.
+    \[
+    \begin{split}
+    f_e'\Delta_e(y)
+    &\le f_e'\left(\frac{1}{\hat u_e^+(f)}-\frac{1}{\hat u_e^-(f)}\right)+\frac{\gamma_ef_e'}{\hat u_e(f)}\\
+    &\le f_e'\left(\frac{1}{\hat u_e^+(f)}-\frac{1-\gamma_e}{\hat u_e^-(f)}\right)
+    \le 1-\frac{f_e'(1-\gamma_e)}{\hat u_e(f)}
+    \le 1.
+    \end{split}
+    \]
+\end{enumerate}
+In conclusion
+\[
+(f')^T\Delta(y)
+= \sum_{e\in E}f_e'\Delta_e(y)
+\le \sum_{e\in E}(1+\gamma_e)
+\le m + \sqrt{m}||\gamma||_2
+\le 2m.
+\]
+Thus we get a contradiction.
+\end{proof}
+
+\section{Algorithm}
+We present an algorithm solving the maximum flow problem in $\tilde O(m^\frac{3}{2}\text{log}(U^2n))$ time. To achieve this result we fix some flow value $F$ and use binary search to determine the maximum flow $F^*$. The difficult part is finding such feasible $F\chi_{s,t}$-flow for a fixed value $F$. This is done by \textsc{RouteFlow} function. For a given value $F$ it either routes a $F\chi_{s,t}$-flow and returns \textbf{true}. Otherwise it states that $F\chi_{s,t}$ cannot be routed and returns \textbf{false}.
+\begin{algorithm}
+\caption{Maximum flow algorithm}\label{flow_main_algo}
+\begin{algorithmic}[1]
+\Function{MaximumFlow}{$G$}
+\State $R \gets 1$
+\While{\Call{RouteFlow}{$G, R$}}
+    \State $R \gets 2R$
+\EndWhile
+\State $L \gets R/2$
+\While{$L<R$}
+    \State $F \gets \lfloor(L+R)/2\rfloor$
+    \If{\Call{RouteFlow}{$G, F$}}
+        \State $L\gets F$ 
+    \Else
+        \State $R\gets F$
+    \EndIf
+\EndWhile
+\State \Call{RouteFlow}{$G, L$} \Comment{Route the maximum flow}
+\State \Call{RoundFlow}{G}
+\State \Return $(F, G_f)$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Initialization}
+First we have to initiate the primal dual solutions so that the coupling constraint is satisfied. For undirected graphs, we have $u_{(v,w)} = u_{(w,v)}$ for each edge $e=(v,w)$. It means that for a zero flow $f$ following equality holds: $\hat u_e^+(f)=u_e^+=u_e^-=\hat u_e^-(f)$. Furthermore for $y=0$, the pair $(f,y)$ is \textit{well-coupled} since $\delta_e(y) = 0 = \Phi_e(f)$ for each edge $e$.
+
+This however becomes a problem for a directed graph. We can no longer use such straightforward initialization. Fortunately it is possible to reduce the problem for directed graph to one for undirected graphs in a satisfactory time.
+
+\begin{lemma}[\cite{madry}]
+\textit{Let $G$ be an instance of the maximum $s$-$t$ problem with $m$ arcs and the maximum capacity $U$, and let F be the corresponding target flow value. In $\tilde  O(m)$ time, one can construct an instance $G'$ of undirected maximum $s$-$t$ flow problem that has $O(m)$ arcs and the maximum capacity $U$, as well as target flow value $F'$ such that:}
+\begin{enumerate}[label=(\alph*)]
+    \item \textit{if there exists a feasible $s$-$t$ flow of value $F$ in $G$ then a feasible $s$-$t$ flow of value $F'$ exists in $G'$;}
+    \item \textit{given a feasible $s$-$t$ flow of value $F'$ in $G'$ one can construct in $\tilde O(m)$ time a feasible $s$-$t$ flow of value $F$ in $G$.}
+\end{enumerate}
+\end{lemma}
+As a consequence to this lemma, we will focus on solving the maximum flow problem on the undirected instances only.
+
+\subsection{Progress steps}
+The steps presented in this section will be the key part of the algorithm. Given a well coupled pair $(f,y)$ we will try to improve the primal solution. In the augmentation step we will use the electrical network framework to compute another well-coupled pair $(f^+, y^+)$. As it will become evident the augmentation step will violate the well-coupling. To counteract the uncoupling of the primal-dual solution, we introduce a fixing step that deals with this problem.
+
+\begin{algorithm}
+\caption{RouteFlow algorithm}
+\begin{algorithmic}[1]
+\Function{RouteFlow}{$G, F$}
+\State \texttt{demand} $\gets F\chi_{s,t}$
+\State $f,y \gets \{0\}^m,\{0\}^n$
+\State $\alpha \gets 0$
+\While{$\alpha < 1$}
+    \State $f^+,y^+ \gets$ \Call{AugmentationStep}{$f, y$}
+    \State $\hat f, \hat y \gets$ \Call{FixingStep}{$f^+,y^+$}
+    \If{$\chi^Ty>\frac{2m}{(1-\alpha)}$}
+        \State \Return \textbf{false}
+    \EndIf
+    \State $f,y \gets \hat f, \hat y$
+\EndWhile
+\State \Return \textbf{true}
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Augmentation step}
+First we construct an electrical $\chi$-flow $\tilde  f$ in $G=(V,E)$. For each edge $e\in E$ we defined resistance $r
+_e$ as
+\begin{equation} \label{progress_resistances}
+r_e := \frac{1}{(\hat u_e^+(f))^2} + \frac{1}{(\hat u_e^-(f))^2}.
+\end{equation}
+
+\begin{algorithm}
+\caption{Electrical Flow}
+\begin{algorithmic}[1]
+\Function{ElectricalFlow}{$G, \sigma, r$}
+\State $w_{i,j} \gets \frac{1}{r_{i,j}}$ for each $i,j\in V$ 
+\State $L \gets$ weighted Laplacian of $G$ with weights $w$
+\State Solve equation $L\cdot \phi = \sigma$ for $\phi$
+\State $f_{i,j} \gets \frac{\phi_i-\phi_j}{r_{i,j}}$ for each $i,j \in V$
+\State \Return $f, \phi$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+For a given step size $\delta$, we calculate the corresponding flow $\tilde  f$ and potentials $\tilde{\phi}$ and update the primal dual solution:
+\begin{equation} \label{augemntation_step}
+\begin{split}
+\hat f_e := f_e+\delta\tilde  f_e \hspace{10pt} \text{for each} \hspace{5pt} e \in E,\\
+\hat y_v := y_v+\delta\tilde{\phi_v} \hspace{10pt} \text{for each} \hspace{5pt} v \in V.
+\end{split}
+\end{equation}
+Since $\tilde  f$ is a $F$ flow, this update introduces a progress $\hat{\alpha}=\alpha+\delta$.
+Observe that $r_e$ becomes very small when $f_e$ value is near the capacity $u_e$. For a carefully chosen step size we preserve the feasibility of $\delta\tilde  f$ in $G_f$ and further of $\hat f$ in $G$.
+
+\begin{algorithm}
+\caption{Augmentation Step}
+\begin{algorithmic}[1]
+\Function{AugmentationStep}{$G, \chi, f, y$}
+\For{$e \in E$}
+    \State $r_e \gets \frac{1}{(\hat u_e^+(f))^2} + \frac{1}{(\hat u_e^-(f))^2}.$
+\EndFor
+\State $\tilde f, \tilde\phi \gets$ \Call{ElectricalFlow}{$G, \chi, r$}
+\State $f \gets f + \delta\tilde f$
+\State $y \gets y + \delta\tilde \phi$
+\State \Return $f,y$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+To determine how small should the step size be, we introduce a notion of a \textit{congestion vector}.
+\begin{definition}[\cite{madry}]
+We define a \textbf{congestion vector} $\rho\in\mathbb{R}^m$ to be equal
+\begin{equation} \label{congestion_def}
+\rho_e := \frac{\tilde  f_e}{\hat u_e(f)} \hspace{10pt}\text{for each}\hspace{5pt}e\in E.
+\end{equation}
+\end{definition}
+It is useful to think of $\rho$ as a measure of how much the flow $f$ overflows the capacities of $G$.
+Now we can ensure $\delta\tilde  f$ is feasible in $G_f$ by enforcing $\delta|\rho_e| \le \frac{1}{4}$ for each edge $e\in E$. Equivalently, in terms of $L_\infty$ norm we require
+\begin{equation} \label{step_congestion_bound}
+\delta \le \frac{1}{4||\rho||_\infty}.
+\end{equation}
+The congestion vector can be also used to closely bound the energy of the flow, via the following lemma:
+\begin{lemma}[\cite{madry}] \label{congestion_energy_bound}
+For any edge $e\in E$, it holds that $\rho_e^2\le r_e \tilde f_e^2 \le 2\rho_e^2$ and
+$ ||\rho||_2^2\le\emph{\textepsilon}_r(\tilde  f)\le2||\rho||_2^2 $
+\end{lemma}
+\begin{proof}
+For a fixed edge $e$ we have
+\[
+\rho_e^2
+\stackrel{(\ref{congestion_def})}{=} \frac{\tilde  f_e^2}{\hat u_e(f)^2}
+\le \left(\frac{1}{(\hat u_e^+(f))^2}+\frac{1}{(\hat u_e^-(f))^2}\right)
+= r_e\tilde f_e^2
+\]
+and
+\[
+r_e\tilde  f_e^2
+\le \frac{2}{\hat u_e(f)^2}\tilde  f_e^2
+= 2\rho^2_e
+\]
+thus
+\[
+||\rho||_2^2
+= \sum_e \rho_e^2
+\le \sum_e r_e\tilde  f_e^2
+\stackrel{(\ref{energy_def})}{=} \emph{\textepsilon}_r(\tilde  f)
+\le \sum_e 2\rho_e^2
+= 2||\rho||_2^2.
+\]
+\end{proof}
+
+To safely perform next augmentation step and consequently make progress in routing $\chi$-flow we have to maintain several constraints:
+\begin{enumerate}
+    \item the feasibility of $\hat f$ -- we already covered that with a sufficiently small step size (\ref{step_congestion_bound}).
+    \item the well-coupling of $(\hat f,\hat y)$ -- the augmentation step violates the well-coupling but only to a small degree. We will develop a fixing step to counteract this divergence. 
+\end{enumerate}
+
+First, we prove a simple lemma:
+\begin{lemma}[\cite{madry}] \label{augmentation_taylor_fact}
+For any $u_1,u_2>0$, with  $u=\min\{u_1,u_2\}$ and $x$ such that $|x|\le\frac{u}{4}$, we have that
+\[
+\left(\frac{1}{u_1-x}-\frac{1}{u_2+x}\right)
+= \frac{1}{u_1}-\frac{1}{u_2}+\left(\frac{1}{u_1^2}+\frac{1}{u_2^2}\right)x+x^2\varsigma
+\]
+where $|\varsigma|\le\frac{5}{u^3}$
+\end{lemma}
+\begin{proof}
+We define a function 
+$g(x) := \frac{1}{u_1-x}-\frac{1}{u_2+x}
+$
+By Taylor's theorem, for some $|z| \le |x| \le \frac{u}{4}$
+it holds that:
+\[\begin{split}
+g(x)
+&= g(0)+g'(0)x+g''(z)\frac{x^2}{2}\\
+&= \frac{1}{u_1}+\frac{1}{u_2}+\left(\frac{1}{u_1^2}+\frac{1}{u_2^2}\right)x+x^2\left(\frac{1}{(u_1-z)^3}-\frac{1}{(u_2+z)^3}\right)
+\end{split}\]
+and thus
+\[
+\varsigma
+:= \left|\frac{1}{(u_1-z)^3}-\frac{1}{(u_2+z)^3}\right|
+\le \left(\frac{4}{3u}\right)^3+\left(\frac{4}{3u}\right)^3
+\le \frac{5}{u^3}.
+\]
+\end{proof}
+
+Now apply this lemma to compare $\Phi_e(f)$ and $\Phi_e(\hat f)$:
+\[\begin{split}
+\Phi_e(\hat f)
+&= \frac{1}{\hat u_e^+(f)-\delta\tilde  f_e}-\frac{1}{\hat u_e^-(f)+\delta\tilde  f_e}\\
+&= \frac{1}{\hat u_e^+(f)}-\frac{1}{\hat u_e^-(f)}+\left(\frac{1}{(\hat u_e^+(f))^2}+\frac{1}{(\hat u_e^-(f))^2}\right)\delta\tilde  f_e+(\delta\tilde f_e)^2\varsigma
+\end{split}\]
+And we get
+\[
+\Phi(\hat f)-\Phi(f) = r_e\delta\tilde  f_e+(\delta\tilde  f_e)^2\varsigma_e
+\]
+\[
+\Phi_e(\hat f)-\Phi_e(f)
+= r_e\delta\tilde  f_e
+= \delta(\tilde{\phi}_v-\tilde{\phi}_u)
+= \Delta_e(\hat y)-\Delta_e(\hat y) + O(\delta^2)
+\]
+to the first order of approximation.
+
+The primal dual solution was left almost intact. In the following lemma we show a precise upper bound for the violation between the new pair $(\hat f,\hat y)$.
+
+\begin{lemma}[\cite{madry}] \label{violation_bound}
+\textit{Let $0<\delta\le(4||\rho||_\infty)^{-1}$ and the primal dual solution $(f,y)$ be $\gamma$-coupled. Then, we have that, for any arc $e$,}
+\[
+\left| \Delta_e(\hat y)-\Phi_e(\hat f) \right|
+\le \frac{\frac{4}{3}\gamma_e+7(\delta\rho_e)^2}{\hat u_e(\hat f)} \]
+\end{lemma}
+\begin{proof}
+\[
+\begin{split}
+\left|\Delta_e(\hat y)-\Phi_e(\hat f)\right|
+&= \left|\Delta_e(y)+\delta(\tilde{\phi}_v-\tilde{\phi}_u)-\Phi(f)-\left(\frac{1}{(\hat u_e^+)^2}+\frac{1}{(\hat u_e^-)^2}\right)\delta\tilde  f_e-(\delta\tilde  f_e)^2\varsigma_e\right|\\
+&\stackrel{(\ref{gamma_couple})}{\le} \left|\delta\left((\tilde{\phi}_v-\tilde{\phi}_u)-r_e\tilde  f_e\right)-(\delta\tilde f_e)^2\varsigma_e\right|+\frac{\gamma_e}{\hat u_e(f)}\\
+&\stackrel{(\ref{ohm})}{=} \left|(\delta\tilde{f_e})^2\varsigma_e\right|+\frac{\gamma_e}{\hat u_e(f)}
+\le \frac{5(\delta\tilde  f_e)^2}{(\hat u_e(f))^3}+\frac{\gamma_e}{\hat u_e(f)}\\
+&\stackrel{(\ref{capacities_augmentation_bound})}{\le} \frac{4}{3\hat u_e(\hat  f)}\left(\frac{5(\delta\tilde  f)^2}{(\hat u_e(f))^2}+\gamma_e\right)
+\le \frac{7(\delta\rho_e)^2+\frac{4}{3}\gamma_e}{\hat u_e(\hat f)}
+\end{split}
+\]
+Where the second last inequality comes from
+\begin{equation} \label{capacities_augmentation_bound}
+\begin{split}
+\hat u_e(\hat f)
+\stackrel{(\ref{augemntation_step})}{\ge} \hat u_e(f)-\delta\tilde  f_e
+\stackrel{(\ref{congestion_def})}{=} \hat u_e(f)-\delta\hat u_e(f)\rho_e
+= \hat u_e(f)(1-\delta\rho_e)
+\stackrel{(\ref{step_congestion_bound})}{=} \frac{3}{4}\hat u_e(f)
+\end{split}
+\end{equation}    
+\end{proof}
+
+\subsection{Fixing step}
+Above lemma gives us an upper bound on how much the primal dual solution is violated after the augmentation step. After multiple such steps this effect might accumulate and ``decouple'' the primal dual solution. To avoid this problem we introduce the \textit{fixing step}. This step allows us to reduce the violation assuming it was sufficiently small to begin with. This is done by computing the electrical flow once again.
+
+\begin{algorithm}
+\caption{Fixing Step}
+\begin{algorithmic}[1]
+\Function{FixingStep}{$G, \chi, f, y$}
+\For{$e \in E$}
+    \State $\theta_e \gets \left(\frac{1}{(\hat u_e^+(g))^2}+\frac{1}{(\hat u_e^+(g))^2} \right)^{-1}(
+    \Delta_e(z)-\Phi_e(g))$
+\EndFor
+\State $f \gets f - \theta$
+\For{$(v,w) \in V\times V$}
+\State $\chi'_v \gets \theta_{(v,w)}$
+\EndFor
+
+\For{$e \in E$}
+    \State $r_e \gets \frac{1}{(\hat u_e^+(g))^2}+\frac{1}{(\hat u_e^+(g))^2}$
+\EndFor
+
+\State $(\tilde f, \tilde \phi) \gets$ \Call{ElectricalFlow}{$G, \chi', r$}
+\State $f \gets f + \delta\tilde f$
+\State $y \gets y + \delta\tilde \phi$
+\State \Return $f,y$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+For the sake of formality we introduce the following lemma:
+
+\begin{lemma}[\cite{madry}] \label{fixing_lemma}
+\textit{Let $(g,z)$ be a $\varsigma$-coupled primal dual solution, with $g$ being a feasible $\chi_{\alpha'}$-flow and $||\varsigma||_2 \le\frac{1}{50}$. In $\tilde  O(m)$ time, we can compute a primal dual solution $(\overline{g}, \overline{z})$ that is well-coupled and in which $\overline{g}$ is still a $\chi_{a'}$ flow.}
+\end{lemma}
+\begin{proof}
+First let us define a correction vector $\theta\in\mathbb{R}^m$. For each edge $e$ we have
+\begin{equation} \label{correction}
+\theta_e := \left(\frac{1}{(\hat u_e^+(g))^2}+\frac{1}{(\hat u_e^+(g))^2} \right)^{-1}(\Delta_e(z)-\Phi_e(g))
+\end{equation}
+Since $(g, z)$ is $\varsigma-$coupled we know that
+\[
+|\theta_e|
+= \left(\frac{1}{(\hat u_e^+(g))^2}+\frac{1}{(\hat u_e^+(g))^2} \right)^{-1}|\Delta_e(z)-\Phi_e(g)|
+\stackrel{(\ref{gamma_couple})}{\le} \hat u_e(g)^2\left(\frac{\varsigma_e}{\hat u_e(g)}\right) = \varsigma_e\hat u_e(g)
+\]
+Now if we apply the correction to the primal solution
+\[ g_e' := g_e + \theta_e \]
+then we can put forth the following upper bound
+\[
+\begin{split}
+|\Delta_e(z)-\Phi_e(g')|
+&= \left|\Delta_e(z)-\left(\frac{1}{\hat u_e^+(g)-\theta_e}-\frac{1}{\hat u_e^-(g)+\theta_e}\right)\right| \\
+&= \left|\Delta_e(z)-\Phi_e(g)-\left(\frac{1}{(\hat u_e^+(g))^2}-\frac{1}{(\hat u_e^-(g))^2}\right)\theta_e-\theta_e^2\varsigma_e'\right| \\
+&= |-\theta_e^2\varsigma_e'|
+\stackrel{(\ref{augmentation_taylor_fact})}{\le} \frac{5\hat u_e(g)^2\varsigma_e^2}{\hat u_e(g)^3}
+= \frac{5\varsigma_e^2}{\hat u_e(g)}
+\stackrel{(\ref{fix_capacity_bound})}{\le} \frac{51\varsigma_e^2}{10\hat u_e(g')}
+\end{split}
+\]
+The second inequality comes from the fact that $\hat u_e(g')$ is closely bounded by $\hat u_e(g)$:
+\begin{equation}
+\label{fix_capacity_bound}
+\frac{49}{50}\hat u_e(g) \le \hat u_e(g') \le \frac{51}{50}\hat u_e(g)
+\end{equation}
+Furthermore we can show that primal dual solution $(g', z)$ is $\tilde{\gamma}-$coupled.
+From $||\varsigma||_\infty \le ||\varsigma||_2 \le \frac{1}{50}$, the definition of $\gamma$-coupling and the above lemma we get
+
+\begin{equation}
+\begin{split}
+||\tilde{\gamma}||_2 
+= \sqrt{\sum_e\tilde{\gamma_e}^2}
+&= \sqrt{\sum_e((\Delta_e(z)-\Phi_e(g'))\cdot\hat u_e(g'))^2}\\
+&\stackrel{\ref{violation_bound}}{\le} \sqrt{\sum_e\left(\frac{51\varsigma_e^2}{10\hat u_e(g')}\cdot\hat u_e(g')\right)^2}\\
+&\stackrel{(\ref{fix_capacity_bound})}{\le} \frac{51}{10}\sqrt{\sum_e\varsigma_e^4}
+\le \frac{51}{10}||\varsigma||_2^2
+\le \frac{51}{25000} < \frac{1}{100}
+\end{split}
+\end{equation}
+
+The above fixing procedure gave us a primal dual solution $(g', z)$. The correction however made some progress in $g'$ which is now a $(\chi_\alpha'+\hat{\sigma})$-flow for some demand $\hat{\sigma}$. To nullify this progress we can compute an electrical $(-\hat{\sigma})$-flow denoted $\hat{\theta}$. Just like in the augmentation step, we set resistances to be equal
+\[ \hat r_e := \frac{1}{(\hat u_e^+(g'))^2}+\frac{1}{(\hat u_e^-(g'))^2} \]
+and evaluate the corresponding potentials $\hat{\phi}$. Like before, we set
+\begin{equation}
+\begin{split}
+\overline{g} := g'+\hat{\theta} \\
+\overline{z} := z+\hat{\phi}
+\end{split}
+\end{equation}
+Now, $\overline{g}$ is once again a $\chi_\alpha'$-flow. All we have to do is confirm $(\overline{g}, \overline{z})$ remains well coupled.
+We consider the congestion vector
+\[ \hat{\rho} := \frac{\hat{\theta}_e}{\hat u_e(g')} \]
+
+\begin{equation}
+\begin{split}
+\emph{\textepsilon}_{\hat r}(-\theta)
+&= \sum_e\hat r_e(-\theta_e)^2
+= \sum_e\left(\frac{1}{(\hat u^+(g')^2}+(\frac{1}{(\hat u^-(g')^2}\right)\theta_e^2 \\
+&\le \sum \frac{2}{\hat u_e(g')^2}(\varsigma\hat u_e(g))^2
+\stackrel{(\ref{fix_capacity_bound})}{\le} \sum_e2\left(\frac{51\varsigma_e}{50}\right)^2
+\le \frac{21}{20}||\varsigma||_2^2
+\le \frac{1}{2000}.
+\end{split}
+\end{equation}
+
+Since $-\theta$ is a $\-\hat{\sigma}-$flow and $\hat{\theta}$ are the energy-minimizing potentials and thus $ \emph{\textepsilon}_{\hat r}(\hat{\theta}) \le \emph{\textepsilon}_{\hat r}(-\theta) $.
+Applying \Cref{congestion_energy_bound} we get
+\[ ||\hat{\rho}||_2^2 \stackrel{\ref{congestion_energy_bound}}{\le} \emph{\textepsilon}_{\hat r}(\hat{\theta}) \le \emph{\textepsilon}_{\hat r}(-\theta) \le \frac{1}{2000} \]
+
+Using \Cref{violation_bound} we get that $(\overline{g},\overline{z})$ is $\overline{\gamma}-$coupled with
+\begin{equation}
+\begin{split}
+||\overline{\gamma}||_2
+    & = \sqrt{\sum_e\overline{\gamma}_e^2}\stackrel{\ref{violation_bound}}{\le} \sqrt{\sum_e\left(\frac{4}{3}\tilde{\gamma}_e+7\hat{\rho}_e^2\right)^2}
+      \le \frac{4}{3}||\hat{\gamma_e}||_2+7||\hat{\rho}||_2^2 \\
+    & \le \frac{204}{75000}+\frac{7}{2000} < \frac{1}{100}.
+\end{split}
+\end{equation}
+This confirms that $(\overline{g},\overline{z})$ is well-coupled.
+\end{proof}
+
+In order to use the fixing procedure, the primal-dual solution has to be $\frac{1}{50}$-coupled. To ensure this condition we have to introduce a more strict upper bound to the step size $\delta$.
+\begin{lemma}[\cite{madry}] \label{step_upperbound}
+$(f^+,y^+)$ is a well-coupled primal dual solution with $f^+$ being a $\chi_{\alpha'}$-flow that is feasible in $G$ whenever $\delta \le (33||\rho||_4)^{-1}$.
+\end{lemma}
+First we have $||\rho||_4 \ge ||\rho||_\infty$ so condition $\delta \le \frac{1}{4||\rho||_\infty}$ is already satisfied and $f^+$ is $\chi_{\alpha'}-$feasible in $G$.
+Now we need to prove the well-coupling of $(f^+,y^+)$.
+
+To use above lemma and complete the proof we need to show that $(\hat f,\hat y)$ computed in the augmentation step is $\hat{\gamma}$-coupled with $||\hat{\gamma}||_2 \le \frac{1}{50}$.
+
+We know that $(f,y)$ was $\gamma$-coupled with $\gamma \le \frac{1}{100}$. Once again by \Cref{violation_bound} we have
+\begin{equation}
+\begin{split}
+||\hat{\gamma}||_2
+&= \sqrt{\sum_e}\hat{\gamma}_e^2
+\stackrel{\ref{violation_bound}}{\le} \sqrt{\sum_e\left(\frac{4}{3}\gamma_e+7(\delta\rho_e^2)^2\right)^2} \\
+&\le \frac{4}{3}||\gamma_e||_2+7\delta^2||\rho||_4^2
+\le \frac{4}{200}+\frac{7}{33^2} < \frac{1}{50}
+\end{split}
+\end{equation}
+And thus \Cref{fixing_lemma} can be applied.
+
+\subsection{Flow rounding}
+Up to this point, we allowed a fractional flow passing through the edges. Most instances of maximum flow problem only consider an integral flow for which $f_e\in\mathbb{Z}$ for each edge $e\in E$. Fortunately, we can transform a fractional flow to an integral one in $O(m\log n)$ time with a flow rounding algorithm.
+
+In order to achieve that, let us introduce an auxiliary notion of fractional cycles:
+\begin{definition}[\cite{flow_rounding}]
+Given a flow circulation $f$, we call a cycle consisting of only non-integral flow to be a fractional cycle.
+\end{definition}
+The key part of flow rounding algorithm is removing all fractional cycles. The following lemma shows that once it is done, the remaining flow will be integral.
+\begin{lemma}[\cite{flow_rounding}]
+If a circulation $f$ contains no cycle of edges with fractional flow, then $f$ is integral.
+\end{lemma}
+
+\begin{algorithm}
+\caption{RoundFlow algorithm}
+\begin{algorithmic}[1]
+\Function{RoundFlow}{$G, \texttt{flow}$}
+\State \texttt{fractionalFlow} $\gets$ the significant of $x$ for each $x \in \texttt{flow}$
+\State \texttt{dt} $\gets$ \Call{DynamicTree}{\texttt{weights}: \texttt{fractionalFlow}}
+\For{$\{u,v\} \in E$}
+        \If{$u$ and $v$ are in the same component}  \Comment{\textsc{FindRoot}}
+        \State Let $S\in\{[u,v,...,u],[v,u,...,v]\}$ be a circular flow
+        \State with nonnegative value \Comment{\textsc{PathSum}}
+        \State Find minimum flow $f$ in cycle $S$ of the same
+        \State direction as $S$
+        \Comment{\textsc{PathMin}}
+        \State Push $f$ through $S$
+        \Comment{\textsc{PathAdd}}
+    \EndIf
+    \State Add $\{u,v\}$ edge if it has a fractional flow \Comment{\textsc{Link}}
+\EndFor
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+To achieve a $O(m\log n)$ algorithm, we use a dynamic trees data structure introduced in \cite{dynamic_trees}. It provides the following functions, each running in $\tilde{O}(n)$ time:
+\begin{itemize}
+    \item \textsc{Cut($u, v$)} - remove the $(u,v)$ edge,
+    \item \textsc{FindRoot($v$)} - find the root of $v$ tree; used for determining if two vertices belong to the same component,
+    \item \textsc{PathAdd($u, v, c$)} - add value $c$ to all edges along the $u$-$v$ undirected path
+    \item \textsc{PathMin($u, v$)} - find the minimum value along the $u$-$v$ undirected path; consider only edges directed same as the path, 
+    \item \textsc{PathSum($u, v$)} - find the sum of the values along the $u$-$v$ undirected path
+\end{itemize}
+
+\section{Time complexity}
+In this section we will determine and prove the running time complexity of the algorithm. To recall, we have constructed a primal dual solution $(f,y)$ in which $f$ is a $\chi_\alpha$ flow. 
+The dual solution $y$ keeps track if the flow $f$ can be further improved to route the entire target flow $\chi$. We also introduced a coupling between those two vectors that ensures those values are linked.
+
+The algorithm consists of multiple progress steps, each trying to improve the throughput of primal solution. The amount of progress made in a single step was denoted as $\delta$. We have also constructed an upper-bound of the step size.
+
+To upper-bound the time complexity of the algorithm we could find a lower-bound on the progress made in each step.
+\begin{lemma}\label{lemma_step_bound}
+The progress made in each step of the \textsc{RouteFlow} algorithm can be bounded from below by $(1-\alpha)\hat{\delta}$ for some constant value $\hat{\delta}$.
+\end{lemma}
+We will prove this fact later in this section. For now, let's see how we can use this lemma to determine the time complexity of \textsc{ElectricalFlow} algorithm.
+
+As a consequence of \Cref{lemma_step_bound}, we get:
+\begin{lemma}
+The \textsc{RouteFlow} takes at most $O(\hat{\delta}^{-1}\log mU)$ iterations.
+\end{lemma}
+\begin{proof}
+Let us consider how much progress has been done by first $k$ steps. In the first iteration we make a progress of at least $\hat\delta$. In each next step we progress by $\hat\delta$ fraction of the remaining progress $1-\alpha$. After $k$ step we thus made a progress of $1-(1-\hat\delta)^k$.
+Let $t$ be the the number of iterations needed before at most one unit of flow can still be routed. Formally $t$ is the smallest number satisfying $F\cdot(1-\hat\delta)^t \le  1$.
+We compute a $\log_{1-\hat\delta}$ of both sides of the equation: $t \ge \log_{1-\hat\delta}(\frac{1}{F}) = \frac{\ln(1/F)}{\ln(1-\hat\delta)}$.
+Since $\ln(1-x) \le -x$ for every $x\ge 0$ we have $t \ge \frac{\ln(1/F)}{\ln(1-\hat\delta)} \ge \frac{\ln(F)}{\hat\delta}$. Using the upper-bound for $F$: $F \le mU$ we finally get $t \in O(\hat\delta^{-1}\ln(mU))$.
+\end{proof}
+
+Now we are ready to determine the time complexity of \textsc{ElectricalFlow}:
+\begin{theorem}
+\label{time_complexity_flow}
+The \textsc{ElectricalFlow} algorithm runs in $\tilde  O(\hat{\delta}^{-1}m\log U$) time.
+\end{theorem}
+\begin{proof}
+\textsc{RouteFlow} executes $O(\hat{\delta}^{-1}\log mU)$ iterations, each running in $\tilde O(m)$ time. We thus get the $\tilde O(\hat{\delta}^{-1}m\log U)$ running time for the \textsc{RouteFlow} algorithm. We also need to route at most one remaining unit of flow. This can be done in $O(m)$. Lastly, we execute the \textsc{FlowRounding} procedure that runs in $\tilde O(m)$ time. The time complexity of \textsc{ElectricalFlow} is thus $\tilde  O(\hat{\delta}^{-1}m\log U)$.
+\end{proof}
+
+Showing a good lower bound $\delta$ is however not easy. First of all we do not know if target flow can be fully routed through $G$. If it is not the case, the algorithm terminates through $y$. Even if the demand can be satisfied, we are still yet to prove the algorithm reaches the desired flow.
+
+Note that in the algorithm $\hat u^+(f)$ and $\hat u^-(f)$ were always symmetric. We either used $\hat u(f)=\min\{\hat u^+(f), \hat u^-(f)\}$ or some other expression (e.g. resistance) symmetric in terms of $\hat u^+(f)$ and $\hat u^-(f)$. The flows computed in an electrical flow must be feasible in a symmetrized version of the residual graph.\\
+Formally, we define symmetrization $\hat G_f$ of a residual graph $G_f$ to be an undirected graph (constructed from $G$) with each edge holding a capacity equal to $\hat u(f)$.
+
+Now we can see the first challenge in lower-bounding the progress made in a single step. Even if making a major progress in $G_f$ is possible, the computed augmentation step in symmetrization $\hat G_f$ can be small. This limitation makes it impossible to lower-bound the progress without performing some extra work.
+
+Fortunately we can slightly modify the graph $G$ to not only compute its progress lower-bound, but also determine the number of steps taken in the original problem.
+We insert $m$ undirected edges of capacity $2U$ between $s$ and $t$.
+We call them \textit{preconditioning arcs} and the modified graph a \textit{preconditioning graph}.
+This modification will increase the flow by $2mU$ in total.
+Now as long as the primal dual solution $(f,y)$ is well-coupled we can guarantee the augmentation step can push a flow with value lower-bounded by some constant.
+On one hand, the well-coupling prevents the preconditioning arcs to fill up to quickly. On the other hand, the preconditioning arcs assure that the progress made in each step is large enough.
+
+\begin{lemma}[\cite{madry}] \label{preconditioned_lemma}
+Let $(f,y)$ be a well-coupled dual solution in the preconditioned graph $G$ and let $f$ be a $\chi_\alpha$-flow $f'$ for some $0\le\alpha<1$, that is feasible in $G$. It holds that:
+\begin{enumerate}[label=(\alph*)]
+    \item there exists a $\chi_{\frac{(1-\alpha)}{10}}$-flow $f'$ that is feasible in the symmetrization $\hat G_f$ of the residual graph $G_f$;
+    \item or $\chi^Ty>\frac{2m}{(1-\alpha)}$ implying that our target demand $\chi$ cannot be routed in $G$.
+\end{enumerate}
+\end{lemma}
+\begin{proof}
+First, let us assume that $\chi^Ty \le \frac{2m}{1-\alpha}$. Otherwise case \textit{(b)} is satisfied and the proof is concluded. We will argue that a $\chi_{\frac{(1-\alpha)}{10}}$ flow can be pushed through the preconditioning edges alone. Note that there is exactly $\frac{m}{2}$ such edges. All we need to show is that for each preconditioning edge, the following inequality is satisfied:
+\[
+\hat u_e(f) \ge \frac{(1-\alpha)F}{5m} = \frac{2}{m}\cdot\frac{(1-\alpha)}{10}F,
+\]
+The $u_e(f)$ is the capacity in the symmetrization $\hat G_f$ of the residual graph $G_f$, thus $u_e(f)$ units can be further pushed through the edge $e$.
+
+We prove the above inequality by contradiction. Note that the preconditioning arcs are indistinguishable from the point of view of the algorithm. In consequence, the flow running through two preconditioning edges is the same at all times. Let us fix some preconditioning edge $e$ and assume that the inequality does not hold.
+The arc capacity makes at least $\frac{2}{3}$ fraction of the maximum $s$-$t$ flow $F^*$ in $G$. We thus have:
+\[
+u_e^+ = u_e^- = \frac{2}{m}\cdot\frac{2}{3}F^* = \frac{4F^*}{3m},
+\]
+where $u_e^+, u_e^-$ are the initial capacities of the edge. We know that $F \le \frac{3}{2}F^*$. If $F > \frac{3}{2}F^*$ we would not be able to push at least $\frac{2}{3}F$ through the preconditioning arcs . We now have:
+\[
+\begin{split}
+|f_e|
+&= \max\{u_e^+-\hat u_e^+(f),u_e^--\hat u_e^-(f)\} \\
+&\ge \frac{4F^*}{3m}-\frac{(1-\alpha)F}{5m} \ge \frac{\frac{5}{2}F^*    +\alpha F}{3m} \ge \frac{2F^*}{3m}.
+\end{split}
+\]
+We know as well that $f_e>0$. Otherwise there would be a $t$-$s$ flow larger than $\frac{F^*}{3}$ over all the preconditioning arcs. It would be impossible to counteract this backward flow with the edges from $G$.
+We show further that
+\[\begin{split}
+\hat u_e(f) \le \frac{(1-\alpha)F}{5m} < \frac{(1-\alpha)F}{3m} \le \frac{F^*}{2m} 
+\le \frac{1}{2}u_e^- = \frac{1}{2}(\hat u_e^-(f)-f_e) \le \frac{\hat u_e^-(f)}{2}
+\end{split}
+\]
+or equivalently
+\[
+\frac{1}{\hat u_e^-(f)} \le \frac{1}{2\hat u_e(f)}.
+\]
+With the addition of the well-coupling of $(f,y)$ we get
+\[
+\begin{split}
+\Delta_e(y)
+&\ge \Phi_e(f)-\frac{\gamma_e}{\hat u_e(f)} = \frac{1}{\hat u_e^+(f)}-\frac{1}{\hat u_e^-(f)}-\frac{\gamma_e}{\hat u_e(f)} \\
+&\ge \frac{(1-\gamma_e)}{\hat u_e(f)}-\frac{1}{2\hat u_e(f)} = \frac{(1-2\gamma_e)}{2\hat u_e(f)}.
+\end{split}
+\]
+We know that $\gamma_e \le \frac{1}{\sqrt{m}}$. Otherwise the contribution of all the preconditioning arcs to the violation vector's $l_2$-norm would break the well-coupling of $(f,y)$. We thus get
+\[
+ \Delta_e(y) \ge \frac{5m(1-\frac{2}{\sqrt{m}})}{2(1-\alpha)F} > \frac{2m}{(1-\alpha)F}.
+\]
+This however leads to a contradiction since
+\[
+\Delta_e(y) = y_t-y_s = \frac{\chi^Ty}{F} \le \frac{2m}{(1-\alpha)F}.
+\]
+\end{proof}
+
+With \Cref{preconditioned_lemma} in place, we can determine the progress lowerbound $\hat{\delta}$.
+\begin{lemma}[\cite{madry}]
+\textit{Let $(f,y)$ be a well-coupled dual solution that is feasible in $G_f$, for some $0\le\alpha<1$. Let $\tilde  f$ be an electrical $\chi$-flow determined by the resistances $r$ given by \Cref{progress_resistances} . We have that either:}
+\begin{enumerate}[label=(\alph*)]
+    \item $||\rho||_2^2\le\emph{\textepsilon}_r(\tilde  f)\le\frac{200m}{(1-\alpha)^2}$, where $\rho$ is the congestion vector defined in \Cref{congestion_def},
+    \item or $\chi^Ty>\frac{2m}{(1-\alpha)}$, i.e., our target demand $\chi$ cannot be routed in $G$.
+\end{enumerate}
+\end{lemma}
+\begin{proof}
+Directly from \Cref{preconditioned_lemma} either $\chi_\alpha^Ty>\frac{2m}{(1-\alpha)}$ and we fall into \textit{(b)} or there exists a $\chi_\frac{(1-\alpha)}{10}$-flow $f'$ feasible in $\hat G(f)$.
+Let us create an upper-bound for the energy of $f'$. Since $f'$ is feasible in $\hat G_f$, i.e. $f'_e\le\hat u_e(f)$ for each edge $e$, we have
+\begin{equation} 
+\begin{split}
+\emph{\textepsilon}(f')
+&= \sum_{e\in E} r_e(f'_e)^2
+= \sum_{e\in E}\left(\frac{1}{(\hat u_e^+(f))^2}+\frac{1}{(\hat u_e^-(f))^2}\right)(f'_e)^2\\
+&\le 2\sum_{e\in E}\left(\frac{f'_e}{\hat u_e(f)}\right)^2
+\le 2m
+\end{split}
+\end{equation}
+Now if we define the flow $f'' := \frac{10}{(1-\alpha)}f'$ we get a $\chi$-flow with the energy at most
+\[
+\emph{\textepsilon}_r(f'')
+= \sum_{e\in E} r_e(f''_e)^2
+= \sum_{e\in E} r_e\left( \frac{10}{(1-\alpha)}f'_e\right)^2
+= \frac{100}{(1-\alpha)^2} \emph{\textepsilon}_r(f')
+\le \frac{200}{(1-\alpha)^2}m.
+\]
+However an electrical $\chi$-flow $\tilde f$ induced by the resistances $r$ minimizes the energy function. This implies the following inequality
+\[
+||\rho||_2^2
+\stackrel{\ref{congestion_energy_bound}}{\le} \emph{\textepsilon}_r(\tilde f)
+\le \emph{\textepsilon}_r(f'')
+\le \frac{200}{(1-\alpha)^2}m.
+\]
+\end{proof}
+
+Now we can construct an upper-bound on $\delta$ necessary to prove \Cref{lemma_step_bound}. From \Cref{step_upperbound} we have
+\[
+\delta
+\ge \frac{1}{33||\rho||_4}
+\ge \frac{1}{33||\rho||_2}
+\stackrel{\ref{step_upperbound}}{\ge} \frac{1}{33}\cdot\sqrt{\frac{(1-\alpha)^2}{200 m}}
+= \frac{(1-\alpha)}{33\sqrt{200 m}}
+\]
+Thus, it is sufficient to take $\hat{\delta} := (33\sqrt{200 m})^{-1}$ to meet the desired condition $\delta \ge (1-\alpha)\hat{\delta}$.
+This, in turn, in conjunction with \Cref{time_complexity_flow} completes the proof that the time complexity of this algorithm is
+$\tilde  O(m\cdot\hat{\delta}^{-1}\log U) = \tilde  O(m^\frac{3}{2}\log U)$.

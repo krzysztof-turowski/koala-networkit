@@ -1,0 +1,72 @@
+\section{Hao-Orlin algorithm}
+\label{sec:haoOrlin}
+
+\subsection{Idea}
+The innovation of the Hao-Orlin algorithm lies in its efficient use of multiple max-flow computations to identify the global minimum cut in the graph. By calculating multiple s-t cuts, it effectively explores various partitions of the graph to ensure the identification of the true minimum cut. That is why, this algorithm leverages the classic max-flow min-cut theorem, which states that the maximum flow between two nodes in a network is equal to the capacity of the minimum cut separating those nodes. For more details on the equivalence of min-cut and max-flow, we refer to Section \ref{sec:mincut-maxflow}.
+
+At a high level, the algorithm works by iteratively solving a series of max-flow problems. It begins by selecting an arbitrary node \(s\) as the source. The algorithm then repeatedly selects another node \(t\) from the remaining nodes and computes the maximum flow from \(s\) to \(t\). The capacity of the resulting \(s\)-\(t\) cut is recorded. By systematically varying the sink node \(t\) and solving up to \(2|V| - 2\) max-flow problems, the algorithm ensures that it has considered all potential cuts.
+
+
+
+\subsection{Implementation}
+The implementation of the Hao-Orlin algorithm is designed to iteratively determine the minimum cut in a directed graph. The key idea is to progressively build a set \(S\) of nodes, starting from a single source node, and to compute the maximum flow to various sink nodes, thereby identifying potential minimum cuts.
+
+Once a new sink node \(t'\) is selected, the implementation uses any max flow algorithm (i.e. \texttt{MaxFlowT} sub-procedure) to compute the maximum flow from the source node (node 0) to \(t'\). The result of this computation is the capacity of the cut that separates the set \(S\) from the rest of the graph. This cut value is then compared to the current \texttt{minCutValue}, and if it is smaller, then it is updated.
+
+The following code snippet illustrates this implementation:
+
+\begin{minted}[linenos]{cpp}
+void run() {
+    minCutValue = INT_MAX;
+    minCutSet.assign(graph->numberOfNodes(), false);
+    std::vector<bool> visited(graph->numberOfNodes(), false);
+    visited[0] = true;
+    std::vector<int> S = {0};
+    while (S.size() < graph->numberOfNodes()) {
+        int t_prime = -1;
+        for (int i = 0; i < graph->numberOfNodes(); ++i) {
+            if (!visited[i]) {
+                t_prime = i;
+                break;
+            }
+        }
+        MaxFlowT minCutSolver(*graph, 0, t_prime);
+        minCutSolver.run();
+        double currentMinCutValue = minCutSolver.getFlowSize();
+        minCutValue = std::min(minCutValue, currentMinCutValue);
+        visited[t_prime] = true;
+        S.push_back(t_prime);
+    }
+}
+\end{minted}
+
+
+
+
+\subsection{Correctness}
+
+The correctness of the Hao-Orlin algorithm is rooted in the equivalence between the max-flow and min-cut problems, which is more thoroughly explored in Section \ref{sec:mincut-maxflow}. This theorem guarantees that finding the maximum flow between any two nodes \( s \) and \( t \) in a flow network will also give the minimum \( s \)-\( t \) cut. To identify the global minimum cut of the network, multiple executions of the max-flow algorithm are necessary. We claim, that instead of examining each pair of  i.e. \( \binom{|V|}{2} \) pairs in total, we need only \(2|V|-2\) pairs.
+
+From \Cref{lemma:second-cut}, we get that we do not need to check every \((s, t)\) pair for \(s\)-\(t\) min-cut, but only consider pairs of vertices that define uniquely separating cuts. Taking that into account we can choose \( u \) to be a fixed node and \( t' \) which represents all other nodes. From that we cover all values of \(s\)-\(t\) min-cuts by only using \(2 \cdot (|V| - 1)\) pairs.
+
+Now we want to make sure we find the global minimum cut with our algorithm. Therefore, let \( (S^*, T^*) \) be the optimal global minimum cut. Without general loss we can claim that \( u \in S^* \) and due to fact that \(T \neq \emptyset\), there is \(t'\) such that \( t' \in T^* \). By the max-flow min-cut theorem and \Cref{lemma:second-cut}, the maximum flow \( f^*(u, t') \) between \( u \) and \( t' \) equals the capacity of minimum \( u \)-\( t' \) cut for all \(t' \neq u\). Therefore, especially we will get pair of (\(u\), \(t'\)) such that:
+
+\[
+\text{val}(f^*(u, t')) = c(S^*, T^*)
+\]
+
+By repeatedly applying the max-flow algorithm to identify \( u \)-\( t' \) cuts for fixed \(u\) and respectively changing \(t'\), it guarantees that the global minimum cut of the network is found.
+
+
+\subsection{Time complexity}
+
+The Hao-Orlin algorithm requires solving up to \( 2|V| - 2 \) max-flow problems. This upper bound comes from the process of iterating over different sink nodes \( t \) while keeping a fixed source node \( s \). Each max-flow computation, therefore, contributes to the overall time complexity.
+
+By combining these factors, the overall time complexity of the Hao-Orlin algorithm can be expressed as:
+\[
+O((2|V| - 2) \cdot T_{\text{max-flow}})
+\]
+where \( T_{\text{max-flow}} \) is the time complexity of the chosen max-flow algorithm which can vary, however using the Edmonds-Karp algorithm we get \( O(|V| \cdot |E|^2) \) \cite{edmonds1972theoretical}. More advanced max-flow algorithms, such as Orlin's algorithm which can handle it in \( O(|V| \cdot |E| \) \cite{orlin2013max}, giving us the overall complexity of:
+\[
+O((2|V| - 2) \cdot (|V| \cdot |E|)) = O(|V|^2 \cdot |E|)
+\]

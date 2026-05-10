@@ -8,6 +8,7 @@
 
 #include <list>
 #include <set>
+#include <vector>
 
 #include <graph/GraphTools.hpp>
 #include <recognition/PerfectGraphRecognition.hpp>

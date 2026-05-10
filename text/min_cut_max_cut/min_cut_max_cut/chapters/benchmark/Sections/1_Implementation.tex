@@ -1,0 +1,50 @@
+\section{Implementation}
+
+The algorithms discussed in this paper were implemented in C++. It utilizes the \textit{NetworKit} and \textit{Boost} frameworks for efficient handling of graph data structures and algorithmic operations. The source code for the implementation is publicly available in the \textbf{koala-networkit} github repository and can be accessed at \url{https://github.com/krzysztof-turowski/koala-networkit/pull/8}.
+
+\subsection{Implementation details}
+
+The core components of the implementation include several key classes and methods for handling the max-cut and min-cut problems. Below, we outline the primary files and their responsibilities:
+
+\subsubsection{Max-cut files}
+
+\begin{itemize}
+    \item \texttt{include/max\_cut/MaxCut.hpp} -- Main header file which defines MaxCut interface. Inherited by all max-cut algorithms.
+    \item \texttt{src/max\_cut/MaxCut.cpp} -- implementation of base MaxCut class.
+    \item \texttt{src/max\_cut/GreedyMaxCut.cpp} -- implementation of \texttt{greedy} algorithm (See \Cref{sec:greedy}).
+    \item \texttt{src/max\_cut/BranchAndBoundMaxCut.cpp} -- implementation of \texttt{branch and bound} algorithm (See \Cref{sec:branchandbound}).
+    \item \texttt{src/max\_cut/RankTwoRelaxationMaxCut.cpp} -- implementation of \texttt{Burer} algorithm (See \Cref{sec:burer}).
+    \item \texttt{src/max\_cut/GoemansWilliamsonMaxCut.cpp} -- implementation of \texttt{Goemans-Williamson} algorithm (See \Cref{sec:goemanswilliamson}).
+    \item \texttt{test/testMaxCut.cpp} -- Unit tests for ensuring correctness of the implemented algorithms using the GoogleTest framework.
+    \item \texttt{benchmark/benchmarkMaxCut.cpp} -- Benchmarking programs to evaluate the performance of the algorithms on various graph instances.
+\end{itemize}
+
+\subsubsection{Min-cut files}
+
+\begin{itemize}
+    \item \texttt{include/min\_cut/MinCut.hpp} -- Main header file which defines MinCut interface. Inherited by all min-cut algorithms.
+    \item \texttt{include/min\_cut/HaoOrlinMinCut.hpp} -- implementation of \texttt{Hao-Orlin} algorithm (See \Cref{sec:haoOrlin}).
+    \item \texttt{src/min\_cut/MinCut.cpp} -- implementation of base MinCut class.
+    \item \texttt{src/min\_cut/StoerWagnerMinCut.cpp} -- implementation of \texttt{Stoer-Wagner} algorithm (See \Cref{sec:stoerwagner}).
+    \item \texttt{src/min\_cut/KargerMinCut.cpp} -- implementation of \texttt{Karger} algorithm (See \Cref{sec:karger}).
+    \item \texttt{src/min\_cut/KargerSteinMinCut.cpp} -- implementation of \texttt{Karger-Stein} algorithm (See \Cref{sec:kargerStein}).
+    \item \texttt{test/testMinCut.cpp} -- Unit tests for ensuring correctness of the implemented algorithms using the GoogleTest framework.
+    \item \texttt{benchmark/benchmarkMinCut.cpp} -- Benchmarking programs to evaluate the performance of the algorithms on various graph instances.
+\end{itemize}
+
+\subsection{Correctness and testing}
+
+The correctness of each implemented algorithm was rigorously tested against known benchmarks and exhaustive algorithms for small and medium sized graph instances.
+
+\begin{itemize}
+    \item  \textbf{Unit Tests:} Implemented using GoogleTest, these tests cover all edge cases and ensure that the algorithms correctly find max-cut and min-cut solutions for various types of graphs.
+    \item \textbf{Benchmark Graphs:} The benchmarking suite includes both randomly generated graphs and standard graph instances from established repositories, providing a comprehensive evaluation of algorithm performance.
+\end{itemize}
+
+\subsection{Benchmarking and performance evaluation}
+
+The algorithms were benchmarked on a variety of graph instances to assess their performance. Graphs with varying sizes and densities were used to determine the scalability and efficiency of each algorithm.
+
+Some of randomized graphs were generated using the Python 3 library \texttt{NetworkX}, which provides tools for creating and manipulating complex networks. Each data point in the performance evaluation represents the average result of 5-10 runs to ensure statistical significance.
+
+To evaluate the performance of the algorithms, a diverse set of instances was utilized. These instances were sourced from two comprehensive libraries: the Bonn University Quadratic Programming Library (\url{http://bqp.cs.uni-bonn.de/library/html/instances.html}) and the Min-Cut/Max-Flow Problem Instances Library from the Technical University of Denmark (\url{https://data.dtu.dk/articles/dataset/}).

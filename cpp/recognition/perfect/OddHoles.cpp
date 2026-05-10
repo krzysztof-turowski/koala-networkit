@@ -6,16 +6,21 @@
  *      Ported by: Krzysztof Turowski (krzysztof.szymon.turowski@gmail.com)
  */
 
-#include <cassert>
 #include <ranges>
+
+#include <algorithm>
+#include <cassert>
+#include <limits>
+#include <set>
+#include <vector>
 
 #include <networkit/linkprediction/NeighborhoodUtility.hpp>
 
 #include <graph/GraphTools.hpp>
+#include <recognition/PerfectGraphRecognition.hpp>
 #include <traversal/BFS.hpp>
 #include <traversal/DFS.hpp>
 #include <traversal/PathInplace.hpp>
-#include <recognition/PerfectGraphRecognition.hpp>
 
 namespace Koala {
 

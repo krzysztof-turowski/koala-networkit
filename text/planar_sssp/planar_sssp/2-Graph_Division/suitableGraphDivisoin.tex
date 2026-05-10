@@ -1,0 +1,98 @@
+\section{Suitable graph division}
+\label{suitableSection}
+
+Now that we have established that a planar graph can be divided into an $r$-division, we proceed to analyze an algorithm for constructing a suitable $r$-division. A modification of the standard implementation of the Planar Separator Theorem in \Cref{connected} will ensure that the resulting regions align with the criteria outlined in \Cref{suitable}.
+
+\begin{algorithm}[H]
+\caption{\textsc{Find Connected Subsets}}\label{connected}
+\begin{algorithmic}[1]
+\Require set $S$ of vertices, graph $G$,
+\Ensure sets of vertices inducing connected subgraphs
+\Procedure{FindConnectedSubsets}{$G$, $S$}
+    \State Get $A$, $B$, $C$ by running planar separator algorithm on $G[S]$
+    \State $C' \gets \{ v \in C : N(v) \cap (\ A \cup B) = \emptyset \}$
+    \State $C'' \gets C \setminus C'$
+    \State $(V_1, E_1), \dots, (V_q, E_q) \gets$ \Call{ConnectedComponents}{$G[A \cup B \cup C']$}
+    \ForEach{$v \in C''$}
+        \State $S \gets \{ j : N(v) \cap V_j' \neq \emptyset \}$
+        \If{$|S| = 1$}
+            \State $V_i' \gets A_i' \cup \{v\}$ \Comment{where $\{i\} = S$}
+        \EndIf
+    \EndFor
+    \State \Return $\{V_1, V_2, \dots, V_q\}$
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+There are two main benefits to this approach. First, the induced subgraphs of the returned sets are connected. Second, a boundary vertex is included in a region if and only if it is adjacent to an interior node of that region.
+
+The algorithm for finding suitable $r$-division starts with recursively applying \Cref{connected} to regions with more than $r$ vertices and more than $c \sqrt{r}$ boundary vertices, just like in \Cref{firstPart}.
+
+\begin{algorithm}
+\caption{\textsc{FindSuitableRDivision}}\label{findRDivision}
+\begin{algorithmic}[1]
+\Require Planar graph $G$, parameter $r$, $c$
+\Ensure Partition of $G$ into regions of size at most $r$
+
+\Procedure{FindSuitableRDivision}{$G, r$}
+    \State $R \gets \{V\}$
+    \While{ exists $S \in R$ that $|S| \geq r $ \textbf{or} $|\B(S)| \geq  c \sqrt{r}$}
+        \State $R \gets R \setminus \{S\}$
+        \State $\{V_1, V_2, \dots, V_q\} \gets$ \Call{FindConnectedSubsets}{$G$, $S$}
+        \State $R \gets R \cup \{V_1, V_2, \dots, V_q\}$
+    \EndWhile
+    \State \Return{\Call{Merge}{$R$, $r$, $c$}}
+\EndProcedure
+
+\end{algorithmic}
+\end{algorithm}
+
+It is important that \Cref{connected} returns division with regions smaller in size and with less or equal number of boundary vertices to division returned by Separator Algorithm. This means that time complexity does not increase. Unfortunately, more that $O(n/r)$ regions can be created using this procedure, hence post processing phase that merges resulting regions is necessary to provide suitable $r$-division from \Cref{suitable}.
+
+\begin{algorithm}
+\caption{\textsc{Merge}}\label{mergeRegions}
+\begin{algorithmic}[1]
+\Require Set of regions $R$, parameters $r$, $c$
+\Ensure Updated set of regions after merging
+
+\While{exist $R_1, R_2 \in R$ with $\B(R_1) \cap \B(R_2) \neq \emptyset$ \textbf{and} $|R_1|,|R_2| < r/2$ \textbf{and} $|\B(R_1)|,|\B(R_2)|  < c/2 \sqrt{r}$}
+    \State  $R \gets R \setminus \{R_1,R_2\}$
+    \State $R_{new} \gets R_1 \cup R_2$
+    \State $R \gets R \cup \{R_{new}\}$
+\EndWhile
+\While{exist $R_1, R_2 \in R$ with $N(R_1) = N(R_2)$ \textbf{and} $|N(R_1)| \in \{1,2\}$\textbf{and} $|R_1|,|R_2| < r/2$ \textbf{and} $|\B(R_1)|,|\B(R_2)|  < c/2 \sqrt{r}$}
+    \State $R \gets R \setminus {R_1,R_2}$
+    \State $R_{new} \gets R_1 \cup R_2$
+    \State $R \gets R \cup \{R_{new}\}$
+\EndWhile
+
+\State \Return{$R$}
+\end{algorithmic}
+\end{algorithm}
+
+One way to merge components in $O(n)$ time is to iterate over boundary vertices and merge regions that share a current vertex and satisfy criteria. Further implementation details no how to merge regions in $O(n)$ time will be discussed in Chapter 5.
+
+This gives us:
+
+\begin{theorem}
+\label{suitableT}[Theorem 1. in \cite{frederickson}]
+A planar graph of n vertices can be divided into a suitable $r$-division in $O(n \log n)$ time.
+\end{theorem}
+
+\begin{proof}
+
+We claim that \Cref{findRDivision} described above generates suitable $r$-division in correct time complexity. The time complexity claim, the size of regions and number of boundary vertices in each region, can be easily proven using exactly the same approach as in proof of \Cref{r-d-lemma}. What's left to show is that the number of regions in resulting division after merging does not exceed $O(n/r)$.
+
+Consider a \emph{region graph}. Region graph is graph that meets following properties. There is one node per region and  two nodes are adjacent to one another in region graph if and only if two regions share common boundary vertex. The region graph is obviously planar. We will consider two types of nodes:
+\begin{itemize}
+    \item \emph{small node} - represents region with either less than $r$ vertices or less than $c \sqrt{r}$ boundary vertices,
+    \item \emph{normal node} - represents other regions.
+\end{itemize}
+
+From the foregoing procedure the following properties will hold. Small nodes are only adjacent to normal nodes. For every normal node there can be only one small node of degree 1 adjacent to it, thus the number of small nodes of degree 1 is proportional to the number of normal nodes.
+
+For every pair of normal nodes there can be only one small node of degree 2 adjacent to both normal nodes. Any small node of degree 2 can be replaced by an edge without breaking region graph's planarity, hence number of small nodes of degree 2 is proportional to the number of normal nodes.
+
+To bound number of all small consider region graph with small nodes of degree less than 3 removed. Consider its planar embedding and add all possible edges between two normal nodes to not break planarity. Than remove edges adjacent to small nodes. Now there is at most one small node for every face of a planar embedding making it proportional to the number of normal nodes. This concludes that in resulting division there is $O(n/r)$ regions. The time complexity claim follows as time for applying \Cref{connected} recursively is $O(n \log{n})$ and time to perform region merging is $O(n)$.
+    
+\end{proof}

@@ -1,0 +1,14 @@
+\begin{tikzpicture}[xscale=1.5,every node/.style={circle,draw,minimum size=9mm}]
+  \node (u) at (1,0) {$u$};
+  \node (l) at (2.5, -4.5) {$l$};
+  \node (r) at (0, -1.5) {$r$};
+  \node (new) at (2,-1.5) {$new$};
+  \node (x) at (1.5,-3) {$x$};
+  \node (y) at (2.5,-3) {$y$};
+
+    \draw (y) -- (l);
+    \draw (u) -- (r);
+  \draw (u) -- (new);
+  \draw (new) -- (x);
+  \draw (new) -- (y);
+\end{tikzpicture}

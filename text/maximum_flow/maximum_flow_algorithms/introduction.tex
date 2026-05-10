@@ -1,0 +1,115 @@
+
+The maximum flow problem is a fundamental optimization problem in network theory, concerned with determining the greatest possible flow that can be sent through a directed graph from a designated \emph{source} node to a \emph{sink} node, while respecting the capacity constraints of each edge. This problem models real-world scenarios where a commodity-such as data packets, water, electricity, or railway traffic-must be transported efficiently through a network with limited throughput.
+
+The problem was first formally studied in 1954 by Harris and Ross \cite{harris}, who framed it as a simplified model for analyzing Soviet railway traffic flows. Shortly after, Ford and Fulkerson \cite{ford1956} introduced the first algorithm to solve this problem, now known as the \textit{Ford-Fulkerson} algorithm. 
+
+Over the decades, a variety of algorithmic paradigms have emerged to solve the maximum flow problem more efficiently:
+
+\begin{itemize}
+    \item \textbf{Augmenting Path Methods}: This approach iteratively increases flow along paths with available capacity until no further improvements are possible, laying the foundation for subsequent advancements. The \textit{Ford-Fulkerson} algorithm, though simple, lacks a polynomial runtime guarantee. The \emph{Edmonds-Karp} variant \cite{edmonds1972} improved this by using shortest paths, achieving $O(|V||E|^2)$ time. \emph{Dinic's} algorithm \cite{dinic1970} further optimized this approach using \emph{blocking flows}, reducing runtime to $O(|V|^2|E|)$. In 1978 Malhotra, Kumar, Maheshwari \cite{MKM} optimized the \textit{Dinic}'s algorithm to run in $O(|V|^3)$ time.
+    
+    \item \textbf{Preflow-Push Methods}: Goldberg and Tarjan's \emph{push-relabel} algorithm \cite{PushRelabel} introduced \emph{preflows}, which allow intermediate vertices to temporarily hold excess flow by relaxing the conservation constraint. This method achieves faster computation with $O(|V|^2|E|)$ or $O(|V|^3)$ complexity.
+
+    \item \textbf{Capacity Scaling}: By focusing on high-capacity paths first, scaling techniques improve practical performance. The idea is to start by setting some parameter $\Delta$ to a large value, and introduce all edges that have residual capacity at least $\Delta$. After pushing all possible flow through these edges we divide $\Delta$ in half. An example algorithm is \emph{Ahuja-Orlin's} algorithm \cite{ahuja}, running in $O(|V||E| + |V|^2 \log |f|)$ time.
+    
+    \item \textbf{Electrical Flow Methods}: Recent advances use ideas from numerical linear algebra and resistance networks to approximate flows in nearly-linear time \cite{madry2016}.
+\end{itemize}
+
+Further breakthroughs have continued to push the theoretical boundaries of the maximum flow problem. In 2013 \emph{Orlin} \cite{orlin} presented a strongly polynomial algorithm with running time $O(|V||E|)$, which was the fastest known at the time for dense graphs. More recently, Chen et al. \cite{chen2022} introduced an almost-linear time algorithm for maximum flow and minimum-cost flow problems, representing a major advance in both theory and practical applicability for very large-scale networks.
+
+These developments have led to efficient and practical methods for solving maximum flow problems in diverse applications ranging from network design \cite{design} and logistics to  data mining \cite{datamining} and computer vision \cite{BK}.
+
+\begin{table}[H]
+\centering
+\caption{Maximum Flow Algorithms}
+\begin{tabular}{l c c}
+\toprule
+\textbf{Name} & \textbf{Year} & \textbf{Complexity} \\
+\midrule
+Ford-Fulkerson & 1956 & $O(|E| \cdot |f|)$  \\
+Edmonds-Karp & 1972 & $O(|V||E|^2)$ \\
+Dinic & 1970 & $O(|V|^2E)$ \\
+\textbf{MKM (Malhotra, Kumar, Maheshwari)} & \textbf{1978} & \textbf{$O(|V|^3)$}\\
+Ahuja-Orlin & 1987 & $O(|V||E| + |V|^2 \log |f|)$ \\
+\textbf{Push-Relabel (FIFO selection)} & \textbf{1988} & \textbf{$O(|V|^3)$} \\
+\textbf{Boykov-Kolmogorow} & \textbf{2004} & \textbf{$O(|V|^2|E| \cdot |f|)$} \\
+Orlin & 2013 & $O(|V||E|)$ \\
+Chen et al. & 2022 & $O(|E|^{1+o(1)})$ \\
+\bottomrule
+\end{tabular}
+\caption*{The implemented algorithms highlighted in bold. By $|f|$ we denote the value of the maximum flow.}
+\end{table}
+
+\section{Definitions}
+
+\begin{defn}
+A directed graph $G=(V,E)$ consists of a set of vertices (also referred to as nodes in this paper) $V$ and set of edges $E$, whose elements are ordered pairs of vertices. 
+\end{defn}
+\begin{defn}[from \cite{cormen}]
+A flow network $G = (V,E)$ is a directed graph, capacity function $c(e)$, which assigns each edge $(u,v)$ a nonnegative value and two distinct vertices called a $source$ $s$ and a $sink$ $t$. We assume that for each edge $(u,v) \in E$, we \emph{do not} have $(v,u) \in E$. 
+\end{defn}
+
+We can work around the above restriction in general case: for each pair of edges $(u,v),(v,u) \in G$ we consider a new vertex $w$, remove $(v,u)$ from $E$ and add two edges $(v,w)$ and $(w,u)$ with the same capacities as $(v,u)$. 
+
+\begin{defn}[from \cite{cormen}]
+A flow is a function $f$ that assigns each edge a nonnegative value and satisfies:
+$$ 0 \leq f(u,v) \leq c(u,v)$$
+$$
+\text{for all } u \in V \setminus \{s, t\}, \quad
+\sum_{v \in V} f(v, u) = \sum_{v \in V} f(u, v)
+$$
+The value of a flow is equal to: 
+$|f| = \sum_{v \in V} f(s, v)$, i.e, the output flow of $s$.
+
+\end{defn}
+
+\begin{defn}[from \cite{cormen}]
+The \emph{maximum flow} problem can therefore be formulated as follows. Given a flow network $G$ with capacity $c$, source $s$ and sink $t$, we wish to find the maximum possible value of a flow.
+\end{defn}
+
+\begin{defn}[from \cite{cormen}]
+Let $ G = (V, E) $ be a flow network with capacity function $ c : V \times V \to \mathbb{R}_{\geq 0} $ and flow function $ f : V \times V \to \mathbb{N} $, satisfying the flow constraints. The \emph{residual graph} $ G_f = (V, E_f) $ with respect to flow $ f $ is defined as follows:
+
+For each edge $ (u, v) \in E $, the residual graph $ G_f $ includes:
+\begin{itemize}
+  \item a \textbf{forward edge} $ (u, v) $ with residual capacity $ c_f(u, v) = c(u, v) - f(u, v) $, if $ c(u, v) - f(u, v) > 0 $,
+  \item a \textbf{backward edge} $ (v, u) $ with residual capacity $ c_f(v, u) = f(u, v) $, if $ f(u, v) > 0 $.
+\end{itemize}
+
+Thus, the residual graph represents all possible directions in which flow can be augmented: forward along unused capacity and backward to cancel existing flow.
+\end{defn}
+
+\begin{defn}[from \cite{cormen}]
+An \emph{augmenting path} is a path $P$ from the source node $s$ to the sink node $t$ in the residual graph $G_f$, such that every edge on the path has positive residual capacity i.e., $ c_f(u, v) > 0 $ for each edge $ (u, v) $ in $P$. The minimum residual capacity along this path determines the maximum additional flow that can be pushed through the network.
+\end{defn}
+
+\begin{defn}[from \cite{cormen}]
+An \emph{$S$–$T$ cut} of a flow network $G = (V, E)$ is a partition of the vertices $V$ into two disjoint sets $S$ and $T = V \setminus S$, such that the source node $s \in S$ and the sink node $t \in T$.
+
+The \emph{capacity} of the cut $(S, T)$ is defined as:
+$$
+c(S, T) = \sum_{u \in S} \sum_{v \in T} c(u, v)
+$$
+where $c(u, v)$ is the capacity of the edge from $u$ to $v$.
+\end{defn}
+We can now state the most important theorem in the network flow theory, formulated in 1956 by Ford and Fulkerson: 
+\begin{theorem}[Max-Flow Min-Cut Theorem {\cite{ford1962}}]
+For any flow network, the maximum value of a flow from source $s$ to sink $t$ is equal to the minimum capacity over all $S-T$ cuts in the network.
+\end{theorem}
+
+When analizing correctness of maximum flow algorithms we often have an assumption that the network after termination does not contain an augmenting path. The following statement proves that in this case the flow is indeed maximal.
+
+\begin{theorem}\label{thm:max}
+If there is no path between $s$ and $t$ in the residual graph $G_f$ then the value of the flow is maximal.
+\end{theorem}
+
+\begin{proof}
+Assume that there is no path between $s$ and $t$ in the residual graph $G_f$. Then we can consider a set $S$
+of all nodes reachable from $s$ in $G_f$. Let $T = V \setminus S$. We know that $t \in T$, and for all $(u,v) \in (S,T)$ we have $f(u,v) = c(u,v)$, because otherwise $v$ would be reachable from $s$ in $G_f$ via a residual edge (i.e., there would be remaining capacity). The total flow across the cut is:
+$$
+|f| = \sum_{u \in S} \sum_{v \in T} f(u,v) = \sum_{u \in S} \sum_{v \in T} c(u,v) = c(S,T),
+$$
+i.e., the value of the flow equals the capacity of the cut.
+
+By the Max-Flow Min-Cut Theorem, since we have found a cut whose capacity equals the current flow, the flow is maximal.
+\end{proof}

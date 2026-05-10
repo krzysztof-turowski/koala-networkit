@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <functional>
+
 #include <structures/Heap.hpp>
 
 typedef testing::Types<

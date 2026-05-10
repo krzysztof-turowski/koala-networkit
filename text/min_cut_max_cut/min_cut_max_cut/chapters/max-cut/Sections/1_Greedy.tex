@@ -1,0 +1,78 @@
+\section{Greedy algorithm}
+\label{sec:greedy}
+
+\subsection{Idea and Correctness}
+The greedy algorithm for the max-cut problem operates under a straightforward yet powerful premise: explore local vertex partition improvements to maximize the sum of weights across the cut edges. The algorithm iteratively evaluates the cut-value of different vertex subsets, systematically flipping the set membership of each vertex to explore potential improvements in the cut value. Therefore we will adjust the partition by moving one vertex at a time from one set to another, checking whether such moves increase the total edge weights that cross from one set to the other.
+
+\subsection{Implementation}
+The implementation of the Greedy max-cut algorithm is structured to continuously evaluate and adjust vertex partitions. Initially, all vertices are assigned to one subset, and the algorithm iteratively flips the membership of each vertex to see if the move results in a higher cut value. This is done by the function \texttt{calculateCutValue}, which computes the total weight of the edges crossing between the two subsets for a given partition.
+
+The core of the implementation resides in the \texttt{run} method, where the algorithm uses a greedy approach:
+\begin{itemize}
+    \item It starts with all vertices in one subset.
+    \item For each vertex, it tests the effect of moving it to the opposite subset.
+    \item If the move increases the total weight of the cut edges, the move is kept; otherwise, it is reverted.
+\end{itemize}
+
+This process repeats until no further improvements can be made, ensuring that each vertex placement is locally optimal with respect to the cut value.
+
+\begin{minted}[linenos]{cpp}
+void NaiveMaxCut::run() {
+    maxCutValue = 0;
+    std::vector<bool> set(graph->numberOfNodes(), false);
+    bool improved = true;
+    while (improved) {
+        improved = false;
+        for (int i = 0; i < graph->numberOfNodes(); i++) {
+            set[i] = !set[i];
+            double newCut = calculateCutValue(set);
+            if (newCut > maxCutValue) {
+                maxCutValue = newCut;
+                maxCutSet = set;
+                improved = true;
+            } else {
+                set[i] = !set[i];
+            }
+        }
+    }
+}
+\end{minted}
+
+\subsection{Correctness and time complexity}
+
+\begin{theorem}
+    [Lemma A1 \cite{sahni1976p}] The greedy algorithm terminates when at least half of the edges belong to the cut ensuring it is an 0.5-approximation algorithm.
+\end{theorem}
+
+\begin{proof}
+    Let \( G = (V, E) \) be an input graph. Consider the state of the graph when the algorithm terminates.
+
+    For any vertex \( v \in V \), let \( \deg(v) \) denote the degree of \( v \), which is the number of edges incident to \( v \). Let \( S \) and \( T \) be a cut of \(G\).
+
+    Assume for contradiction that there exists a vertex \( v \in S \) (without loss of generality) for which fewer than half of the edges incident to \( v \) cross the cut. Formally:
+    \[
+    \sum_{u \in T} w(v, u) < \frac{1}{2} \deg(v)
+    \]
+    where \( \forall_{(u, v) \in E}, \colon w(v, u) = 1\).
+
+    If vertex \( v \) were moved to the other subset \( T \), the number of edges crossing the cut would change. Specifically, each edge \( (v, u) \) for \( u \in T \) would no longer cross the cut, and each edge \( (v, u) \) for \( u \in S \) would begin to cross the cut. The net effect would be:
+    \[
+    c(S', T') = c(S, T) + \left( \deg(v) - 2 \sum_{u \in T} w(v, u) \right)
+    \]
+    where \(S' = S \setminus \{v\}\) and \(T' = T \cup \{v\}  \).
+    Since \( \sum_{u \in T} w(v, u) < \frac{1}{2} \deg(v) \), we have:
+    \[
+    \deg(v) - 2 \sum_{u \in T} w(v, u) > 0
+    \]
+    Therefore, moving \( v \) would increase the cut value, contradicting the assumption that the algorithm has terminated and no further improvement is possible.
+
+    Consequently, at least half of the edges incident to each vertex must belong to the cut, ensuring that the cut includes at least \( |E|/2 \) edges. This establishes the 0.5-approximation guarantee.
+\end{proof}
+
+\begin{theorem}
+    The time complexity of the Naive max-cut algorithm is \(O(|V| \cdot |E|^2)\).
+\end{theorem}
+
+\begin{proof}
+    The time complexity of the greedy max-cut algorithm is determined by the number of iterations and the operations performed within each iteration. The algorithm improves the cut value by at least one edge per iteration, and since there are \(|E|\) edges, it iterates at most \(|E|\) times (see Lemma A2 \cite{sahni1976p}). Within each iteration, the algorithm evaluates each vertex, flipping its subset membership and recalculating the cut value, which involves inspecting all incident edges. Calculating the cut value requires \(O(|E|)\) operations, and evaluating all \(|V|\) vertices results in \(O(|V| \cdot |E|)\) work per iteration. Therefore, the total time complexity is \(O(|E| \cdot (|V| \cdot |E|)) = O(|V| \cdot |E|^2)\).
+\end{proof}

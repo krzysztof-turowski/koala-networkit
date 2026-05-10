@@ -1,4 +1,9 @@
 koala_make_benchmark(
+    benchmark_cographs
+    benchmarkCographs.cpp
+    benchmarkCographs.sh)
+
+koala_make_benchmark(
     benchmark_perfect_graphs
     benchmarkPerfectGraphs.cpp
     benchmarkPerfectGraphs.sh)
@@ -9,14 +14,39 @@ koala_make_benchmark(
     benchmarkPlanarGraphs.sh)
 
 koala_make_benchmark(
+    benchmark_pathwidth
+    benchmarkPathwidth.cpp
+    benchmarkPathwidth.sh)
+
+koala_make_benchmark(
     benchmark_minimum_spanning_tree
     benchmarkMinimumSpanningTree.cpp
     benchmarkMinimumSpanningTree.sh)
 
 koala_make_benchmark(
+    benchmark_maximum_matching
+    benchmarkMaximumMatching.cpp
+    benchmarkMaximumMatching.sh)
+
+koala_make_benchmark(
+    benchmark_maximum_weight_matching
+    benchmarkMaximumWeightMatching.cpp
+    benchmarkMaximumWeightMatching.sh)
+
+koala_make_benchmark(
     benchmark_maximum_flow
     benchmarkMaximumFlow.cpp
     benchmarkMaximumFlow.sh)
+
+koala_make_benchmark(
+    benchmark_independent_set
+    benchmarkIndependentSet.cpp
+    benchmarkIndependentSet.sh)
+
+koala_make_benchmark(
+    benchmark_max_clique
+    benchmarkMaxClique.cpp
+    benchmarkMaxClique.sh)
 
 koala_make_benchmark(
     benchmark_dominating_set
@@ -29,6 +59,11 @@ koala_make_benchmark(
     benchmarkVertexColoring.sh)
 
 koala_make_benchmark(
-    benchmark_independent_set
-    benchmarkIndependentSet.cpp
-    benchmarkIndependentSet.sh)
+    benchmark_priority_queue
+    benchmarkPriorityQueue.cpp
+    benchmarkPriorityQueue.sh)
+
+koala_make_benchmark(
+    benchmark_planar_shortest_path
+    benchmarkPlanarShortestPath.cpp
+    benchmarkPlanarShortestPath.sh)

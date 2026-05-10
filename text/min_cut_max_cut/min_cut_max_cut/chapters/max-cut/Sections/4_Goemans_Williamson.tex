@@ -1,0 +1,166 @@
+\section{Goemans-Williamson algorithm}
+\label{sec:goemanswilliamson}
+
+    \subsection{Idea}
+    
+    The Goemans-Williamson algorithm is one of the approximation algorithms, utilizing semidefinite programming to achieve an approximation ratio of \(\alpha = \min\limits_{0 \leq \theta \leq \pi} \frac{2}{\pi} \frac{\theta}{1 - \cos \theta} \approx 0.87856\). Instead of assigning a binary value to each vertex (indicating which set it belongs to), the algorithm assigns a vector on the unit sphere. This relaxation allows the problem to be represented in a higher-dimensional space. \\
+
+    \noindent
+    To comprehend the fundamental aspects of the algorithm, it is essential to discuss the principles of semidefinite programming:
+
+    \subsubsection{\textbf{Semidefinite Programming (SDP)}}
+
+    Semidefinite programming (SDP) is a subfield of convex optimization that generalizes linear programming \cite{gartner2012semidefinite}. In SDP, we optimize a linear objective function subject to the constraint that an affine combination of symmetric matrices is positive semidefinite. Mathematically, an SDP problem can be formulated as:
+    
+    \[
+    \begin{aligned}
+    & \text{maximize} && \operatorname{Tr}(C^T X) \\
+    & \text{subject to} && \operatorname{Tr}(A_i^T X) = b_i, \quad i = 1, \ldots, m \\
+    & && X \succeq 0,
+    \end{aligned}
+    \]
+    where \( X \) is a symmetric matrix variable, \( C \) and \( A_i \) are given symmetric matrices, \( b_i \) are given scalars, and \( X \succeq 0 \) means that \( X \) is positive semidefinite.
+    
+    In the context of the Goemans-Williamson algorithm for the max-cut problem, the semidefinite programming (SDP) model aims to maximize an objective function that is a relaxation of the combinatorial max-cut problem. This SDP relaxation provides a framework where the combinatorial problem's constraints are captured in a way that can be efficiently solved, yielding a solution that is a bound on the actual integer problem.
+    
+    The objective function of the SDP is designed to maximize the sum of the weights of edges between different sets in a partition of the vertices. For an undirected graph \( G = (V, E) \) with edge weights \( w(i, j) \) between vertices \( i, j \in V \), the SDP maximizes:
+    
+    \[
+    \text{maximize} \quad \frac{1}{2} \sum_{i, j \in V} w(i, j) \cdot (1 - X_{ij})
+    \]
+    where \( X \) is a positive semidefinite matrix, and \( w(i, j) \) denotes the entry of \( X \) corresponding to vertices \( i \) and \( j \). The term \( (1 - X_{ij}) \) effectively captures the contribution to the cut value from edge \( (i, j) \) if \( i \) and \( j \) are in different sets of the partition.
+    
+    \subsubsection{\textbf{Transformation to Trace Form}}
+    
+    The objective function can be transformed into a trace form, which is more convenient for semidefinite programming:
+    
+    \[
+    \frac{1}{2} \sum_{i, j \in V} w(i, j) \cdot (1 - X_{ij}) = \frac{1}{2} \left( \sum_{i, j \in V} w(i, j) - \sum_{i, j \in V} w(i, j) \cdot X_{ij} \right)
+    \]
+    Since \(\sum_{i, j \in V} w(i, j)\) is a constant, maximizing the above expression is equivalent to maximizing:
+    
+    \[
+    \sum_{i, j \in V} w(i, j) \cdot (1 - X_{ij}) = \operatorname{Tr}(W) - \operatorname{Tr}(W X)
+    \]
+    where \( W \) is the matrix of edge weights \( w(i, j) \). Therefore, the problem reduces to:
+    
+    \[
+    \text{maximize} \quad \operatorname{-Tr}(W X)
+    \]
+    subject to the constraints \( X \succeq 0 \) and \( X_{ii} = 1 \) for all \( i \).
+    
+
+    \subsubsection{\textbf{Performance Guarantee}}
+
+    The performance guarantee of the Goemans-Williamson algorithm is derived from the above analysis. The algorithm achieves an approximation ratio of (\Cref{goemansWilliamson:approx}):
+    \[
+    \alpha = \min\limits_{0 \leq \theta \leq \pi} \frac{2}{\pi} \frac{\theta}{1 - \cos \theta} \approx 0.87856
+    \]
+    This is a significant improvement over previous approximation algorithms and represents a major advance in the field of combinatorial optimization.
+
+
+
+\subsection{Implementation}
+
+\begin{enumerate}
+        \item \textbf{Semidefinite Relaxation}: The max-cut problem is first relaxed to a semidefinite programming problem. This involves replacing the binary variables with vectors of unit length. The objective function is defined as:
+        \[
+        \begin{aligned}
+        & \text{maximize} && \operatorname{Tr}(C^T X) \\
+        & \text{subject to} && \operatorname{Tr}(A_i^T X) = b_i, \quad i = 1, \ldots, m \\
+        & && X \succeq 0,
+        \end{aligned}
+        \]
+        where:
+        \begin{enumerate}
+            \item \textbf{Block Matrix \( C \):} This matrix represents the objective function of the SDP. Each entry \( C_{ij} \) is set to \(-w(i, j)\) where \( w(i, j) \) is the weight of the edge \((i, j)\) in the graph. The matrix is symmetric and the diagonal entries are zero.
+            \item \textbf{Linear Constraints \( b \):} The constraints ensure that the resulting vectors \( \mathbf{u}_i \) lie on the unit sphere. Each constraint \( b_i \) is set to 1, indicating that the diagonal entries of the SDP matrix should be 1.
+            \item \textbf{Constraint Matrices \(A_i\):} The constraints are \(\|\mathbf{u}_i\|^2 = 1\), which translate to \(X_{ii} = 1\) in the matrix \(X\), where \(X_{ij} = \mathbf{u}_i \cdot \mathbf{u}_j\). Therefore, \(A_i\) are diagonal matrices where the \(i\)-th diagonal entry is 1 and all other entries are 0.
+        \end{enumerate}
+
+        \item \textbf{Solving the SDP}: This semidefinite program is then solved in polynomial time to obtain a set of vectors \(\mathbf{u}_i\).
+
+        \item \textbf{Random Hyperplane Rounding}: After obtaining the vectors, a random hyperplane passing through the origin is chosen. This hyperplane is used to partition the vertices. Specifically, each vertex \(i\) is assigned to set \(S\) if \(\mathbf{u}_i\) lies on one side of the hyperplane and to \(\overline{S}\) if it lies on the other side. A random vector \(\mathbf{r}\) is chosen uniformly from the unit sphere, and the partition is determined by the sign of the scalar product \(\mathbf{u}_i \cdot \mathbf{r}\). 
+        
+        \[
+        S = \{i \colon \mathbf{u}_i \cdot \mathbf{r} \geq 0\}, \quad \overline{S} = \{i \colon \mathbf{u}_i \cdot \mathbf{r} < 0\}
+        \]
+    \end{enumerate}
+
+
+\subsection{Correctness}
+
+\begin{theorem}
+    \label{goemansWilliamson:approx}
+    The Goemans-Williamson algorithm is a 0.878-approximation algorithm for the max-cut problem.
+\end{theorem}
+
+\begin{proof}
+
+    We analyze the expected value of the cut produced by the algorithm compared to the optimal cut value.
+    
+    Let \( \mathbf{u}_i \) be the unit vectors obtained by solving the SDP. Consider a random vector \( \mathbf{r} \) uniformly distributed on the unit sphere. Define the cut \( S \) by:
+    \[
+    S = \{i \colon \mathbf{u}_i \cdot \mathbf{r} \geq 0\}, \quad \overline{S} = \{i \colon \mathbf{u}_i \cdot \mathbf{r} < 0\}
+    \]
+    
+    For an edge \( (i, j) \), let \( X_{ij} \) be an indicator random variable that is 1 if \( i \) and \( j \) are on different sides of the cut and 0 otherwise. The probability that \( i \) and \( j \) are on different sides is given by:
+    \[
+    \mathbb{P}(X_{ij} = 1) = \mathbb{P}((\mathbf{u}_i \cdot \mathbf{r})(\mathbf{u}_j \cdot \mathbf{r}) < 0)
+    \]
+    
+    This probability can be computed using the fact that \( \mathbf{r} \) is uniformly distributed over the unit sphere. The angle \( \theta \) between \( \mathbf{u}_i \) and \( \mathbf{u}_j \) determines this probability:
+    \[
+    \mathbb{P}(X_{ij} = 1) = \frac{\theta}{\pi}
+    \]
+    where \( \theta \) is the angle between \( \mathbf{u}_i \) and \( \mathbf{u}_j \).
+    
+    Since \( \cos(\theta) = \mathbf{u}_i \cdot \mathbf{u}_j \), we have \( \theta = \arccos(\mathbf{u}_i \cdot \mathbf{u}_j) \). Thus,
+    \[
+    \mathbb{P}(X_{ij} = 1) = \frac{\arccos(\mathbf{u}_i \cdot \mathbf{u}_j)}{\pi}
+    \]
+    
+    The expected weight of the cut produced by the algorithm is:
+    \[
+    \mathbb{E}\left[\sum_{(i, j) \in E} w(i, j) \cdot X_{ij}\right] = \sum_{(i, j) \in E} w(i, j) \cdot \mathbb{P}(X_{ij} = 1) = \sum_{(i, j) \in E} w(i, j) \cdot \frac{\arccos(\mathbf{u}_i \cdot \mathbf{u}_j)}{\pi}
+    \]
+    
+    To relate this to the optimal SDP value, recall the SDP objective:
+    \[
+    \sum_{(i, j) \in E} w(i, j) \cdot \left( \frac{1 - \mathbf{u}_i \cdot \mathbf{u}_j}{2} \right)
+    \]
+    
+    We use the inequality \( \frac{\arccos x}{\pi} \geq \frac{1 - x}{2} \) for \( x \in [-1, 1] \) (Lemma 3.4 \cite{goemans1995improved}), which holds because the function \( \frac{\arccos x}{\pi} \) is convex and lies above the line \( \frac{1 - x}{2} \). Thus,
+    \[
+    \sum_{(i, j) \in E} w(i, j) \cdot \frac{\arccos(\mathbf{u}_i \cdot \mathbf{u}_j)}{\pi} \geq \sum_{(i, j) \in E} w(i, j) \cdot \left( \frac{1 - \mathbf{u}_i \cdot \mathbf{u}_j}{2} \right)
+    \]
+    Let \( \mathrm{OPT_{SDP}} \) denote the optimal value of the SDP. Then,
+    \[
+    \mathbb{E}\left[\sum_{(i, j) \in E} w(i, j) \cdot X_{ij}\right] \geq \alpha \cdot \mathrm{OPT_{SDP}}
+    \]
+    for \( \alpha = \frac{2}{\pi} \min \left( \frac{\theta}{1 - \cos(\theta)} \right) \), where \( 0 \leq \theta \leq \pi \). Thus, the approximation ratio \( \alpha \) is:
+    \[
+    \alpha \approx 0.878.
+    \]
+\end{proof}
+
+
+
+\subsection{Time complexity}
+
+\subsubsection{Formulating the SDP}
+
+Formulating the SDP involves constructing the block matrix \(C\), the linear constraints \(b\), and the constraint matrix. This preparation step involves the structure of the graph and takes \(O(|V|^2)\) time.
+
+\subsubsection{Solving the SDP}
+
+Solving the SDP is the most computationally intensive part of the algorithm. While solving an SDP exactly is generally hard, for our problem, we use efficient polynomial-time interior-point methods. According to \cite{golub1983matrix}, and supported by our analysis, the complexity of solving the SDP using interior-point methods can be bounded by \(O(|V|^3 \cdot \log(1/\epsilon))\), where \(\epsilon\) is the desired accuracy of the solution.
+
+
+\subsubsection{Random Hyperplane Rounding}
+
+After solving the SDP, the rounding step involves generating a random unit vector and partitioning the vertices based on their scalar product with this vector. Both generating the random vector and computing the scalar products for all vertices take \(O(|V|^2)\) time.
+
+\subsubsection{Overall Time Complexity}
+
+Combining all the steps, the overall time complexity of the Goemans-Williamson algorithm can be approximated to \(O(|V|^3 \cdot \log(1/\epsilon))\), since solving the SPD dominates the running time for large values of \(|V|\).

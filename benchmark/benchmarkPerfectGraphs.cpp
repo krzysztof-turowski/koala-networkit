@@ -1,6 +1,7 @@
 #include <cassert>
 #include <iostream>
 #include <map>
+#include <string>
 
 #include <coloring/PerfectGraphVertexColoring.hpp>
 #include <io/G6GraphReader.hpp>

@@ -8,8 +8,9 @@
 #pragma once
 
 #include <set>
+#include <vector>
 
-#include <dominating_set/DominatingSet.hpp>
+#include "dominating_set/DominatingSet.hpp"
 
 namespace Koala {
 
@@ -39,7 +40,7 @@ class BranchAndReduceDominatingSet : public DominatingSet {
         auto set_cover_algorithm = SetCoverAlgorithm(family, occurences);
         set_cover_algorithm.run();
         auto set_cover = set_cover_algorithm.getSetCover();
-        for (int i = 0; i < set_cover.size(); i++) {
+        for (std::size_t i = 0; i < set_cover.size(); i++) {
             if (set_cover[i]) {
                 dominating_set.insert(i);
             }
@@ -85,7 +86,7 @@ class FominKratschWoegingerDominatingSet : public ExactDominatingSet {
     std::set<NetworKit::node> find_big_MODS_recursive(NetworKit::Graph &G);
     std::set<NetworKit::node> find_MODS_for_minimum_degree_3(NetworKit::Graph &G);
     std::vector<NetworKit::node> move_to_solution(NetworKit::Graph &G, NetworKit::node vertex);
-    void remove_from_solution(NetworKit::node vertex, const std::vector<NetworKit::node> &moved);
+    void remove_from_solution(NetworKit::node unique, const std::vector<NetworKit::node> &moved);
     bool forget_vertex(NetworKit::Graph &G, NetworKit::node vertex, bool is_required);
     void retrieve_vertex(
         NetworKit::Graph &G, NetworKit::node vertex, bool is_free, bool is_required);

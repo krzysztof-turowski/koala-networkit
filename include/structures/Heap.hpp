@@ -12,6 +12,7 @@
 #include <structures/heap/BinomialHeap.hpp>
 #include <structures/heap/FibonacciHeap.hpp>
 #include <structures/heap/PairingHeap.hpp>
+#include <structures/heap/SoftHeap.hpp>
 
 namespace Koala {
 

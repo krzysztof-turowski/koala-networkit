@@ -1,0 +1,24 @@
+\begin{minted}[
+frame=lines,
+framesep=2mm,
+baselinestretch=1.2,
+fontsize=\footnotesize,
+linenos
+]{c++}
+M(v) = linked list of children of v;
+MARK(x) {
+  Mark all leaves of T which are adjacent to x;
+  For (each marked node u of T with d(u) == md(u)) {
+    unmark(u);  // change state from marked to marked-and-unmarked
+    md(u) = 0;
+    if (u != root) {
+      mark (parent (u));
+      md(w) += 1;
+      insert u at the head of M(w);
+    }
+  }
+  If (any vertex is marked and d(root) == 1) {
+    mark(root); // change state from unmarked to marked-and-unmarked
+  }
+}
+\end{minted}

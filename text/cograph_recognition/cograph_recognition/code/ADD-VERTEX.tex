@@ -1,0 +1,63 @@
+\begin{minted}[
+frame=lines,
+framesep=2mm,
+baselinestretch=1.2,
+fontsize=\footnotesize,
+linenos
+]{c++}
+ADD-VERTEX(V = (v1, .., vn), E) {  // V-vertices, E-edges 
+  // initialization
+  Create a new (1) cotree node R;
+  if (v1 and v2 are neighbours) {
+    add v1, v2 as children of R;
+  }
+  else{
+    create a new (0) cotree node N;
+    add N as a child of R; 
+    add v1 and v2 as children of N;
+  }
+  // iteratively incorporate v3, .., vn into T
+  for (x in (v3,...,vn)) {
+    MARK (x);
+    if (all nodes of T were marked and unmarked) {
+      add x as a child of R;
+      continue;
+    }
+    if (no nodes of T were marked) {
+      if (d(R) == 1) {
+        add x as a child of the only child of R;
+      }
+      else {
+        create a new (label(u) ^ 1) node R with one child and
+        two grandchildren: x and the old root;
+      }
+      continue;
+    }
+    u = FIND-LOWEST();
+    A[0] = marked-and-unmarked children of u;
+    A[1] = unmarked children of u;
+    if (A[label(u)].size == 1) {
+      if (w is a leaf and A[label(u)] == {w}) {
+        add a new (1) cotree node ((0) cotree node) in place of w 
+        and make w and x children of this node;
+      }
+      else {
+        add x as a new child of w;
+      }
+    }
+    else {
+      remove all elements of A[0] from u; 
+      add these removed elements as children of a new (label(u)) node y;
+      if (u is a (0)-node) {
+        add a new (1) cotree node as a child of u;
+        add x and y as children of this new (1)-node;
+      }
+      else {
+        remove u from its parent and add y in its place;
+        add a new (0)-node as a child of y; 
+        add x and u as children of this new (0)-node;
+      }
+    }
+  }
+}
+\end{minted}

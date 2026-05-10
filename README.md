@@ -4,12 +4,13 @@ This project is a KOALA library fork built on top of the structures provided by 
 
 #### Table of Contents
 1. [Overview of the library](#overview)
-    * [NetworKit](#networkit)
-    * [KOALA](#koala)
-    * [List of algorithms](#algorithms)
-2. [Installation](#installation)
-3. [Usage](#usage)
-4. [References](#references)
+    - [NetworKit](#networkit)
+    - [Koala](#koala)
+    - [List of algorithms](#algorithms)
+    - [List of datasets](#datasets)
+1. [Installation](#installation)
+1. [Usage](#usage)
+1. [References](#references)
 
 ## <a name="overview"></a>Overview of the library
 
@@ -73,26 +74,47 @@ At the most basic level, they presented generic versions of the algorithms, but 
 Moreover, they set up an online graph editor <a href="https://stos.eti.pg.gda.pl/~kmocet/zgred/1.1.22/zgred.html">Zgred</a>, written in JavaScript. It allows to create, edit and visualize graphs. Furthermore, it is capable of running several algorithms from the library.
 </p>
 
-### <a name="algorithms"></a>List of algorithms
+### <a name="algorithms"></a>List of algorithms and data structures
 
 1. [Reading and writing graphs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/io): [graph6](https://users.cecs.anu.edu.au/~bdm/data/formats.html), [sparse6](https://users.cecs.anu.edu.au/~bdm/data/formats.html), [digraph6](https://users.cecs.anu.edu.au/~bdm/data/formats.html), [DIMACS](http://prolland.free.fr/works/research/dsat/dimacs.html), [DIMACS binary](https://mat.tepper.cmu.edu/COLOR/format/README.binformat) formats
-1. [Graph recognition](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/recognition/): [perfect graphs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/recognition/PerfectGraphRecognition.hpp)
+1. [Graph recognition](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/recognition/):
+    1. [Perfect graphs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/recognition/PerfectGraphRecognition.hpp)
+    1. [Cographs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/recognition/CographRecognition.hpp): Habib-Paul, Bretscher-Corneil-Habib-Paul, Corneil-Stewart-Perl, Dahlhaus (sequential)
 1. [Graph traversal](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/traversal/): [BFS](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/traversal/BFS.hpp), [DFS](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/traversal/DFS.hpp)
-1. [Minimum spanning tree algorithms](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/mst/): Kruskal, Prim, Borůvka, Klein-Karger-Tarjan
+1. Graph width parameters:
+    1. [Algorithm for treewidth and pathwidth in cographs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/pathwidth/CographPathwidth.hpp)
+1. Shortest path algorithms:
+    1. [Algorithms for planar graphs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/shortest_path/PlanarSSSP.hpp): Frederickson, Henzinger et al.
+1. [Minimum spanning tree algorithms](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/mst/): Kruskal, Prim, Borůvka, Klein-Karger-Tarjan, Chazelle
     1. Hagerup algorithm for minimum spanning tree verification
+    1. Chazelle-Rubinfeld-Trevisan approximate algorithm for minimum spanning tree weight
+1. [Maximum matching algorithms](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/matching/)
+    1. Maximum cardinality matching: Micali-Vazirani (blossom-based), Mucha-Sankowski (algebraic) algorithms
+    1. Maximum weighted matching: Edwards, Gabow, Galil-Micali-Gabow (all blossom-based) and Galil (scaling) algorithms
 1. [Flow algorithms](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/flow/)
-    1. [Maximum flow](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/flow/MaximumFlow.hpp): King-Rao-Tarjan
+    1. [Maximum flow](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/flow/MaximumFlow.hpp): push-relabel, Malhotra-Kumar-Maheshwari, King-Rao-Tarjan, Mądry (electrical flow), Boykov-Kolmogorov
+1. Cut algorithms:
+    1. [Maximum cut](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/max_cut/): Goemans-Williamson (SDP relaxation), Burer-Monteiro-Zhang (rank-two relaxation) approximate algorithms
+    1. [Minimum cut](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/min_cut/): Karger, Karger-Stein, Stoer-Wagner for undirected graphs, Hao-Orlin for directed graphs
 1. [Vertex coloring](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/coloring/)
     1. [Greedy heuristics](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/coloring/GreedyVertexColoring.hpp): RandomSequential, LargestFirst, SmallestLast, SaturatedLargestFirst, GreedyIndependentSet
     1. [Exact exponential-time algorithms](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/coloring/ExactVertexColoring.hpp): Brown, Christofides, Brélaz, Korman
-    1. [Exact algorithm for perfect graphs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/coloring/PerfectGraphVertexColoring.hpp): Grötschel-Lovász-Schrijver algorithm
+    1. [Grötschel-Lovász-Schrijver algorithm for perfect graphs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/coloring/PerfectGraphVertexColoring.hpp)
+    1. [Algorithm for cographs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/coloring/CographVertexColoring.hpp)
 1. [Maximum independent set](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/independent_set/)
     1. [Exact exponential-time algorithms](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/independent_set/ExactIndependentSet.hpp)
-    1. [PTAS for planar graphs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/independent_set/PlanarIndependentSet.hpp): Baker technique, Bodlaender technique
+    1. [Baker PTAS for planar graphs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/independent_set/PlanarIndependentSet.hpp)
+    1. [Algorithm for cographs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/independent_set/CographIndependentSet.hpp)
+1. [Maximum clique](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/clique/)
+    1. [Algorithm for cographs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/clique/CographClique.hpp)
 1. [Minimum dominating set](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/dominating_set/)
-    1. [Exact exponential-time algorithms](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/dominating_set/ExactDominatingSet.hpp) Grandoni, Fomin-Grandoni-Kratsch, van Rooij-Bodlaender, Fomin-Kratsch-Woeginger, Schiermeyer
-    1. [PTAS for planar graphs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/dominating_set/PlanarIndependentSet.hpp): Baker technique, Bodlaender technique
+    1. [Exact exponential-time algorithms](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/dominating_set/ExactDominatingSet.hpp): Grandoni, Fomin-Grandoni-Kratsch, van Rooij-Bodlaender, Fomin-Kratsch-Woeginger, Schiermeyer
+    1. [Baker PTAS for planar graphs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/dominating_set/PlanarIndependentSet.hpp)
 1. Minimum set cover: [exact branch and reduce](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/set_cover/BranchAndReduceSetCover.hpp)
+1. [Priority queue](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/structures/PriorityQueue.hpp)
+    1. [Heap](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/structures/heap): binomial heap, pairing heap, Fibonacci heap, soft heap, treap, weak heap, skew heap, rank-pairing heap
+    1. [Integer dictionary](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/structures/dict_int): van Emde Boas tree, X-fast trie, Y-fast trie
+1. [Lowest common ancestor](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/structures/lca): Farach-Colton-Bender (optimal)
 
 For further planned changes, see the [Issues](https://github.com/krzysztof-turowski/koala-networkit/issues/) section.
 
@@ -108,9 +130,9 @@ To assess the speed of the algorithms we use primarily the publicly available St
 cmake -B build
 cmake --build build --parallel 4
 ```
-> Note: it may take a while to download and compile dependencies (e.g. googletest, networkit, and boost).
+> Note: it may take a while to download and compile dependencies (e.g. networkit and csdp).
 
-Additionally, users need to install beforehand the following packages (or their equivalents): <tt>g++/clang</tt>, <tt>cpplint</tt>, <tt>gfortran</tt>, <tt>libblas-dev</tt>, <tt>liblapack-dev</tt>, <tt>libgtest-dev</tt>, <tt>libboost-all-dev</tt>.
+Additionally, users need to install beforehand the following packages (or their equivalents): <tt>g++/clang</tt>, <tt>cpplint</tt>, <tt>gfortran</tt>, <tt>libblas-dev</tt>, <tt>liblapack-dev</tt>, <tt>libgtest-dev</tt>, <tt>libboost-graph-dev</tt>, <tt>libeigen3-dev</tt>, <tt>libntl-dev</tt>.
 
 ## <a name="usage"></a>Usage
 

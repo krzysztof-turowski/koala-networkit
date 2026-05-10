@@ -1,0 +1,27 @@
+\begin{tikzpicture}[yscale=1.2,every node/.style={circle,draw,minimum size = 7 mm}]
+  \node (b) at (1,0) {$\delta$};
+    \node (a) at (0,-3) {$\alpha$};
+    \node (pa) at (0, -2) {$\alpha'$};
+    \node (e) at (0, -1) {$\ldots$};
+    \node (e2) at (2, -1) {$\ldots$};
+    \node (e3) at (-1, -3) {$\ldots$};
+    \node (g) at (2, -2) {$\gamma$};
+    \node (c) at (-1, -4) {$c$};
+    \node (e4) at (0,-4) {$\ldots$};
+    \node (reala) at (-0.5,-5) {$a$};
+    \node (realb) at (0.5,-5) {$b$};
+    \node (e5) at (2, -3) {$\ldots$};
+    \node (d) at (2, -4) {$d$};
+    \draw (g) -- (e5);
+    \draw (e5) -- (d);
+    \draw (e4) -- (realb);
+    \draw (e4) -- (reala);
+    \draw (a) -- (e4);
+    \draw (e) -- (pa);
+    \draw (b) -- (e);
+    \draw (b) -- (e2);
+    \draw (e2) -- (g);
+    \draw (pa) -- (e3);
+    \draw (e3) -- (c);
+    \draw (a) -- (pa);
+\end{tikzpicture}

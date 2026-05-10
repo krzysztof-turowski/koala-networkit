@@ -1,0 +1,190 @@
+\label{Properties}
+\section{Idea}
+The algorithms are inspired by \cite{CORNEIL1981163}.
+Having a cotree corresponding to the given cograph, we can compute various graph parameters using dynamic programming, e. g; treewidth,  maximum clique or similar parameters. Typically, we calculate them in a bottom-up manner using e.g depth-first search on the cotree in binary form. Initially, the parameter value is computed for all descendants of a vertex, and then for the vertex itself. For recalculation, we use the fact that knowing the type of vertex (parallel or series), we know which edges exist in the cograph between the leaves of different subtrees of the cotree.
+
+\section{Maximum clique}
+
+The idea of calculating the maximum clique is as follows:
+\begin{itemize}
+    \item If the cograph consists of only one vertex, then the size of the maximum clique is 1.
+    \item If If the root of the cotree is a parallel vertex, then the graph $G=G_1 \cup G_2 \cup \dots \cup G_k$. Hence, the maximum clique of the cograph is the largest maximum clique among the graphs $G_1 , \dots , G_k$. Therefore, the maximum clique of the graph equals the maximum clique among all the children of the root.
+    \item If the root of the cotree is a series vertex, then the graph $G=G_1 \times G_2 \times \dots \times G_k$. Consequently, all the leaves from different subtrees of the root's children are adjacent in the cograph. Then, the set of vertices $v_1, \dots , v_f$ forms a clique if and only if for every pair of vertices $v_i$ and $v_j$, either $v_i$ and $v_j$ are descendants of different children of the root, or $v_i$ and $v_j$ are neighbors. Therefore, the maximum clique of the graph equals the sum of the maximum cliques of its children.
+
+    Such a formula can be computed in linear time using a depth-first search.
+
+    The first depth-first search calculates the size of the maximum clique for each cograph corresponding to a subtree of the cotree.
+The second depth-first search finds any set of vertices in the graph that form a maximum clique.
+\end{itemize}
+
+\begin{minted}[
+frame=lines,
+framesep=2mm,
+baselinestretch=1.2,
+fontsize=\footnotesize,
+linenos
+]{c++}
+
+Maximum clique(cotree T) {
+   Maximum subtree clique size(tree root);
+   Add maximum subtree clique(tree root);
+}
+Maximum subtree clique size(node x) {
+    if (x.type == leaf) {
+        return 1;
+    }
+    if (x.type == parallel) {
+        return max(Maximum subtree clique(x.leftSon), Maximum subtree clique(x.rightSon));
+    }
+    if (x.type == series) {
+         return Maximum subtree clique size (x.leftSon) + Maximum subtree clique size(x.rightSon);
+    }
+    return x.subtree_clique_size;
+}
+
+Add maximum subtree clique (node x) {
+    if (x.type == leaf) {
+        Clique.add(x);
+    }
+    if (x.type == parallel) {
+        if (x.leftSon.subtree_clique_size >= x.rightSon.subtree_clique_size){
+            Add maximum subtree clique(x.leftSon);
+        }
+        else {
+            Add maximum subtree clique(x.rightSon);
+        }
+    }
+    if(x.type == series) {
+        Add maximum subtree clique(x.leftSon);
+        Add maximum subtree clique(x.rightSon);
+    }
+}
+
+\end{minted}
+
+\section{Graph coloring}
+The coloring algorithm for a cograph use a similar scheme to the previous algorithms. We color the subtrees of the cograph using the properties of parallel and series vertices. If the graph is a parallel composition of cographs $G_1, \dots , G_k$ then the cographs $G_1, \dots ,G_k$ can be colored independently. If the graph is a series composition of cographs $G_1, \dots , G_k$ then the leaves that are descendants of different children of the root cannot have the same color. Therefore, the chromatic number of the cograph is equal to the sum of the chromatic numbers of the cographs $G_1, \dots ,G_k$. The first cograph can be colored with colors $1 \dots \chi(G_1)$ , the second cograph with colors $\chi(G_1)+1, \dots, \chi(G_1)+\chi(G_2)$ and so on.
+
+\begin{minted}[
+frame=lines,
+framesep=2mm,
+baselinestretch=1.2,
+fontsize=\footnotesize,
+linenos
+]{c++}
+
+void Graph coloring (){
+    Subtree coloring(tree root, 0);
+}
+
+int Subtree coloring(node x ,number of occupied colors k){
+    if (x.type == leaf) {
+        x.color = k + 1;
+    }
+    int l = Subtree coloring(x.leftSon, k);
+    if (x.type == parallel) {
+       int r = Subtree coloring(x.rightSon, k);
+       return max(l, r);
+    }
+    if (x.type == series) {
+       int r = Subtree coloring(x.rightSon, l);
+       return r;
+    }
+}
+\end{minted}
+\label{Max}
+\section{Independent set}
+
+The idea of finding an independent set is similar to the one presented above, since the maximum independent set is the maximum clique of the complement graph. The algorithm for finding the maximum clique was discussed in \Cref{Max}. It is sufficient to build the cotree of the complement cograph in linear time.
+\begin{theorem}
+If $T$ is the cotree of graph $G$ and $T'$ is the cotree of graph $G'$, where 
+$T'$ is obtained from $T$ by changing the types of vertices (parallel nodes to series nodes and vice versa), then $G=\bar{G'}$.
+\end{theorem}
+
+\begin{proof}
+Vertices $x$ and $y$ are neighbors in the cograph $G$ if and only if their lowest common ancestor in the cotree $T$, denoted by $w$, is a series vertex. From the definition of cotree $T'$, the vertex $w$ in cotree $T'$ is a parallel vertex. Therefore, vertices $x$ and $y$ are neighbors in cograph $G$ if and only if they are not neighbors in graph $G'$.
+\end{proof}
+
+\section{Treewidth and pathwidth}
+Theorems and algorithms are taken from \cite{Sumner1974DaceyG}.
+
+The basis of the algorithm is the theorem on the relationship between pathwidth and treewidth with parallel and series composition.
+\begin{theorem} [Lemma 3.4 in \cite{Sumner1974DaceyG}]
+    Let $G_1=(V_1,E_1)$, $G_2=(V_2,E_2)$ be graphs. Then the following conditions hold:
+    \begin{itemize}
+        \item $tw(G_1\cup G_2)= \max\{tw(G_1), tw(G_2)\}$.
+        \item $pw(G_1\cup G_2)= \max\{pw(G_1), pw(G_2)\}$.
+        \item $tw(G_1\times G_2)= \min\{tw(G_1) + |V_2|, tw(G_2) + |V_1|\}$.
+        \item $pw(G_1\times G_2)= \min\{pw(G_1) + |V_2|, pw(G_2) + |V_1|\}$.
+    \end{itemize}
+    \label{Theorem on treewidth in a binary cotree}
+\end{theorem}
+
+The complete proof of \Cref{Theorem on treewidth in a binary cotree} can be found in \cite{Sumner1974DaceyG}.
+ The idea of the proof is as follows. If a cograph $G$ is a parallel composition of two cographs $G_1$, $G_2$, then the tree decomposition $(I,T)$ of the graph $G$ is simply the union of the tree decompositions of graphs $G_1$ and $G_2$. $I=(I_1 \cup I_2), T=(T_1 \cup T_2)$ hence $tw(G)= \max\{(tw(G_1), tw(G_2)\}$.
+
+ If a cograph is a series composition of cographs $G_1=(V_1,E_1)$ and $G_2=(V_2,E_2)$ and $(I_1,T_1)$ is tree decomposition of $G_1$ and $(I_2,T_2)$ is tree decomposition of $G_2$, then it is sufficient to prove the inequality in two directions:
+ \begin{enumerate}
+     \item $tw(G)\le \min\{tw(G_1) + |V_2|, tw(G_2) + |V_1|\}$.
+     \item $tw(G)\ge \min\{tw(G_1) + |V_2|, tw(G_2) + |V_1|\}$.
+ \end{enumerate}
+ Let $tw(G_1) + |V_2| \le tw(G_2) + |V_1|$. Then the pair $(X_i \cup |V_2| \colon i \in I_1,T_1)$ is a tree decomposition of the cograph $G$. It holds that $\max\limits_{i \in I_1} |X_i \cup V_2| \le tw(G_1) + |V_2|$ hence $tw(G)\le \min\{tw(G_1) + |V_2|, tw(G_2) + |V_1|\}$.
+
+The proof of the inequality in the opposite direction can be found in \cite{Sumner1974DaceyG}.
+   
+\begin{theorem}[Theorem 3.2 \cite{Sumner1974DaceyG}]
+     For every cograph $G$, it holds that $tw(G) = pw(G)$.
+\end{theorem}
+
+\begin{proof}
+    We can prove the equality of pathwidth and treewidth for every cograph using induction on the number of vertices.
+    \begin{description}
+        \item[Base case] For a graph consisting of a single vertex, the pathwidth and treewidth are the same and equal to 0.
+        \item[Induction step] Assume that for all cographs with less than $n+1$ vertices, the pathwidth and treewidth are the same. Let $G=(V, E)$ be any cograph with $n+1$ vertices. Let $T$ be the cotree corresponding to $G$. If the root of $T$ is a parallel vertex, then there exist two cographs $G_1$ and $G_2$ such that $G=G_1 \cup G_2$. From \Cref{Theorem on treewidth in a binary cotree}, it follows that $tw(G_1 \cup G_2)= \max \{tw(G_1), tw(G_2)\}$ and $pw(G_1 \cup G_2)= \max \{pw(G_1), pw(G_2)\}$.
+        However, the number of vertices in $G_1$ and $G_2$ is less than $n+1$. Therefore, $tw(G_1)=pw(G_1)$ and $tw(G_2)=pw(G_2)$. Then $tw(G)=pw(G)$. The case where the root of the cotree is a series vertex is proved similarly.
+    \end{description}
+
+\end{proof}
+Next, using dynamic programming on the cotree, we find the number of vertices in the subtree of each vertex. In the following depth-first search, we find the pathwidth and treewidth for each subtree.
+
+\begin{minted}[
+frame=lines,
+framesep=2mm,
+baselinestretch=1.2,
+fontsize=\footnotesize,
+linenos
+]{c++}
+
+int Graph pathwidth(cotree T) {
+   Subtree sizes(tree root);
+   return Subtree pathwidth(tree root);
+}
+
+void Subtree sizes(node x) {
+    if (x.type == leaf) {
+        x.subtree_size = 1;
+    }
+    else {
+        Subtree sizes(x.leftSon);
+        Subtree sizes(x.rightSon);
+        x.subtree_size = x.leftSon.subtree_size + x.rightSon.subtree_size
+    }
+}
+
+int Subtree pathwidth(node x) {
+    if (x.type == leaf){
+        return 1;
+    }
+    if (x.type == parallel) {
+        return max(Subtree pathwidth(x.leftSon), Subtree pathwidth(x.rightSon));
+    }
+    if (x.type == series) {
+         return min(Subtree pathwidth(x.leftSon) + x.rightSon.subtree_size,
+         Subtree pathwidth(x.rightSon) + x.leftSon.subtree_size);
+    }
+    return x.subtree_clique_size;
+}
+
+\end{minted}
+
+

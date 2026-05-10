@@ -1,0 +1,147 @@
+\section{Charging scheme invariant}
+
+\subsection{Definitions}
+To conduct a full time analysis of \Cref{henzingerFormal}, we introduce several new definitions and concepts that will be used to prove the \emph{Charging Scheme Invariant} and establish the time bound.
+
+A call to the procedure \textsc{Process} with a region $R$ will be called an \emph{invocation} $A$, and $R$ is referred to as the region of the invocation. Every invocation that results from line 23 of \Cref{henzingerFormal} within invocation $A$ is called a \emph{child} of $A$; similarly, invocation $A$ is called the \emph{parent} of any such child. The notions of \emph{descendant} and \emph{ancestor} are defined in the natural way.
+
+The \emph{end key} of an invocation $A$, denoted $end(A)$, is defined as the value of $\textsc{minKey}(Q(R))$ for the invocation's region $R$ after immediately the invocation finishes. The \emph{start key} of an invocation $A$ with region $R$, denoted $start(A)$, is the value of $\textsc{minKey}(Q(R))$ before the invocation begins. The \emph{start node} of an invocation $A$ is the first node that gets $start(A)$ value.
+
+An invocation $A$ is called \emph{truncated} if $end(A) = \infty$. Intuitively, this occurs when the process terminates before all $\alpha_{l(R)}$ steps are completed. By this definition, any invocation on an atomic region $R(u v)$ is truncated, and the algorithm terminates when the invocation on the top-level region $R_G$ is truncated. 
+
+\begin{defn}
+An \emph{entry node} of a region $R$ is defined differently depending on the level of the region:
+\begin{itemize}
+    \item For an atomic region $R(u v)$, $u$ is the entry node of that region.
+    \item For a level 1 region, the entry nodes are all boundary nodes shared by that region.
+    \item For the top-level region $R_G$, the source node $s$ is the only entry node.
+\end{itemize}
+\end{defn}
+
+An important part of the time analysis is the charging scheme, which allows us to bound the number of truncated invocations. We say that each truncated invocation $C$ is \emph{charged} to a pair $(R, v)$, where $R$ is an ancestor of the region of $C$ and $v$ is some entry node of $R$. Invocation $C$ is called the \emph{charger}. It is worth noting that an invocation can be charged to its own region, since by standard convention a region is considered to be its own ancestor.
+
+
+\subsection{Charging scheme}
+
+The goal of this section is to provided detailed explanation of how charging scheme works and in conclusion prove the invariant that will allow us to conduct full running time complexity of \Cref{henzingerFormal}.
+
+\begin{lemma} [Lemma 3.6 in \cite{henzinger}]
+\label{startLemma}
+For an invocation $A$ and its children $A_1, A_2,$ $\ldots, A_q$ the following claim holds:
+
+$$start(A) \leq start(A_1) \leq ... \leq start(A_q) \leq end(A).$$
+
+\end{lemma}
+
+\begin{proof}
+The lemma is obvious for level 2 and level 0 regions, as level 2 region have only one child and level 0 regions don't have children at all. For level 1 region $R$ of invocation $A$. The inequality $start(A) \leq start(A_1)$ is always true because between to calls to the procedure \textsc{Process} value of the $Q(R)$ does not change.   
+Let's assume for the sake of contradiction that from some child level 0 invocation $A_i$, $start(A_i) \geq start(A_{i+1})$. Let $R(u v)$ be the region of $A_i$. The inequality implicates that newly calculated value $d[v]$ for edge $v w$ is smaller than smallest key in $Q(R)$, but $start(A_i) \leq d[u] \leq d[u] + w(u, v) = d[v]$ which leads to contradiction.
+\end{proof}
+
+We will now define partial order on invocations. We say for invocations $A$ and $B$ that $A \leq B$ when region of both invocations is the same and invocation $A$ happens no later tan invocation $B$. If $A \neq B$ and $A \leq B$ than we write $A < B$. We call $A$ and immediate predecessor of $B$ when $A < B$ and if there exists invocation $C$ such that $A < C \leq B$ then $C = B$. Due to how partial order is defined it does not mean that there isn't any other invocation between $A$ and $B$. It just means there is no other invocation on region of $A$.
+
+\begin{defn}[stable invocation]
+An invocation $A$ is \emph{stable} when for every invocation $B > A$, $start(A) \leq start(B)$
+\end{defn}
+
+Rather obvious corollary from \Cref{startLemma} is that every invocation on region $R_G$ is stable. What's also important that every invocation on atomic region $R(u v)$ is stable if and only if no further invocation on region $R(u v)$ will occur.
+
+\begin{defn}
+For every invocation $A$ we will define its \emph{lowest stable ancestor} as an invocation $AS$ with smallest possible level $i$ such that it is stable and is an ancestor of invocation $A$. It will be denoted by $stableAncestor(A)$.
+\end{defn}
+
+First invocations on region $R_G$ is stable ancestor of any invocation, thus $stableAncestor(A)$ is well defined.
+
+For unstable invocation $A$ with region $R$ there must exist other invocation $B$ on region $R'$ that changes values in $Q(R)$. Invocation on Region $R'$ can only affect nodes inside this region. Hence the invocation $B$ must have an impact on an vertex that is share by both $R$ and $R'$ regions - an entry node $R$. We provide now more definition to describe such event
+
+\begin{defn}[Entry predecessor]
+An \emph{entry predecessor} of invocation $A$ is an invocation $E \leq A$ such that start node of invocation $E$ is an entry node of region of invocation $A$. We denote an entry predecessor of invocation $A$ as $entryPredecessor(A)$.
+\end{defn}
+
+Now we can describe charging scheme in a very elegant way:
+
+\subsubsection{Charging scheme}
+Truncated invocation $C$ will be charged to pair $(E, v)$ where $$E = entryPredecessor(stableAncestor(C))$$ and $v$ is an entry node of $E$.
+
+We will now try to use the scheme to prove flowing invariant:
+\begin{lemma}[Lemma 3.15 in \cite{henzinger}]
+\label{invariant}
+For each pair $(R, v)$ there is a invocation $A$ with region $R$ such that every charger of $(R, v)$ is a descendant of $A$.
+\end{lemma}
+
+\subsection{Proving invariant}
+
+Before proving the Invariant \Cref{invariant}, we need prove some important relationships between $start(A)$ and $end(A)$ for some invocation $A$.
+
+\begin{lemma}[Lemma 3.9 \cite{henzinger}]
+Let $k_0$ be the key associated with R at some time $t$, and let $A$ be the first invocation with region $R$ occurring after time $t$. If $start(A)<k_0$ then $A$ starts with an entry node.
+\end{lemma}
+\begin{proof}
+Due to how algorithm is designed key associated with $R$ in parent priority queue after some invocation ends is equal to the \textsc{minKey}$(Q(R))$. According to  \Cref{startLemma} invocation on single region $R$ does not lower its key. The only way for $start(A)$ to be lower than $k_0$ is if the value was changed by some region $R'$. Invocation on region $R'$ only affect nodes inside region $R'$, and thus it needs to be entry node of region $R$
+\end{proof}
+
+From the proven lemma we get directly two corollaries.  
+\begin{corollary}
+\label{coroBig}
+Let $A$ and $B$ be invocations with region $R$ such that $A$ is invocation's $B$ immediate predecessor. If $end(A)>start(B)$ then $B$ starts with an entry node of R.
+\end{corollary}
+
+\begin{corollary}
+For each region $R$, the first invocation with region $R$ starts with an entry node of $R$.
+\end{corollary}
+This follows from the fact that all regions are either initiated with key equal to infinity or include source node initiated with 0.
+
+\begin{lemma}
+\label{sameStart}
+If $A<B$ are two invocations with the same start node then $start(A)>start(B)$.
+\end{lemma}
+\begin{proof}
+Let $v$ be the start node of $A$ and $B$. After invocation $A$ key of outgoing edges of $v$ has been set to infinity. All edges will be process because $\alpha_1 > 1$. Then for the edges to be active again so that invocation $B$ can start with processing them the value of $d[v]$ needs to be updated, but during the algorithm $d[u]$ for any node $u$ only decreases. And thus $start(B) = d[v] < start(A)$.
+\end{proof}
+
+\begin{lemma}
+\label{dontknow}
+For every invocation $A$, $start(entryPredecessor(A)) \leq start(A)$.
+\end{lemma}
+
+\begin{proof}
+Let $E < A_1 <...<A_p = A$ be invocation. According to definition of entry predecessor of $A$. None of the $A_i$ starts with entry node. From \Cref{startLemma} we get that $start(A_i) < end(A_i)$ for every $i$. If $end(A_i) > start(A_{i+1})$ were true for some $i$ then it would indicated that $A_{i+1}$ started with entry node, but that contradicts with definition of entry predecessor.
+\end{proof}
+
+\begin{lemma}[Lemma 3.14 in \cite{henzinger}]
+\label{stable child}
+Suppose $A<B$ are two invocations such that $entryPredecessor(A)=entryPredecessor(B)$. If $B$ is stable then every child of $A$ is stable.
+\end{lemma}
+
+\begin{proof}
+Similarly to prove of the \Cref{dontknow}, let $A = C_0 < ... < C_p = B$. Because $entryPredecessor(A)=entryPredecessor(B)$ we know that for $C_i$ does not start with entry node for $i= 1,... p$ and by \Cref{startLemma} and \Cref{coroBig} we get:
+    
+\begin{equation}
+\label{eq}
+          start(C_0) \leq end(C_0) \leq start(C_1) \leq ... \leq start(C_p) \leq end(C_P).
+\end{equation}
+        
+Let $A'$ be child of $A$ and $C'$ be invocation such that $A' < C'$. To prove stability of any child of $A$ we need to show that $start(A')  \leq start(C')$.
+    
+Lets assume by contradiction that $start(C') < start(A')$ and let $C$ be the parent of $C'$. If $C = C_i$ for some $i$ this contradicts with \Cref{eq}, thus $C > B$. $B$ is stable, by definition $start(C) \geq start(B)$ which contradicts \Cref{eq} 
+\end{proof}
+
+
+Thanks to the lemmas proven above we can now proceed with proving the Charging Scheme Invariant from \cref{invariant}.
+
+\subsubsection{Proof of invariant \Cref{invariant}}
+\begin{proof}
+Let truncated invocation $C$ be the first charger of pair $(R,v)$. Let $A = stableAncestor(C)$ and $E = entryPredecessor(A)$. According to Charging Scheme $R$ is a region of $E$ and $A$ and $v$ is a start node of $E$. By previous \Cref{dontknow}
+\begin{equation}
+    \label{nice}
+    start(E) \leq start(A).
+\end{equation}
+
+Let $B > A$ be an stable invocation. We want to prove that no descendant of $B$ is a charger of $(R,v)$. By contradiction let $C'$ and $B = stableAncestor(C')$ and a charger of $(R,v)$. Let $E' = entryPredecessor(B)$. Because $B$ is a charger of $(R,v)$ $E'$ and $E$ have the same start node $v$. Let's assume that $E$ is different invocation than $E'$. Because $B > A$ and $E$ is entry predecessor of $A$ we get $E < A < E' < B$. According to \Cref{sameStart} $start(E) > start(E')$ combining that with \Cref{nice} we get $start(E') < start(A)$ which contradicts stability of $A$ and thus $E' = E$.
+
+Now there are two cases to consider.
+
+    Either $C \neq A$ - by \Cref{stable child} every child of $A$ is stable which means it is contradicting the fact that $A$ is lowest stable ancestor of $C$ 
+    
+    Or $C = A$. In this case $A$ is charger of $(R,v)$ which means $A$ is truncated. Consider $A'$ being immediate successor of $A$. According to \Cref{coroBig} $A'$ need to start with entry node contradicting the fact that $E = entryPredecessor(B)$ because $E < A' \leq B$.
+\end{proof}

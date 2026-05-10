@@ -6,6 +6,9 @@
  *      Ported by: Krzysztof Turowski (krzysztof.szymon.turowski@gmail.com)
  */
 
+#include <unordered_set>
+#include <vector>
+
 #include <flow/maximum_flow/KrtEdgeDesignator.hpp>
 
 namespace Koala {

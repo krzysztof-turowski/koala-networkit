@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include <vector>
+
 #include <networkit/graph/Graph.hpp>
 
 namespace Koala {

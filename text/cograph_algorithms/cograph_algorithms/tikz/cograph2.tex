@@ -1,0 +1,15 @@
+\begin{tikzpicture}[every node/.style={circle,draw,minimum size=5mm},level distance=2cm,
+  level 1/.style={sibling distance=2cm},
+  level 2/.style={sibling distance=2cm}
+  ]
+    
+    \node {$\times$}
+        child { node {$\cup$}
+                child { node {\textcolor{red}{$x$} }}
+                child { node {\textcolor{red}{$y$}} }
+        }
+        child{ node {\textcolor{red}{$z$}}}
+        ;
+\end{tikzpicture}
+
+

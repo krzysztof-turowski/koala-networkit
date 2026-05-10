@@ -5,15 +5,19 @@
  *      Author: Piotr Kubaty
  */
 
-#include <cassert>
-#include <map>
 #include <ranges>
+
+#include <map>
+#include <set>
+#include <stdexcept>
+#include <utility>
 #include <tuple>
+#include <vector>
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/max_cardinality_matching.hpp>
-
 #include <networkit/graph/GraphTools.hpp>
+
 #include <dominating_set/ExactDominatingSet.hpp>
 
 namespace Koala {
@@ -169,7 +173,7 @@ std::vector<NetworKit::node> FominKratschWoegingerDominatingSet::move_to_solutio
 }
 
 void FominKratschWoegingerDominatingSet::remove_from_solution(
-        NetworKit::node vertex, const std::vector<NetworKit::node> &moved_vertices) {
+        NetworKit::node, const std::vector<NetworKit::node> &moved_vertices) {
     for (auto u : std::views::reverse(moved_vertices)) {
         free.erase(u), bound.insert(u);
     }
@@ -394,7 +398,9 @@ std::vector<NetworKit::node> SchiermeyerDominatingSet::get_matching_MODS(
     }
     for (const auto &u : free) {
         NetworKit::node v1 = core_graph.getIthNeighbor(u, 0), v2 = core_graph.getIthNeighbor(u, 1);
-        assert(v1 != NetworKit::none && v2 != NetworKit::none);
+        if (v1 == NetworKit::none || v2 == NetworKit::none) {
+            throw std::logic_error("Core graph free vertex has fewer than two neighbors");
+        }
         if (v1 > v2) {
             std::swap(v1, v2);
         }
@@ -404,7 +410,9 @@ std::vector<NetworKit::node> SchiermeyerDominatingSet::get_matching_MODS(
         }
     }
     std::vector<boost::graph_traits<boost_graph_t>::vertex_descriptor> mate(G.numberOfNodes());
-    assert(boost::checked_edmonds_maximum_cardinality_matching(H, &mate[0]));
+    if (!boost::checked_edmonds_maximum_cardinality_matching(H, &mate[0])) {
+        throw std::logic_error("Failed to compute a valid maximum cardinality matching");
+    }
 
     std::vector<NetworKit::node> optional_dominating_set(required.begin(), required.end());
     for (const auto &u : bound) {

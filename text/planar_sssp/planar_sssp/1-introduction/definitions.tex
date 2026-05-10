@@ -1,0 +1,129 @@
+\section{Important notions}
+
+Before proceeding with the main analysis, it is important to define key terms and concepts that will be used throughout this work. This ensures clarity and consistency. This chapter introduces the primary definitions and theoretical background relevant to the topic of single source shortest path algorithms and planar graphs. Additional terms will be defined as they become significant in later chapters. The definition provided by this work are based on \cite{graphDefn, blue_book,frederickson}.
+
+\begin{defn}[weighted graph \cite{blue_book}]
+A \emph{weighted graph} is a graph in which each edge is assigned a numerical value, called a \emph{weight}. Formally, a weighted graph is a triple $ G = (V, E, w) $, where:
+\begin{itemize}
+  \item $V$ is nonempty set of vertices,
+  \item $E \subseteq \{ \{u, v\} : u, v \in V, u \neq v \} $ is the set of edges, and
+  \item $ w: E \rightarrow \mathbb{R}^+ \cup \{0\} $ is a function that assigns a real number (the weight) to each edge.
+\end{itemize}
+For convenience, we will write $w(u,v)$ to denote $w(\{u,v\})$.
+\end{defn}
+
+This type of graph is also called \emph{undirected weighted graph}.
+
+\begin{defn} [directed weighted graph \cite{blue_book}]
+    A \emph{directed weighted graph}, is a weighted graph where each edge has also an associated direction. It is defined as a triple $G = (V, E, w)$, where:
+\begin{itemize}
+  \item $V$ is nonempty set of vertices,
+  \item $E \subseteq V \times V $ is a set of ordered pairs representing directed edges, and
+  \item $ w: E \rightarrow \mathbb{R}^+ \cup \{0\} $ assigns a real-valued weight to each directed edge.
+\end{itemize}
+For convenience, we will write $w(u,v)$ to denote $w((u,v))$.
+\end{defn}
+
+It is worth noting that, in the context of shortest path algorithms, directed graphs are a more general case than undirected graphs. Any undirected graph can be transformed into a directed graph by replacing each undirected edge $\{u, v\}$ with two directed edges $(u, v)$, $(v, u)$ and updating the weight function accordingly.
+
+\begin{defn} [adjacency, neighbour \cite{graphDefn}]
+    Two vertices $u, v$ of a graph $G$ are \emph{adjacent} or \emph{neighbours}, if $\{u, v\}$ is an edge of $G$. The set of all neighbours of a vertex $v$  is denoted by $N(v)$. More generally for $U \subseteq V$ the neighbours  in $V \setminus U$ of vertices in $U$ are called \emph{neighbours of $U$} and their set is denoted by $N(U)$.  
+\end{defn}
+    
+\begin{defn}[degree of a vertex \cite{blue_book}]
+The \emph{degree of a vertex} in an undirected graph is the number of edges incident with it. The degree of the vertex $v$ is denoted by $\deg(v)$.
+\end{defn}
+
+\begin{defn}[in-degree and out-degree of a vertex \cite{blue_book}]
+In a directed graph, the \emph{in-degree} of a vertex is the number of edges directed towards it, and the \emph{out-degree} is the number of edges directed away from it.
+\end{defn}
+
+\begin{defn}[induced graph \cite{graphDefn}]
+    If $G' \subseteq G$ and $G'$ contains all the edges $\{u, v\} \in E$ with $u, v \in V'$, then $G'$ is an \emph{induced subgraph} of G; we say that $V'$ induces $G'$ in $G$. We will denote as $G[V']$ a subgraph induced in $G$ by $V'$
+\end{defn}
+
+\begin{defn}[cluster \cite{clusters}]
+A \emph{cluster} in a graph $G$ is a set of vertices $S$ such that the induced subgraph $G[S]$ is connected.
+\end{defn}
+
+The definitions introduce fundamental concepts that are essential for understanding the structure of graphs and their components. We now proceed to notions that are specific to planar graphs and their geometric representations.
+
+\begin{defn}[plane graph \cite{graphDefn}]
+    A \emph{plane graph} is a pair $(V,E)$ of finite sets with the following properties plane graph (the elements of V are again called vertices, those of E edges):
+    \begin{itemize}
+        \item $V \subseteq R^2$,
+        \item every edge is an arc between two vertices,
+        \item different edges have different sets of endpoints,
+        \item the interior of an edge contains no vertex and no point of any other edge.
+    \end{itemize}
+\end{defn}
+
+\begin{defn} [planar embedding \cite{graphDefn}]
+An \emph{embedding} in the plane, or \emph{planar embedding}, of a graph $G$ is an isomorphism between $G$ and a plane graph $G'$. The latter will be called a \emph{drawing} of $G$.
+
+This embedding induces a \emph{cyclic order} of the edges incident to each vertex, corresponding to the order in which these edges are arranged around the vertex in the plane. The collection of these cyclic orders for all vertices defines the \emph{rotation system} of the embedding, which uniquely determines the embedding up to homeomorphism.
+\end{defn}
+
+\begin{defn} [planar graph \cite{graphDefn}]
+    A \emph{planar graph}, is a graph for which exists planar embedding. A graph is called planar if it can be embedded in the plane. A planar graph is \emph{maximal}, or \emph{maximally planar}, if it is planar but cannot be extended to a larger planar graph by adding an edge.
+\end{defn}
+
+We are now ready to define the main problem addressed in this work.
+
+\begin{defn}[single source shortest path (SSSP) for planar graphs \cite{frederickson}]
+Given a weighted (directed or undirected) planar graph $G = (V, E, w)$ and a source vertex $s \in V$, the \emph{single source shortest path (SSSP)} problem requires to find the shortest distances from $s$ to every other vertex $v \in V$. That is, for each $v \in V$, algorithm needs to compute the minimum total weight of any path from $s$ to $v$ in $G$.
+\end{defn}
+
+An important aspect of SSSP algorithms for planar graphs is leveraging planarity of the graph, primarily by dividing it into appropriate regions. The following definitions will help in understanding the concepts and techniques used in this approach.
+
+\begin{defn}[region, boundary, interior \cite{frederickson}]
+A \emph{graph region} is a subset of vertices of a graph such that if a vertex belongs to the region, then all its neighbors also belong to the same region. A vertex that belongs to multiple regions is called a \emph{boundary vertex}, while a vertex that belongs to exactly one region is called an \emph{interior vertex}. Additionally set of all boundary vertices of a region $R$ will be denoted by $\B(R)$ and set of all interior vertices will be denoted by $\I(R)$.
+\end{defn}
+
+\begin{defn}[division \cite{frederickson}]
+A \emph{graph division} is a collection of regions such that every vertex belongs to at least one region, and every edge is entirely contained in at least one region (i.e., both its endpoints belong to the same region).
+\end{defn}
+
+In order to simplify the analysis and improve algorithmic efficiency, we apply a standard transformation see \Cref{Figure:example} that reduces the maximum degree of the graph to 3 (and maximum in/out degree to 2). The transformation for directed graph proceeds as follows. For each vertex $v$ of degree $d =  \deg(v) > 3$ where $u_0, ..., u_{d-1}$ is a cyclic ordering of the vertices adjacent to $v$ in the planar embedding, replace $v$ with new vertices $v_0, ..., v_{d-1}$. Add edges $(v_i,v_{i+1 \mod d})$ for $ i=0,...,d-1$,
+with $w(v_i, v_{i+1 \mod d}) = 0$, and replace the edges of the form $(v, u_i)$ with $(v_i,u_i)$ or $(u_i, v)$ with $(u_i, v_i)$, preserving the original edge weights. \cite{frederickson}
+
+\begin{figure}[h]
+
+  \centering\begin{tikzpicture}[scale=.8, simplegraph]
+    \node(v_1) at (2, 2) {$v$};
+    \node(v_2) at (0, 2) {$u_1$};
+    \node(v_3) at (2, 0) {$u_2$};
+    \node(v_4) at (4, 2) {$u_3$};
+    \node(v_5) at (2, 4) {$u_4$};
+    \draw[->](v_5) to (v_1);
+    \draw[->](v_2) to (v_1);
+    \draw[->](v_3) to (v_1);
+    \draw[->](v_1) to (v_4);
+    
+    \node(v_2) at (6, 2) {$u_1$};
+    \node(v_3) at (8, 0) {$u_2$};
+    \node(v_4) at (10, 2) {$u_3$};
+    \node(v_5) at (8, 4) {$u_4$};
+    \node(v_6) at (7, 2) {$v_1$};
+    \node(v_7) at (8, 1) {$v_2$};
+    \node(v_8) at (9, 2) {$v_3$};
+    \node(v_9) at (8, 3) {$v_4$};
+    \draw[->](v_5) to (v_9);
+    \draw[->](v_2) to (v_6);
+    \draw[->](v_3) to (v_7);
+    \draw[<-](v_4) to (v_8);
+    \draw[->](v_6) to (v_7);
+    \draw[->](v_7) to (v_8);
+    \draw[->](v_8) to (v_9);
+    \draw[->](v_9) to (v_6);
+    
+  \end{tikzpicture}
+  \caption{An example of degree transformation for vertex $v$}
+  \label{Figure:example}
+\end{figure}
+
+The transformation for undirected graphs is essentially the same, with the only difference being that the edges are not directed.
+
+It is important that this transformation introduces at most $2m - n \leq 5n - 12$ new vertices, where $n$ is the number of vertices and $m$ is the number of edges in the original graph. This bound follows from Euler's formula for planar graphs and ensures that the size of the transformed graph remains linear in $n$, preserving the asymptotic complexity of the algorithm.
+ 
+In this paper, we assume, without loss of generality, that all graphs have bounded degree.

@@ -1,0 +1,109 @@
+\section{Definitions}
+
+We first give some basic definitions in graph theory borrowed from~\cite{bollobás1998modern}.
+
+\begin{defn}[graph]
+    A \emph{graph} $G$ is an ordered pair of disjoint sets $(V, E)$ such that $E$ is a subset of the set $V \choose 2$ of unordered pairs of $V$. 
+\end{defn}
+
+We only consider finite graphs, that is, $V$ and $E$ are always finite. The set $V$ is the set of \emph{vertices} and $E$ is the set of \emph{edges}. If $G$ is a graph, then $V = V(G)$ is the \emph{vertex set} of $G$, and $E = E(G)$ is the \emph{edge set} of $G$. If $v$ is a vertex of $G$ we will sometimes write $v \in G$ instead of $v \in V(G)$. 
+
+We denote $n_G = |V(G)|$ and $m_G = |E(G)|$ for a graph $G = (V, E)$. We will drop the subscripts for brevity when $G$ is clear from the context.
+
+An edge $xy$ is said to \emph{join} the vertices $x$ and $y$ Thus, $xy$ and $yx$ mean exactly the same edge, the vertices $x$ and $y$ are the \emph{endvertices} of this edge. If $xy \in E(G)$, then $x$ and $y$ are \emph{adjacent}, \emph{neighboring} or \emph{connected}, and the  vertices $x$ and $y$ are \emph{incident} with the edge $xy$. Two edges are \emph{adjacent} if the have exactly one common endvertex.
+
+\begin{defn}[subgraph]
+    We say that $G' = (V', E')$ is a \emph{subgraph} of $G = (V, E)$ if $V' \subseteq V$ and $E' \subseteq E$. In this case we write $G' \subseteq G$. 
+    
+    If $G'$ contains all edges of $G$ that join two vertices in $V'$ then $G'$ is said to be a subgraph \emph{induced} or \emph{spanned} by $B'$ and is denoted $G[V']$. 
+\end{defn}
+
+For a subgraph $G' = G[W]$ spanned by a vertex subset $W \subseteq V(G)$, we write $n_W = |W|$ and $m_W = |E(G')|$.
+
+If $W \subseteq V(G)$, then $G - W = G[V \setminus W]$ is the subgraph of $G$ obtained by deleting the vertices of $W$ and all edges incident with them. Similarly, if $E' \subseteq E(G)$, then $G - E' = (V(G), E(G) \setminus E')$. If $W = \{ w \}$ and $E' = \{ xy \}$ for some vertex $w \in V(G)$ and edge $xy \in E(G)$, then the notation is simplified to $G - w$ and $G - xy$ respectively. Similarly, if $x$ and $y$ are nonadjacent vertices of $G$, then $G + xy = (V(G), E(G) \cup \{ xy \})$.
+
+\begin{defn}[path]
+    A \emph{path} is a graph $P$ of the form
+
+    \begin{align*}
+        V(P) &= \{x_0, x_1, \dots, x_l\} \\
+        E(P) &= \{x_0x_1, x_1x_2, \dots, x_{l-1}x_l\}
+    \end{align*}
+\end{defn}
+
+This path $P$ is usually denoted by $x_0x_1\dots x_l$. The vertices $x_0$ and $x_l$ are the \emph{ends} of $P$ and the value $l = |E(P)|$ is the \emph{length} of $P$. We say that $P$ goes from $x_0$ to $x_l$.
+
+\begin{defn}[connected graph]
+    A graph is \emph{connected} if for every pair $\{x, y\}$ of distinct vertices there is a path from $x$ to $y$.
+\end{defn}
+
+A maximal connected subgraph is a \emph{component} of a graph.
+
+\begin{defn}[cycle]
+    A \emph{cycle} is a graph $C$ of the form
+
+    \begin{align*}
+        V(C) &= \{x_0, x_1, \dots, x_l\} \\
+        E(C) &= \{x_0x_1, x_1x_2, \dots, x_{l-1}x_l, x_l x_0\}
+    \end{align*}
+\end{defn}
+
+This cycle $C$ is denoted by $x_0 x_1\dots x_l x_1$. The value $l + 1 = |E(C)| = |V(C)|$ is the \emph{length} of $C$. 
+
+\begin{defn}[forest, tree]
+    A graph without any cycles is a \emph{forest}, or an \emph{acyclic} graph. A \emph{tree} is connected forest.
+\end{defn}
+
+\begin{defn}[bipartite graph]
+    A graph $G$ is a \emph{bipartite} graph with vertex classes $V_1$ and $V_2$ if $V(G) = V_1 \cup V_2$, $V_1 \cap V_2 = \emptyset$ and every edge joins a vertex of $V_1$ to a vertex of $V_2$.
+\end{defn}
+
+A simple observation is that a graph is bipartite if and only if it does not contain an odd-length cycle.
+
+A set of vertices (edges) is \emph{independent} if it has no two adjacent elements.
+
+\begin{defn}[matching]
+    A set of independent edges is called a \emph{matching}. A matching $M$ is \emph{perfect} if every vertex is adjacent to exactly one edge in $M$.
+\end{defn}
+
+\begin{defn}[exposed vertices]
+    A vertex $v$ is \emph{exposed} for a matching $M$ if it is not adjacent to any edge in $M$. If a vertex is not exposed it is \emph{matched}.
+\end{defn}
+
+If a vertex $v$ is matched in a matching $M$, then we call the vertex $u$, such that $uv \in M$, the \emph{mate} or \emph{matched vertex} of $v$ and the edge $uv$ the \emph{matched edge} of $v$.
+
+\begin{defn}[alternating path]
+    A path $P = x_0x_1\dots x_l$ is alternating for a matching $M$ if for each $i \in \{0, \dots, l - 2\}$, $x_i x_{i+1} \in M$ if and only if $x_{i+1}x_{i+2} \notin M$.
+\end{defn}
+
+\begin{defn}[augmenting path]
+    An alternating path $x_0x_1\dots x_l$ is \emph{augmenting} if the vertices $x_0$ and $x_l$ are both exposed.
+\end{defn}
+
+\begin{defn}[weighted graph]
+    A \emph{weighted} graph is a graph $G = (V, E)$ along with a \emph{weight function} $w : E \rightarrow \mathbb{R}$, which assigns a real valued \emph{weight} $w(e)$ to each edge of $G$.
+\end{defn}
+
+For a set of edges $S \subseteq E$, we define the \emph{weight} of $S$ to be $w(S) = \sum_{e \in S} w(e)$. 
+
+We denote $N_G = \max_{e \in E} w(e)$ for a graph $G = (V, E)$, which we shorten to $N$ when $G$ is clear from the context. In this work, we consider only graphs with non-negative weights.
+
+The algorithms for the maximum matching problems are usually divided into groups based on the classes of graphs they operate on and whether the graph is weighted. The graphs can be either bipartite or non-bipartite. When the graphs are unweighted, the algorithms tries to find matchings with maximum number of edges. When they are weighted, a matching with maximum possible weight is sought. In the case of weighted graphs we can also restrict our search to perfect matching, looking for the one with the highest weight. In this work we consider the following variants of the maximum matching problem on general graphs:
+
+\begin{itemize}
+    \item \textsc{Maximum Cardinality Matching} (\textsc{MCM}) Find a matching in a graph $G$ with maximum number of edges,
+    \item \textsc{Maximum Weight Matching} (\textsc{MWM}) Find a matching in a weighted graph $G$ with maximum weight,
+    \item \textsc{Maximum Weight Perfect Matching} (\textsc{MWPM}) Find a perfect matching in a weighted graph $G$ with maximum weight.
+\end{itemize}
+
+\begin{theorem}\label{thm:reduction}
+The \textsc{MWM} and \textsc{MWPM} problems are reducible to each other in general graphs.
+
+\begin{proof}
+    For an instance $G=(V, E)$ of \textsc{MWM}, define a new graph $G' = (V', E')$ where $V' = V_1 \cup V_2$ consists of two copies of $V$ and the edge set $E'$ contains two copies of $E$ along with zero-weight edges between each corresponding pair of vertices in the two copies of $V$. A maximum weight perfect matching $M'$ on $G'$ can be used to obtain a maximum weight matching $M$ on $G$ by restricting the matching to only edges contained in $V_1$. If a vertex in $V_1$ is matched to its copy in $V_2$, it is unmatched in $M$. It is easy to see that $M$ is a maximum weight matching on $G$ as a matching with higher weight could be used to create a perfect matching on $G'$ with weight higher than $M'$. 
+    
+    In the other direction, let a graph $G=(V, E)$ with weight function $w$ be an instance of \textsc{MWPM}. Construct a weight function $w'(e) = w(e) + nN$. A maximum weight matching on the graph $G' = G$ with weight function $w'$ must have the maximum possible number of edges as the $nN$ term in the definition $w'$ ensures that any matching with more edges has a higher weight.    
+\end{proof}
+\end{theorem}
+
+In the case of perfect matchings, sometimes the problem is defined as the \textsc{Minimum Weight Perfect Matching}. It is easy to see that it is equivalent to \textsc{Maximum Weight Perfect Matching}. To reduce an instance of one of the problems consisting of a graph $G = (V, E)$ with a weight function $w$ to an instance of the other, simply create a new weight function $w'(e) = N - w(e)$. Similar reduction can be used when the instance of \textsc{Minimum Weight Perfect Matching} contains negative weights, we just need to take into account the difference between the minimum and maximum weights.

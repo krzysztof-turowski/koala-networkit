@@ -1,0 +1,1 @@
+echo "benchmarkPriorityQueue.sh $@"

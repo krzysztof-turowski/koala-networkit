@@ -1,0 +1,17 @@
+\begin{tikzpicture}[every node/.style={circle,draw,minimum size = 8 mm}]
+  \node [fill = green](root) at (1,0) {root};
+    \node [fill=red](zero) at (1,-1) {$0$};
+    \node [fill=green](one) at (1, -2) {$1$};
+    \node [fill=red](zero2) at (1,-3) {$0$};
+    \node(dots) at (1,-4) {$\ldots$};
+    \node[fill=green](beta) at (1,-5) {$\beta$};
+    \node (dots2) at (1,-6) {$\ldots$};
+    \node (alpha) at (1, -7) {$\alpha$};
+    \draw (root) -- (zero);
+    \draw (zero) -- (one);
+    \draw (one) -- (zero2);
+    \draw (zero2) -- (dots);
+    \draw (dots) -- (beta);
+    \draw (beta) -- (dots2);
+    \draw (dots2) -- (alpha);
+\end{tikzpicture}

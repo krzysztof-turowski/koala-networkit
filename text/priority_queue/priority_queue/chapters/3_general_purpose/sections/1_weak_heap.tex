@@ -1,0 +1,124 @@
+\section{Weak heap}
+
+The weak heap is a data structure related to binary and binomial heaps, introduced by Ronald Dutton in his 1993 paper \emph{Weak-heap sort}~\cite{Dutton1993} as an efficient priority queue for
+sorting. Its primary advantage is the reduced number of comparisons required for each operation. It supports both \texttt{push} and \texttt{pop} operations in \( O(\log n) \) worst-case time, using at most \( \lceil \log n \rceil \) element comparisons.
+
+\subsection{Structure and complexity}
+
+Weak heaps loosen the structural requirements of standard binary heaps. In weak heap ordering (assuming a \emph{min}-priority queue, which we will adopt throughout this chapter), each element is required to be smaller than every element in its right subtree, while its relation to elements in the left subtree is unrestricted. As a consequence, to guarantee that the smallest element is at the root, the root must have no left child.
+
+The array-based representation of weak heaps closely resembles that of standard binary heaps, with one key distinction: each element is associated with a corresponding \texttt{flip} bit. When this bit is set to \(1\), it indicates that the children of the corresponding node are swapped.
+
+The class outline of a weak heap is extremely simple and is shown below:
+
+\begin{minted}{cpp}
+class WeakHeap : public PriorityQueue<Key, Compare> {
+    std::vector<Key> data;
+    std::vector<bool> flip;
+    Compare comp;
+};
+\end{minted}
+
+For any element at index \(k\), we refer to the element at \(2k + \text{flip}[k]\) as its left child, and to the element at \(2k + 1 - \text{flip}[k]\) as its right child. 
+
+For the purpose of analysis, it is convenient to interpret the weak heap as a multi-way tree satisfying the standard heap property, represented as a binary tree using the right-child left-sibling convention. In this view, the right child of a node corresponds to its first child in the multi-way tree, while the left child corresponds to its next sibling. We will therefore refer to the right child as the first child of a node, and to the left child as its next sibling.
+
+We next define the distinguished ancestor of a node. In the multi-way tree representation, this simply corresponds to the direct parent of the node. In the binary tree representation, it is the parent of the first node on the path from the given node to the root that is a right child. 
+
+Put simply, the distinguished ancestor is the lowest ancestor of a node that, assuming the weak heap invariant holds everywhere, is guaranteed to store a smaller element. Because the distinguished ancestor plays a central role in weak heap operations, we define a dedicated method to compute it:
+
+\begin{minted}{cpp}
+std::size_t WeakHeap::distinguishedAncestor(std::size_t index) const {
+    while ((index % 2) == flip[index / 2]) {
+        index = index / 2;
+    }
+    return index / 2;
+}
+\end{minted}
+
+The average distance \({d}\) from a node to its distinguished ancestor is approximately 2. This follows from the observation that the distance is at least 1, and in half of the cases, the search proceeds one additional level up the tree.
+
+The central operation in our analysis is the \texttt{join} operation. Given a node \(j\) and its distinguished ancestor \(i\), \texttt{join} restores the weak heap property between the subtrees rooted at \(i\) and \(j\); that is, it ensures that the node \(j\) is not smaller than its distinguished ancestor \(i\). Crucially, this is the only operation that performs a direct comparison between two elements. We will always invoke the following method with a node and its distinguished ancestor as arguments, assuming that the weak heap property holds everywhere else except possibly between \(i\) and \(j\):
+
+\begin{minted}{cpp}
+bool WeakHeap::join(std::size_t parent, std::size_t child) {
+    if (comp(data[child], data[parent])) {
+        std::swap(data[parent], data[child]);
+        flip[child] = !flip[child];
+        return false;
+    }
+    return true;
+}
+\end{minted}
+
+If the weak heap property holds between \(i\) and \(j\), no action is required. Otherwise, we first swap \(j\) with its ancestor \(i\) and then exchange the children of the lower root \(j\). Exchanging the roots restores the weak heap property (in the multi-way tree representation) between \(i\) and \(j\). The children exchange is necessary to ensure that the losing (larger) root preserves its original subtree after being moved. Specifically, the lower root’s left child (or next sibling) becomes the former higher root’s right child (or first child), preserving its role as a child of the higher root. The lower root’s right child (or first child) becomes the former higher root’s left child. This does not violate the weak heap property, since it imposes no restrictions on left children.
+
+Similar to the sift operations in a standard binary heap, \texttt{siftUp} restores the weak heap property along the entire path from \(j\) up to the root.
+
+\begin{minted}{cpp}
+void WeakHeap::siftUp(std::size_t start) {
+    std::size_t current = start;
+    while (current != 0) {
+        std::size_t ancestor = distinguishedAncestor(current);
+        if (join(ancestor, current)) {
+            break;
+        }
+        current = ancestor;
+    }
+}
+\end{minted}
+
+The \texttt{siftDown} operation restores the weak heap property along the entire path starting at the leftmost descendant of the right child of \(j\). This behavior is easier to visualize in the multi-way tree representation, where the right child of \(j\) and all nodes reached by repeatedly following left children are direct children of \(j\) in the multi-way tree.
+
+\begin{minted}{cpp}
+void WeakHeap::siftDown(std::size_t start) {
+    std::size_t size = data.size();
+    std::size_t descendant = 2 * start + 1 - flip[start];
+    while (2 * descendant + flip[descendant] < size) {
+        descendant = 2 * descendant + flip[descendant];
+    }
+    while (descendant != start) {
+        join(start, descendant);
+        descendant = descendant / 2;
+    }
+}
+\end{minted}
+
+Both of the above operations run in \(O(\log n)\) average time, taking into account the constant average time required to find the distinguished ancestor. More importantly, they both require at most \( \lceil \log n \rceil \) direct element comparisons. The height of the heap is at most \( \lceil \log n \rceil + 1 \), since, if we ignore the flips, it is represented as a complete binary tree. At most one comparison is performed at each level of the heap, except for the level containing the initial argument \(j\).
+
+\subsection{Push and pop operations}
+
+With all of the helper functions in place, the implementation of \texttt{push} and \texttt{pop} is straightforward and closely resembles that of a typical binary heap. The \texttt{push} operation first inserts the element at the end of the array representing the heap and initializes its corresponding flip bit. We must also reset the parent's flip bit, as it may have an arbitrary value from earlier \texttt{join} calls, if the new node will be the parent's only child. Finally, we sift the element up the heap, restoring the weak heap property at successive distinguished ancestors if it has been violated.
+
+\begin{minted}{cpp}
+void WeakHeap::push(const Key& key) override {
+    std::size_t index = data.size();
+    data.push_back(key);
+    flip.push_back(0);
+
+    if ((index % 2 == 0) && index > 0) {
+        flip[index / 2] = 0;
+    }
+
+    siftUp(index);
+}
+\end{minted}
+
+Much like in a standard binary heap, the \texttt{pop} operation begins by removing the root from the array representation and replacing it with the last element in the heap. The element is then sifted down to restore the weak heap property. As explained earlier, this involves comparing the new root to all elements along the leftmost path in its right subtree. These nodes are the only possible candidates for the new root, since, by the weak heap property, the elements in their respective right subtrees are guaranteed to be larger.
+
+\begin{minted}{cpp}
+Key WeakHeap::pop() override {
+    if (empty()) {
+        throw std::runtime_error("Priority queue is empty");
+    }
+    Key minimum = data[0];
+    std::size_t last = data.size() - 1;
+    data[0] = data[last];
+    data.pop_back();
+    flip.pop_back();
+    if (last > 1) {
+        siftDown(0);
+    }
+    return minimum;
+}
+\end{minted}

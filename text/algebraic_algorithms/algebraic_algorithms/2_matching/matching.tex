@@ -1,0 +1,545 @@
+\chapter{Perfect Matching}
+\section{Introduction}
+Finding a maximum matching in a given a undirected graph is one of the most well-known graph problems. The research began with a polynomial algorithm for a bipartite graph by Kuhn \cite{kuhn}, later improved by Hopcroft and Karp \cite{hopcroft-karp}.
+
+Finding a maximum matching in a general graphs is however far more difficult. The blossom algorithm introduced by Edmonds \cite{edmonds} returned a maximum matching in $O(n^4)$ time in a general case. This result was further improved by Gabow \cite{gabow} to $O(n^3)$ and later by Micali and Vazirani \cite{micali-vazirani} with a $O(n^{2.5})$ algorithm for a dense graph.
+
+In \Cref{tab:algorithm} there is a brief summary of the best results achieved over the years:
+
+\begin{table}[htbp]
+\begin{center}
+\begin{tabular}{ |l||c|c|  }
+ \hline
+ \textbf{Algorithm} & \textbf{Time complexity} & \textbf{Graph type} \\
+ \hline
+ Kuhn 1955 \cite{kuhn} & \centering $O(n^3)$ & Bipartite \\
+ Edmonds 1965 \cite{edmonds} & \centering $O(n^4)$ & General \\
+ Hopcroft-Karp 1973 \cite{hopcroft-karp} & \centering $O(n^{2.5})$ & Bipartite \\
+ Gabow 1976 \cite{gabow} & \centering $O(n^3)$ & General \\
+ Micali-Vazirani 1980 \cite{micali-vazirani} & \centering $O(n^{2.5})$ & General \\
+ \hdashline
+ \textbf{Mucha-Sankowski 2004 \cite{mucha}} & \centering $O(n^\omega)$ & \textbf{General} \\
+ \hline
+\end{tabular}
+\caption{Time complexity of maximum matching algorithms for a dense graph.}
+\label{tab:algorithm}
+\end{center}
+\end{table}
+
+In this section we will present an algorithm from \cite{mucha} that improves on the previous results. Its time complexity is equal to $O(n^\omega)$, that is, the time complexity of multiplying two $n \times n$ matrices. The smallest known value of $\omega$ is about $2.371339$ as of date with the results improving every few years (see \Cref{tab:omega}).
+
+\begin{table}[htbp]
+\begin{center}
+\begin{tabular}{ |l||c| }
+\hline
+\textbf{Algorithm} & \centering \textbf{Bound on $\omega$} \tabularnewline
+\hline
+Naive algorithm & \centering $3.0$ \tabularnewline
+Strassen 1969 \cite{matrix_strassen} & \centering $2.8074$ \tabularnewline
+Schönhage 1981 \cite{matrix_schonhage} & \centering $2.522$ \tabularnewline
+Coppersmith, Winograd 1990 \cite{matrix_coppersmith} & \centering $2.3755$ \tabularnewline
+Williams 2012 \cite{matrix_williams} & \centering $2.3729$ \tabularnewline
+Alman, Duan, Williams, Xu, Xu, and Zhou 2024 \cite{matrix_latest} & \centering $2.371339$ \tabularnewline
+\hline
+\end{tabular}
+\caption{Timeline of matrix multiplication exponent research.}
+\label{tab:omega}
+\end{center}
+\end{table}
+
+\section{Preliminaries}
+One of the key elements of the algorithm is the \textit{\textbf{skew symmetric adjacency matrix}} encoding the graph.
+
+\begin{definition}[\cite{mucha}]
+For a graph $G=(V,E)$ where $V=\{v_1,...,v_n\}$ we define a skew symmetric adjacency matrix $\tilde{A}(G)_{i,j}$ to be:
+\[
+\tilde{A}(G)_{i,j} =
+\begin{cases} 
+  x_{i,j} & \text{for}\hspace{5pt} \{v_i,v_j\} \in E \text{  and  } i<j, \\
+  -x_{i,j} & \text{for}\hspace{5pt} \{v_i,v_j\} \in E \text{  and  } i>j, \\
+  0 & \text{otherwise.}
+\end{cases}
+\]
+where $x_{i,j}$ is an unique variable for each edge $\{v_i,v_j \in E\}$.
+\end{definition}
+We can view the determinant $\det A(G)$ as a polynomial over all $x_{i,j}$ variables. We call such polynomial a \textit{symbolic determinant}.
+
+Tutte \cite{tutte} has shown an interesting theorem tying together the adjacency matrix and the perfect match problem:
+\begin{theorem}[\cite{tutte}]
+The symbolic determinant $\det \tilde A(G) \ne 0$ if and only if $G$ has a perfect matching.
+\end{theorem}
+This work was later generalized by Lovász \cite{lovasz}:
+\begin{theorem}[\cite{lovasz}]
+The rank of the skew symmetric adjacency matrix $\tilde A(G)$ is equal to twice the size of maximum matching of G.
+\end{theorem}
+There is however a problem with practical application of these two theorems. The symbolic determinant of $\tilde A(G)$ can be of an exponential length in terms of $n$, much to slow for what we want to achieve. 
+Fortunately, we can avoid this problem with the use of randomness. We choose a number $R=n^{O(1)}$ (we will define the exact value of the exponent later) and replace each variable with a number uniformly taken from $\{1,...,R\}$. We call this substituted matrix $A(G)$ an \textit{random adjacency matrix} of $G$. By Lovász \cite{lovasz} we have
+\begin{theorem}[\cite{lovasz}]
+The rank (i.e. the number of independent rows) of $A(G)$ is at most twice the size of maximum matching of G. The equality holds with the probability at least $1-\frac{n}{R}$.
+\end{theorem}
+This result gives us a direct algorithm for checking if a perfect matching exists in a given graph $G$. We can simply create the random adjacency graph and compute its determinant. We can also construct a perfect matching thanks to an observation by Rabin and Vazirani \cite{rabin_vazirani}:
+\begin{theorem}[\cite{rabin_vazirani}]\label{allowed_theorem}
+With high probability, $A(G)^{-1}_{i,j} \not= 0$ if and only if the graph $G\setminus \{v_i,v_j\}$ has a perfect matching.
+\end{theorem}
+We call an edge $\{v_i,v_j\}$ from $G$ \textit{allowed} when $A(G)^{-1}_{i,j}\not=0$.
+Theorem \ref{allowed_theorem} shows that (with high probability) an edge $e$ is allowed if there exists a perfect matching in $G$ which contains $e$.
+This observation will be the key component of our algorithm
+Thus we can already construct a naive algorithm directly using \Cref{allowed_theorem}.
+For a graph $G$ we first construct $A(G)$ and $A(G)^{-1}$.
+Next we find an allowed edge $(v_i,v_j)$ and create an induced subgraph $G'$ on $V':=V\setminus\{v_i,v_j\}$.
+We then repeat the above steps until all vertices are matched.
+Creating the matrix in each step might by prone to accumulating the error probability with each step.
+The following theorem ensure that is not a problem by computing the random values only once.
+
+Furthermore, Rabin and Vazirani \cite{rabin_vazirani} showed the following theorem:
+\begin{theorem}[\cite{rabin_vazirani}]\label{eliminating_allowed}
+If $A(G)$ is non-singular, then for every $v_i$ there exists a $v_j$ such that $A(G)_j\not=0$ and $A^{-1}_{j,i}\not=0$, i.e. $\{v_i,v_j\}$ is an allowed edge. Moreover, the matrix $A(G)$ with rows $i,j$ and columns $j,i$ removed is also non-singular.
+\end{theorem}
+This theorem will be sufficient to establish a bound for the probability of an error. Since most of the following claims will come across the randomness problem, we will omit the "with high probability" part from now on.
+
+We also define a slightly modified adjacency matrix $A(G)$ for a bipartite graph:
+\[
+\tilde A(G)_{i,j} =
+\begin{cases} 
+  x_{i,j} & \text{for}\hspace{5pt} \{u_i,v_j\} \in E \text{  and  } i<j \\
+  0 & \text{otherwise}.
+\end{cases}
+\]
+As it turns out all the previously defined theorems apply to the bipartite graphs as well.
+
+\section{Maximum and perfect matchings}
+In the previous section we presented \Cref{allowed_theorem} and the main idea behind finding the perfect matching. This theorem cannot be efficiently applied in the maximum matching problem. After all we do not know the order in which the allowed edges should be removed.
+
+Fortunately we only have to worry about the perfect matching problem: Ibarra and Moran \cite{ibarra_moran} (bipartite case) and Vazirani \cite{rabin_vazirani} (general case) showed have proven a reduction between those two problems.
+\begin{theorem}[\cite{rabin_vazirani}]
+The problem if finding a maximum matching can be reduced in randomized time $O(n^\omega)$ to the problem of finding a perfect matching.
+\end{theorem}
+\section{Constructing a perfect matching}
+We can construct a perfect matching with this naive approach.
+\begin{algorithm}
+\caption{Naive matching}
+\begin{algorithmic}[1]
+\Function{NaiveGeneralMatching}{G}
+\State Construct $A(G)$
+\State $M \gets \emptyset$
+\For{$i = 1 ... n/2$}
+    \State Compute $A(G)^{-1}$
+    \State Find in $G$ an allowed edge $\{u,v\}$
+    \State $M \gets M \cup \{ \{u,v\} \}$
+    \State $G \gets G\setminus \{u,v\}$
+\EndFor
+\State \Return $M$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+Notice that we compute the reverse $A(G)^{-1}$ in each iteration. We can calculate this matrix in the $O(n^\omega)$ time complexity. This however results in a $O(n^{\omega+1})$ algorithm. We can improve on this result by applying a clever trick that omits recalculating the matrix.
+
+\begin{theorem}\label{elimination_theorem}
+(\textbf{Elimination Theorem}, Theorem 3.1 in \cite{mucha}). Let
+\[
+A=\quad
+\begin{bmatrix}
+a_{1,1} & v^T\\
+u^T & B
+\end{bmatrix}
+\qquad
+A^{-1}=\quad
+\begin{bmatrix}
+\hat a_{1,1} & \hat v^T\\
+\hat u & \hat B
+\end{bmatrix}
+\]
+where $\hat a_{1,1}\not=0$. then $B^{-1}=\hat B-\hat u\hat v^T/\hat a_{1,1}$.
+\end{theorem}
+\begin{proof}
+$AA^{-1}=I$ and thus
+\[
+\begin{bmatrix}
+a_{1,1}\hat a_{1,1}+v^T\hat u & a_{1,1}\hat v^T+v^T\hat B\\
+u\hat a_{1,1}+B\hat u & u\hat v^T+B\hat B
+\end{bmatrix}
+\quad
+=
+\quad
+\begin{bmatrix}
+I_1 & 0\\
+0 & I_{n-1}
+\end{bmatrix}
+\]
+Now solving $B$ in terms of $\hat u,\hat v,\hat a_{1,1}$ gives us $B\hat B-B\hat u\hat v^T/\hat a_{1,1}=I$ and finally $B^{-1}=\hat B-\hat u\hat v^T/\hat a_{1,1}$.
+\end{proof}
+Computing the matrix $B$ is in fact a step of the Gaussian elimination. We can further modify this procedure to eliminate any row $i$ and column $j$.
+
+This theorem is sufficient to construct a simple version on the algorithm with a $O(n^3)$ time complexity. We present two variants of this algorithm. One for a bipartite graph and the second for a general case.
+\begin{algorithm}[H]
+\caption{Simple algorithm for perfect matching in bipartite graphs}
+\begin{algorithmic}[1]
+\Function{SimpleBipartiteMatching}{$G$}
+\State $B \gets A^{-1}(G)$
+\State $M \gets \emptyset$
+\For{$c=1...n$}
+    \State find a row $r$ for which $A(G)_{c,r}\not=0$ and $B_{r,c}\not=0$
+    \State eliminate $r$-th row an $c$-th column of $B$ using \Cref{elimination_theorem}
+    \State $M \gets M\cup\{(r,c)\}$
+\EndFor
+\State \Return $M$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}
+\caption{Simple algorithm for perfect matching in general graphs}
+\begin{algorithmic}[1]
+\Function{SimpleGeneralMatching}{G}
+\State $B \gets A^{-1}(G)$
+\State $M \gets \emptyset$
+\For{$c=1...n$}
+    \If{column $c$ is not eliminated}
+        \State find a row $r$ for which $A(G)_{c,r}\not=0$ and $B_{r,c}\not=0$
+        \State eliminate $r$-th and $c$-th row and column of $B$
+        \State $M \gets M\cup\{\{r,c\}\}$
+    \EndIf
+\EndFor
+\State \Return $M$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Matching verification}
+We will now present simple lazy Gaussian elimination algorithm running in $O(n^\omega)$ time.
+For now the elimination will not allow pivoting.
+This algorithm will be used to develop a matching verification algorithm.
+Given a matching it computes its inclusion-wise maximal allowed subset.
+The simple lazy Gaussian elimination will also be a foundation for a more complex lazy Gaussian elimination that will be used in the main algorithm.
+
+As we have seen before, recomputing the whole matrix in each step of the elimination leads to a $O(n^{\omega+1})$ algorithm.
+To improve on this, we will perform a lazy elimination i.e. we will remember how the matrix were changed and perform these changes later, a couple at the same time.
+We represent such lazy eliminated row $v_i$ and column $u_i$ of a matrix $A$ with three values: $l_i = (u_i,v_i,a_{i,i})$.
+Assuming we want to apply $k$ changes $l_1,l_2,...,l_2$, we have to compute
+\[A \gets A - \sum_{i=1}^k u_i v_i^T/c_i\]
+We can however represent this as
+\[A \gets A - UV\]
+where $U$ is a matrix with columns $u_1,u_2,...,u_k$, and $V$ is a matrix with rows $v_1^T/a_{1,1},v^T_2/a_{2,2},...^T_k/a_{k,k}$.
+We can compute the product $UV$ with some fast matrix multiplication algorithm running in $O(n^\omega)$.
+For a set of rows $R$ and a set of columns $C$ let us define an \textsc{Update}($R,C$) function that applies accumulated changes to the $A_{R,C}$ sub-matrix.
+
+
+\begin{algorithm}
+\caption{Update function}
+\begin{algorithmic}[1]
+\Function{Update}{$A, (r_1, r_2), (c_1, c_2), \texttt{lazy[]}$}
+\For{$i=1...\texttt{lazy.length}$}
+    \State $u,v,a \gets \texttt{lazy[$i$]}$
+    \State $U_{i,c_1:c_2} \gets \frac{u_{c_1:c_2}}{a}$
+    \State $V_{r_1:r_2,i} \gets \frac{v_{r_1:r_2}}{a}$
+\EndFor
+\State $A \gets A - U\times V$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}
+\caption{Simple lazy Gaussian elimination (no pivoting)}
+\begin{algorithmic}[1]
+\Function{SimpleGaussianElimination}{A}
+\For{$i=1...n$}
+\State $\texttt{lazy[i]} \gets (A_{i,*}, A_{*, i}, A_{i,i})$
+\State let $j$ be the largest integer for which $2^j|i$
+\State \textsc{Update}($A, (i+1, i+2^j), (i+1, n), \texttt{lazy[$i-2^j+1:i$]})$
+\State \textsc{Update}($A, (i+2^j,n), (i+1,i+2^j), \texttt{lazy[$i-2^j+1:i$]})$
+\EndFor
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\begin{theorem}[Theorem 3.3 in \cite{mucha}]
+Iterative Gaussian elimination without row or column pivoting can be implemented in time $O(n^\omega)$ using a lazy updating scheme. 
+\end{theorem}
+We will prove this algorithm runs in $O(n^\omega)$ with the following lemma.
+\begin{lemma}
+(Lemma 3.2 in \cite{mucha}) The number of cell value's changes performed by Algorithm 4 in the \textsc{Update} steps is at most $2^j$.
+\end{lemma}
+\begin{proof}
+In the $i$-th iteration only the $i+1,...,i+2^j$ rows and columns are updated.
+We defined $j$ such that $2^j|i$ and $2^{j+1}\nmid i$ and consequently $2^{j+1}|i-2^j$.
+This means that the $i-2^j+1,...i+2^j$ rows and columns were updated in the $i-2^j$ iteration.
+The number of changes to apply is thus at most $2^j$.
+\end{proof}
+In \textsc{Update} we multiply a $2^j\times2^j$ and $2^j\times n$ matrices.
+If we split the $2^j\times n$ matrix into $n/2^j$ smaller $2^j$ matrices, we can compute the product in $O(n/2^j \cdot (2^j)^\omega) = O(n(2^j)^{\omega-1})$ time.
+For a given $j$ such update will be computed $n/2^j$ times.
+If we now sum the time complexity over all possible $j$ we get:
+\[
+\sum_{j=0}^{\lceil\log{n}\rceil} n/2^j \cdot n(2^j)^{\omega-1}
+= n^2 \sum_{j=0}^{\lceil\log{n}\rceil} (2^{\omega-2})^j
+= O(n^2(2^{\omega-2})^{\lceil\log{n}\rceil})
+= O(n^\omega).
+\]
+
+Using the above simple lazy elimination algorithm we construct a verification procedure returning the maximal allowed subset of a matching.
+\begin{theorem}(theorem 3.4 in \cite{mucha})
+Let G be a graph having a perfect matching. For any matching $M$ of $G$, an inclusion-wise maximal allowed (i.e. extendable to a perfect matching) submatching $M'$ of $M$ can be found in time $O(n^\omega)$.
+\end{theorem}
+\begin{proof}
+Let $M = \{\{v_1,v_2\},\{v_3,v_4\},...,\{v_{k-1},v_k\}\}$ and let $v_{k+1},...v_n$ be the unmatched vertices.
+We compute the matrix $A(G)^{-1}$ and swap columns $v_{2i-1}, v_{2i}$ for each $i=1,...,\frac{k}{2}$.
+As a result we get a matrix with column order $v_2, v_1, \ldots$ $v_k, v_{k-1}, v_{k+1}, ..., v_n$.
+We then perform the simple lazy Gaussian elimination on such matrix.
+Since it does not support pivoting, we skip the $i$-th elimination step completely if it can not be computed (i.e. $a_{i,i}=0$).
+If the elimination succeed we append the row-column pair to the maximal matching $M'$.
+Since no pivoting is done we only eliminate pairs that were present in $M$. Thus $M' \subset M$.
+Each value on the matrix diagonal is equal to $0$ after performing the verification algorithm.
+Since the only available matches were placed on the diagonal we get the maximality of $M'$.
+\end{proof}
+
+\subsection{Perfect matching in bipartite graphs}
+Let $G=(V_1\cup V_2,E)$ where $|V_1|=|V_2|=n$ be a bipartite graph with a perfect matching.
+Here we present an algorithm that finds such perfect matching in $O(n^\omega)$ time.
+Previously we have established the simple lazy Gaussian elimination that runs in the required time.
+However it can not be directly applied to our problem.
+We do not know the order of rows to eliminate.
+Performing it on a matrix with randomly permuted columns would result with some maximal matching that (with high probability) will not be perfect.
+We can however develop a more complex version of this algorithm that allows rows pivoting.
+
+\subsubsection{Lazy Gaussian elimination}
+We present the lazy Gaussian elimination based on the Hopcroft-Bunch \cite{hopcroft-bunch} algorithm. Opposed to the recursive approach, we present it as an iterative algorithm. Such implementation emphasizes the similarity between this algorithm and simple bipartite matching.
+
+\begin{algorithm}
+\caption{Simple algorithm for perfect matching in bipartite graphs}
+\begin{algorithmic}[1]
+\Function{BipartiteMatching}{$G$}
+\State $A \gets A(G)$
+\State $B \gets A^{-1}$
+\State $M \gets \emptyset$
+\For{$c=1...n$}
+    \State find a row $r$ for which $A_{c,r}\not=0$ and $B_{r,c}\not=0$
+    \State \texttt{lazy[c]} = ($A_{*,c}$, $A_{r,c}$)
+    \State let $j$ be the largest integer for which $2^j|c$
+    \State \Call{UpdateColumns}{$A, (c+1, c+2^j), \texttt{lazy}$}
+    \State $M \gets M\cup\{(r,c)\}$
+\EndFor
+\State \Return $M$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+Notice, that the only difference between this algorithm and \textsc{NaiveGaussianElimination} is the \textsc{UpdateColumns} call.
+To allow row pivoting we would like to update whole columns.
+This is however a little bit more challenging. When updating columns $c+1,c+2,...,c+2^j$ we have to perform the lazy updates of columns $c-2^j+1,c-2^j+2,...c$.
+To simplify the argument let the row elimination order be the same as the column one (this step can be avoided with a simple permutation array).
+In the first update we use the lazy eliminated ($c-2^j+1$)-th row and ($c-2^j+1$)-th column.
+To perform the second update we need to know the ($c-2^j+2$)-th row and ($c-2^j+2)$-th column.
+However, without performing the first update we do not know the value of the ($c-2^j+2)$-th row.
+To resolve this issue we could use the lazy updating scheme once again. We perform lazy updates on the selected columns.
+Below is a pseudocode of the \textsc{UpdateColumns} function.
+
+\begin{algorithm}
+\caption{UpdateColumns function}
+\begin{algorithmic}[1]
+\Function{UpdateColumns}{$A, (c_1, c_2), \texttt{lazy[]}$}
+\For{$i=1...j$}
+\State let $l$ be the largest integer for which $2^l|i$
+\State \Call{Update}{$A, (0,n), (c+1,c+2^j)$, \texttt{superLazy}[$i-2^l+1:i-1$]}
+\State \texttt{superLazy[$i$].col}, \texttt{superLazy[$i$].val} $\gets$ \texttt{lazy[$c-2^j+1+i$]}
+\State \texttt{superLazy[$i$].row} $\gets A_{(c-2^j+1+i), *}$
+\EndFor
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+% theorem
+Now lets analyze the time complexity of the \textsc{UpdateColumn} operation.
+In order to update columns $c+1,c+2,...,c+2^j$ we have to perform $2^j$ updates.
+To determine the time complexity of a singly iteration we will look at the values provided to the update function.
+Remind that the partition called on a $a \times b$ submatrix with $k$ updates runs in $O(\frac{a}{k}\cdot\frac{b}{k}\cdot k^\omega)$.
+In \textsc{UpdateColumn} we call \textsc{Update} $2^l$ time for a $n \times 2^l$ submatrix.
+This leads to $O(\frac{n}{2^l}\cdot\frac{2^l}{2^l}\cdot 2^{l\omega}) = O(n\cdot(2^l)^{\omega-1})$ running time.
+Just like in simple elimination, the total time complexity of \textsc{UpdateColumn} is now equal $O(\sum_{l=0}^{j} \frac{2^j}{2^l}\cdot n\cdot(2^l)^{\omega-1}) = O(n\cdot(2^j)^{\omega-1})$.
+Now summing this value for all $j$ we get $O(\sum_{j=0}^{\lceil\log{n}\rceil} \frac{n}{2^j}\cdot n\cdot(2^j)^{\omega-1}) = O(n^2\cdot(2^{\log{n}})^{\omega-2}) = O(n^\omega)$.
+
+\subsection{Perfect matching for general graphs}
+In order to remove some allowed edge $\{u,v\}$ in the general case we need to eliminate the $u$-th column and $v$-th row as well as the $v$-th row and $u$-th column.
+The lazy computation is scheme is not capable of doing this.
+
+In the general case we will try to utilize a greedy matching algorithm along with the verification algorithm to match a number of allowed edges.
+If this approach does not make sufficient progress we proceed with another idea.
+We will use structural properties of the graph to partition it into smaller subgraphs.
+We can then call the general matching algorithm on each of them.
+
+\subsubsection{Greedy matching algorithm}
+\begin{algorithm}\label{greedy_matching}
+\caption{Greedy matching algorithm}
+\begin{algorithmic}[1]
+\Function{GreedyMatching}{$G$}
+\State $M \gets \emptyset$
+\ForAll{$\{u,v\} \in E$}
+    \If{$u, v \notin \bigcup_{e \in M}$}
+        \State $M \gets M \cup \{\{u,v\}\}$
+    \EndIf
+\EndFor
+\State \Return $M$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\begin{lemma}
+Given a graph $G$ with a maximum matching $M^*$, the greedy matching algorithm returns a matching of size at least $|M^*|/2$.
+\end{lemma}
+\begin{proof}
+By contradiction, let us have some matching $M=\{u_1,...,u_k\}$ obtained through the greedy algorithm. Let $v_1,...,v_l$ for $l > k$ be the vertices that were matching in some maximum matching $M^*$ but were not matched under $M$. There are no edges $\{v_i,v_j\}$ in $G$. If there were, the greedy algorithm would match some of them. In $G$ there can only be edges $\{u_i,u_j\}$ and $\{u_i,v_j\}$ thus $|M^*| \le k = 2|M|$.
+\end{proof}
+
+\begin{algorithm}
+\caption{Perfect matching algorithm for general graphs}
+\begin{algorithmic}[1]
+\Function{GeneralMatching}{G}
+\State $M_g \gets \Call{GreedyMatching}{G}$
+\State $M_m \gets \Call{MatchingVerification}{G,M_g}$
+\State $G \gets G \setminus V(M_m)$
+\If{$|M_m| \ge n/8$}
+    \State \Return $M_m \cup \Call{GeneralMatching}{G}$
+\Else
+    \State \Return $M_m \cup \Call{Partition}{G}$
+\EndIf
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\subsubsection{The partition algorithm}
+The only part remaining is the \textsc{Partition} algorithm. We proceed with a sequence of definitions and theorems necessary in order to establish the correctness and the running time of the missing function.
+\begin{definition}[\cite{mucha}]
+Graph $G$ is called \textbf{elementary} if it has a perfect matching and its allowed edges form a connected spanning subgraph.
+\end{definition}
+\begin{definition}[\cite{mucha}]
+Given graph $G$ we define a relation $\sim_G$. For all $u,v \in V(G)$, $u \sim_G v$ if and only if $u=v$ or $G \setminus \{u,v\}$ does not have a perfect matching. Let also $P(G)$ be the set of equivalence classes of $\sim_G$.
+\end{definition}
+Lovász \cite{lovasz2} proved the following lemma
+\begin{theorem}[\cite{lovasz2}]
+If $G$ is elementary, then $\sim_G$ is an equivalence relation.
+\end{theorem}
+For the sake of notation convenience, we will treat graphs as a set of vertices. For example $G[C \cup S]$ will mean a subgraph induced from $G$ by the vertices of the subgraphs $C$ and $S$.
+
+From \cite{lovasz2} we have also some useful structural properties of $P(G)$:
+\begin{theorem}[\cite{lovasz2}]
+Let $G$ be elementary, let $S\in P(G)$ with $|S|\ge2$ and let $C$ be any component of $G\setminus S$. Then:
+\begin{enumerate}
+    \item the bipartite graph $G'_s$ obtained from $G$ by concatenating each component of $G\setminus S$ to a single vertex and deleting edges in $S$ is elementary;
+    \item the graph $C$ is factor-critical, i.e. for any vertex $v\in C, C\setminus\{v\}$ has a perfect matching;
+    \item the graph $C'$ obtained from $G[C\cup S]$ by contracting the set $S$ to a single vertex $u_c$ is elementary;
+    \item $P(C') = \{\{u_c\}\}\cup\{T\cap C\colon T\in P(G)\}$.
+\end{enumerate}
+\end{theorem}
+The above theorem shows some useful structural properties derived from $P(G)$. Given a set $S \in P(G)$ we can compute a bipartite matching $M_s$ of $G'_s$. For each pair $(s,c)$ where $s\in S$ and $c$ is some contracted component $C$, we will match $s$ with its neighbor $v$ from $C$. From $2.$ we know that that $C\setminus \{v\}$ has a perfect matching and thus we reduced the partition algorithm to computing one bipartite matching and $|S|-1$ general matchings.
+
+\begin{lemma}[Lemma 4.3 from \cite{mucha}]\label{partition_n_vertices}
+The total number of vertices of graphs in which \textsc{Partition} finds perfect matchings by calling the \textsc{BipartiteMatching} algorithm or the \textsc{GeneralMatching} algorithm is equal to n.
+\end{lemma}
+\begin{proof}
+Since the \textsc{GeneralMatching} algorithm finds a perfect matching, we know that at least $n$ vertices were matched.
+We now need to show that there was no more than $n$ of such vertices.
+The only lines were we create vertices are $7.$ and $16.$. This does not however create additional matches. In lines $14.$ and $19.$ respectively we get a free matched vertex in place of the contracted one.
+\end{proof}
+
+\begin{algorithm}
+\caption{The partition algorithm}
+\label{partition_algo}
+\begin{algorithmic}[1]
+\Function{Partition}{G}
+\State $M \gets \emptyset$
+\ForAll{elementary component $G_e$ of $G$}
+    \State Let $S\in P(G_e)$ with $|S|=k\ge2$
+    \State Let $C_1,C_2,...,C_k$ be the connected components of $G_e\setminus S$
+    \State Let $C_1$ be the largest component
+    \State Let $C'_1$ be the graph $G[S\cup C_1]$ with $S$ contracted to a  vertex $s$
+    \If{$P(C'_1)$ contains a non-trivial class}
+        \State $M'_1 \gets$ \Call{Partition}{$C'_1$}
+    \Else
+        \State $M'_1 \gets$ \Call{GeneralMatching}{$C'_1$}
+    \EndIf
+    \State Let $c$ be the vertex matched with $s$ in $M'_1$.
+    \State Let $v\in S$ be a neighbor of $c$.
+    \State $M \gets M \cup (M'_1 \setminus \{\{s,c\}\}) \cup \{\{v,c\}\}$
+    \State Construct graph $G'$ from $S\setminus\{v\}$ and components $C_2,...C_k$ contracted to $c_2,...c_k$
+    \State $M_p \gets$ \Call{BipartiteMatching}{$G'$}
+    \ForAll{$(c_i, s) \in M_p$}
+        \State Let $v\in C_i$ be a neighbor of $s\in S$.
+        \State $M \gets M \cup \{\{v,s\}\} \cup$ \Call{GeneralMatching}{$C_i \setminus \{v\}$}
+    \EndFor
+\EndFor
+\State \Return $M$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+So far we reduced partition algorithm into bipartite matchings and general matchings on graphs a factor smaller than the graph $G$.
+\textsc{BipartiteMatching} might be called on large graphs (even of size $\Theta(n)$). They operate on vertices in $S$ and $O(|S|)$ contracted components.
+Thus a vertex from $G$ cannot be however a part of $S$ in two different partition step.
+With \Cref{partition_n_vertices} in place, the runtime of all bipartite matchings is $O(n^\omega)$.
+
+This lemma shows that the cumulative run-time of all \textsc{BipartiteMatching} calls is $O(n^\omega)$.
+
+\begin{lemma}[Lemma 4.4 from \cite{mucha}]
+The \textsc{Partition} algorithm calls the \textsc{GeneralMatching} algorithm for graphs with $\le \frac{7}{9}n$ vertices.
+\end{lemma}
+\begin{proof}
+The smaller components $C_2,...,C_k$ have less than $\frac{1}{2}n \le \frac{7}{9}n$ elements, since $C_1$ is the biggest component.
+As for the biggest component, we only call \textsc{GeneralMatching} on $C^*_1$ if all of $P(C^*_1)$ classes are trivial (i.e. have one element).
+Otherwise we process the component further with another partition.
+All we need to prove is that $|C^*_1|\le\frac{7}{9}n$ when all of $P(C^*_1)$ classes are trivial.
+
+When \textsc{Partition} is called from \textsc{GeneralMatching} in \Cref{partition_algo} the verified matching $M'$ has less than $\frac{1}{8}n$ elements.
+The ratio of the vertices from $\hat M = M\setminus M'$ to the vertices $\hat G := G\setminus V(M')$ passed to \textsc{Partition} is less than $\frac{1}{3}$: $\frac{2|M|-2|M'|}{n-2|M'|} < \frac{\frac{2}{4}n - \frac{2}{8}n}{n-\frac{2}{8}n} \le \frac{1}{3}$.
+Let $\hat V$ be the endpoints of the edges in $\hat M$.
+No edge from $\hat M$ is allowed so both of its vertices are in the same equivalence class.
+This means that each edge of $\hat M$ goes in \textsc{Partition} to either $S$, the biggest component $C_1$ or some smaller component.
+Since on the last recursive \textsc{Partition} call, the biggest component does not have any edges from $\hat M$, it does not contain any vertices from $\hat V$.
+
+Now we can create two different upper bounds for the number of vertices in $C^*$.
+On the first hand, we removed all of $\hat V$ from $C^*$.
+In each recursive \textsc{Partition} call we however added a single contracted vector to the biggest component.
+Let $V_c$ be the set of all the added contracted vertices to the biggest components.
+We have $|C^*| \le n-|\hat V|+|V_c|$.
+On the other hand, in \textsc{Partition} we reduce the number of vertices in the next \textsc{Partition} call by at least $2$.
+Two of those vertices are in $S$ and at least one of them goes to some smaller component.
+We also add a single contracted vertex to the largest component.
+This means that $V_c$ has no less vertices than the recursive depth of the \textsc{Partition} calls.
+We can write a following equality: $|C^*| \le n-2\dot|V_c|$.
+Combining those two upper bounds we get: $2|C^*|+|C^*| \le 2(n-|\hat V|+|V_c|)+n-2\dot|V_c|=3n-2|\hat V|$.
+And thus: $|C^*| \le n-\frac{2}{3}|\hat V| \le n-\frac{2}{9}n = \frac{7}{9}n$.
+\end{proof}
+
+The above lemma introduces an important constant $\frac{7}{9}<1$. For a graph with $n$ vertices, \textsc{GeneralMatching} function can only be called on a graph with at most $\frac{7}{9}n$ vertices. We now can present the time complexity of the \textsc{GeneralMatching} algorithm with the following equation: $T(n)=T(\frac{7}{9}n)+f(n)$ where $f(n)$ is the time needed to perform the rest of the partition algorithm (excluding the \textsc{GeneralMatching} call).
+
+\begin{algorithm}[htbp]
+\caption{Implementation details for lines $5$-$7$ of \Cref{partition_algo}}
+\begin{algorithmic}[1]
+\State $T,D \gets \emptyset, \emptyset$
+\ForAll{edges $(u,v)$ between $S$ and $G\setminus S$}
+    \State \Call{Delete}{$u,v$}
+    \State $T \gets T \cup \{u, v\}$
+\EndFor
+\State $u \gets$ argmax $\{$\Call{Size}{v}$ \colon v\in T\}$
+\ForAll{$v \in T$}
+\If{\textbf{not} \Call{Connected}{$u,v$}}
+    \State $D \gets D\cup\{v\}$
+\EndIf
+\EndFor
+\State Get $C_2,...C_k$ running DFS from vertices in $D$
+\State Create dummy vertex $s$
+\ForAll{$v \in T\setminus D$}
+    \State \Call{Insert}{$v,s$}
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+
+Let us consider the time complexity of lines $4$-$7$ in algorithm \ref{partition_algo}. The rest lines should be trivial. They are either recursive calls that we considered previously or simple transformations running in $\tilde O(n)$.
+Line $4.$ might run in $\Tilde{\Theta}(n)$ but as explained previously with bipartite matching calls, each vertex might be in $S$ only once. Thus the cumulative run-time of all calls of the line $4.$ is $\tilde O(n^2)$. To efficiently compute lines $5$-$7$, we will use a dynamic connectivity data structure \cite{dynamic_components} providing these four functions each running in $\tilde O(n)$:
+\begin{itemize}
+    \item \textsc{Insert($u,v$)} - inserts edge $(u,v)$ into $G$;
+    \item \textsc{Delete($u,v$)} - removes edge $(u,v)$ from $G$;
+    \item \textsc{Size($u,v$)} - returns the size of the component of $u$
+    \item \textsc{Connected($u,v$)} - returns whether $u$ and $v$ are in the same component 
+\end{itemize}
+
+Lines $2$-$5$ and $12.$ run in the time proportional only to the number of edges between $S$ and $G\setminus S$ and the number of edges of the small components. These sets of edges are disjoint between the recursive calls. The total runtime of these instructions is $\tilde O(n^2)$. The remaining lines operations can be trivially computed in $\tilde O(n)$ time. Since there are $O(n)$ partition calls, the whole \textsc{partition} algorithm (excluding the bipartite part) runs in $\tilde O(n^2)$. And as a consequence \textsc{GeneralMatching} runs in $O(n^\omega)$.

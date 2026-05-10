@@ -1,0 +1,172 @@
+\section{Introduction}
+Let us consider a parallel recognition algorithm in $O(\log^2{n})$ time and 
+$O(n + m)$ processors by Dahlhaus \cite{dahlhaus_95}. 
+We will consider the sequential version of this algorithm in $O((m + n) \cdot \log{n})$ time.
+This algorithm is easier than the previous ones, but it has a big constant hidden in the asymptotic notation, because of many operations performed in every iteration.
+
+\section{Idea}
+We proceed with finding the cotree for our graph by dividing the graph into groups of induced subgraphs and recursively computing cotrees on them and merging them into one cotree. Once we have the cotree, we can determine whether the graph is a cograph. Let us assume the cotree $T$ that we have found corresponds to $G'=(V, E')$. Our goal is to check that $E = E'$. To check this we perform two actions:
+\begin{itemize}
+    \item for every connected pair of vertices $\{x$,$y\} \in E$ in our graph we check that LCA$(x,y)$ in the cotree is a $(1)$-node,
+    \item for every $(1)$-node $z$ in the cotree, we compute the number of pairs of leaves $x$, $y$, such that LCA$(x,y) = z$. It is equivalent to getting the number of edges in the graph corresponding to the cotree.
+\end{itemize}
+
+Suppose that there exists a vertex $v$ such that $\frac{n}{a} \leq \deg{v} \leq \frac{n(a - 1)} {a}$. The case when such vertex does not exists considered in the \Cref{high_and_low}. Next, we divide the remaining vertices into two induced subgraphs -- $A$, which consists of the neighbours of $v$, and $B$, which consists of non-neighbours of $v$. Then we partition $B$ into connected components, i.e. induced subgraphs $B_0$, $B_1$, $\ldots$, $B_k$, and reorder them according to some rules. After that, by using this reordered partitioning we divide $A$ into induced subgraphs $A_0$, $A_1$, $\ldots$, $A_{k+1}$. Finally, we recursively compute the cotrees for every $A_i$ and $B_i$ and connect them. We do it by connecting the root of the cotree of $B_i$ to the $i^{th}$ $(0)$-node and connect the root of the cotree of $A_i$ to the $i^{th} (1)$-node (see \Cref{fig:cotree_build}).
+
+\begin{figure}
+    \centering
+    \input{tikz/A_B_cotree}
+    \caption{Cotree building procedure}
+    \label{fig:cotree_build}
+\end{figure}
+
+
+\input{code/build_cotree}
+
+\section{Implementation}
+Now all that remains is to understand how to reorder $\{B_i\}$ and compute $\{A_i\}$.
+\subsection{Reordering $B_i$}
+\begin{definition}
+    For a set $W \subseteq V$, we denote by \emph{$\Gamma(W)$} $=$ $\{v \in V \setminus W \colon$ there exists $w \in W$ such that $\{v,w\} \in E\}$ the set of neighbours of W which are not in W.
+\end{definition}
+  
+
+When we compute $B_i$, let us take one element $x \in B_i$. For $x$ we compute the set $C_i = \{v \colon v \notin B_i $ and $\{x,v\} \in E \}$. Later we will show that $C_i=\Gamma{(B_i)}$. It is sufficient to sort the set $\{B_i\}$ by the size of $\{C_i\}$ in descending order using bucket sort.
+\subsection{Computing $A_i$}
+\label{compute_a}
+Next, for all $i = 0,1,\ldots,k-1$ we compute $C_i \setminus C_{i+1}$. The induced subgraph $A_{i+1}$ is formed by the vertices in $C_i \setminus C_{i+1}$. Similarly, $A_0$ is induced by $V \setminus (\{v\} \cup C_0)$ and $A_{k+1}$ is induced by $C_{k}$.
+The effective implementation requires to find the largest $j$, such that element $y$ appears in $C_j$, then $y \in A_{j+1}$. If $y$ does not appear in any $C_j$, then we know that $y \in A_0$.
+\subsection{Checking the correctness of the cotree}
+The algorithm for finding LCA in $O(\log{n})$ time for query and $O(n \cdot \log{n})$ pre-calculation time, where $n$ is the size of the tree is well-known, so it will not be discussed here. The curious reader can be referred to \cite{LCA}.
+
+Let us find, for every $(1)$-node $z$ the number of leaves $x, y$, such that LCA$(x,y)=z$. Assume that $z$ has $p$ children denoted by $z_0,\ldots,z_{p-1}$. For every $i$ it holds that LCA of two leaves from subtree rooted in $z_i$ is different from $z$. But LCA$(x,y)=z$, for every $x, y$ where $x$ is a leaf from $z_i$ and $y$ is a leaf from $z_j$ with $i \neq j$. Therefore, we just need to calculate the number of such pairs.
+
+\begin{definition}
+    For every vertex $q$, let us denote by \emph{$leaves[q]$} the number of leaves in subtree of $q$.
+\end{definition}
+
+It is easy to spot that for every $q$ $leaves[q]$ can be calculated using well-known techniques of dynamic programming and depth first search, so we skip its details. Let us instead continue with the main algorithm. To get the number of pairs $x,y$, such that LCA$(x,y)=z$ we initialize a variable $sum$ by zero. Then, for every $i=0,\ldots,p-1$ we just multiply $leaves[z_i]$ by  $\sum_{j \neq i}^{}leaves[z_j]$ and add this value to $sum$. Finally, we divide the $sum$ by $2$, because each pair was counted twice.  
+\section{Complexity}
+Computing the connected components, i.e. $\{B_i\}$ can be done in $O(n+m)$ time. Counting $\{C_i\}$ also can be done in $O(n+m)$ time, because $\sum_{v \in V}^{} \deg(v) = 2 \cdot m$. The maximum size of $C_i$ is $n$, so bucket sort takes $O(n)$ time. The effective implementation of finding $\{A_i\}$ in \Cref{compute_a} can be done in $O(n+m)$ time, because  $O(\sum_{i=0}^{i=k} |C_i|) = O(n+m)$ and we can iterate through the elements of every $C_j$ just updating the maximum index position where element the element appears.
+
+Furthermore, it holds that $A_i, B_i \leq \frac{n(a-1)}{a}$. Therefore, we divide the main problem into smaller ones and such small problems have sizes at most $\frac{n}{c}$ for some $c > 1$. As mentioned earlier, computing $\{A_i\}$, $\{B_i\}$ and $\{C_i\}$ is $O(n+m)$ time. Therefore, we can say that processing of each vertex and each edges takes $O(1)$. But one vertex or edge can be in at most $O(\log{n})$ problems, because if the last segment where it was has size $x$, then the previous one has size at least $xc$, the previous one has size at least $xc^2$, etc. The last one has size $n$.
+
+Checking the cotree consists of counting array $leaves$ and $m$ queries. Counting array $leaves$ can be computed in $O(n+m)$ time, because we run one depth first search and pre-calculation is $O(n \cdot \log{n})$ time. We have $m$ edges, so we have $m$ queries and each query is $O(\log{n})$. So, checking the cotree runs in $O((m + n) \cdot \log{n})$ time. Therefore, the total time complexity of the algorithm is $O((m + n) \cdot \log{n})$.
+\section{Correctness}
+For every pair of vertices we need to show that if $G$ is a cograph, then their LCA label is correct.
+
+None of the vertices of $B_i$ for every $i$ are connected with $v$, so it is correct to connect the cotree to $(0)$-node, because the LCA of $v$ and every vertex of $B_i$ is this $(0)$-node. The same also holds for $A_i$ and $(1)$-node.
+
+The LCA of $x \in B_i$ and $y \in B_j$ is the $\max{\{i,j\}}^{th}$ $(0)$-node. This is correct because $B_i$ and $B_j$ are the connected components of $B$, so they do not have any edges between each other.
+
+Since we build the cotrees recursively, so the LCA of a pair of leaves in each recursively computed cotree is correct. 
+
+Therefore, it remains to show only that if $G$ is a cograph, then the LCA of $x \in A_i$ and $y \in A_j$ is correct and the LCA of $x \in B_i$ and $y \in A_j$ is correct too.
+
+\begin{theorem}
+\label{one_label_subtree}
+    For every $i,j$ such that $0 \leq i < j \leq k + 1$ and every $x \in A_i$ and every $y \in A_j$ it holds that $\{x,y\} \in E$. 
+\end{theorem}
+\begin{proof}
+    If for some $i,j$ such that $0 \leq i < j \leq k + 1$ there exists $x \in A_i$ and $y \in A_j$ and $\{x,y\} \notin E$, then for every $z \in B_{i-1}$ and for every $t \in B_{j-1}$ holds $\{z,x\}, \{y,t\}, \{z, y\} \in E$ and $\{x,t\} \notin E$, due to the definition of $\{A_i\}$ and $\{z,t\} \notin E$ due to the definition of $\{B_i\}$. Therefore, $x-z-y-t$ is $P_4$, the contradiction. Therefore, $\{x,y\} \in E$.
+\end{proof}
+Thus, the LCA of $x \in A_i$ and $y \in A_j$ where $i < j$, is correct, because it is exactly the $j^{th}$ $(1)$-node.
+
+Therefore, it remains to show only that if $G$ is a cograph, then the LCA of $x \in B_i$ and $y \in A_j$ is correct too. To prove it we need to introduce the following definition and theorems.
+\begin{definition}
+    For every $i$ and for every $x \in B$ let us denote by \emph{$NB(B,x)$} the set of neighbours of $x$, which are not in $B$.
+\end{definition}
+
+\begin{theorem}
+    For every $i$ and for every $x, y \in B_i$ it holds that $NB(B_i,x) = NB(B_i,y) = \Gamma{(B_i)}$
+\end{theorem}
+\begin{proof}
+    If for some $i, j$ there exist $x \in B_i$ and $y \in B_i$ and $z \in A_j$, such that $\{x, z\}, \{x, y\} \in E$ and $\{y, z\} \notin E$, i.e. there exists a vertex where adjacent vertices $x$ and $y$ are not agreed. Then there exists $P_4 = v-z-x-y$, so $G$ is not a cograph. Therefore, for every $i$ and every pair of $x$ and $y$ from $B_i$, such that ${x,y} \in E$, has the same neighbourhood among the neighbours of $v$. And there do not exist $i \neq j$, $a$ from $B_i$ and $b$ from $B_j$, such that $\{a,b\} \in E$. So, $NB(B_i,x) = NB(B_i,y)$ if $\{x,y\} \in E$ and $x,y$ are from $B_i$. This implies that $NB(B_i,x) = NB(B_i,y) = \Gamma{(B_i)}$ for every pair $x,y$ from $B_i$, because $B_i$ is connected. 
+\end{proof}
+So, it is correct to look for the neighbours of only one vertex from $B_i$.
+
+\begin{theorem}
+    For $0 \leq i < j \leq k$ it holds that either $\Gamma{(B_i)} \subseteq \Gamma{(B_j)}$ or $\Gamma{(B_j)} \subseteq \Gamma{(B_i)}$, if $G$ is a cograph.
+\end{theorem}
+\begin{proof}
+Assume it is not true, then for $x \in B_i$ and $y \in B_j$ there exist $z, t$, such that $\{x,z\},\{y,t\} \in E$ and $\{x,t\}, \{y,z\} \notin E$, but $\{x,y\} \notin E$ and $\{z,t\} \in E$, as mentioned earlier. Consequently, $x-z-t-y$ is $P_4$ in $G$, the contradiction.
+\end{proof}
+
+\begin{theorem}
+\label{different_labels_subtree}
+    For every $i,j$ and every $x \in A_i$, $y \in B_j$ it holds that $\{x,y\} \in E$ and LCA$(x,y)$ is $(1)$-node if and only if $j \geq i$.
+\end{theorem}
+\begin{proof}
+    For every $i=0,\ldots,k+1$, every $x \in A_i$, every $j=i,\ldots,k$ and every $y$ in $B_j$, $\{x,y\} \notin E$ due to the definition of $A_i$. So, the LCA$(x,y)$ is correct, because the $i^{th}$ $(0)$-node, to which the cotree of $A_i$ is connected is lower than the $j^{th}$ $(1)$-node, to which the cotree of $B_j$ is connected, so their LCA is the $j^{th}$ $(1)$-node. The same argument also holds for every $j=0,\ldots,i-1$.
+\end{proof}
+\section{High and low vertices}
+\label{high_and_low}
+\begin{definition}
+    A vertex $v$ is \emph{high} if its degree is greater than $\frac{n(a-1)}{a}$. A vertex $v$ is \emph{low} if its degree is smaller than $\frac{n}{a}$.
+\end{definition}
+We do not have a vertex in $G$ which degree is in the range $[\frac{n}{a}, \frac{n(a-1)}{a}]$, so now all vertices are high or low. Let us define by $L$ the set of all low vertices. It can be proved similarly to the previous case that every component of $L$ forms its subtree and that parents of these subtrees are on one path to root.
+
+Similar to the previous case, we calculate $\Gamma(C_i)$ for each component $C_i$ of $L$, sort the components by the size of $\Gamma(C_i)$ and compute $D_i = \Gamma(C_i) \setminus \Gamma(C_{i+1})$. The only difference is that if for some $j$, $|D_j| > \frac{n(a-1)}{a}$, we run another algorithm. We know that there exists at most one such $j$. Let $H$ be the subgraph induced by $D_j$ . If in $\overline{H}$ there exists a non-high and non-low vertex, then we do not need to change anything, because when the recursion is called on $H$, it is divided into problems at least $\frac{a}{a-1}$ times smaller. If not, then there are only low vertices in $\overline{H}$, because in $D_j$ there only high vertices and in $\overline{H}$ there are no non-high and non-low vertices, so they are all low. So, we can build for each component of $\overline{H}$ a cotree and reverse it, so we can get a cotree for $H$.
+
+\subsection{Correctness}
+Similar to the previous case, we need to show, that the label of LCA of every pair of vertices is correct.
+\begin{theorem}
+    For every $i$,$j$ such that $0 \leq i < j \leq k$, every $x \in C_i$ and every $y \in C_j$ it holds that $\{x,y\} \notin E$. 
+\end{theorem}
+\begin{proof}
+    $C_i$ and $C_j$ are disjoint connected components of $L$, so $x$ and $y$ cannot be connected.
+\end{proof}
+
+
+\begin{theorem}
+    For every $i$,$j$ such that $0 \leq i < j \leq k + 1$, every $x \in D_i$ and every $y \in D_j$ it holds that $\{x,y\} \notin E$. 
+\end{theorem}
+\begin{proof}
+    The proof is exactly the same as in the \Cref{one_label_subtree}.
+\end{proof}
+
+\begin{theorem}
+    For every $i$ and every $\{a, b\} \in D_i$ such that $\{a,b\} \in E$, $NB(D_i,a)=NB(D_i,b)$. 
+\end{theorem}
+\begin{proof}
+     Assume, to the contrary, that there exists a vertex $z \in D_j$ for some $j$, such that $\{a,z\} \in E$ and $\{b,z\} \notin E$. 
+     
+     There also exists a vertex $t$, such that $\{t,z\} \in E$ and $\{t,a\}, \{t,b\} \notin E$. If it is not true, than for every $t$ either $\{t,z\} \notin E$, or $\{t,a\} \in E$ or $ \{t,b\} \in E$. We know that $z$ is high, so the number of non-neighbours of it is not greater than $\frac{n}{a}$. Since $a, b$ are low, the number of their neighbours does not exceed $\frac{n}{a}$. Therefore, there are at least $\frac{n(a-3)}{a}$ vertices not meeting any of these criteria, i.e. at least $\frac{n(a-3)}{a}$ vertices $t$ such that $\{t,z\} \in E$, and $\{t,a\} \notin E$ and $ \{t,b\} \notin E$.
+
+     Thus, there is an induced $P_4$ $b-a-z-t$ -- a contradiction.
+\end{proof}
+
+
+\begin{theorem}
+    For every $i$,$j$ such that $0 \leq i < j \leq k + 1$ and every $x \in C_i$ and $y \in D_j$ it holds that $\{x,y\} \notin E$. 
+\end{theorem}
+\begin{proof}
+    The proof is exactly the same as in the \Cref{different_labels_subtree}.
+\end{proof}
+
+\begin{theorem}
+    For every $i$,$j$ such that $0 \leq i < j \leq k$ and every $x \in D_i$ and $y \in C_j$ it holds that $\{x,y\} \notin E$. 
+\end{theorem}
+\begin{proof}
+    The proof is exactly the same as in the \Cref{different_labels_subtree}.
+\end{proof}
+
+\subsection{Complexity}
+\begin{theorem}[Lemma 6 from \cite{dahlhaus_95}]
+    Every connected component in the graph induced by low vertices has at most $\leq \frac{2n}{a} + 1$ vertices.
+\end{theorem}
+\begin{proof}
+    Let $t$ be LCA of all vertices from $C_i$ for some $i$. Clearly, $t$ is $(1)$-node, because $C_i$ is connected. Assume $t$ has $k$ children denoted as $t_1,..., t_k$. We know that $k \geq 2$, because $C_i$ is connected. For some descendant leaf $v \in V$ of $t_1$, it must be connected with all $u \in V$, which are descendant leaves of $t_2,..., t_k$, because the label of their LCA is $1$. But $v$ is low, so its degree is at most $\frac{n}{a}$, so there are no more than $\frac{n}{a}$ vertices in $V$ among descendant leaves of $t_2, ..., t_k$. We do the same for $t_2$, so the total amount of vertices in the subtree of $t$, i.e. in $C_i$, does not exceed $\frac{2n}{a} + 1$.
+\end{proof}
+
+\begin{theorem}
+    $\overline{H}$ can be computed in $O(n+m)$ time.
+\end{theorem}
+\begin{proof}
+$H$ is a set of high vertices, because components of low vertices have sizes at most $\frac{2n}{a} + 1$.
+    In $\overline{H}$ the degree of each vertex is at most $\frac{n}{a}$, because its degree in $G$ is at least $\frac{n(a-1)}{a}$. So, the total number of edges in $\overline{H}$ is bounded from above by $ \frac{n \cdot |H|}{a} \leq \frac{(a-2)n \cdot |H|}{a}$. On the other hand, $|H| \geq \frac{(a-1)n}{a}$, so the cardinality of $G \setminus H$ is bounded by $ \frac{n}{a}$, but every $v \in H$ has at least $\frac{(a-1)n}{a} - \frac{n}{a} = \frac{(a-2)n}{a}$ neighbours in $H$, so the number of edges in $H$ is at least $\frac{(a-2)n \cdot |H|}{a}$.
+
+    
+    Therefore, $H$ contains more edges than $\overline{H}$ and it contains at least half of the pairs from $\frac{|H|(|H|-1)}{2}$. So, we can iterate through every pair of vertex and check if they are connected, and they are not connected we add this edge to the complement of graph.
+\end{proof}
+So, like in the previous case, the problem is divided into the smaller ones with sizes at most $\frac{n}{c}$ for some constant $c > 1$. The time complexity remains the same as in the previous case, i.e. it is equal to $O((n+m) \cdot \log{n})$.

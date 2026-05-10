@@ -1,0 +1,234 @@
+\section{Van Emde Boas tree}
+
+The van Emde Boas tree, first introduced in the 1975 paper \emph{Preserving Order in a Forest in Less Than Logarithmic Time} \cite{vanEmdeBoas1975} by Dutch computer scientist Peter van Emde Boas, is a data structure for storing integer keys from a universe of fixed size \( M \). Van Emde Boas trees support all associative array operations (\texttt{search}, \texttt{insert}, and \texttt{delete}) as well as predecessor and successor queries with a time complexity of \( O(\log \log M) \). This is achieved by leveraging a recursive decomposition of the universe into pieces of size \( O(\sqrt{M}) \). 
+
+In this chapter, we focus solely on the use of van Emde Boas trees as priority queues. When used in this context, van Emde Boas trees provide \( O(\log \log M) \) time complexity for \texttt{push} and \texttt{pop} operations and \( O(1) \) time complexity for \texttt{peek}, by augmenting the data structure to maintain the current minimum value after each operation.
+
+Despite their attractive theoretical performance, van Emde Boas trees have a significant drawback in terms of memory consumption, as the data structure requires \( O(M) \) space. This high memory requirement stems from the recursive structure, where subtrees are maintained even if sparsely populated. As a result, van Emde Boas trees are impractical for applications with large universes or limited memory, making them suitable only for scenarios where operations on small integer sets are required.
+
+\subsection{Structure and complexity}
+
+The core idea of the van Emde Boas tree is to recursively partition the universe of size \( M \) into \( \lceil \sqrt{M} \rceil \) clusters of size \( \lceil \sqrt{M} \rceil \). To achieve the desired time complexity for all operations, we need to ensure that each call performs only a constant amount of work plus a single recursive call on a subproblem of size \( \lceil \sqrt{M} \rceil \). 
+
+Under this assumption, it is easy to prove the following lemma on the complexity of \texttt{push} and \texttt{pop} operations:
+
+\begin{lemma}
+The \texttt{push} and \texttt{pop} operations on a van Emde Boas tree of universe size \( M \) run in \( O(\log \log M) \) time.
+\end{lemma}
+
+\begin{proof}
+Each operation performs a constant amount of work plus a single recursive call on a subproblem of size \( \lceil \sqrt{M} \rceil \). Thus, the recurrence is:
+\[T(M) = T(\sqrt{M}) + O(1)\]
+
+Let's substitute \( M = 2^k \), so \( \sqrt{M} = 2^{k/2} \), and define \( S(k) = T(2^k) \). Then:
+\[ S(k) = S(k/2) + O(1) \]
+
+This solves to:
+\[ S(k) = O(\log k) \]
+
+Since \( k = \log M \), we have \( T(M) = O(\log \log M) \).
+\end{proof}
+
+Additionally, to ensure that each operation performs only a single recursive call, the structure is augmented by maintaining the current minimum and maximum values present in the tree at all times. This clearly yields \( O(1) \) time complexity for \texttt{peek} operations.
+
+We also maintain the cluster size, which is equal to \( \lceil \sqrt{M} \rceil \), as well as the summary tree, which is itself a van Emde Boas tree with universe size equal to the number of clusters. The summary tree keeps track of which clusters are non-empty. Each cluster is a van Emde Boas tree with universe size \( \lceil \sqrt{M} \rceil \), and is stored in the \texttt{clusters} array.
+
+The class outline is as follows:
+
+\begin{minted}{cpp}
+template <class Key, class Compare = std::less<Key>>
+class VanEmdeBoasTree : public PriorityQueue<Key, Compare> {
+    const Key universeSize;
+    const Key clusterSize;
+    std::optional<Key> minValue, maxValue;
+    std::optional<std::unique_ptr<VanEmdeBoasTree>> summaryTree;
+    std::vector<std::optional<std::unique_ptr<VanEmdeBoasTree>>> clusters;
+};
+\end{minted}
+
+The structure can be initialized by providing the universe size \( M \):
+
+\begin{minted}{cpp}
+VanEmdeBoasTree::VanEmdeBoasTree(Key universeSize)
+    : universeSize(universeSize), 
+      clusterSize(static_cast<Key>(std::ceil(std::sqrt(universeSize)))),
+      minValue(std::nullopt), 
+      maxValue(std::nullopt) {
+    clusters.resize(clusterSize);
+}
+\end{minted}
+
+With the structure outline established, we now prove the space complexity of van Emde Boas trees: 
+\begin{lemma}
+The space complexity of a van Emde Boas tree over a universe of size \( M \) is \( O(M) \).
+\end{lemma}
+
+\begin{proof}
+Each van Emde Boas tree contains one summary van Emde Boas tree of size \(\lceil \sqrt{M} \rceil\) and \(\lceil \sqrt{M} \rceil\) cluster van Emde Boas trees, each of size \(\lceil \sqrt{M} \rceil\). We maintain \(\lceil \sqrt{M} \rceil\) pointers to the cluster structures. In addition, there are also a constant number of integer fields, each requiring \(O(\log M)\) bits.
+
+Combining these, we get the recurrence:
+\[
+S(M) = (1 + \sqrt{M}) S(\sqrt{M}) + \sqrt{M}
+\]
+
+We prove by induction on \(u \geq u_0 = 2\). Define \(c = S(u_0) + 1\) and \(d = S(u_0) + 2\). The induction hypothesis is \(S(u) \leq c u - d\).
+
+\textbf{Base case:} For \(u = 2\), by definition \(S(2) = c \cdot 2 - d\).
+
+\textbf{Inductive step:} Assume the hypothesis holds for all sizes \(\leq u\). Then
+\[
+S(u) = (1 + \sqrt{u}) S(\sqrt{u}) + \sqrt{u} \leq (1 + \sqrt{u})(c \sqrt{u} - d) + \sqrt{u} = c u - d + (c - d + 1) \sqrt{u}.
+\]
+By definiton, \(c - d + 1 \leq 0\), and thus \(S(u) \leq c u - d\). This completes the induction.
+\end{proof}
+
+In order to quickly locate an element within the tree, a set of simple helper functions is needed. Here, \texttt{high} denotes the index of the cluster containing an element, and \texttt{low} denotes the index of the element within that cluster. \texttt{index} is then used to combine both values.
+
+\begin{minted}{cpp}
+Key high(Key x) const {
+    return x / clusterSize;
+}
+
+Key low(Key x) const {
+    return x % clusterSize;
+}
+
+Key index(Key high, Key low) const {
+    return high * clusterSize + low;
+}
+\end{minted}
+
+\subsection{Push operation}
+
+We begin the implementation by handling important base cases. If the tree is empty, we initialize both \texttt{minValue} and \texttt{maxValue} with the inserted value \( x \), and then return. Checking if the tree is empty is done in \(O(1)\) by simply verifying that the \texttt{minValue} is initialized. Crucially, this means that we don't store the minimum recursively and that inserting into an empty tree takes constant time.
+
+\begin{minted}{cpp}
+void VanEmdeBoasTree::insert(Key x) {
+    if (empty()) {
+        minValue = maxValue = x;
+        return;
+    }
+\end{minted}
+
+We maintain the invariant that the minimum value is stored explicitly. If the new value is smaller, we swap it with the current minimum and continue inserting the larger of the two values.
+
+\begin{minted}{cpp}
+    if (x < *minValue) {
+        std::swap(x, *minValue);
+    }
+\end{minted}
+
+We then proceed to the main recursive case. For universes larger than 2, we decompose the integer \( x \) into two parts: its cluster index and its position within that cluster. If the corresponding cluster or the summary tree does not exist yet, we allocate them dynamically. If the target cluster is empty, we record its index in the summary tree and initialize its minimum or maximum directly. Otherwise, we recursively insert the position into the subcluster.
+
+\begin{minted}{cpp}
+    if (universeSize > 2) {
+            Key clusterIndex = high(x), position = low(x);
+
+            if (!clusters[clusterIndex].has_value()) {
+                clusters[clusterIndex] = 
+                    std::make_unique<VanEmdeBoasTree>(clusterSize);
+            }
+
+            if (!summaryTree.has_value()) {
+                summaryTree = 
+                    std::make_unique<VanEmdeBoasTree>(clusterSize);
+            }
+
+            if (clusters[clusterIndex].value()->isEmpty()) {
+                summaryTree.value()->insert(clusterIndex);
+                auto &value = clusters[clusterIndex].value();
+                value->minValue = value->maxValue = position;
+            } else {
+                clusters[clusterIndex].value()->insert(position);
+            }
+        }
+\end{minted}
+
+Finally, we update the maximum value explicitly if the inserted value exceeds the current maximum.
+
+\begin{minted}{cpp}
+    if (x > *maxValue) {
+        maxValue = x;
+    }
+}
+\end{minted}
+
+In each possible path, we make only a single recursive call to insert. If the cluster we want to insert into is empty, we insert it recursively into the summary tree. If the cluster is not empty, we insert our value recursively into that cluster. All the remaining operations have constant running time, and therefore we achieve the desired time complexity for \texttt{push} operations.
+
+\subsection{Pop operation}
+
+Once again, the function begins by handling several base cases. If the tree is empty, there is nothing to remove. If the tree contains a single element, we reset both \texttt{minValue} and \texttt{maxValue}. Here, we assume that the tree contains the removed element—this is reasonable to assume since we will only ever be removing the current minimum value. If there are only two elements in the tree, we set both \texttt{minValue} and \texttt{maxValue} to the other element.
+
+\begin{minted}{cpp}
+    void remove(Key x) {
+    if (empty()) {
+        return;
+    }
+
+    if (*minValue == *maxValue) {
+        minValue = maxValue = std::nullopt;
+        return;
+    }
+
+    if (universeSize <= 2) {
+        if (x == 0) {
+            minValue = 1;
+        } else {
+            minValue = 0;
+        }
+        maxValue = minValue;
+        return;
+    }
+\end{minted}
+
+What follows is the main recursive case. We split it based on whether the element to be removed is equal to the minimum or maximum value.
+
+If the element to remove is the minimum, we find the new minimum. This is done by querying the summary tree for the first non-empty cluster and removing the minimum value in this cluster. After removing this value, we also remove the cluster index from the summary tree if the cluster becomes empty.
+
+\begin{minted}{cpp}
+    if (x == *minValue) {
+        Key firstCluster = summaryTree.value()->minValue.value();
+        Key firstClusterMin = clusters[firstCluster].value()->minValue.value();
+
+        minValue = index(firstCluster, firstClusterMin);
+        clusters[firstCluster].value()->remove(firstClusterMin);
+
+        if (clusters[firstCluster].value()->isEmpty()) {
+            summaryTree.value()->remove(firstCluster);
+        }
+    }
+\end{minted}
+
+If \( x \) is not the current minimum, we remove it from its cluster. Again, we check if the cluster becomes empty and update the summary.
+
+\begin{minted}{cpp}
+    else {
+        Key clusterIndex = high(x);
+        Key position = low(x);
+
+        clusters[clusterIndex].value()->remove(position);
+
+        if (clusters[clusterIndex].value()->isEmpty()) {
+            summaryTree.value()->remove(clusterIndex);
+        }
+    }
+\end{minted}
+
+Finally, if the element to remove was the maximum, we compute the new maximum value. If the summary tree is not empty, we find the last non-empty cluster and retrieve its maximum.
+
+\begin{minted}{cpp}
+    if (x == *maxValue) {
+        if (summaryTree.value()->isEmpty()) {
+            maxValue = minValue;
+        } else {
+            Key lastCluster = summaryTree.value()->maxValue.value();
+            maxValue = index(
+                lastCluster, 
+                clusters[lastCluster].value()->maxValue.value()
+            );
+        }
+    }
+}
+\end{minted}
+
+It might not be immediately clear why this operation achieves the desired complexity, since in some cases we make two recursive calls to \texttt{remove}. Here, we use the fact that removing from a tree that contains a single element takes constant time. We only make the second recursive call in the case where the first one was on a tree containing one element, and therefore only one of the calls will require non-constant time. Therefore, both \texttt{push} and \texttt{pop} achieve \( O(\log \log M) \) time complexity.

@@ -1,0 +1,153 @@
+\section{Introduction}
+Let us consider a linear recognition algorithm by Bretscher, Corneil, Habib and
+Paul \cite{Bretscher2003ASL}.
+The correctness of this algorithm may be difficult to understand, but the idea of the algorithm is quite easy. The hardest part of the linear implementation is to choose the right data structures. The coding part is long enough.
+\section{Idea}
+We choose an arbitrary permutation of our graph vertices. We define a LexBFS on it, then LexBFS-, which can be implemented using LexBFS. Finally, we define \texttt{Neighbourhood Subset Property} on a permutation. Having these definitions, our algorithm is short and simple:
+\input{code/LexBFS-recognition}
+\section{LexBFS}
+\subsection{Idea}
+We process vertices one by one and divide them into groups according to the property that the vertices in the same group have the same set of already processed neighbours. 
+\subsection{Implementation}
+Let us introduce the following notation: $N'(x) = \{v \colon v \in N(x)$ and $v$ has not been processed$\}$.
+
+We only store groups consisting of unprocessed vertices. A list is maintained comprising these groups. Initially, the list contains only one group that includes all graph vertices. In each step we choose the leftmost group $A$, then choose the leftmost vertex $x$ in $A$. For every group $B$ we select all neighbours of $x$ in $B$, remove them from $B$ and place them in a new group $C$, which is inserted directly before $B$ in the list. Subsequently, we eliminate $x$ from $A$ and mark it as ``processed''. It is important to note that $B$ may be the same as $A$. Refer to the pseudocode in \Cref{pseudocode_lexbfs} and the example in the \Cref{tab:table} for further details.
+
+\subsection{Pseudocode}
+\label{pseudocode_lexbfs}
+\input{code/LexBFS}
+\begin{table}[H]
+\centering
+\begin{tabular}[,]{ | p{6mm} | p{3mm} | p{25mm} |  p{35mm} | }
+\hline
+ $\sigma(v)$ & $v$ & $N'(v)$ & Partitions \\ [0.5ex] 
+ \hline\hline
+ & & & $\{x$ $d$ $y$ $u$ $v$ $w$ $c$ $a$ $z$ $b\}$ \\
+ \hline
+ $1$ & $x$ & $\{u$ $v$ $w$ $y$ $z\}$ & $\{y$ $u$ $v$ $w$ $z\}$ $\{d$ $c$ $a$ $b\}$ \\
+ \hline
+ $2$ & $y$ & $\{a$ $b$ $c$ $d$ $w$ $z\}$ & $\{w$ $z\}$ $\{u$ $v\}$ $\{d$ $c$ $a$ $b\}$ \\
+ \hline
+ $3$ & $w$ & $\{a$ $b$ $c$ $d$ $z\}$ & $\{z\}$ $\{u$ $v\}$ $\{d$ $c$ $a$ $b\}$ \\
+ \hline
+ $4$ & $z$ & $\{a$ $u$ $v\}$ & $\{u$ $v\}$ $\{a\}$ $\{d$ $c$ $b\}$ \\
+ \hline
+ $5$ & $u$ & $\{a$ $b$ $c$ $d$ $v\}$ & $\{v\}$ $\{a\}$ $\{d$ $c$ $b\}$ \\
+ \hline
+ $6$ & $v$ & $\{a$ $b$ $c$ $d\}$ & $\{a\}$ $\{d$ $c$ $b\}$ \\
+ \hline
+ $7$ & $a$ & $\{\}$ & $\{d$ $c$ $b\}$ \\
+ \hline
+ $8$ & $d$ & $\{b$ $c\}$ & $\{c$ $b\}$ \\
+ \hline
+ $9$ & $c$ & $\{b\}$ & $\{b\}$ \\
+ \hline
+ $10$ & $b$ & $\{\}$ &  \\
+ \hline
+ \end{tabular}
+ \caption{LexBFS example for the cograph $G$ from \Cref{fig:graph_example}}
+    \label{tab:table}
+ \end{table}
+\section{LexBFS-}
+\subsection{Idea}
+LexBFS- is similar to LexBFS with one difference -- we specify further how we divide one group into two ones.
+\begin{definition}[Definition 1 from \cite{Bretscher2003ASL}]
+    The vertices in the leftmost partition of line $5$ of Algorithm LexBFS($G$, $V$) are tied when their neighbourhoods of processed vertices are
+identical. We refer to such a set of tied vertices as a \emph{slice}, $S$.
+
+When vertices from one slice are divided into two slices, we call it a \emph{tie breaking mechanism}.
+
+The \emph{borders} of the slice $S$ are called two numbers $l$ and $r$, such that the set of vertices of $S$ is exactly the same as the set of vertices located at indexes between $l$ and $r$ in the answer permutation of LexBFS. 
+\end{definition}
+The tie breaking mechanism in LexBFS is very simple -- by taking the leftmost vertex of the slice. As for LexBFS-, it differs from LexBFS in the way it chooses the vertex from the slice -- it selects the leftmost vertex in the given permutation among all other vertices in the slice.
+
+\subsection{Implementation}
+Let us introduce the definitions that are required to understand this part of the algorithm.
+
+\begin{definition}[Definition 2 from \cite{Bretscher2003ASL}]
+    Let $S = [x, S^A(x), \langle S^N(x) \rangle]$ be an arbitrary slice constructed during a LexBFS sweep where $x$ is the first vertex of $S$. We consider only the first level of nested subslices of $S$. Let $S^A(x) = [$the subslice of $S$ of vertices adjacent to $x]$. Each subsequent subslice of $S$ contains vertices not adjacent to $x$. Let $\langle S^N(x)\rangle = (S^N_1(x), S^N_2(x), \ldots , S^N_k(x))$ denote the subslices not adjacent to $x$ in $S$.
+
+    We similarly define $\overline{S} = [x, \overline{S^A(x)}, \overline{\langle S^N(x) \rangle]}$ with respect to the complement $\overline{G}$.
+\end{definition}
+
+For the previous example (see \Cref{fig:graph_example}), $S^A(x) = \{y, u, v, w, z\}$, $S^N_1(x) = \{a\}$, $S^N_2(x) = \{d, c, b\}$. If initial ordering is $x y u w z a d c b$, then the slices for the $\overline{G}$ are $x[dacb][z][uwyv]$.
+
+It is worth to say that when we write $S^A(x)$ and $\langle S^N(x) \rangle$, it does not mean that we start LexBFS from the beginning with $x$ as a first vertex -- but we do it inside its slice. With fixed initial permutation the total size of $S^A(x)$ and $\langle S^N(x) \rangle$ is the size of the slice of $x$ minus 1. For the first element of permutation, this sum is equal to $n-1$.
+
+The example of nested slices for vertex $y$ for LexBFS of $G$ is $x[y[wz][uv]][a][dcb]$, so $S^A(y)=[wz]$ and $S^N_1(y)=[uv]$. For vertices $y$ and $a$ for LexBFS of $\overline{G}$ is $x[a[d[][cb]]][z][y][y[uv][w]]$, so $S^A(y)=[uv]$ and $S^N_1(y)=[w]$.
+
+\subsubsection{Implementation and complexity}
+The optimal implementation LexBFS- on $G$ runs in $O(n+m)$ time, that is, if we implement $L$ as a list of lists, representing the groups of unprocessed vertices. For each vertex, we can maintain a pointer to a list(a group) it belongs to. Removing the neighbours of $x$ from some group $A$ can be done in $O(\deg(x))$ time. This is achieved by examining the pointer to the group of each unprocessed neighbor $y$ and removing $y$ from $A$. If $y$ is the first element removed from $A$ during the iteration of the algorithm, a new list containing only $y$ is created and placed before $A$ in $L$. If $y$ is not the first element removed from $A$, it is inserted into the list before $A$ in $L$. This operation takes $O(1)$ time for each $y$.
+
+While processing vertex $x$ we store the number of vertices in $S^A(x)$ and the total capacity of $S^N_i(x)$, which indicate the number of neighbours and not neighbours of its slice respectively. With this information, for every index $i$ we know for each vertex $y$ if $i$ is the end of $S^A(y)$. The list of such vertices is denoted as $D$. For each $z$ in $D$ we know that at this moment the neighbours of $z$, i.e. $S^A(z)$ are processed. This implies that the non-neighbours of $z$ have already been partitioned into the slices now. Therefore, we know $S^N_j(z)$ for every $j$, enabling us to outline the borders of each $S^N_j(y)$ in an array, which proves beneficial in the subsequent function.
+
+\section{Neighbourhood Subset Property}
+To understand this property we need to introduce it first formally via the following definitions:
+
+\begin{definition}[Definition 4 from \cite{Bretscher2003ASL}]
+    Given a slice $S^N_i(v)$ we define the \emph{processed neighbourhood} of $S^N_i(v)$ to be
+$N_i(v) = \{y \colon y$ is processed and for every $z$ from $S^N_i(v)$ holds $y \in N(z)\}$.
+\end{definition}
+
+\begin{definition}[Definition 5 from \cite{Bretscher2003ASL}]
+    LexBFS satisfies the \emph{Neighbourhood Subset Property} if and only if $N_{i+1}(v) \subseteq N_i(v)$, for all $v \in V$ and for all $i \geq 1$.
+\end{definition}
+Before we elaborate on the meaning of this property (see \Cref{correctness_lexbfs}), let us proceed with its implementation details.
+\subsection{Implementation}
+We use the following notation: let $c$ be the resulting ordering from the second LexBFS pass in the algorithm and $d$ be the resulting ordering from the third LexBFS pass in the algorithm.
+
+
+For every $x$ and $i$ we know the borders of $S^N_i(x)$ in $c$ and $\overline{S^N_i(x)}$ in $d$. Therefore, for each $x$ we can compare the set of processed neighbours of first vertices $a$ and $b$ of $S^N_i(x)$ and $S^N_{i+1}(x)$ respectively. We can check only the first vertices in these slices because due to the definition of a slice, all vertices in it have the same set of processed vertices.
+
+For every vertex $v$ let us define $used[v]=1$ if $v$ is a neighbour of $a$ in $G$, and $used[v]=0$ otherwise. And for every neighbour $w$ of $b$ we just need to verify if $used[w] = 1$.
+
+When we do it for the complement of the graph and the result permutation $d$, the procedure is similar. We need every processed neighbour of $\overline{S^N_i(x)}$ to be a neighbour of $\overline{S^N_{i+1}(x)}$, because a neighbour in $G$ is not a neighbour in $\overline{G}$.
+Additionally, we need to separately verify that $\overline{S^N_{i+1}(x)}$ does not contain any element of $\overline{S^N_i(x)}$ as a neighbour.
+
+\section{Cotree}
+\subsection{Idea}
+The wonderful fact is if we start building a cotree with some vertex $x$, then we just need to build a path of $(0)$-nodes and $(1)$-nodes and cotree for slice $S^N_i(x)$ corresponds to the $i^{th}$ $(0)$-node and the cotree for slice $\overline{S^N_i(x)}$ corresponds to the 
+$i^{th}$ $(1)$-node. Thus, we can just build these parts of the cotree recursively, using the fact, that we already know every $S^N_i(x)$ and $\overline{S^N_i(x)}$ recursively. 
+\subsection{Implementation}
+\input{code/cotree_LexBFS}
+\section{Complexity}
+\subsection{LexBFS and LexBFS-}
+LexBFS on $\overline{G}$ also runs in $O(n+m)$ time, because in the line 10 of LexBFS implementation on $G$ (see \Cref{pseudocode_lexbfs}) we can just move $q$ to the right of $g$. Although there are the neighbours of $x$ in the graph $G$ within the group $g$, then there are no neighbours of $x$ in $\overline{G}$ within the group $g$. Similarly, there are only neighbours of $x$ in $\overline{G}$ within $q$. So when we insert $g$ not to the left of $q$, but to the right, then their order now is $(q, g)$ and in $q$ there are no neighbours of $x$ in $\overline{G}$, while in $g$ there are only neighbours of $x$ in $\overline{G}$. Thus, the list was partitioned into two lists: the left list are neighbours and the right one are not the neighbours. This is what we wanted to show.
+
+LexBFS- on $G$ can also be implemented in $O(n+m)$ time. We achieve this by making the initial permutation equal to the given parameter permutation $\pi$ and running the usual LexBFS algorithm. So when we select the leftmost element, it is processed earliest with respect to other elements in its slice. This behavior arises because the initial permutation is $\pi$ and the elements inside the slice do not change places relative to each other. Our only modification involves removing some vertices from the slice in the same order and inserting them into a new slice. 
+\subsection{Neighbourhood Subset Property}
+Let us denote by $NS(S)$ the number of all non-empty $S^N_i(x)$ for every $i$ and $x$ for some slice $S$.
+\begin{theorem}
+    $NS(S) \le |S| - 1$.
+\end{theorem}
+\begin{proof}
+    It can be proved by induction. The base case for $n=1$ holds since $NS(S)=0$. In the induction step we know that
+    for every $i$ $NS(S^N_i(x))$ by induction is no more than $|S^N_i(x)| - 1$. Therefore, if $m$ is the number of non-empty slices $S^N_i(x)$, then:
+    \begin{align*}
+        NS(S) = m + \sum_{i=1}^{m} NS(S^N_i(x)) \le m + \sum_{i=1}^{m} (|S^N_i(x)| - 1) =  m + \sum_{i=1}^{m} |S^N_i(x)| - m \\
+        = \sum_{i=1}^{m} |S^N_i(x)| \le |S| - 1
+    \end{align*}
+    The last inequality is in fact equality if and only if $x$ has no neighbours in $S$.
+\end{proof}
+
+\begin{theorem}
+    For every vertex $v$ it is the first vertex for no more than one $S^N_i(x)$ for some $x$ and $i$.
+\end{theorem}
+\begin{proof}
+    Let us consider the slice $S^N_i(x)$ with the largest size, in which $v$ is the first vertex. $S^N_i(x)$ is recursively divided into $v$, $S^A(v)$ and $\langle S^N(v) \rangle$, but $v$ cannot be the first vertex of $S^N_i(v)$ for any $i$. And we know that $S^N_i(x)$ is the largest slice, so $S^N_i(v)$ for some $i$ is the only option to $v$ to be the first vertex in the slice.
+\end{proof}
+
+Due to the previous theorems, we can build an injective mapping between the set of non-empty slices and the set of vertices. All representatives, i.e. first vertices of slices, are unique, so the sum of their degrees is no more than $2 \cdot m$.
+
+Therefore, we can just iterate through every existing non-empty slice $S^N_i(x)$ and check if its neighbourhood of processed vertices is a superset of $S^N_{i+1}(x)$, if it exists. As mentioned above, we have at most $n-1$ such non-empty slices $S^N_i(x)$ for every $x$ and $i$ and the first vertex of each slice is unique. Consequently, they have no more than $2 \cdot m$ neighbours in total. Let $v$ be the first vertex of $S^N_i(x)$ and $w$ be the first vertex of $S^N_{i+1}(x)$. Comparing the sets of processed neighbours of $v$ and $w$ takes $O(\deg(v) + \deg(w))$ time. Therefore, the total time complexity is $O(n+m)$ time. 
+\section{Correctness}
+\label{correctness_lexbfs}
+The idea of the proof is based on the fact, that there is a bijection between cographs and cotrees. Therefore, if a valid cotree exists for this graph, then this graph is a cograph. 
+
+We need to understand when we can build a cotree from the slice sequences. Slices $S^N_i(x)$ corresponds to sub-cotrees, as mentioned in the Cotree section. The processed neighbours of $S^N_{i+1}(x)$ form a subset of processed neighbours of $S^N_i(x)$. Equivalently, the processed neighbours of vertices of $(i+1)^{th}$ $(0)$-node subtree, are a subset of the processed neighbors of vertices in the $i^{th}$ $(0)$-node subtree. Consider any vertex $z$ from $S^N_{i+1}(x)$. If some $y$ is a processed neighbour of $z$, then their LCA is $(1)$-node due to the cotree property. But some vertex $t$ from $S^N_i(x)$ is in the subtree of the $i^{th}$ $(0)$-node, i.e. in the subtree of grandchild of the $(i+1)^{th}$ $(0)$-node. This implies that LCA$(t,y) = $ LCA $(y,z)$. Therefore, it is $(1)$-node. 
+
+Furthermore, LCA of a vertex from $S^N_i(x)$ and a vertex from $S^N_{i+1}(x)$, is the $(i+1)^{th}$ $(0)$-node. Consequently, they can not be neighbours if this graph is a cograph.
+
+In summary, the statement ``a valid cotree exists if the neighbourhood subset property is true for both results permutations'' aligns with the reasoning presented above. 
+
+Similar reasoning also holds also for $\overline{G}$ and its corresponding slices, i.e. $\overline{S^N_i(x)}$ instead of $S^N_i(x)$.

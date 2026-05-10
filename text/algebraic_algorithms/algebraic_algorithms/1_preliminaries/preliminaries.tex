@@ -1,0 +1,178 @@
+\chapter{Preliminaries}
+
+\section{Graphs}
+We begin this section with some basic notations and definitions of graph theory.
+\begin{definition}[Graph \cite{rosen}]
+    A graph $G=(V,E)$ consists of $V$, a nonempty set of \textbf{vertices} (or nodes) and $E$, a set of \textbf{edges}. Each edge has either one or two vertices associated with it, called its \textbf{endpoints}. An \textbf{connects} its endpoints.
+\end{definition}
+
+\begin{definition}[Directed graph \cite{rosen}]
+A directed graph (or digraph) $(V,E)$ consists of a nonempty set of vertices $V$ and a set of \textbf{directed edges} (or \textbf{arcs}) $E$. Each directed edge is associated with an ordered pair of vertices. The directed edge associated with the ordered pair $(u,v)$ is \textbf{starts} at $u$ and \textbf{ends} at $v$.
+\end{definition}
+
+\begin{definition}[Weighted graph \cite{rosen}]
+Graphs that have a number associated with each edge are called \textbf{weighted graphs}. Formally the graph $G=(V,E)$ is weighted if there exists an associated function $w: E\rightarrow\mathbb{R}$.
+\end{definition}
+
+\begin{definition}[Simple graph \cite{rosen}]
+A simple graph $G=(V,E)$ is a subset of the set E of edges of the graph such that no two edges are incident with the same vertex.
+\end{definition}
+
+\begin{definition}[Bipartite graph \cite{rosen}]
+A simple graph $G$ is called \textbf{bipartite} if its vertex set $V$ can be partitioned into two disjoint
+sets $V_1$ and $V_2$ such that every edge in the graph connects a vertex in $V_1$ and a vertex in $V_2$
+(so that no edge in G connects either two vertices in $V_1$ or two vertices in $V_2$). When this
+condition holds, we call the pair $(V_1,V_2)$ a \textbf{bipartition} of the vertex set $V$ of $G$.
+\end{definition}
+
+\begin{definition}[Subgraph \cite{rosen}]
+A \textbf{subgraph} of a graph $G=(V,E)$ is a graph $H=(W,F)$, where $W\subseteq V$ and $F\subseteq E$. A subgraph $H$ of $G$ is a \textbf{proper subgraph} of $G$ if $H\not=G$.
+\end{definition}
+
+\begin{definition}[Induced graph \cite{rosen}]
+Let $G=(V,E)$ be a simple graph. The \textbf{subgraph induced} by a subset $W$ of the vertex set $V$ is a graph $G[W]=(W,F)$, where the edge set $F$ contains an edge in $E$ if and only if both endpoints of this edge are in $W$.
+\end{definition}
+
+\section{Matchings}
+\begin{definition}[Matching \cite{rosen}]
+\textbf{Matching} $M$ in a simple graph $G=(V,E)$ is a subset of the set $E$ of edges of the graph such that no two edges are incident with the same vertex.
+\end{definition}
+
+\begin{definition}[Maximum matching \cite{rosen}]
+A \textbf{maximum matching} in a graph $G$ is a matching with the largest number of edges.
+\end{definition}
+
+\begin{definition}[Perfect matching]
+A \textbf{perfect matching} is a matching of exactly $\frac{|V|}{2}$ cardinality.
+\end{definition}
+
+We now define a decision and an optimization problems related to the above definitions.
+\begin{problem}[Perfect matching decision problem]
+Given a graph $G$ determine if the graph contains some perfect matching.
+\end{problem}
+
+\begin{problem}[Maximum matching optimization problem]
+Given a graph $G$, find its maximum matching $M$.
+\end{problem}
+
+\section{Flows}
+\begin{definition}[Flow \cite{madry}]
+Given a directed weighted graph $G=(V,E)$, we define \textbf{flow} $f:E\rightarrow\mathbb{R}$ to be a function that assigns value $f_e:=f(e)$ to each edge from $G$.
+
+The flow can pass both directions of an edge. For $e=(u,v)$ we view positive value of $f_e$ as a flow from vertex $u$ to $v$ with a value of $f_e$. Similarly, negative flow $-f_e$ passes from $v$ to $u$.
+\end{definition}
+
+\begin{definition}[\cite{madry}]
+Let $E^+(v)$ (respectively $E^-(v)$) be the edges for which the flow enters (leaves) vertex $v$, i.e. for $e=(u,v)$, $f_e > 0$ (respectively $f_e < 0$).
+\end{definition}
+
+\begin{definition}[Demand vector \cite{madry}]
+We define a \textbf{demand vector} $\sigma: V \rightarrow \mathbb{R}^n$ and denote $\sigma_v := \sigma(v)$ for $v \in V$. Simultaneously, we define a $\sigma$\textbf{-flow}, to be a flow satisfying the \textit{flow conservation constraints}:
+\begin{equation}
+\label{flow_conservation}
+\sum_{e \in E^+(v)} f_e - \sum_{e \in E^-(v)} f_e = \sigma_v \hspace{10pt} \text{for each} \hspace{5pt} v \in V
+\end{equation}
+\end{definition}
+
+For convenience we will be focusing on a maximum flow problem for a specific demand vector $\chi_{s,t}: V \rightarrow \mathbb{R}^n$ defined as follows:
+\[ \chi_{s,t} = \begin{cases}
+    -1 & \text{for } v = s, \\
+    1 & \text{for } v = t, \\
+    0 & otherwise.  \\
+  \end{cases} \]
+
+\begin{definition}[\cite{madry}]
+For each edge $e=(u,w)\in E$ we define the capacities $u^+_e, u^-_e$ to be:
+\[ u^+_{(v,w)} = u_{(v,w)} \hspace{10pt} \text{and} \hspace{10pt} u^-_{(v,w)} = -u_{(w,v)}. \]
+\end{definition}
+
+\begin{definition}[Feasibility \cite{madry}]
+We say that $\sigma$-flow $f$ is \textbf{feasible} in $G$ if and only if the capacity of each edge is not smaller than the flow running through them i.e.
+\[ -u^-_e \le f_e \le u^+_e \hspace{10pt} \text{for all} \hspace{5pt} e\in E.\]
+\end{definition}
+
+Note that for a specific demand vector (denoted later as $F\chi_{s,t}$) with $\delta_s=F, \delta_t=-F$ and zeros elsewhere, we get the standard definition for maximum flow problem.
+We call such flow a $s$-$t$ flow with value $F$.
+
+\begin{problem}[Maximum $s$-$t$ flow optimization problem]\label{max_flow_problem}
+For a given a directed weighted graph $G$, a source vertex $s$ and a target vertex $t$, find a feasible $s$-$t$ flow with maximum possible value.
+\end{problem}
+
+Given a specific demand vector, we can also formulate a maximum flow decision problem.
+\begin{problem}[Maximum flow decision problem]
+Given a directed, weighted graph $G$, and a demand vector $\sigma$, determine if there is a feasible flow satisfying the demand.
+\end{problem}
+
+
+Given a graph $G$, solving maximum flow problem is to find a feasible $s$-$t$ flow with maximum possible value. We denote this value as $F^*$.
+
+\begin{definition}[Upper and lower capacities \cite{madry}]
+We define \textbf{upper} and \textbf{lower} capacities to be:
+\[ \hat u_e^+(f) := u_e^+-f_e \hspace{10pt} \text{and} \hspace{10pt} \hat u_e^-(f) := u_e^-+f_e. \]
+We also define a \textbf{minimal capacity} $\hat u_e(f) := \min\{u_e^+(f),u_e^-(f)\}$. Note that for a feasible flow $f$, we have $\hat u_e(f) \ge 0$.
+\end{definition}
+
+Now let us introduce an important notion of a residual graph.
+\begin{definition}[Residual graph \cite{madry}]
+Given a directed weighted graph $G=(V,E)$ and a weight function $w: V \rightarrow \mathbb{R}_+$ and a feasible $\sigma$-flow $f$, we define the \textbf{residual graph $G_f$} as $(V,E,\hat u(f))$. 
+\end{definition}
+
+\section{Algebraic notation}
+This paper focuses on maximum matching and maximum flow algorithms based on an algebraic properties of graphs. These approach differs from the purely combinatorial algorithms. It utilizes algebraic concepts such as: encoding graph into a matrix, matrix rank and determinant, linear dependency, solving linear system of equation. This unique approach enables a creation of new, algorithms that further improves the best known time complexity for the presented problems.
+
+Here we define notions used in the later sections:
+\begin{definition}[p-norm \cite{wiki_norm}]
+Give a vector $x\in\mathbb{R}^n$ and a number $p\in \mathbb{Z}_+$ we define \textbf{the $p$-norm} of $x$ to be
+\[
+||x||_p := \left(\sum_{i=1}^n|x_i|^p\right)^{1/p}.
+\]
+We also define the \textbf{maximum norm} of x to be
+\[
+||x||_\infty = \max\{x_i\colon i\in\{1,...,n\}\}.
+\]
+\end{definition}
+It is easy to prove that in fact $||x||_\infty = \lim_{p\rightarrow\infty}||x||_p$.
+
+
+\begin{definition}[Laplacian matrix \cite{laplacian_wiki}]\label{laplacian}
+Given a graph $G=(V,E)$, we define a \textbf{Laplacian matrix} $L\in \mathbb{R}^{n\times n} $ to be:
+\[
+L_{i,j} =
+\begin{cases}
+\deg_G(i) & \text{for } i = j, \\
+-1 & \text{for } i \not= j \text{ and }i\text{ is adjacent to }j\text{ in }G, \\
+0 & otherwise.  \\
+\end{cases}
+\]
+Additionally, given a graph $G=(V,E)$ and its weights $w:V\rightarrow\mathbb{R}_+$ we define a \textbf{weighted Laplacian matrix} to be:
+\[
+L_{i, j} =
+\begin{cases}
+\sum_{k \in V}w_{i,k} & \text{for } i = j, \\
+-w_{i,j} & \text{for } i \not= j \text{ and }i\text{ is adjacent to }j\text{ in }G, \\
+0 & otherwise.  \\
+\end{cases}
+\]
+
+\begin{definition}[SVD decomposition \cite{svd_wiki}]
+Given a $m \times n$ matrix $A$, a diagonal $m \times n$ matrix $\Sigma$ and orthonormal matrices $U, V$ of size $m \times m$ and $n \times n$, we call a product $U\Sigma V$ the \textbf{SVD decomposition of $A$} if and only if
+$A = U\Sigma V$.
+\end{definition}
+
+\begin{definition}[Moore-Penrose pseudoinverse \cite{wiki_moore}]\label{moore_def}
+Given a $n \times n$ matrix $A$ and its singular value decomposition: $A=U\Sigma V$, we define \textbf{Moore-Penrose inverse} $A^+$ to be:
+\[
+A^+ := U\Sigma^+ V,
+\]
+where $\Sigma^+$ is defined as follows:
+\[
+\Sigma^+_i := \begin{cases}
+    \frac{1}{\Sigma_i} & \text{for} \hspace{5pt} \Sigma_i\not=0, \\
+    0 & \text{otherwise}.
+  \end{cases}
+\]
+\end{definition}
+\begin{lemma}[\cite{wiki_moore}]\label{moore_lemma}
+The pseudoinverse provides a least squares solution to a system of linear equations. Consequently if a system of linear equations $Ax=b$ has a solution, $x:=A^+\cdot b$ is one of them.
+\end{lemma}
+\end{definition}
