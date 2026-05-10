@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+
 #include <networkit/base/Algorithm.hpp>
 #include <networkit/components/ConnectedComponents.hpp>
 #include <networkit/graph/Graph.hpp>

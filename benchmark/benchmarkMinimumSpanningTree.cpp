@@ -1,16 +1,16 @@
+#include <algorithm>
 #include <cassert>
+#include <iomanip>
 #include <iostream>
 #include <map>
 #include <set>
 #include <string>
-#include <iomanip>
-#include <algorithm>
 
 #include <networkit/components/ConnectedComponents.hpp>
 
 #include <graph/GraphTools.hpp>
-#include <io/G6GraphReader.hpp>
 #include <io/DimacsGraphReader.hpp>
+#include <io/G6GraphReader.hpp>
 #include <mst/MinimumSpanningTree.hpp>
 
 template <typename T>
@@ -31,7 +31,7 @@ NetworKit::edgeweight run_algorithm(NetworKit::Graph &G, float eps) {
     return algorithm.getTreeWeight();
 }
 
-enum class Algorithm : uint32_t{
+enum class Algorithm : uint32_t {
     EXACT = 0,
     KRUSKAL,
     PRIM,
@@ -97,7 +97,7 @@ void run_dimacs_tests(const std::string &path, const std::string &algorithm) {
     auto G_directed = Koala::DimacsGraphReader().read(path);
     auto G_distinct = NetworKit::Graph(G_directed.numberOfNodes(), true, false);
     double max_ew = 0;
-    G_directed.forEdges([&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight ew){
+    G_directed.forEdges([&](NetworKit::node, NetworKit::node, NetworKit::edgeweight ew){
         max_ew = std::max(max_ew, ew);
     });
     std::set<double> ews;
@@ -116,7 +116,7 @@ void run_dimacs_tests(const std::string &path, const std::string &algorithm) {
     auto connected_components = NetworKit::ConnectedComponents(G_distinct);
     connected_components.run();
     auto components = connected_components.getComponents();
-    for (auto i = 1; i < connected_components.numberOfComponents(); i++) {
+    for (NetworKit::count i = 1; i < connected_components.numberOfComponents(); i++) {
         G_distinct.addEdge(components[0][0], components[i][0], ++max_ew);
     }
 

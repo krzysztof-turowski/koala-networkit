@@ -7,7 +7,10 @@
 
 #pragma once
 
+#include <map>
 #include <optional>
+#include <utility>
+#include <tuple>
 
 #include <networkit/base/Algorithm.hpp>
 #include <networkit/graph/Graph.hpp>
@@ -150,8 +153,8 @@ class ChazelleRubinfeldTrevisanMinimumSpanningTree final : public MinimumSpannin
 
  private:
     float calculateApproximateDegree(float eps) const;
-    float calculateApproximateCCsCount(float eps, int bfs_bound,
-      unsigned int w, unsigned int w_bound) const;
+    float calculateApproximateCCsCount(
+        float eps, NetworKit::count bfs_bound, unsigned int w, unsigned int w_bound) const;
     float calculateApproximateTreeWeight(float eps, unsigned int w) const;
     float treeWeight = -1;
 };

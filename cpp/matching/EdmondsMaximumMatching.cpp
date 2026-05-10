@@ -1,3 +1,6 @@
+#include <algorithm>
+#include <vector>
+
 #include <matching/MaximumMatching.hpp>
 
 namespace Koala {
@@ -60,7 +63,7 @@ EdmondsMaximumMatching::Edge EdmondsMaximumMatching::get_useful_edge() {
     return edge;
 }
 
-void EdmondsMaximumMatching::handle_grow(Blossom* odd_blossom, Blossom* even_blossom) {
+void EdmondsMaximumMatching::handle_grow(Blossom*, Blossom* even_blossom) {
     scan_edges(even_blossom);
 }
 
@@ -88,7 +91,7 @@ void EdmondsMaximumMatching::handle_odd_blossom_expansion(Blossom* blossom) {
     }
 }
 
-void EdmondsMaximumMatching::handle_even_blossom_expansion(Blossom* blossom) {}
+void EdmondsMaximumMatching::handle_even_blossom_expansion(Blossom*) {}
 
 void EdmondsMaximumMatching::adjust_by_delta(MaximumWeightMatching::weight delta) {
     graph.forNodes([this, delta] (NetworKit::node v) {

@@ -1,32 +1,17 @@
-#include "recognition/CographRecognitionOther.hpp"
+#include "recognition/CographRecognition.hpp"
 
 namespace Koala {
 
-HabibPaulCographRecognition::HabibPaulCographRecognition(NetworKit::Graph &Graph)
-        : cotree(Cotree(Graph)), graph(Graph), T(Twins(graph)) {
-    original_graph = Graph;
-    status = HabibPaulCographRecognition::State::UNKNOWN;
-}
+HabibPaulCographRecognition::HabibPaulCographRecognition(const NetworKit::Graph &graph)
+        : CographRecognition(graph), cotree(this->graph), T(this->graph) { }
 
-bool HabibPaulCographRecognition::isCograph() const {
-    return status == State::COGRAPH;
-}
+void HabibPaulCographRecognition::run() {
+    hasRun = true;
 
-HabibPaulCographRecognition::State HabibPaulCographRecognition::getState() const {
-    return status;
-}
-
-void HabibPaulCographRecognition::Clear() {
+    num_of_nodes = graph.numberOfNodes();
     num_of_parts = 0;
     order.clear();
     unused_parts.clear();
-}
-
-void HabibPaulCographRecognition::run() {
-    Clear();
-    hasRun = true;
-    num_of_nodes = graph.numberOfNodes();
-
     NetworKit::count twins_counter = 0;
 
     permutation.E.resize(graph.numberOfNodes(), element());
@@ -172,7 +157,7 @@ void HabibPaulCographRecognition::run() {
 
 
     while (Z != permutation.last_part) {
-        int twin = T.twins(Z->first->num, Z->previous->first->num, twins_counter);
+        std::size_t twin = T.twins(Z->first->num, Z->previous->first->num, twins_counter);
         twins_counter += 4;
         if (twin < 2) {
             order.push_back({{Z->previous->first->num, Z->first->num}, twin});
@@ -194,14 +179,13 @@ void HabibPaulCographRecognition::run() {
         }
     }
     if (flag == num_of_nodes - 1) {
-        status = HabibPaulCographRecognition::State::COGRAPH;
+        is_cograph = State::COGRAPH;
         order.push_back({{permutation.first_part->next->pivot->num, -1}, 3});
         cotree.setOrder(order);
         cotree.buildTree();
     } else {
-        status = HabibPaulCographRecognition::State::NOT_COGRAPH;
+        is_cograph = State::NOT_COGRAPH;
     }
 }
 
 } /* namespace Koala */
-

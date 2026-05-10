@@ -6,14 +6,15 @@
  * Author: Michał Miziołek
  */
 
-#include <cstdlib>
-#include <cmath>
-#include <cstring>
-#include <random>
-
 extern "C" {
 #include <declarations.h>
 }
+
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
+#include <random>
+#include <vector>
 
 #include <max_cut/GoemansWilliamsonMaxCut.hpp>
 
@@ -101,9 +102,9 @@ void GoemansWilliamsonMaxCut::initializeSDP(struct blockmatrix &C, double *&b,
         constraints[i].blocks->blocknum = 1;
         constraints[i].blocks->blocksize = n;
         constraints[i].blocks->constraintnum = i;
-        constraints[i].blocks->entries = reinterpret_cast<double *>(malloc(sizeof(double)));
-        constraints[i].blocks->iindices = reinterpret_cast<int *>(malloc(sizeof(int)));
-        constraints[i].blocks->jindices = reinterpret_cast<int *>(malloc(sizeof(int)));
+        constraints[i].blocks->entries = reinterpret_cast<double*>(malloc(2 * sizeof(double)));
+        constraints[i].blocks->iindices = reinterpret_cast<int*>(malloc(2 * sizeof(int)));
+        constraints[i].blocks->jindices = reinterpret_cast<int*>(malloc(2 * sizeof(int)));
         constraints[i].blocks->numentries = 1;
         constraints[i].blocks->iindices[1] = i;
         constraints[i].blocks->jindices[1] = i;

@@ -3,7 +3,10 @@
 #include <NTL/ZZ_p.h>
 #include <NTL/mat_ZZ_p.h>
 
-#include <matching/gaussian_matching/utils.hpp>
+#include <functional>
+#include <vector>
+
+#include "matching/gaussian_matching/utils.hpp"
 
 namespace Koala {
 class LazyGaussElimination {

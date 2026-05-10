@@ -6,16 +6,19 @@
  *      Ported by: Krzysztof Turowski (krzysztof.szymon.turowski@gmail.com)
  */
 
-#include <map>
-#include <optional>
-#include <tuple>
-
 extern "C" {
 #include <declarations.h>
 }
 
-#include <coloring/PerfectGraphVertexColoring.hpp>
-#include <graph/GraphTools.hpp>
+#include <map>
+#include <optional>
+#include <tuple>
+#include <utility>
+#include <vector>
+
+#include "graph/GraphTools.hpp"
+
+#include "coloring/PerfectGraphVertexColoring.hpp"
 
 constexpr int CACHE_LIMIT = 6;
 
@@ -118,7 +121,7 @@ std::vector<int> PerfectGraphVertexColoring::get_stable_set_intersecting_all_max
             return stable_set;
         }
         auto clique = get_maximum_clique(subgraph);
-        for (int i = 0; i < clique.size(); i++) {
+        for (std::size_t i = 0; i < clique.size(); i++) {
             cliques[i] += clique[i];
         }
     }

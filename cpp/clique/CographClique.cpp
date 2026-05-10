@@ -1,7 +1,10 @@
-#include <graph/GraphTools.hpp>
+#include <algorithm>
+#include <vector>
+
+#include "graph/GraphTools.hpp"
 
 #include "clique/CographClique.hpp"
-#include "recognition/CographRecognitionOther.hpp"
+#include "recognition/CographRecognition.hpp"
 
 namespace Koala {
 
@@ -94,7 +97,7 @@ NetworKit::count CographMaxClique::bruteForceCliqueSize(NetworKit::Graph &Graph)
     for (int i = 1; i <= 30; i++) {
         st[i] = st[i - 1] * 2;
     }
-    for (int mask = 1; mask < st[n]; mask++) {
+    for (NetworKit::count mask = 1; mask < st[n]; mask++) {
         clique_nodes.clear();
         for (int i = 0; i <= 30; i++) {
             if ((st[i] & mask) > 0) {
@@ -103,8 +106,8 @@ NetworKit::count CographMaxClique::bruteForceCliqueSize(NetworKit::Graph &Graph)
         }
         flag = 0;
 
-        for (int i = 0; i < clique_nodes.size(); i++) {
-            for (int j = i + 1; j < clique_nodes.size(); j++) {
+        for (std::size_t i = 0; i < clique_nodes.size(); i++) {
+            for (std::size_t j = i + 1; j < clique_nodes.size(); j++) {
                 if (Graph.hasEdge(clique_nodes[i], clique_nodes[j]) == false) {
                     flag = 1;
                     break;

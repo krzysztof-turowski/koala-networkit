@@ -1,16 +1,20 @@
+#pragma once
 
+#include <concepts>
+
+#include <cassert>
+#include <cmath>
+#include <cstddef>
+#include <iostream>
 #include <list>
 #include <memory>
 #include <optional>
-#include <concepts>
-#include <cmath>
-#include <vector>
-#include <iostream>
-#include <cassert>
+#include <utility>
 #include <variant>
+#include <vector>
 
 template<typename T>
-concept SoftHeapElement = requires(T a){
+concept SoftHeapElement = requires(T a) {
     { a->key } -> std::convertible_to<int>;
     { a->ckey } -> std::convertible_to<int>;
     { a->corrupted } -> std::convertible_to<bool>;
@@ -37,7 +41,7 @@ class SoftHeap {
     std::vector<T> corruptedElements();
     bool empty() { return elements <= 0; }
 
-    void assertValidState(int expectedElements, bool checkSize = true, bool checkMinSuf = true);
+    void assertValidState(std::size_t expectedElements, bool checkSize = true, bool checkMinSuf = true);
     template<SoftHeapElement R>
     friend SoftHeap<R> meld(SoftHeap<R>&&, SoftHeap<R>&&);
 
@@ -47,7 +51,7 @@ class SoftHeap {
         std::shared_ptr<TreeNode> right;
         int ckey = 0;
         int rank = 0;
-        int size = 1;
+        std::size_t size = 1;
         std::list<T> corruptedList;
         std::list<T> originalList;
 
@@ -62,7 +66,7 @@ class SoftHeap {
         void sift();
         bool leaf();
         int corruptedCount();
-        int listsSize();
+        std::size_t listsSize();
     };
 
     struct ListNode {
@@ -92,19 +96,19 @@ class SoftHeap {
     void insertTree(std::shared_ptr<ListNode> l1, std::shared_ptr<ListNode> l2);
     void removeTree(std::shared_ptr<ListNode> listNode);
     void assertValidListNode(std::shared_ptr<ListNode>, bool checkMinSuf = true);
-    int assertValidTreeNode(std::shared_ptr<TreeNode>);
+    std::size_t assertValidTreeNode(std::shared_ptr<TreeNode>);
     int corruptedCount();
     std::shared_ptr<ListNode> first() {
         return guard->next;
     }
-    std::list<T> allElementsAdded;
 
-    int elements = 0;
     float eps;
+    int elements = 0;
     float r;
     int rank = 0;
     int insertCount = 0;
     std::shared_ptr<ListNode> guard;
+    std::list<T> allElementsAdded;
 };
 
 template<SoftHeapElement T>
@@ -141,12 +145,14 @@ SoftHeap<T>::SoftHeap(T val, float eps) : eps(eps), elements(1) {
 
 template<SoftHeapElement T>
 SoftHeap<T>::SoftHeap(const SoftHeap& other)
-    : eps(other.eps), r(other.r), rank(other.rank), guard(other.guard), elements(elements)
+    : eps(other.eps), elements(other.elements), r(other.r), rank(other.rank),
+        guard(other.guard), allElementsAdded(other.allElementsAdded)
 {}
 
 template<SoftHeapElement T>
 SoftHeap<T>::SoftHeap(SoftHeap<T>&& other)
-    : eps(other.eps), r(other.r), rank(other.rank), guard(other.guard), elements(elements) {
+    : eps(other.eps), elements(other.elements), r(other.r), rank(other.rank),
+        guard(std::move(other.guard)), allElementsAdded(std::move(other.allElementsAdded)) {
     other.guard.reset();
 }
 
@@ -162,7 +168,8 @@ SoftHeap<T>& SoftHeap<T>::operator=(SoftHeap<T>&& other) {
     rank = other.rank;
     guard = other.guard;
     elements = other.elements;
-
+    insertCount = other.insertCount;
+    allElementsAdded = std::move(other.allElementsAdded);
     other.guard.reset();
     return *this;
 }
@@ -218,7 +225,7 @@ T SoftHeap<T>::TreeNode::pickElement(bool lookup) {
 }
 
 template<SoftHeapElement T>
-int SoftHeap<T>::TreeNode::listsSize() {
+std::size_t SoftHeap<T>::TreeNode::listsSize() {
     return originalList.size() + corruptedList.size();
 }
 
@@ -309,7 +316,7 @@ SoftHeap<T> meld(SoftHeap<T>&& p, SoftHeap<T>&& q) {
     q.mergeInto(std::move(p));
     q.repeatedCombine(prank);
     q.elements = newElements;
-    return std::move(q);
+    return q;
 }
 
 template<SoftHeapElement T>
@@ -427,9 +434,9 @@ void SoftHeap<T>::assertValidListNode(std::shared_ptr<SoftHeap<T>::ListNode> nod
 }
 
 template<SoftHeapElement T>
-int SoftHeap<T>::assertValidTreeNode(std::shared_ptr<SoftHeap<T>::TreeNode> node) {
+std::size_t SoftHeap<T>::assertValidTreeNode(std::shared_ptr<SoftHeap<T>::TreeNode> node) {
     assert(node);
-    int c = node->listsSize();
+    auto c = node->listsSize();
 
     for (auto e : node->originalList) {
         assert(e->key <= node->ckey);
@@ -453,9 +460,9 @@ int SoftHeap<T>::assertValidTreeNode(std::shared_ptr<SoftHeap<T>::TreeNode> node
 template<SoftHeapElement T>
 int SoftHeap<T>::TreeNode::corruptedCount() {
     int corrupted_count = 0;
-    int corrupted_count_original = std::count_if(originalList.begin(), originalList.end(),
+    auto corrupted_count_original = std::count_if(originalList.begin(), originalList.end(),
         [this](T e) { return e->key < ckey; });
-    int corrupted_count_corrupted = std::count_if(corruptedList.begin(), corruptedList.end(),
+    auto corrupted_count_corrupted = std::count_if(corruptedList.begin(), corruptedList.end(),
         [this](T e) { return e->key < ckey; });
 
     assert(corrupted_count_original == 0);
@@ -482,12 +489,12 @@ int SoftHeap<T>::corruptedCount() {
 }
 
 template<SoftHeapElement T>
-void SoftHeap<T>::assertValidState(int expectedElements, bool checkSize, bool checkMinSuf) {
+void SoftHeap<T>::assertValidState(std::size_t expectedElements, bool checkSize, bool checkMinSuf) {
     assert(guard);
     assert(guard->isGuard);
     assertValidListNode(guard);
     auto node = guard->next;
-    int elements = 0;
+    std::size_t elements = 0;
 
     while (node != guard) {
         assert(!node->isGuard);
@@ -495,5 +502,8 @@ void SoftHeap<T>::assertValidState(int expectedElements, bool checkSize, bool ch
         elements += assertValidTreeNode(node->tree);
 
         node = node->next;
+    }
+    if (checkSize) {
+        assert(elements == expectedElements);
     }
 }

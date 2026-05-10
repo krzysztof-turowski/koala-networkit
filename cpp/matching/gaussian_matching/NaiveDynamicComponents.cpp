@@ -1,43 +1,40 @@
+#include <vector>
+
 #include <networkit/graph/Graph.hpp>
 
 #include <matching/gaussian_matching/DynamicComponents.hpp>
 #include <matching/gaussian_matching/utils.hpp>
 
-using namespace NetworKit;
-using namespace std;
-
 namespace Koala {
-void dfs(const Graph &G, vector<bool> &visited, int v);
-
-DynamicComponents::DynamicComponents(const Graph &G) : G(G) {}
-
-void DynamicComponents::addEdge(int u, int v) { G.addEdge(u, v); }
-
-void DynamicComponents::removeEdge(int u, int v) {
-  if (G.hasEdge(u, v)) {
-    G.removeEdge(u, v);
+  void dfs(const NetworKit::Graph &G, std::vector<bool> &visited, int v) {
+    visited[v] = true;
+    G.forNeighborsOf(v, [&](NetworKit::node u) {
+      if (visited[u])
+        return;
+      dfs(G, visited, u);
+    });
   }
+
+  DynamicComponents::DynamicComponents(const NetworKit::Graph &G) : G(G) {}
+
+  void DynamicComponents::addEdge(NetworKit::node u, NetworKit::node v) { G.addEdge(u, v); }
+
+  void DynamicComponents::removeEdge(NetworKit::node u, NetworKit::node v) {
+    if (G.hasEdge(u, v)) {
+      G.removeEdge(u, v);
+    }
 }
 
-bool DynamicComponents::isConnected(int u, int v) const {
-  vector<bool> visited(G.numberOfNodes(), false);
+bool DynamicComponents::isConnected(NetworKit::node u, NetworKit::node v) const {
+  std::vector<bool> visited(G.numberOfNodes(), false);
   dfs(G, visited, u);
   return visited[v];
 }
 
-int DynamicComponents::getComponentSize(int v) const {
-  vector<bool> visited(G.numberOfNodes(), false);
+int DynamicComponents::getComponentSize(NetworKit::node v) const {
+  std::vector<bool> visited(G.numberOfNodes(), false);
   dfs(G, visited, v);
   return std::count(visited.begin(), visited.end(), true);
-}
-
-void dfs(const Graph &G, vector<bool> &visited, int v) {
-  visited[v] = true;
-  G.forNeighborsOf(v, [&](node u) {
-    if (visited[u])
-      return;
-    dfs(G, visited, u);
-  });
 }
 }  // namespace Koala
 

@@ -8,6 +8,7 @@
 #include <fstream>
 #include <map>
 #include <tuple>
+#include <string>
 
 #include <networkit/auxiliary/Enforce.hpp>
 #include <networkit/graph/GraphTools.hpp>

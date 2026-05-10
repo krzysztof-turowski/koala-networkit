@@ -7,7 +7,10 @@
 
 #pragma once
 
+#include <list>
 #include <optional>
+#include <queue>
+#include <utility>
 #include <vector>
 
 #include <networkit/base/Algorithm.hpp>
@@ -15,7 +18,10 @@
 #include <networkit/graph/Graph.hpp>
 #include <networkit/graph/GraphTools.hpp>
 
-#include "recognition/CoTree.hpp"
+#include "сograph/FactorizingPermutation.hpp"
+#include "сograph/Part.hpp"
+#include "сograph/Twins.hpp"
+#include "structures/Cotree.hpp"
 
 namespace Koala {
 
@@ -141,7 +147,7 @@ class DahlhausCographRecognition : public CographRecognition {
     void run();
 
  private:
-    const int A = 10;
+    const NetworKit::count A = 10;
     std::vector<CoNode*> pointer;
     std::vector<CoTree> save;
 
@@ -152,6 +158,26 @@ class DahlhausCographRecognition : public CographRecognition {
     inline void add(int vertex_type, CoTree &T, std::vector<int> &vec,
         std::vector<int> &fake_index, NetworKit::Graph &G, std::vector<int> &real_index);
     bool check_cotree(const CoTree &T);
+};
+
+class HabibPaulCographRecognition : public CographRecognition {
+ public:
+    explicit HabibPaulCographRecognition(const NetworKit::Graph &graph);
+
+    void run();
+
+    Cotree cotree;
+
+ private:
+    Twins T;
+
+    FactorizingPermutation permutation;
+    NetworKit::count num_of_parts, num_of_nodes;
+
+    std::vector<std::pair<std::pair<NetworKit::count, NetworKit::count>,
+                          NetworKit::count>> order;
+    part* H;
+    std::list<part*> unused_parts;
 };
 
 } /* namespace Koala */

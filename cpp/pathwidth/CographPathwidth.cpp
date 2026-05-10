@@ -1,4 +1,6 @@
-#include "pathwidth/CographPathwidth.hpp"
+#include <algorithm>
+
+#include <pathwidth/CographPathwidth.hpp>
 
 namespace Koala {
 

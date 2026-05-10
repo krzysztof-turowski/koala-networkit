@@ -1,22 +1,27 @@
 #pragma once
 
-#include <map>
-#include <set>
-#include <list>
 #include <deque>
-#include <string>
-#include <optional>
 #include <functional>
+#include <limits>
+#include <list>
+#include <map>
+#include <optional>
+#include <queue>
+#include <set>
+#include <string>
+#include <tuple>
+#include <utility>
+#include <vector>
 
 #include <networkit/base/Algorithm.hpp>
 #include <networkit/graph/Graph.hpp>
 
-#include <matching/structures/ArrayPriorityQueue.hpp>
-#include <matching/structures/ConcatenableQueue.hpp>
-#include <matching/structures/FenwickTree.hpp>
-#include <matching/structures/PriorityQueues.hpp>
-#include <matching/structures/SplitFindMin.hpp>
-#include <matching/structures/UnionFind.hpp>
+#include "matching/structures/ArrayPriorityQueue.hpp"
+#include "matching/structures/ConcatenableQueue.hpp"
+#include "matching/structures/FenwickTree.hpp"
+#include "matching/structures/PriorityQueues.hpp"
+#include "matching/structures/SplitFindMin.hpp"
+#include "matching/structures/UnionFind.hpp"
 
 namespace Koala {
 

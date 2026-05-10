@@ -5,9 +5,12 @@
  *      Author: Artur Salawa
  */
 
-#include <independent_set/IndependentSet.hpp>
-
+#include <algorithm>
 #include <bitset>
+#include <set>
+#include <vector>
+
+#include <independent_set/IndependentSet.hpp>
 
 namespace Koala {
 
@@ -175,15 +178,11 @@ void BruteForceIndependentSet::run() {
     if (graph->isEmpty()) {
         return;
     }
-    std::vector<bool> testSet;
-    graph->forNodes([&](NetworKit::node v) {
-        testSet.push_back(false);
-    });
-    int best = 0;
-    uint64_t max = (1 << graph->numberOfNodes());
-    for (unsigned long long binary = 1; binary != max; ++binary) {
+    std::vector<bool> testSet(graph->numberOfNodes(), false);
+    std::size_t best = 0;
+    for (uint64_t binary = 1, max = (1 << graph->numberOfNodes()); binary != max; ++binary) {
         std::bitset<8 * sizeof(uint64_t)> testSet(binary);
-        size_t testSetSize = testSet.count();
+        std::size_t testSetSize = testSet.count();
         if (testSetSize <= best) {
             continue;
         }
@@ -196,7 +195,7 @@ void BruteForceIndependentSet::run() {
         }
         if (!illegalEdge) {
             independentSet.clear();
-            for (int i = 0; i < testSet.size(); ++i) {
+            for (std::size_t i = 0; i < testSet.size(); ++i) {
                 if (testSet[i]) {
                     independentSet.insert(i);
                 }

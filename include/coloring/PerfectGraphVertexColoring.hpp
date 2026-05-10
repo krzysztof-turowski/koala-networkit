@@ -9,8 +9,9 @@
 #pragma once
 
 #include <set>
+#include <vector>
 
-#include "VertexColoring.hpp"
+#include "coloring/VertexColoring.hpp"
 
 namespace Koala {
 

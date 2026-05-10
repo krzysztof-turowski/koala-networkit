@@ -1,9 +1,15 @@
-#include "shortest_path/planar/TopologyBasedHeap.hpp"
+#include <algorithm>
+#include <deque>
+#include <limits>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
 #include <networkit/distance/MultiTargetDijkstra.hpp>
 #include <networkit/graph/Graph.hpp>
 #include <networkit/graph/GraphTools.hpp>
-#include <vector>
+
+#include "shortest_path/planar/TopologyBasedHeap.hpp"
 
 namespace Koala {
 static const NetworKit::edgeweight INF = std::numeric_limits<NetworKit::edgeweight>::max();
@@ -83,9 +89,9 @@ TopologyHeap::TopologyHeap(NetworKit::Graph& graph, node_subsets_t& regions,
     pair_distance_t& distances, NetworKit::node source,
     const std::unordered_set<NetworKit::node>& extra_boundary_nodes)
     : graph(graph),
-      regions(regions),
-      distances(distances),
       source(source),
+      distances(distances),
+      regions(regions),
       extra_boundary_nodes(extra_boundary_nodes) {
     // get list per node of regions a node is a part of
     node_regions.assign(graph.numberOfNodes(), std::vector<NetworKit::index>{});

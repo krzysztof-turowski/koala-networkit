@@ -10,6 +10,7 @@
 
 #include <map>
 #include <optional>
+#include <vector>
 
 #include <networkit/base/Algorithm.hpp>
 #include <networkit/graph/Graph.hpp>

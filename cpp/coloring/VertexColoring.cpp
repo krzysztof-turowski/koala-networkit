@@ -5,6 +5,8 @@
  *      Author: Krzysztof Turowski (krzysztof.szymon.turowski@gmail.com)
  */
 
+#include <map>
+
 #include <coloring/VertexColoring.hpp>
 
 namespace Koala {

@@ -1,8 +1,8 @@
-#include <iostream>
-#include <vector>
 #include <algorithm>
 #include <climits>
+#include <iostream>
 #include <queue>
+#include <vector>
 
 #include <min_cut/StoerWagnerMinCut.hpp>
 

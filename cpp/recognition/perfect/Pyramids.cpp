@@ -6,14 +6,16 @@
  *      Ported by: Krzysztof Turowski (krzysztof.szymon.turowski@gmail.com)
  */
 
+#include <ranges>
+
 #include <algorithm>
 #include <cassert>
-#include <ranges>
 #include <set>
+#include <utility>
 #include <vector>
 
-#include <traversal/BFS.hpp>
-#include <recognition/PerfectGraphRecognition.hpp>
+#include "recognition/PerfectGraphRecognition.hpp"
+#include "traversal/BFS.hpp"
 
 namespace Koala {
 

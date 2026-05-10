@@ -1,6 +1,8 @@
-#include <limits>
 #include <algorithm>
+#include <limits>
 #include <queue>
+#include <vector>
+
 #include <flow/BoykovKolmogorovFlow.hpp>
 
 using edge = NetworKit::Edge;
@@ -56,7 +58,6 @@ bool  BoykovKolmogorovFlow::grow() {
         }
         graph->forNeighborsOf(v, [&](NetworKit::node w) {
             if (foundPath) return;
-            edge e = NetworKit::Edge(v, w);
             if (tree_capacity(v, w) > 0) {
                 if (tree[w] == FREE) {
                     tree[w] = tree[v];
@@ -186,7 +187,6 @@ void BoykovKolmogorovFlow::adopt() {
 void BoykovKolmogorovFlow::run() {
     initialize();
     int totalflow = 0;
-    int iteration = 0;
 
     while (true) {
         if (!grow()) {

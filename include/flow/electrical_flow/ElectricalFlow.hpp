@@ -1,8 +1,10 @@
-#include <flow/electrical_flow/FlowNetwork.hpp>
-#include <networkit/graph/Graph.hpp>
+#pragma once
+
 #include <vector>
 
-#pragma once
+#include <networkit/graph/Graph.hpp>
+
+#include "flow/electrical_flow/FlowNetwork.hpp"
 
 class GenTest;
 

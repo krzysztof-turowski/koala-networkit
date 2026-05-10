@@ -5,6 +5,8 @@
  *      Author: Krzysztof Turowski (krzysztof.szymon.turowski@gmail.com)
  */
 
+#pragma once
+
 #include <string>
 
 #include <networkit/io/GraphWriter.hpp>

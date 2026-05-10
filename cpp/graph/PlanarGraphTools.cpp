@@ -1,4 +1,7 @@
-#include "graph/PlanarGraphTools.hpp"
+#include <set>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/biconnected_components.hpp>
@@ -7,22 +10,21 @@
 #include <boost/graph/make_maximal_planar.hpp>
 #include <networkit/graph/BFS.hpp>
 #include <networkit/graph/GraphTools.hpp>
-#include <set>
-#include <unordered_map>
-#include <utility>
-#include <vector>
 
-using namespace boost;
+#include <graph/PlanarGraphTools.hpp>
 
 // Boost graph typedefs
-using boost_graph_t = adjacency_list<vecS, vecS, undirectedS,
-    property<vertex_index_t, NetworKit::edgeweight>, property<edge_index_t, NetworKit::edgeweight>>;
+using boost_graph_t = boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,
+    boost::property<boost::vertex_index_t, NetworKit::edgeweight>,
+    boost::property<boost::edge_index_t, NetworKit::edgeweight>>;
 
 // Boost planar embedding typedefs based on
 // https://www.boost.org/doc/libs/1_53_0/libs/graph/example/straight_line_drawing.cpp
-using embedding_storage_t = std::vector<std::vector<graph_traits<boost_graph_t>::edge_descriptor>>;
-using embedding_t = boost::iterator_property_map<embedding_storage_t::iterator,
-    property_map<boost_graph_t, vertex_index_t>::type>;
+using embedding_storage_t =
+    std::vector<std::vector<boost::graph_traits<boost_graph_t>::edge_descriptor>>;
+using embedding_t = boost::iterator_property_map<
+    embedding_storage_t::iterator,
+    boost::property_map<boost_graph_t, boost::vertex_index_t>::type>;
 
 namespace Koala {
 
@@ -56,14 +58,14 @@ NetworKit::Graph convert_boost_to_networKit(
     return result;
 }
 
-planar_embedding_t findPlanarEmbedding(const NetworKit::Graph& G, bool verbose = false) {
+planar_embedding_t findPlanarEmbedding(const NetworKit::Graph& G) {
     auto [boost_graph, node_map] = convert_networKit_to_boost(G);
     embedding_storage_t embedding_storage(num_vertices(boost_graph));
-    embedding_t embedding(embedding_storage.begin(), get(vertex_index, boost_graph));
+    embedding_t embedding(embedding_storage.begin(), get(boost::vertex_index, boost_graph));
 
-    if (!boyer_myrvold_planarity_test(
-            boyer_myrvold_params::graph = boost_graph,
-            boyer_myrvold_params::embedding = embedding)) {
+    if (!boost::boyer_myrvold_planarity_test(
+            boost::boyer_myrvold_params::graph = boost_graph,
+            boost::boyer_myrvold_params::embedding = embedding)) {
         throw std::runtime_error("Graph have to be planar!");
     }
 
@@ -82,28 +84,31 @@ planar_embedding_t findPlanarEmbedding(const NetworKit::Graph& G, bool verbose =
 }
 
 NetworKit::Graph makeMaximalPlanar(NetworKit::Graph& G) {
-    typedef adjacency_list<vecS, vecS, undirectedS, property<vertex_index_t, NetworKit::edgeweight>,
-        property<edge_index_t, NetworKit::edgeweight>>
-        graph;
+    typedef boost::adjacency_list<
+        boost::vecS, boost::vecS, boost::undirectedS,
+        boost::property<boost::vertex_index_t, NetworKit::edgeweight>,
+        boost::property<boost::edge_index_t, NetworKit::edgeweight>> graph;
     auto [g, node_map] = convert_networKit_to_boost(G);
 
-    property_map<graph, edge_index_t>::type e_index = get(edge_index, g);
-    graph_traits<graph>::edges_size_type edge_count = 0;
-    graph_traits<graph>::edge_iterator ei, ei_end;
+    boost::property_map<graph, boost::edge_index_t>::type e_index = get(boost::edge_index, g);
+    boost::graph_traits<graph>::edges_size_type edge_count = 0;
+    boost::graph_traits<graph>::edge_iterator ei, ei_end;
     for (boost::tie(ei, ei_end) = edges(g); ei != ei_end; ++ei) put(e_index, *ei, edge_count++);
 
-    typedef std::vector<graph_traits<graph>::edge_descriptor> vec_t;
+    typedef std::vector<boost::graph_traits<graph>::edge_descriptor> vec_t;
     std::vector<vec_t> embedding(num_vertices(g));
-    boyer_myrvold_planarity_test(
-        boyer_myrvold_params::graph = g, boyer_myrvold_params::embedding = &embedding[0]);
+    boost::boyer_myrvold_planarity_test(
+        boost::boyer_myrvold_params::graph = g,
+        boost::boyer_myrvold_params::embedding = &embedding[0]);
 
     make_biconnected_planar(g, &embedding[0]);
 
     edge_count = 0;
     for (boost::tie(ei, ei_end) = edges(g); ei != ei_end; ++ei) put(e_index, *ei, edge_count++);
 
-    boyer_myrvold_planarity_test(
-        boyer_myrvold_params::graph = g, boyer_myrvold_params::embedding = &embedding[0]);
+    boost::boyer_myrvold_planarity_test(
+        boost::boyer_myrvold_params::graph = g,
+        boost::boyer_myrvold_params::embedding = &embedding[0]);
 
     make_maximal_planar(g, &embedding[0]);
 

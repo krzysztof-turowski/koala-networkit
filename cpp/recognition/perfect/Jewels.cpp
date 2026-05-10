@@ -12,9 +12,9 @@
 
 #include <networkit/linkprediction/NeighborhoodUtility.hpp>
 
-#include <traversal/BFS.hpp>
-#include <traversal/PathInplace.hpp>
-#include <recognition/PerfectGraphRecognition.hpp>
+#include "recognition/PerfectGraphRecognition.hpp"
+#include "traversal/BFS.hpp"
+#include "traversal/PathInplace.hpp"
 
 namespace Koala {
 

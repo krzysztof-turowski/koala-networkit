@@ -1,8 +1,11 @@
 #pragma once
 
-#include <networkit/Globals.hpp>
-#include <vector>
+#include <algorithm>
 #include <list>
+#include <utility>
+#include <vector>
+
+#include <networkit/Globals.hpp>
 
 namespace Koala {
 

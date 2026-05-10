@@ -10,7 +10,7 @@
 
 #include <vector>
 
-#include "MinCut.hpp"
+#include <min_cut/MinCut.hpp>
 
 namespace Koala {
 
@@ -37,8 +37,10 @@ class KargerMinCut final : public MinCut {
     int repeat = 10;
 
     // Helper functions
-    int find(std::vector<int>& parent, int i);
-    void unionSub(std::vector<int>& parent, std::vector<int>& rank, int x, int y);
+    NetworKit::node find(std::vector<NetworKit::node>& parent, NetworKit::node i);
+    void unionSub(
+        std::vector<NetworKit::node>& parent, std::vector<NetworKit::count>& rank,
+        NetworKit::node x, NetworKit::node y);
 };
 
 }  // namespace Koala

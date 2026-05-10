@@ -5,6 +5,10 @@
  *      Author: Krzysztof Turowski (krzysztof.szymon.turowski@gmail.com)
  */
 
+#include <limits>
+#include <unordered_set>
+#include <utility>
+
 #include <flow/maximum_flow/DynamicTree.hpp>
 
 #include "dynamic_tree/dyn_tree.h"

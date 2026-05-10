@@ -1,14 +1,18 @@
 #pragma once
 
-#include <networkit/graph/Graph.hpp>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
 #include <vector>
+
+#include <networkit/graph/Graph.hpp>
 
 // Based on boost::hash_combine
 struct pair_hash {
     size_t operator()(const std::pair<NetworKit::node, NetworKit::node>& pair) const {
         return pair.first ^
                (pair.second + 0x9e3779b97f4a7c15 + (pair.first << 12) + (pair.first >> 4));
-    };
+    }
 };
 
 using pair_distance_t = std::unordered_map<std::pair<NetworKit::node, NetworKit::node>,
@@ -34,12 +38,11 @@ class TopologyHeap {
     void fix_index(NetworKit::index i);
     void initial_distances();
 
+    NetworKit::Graph& graph;
     NetworKit::node source;
     NetworKit::node target;
-
-    NetworKit::Graph& graph;
-    node_subsets_t& regions;
     pair_distance_t& distances;
+    node_subsets_t& regions;
     std::vector<NetworKit::index> node_storage_index;
     std::vector<int> is_closed;
     const std::unordered_set<NetworKit::node> extra_boundary_nodes;

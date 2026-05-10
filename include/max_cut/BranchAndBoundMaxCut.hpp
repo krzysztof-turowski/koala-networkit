@@ -10,7 +10,7 @@
 
 #include <vector>
 
-#include "MaxCut.hpp"
+#include "max_cut/MaxCut.hpp"
 
 namespace Koala {
 

@@ -1,10 +1,12 @@
 #include <gtest/gtest.h>
 
+#include <iostream>
 #include <list>
-#include <shortest_path/FredericksonPlanarSSSP.hpp>
-#include <shortest_path/HenzingerPlanarSSSP.hpp>
+#include <string>
 
-#include "helpers.hpp"
+#include "shortest_path/PlanarSSSP.hpp"
+
+#include "test/helpers.hpp"
 
 struct SSSPParameters {
     std::string name;

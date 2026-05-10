@@ -7,16 +7,19 @@
 
 #pragma once
 
-#include "structures/PriorityQueue.hpp"
-#include <structures/priority_queue/XFastTrie.hpp>
-#include <structures/heap/Treap.hpp>
+#include <cmath>
+#include <functional>
+#include <limits>
 #include <map>
 #include <memory>
-#include <limits>
+#include <optional>
 #include <stdexcept>
 #include <type_traits>
-#include <cmath>
-#include <optional>
+#include <utility>
+
+#include "structures/PriorityQueue.hpp"
+#include "structures/heap/Treap.hpp"
+#include "structures/priority_queue/XFastTrie.hpp"
 
 namespace Koala {
 

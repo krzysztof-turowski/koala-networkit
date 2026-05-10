@@ -1,3 +1,9 @@
+#include <algorithm>
+#include <limits>
+#include <list>
+#include <utility>
+#include <vector>
+
 #include <matching/MaximumMatching.hpp>
 
 namespace Koala {
@@ -265,7 +271,7 @@ void BlossomMaximumMatching::create_new_blossom(
         subblossoms.emplace_back(v, v_path[0].edge);
     subblossoms.emplace_back(u, reverse(edge));
 
-    for (int i = 0; i < u_path.size(); ++i) {
+    for (std::size_t i = 0; i < u_path.size(); ++i) {
         subblossoms.emplace_back(u_path[i].blossom, reverse(u_path[i].edge));
     }
 
@@ -325,7 +331,7 @@ void BlossomMaximumMatching::augment_path(
         Blossom* x = u_path[u_path.size() - 1].blossom;
         swap_edges_on_even_path(x, x->base, u_path[u_path.size() - 1].edge.u);
 
-        for (int i = 0; i < u_path.size() - 1; ++i) {
+        for (std::size_t i = 0; i < u_path.size() - 1; ++i) {
             swap_edges_on_even_path(u_path[i].blossom, u_path[i].edge.u, u_path[i+1].edge.v);
         }
     }
@@ -334,7 +340,7 @@ void BlossomMaximumMatching::augment_path(
     swap_edges_on_even_path(v, edge.v, v->base);
 
     if (v_path.size() > 0) {
-        for (int i = 0; i < v_path.size() - 1; ++i) {
+        for (std::size_t i = 0; i < v_path.size() - 1; ++i) {
             swap_edges_on_even_path(v_path[i].blossom, v_path[i].edge.u, v_path[i+1].edge.v);
         }
 

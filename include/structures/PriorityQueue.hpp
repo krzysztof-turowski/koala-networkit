@@ -19,7 +19,7 @@ template <class Key, class Compare = std::less<Key>>
 class PriorityQueue {
  public:
     /**
-     * Removes and returns the top element of the priority queue.
+     * Removes the top element of the priority queue.
      * 
      * @throws std::runtime_error If the priority queue is empty.
      */

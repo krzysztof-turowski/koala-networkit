@@ -1,4 +1,9 @@
-#include <flow/MaximumFlow.hpp>
+#pragma once
+
+#include <queue>
+#include <unordered_map>
+
+#include "flow/MaximumFlow.hpp"
 
 namespace Koala {
 

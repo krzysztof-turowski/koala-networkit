@@ -8,6 +8,7 @@
 #pragma once
 
 #include <string>
+#include <tuple>
 
 #include <networkit/io/GraphReader.hpp>
 

@@ -1,8 +1,9 @@
-#include <io/G6GraphReader.hpp>
-
 #include <iostream>
 #include <map>
+#include <set>
 #include <string>
+
+#include "io/G6GraphReader.hpp"
 
 #include "recognition/CographRecognition.hpp"
 
@@ -32,7 +33,7 @@ int run_algorithm(NetworKit::Graph &G, bool verbose = false) {
 }
 
 std::map<std::string, int> ALGORITHM = {
-    { "all", 0 }, { "BCHP", 1 }, { "CSP", 2 }, { "Dahlhaus", 3 }
+    { "all", 0 }, { "BCHP", 1 }, { "CSP", 2 }, { "Dahlhaus", 3 }, { "HabibPaul", 3 }
 };
 
 void run_g6_tests(const std::string &path, const std::string &algorithm) {
@@ -53,6 +54,7 @@ void run_g6_tests(const std::string &path, const std::string &algorithm) {
             T.insert(
                 run_algorithm<Koala::CorneilStewartPerlCographRecognition>(G, true) != 1 ? 2 : 1);
             T.insert(run_algorithm<Koala::DahlhausCographRecognition>(G, true));
+            T.insert(run_algorithm<Koala::HabibPaulCographRecognition>(G, true));
             std::cout << std::endl;
             assert(T.size() == 1);
             break;
@@ -64,6 +66,9 @@ void run_g6_tests(const std::string &path, const std::string &algorithm) {
             break;
         case 3:
             classification[run_algorithm<Koala::DahlhausCographRecognition>(G)]++;
+            break;
+        case 4:
+            classification[run_algorithm<Koala::HabibPaulCographRecognition>(G)]++;
             break;
         }
     }

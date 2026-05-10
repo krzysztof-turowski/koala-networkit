@@ -1,9 +1,11 @@
 #pragma once
 
 #include <list>
-#include <graph/GraphTools.hpp>
+#include <vector>
 
-#include "Part.hpp"
+#include "graph/GraphTools.hpp"
+
+#include "recognition/сograph/Part.hpp"
 
 namespace Koala {
 

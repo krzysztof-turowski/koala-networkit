@@ -1,14 +1,16 @@
+#include <algorithm>
 #include <cassert>
 #include <iostream>
 #include <map>
+#include <set>
+#include <string>
 
+#include <coloring/CographVertexColoring.hpp>
 #include <coloring/ExactVertexColoring.hpp>
 #include <coloring/GreedyVertexColoring.hpp>
 #include <coloring/PerfectGraphVertexColoring.hpp>
-#include <coloring/CographVertexColoring.hpp>
 #include <io/G6GraphReader.hpp>
-
-#include <recognition/CographRecognitionOther.hpp>
+#include <recognition/CographRecognition.hpp>
 
 template<typename T>
 int run_algorithm(NetworKit::Graph &G) {

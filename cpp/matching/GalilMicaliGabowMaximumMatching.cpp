@@ -1,3 +1,5 @@
+#include <vector>
+
 #include <matching/MaximumMatching.hpp>
 
 namespace Koala {
@@ -156,7 +158,7 @@ void GalilMicaliGabowMaximumMatching::handle_grow(Blossom* odd_blossom, Blossom*
 
 void GalilMicaliGabowMaximumMatching::scan_edges(Blossom* b) {
     for (auto u : b->nodes) {
-        graph.forEdgesOf(u, [this, b] (NetworKit::node u, NetworKit::node v, NetworKit::edgeid id) {
+        graph.forEdgesOf(u, [this, b] (NetworKit::node, NetworKit::node v, NetworKit::edgeid id) {
             auto v_blossom = get_blossom(v);
             if (v_blossom == b) return;
 
@@ -306,7 +308,7 @@ void GalilMicaliGabowMaximumMatching::handle_odd_blossom_expansion(Blossom* blos
     }
 }
 
-void GalilMicaliGabowMaximumMatching::handle_even_blossom_expansion(Blossom* blossom) {}
+void GalilMicaliGabowMaximumMatching::handle_even_blossom_expansion(Blossom*) {}
 
 void GalilMicaliGabowMaximumMatching::adjust_by_delta(MaximumWeightMatching::weight delta) {
     // Update dual weights for even and odd vertices

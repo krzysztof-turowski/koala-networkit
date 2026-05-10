@@ -1,13 +1,11 @@
-#include <matching/gaussian_matching/NaiveGaussElimination.hpp>
-#include <matching/gaussian_matching/utils.hpp>
-
-#include <NTL/ZZ_p.h>
 #include <NTL/mat_ZZ_p.h>
 #include <NTL/vector.h>
 
 #include <iostream>
+#include <vector>
 
-using namespace std;
+#include <matching/gaussian_matching/NaiveGaussElimination.hpp>
+#include <matching/gaussian_matching/utils.hpp>
 
 namespace Koala {
 bool eliminate(MatZp &A, int r, int c) {
@@ -24,11 +22,11 @@ bool eliminate(MatZp &A, int r, int c) {
   return true;
 }
 
-vector<int> NaiveGaussElimination::pivotElimination(
-    MatZp &A, function<bool(int, int)> isCellAllowed, bool bipartite = false) {
+std::vector<int> NaiveGaussElimination::pivotElimination(
+    MatZp &A, std::function<bool(int, int)> isCellAllowed, bool bipartite = false) {
   int n = A.NumCols();
 
-  vector<int> res(n);
+  std::vector<int> res(n);
   for (int c = 0; c < n; ++c) {
     for (int r = 0; r < n; ++r) {
       if (A[r][c] == 0 || !isCellAllowed(c, r))
@@ -47,8 +45,8 @@ vector<int> NaiveGaussElimination::pivotElimination(
   return res;
 }
 
-vector<int> NaiveGaussElimination::simpleElimination(MatZp &A, int k) {
-  vector<int> res;
+std::vector<int> NaiveGaussElimination::simpleElimination(MatZp &A, int k) {
+  std::vector<int> res;
 
   for (int i = 0; i < k; ++i) {
     if (eliminate(A, i, i)) {

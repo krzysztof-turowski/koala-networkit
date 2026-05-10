@@ -1,3 +1,10 @@
+#include <algorithm>
+#include <functional>
+#include <list>
+#include <utility>
+#include <tuple>
+#include <vector>
+
 #include <matching/MaximumMatching.hpp>
 
 namespace Koala {
@@ -23,6 +30,7 @@ GabowScalingMatching::GabowScalingMatching(NetworKit::Graph &graph, bool perfect
     MaximumWeightMatching(graph, perfect),
     workingGraph(perfect ? graph : reduce_to_MWPM(graph)),
     graph_edges(workingGraph.upperEdgeIdBound()),
+    current_w(),
     current_y(workingGraph.upperNodeIdBound()),
     trivial_blossom(workingGraph.upperNodeIdBound(), nullptr),
     matched_vertex(workingGraph.upperNodeIdBound()),
@@ -30,9 +38,10 @@ GabowScalingMatching::GabowScalingMatching(NetworKit::Graph &graph, bool perfect
     edge_in_matching(workingGraph.upperEdgeIdBound()),
     actual_to_contracted(workingGraph.upperNodeIdBound()),
     current_blossom(workingGraph.upperNodeIdBound(), nullptr),
-    event_queue(workingGraph.upperNodeIdBound()),
     vertex_path(workingGraph.upperNodeIdBound(), nullptr),
     current_shell(workingGraph.upperNodeIdBound()),
+    search_done(false),
+    event_queue(workingGraph.upperNodeIdBound()),
     y0(workingGraph.upperNodeIdBound()),
     t_shell(workingGraph.upperNodeIdBound()),
     Delta(workingGraph.upperNodeIdBound()),
@@ -48,7 +57,7 @@ GabowScalingMatching::GabowScalingMatching(NetworKit::Graph &graph, bool perfect
 void GabowScalingMatching::run() {
     std::vector<MaximumWeightMatching::intweight> w(workingGraph.upperEdgeIdBound());
     workingGraph.forEdges(
-        [&w] (NetworKit::node u, NetworKit::node v, NetworKit::edgeweight ew, NetworKit::edgeid e) {
+        [&w] (NetworKit::node, NetworKit::node, NetworKit::edgeweight ew, NetworKit::edgeid e) {
             // Multiply all weights by 2 to ensure they're even
             w[e] = 2 * static_cast<MaximumWeightMatching::intweight>(ew);
     });
@@ -119,7 +128,7 @@ GabowScalingMatching::scale(const std::vector<MaximumWeightMatching::intweight>&
 
     // Scale down weights
     std::vector<int> w1(w.size());
-    for (int i = 0; i < w.size(); ++i)
+    for (std::size_t i = 0; i < w.size(); ++i)
         w1[i] = 2 * (w[i] / 4);  // Keep all weights even
 
     // Recursive call to scale for reduced weights
@@ -141,7 +150,7 @@ GabowScalingMatching::scale(const std::vector<MaximumWeightMatching::intweight>&
     });
 
     // Reset the matching
-    workingGraph.forEdges([this] (NetworKit::node u, NetworKit::node v, NetworKit::edgeid e) {
+    workingGraph.forEdges([this] (NetworKit::node, NetworKit::node, NetworKit::edgeid e) {
         edge_in_matching[e] = false;
     });
     edges_in_matching = 0;
@@ -355,7 +364,7 @@ void GabowScalingMatching::path(OldBlossom* B, MaximumWeightMatching::intweight 
         }
 
         // Count free nodes in each shell
-        for (int i = 0; i < shells.size(); ++i) {
+        for (std::size_t i = 0; i < shells.size(); ++i) {
             shells[i].first = free_nodes_in_shell(shells[i].second);
         }
 
@@ -422,7 +431,7 @@ void GabowScalingMatching::enumerate_shells() {
     shell_distribution.reset(shells.size());
 
     // Record the index of each shell, sum up duals of above shells
-    for (int i = 0; i < shells.size(); ++i)  {
+    for (std::size_t i = 0; i < shells.size(); ++i)  {
         shells[i].second->shell_index = i;
         if (i > 0) shells[i].second->current_shell_dual += shells[i-1].second->current_shell_dual;
     }
@@ -540,8 +549,6 @@ void GabowScalingMatching::augmentPaths() {
     for (NetworKit::index cv = 0; cv < counter; ++cv) {
         if (matching[cv] == NetworKit::none || cv > matching[cv])
             continue;
-
-        auto cu = matching[cv];
 
         // Find the edge in cu's adjacency list
         auto edge = no_edge;

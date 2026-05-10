@@ -1,8 +1,12 @@
+#pragma once
+
 #include <cstring>
 #include <fstream>
 #include <list>
 #include <random>
 #include <string>
+#include <utility>
+#include <tuple>
 
 std::string generate_filename(const std::string &directory) {
     const int FILENAME_LENGTH = 64;

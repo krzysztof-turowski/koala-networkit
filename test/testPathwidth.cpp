@@ -3,8 +3,9 @@
 #include <list>
 
 #include "pathwidth/CographPathwidth.hpp"
+#include "recognition/CographRecognition.hpp"
 
-#include "helpers.hpp"
+#include "test/helpers.hpp"
 
 struct MaxCliqueParameters {
     int N;

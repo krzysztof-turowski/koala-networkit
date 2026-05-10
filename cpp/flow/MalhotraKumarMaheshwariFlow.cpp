@@ -1,15 +1,16 @@
-#include <limits>
 #include <algorithm>
+#include <limits>
+#include <map>
 #include <queue>
-#include <flow/MalhotraKumarMaheshwariFlow.hpp>
+#include <vector>
 
-using edge = NetworKit::Edge;
+#include <flow/MalhotraKumarMaheshwariFlow.hpp>
 
 namespace Koala {
 
 const int UNREACHABLE = -2;
 
-edge MalhotraKumarMaheshwariFlow::reverse(const edge &p) {
+NetworKit::Edge MalhotraKumarMaheshwariFlow::reverse(const NetworKit::Edge &p) {
     return NetworKit::Edge(p.v, p.u);
 }
 
@@ -55,8 +56,8 @@ void MalhotraKumarMaheshwariFlow::computePotential() {
         outPotential[v] = 0;
     });
 
-    graph->forEdges([&](NetworKit::node x, NetworKit::node y, NetworKit::edgeweight weight) {
-        edge e = NetworKit::Edge(x, y);
+    graph->forEdges([&](NetworKit::node x, NetworKit::node y) {
+        auto e = NetworKit::Edge(x, y);
         if (level[e.u] + 1 == level[e.v]) {
             if (capacity[e] > flow[e]) {
                 outPotential[e.u]  +=  capacity[e] - flow[e];
@@ -89,9 +90,9 @@ void MalhotraKumarMaheshwariFlow::pushForward(NetworKit::node u, NetworKit::edge
         if (to_push[v] == 0) {
             continue;
         }
-        std::vector<edge> edgesToRemove;
-        graph_stage.forEdgesOf(v, [&](NetworKit::node w, NetworKit::edgeweight weight) {
-            edge e = NetworKit::Edge(v, w);
+        std::vector<NetworKit::Edge> edgesToRemove;
+        graph_stage.forEdgesOf(v, [&](NetworKit::node w) {
+            auto e = NetworKit::Edge(v, w);
             if (level[v] + 1 != level[e.v]) {
                 return;
             }
@@ -112,7 +113,7 @@ void MalhotraKumarMaheshwariFlow::pushForward(NetworKit::node u, NetworKit::edge
             to_push[v] -= can_be_pushed;
             to_push[e.v] += can_be_pushed;
         });
-        for (const edge& e : edgesToRemove) {
+        for (const auto& e : edgesToRemove) {
             graph_stage.removeEdge(e.u, e.v);
             graph_stage.removeEdge(e.v, e.u);
         }
@@ -139,9 +140,9 @@ void MalhotraKumarMaheshwariFlow::pushBackward(NetworKit::node u, NetworKit::edg
         if (to_push[v] == 0) {
             continue;
         }
-        std::vector<edge> edgesToRemove;
-        graph_stage.forInEdgesOf(v, [&](NetworKit::node w, NetworKit::edgeweight weight) {
-            edge e = NetworKit::Edge(w, v);
+        std::vector<NetworKit::Edge> edgesToRemove;
+        graph_stage.forInEdgesOf(v, [&](NetworKit::node w) {
+            auto e = NetworKit::Edge(w, v);
             if (level[v] - 1 != level[e.u]) {
                 return;
             }
@@ -162,7 +163,7 @@ void MalhotraKumarMaheshwariFlow::pushBackward(NetworKit::node u, NetworKit::edg
             to_push[v] -= can_be_pushed;
             to_push[e.u] += can_be_pushed;
         });
-        for (const edge& e : edgesToRemove) {
+        for (const auto& e : edgesToRemove) {
             graph_stage.removeEdge(e.u, e.v);
             graph_stage.removeEdge(e.v, e.u);
         }
@@ -170,16 +171,16 @@ void MalhotraKumarMaheshwariFlow::pushBackward(NetworKit::node u, NetworKit::edg
 }
 
 void MalhotraKumarMaheshwariFlow::deleteNode(NetworKit::node v) {
-     graph_stage.forInEdgesOf(v, [&](NetworKit::node w, NetworKit::edgeweight weight) {
-        edge e = NetworKit::Edge(w, v);
+     graph_stage.forInEdgesOf(v, [&](NetworKit::node w) {
+        auto e = NetworKit::Edge(w, v);
         if (level[v] - 1 == level[e.u]) {
             if (capacity[e] > flow[e]) {
                 outPotential[e.u]  -=  capacity[e] - flow[e];
             }
         }
     });
-    graph_stage.forEdgesOf(v, [&](NetworKit::node w, NetworKit::edgeweight weight) {
-        edge e = NetworKit::Edge(v, w);
+    graph_stage.forEdgesOf(v, [&](NetworKit::node w) {
+        auto e = NetworKit::Edge(v, w);
         if (level[v] + 1 == level[e.v]) {
             if (capacity[e] > flow[e]) {
                 inPotential[e.v]  -=  capacity[e] -flow[e];

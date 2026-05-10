@@ -1,19 +1,18 @@
 #include <cassert>
+#include <fstream>
 #include <iostream>
 #include <map>
 #include <set>
-#include <fstream>
 
 #include <networkit/graph/GraphTools.hpp>
-#include <io/G6GraphReader.hpp>
-#include <io/DimacsGraphReader.hpp>
 
+#include <flow/MaximumFlow.hpp>
+#include <io/DimacsGraphReader.hpp>
+#include <io/G6GraphReader.hpp>
 #include <min_cut/HaoOrlinMinCut.hpp>
 #include <min_cut/KargerMinCut.hpp>
 #include <min_cut/KargerSteinMinCut.hpp>
 #include <min_cut/StoerWagnerMinCut.hpp>
-
-#include <flow/MaximumFlow.hpp>
 
 template <typename T>
 std::pair<double, double> run_algorithm(NetworKit::Graph &G) {

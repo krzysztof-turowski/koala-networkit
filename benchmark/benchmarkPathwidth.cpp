@@ -1,8 +1,11 @@
 #include <iostream>
+#include <map>
+#include <string>
 
 #include <io/G6GraphReader.hpp>
 
 #include "pathwidth/CographPathwidth.hpp"
+#include "recognition/CographRecognition.hpp"
 
 template<typename T>
 int run_algorithm(NetworKit::Graph &G) {
@@ -26,7 +29,6 @@ int run_algorithm(NetworKit::Graph &G) {
 std::map<std::string, int> ALGORITHM = {
         {"cograph", 0}
 };
-
 
 int main(int argc, const char *argv[]) {
     if (argc != 3) {

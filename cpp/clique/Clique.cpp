@@ -1,8 +1,8 @@
+#include <set>
+
 #include <graph/GraphTools.hpp>
 
 #include "clique/Clique.hpp"
-
-#include "recognition/CographRecognitionOther.hpp"
 
 namespace Koala {
 

@@ -1,17 +1,15 @@
-#include <matching/gaussian_matching/NaiveGaussElimination.hpp>
-#include <matching/gaussian_matching/NaiveGaussianMatching.hpp>
-#include <matching/gaussian_matching/utils.hpp>
-
 #include <NTL/ZZ_p.h>
+
 #include <networkit/graph/Graph.hpp>
 
-using namespace std;
-using namespace NetworKit;
+#include "matching/gaussian_matching/NaiveGaussElimination.hpp"
+#include "matching/gaussian_matching/NaiveGaussianMatching.hpp"
+#include "matching/gaussian_matching/utils.hpp"
 
 namespace Koala {
-static MatZp generateMatrix(const Graph &G);
+static MatZp generateMatrix(const NetworKit::Graph &G);
 
-NaiveGaussianMatching::NaiveGaussianMatching(const Graph &G1) : G(G1) {}
+NaiveGaussianMatching::NaiveGaussianMatching(const NetworKit::Graph &G1) : G(G1) {}
 
 Matching NaiveGaussianMatching::getMatching() { return M; }
 
@@ -25,7 +23,7 @@ void NaiveGaussianMatching::run() {
   }
 }
 
-static MatZp generateMatrix(const Graph &G) {
+static MatZp generateMatrix(const NetworKit::Graph &G) {
   int n = G.numberOfNodes();
 
   auto AG = zeroMat(n, n);
@@ -36,7 +34,7 @@ static MatZp generateMatrix(const Graph &G) {
   }
 
   MatZp Ainv;
-  inv(Ainv, AG);
+  NTL::inv(Ainv, AG);
   return Ainv;
 }
 }  // namespace Koala

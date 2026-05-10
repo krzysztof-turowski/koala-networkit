@@ -7,7 +7,10 @@
 
 #pragma once
 
-#include "VertexColoring.hpp"
+#include <map>
+#include <vector>
+
+#include "coloring/VertexColoring.hpp"
 
 namespace Koala {
 

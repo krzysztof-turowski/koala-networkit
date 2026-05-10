@@ -5,11 +5,11 @@
  *      Author: Krzysztof Turowski (krzysztof.szymon.turowski@gmail.com)
  */
 
+#include <graph/GraphTools.hpp>
+
 #include <set>
 
 #include <networkit/graph/Graph.hpp>
-
-#include <graph/GraphTools.hpp>
 
 namespace Koala {
 

@@ -11,7 +11,7 @@
 #include <algorithm>
 #include <limits>
 
-#include <max_cut/NaiveMaxCut.hpp>
+#include "max_cut/NaiveMaxCut.hpp"
 
 namespace Koala {
 
@@ -22,7 +22,7 @@ void NaiveMaxCut::run() {
 
     while (improved) {
         improved = false;
-        for (int i = 0; i < graph->numberOfNodes(); i++) {
+        for (NetworKit::count i = 0; i < graph->numberOfNodes(); i++) {
             set[i] = !set[i];
             double newCut = calculateCutValue(set);
             if (newCut > maxCutValue) {

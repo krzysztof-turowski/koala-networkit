@@ -1,4 +1,12 @@
-#include <flow/MaximumFlow.hpp>
+#pragma once
+
+#include <map>
+#include <set>
+#include <unordered_map>
+#include <utility>
+#include <vector>
+
+#include "flow/MaximumFlow.hpp"
 
 namespace Koala {
 

@@ -1,17 +1,18 @@
 #include <cassert>
+#include <fstream>
 #include <iostream>
 #include <map>
 #include <set>
-#include <fstream>
 
 #include <networkit/graph/GraphTools.hpp>
-#include <io/G6GraphReader.hpp>
-#include <io/DimacsGraphReader.hpp>
 
-#include <max_cut/NaiveMaxCut.hpp>
+#include <io/DimacsGraphReader.hpp>
+#include <io/G6GraphReader.hpp>
+
 #include <max_cut/BranchAndBoundMaxCut.hpp>
-#include <max_cut/RankTwoRelaxationMaxCut.hpp>
 #include <max_cut/GoemansWilliamsonMaxCut.hpp>
+#include <max_cut/NaiveMaxCut.hpp>
+#include <max_cut/RankTwoRelaxationMaxCut.hpp>
 
 template <typename T>
 std::pair<double, double> run_algorithm(NetworKit::Graph &G) {

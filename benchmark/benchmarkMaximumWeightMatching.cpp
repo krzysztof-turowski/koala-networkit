@@ -1,10 +1,14 @@
 #include <cassert>
+#include <chrono>
 #include <filesystem>
 #include <iostream>
-#include <chrono>
+#include <map>
+#include <string>
+#include <utility>
+#include <vector>
 
-#include <matching/MaximumMatching.hpp>
 #include <io/DimacsGraphReader.hpp>
+#include <matching/MaximumMatching.hpp>
 
 enum OutputFormat { weight, csv };
 
@@ -47,7 +51,7 @@ Arguments parseArguments(int argc, char**argv) {
     args.checkPerfect = false;
     args.initialization = Koala::BlossomMaximumMatching::InitializationStrategy::empty;
     args.outputFormat = weight;
-    for (int i = 2; i < all_args.size(); ++i) {
+    for (std::size_t i = 2; i < all_args.size(); ++i) {
         std::string option = all_args[i];
 
         if (option == "--perfect") {

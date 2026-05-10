@@ -1,18 +1,17 @@
-#include "flow/electrical_flow/DynamicTree.hpp"
-
 #include <algorithm>
 #include <cassert>
 #include <stack>
+#include <utility>
+#include <vector>
 
-using namespace std;
-using namespace NetworKit;
+#include <flow/electrical_flow/DynamicTree.hpp>
 
 namespace Koala {
 
-vector<int> getPath(const Graph &graph, int u, int v);
+std::vector<int> getPath(const NetworKit::Graph &graph, int u, int v);
 
-DynamicTree::DynamicTree(int n, vector<vector<double>> &weights)
-    : graph(Graph(n)), weights(weights) {}
+DynamicTree::DynamicTree(int n, std::vector<std::vector<double>> &weights)
+    : graph(NetworKit::Graph(n)), weights(weights) {}
 
 void DynamicTree::link(int u, int v) { graph.addEdge(u, v); }
 
@@ -24,14 +23,14 @@ void DynamicTree::cut(int u, int v) {
 
 int DynamicTree::findRoot(int v) {
   int root = v;
-  vector<int> s;
-  vector<bool> visited(graph.numberOfNodes(), false);
+  std::vector<int> s;
+  std::vector<bool> visited(graph.numberOfNodes(), false);
   s.push_back(v);
   while (!s.empty()) {
     int x = s.back();
     s.pop_back();
     visited[x] = true;
-    root = min(root, x);
+    root = std::min(root, x);
     graph.forNeighborsOf(x, [&](int y) {
       if (!visited[y]) {
         s.push_back(y);
@@ -43,7 +42,7 @@ int DynamicTree::findRoot(int v) {
 
 void DynamicTree::pathAdd(int u, int v, double c) {
   auto path = getPath(graph, u, v);
-  for (int i = 1; i < path.size(); ++i) {
+  for (std::size_t i = 1; i < path.size(); ++i) {
     weights[path[i - 1]][path[i]] -= c;
     weights[path[i]][path[i - 1]] += c;
   }
@@ -53,7 +52,7 @@ std::pair<int, int> DynamicTree::pathMin(int u, int v) {
   auto path = getPath(graph, u, v);
   double m = 1e+37;
   std::pair<int, int> mv = {-1, -1};
-  for (int i = 1; i < path.size(); ++i) {
+  for (std::size_t i = 1; i < path.size(); ++i) {
     double w = weights[path[i - 1]][path[i]];
     if (w >= 0 && w <= m) {
       m = w;
@@ -69,15 +68,15 @@ std::pair<int, int> DynamicTree::pathMin(int u, int v) {
 double DynamicTree::pathSum(int u, int v) {
   auto path = getPath(graph, u, v);
   double s = 0;
-  for (int i = 1; i < path.size(); ++i) {
+  for (std::size_t i = 1; i < path.size(); ++i) {
     s += weights[path[i - 1]][path[i]];
   }
   return s;
 }
 
-vector<int> getPath(const Graph &graph, int u, int v) {
-  vector<int> s;
-  vector<int> parent(graph.numberOfNodes(), -1);
+std::vector<int> getPath(const NetworKit::Graph &graph, int u, int v) {
+  std::vector<int> s;
+  std::vector<int> parent(graph.numberOfNodes(), -1);
   s.push_back(u);
   parent[u] = u;
   while (!s.empty()) {
@@ -93,7 +92,7 @@ vector<int> getPath(const Graph &graph, int u, int v) {
       }
     });
   }
-  vector<int> path;
+  std::vector<int> path;
   int x = v;
   while (x != u) {
     path.push_back(x);
@@ -106,4 +105,4 @@ vector<int> getPath(const Graph &graph, int u, int v) {
   return path;
 }
 
-} // namespace Koala
+}  // namespace Koala

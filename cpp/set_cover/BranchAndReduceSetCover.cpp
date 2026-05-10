@@ -6,6 +6,9 @@
  */
 
 #include <cassert>
+#include <set>
+#include <tuple>
+#include <vector>
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/max_cardinality_matching.hpp>

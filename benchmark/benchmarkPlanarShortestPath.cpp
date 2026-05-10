@@ -2,6 +2,8 @@
 #include <iostream>
 #include <map>
 #include <set>
+#include <string>
+#include <vector>
 
 #include <networkit/components/ConnectedComponents.hpp>
 #include <networkit/distance/Dijkstra.hpp>
@@ -9,8 +11,6 @@
 #include <graph/GraphTools.hpp>
 #include <io/DimacsGraphReader.hpp>
 #include <io/G6GraphReader.hpp>
-#include <shortest_path/FredericksonPlanarSSSP.hpp>
-#include <shortest_path/HenzingerPlanarSSSP.hpp>
 #include <shortest_path/PlanarSSSP.hpp>
 
 template <typename T>

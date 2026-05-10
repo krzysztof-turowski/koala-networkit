@@ -1,18 +1,19 @@
-#include "shortest_path/HenzingerPlanarSSSP.hpp"
-
 #include <algorithm>
 #include <cmath>
+#include <limits>
+#include <set>
+#include <unordered_map>
+#include <utility>
+
 #include <networkit/distance/Dijkstra.hpp>
 #include <networkit/distance/MultiTargetDijkstra.hpp>
 #include <networkit/graph/BFS.hpp>
 #include <networkit/graph/DFS.hpp>
 #include <networkit/graph/GraphTools.hpp>
-#include <set>
-#include <unordered_map>
-#include <utility>
 
 #include "graph/GraphTools.hpp"
 #include "graph/PlanarGraphTools.hpp"
+#include "shortest_path/PlanarSSSP.hpp"
 #include "shortest_path/planar/SuitableRDivision.hpp"
 
 namespace Koala {
@@ -67,7 +68,7 @@ void HenzingerPlanarSSSP::initialize_queues(node_subsets_t& division) {
     }
 }
 
-void HenzingerPlanarSSSP::setDivisionParameter(int division_parametr) {
+void HenzingerPlanarSSSP::setDivisionParameter(NetworKit::count division_parametr) {
     r = division_parametr;
 }
 
@@ -86,8 +87,8 @@ void HenzingerPlanarSSSP::run() {
     }
     normal_graph = PlanarGraphTools::convertToMaxDegree3(graph, true);
     auto graph_for_division = GraphTools::convertDirectedGraphToUndirected(normal_graph);
-    int c = 6;  // arbitrary parameter. Bounds number of boundary nodes in region of division
-    int r4;
+    NetworKit::count c = 6;  // arbitrary parameter. Bounds number of boundary nodes in region of division
+    NetworKit::count r4;
     if (r == NetworKit::none) {
         r = log(graph_for_division.numberOfNodes());
         r4 = r * r * r * r;  // log(n)^4
@@ -95,7 +96,7 @@ void HenzingerPlanarSSSP::run() {
             // Graph is too small constant is used as a parameter
             r4 = 25;
         }
-        r4 = std::max(r4, 25);
+        r4 = std::max(r4, static_cast<NetworKit::count>(25));
     } else {
         // User choose the parameter
         r4 = r * r * r * r;
