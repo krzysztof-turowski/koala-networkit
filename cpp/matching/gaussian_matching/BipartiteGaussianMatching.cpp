@@ -24,10 +24,10 @@ BipartiteGaussianMatching::BipartiteGaussianMatching(const NetworKit::Graph &G1)
   U = UV.first, V = UV.second;
 
   bpIdx.resize(G.numberOfNodes());
-  for (int i = 0; i < U.size(); ++i) {
+  for (std::size_t i = 0; i < U.size(); ++i) {
     bpIdx[U[i]] = i;
   }
-  for (int i = 0; i < V.size(); ++i) {
+  for (std::size_t i = 0; i < V.size(); ++i) {
     bpIdx[V[i]] = i;
   }
 }
@@ -64,7 +64,7 @@ void BipartiteGaussianMatching::run() {
   auto eliminated = LazyGaussElimination::pivotElimination(
       B, [this](int r, int c) { return AG[r][c] != 0; });
 
-  for (int i = 0; i < eliminated.size(); ++i) {
+  for (std::size_t i = 0; i < eliminated.size(); ++i) {
     M.insert({i, eliminated[i]});
   }
 }

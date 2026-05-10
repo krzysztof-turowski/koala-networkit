@@ -6,6 +6,7 @@
  */
 
 #include <algorithm>
+#include <numeric>
 #include <vector>
 
 #include <graph/GraphTools.hpp>
@@ -22,9 +23,7 @@ void DahlhausCographRecognition::run() {
         nodes.push_back(u);
     }
     std::vector<int> real_index(graph.numberOfNodes());
-    for (NetworKit::count i = 0; i < graph.numberOfNodes(); i++) {
-        real_index[i] = i;
-    }
+    std::iota(real_index.begin(), real_index.end(), 0);
     // reserve space for cotree and do in the same way as conodes are stored
     save.reserve(nodes.size() * 4);
     pointer.resize(nodes.size());
@@ -95,15 +94,16 @@ inline void DahlhausCographRecognition::add(
     if (vec.empty()) {
         return;
     }
-    for (size_t j = 0; j < vec.size(); j++) {
-        fake_index[vec[j]] = j;
+    int fake = 0;
+    for (auto v : vec) {
+        fake_index[v] = fake++;
     }
     auto C = build_graph(vec, G, fake_index);
-    for (size_t j = 0; j < vec.size(); j++) {
-        fake_index[vec[j]] = -1;
+    for (auto v : vec) {
+        fake_index[v] = -1;
     }
     std::vector<int> new_real_index(vec.size());
-    for (size_t j = 0; j < vec.size(); j++) {
+    for (std::size_t j = 0; j < vec.size(); j++) {
         new_real_index[j] = real_index[vec[j]];
     }
     CoTree &T2 = build_cotree(C, new_real_index);
@@ -130,7 +130,7 @@ std::vector<std::vector<int>> compute_connected_components(
         }
     }
     std::vector<std::vector<int>> components(component_number);
-    for (size_t i = 0; i < is_in_vec.size(); i++) {
+    for (std::size_t i = 0; i < is_in_vec.size(); i++) {
         if (!is_in_vec[i]) {
             continue;
         }
@@ -142,7 +142,7 @@ std::vector<std::vector<int>> compute_connected_components(
 std::vector<std::vector<int>> compute_gamma(
         std::vector<bool> &is_in_vec, NetworKit::Graph &G, std::vector<int> &component) {
     std::vector<std::vector<int>> gamma(is_in_vec.size());
-    for (size_t i = 0; i < is_in_vec.size(); i++) {
+    for (std::size_t i = 0; i < is_in_vec.size(); i++) {
         if (!is_in_vec[i]) {
             continue;
         }
@@ -159,7 +159,7 @@ std::vector<std::vector<int>> compute_gamma(
 std::vector<std::vector<int>> compute_components_sorted(
         int n, std::vector<std::vector<int>> &components, std::vector<std::vector<int>> &gamma) {
     std::vector<std::vector<int>> count_sort(n), components_sorted;
-    for (size_t i = 0; i < components.size(); i++) {
+    for (std::size_t i = 0; i < components.size(); i++) {
         count_sort[gamma[components[i][0]].size()].push_back(i);
     }
     for (int i = n - 1; i >= 0; i--) {
@@ -172,8 +172,8 @@ std::vector<std::vector<int>> compute_components_sorted(
 
 void recompute_component(
         std::vector<std::vector<int>> &components, std::vector<int> &component) {
-    for (size_t i = 0; i < components.size(); i++) {
-        for (size_t j = 0; j < components[i].size(); j++) {
+    for (std::size_t i = 0; i < components.size(); i++) {
+        for (std::size_t j = 0; j < components[i].size(); j++) {
             component[components[i][j]] = i;
         }
     }
@@ -218,7 +218,7 @@ void reverse_cotree(CoTree &T, CoNode *v) {
 void DahlhausCographRecognition::big_component(
         CoTree &T, NetworKit::Graph &G, std::vector<int> &vec, std::vector<int> &real_index) {
     NetworKit::Graph GC = Koala::GraphTools::toComplement(G);
-    size_t n = GC.numberOfNodes();
+    std::size_t n = GC.numberOfNodes();
     std::vector<int> component(n, -1), fake_index(n, -1);
     std::vector<bool> is_in_vec(n);
     for (auto u : vec) {
@@ -230,15 +230,15 @@ void DahlhausCographRecognition::big_component(
             is_cograph = State::NOT_COGRAPH;
             return;
         }
-        for (size_t j = 0; j < c.size(); j++) {
+        for (std::size_t j = 0; j < c.size(); j++) {
             fake_index[c[j]] = j;
         }
         auto GI = build_graph(c, GC, fake_index);  // induced subgraph by c
-        for (size_t j = 0; j < c.size(); j++) {
+        for (std::size_t j = 0; j < c.size(); j++) {
             fake_index[c[j]] = -1;
         }
         std::vector<int> new_real_index(c.size());
-        for (size_t j = 0; j < c.size(); j++) {
+        for (std::size_t j = 0; j < c.size(); j++) {
             new_real_index[j] = real_index[c[j]];
         }
         auto TI = build_cotree(GI, new_real_index);
@@ -285,7 +285,7 @@ void DahlhausCographRecognition::high_low_case(
             compute_gamma_difference(components, component, gamma, is_in_vec, is_in_vec);
     std::vector<int> fake_index(n, -1);
 
-    for (size_t i = 0; i <= components.size(); i++) {
+    for (std::size_t i = 0; i <= components.size(); i++) {
         bool special_case_big_component = true;
         if (gamma_difference[i].size() * A > (A - 1) * n) {
             std::vector<bool> is_in_gamma_difference(n);
@@ -332,7 +332,7 @@ void DahlhausCographRecognition::high_low_case(
 
 CoTree& DahlhausCographRecognition::build_cotree(
         NetworKit::Graph G, std::vector<int> real_index) {  // should return cotree reference
-    size_t n = G.numberOfNodes();
+    std::size_t n = G.numberOfNodes();
     CoTree &T = save.emplace_back();
     T.ReserveSpace(3 * n);
     if (n == 1) {
@@ -369,7 +369,7 @@ CoTree& DahlhausCographRecognition::build_cotree(
     for (auto u : G.neighborRange(v)) {
         is_neighbour[u] = true;
     }
-    for (size_t i = 0; i < n; i++) {
+    for (std::size_t i = 0; i < n; i++) {
         if (i == v) {
             continue;
         }
@@ -379,7 +379,7 @@ CoTree& DahlhausCographRecognition::build_cotree(
     }
     std::vector<int> component(n, -1);
     std::vector<bool> is_in_vec(n, true);
-    for (size_t i = 0; i < n; i++) {
+    for (std::size_t i = 0; i < n; i++) {
         if (is_neighbour[i] || i == v) {
             is_in_vec[i] = false;
         }
@@ -393,7 +393,7 @@ CoTree& DahlhausCographRecognition::build_cotree(
     auto gamma_difference =
             compute_gamma_difference(components, component, gamma, is_in_vec, is_in_new_vec);
     std::vector<int> fake_index(n, -1);
-    for (size_t i = 0; i <= components.size(); i++) {
+    for (std::size_t i = 0; i <= components.size(); i++) {
         add(1, T, gamma_difference[i], fake_index, G, real_index);
         if (i == components.size()) {
             break;
@@ -405,7 +405,7 @@ CoTree& DahlhausCographRecognition::build_cotree(
 
 int current_time = 0;
 std::vector<CoNode*> dfs_list;
-int number_of_edges_according_to_cotree = 0;
+NetworKit::count number_of_edges_according_to_cotree = 0;
 int maximum_depth = 0;
 
 void check_cotree_recursive(CoNode *v, int depth) {

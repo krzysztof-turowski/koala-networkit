@@ -56,7 +56,7 @@ void MalhotraKumarMaheshwariFlow::computePotential() {
         outPotential[v] = 0;
     });
 
-    graph->forEdges([&](NetworKit::node x, NetworKit::node y, NetworKit::edgeweight weight) {
+    graph->forEdges([&](NetworKit::node x, NetworKit::node y) {
         auto e = NetworKit::Edge(x, y);
         if (level[e.u] + 1 == level[e.v]) {
             if (capacity[e] > flow[e]) {
@@ -91,7 +91,7 @@ void MalhotraKumarMaheshwariFlow::pushForward(NetworKit::node u, NetworKit::edge
             continue;
         }
         std::vector<NetworKit::Edge> edgesToRemove;
-        graph_stage.forEdgesOf(v, [&](NetworKit::node w, NetworKit::edgeweight weight) {
+        graph_stage.forEdgesOf(v, [&](NetworKit::node w) {
             auto e = NetworKit::Edge(v, w);
             if (level[v] + 1 != level[e.v]) {
                 return;
@@ -141,7 +141,7 @@ void MalhotraKumarMaheshwariFlow::pushBackward(NetworKit::node u, NetworKit::edg
             continue;
         }
         std::vector<NetworKit::Edge> edgesToRemove;
-        graph_stage.forInEdgesOf(v, [&](NetworKit::node w, NetworKit::edgeweight weight) {
+        graph_stage.forInEdgesOf(v, [&](NetworKit::node w) {
             auto e = NetworKit::Edge(w, v);
             if (level[v] - 1 != level[e.u]) {
                 return;
@@ -171,7 +171,7 @@ void MalhotraKumarMaheshwariFlow::pushBackward(NetworKit::node u, NetworKit::edg
 }
 
 void MalhotraKumarMaheshwariFlow::deleteNode(NetworKit::node v) {
-     graph_stage.forInEdgesOf(v, [&](NetworKit::node w, NetworKit::edgeweight weight) {
+     graph_stage.forInEdgesOf(v, [&](NetworKit::node w) {
         auto e = NetworKit::Edge(w, v);
         if (level[v] - 1 == level[e.u]) {
             if (capacity[e] > flow[e]) {
@@ -179,7 +179,7 @@ void MalhotraKumarMaheshwariFlow::deleteNode(NetworKit::node v) {
             }
         }
     });
-    graph_stage.forEdgesOf(v, [&](NetworKit::node w, NetworKit::edgeweight weight) {
+    graph_stage.forEdgesOf(v, [&](NetworKit::node w) {
         auto e = NetworKit::Edge(v, w);
         if (level[v] + 1 == level[e.v]) {
             if (capacity[e] > flow[e]) {

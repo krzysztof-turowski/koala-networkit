@@ -157,7 +157,7 @@ void HabibPaulCographRecognition::run() {
 
 
     while (Z != permutation.last_part) {
-        int twin = T.twins(Z->first->num, Z->previous->first->num, twins_counter);
+        std::size_t twin = T.twins(Z->first->num, Z->previous->first->num, twins_counter);
         twins_counter += 4;
         if (twin < 2) {
             order.push_back({{Z->previous->first->num, Z->first->num}, twin});

@@ -173,7 +173,7 @@ std::vector<NetworKit::node> FominKratschWoegingerDominatingSet::move_to_solutio
 }
 
 void FominKratschWoegingerDominatingSet::remove_from_solution(
-        NetworKit::node vertex, const std::vector<NetworKit::node> &moved_vertices) {
+        NetworKit::node, const std::vector<NetworKit::node> &moved_vertices) {
     for (auto u : std::views::reverse(moved_vertices)) {
         free.erase(u), bound.insert(u);
     }

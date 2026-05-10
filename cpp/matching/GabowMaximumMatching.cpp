@@ -69,7 +69,7 @@ GabowMaximumMatching::Edge GabowMaximumMatching::get_useful_edge() {
     return edge;
 }
 
-void GabowMaximumMatching::handle_grow(Blossom* odd_blossom, Blossom* even_blossom) {
+void GabowMaximumMatching::handle_grow(Blossom*, Blossom* even_blossom) {
     // Scan the edges for newly even vertices
     scan_edges(even_blossom);
 }
@@ -138,7 +138,7 @@ void GabowMaximumMatching::handle_odd_blossom_expansion(Blossom* blossom) {
     }
 }
 
-void GabowMaximumMatching::handle_even_blossom_expansion(Blossom* blossom) {}
+void GabowMaximumMatching::handle_even_blossom_expansion(Blossom*) {}
 
 void GabowMaximumMatching::adjust_by_delta(MaximumWeightMatching::weight delta) {
     graph.forNodes([this, delta] (NetworKit::node v) {

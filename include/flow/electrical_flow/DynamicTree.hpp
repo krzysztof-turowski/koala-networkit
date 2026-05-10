@@ -20,8 +20,8 @@ class DynamicTree {
   std::pair<int, int> pathMin(int u, int v);
   double pathSum(int u, int v);
 
-  std::vector<std::vector<double>> &weights;
   NetworKit::Graph graph;
+  std::vector<std::vector<double>> &weights;
 };
 
 };  // namespace Koala

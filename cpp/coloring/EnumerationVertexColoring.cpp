@@ -210,7 +210,7 @@ void ChristofidesEnumerationVertexColoring::calculate_transitive_closure() {
 }
 
 void ChristofidesEnumerationVertexColoring::determine_current_predecessors(int r) {
-    for (int u = 0; u < graph->numberOfNodes(); ++u) {
+    for (NetworKit::count u = 0; u < graph->numberOfNodes(); ++u) {
         if (transitive_closure[u][r]) {
             current_predecessors.insert(u);
         }

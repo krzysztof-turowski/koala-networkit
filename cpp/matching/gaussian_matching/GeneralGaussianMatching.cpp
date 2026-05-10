@@ -107,13 +107,13 @@ Matching getMaximalMatching(const MatZp &AG, const Matching &M) {
 Matching partition(const NetworKit::Graph &G, const MatZp &AG) {
   auto components = getSimpleComponents(G, AG);
   std::vector<std::tuple<NetworKit::Graph, std::vector<int>, MatZp>> subgraphs(components.size());
-  for (unsigned i = 0; i < components.size(); ++i) {
+  for (std::size_t i = 0; i < components.size(); ++i) {
     subgraphs[i] = reindexGraph(NetworKit::GraphTools::subgraphFromNodes(
         G, components[i].begin(), components[i].end()), AG);
   }
 
   Matching M;
-  for (unsigned c = 0; c < subgraphs.size(); ++c) {
+  for (std::size_t c = 0; c < subgraphs.size(); ++c) {
     auto [Gc, oldIdx, AGc] = subgraphs[c];
     auto M1 = simplePartition(Gc, AGc);
     // auto AGc = generateMatrix(Gc);
@@ -144,7 +144,7 @@ Matching simplePartition(const NetworKit::Graph &G, const MatZp &AG) {
     assert(M.size() == G.numberOfNodes() / 2);
     return M;
   }
-  int sSize = Sv.size();
+  std::size_t sSize = Sv.size();
   std::vector<bool> isInS(G.numberOfNodes(), false);
   for (auto v : Sv) {
     isInS[v] = true;
@@ -217,7 +217,7 @@ Matching simplePartition(const NetworKit::Graph &G, const MatZp &AG) {
   }
 
   std::vector<NetworKit::Graph> subgraphs(components.size());
-  for (int i = 0; i < components.size(); ++i) {
+  for (std::size_t i = 0; i < components.size(); ++i) {
     subgraphs[i] = NetworKit::GraphTools::subgraphFromNodes(
         DC.G, components[i].begin(), components[i].end());
   }
@@ -257,8 +257,8 @@ Matching simplePartition(const NetworKit::Graph &G, const MatZp &AG) {
   // Create a graph of S and a contracted vertex for each of the smaller
   // components of G\S
   std::vector<int> contractedNodes(sSize);
-  std::map<int, int> contractedComponents;
-  for (int i = 1; i < sSize; ++i) {
+  std::map<int, std::size_t> contractedComponents;
+  for (std::size_t i = 1; i < sSize; ++i) {
     int v = SG.addNode();
     contractedNodes[i] = v;
     contractedComponents[v] = i;
@@ -289,7 +289,7 @@ Matching simplePartition(const NetworKit::Graph &G, const MatZp &AG) {
     }
     assert(contractedComponents.find(cv) != contractedComponents.end());
 
-    int c = contractedComponents[cv];
+    auto c = contractedComponents[cv];
     for (auto v : components[c]) {
       if (G.hasEdge(s, v)) {
         M.insert({s, v});
@@ -303,7 +303,7 @@ Matching simplePartition(const NetworKit::Graph &G, const MatZp &AG) {
   }
 
   // Match smaller components
-  for (int i = 1; i < sSize; ++i) {
+  for (std::size_t i = 1; i < sSize; ++i) {
     auto &SCi = subgraphs[i];
     GeneralGaussianMatching gen(SCi);
     gen.run();
@@ -322,7 +322,7 @@ Matching simplePartition(const NetworKit::Graph &G, const MatZp &AG) {
 }
 
 Matching generalMatching(const NetworKit::Graph &G, const MatZp &AG) {
-  const int n = G.numberOfNodes();
+  const NetworKit::count n = G.numberOfNodes();
   if (n == 0)
     return {};
 
@@ -337,7 +337,7 @@ Matching generalMatching(const NetworKit::Graph &G, const MatZp &AG) {
     components[0].insert(u);
     components[0].insert(v);
   }
-  for (int v = 0; v < n; ++v) {
+  for (NetworKit::count v = 0; v < n; ++v) {
     if (components[0].find(v) == components[0].end()) {
       components[1].insert(v);
     }
@@ -389,7 +389,7 @@ static std::vector<std::set<int>> getSimpleComponents(const NetworKit::Graph &G,
     return edges;
   };
 
-  for (int v = 0; v < n; ++v) {
+  for (auto v : G.nodeRange()) {
     if (visited[v])
       continue;
     connected.push_back(std::set<int>());
@@ -407,7 +407,7 @@ static std::vector<std::set<int>> getConnectedComponents(
     return std::vector<int>(G.neighborRange(u).begin(), G.neighborRange(u).end());
   };
 
-  for (int v = 0; v < n; ++v) {
+  for (auto v : G.nodeRange()) {
     if (visited[v])
       continue;
     connected.push_back(std::set<int>());

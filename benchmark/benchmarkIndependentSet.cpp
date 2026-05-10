@@ -4,11 +4,12 @@
 #include <set>
 #include <string>
 
-#include "io/DimacsGraphReader.hpp"
-#include "io/G6GraphReader.hpp"
-#include "independent_set/IndependentSet.hpp"
-#include "independent_set/CographIndependentSet.hpp"
-#include "recognition/CographRecognition.hpp"
+#include <io/DimacsGraphReader.hpp>
+#include <io/G6GraphReader.hpp>
+
+#include <independent_set/IndependentSet.hpp>
+#include <independent_set/CographIndependentSet.hpp>
+#include <recognition/CographRecognition.hpp>
 
 template<typename T>
 int run_algorithm(NetworKit::Graph &G) {
@@ -85,6 +86,8 @@ void run_g6_tests(const std::string &path, const std::string &algorithm) {
         case 10:
             run_algorithm<Koala::CographIndependentSet>(G);
             break;
+        default:
+            throw std::logic_error("Unrecognized algorithm");
         }
         std::cout << std::endl;
     }
@@ -104,14 +107,44 @@ void run_dimacs_tests(const std::string &path, const std::string &algorithm) {
     });
     std::cout << path << " " << std::flush;
     std::set<int> I;
-    I.insert(run_algorithm<Koala::BruteForceIndependentSet>(G));
-    I.insert(run_algorithm<Koala::Mis1IndependentSet>(G));
-    I.insert(run_algorithm<Koala::Mis2IndependentSet>(G));
-    I.insert(run_algorithm<Koala::Mis3IndependentSet>(G));
-    I.insert(run_algorithm<Koala::Mis4IndependentSet>(G));
-    I.insert(run_algorithm<Koala::Mis5IndependentSet>(G));
-    I.insert(run_algorithm<Koala::MeasureAndConquerIndependentSet>(G));
-    assert(I.size() == 1);
+    switch (ALGORITHM[algorithm]) {
+    case 0:
+        I.insert(run_algorithm<Koala::BruteForceIndependentSet>(G));
+        I.insert(run_algorithm<Koala::Mis1IndependentSet>(G));
+        I.insert(run_algorithm<Koala::Mis2IndependentSet>(G));
+        I.insert(run_algorithm<Koala::Mis3IndependentSet>(G));
+        I.insert(run_algorithm<Koala::Mis4IndependentSet>(G));
+        I.insert(run_algorithm<Koala::Mis5IndependentSet>(G));
+        I.insert(run_algorithm<Koala::MeasureAndConquerIndependentSet>(G));
+        assert(I.size() == 1);
+        break;
+    case 1:
+        run_algorithm<Koala::BruteForceIndependentSet>(G);
+        break;
+    case 2:
+        run_algorithm<Koala::Mis1IndependentSet>(G);
+        break;
+    case 3:
+        run_algorithm<Koala::Mis2IndependentSet>(G);
+        break;
+    case 4:
+        run_algorithm<Koala::Mis3IndependentSet>(G);
+        break;
+    case 5:
+        run_algorithm<Koala::Mis4IndependentSet>(G);
+        break;
+    case 6:
+        run_algorithm<Koala::Mis5IndependentSet>(G);
+        break;
+    case 7:
+        run_algorithm<Koala::MeasureAndConquerIndependentSet>(G);
+        break;
+    case 10:
+        run_algorithm<Koala::CographIndependentSet>(G);
+        break;
+    default:
+        throw std::logic_error("Unrecognized algorithm");
+    }
     std::cout << std::endl;
     return;
 }
@@ -122,10 +155,9 @@ int main(int argc, const char *argv[]) {
         return 1;
     }
     std::string path(argv[2]);
-    auto position = path.find_last_of(".");
-    if (path.substr(position + 1) == "g6") {
+    if (path.ends_with(".g6")) {
         run_g6_tests(path, std::string(argv[1]));
-    } else if (path.substr(position + 1) == "gr") {
+    } else if (path.ends_with(".gr")) {
         run_dimacs_tests(path, std::string(argv[1]));
     } else {
         std::cerr << "File type not supported: " << path << std::endl;

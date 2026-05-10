@@ -80,7 +80,7 @@ void CographVertexColoring::run() {
 }
 
 bool CographVertexColoring::checkColoring() {
-    auto &coloring = getColoring();
+    auto &colors = getColoring();
     for (const auto &u : graph->nodeRange()) {
         for (const auto &v : graph->neighborRange(u)) {
             if (colors[u] == colors[v]) {

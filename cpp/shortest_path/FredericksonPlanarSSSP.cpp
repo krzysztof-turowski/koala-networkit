@@ -230,7 +230,7 @@ pair_distance_t get_distance_between_boundary_nodes_Level_1(
     return result;
 }
 
-void FredericksonPlanarSSSP::setDivisionParameters(int level_1, int level_2) {
+void FredericksonPlanarSSSP::setDivisionParameters(NetworKit::count level_1, NetworKit::count level_2) {
     r1 = level_1;
     r2 = level_2;
 }
@@ -254,8 +254,10 @@ void FredericksonPlanarSSSP::run() {
         r1 = log(normal_graph.numberOfNodes());
         r2 = log(log(normal_graph.numberOfNodes()));
         r2 *= r2;
-        r1 = std::max(100, r1);
-        r2 = std::max(25, r2);
+        const NetworKit::count min_level_1 = 100;
+        const NetworKit::count min_level_2 = 25;
+        r1 = std::max(min_level_1, r1);
+        r2 = std::max(min_level_2, r2);
     }
     auto division_level_1 = findSuitableRDivision(normal_graph, r1, c);
     PlanarGraphTools::assertDivision(division_level_1, normal_graph);

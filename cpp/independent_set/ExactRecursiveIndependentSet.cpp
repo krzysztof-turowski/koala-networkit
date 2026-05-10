@@ -28,7 +28,7 @@ std::vector<NetworKit::node> Mis1IndependentSet::recursive() {
     if (graph->isEmpty()) {
         return {};
     }
-    int selectedToSet;
+    int selectedToSet = -1;
     std::vector<NetworKit::node> largestSet;
     for (auto u : getNeighborsPlus(getMinimumDegreeNode())) {
         auto neighborsPlus = getNeighborsPlus(u);
@@ -209,6 +209,8 @@ std::vector<NetworKit::node> Mis2IndependentSet::recursive() {
         }
         break;
     }
+    default:
+        break;
     }  // no verticle with deg 0,1,2,3 exists after leaving this switch
 
     v = getMaximumDegreeNode();
@@ -231,7 +233,7 @@ std::vector<NetworKit::node> Mis2IndependentSet::recursive() {
     std::vector<bool> visited(graph->upperNodeIdBound(), false);
     Koala::Traversal::DFSFrom(
         *graph, *graph->nodeRange().begin(),
-        [&](auto v) { visited[v] = true; }, [&](auto v) { return true; });
+        [&](auto v) { visited[v] = true; }, [&](auto) { return true; });
     std::vector<NetworKit::node> component, theRest, allVertices;
     graph->forNodes([&](NetworKit::node u) {
         if (visited[u]) {
@@ -446,7 +448,7 @@ std::vector<NetworKit::node> MeasureAndConquerIndependentSet::recursive() {
     std::vector<bool> visited(graph->upperNodeIdBound(), false);
     Koala::Traversal::DFSFrom(
         *graph, *graph->nodeRange().begin(),
-        [&](auto v) { visited[v] = true; }, [&](auto v) { return true; });
+        [&](auto v) { visited[v] = true; }, [&](auto) { return true; });
     std::vector<NetworKit::node> component, theRest, allVertices;
     graph->forNodes([&](NetworKit::node u) {
         if (visited[u]) {
@@ -539,15 +541,15 @@ std::vector<NetworKit::node> MeasureAndConquerIndependentSet::recursive() {
                     }
 
                     std::vector<NetworKit::node> resultSet = recursive();
-                    bool newNodeChoosen = false;
-                    for (int i = 0; i < resultSet.size(); ++i) {
+                    bool newNodeChosen = false;
+                    for (std::size_t i = 0; i < resultSet.size(); ++i) {
                         if (resultSet[i] == u12) {
                             resultSet.push_back(u2);
-                            newNodeChoosen = true;
+                            newNodeChosen = true;
                             break;
                         }
                     }
-                    if (!newNodeChoosen) {
+                    if (!newNodeChosen) {
                         resultSet.push_back(v);
                     }
 
@@ -596,6 +598,8 @@ std::vector<NetworKit::node> MeasureAndConquerIndependentSet::recursive() {
                 }
                 break;
             }
+            default:
+                break;
             }
 
             if (shallFold) {
@@ -622,12 +626,12 @@ std::vector<NetworKit::node> MeasureAndConquerIndependentSet::recursive() {
                     for (auto v : vNeighbors) {
                         if (u < v) {
                             if (!graph->hasEdge(u, v)) {
-                                foldingNodes.push_back({u, v});
+                                foldingNodes.push_back({u, v, NetworKit::none});
                             }
                         }
                     }
                 }
-                for (int i = 0; i < foldingNodes.size(); ++i) {
+                for (std::size_t i = 0; i < foldingNodes.size(); ++i) {
                     foldingNodes[i].u12 = vNeighbors[i];
                 }
 
@@ -655,18 +659,18 @@ std::vector<NetworKit::node> MeasureAndConquerIndependentSet::recursive() {
                 }
 
                 std::vector<NetworKit::node> resultSet = recursive();
-                bool newNodeChoosen = false;
-                for (int i = 0; !newNodeChoosen && i < resultSet.size(); ++i) {
+                bool newNodeChosen = false;
+                for (std::size_t i = 0; !newNodeChosen && i < resultSet.size(); ++i) {
                     for (auto f : foldingNodes) {
                         if (resultSet[i] == f.u12) {
                             resultSet[i] = f.oldU1;
                             resultSet.push_back(f.oldU2);
-                            newNodeChoosen = true;
+                            newNodeChosen = true;
                             break;
                         }
                     }
                 }
-                if (!newNodeChoosen) {
+                if (!newNodeChosen) {
                     resultSet.push_back(v);
                 }
                 for (auto f : foldingNodes) {

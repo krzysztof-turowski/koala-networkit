@@ -1,5 +1,3 @@
-#include "graph/PlanarGraphTools.hpp"
-
 #include <set>
 #include <unordered_map>
 #include <utility>
@@ -12,6 +10,8 @@
 #include <boost/graph/make_maximal_planar.hpp>
 #include <networkit/graph/BFS.hpp>
 #include <networkit/graph/GraphTools.hpp>
+
+#include <graph/PlanarGraphTools.hpp>
 
 // Boost graph typedefs
 using boost_graph_t = boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,
@@ -58,7 +58,7 @@ NetworKit::Graph convert_boost_to_networKit(
     return result;
 }
 
-planar_embedding_t findPlanarEmbedding(const NetworKit::Graph& G, bool verbose = false) {
+planar_embedding_t findPlanarEmbedding(const NetworKit::Graph& G) {
     auto [boost_graph, node_map] = convert_networKit_to_boost(G);
     embedding_storage_t embedding_storage(num_vertices(boost_graph));
     embedding_t embedding(embedding_storage.begin(), get(boost::vertex_index, boost_graph));

@@ -68,7 +68,7 @@ void HenzingerPlanarSSSP::initialize_queues(node_subsets_t& division) {
     }
 }
 
-void HenzingerPlanarSSSP::setDivisionParameter(int division_parametr) {
+void HenzingerPlanarSSSP::setDivisionParameter(NetworKit::count division_parametr) {
     r = division_parametr;
 }
 

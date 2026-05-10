@@ -25,8 +25,8 @@ class MinimumSpanningTreeTest : public testing::TestWithParam<SpanningTreeParame
         mst.run();
         int tree_weight = 0;
         mst.getForest().forEdges(
-            [&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight w) {
-                tree_weight += G.weight(u, v);
+            [&](NetworKit::node, NetworKit::node, NetworKit::edgeweight w) {
+                tree_weight += w;
             });
         EXPECT_EQ(parameters.N - 1, mst.getForest().numberOfEdges());
         EXPECT_EQ(tree_weight, parameters.treeWeight);

@@ -17,7 +17,7 @@ namespace Koala {
 
 struct BranchAndBoundMaxCut::Node {
     std::vector<bool> set;      // Indicates which set a vertex belongs to
-    int level;                  // Current vertex to consider
+    NetworKit::node level;      // Current vertex to consider
     int bound;                  // Upper bound of the maximum cut value from this node
 };
 

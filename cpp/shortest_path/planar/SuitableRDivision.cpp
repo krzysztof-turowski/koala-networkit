@@ -386,9 +386,9 @@ void fix_division(node_subsets_t& division, NetworKit::Graph& graph) {
 }
 
 node_subsets_t make_suitable_graph_division_from_queue(
-    std::queue<std::vector<NetworKit::node>>& queue, NetworKit::Graph& graph, size_t r,
+    std::queue<std::vector<NetworKit::node>>& queue, NetworKit::Graph& graph, NetworKit::count r,
     std::vector<int>& is_boundary) {
-    size_t sqr = sqrt(r);
+    NetworKit::count sqr = sqrt(r);
     node_subsets_t small_sets;
     node_subsets_t result;
 
@@ -587,7 +587,7 @@ node_subsets_t make_suitable_graph_division_from_queue(
 }
 
 // we need two different starting points for algorithm
-node_subsets_t make_suitable_graph_division(NetworKit::Graph& graph, int r) {
+node_subsets_t make_suitable_graph_division(NetworKit::Graph& graph, NetworKit::count r) {
     std::vector<int> is_boundary(graph.numberOfNodes(), 0);
     std::queue<std::vector<NetworKit::node>> queue;
     auto node_range = graph.nodeRange();
@@ -640,7 +640,7 @@ node_subsets_t find_clusters(NetworKit::Graph& graph, NetworKit::count z) {
 }
 
 node_subsets_t get_division_from_clusters(
-    node_subsets_t& clusters, NetworKit::Graph& graph, int r) {
+    node_subsets_t& clusters, NetworKit::Graph& graph, NetworKit::count r) {
     std::vector<NetworKit::count> cluster_numbers(graph.numberOfNodes());
     for (NetworKit::index i = 0; i < clusters.size(); i++) {
         for (auto node : clusters[i]) {
@@ -659,7 +659,7 @@ node_subsets_t get_division_from_clusters(
     });
     shrinked_graph.removeMultiEdges();
 
-    int sqr = sqrt(r);
+    NetworKit::count sqr = sqrt(r);
     node_subsets_t division;
 
     std::vector<int> is_boundary(shrinked_graph.numberOfNodes(), 0);
@@ -814,7 +814,7 @@ node_subsets_t findSuitableRDivision(
     depth.resize(graph.numberOfNodes());
     visited.resize(graph.numberOfNodes());
     c = const_C;
-    int sqrt_r = sqrt(r);
+    NetworKit::count sqrt_r = sqrt(r);
 
     auto clusters = find_clusters(graph, sqrt_r);
 

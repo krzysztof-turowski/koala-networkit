@@ -42,7 +42,7 @@ int DynamicTree::findRoot(int v) {
 
 void DynamicTree::pathAdd(int u, int v, double c) {
   auto path = getPath(graph, u, v);
-  for (int i = 1; i < path.size(); ++i) {
+  for (std::size_t i = 1; i < path.size(); ++i) {
     weights[path[i - 1]][path[i]] -= c;
     weights[path[i]][path[i - 1]] += c;
   }
@@ -52,7 +52,7 @@ std::pair<int, int> DynamicTree::pathMin(int u, int v) {
   auto path = getPath(graph, u, v);
   double m = 1e+37;
   std::pair<int, int> mv = {-1, -1};
-  for (int i = 1; i < path.size(); ++i) {
+  for (std::size_t i = 1; i < path.size(); ++i) {
     double w = weights[path[i - 1]][path[i]];
     if (w >= 0 && w <= m) {
       m = w;
@@ -68,7 +68,7 @@ std::pair<int, int> DynamicTree::pathMin(int u, int v) {
 double DynamicTree::pathSum(int u, int v) {
   auto path = getPath(graph, u, v);
   double s = 0;
-  for (int i = 1; i < path.size(); ++i) {
+  for (std::size_t i = 1; i < path.size(); ++i) {
     s += weights[path[i - 1]][path[i]];
   }
   return s;

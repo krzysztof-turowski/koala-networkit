@@ -86,13 +86,13 @@ void CographIndependentSet::run() {
 }
 
 NetworKit::count CographIndependentSet::bruteForceIndependetSetSize(NetworKit::Graph &Graph) {
-    NetworKit::count n = Graph.numberOfNodes(), ans = 0, flag;
+    NetworKit::count n = Graph.numberOfNodes(), ans = 0, flag = 0;
     std::vector<NetworKit::count> st(31), independet_set_nodes;
     st[0] = 1;
     for (int i = 1; i <= 30; i++) {
         st[i] = st[i - 1] * 2;
     }
-    for (int mask = 1; mask < st[n]; mask++) {
+    for (NetworKit::count mask = 1; mask < st[n]; mask++) {
         independet_set_nodes.clear();
         for (int i = 0; i <= 30; i++) {
             if ((st[i] & mask) > 0) {
@@ -100,8 +100,8 @@ NetworKit::count CographIndependentSet::bruteForceIndependetSetSize(NetworKit::G
             }
         }
         flag = 0;
-        for (int i = 0; i < independet_set_nodes.size(); i++) {
-            for (int j = i + 1; j < independet_set_nodes.size(); j++) {
+        for (std::size_t i = 0; i < independet_set_nodes.size(); i++) {
+            for (std::size_t j = i + 1; j < independet_set_nodes.size(); j++) {
                 if (Graph.hasEdge(independet_set_nodes[i], independet_set_nodes[j])) {
                     flag = 1;
                     break;

@@ -9,7 +9,7 @@
 #include <set_cover/BranchAndReduceSetCover.hpp>
 
 template <typename T>
-int run_algorithm(NetworKit::Graph &G, bool print = false) {
+int run_algorithm(NetworKit::Graph &G) {
     auto algorithm = T(G);
     algorithm.run();
     auto &dominating_set = algorithm.getDominatingSet();

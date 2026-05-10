@@ -119,7 +119,7 @@ class AugmentedGraph {
             const std::vector<NetworKit::node>& lower, const std::vector<NetworKit::node>& upper) {
         height = 0, depth.resize(n, 0), D.resize(n, 0);
         L.resize(n, NetworKit::none), Lnext.resize(upper.size(), NetworKit::none);
-        for (size_t i = 0; i < lower.size(); i++) {  // distribute queries to lower nodes.
+        for (std::size_t i = 0; i < lower.size(); i++) {  // distribute queries to lower nodes.
             // L[u] - beginning of a linked list query_ids that have lower node `u`.
             // L[u] == index of the first query. Lnext[L[u]] - index of the next query.
             // L[] is indexed by nodes and Lnext[] is indexed by query_ids.
@@ -191,14 +191,14 @@ class AugmentedGraph {
     }
 
     void check_medians() {
-        for (size_t i = 0; i < median.size(); i++) {
+        for (std::size_t i = 0; i < median.size(); i++) {
             if (i == 0) {
                 assert(median[i] == 0);
                 continue;
             }
-            std::vector<int> elements;
+            std::vector<NetworKit::index> elements;
             auto hset = i;
-            for (int j = 0; (1 << j) <= hset; j++) {
+            for (NetworKit::index j = 0; (1 << j) <= hset; j++) {
                 if ((1 << j) & hset) {
                     elements.push_back(j);
                 }
@@ -469,8 +469,7 @@ float ChazelleRubinfeldTrevisanMinimumSpanningTree::calculateApproximateDegree(f
 }
 
 float ChazelleRubinfeldTrevisanMinimumSpanningTree::calculateApproximateCCsCount(
-    float eps, int bfs_bound, unsigned int w, unsigned int w_bound
-) const {
+    float eps, NetworKit::count bfs_bound, unsigned int, unsigned int w_bound) const {
     int n = graph->numberOfNodes();
     int r = 1/eps/eps + 1;
     float estimate = 0;
@@ -493,8 +492,8 @@ float ChazelleRubinfeldTrevisanMinimumSpanningTree::calculateApproximateCCsCount
 
         int d_actual = 0;
 
-        graph->forEdgesOf(u, [this, w_bound, &d_actual]
-            (NetworKit::node u, NetworKit::node v, NetworKit::edgeweight ew, NetworKit::edgeid id) {
+        graph->forEdgesOf(u, [this, w_bound, &d_actual](
+                NetworKit::node, NetworKit::node, NetworKit::edgeweight ew, NetworKit::edgeid) {
             if (ew > w_bound) {
                 return;
             }
@@ -510,8 +509,8 @@ float ChazelleRubinfeldTrevisanMinimumSpanningTree::calculateApproximateCCsCount
 
 
         vis.insert(u);
-        graph->forEdgesOf(u, [this, w_bound, &visited_edges, &q](NetworKit::node u,
-            NetworKit::node v, NetworKit::edgeweight ew, NetworKit::edgeid id){
+        graph->forEdgesOf(u, [this, w_bound, &visited_edges, &q](
+                NetworKit::node, NetworKit::node v, NetworKit::edgeweight ew, NetworKit::edgeid) {
             if (ew > w_bound) {
                 return;
             }
@@ -535,8 +534,9 @@ float ChazelleRubinfeldTrevisanMinimumSpanningTree::calculateApproximateCCsCount
                 }
                 vis.insert(v);
 
-                graph->forEdgesOf(v, [this, w_bound, &visited_edges, &q, &vis](NetworKit::node u,
-                    NetworKit::node v, NetworKit::edgeweight ew, NetworKit::edgeid id) {
+                graph->forEdgesOf(v, [this, w_bound, &visited_edges, &q, &vis](
+                        NetworKit::node, NetworKit::node v, NetworKit::edgeweight ew,
+                        NetworKit::edgeid) {
                     if (ew > w_bound) {
                         return;
                     }
@@ -565,12 +565,11 @@ float ChazelleRubinfeldTrevisanMinimumSpanningTree::calculateApproximateCCsCount
 }
 
 float ChazelleRubinfeldTrevisanMinimumSpanningTree::calculateApproximateTreeWeight(
-    float eps, unsigned int w
-) const {
+        float eps, unsigned int w) const {
     float approx = graph->numberOfNodes() - static_cast<float>(w);
 
-    for (int w_bound = 1; w_bound < w; ++w_bound) {
-        float ccs = calculateApproximateCCsCount(eps, 4/eps, w, w_bound);
+    for (unsigned int w_bound = 1; w_bound < w; ++w_bound) {
+        float ccs = calculateApproximateCCsCount(eps, 4 / eps, w, w_bound);
         approx += ccs;
     }
     return approx;
@@ -632,21 +631,6 @@ void MinimumSpanningTree::check() const {
         assert(branching_tree_augmented.getWeight(answers[i]) <= std::get<2>(G_minus_M[i / 2]));
     }
 }
-namespace {
-/**
- * Assumes that both graphs have the same nodes
- */
-NetworKit::Graph graphSum(const NetworKit::Graph& g1, const NetworKit::Graph& g2) {
-    NetworKit::Graph g;
-    g1.forEdges([&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight ew){
-        g.addEdge(u, v, ew);
-    });
-    g2.forEdges([&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight ew){
-        g.addEdge(u, v, ew);
-    });
-    return g;
-}
-}  // namespace
 
 void Chazelle2000MinimumSpanningTree::run() {
     auto G = graph.value();
@@ -657,7 +641,7 @@ void Chazelle2000MinimumSpanningTree::run() {
 
 /**
  * A wrapper for BoruvkaMinimumSpanningTree::iterate function
- * that's used in the Chazelle(2000) algorithm implementation.
+ * that's used in the Chazelle (2000) algorithm implementation.
  *
  * The function applies c consecutive Boruvka steps
  * returns a tuple [gMinor, edgeId, forest]
@@ -736,7 +720,7 @@ struct edge {
 }  // namespace
 
 // Max number of nodes ~ billion
-std::pair<int, std::vector<int>> tHierarchySize(int n, int m) {
+std::pair<int, std::vector<int>> tHierarchySize(int n, int) {
     if (n < 3) {
         return {{3}, {10, 4, 1}};
     }
@@ -760,7 +744,7 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::msf(NetworKit::Graph G, int t)
     auto connected_components = NetworKit::ConnectedComponents(G);
     connected_components.run();
     auto components = connected_components.getComponents();
-    for (auto i = 0; i < connected_components.numberOfComponents(); i++) {
+    for (NetworKit::count i = 0; i < connected_components.numberOfComponents(); i++) {
         auto subgraph = NetworKit::GraphTools::subgraphFromNodes(G, [](const auto& components) {
             std::unordered_set<NetworKit::node> s;
             for (auto n : components) {
@@ -851,8 +835,8 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
         double minKey = __DBL_MAX__;
         int mini = -1, minj = -1;
 
-        for (int i = 0; i < heaps.size(); ++i) {
-            for (int j = 0; j < heaps[i].size(); ++j) {
+        for (std::size_t i = 0; i < heaps.size(); ++i) {
+            for (std::size_t j = 0; j < heaps[i].size(); ++j) {
                 auto ret = heaps[i][j].lookupMin();
                 if (std::holds_alternative<bool>(ret)) continue;
                 auto val = std::get<edge*>(ret);
@@ -884,7 +868,7 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
 
     auto CziOfNode = [&](NetworKit::node u) {
         int p = nodeTopParent(u);
-        for (int i = 0; i < Cz.size(); ++i) {
+        for (std::size_t i = 0; i < Cz.size(); ++i) {
             if (Cz[i].contains(p)) {
                 return i;
             }
@@ -906,8 +890,8 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
     auto leftmostSmallerMinLink = [&](int ckey){
         NodePair ab;
 
-        for (int i = 0; i < k(); ++i) {
-            for (int j = i + 1; j <= k(); ++j) {
+        for (std::size_t i = 0; i < k(); ++i) {
+            for (std::size_t j = i + 1; j <= k(); ++j) {
                 if (minLink[i][j].second < 0) continue;
                 if (minLink[i][j].second <= ckey) {
                     return std::tuple<int, int, NodePair>{i, j, minLink[i][j].first};
@@ -933,8 +917,8 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
             minLink[i][last_i] = minLink[i][best_j];
         }
 
-        for (int i = 0; i < d; ++i) {
-            for (int j = 0; j < d; ++j) {
+        for (std::size_t i = 0; i < d; ++i) {
+            for (std::size_t j = 0; j < d; ++j) {
                 if (i >= k() || j > k()) {
                     minLink[i][j] = {{-1, -1}, __DBL_MAX__};
                 }
@@ -1025,15 +1009,15 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
         if (!visited[u]) std::swap(u, v);
 
         heaps.push_back(std::vector<SoftHeap<edge*>>());
-        for (size_t i = 0; i <= Cz.size(); ++i) heaps[heaps.size() - 1].push_back(
+        for (std::size_t i = 0; i <= Cz.size(); ++i) heaps[heaps.size() - 1].push_back(
             SoftHeap<edge*>(&dummy_edge, 0.1));
         Cz.push_back({v});
-        for (size_t i = 0; i < heaps.size(); ++i) {
+        for (std::size_t i = 0; i < heaps.size(); ++i) {
             heaps[i].push_back(SoftHeap<edge*>(&dummy_edge, 0.1));
         }
         visited[v] = true;
         std::vector<NodePair> newBorderEdges;
-        G0.forEdgesOf(v, [&](NetworKit::node vv, NetworKit::node w, NetworKit::edgeweight ew) {
+        G0.forEdgesOf(v, [&](NetworKit::node, NetworKit::node w) {
             if (visited[w]) {
                 edge e = findAndDeleteEdgeFromHeaps(v, w);
                 updateMinLinksWithEdge(e);
@@ -1108,7 +1092,7 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
         parent[v] = root;
     }
 
-    for (int i = 0; i < edges.size(); ++i) {
+    for (std::size_t i = 0; i < edges.size(); ++i) {
         if (!edges[i].corrupted) continue;
         badEdges.insert(std::minmax(edges[i].u, edges[i].v));
     }
@@ -1190,7 +1174,7 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
     bbb.run();
     auto actualMst = bbb.getForest();
     std::set<NodePair> actualMstEdges;
-    actualMst.forEdges([&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight ew) {
+    actualMst.forEdges([&](NetworKit::node u, NetworKit::node v) {
         actualMstEdges.insert(std::minmax(u, v));
     });
 

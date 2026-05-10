@@ -56,7 +56,7 @@ void MicaliVaziraniMatching::reset() {
         V[vertex].color = no_color;
     });
 
-    graph.forEdges([this] (NetworKit::node u, NetworKit::node v, NetworKit::edgeid e) {
+    graph.forEdges([this] (NetworKit::node, NetworKit::node, NetworKit::edgeid e) {
         E[e].type = EdgeData::Type::none;
     });
 

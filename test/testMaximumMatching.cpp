@@ -95,6 +95,8 @@ get_algorithm(MaxmimumWeightMatchingAlgorithm algorithm, NetworKit::Graph& G, bo
             return new Koala::GalilMicaliGabowMaximumMatching(G, perfect);
         case scaling:
             return new Koala::GabowScalingMatching(G, perfect);
+        default:
+            throw std::logic_error("Unrecognized algorithm");
     }
 }
 

@@ -178,14 +178,11 @@ void BruteForceIndependentSet::run() {
     if (graph->isEmpty()) {
         return;
     }
-    std::vector<bool> testSet;
-    graph->forNodes([&](NetworKit::node v) {
-        testSet.push_back(false);
-    });
-    size_t best = 0;
+    std::vector<bool> testSet(graph->numberOfNodes(), false);
+    std::size_t best = 0;
     for (uint64_t binary = 1, max = (1 << graph->numberOfNodes()); binary != max; ++binary) {
         std::bitset<8 * sizeof(uint64_t)> testSet(binary);
-        size_t testSetSize = testSet.count();
+        std::size_t testSetSize = testSet.count();
         if (testSetSize <= best) {
             continue;
         }
@@ -198,7 +195,7 @@ void BruteForceIndependentSet::run() {
         }
         if (!illegalEdge) {
             independentSet.clear();
-            for (size_t i = 0; i < testSet.size(); ++i) {
+            for (std::size_t i = 0; i < testSet.size(); ++i) {
                 if (testSet[i]) {
                     independentSet.insert(i);
                 }

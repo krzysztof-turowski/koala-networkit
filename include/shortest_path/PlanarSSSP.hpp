@@ -29,14 +29,14 @@ class FredericksonPlanarSSSP : public PlanarSSSP {
  private:
     NetworKit::Graph normal_graph;
     int c = 6;
-    int r1 = NetworKit::none;
-    int r2 = NetworKit::none;
+    NetworKit::count r1 = NetworKit::none;
+    NetworKit::count r2 = NetworKit::none;
 
  public:
     FredericksonPlanarSSSP(NetworKit::Graph &graph, NetworKit::node source, NetworKit::node target)
         : PlanarSSSP(graph, source, target) {}
 
-    void setDivisionParameters(int level_1, int level_2);
+    void setDivisionParameters(NetworKit::count level_1, NetworKit::count level_2);
 
     void run();
 };
@@ -68,7 +68,7 @@ class HenzingerPlanarSSSP : public PlanarSSSP {
     std::vector<std::vector<NetworKit::node>> regions;
     std::vector<int> is_boundary;
     NetworKit::count number_of_regions;
-    int r = NetworKit::none;
+    NetworKit::count r = NetworKit::none;
 
     void initialize_queues(node_subsets_t& division);
     void main_thrust();
@@ -78,7 +78,7 @@ class HenzingerPlanarSSSP : public PlanarSSSP {
         NetworKit::Graph& graph, NetworKit::node source, NetworKit::node target = NetworKit::none)
         : PlanarSSSP(graph, source, target) {}
 
-    void setDivisionParameter(int r);
+    void setDivisionParameter(NetworKit::count r);
 
     void run();
 };

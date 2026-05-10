@@ -55,7 +55,7 @@ GabowScalingMatching::GabowScalingMatching(NetworKit::Graph &graph, bool perfect
 void GabowScalingMatching::run() {
     std::vector<MaximumWeightMatching::intweight> w(workingGraph.upperEdgeIdBound());
     workingGraph.forEdges(
-        [&w] (NetworKit::node u, NetworKit::node v, NetworKit::edgeweight ew, NetworKit::edgeid e) {
+        [&w] (NetworKit::node, NetworKit::node, NetworKit::edgeweight ew, NetworKit::edgeid e) {
             // Multiply all weights by 2 to ensure they're even
             w[e] = 2 * static_cast<MaximumWeightMatching::intweight>(ew);
     });
@@ -148,7 +148,7 @@ GabowScalingMatching::scale(const std::vector<MaximumWeightMatching::intweight>&
     });
 
     // Reset the matching
-    workingGraph.forEdges([this] (NetworKit::node u, NetworKit::node v, NetworKit::edgeid e) {
+    workingGraph.forEdges([this] (NetworKit::node, NetworKit::node, NetworKit::edgeid e) {
         edge_in_matching[e] = false;
     });
     edges_in_matching = 0;
@@ -362,7 +362,7 @@ void GabowScalingMatching::path(OldBlossom* B, MaximumWeightMatching::intweight 
         }
 
         // Count free nodes in each shell
-        for (int i = 0; i < shells.size(); ++i) {
+        for (std::size_t i = 0; i < shells.size(); ++i) {
             shells[i].first = free_nodes_in_shell(shells[i].second);
         }
 
@@ -429,7 +429,7 @@ void GabowScalingMatching::enumerate_shells() {
     shell_distribution.reset(shells.size());
 
     // Record the index of each shell, sum up duals of above shells
-    for (int i = 0; i < shells.size(); ++i)  {
+    for (std::size_t i = 0; i < shells.size(); ++i)  {
         shells[i].second->shell_index = i;
         if (i > 0) shells[i].second->current_shell_dual += shells[i-1].second->current_shell_dual;
     }
