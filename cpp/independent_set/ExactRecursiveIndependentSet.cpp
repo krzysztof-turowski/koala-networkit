@@ -13,7 +13,7 @@
 
 #include <networkit/graph/GraphTools.hpp>
 
-#include <independent_set/IndependentSet.hpp>
+#include <independent_set/ExactIndependentSet.hpp>
 #include <traversal/DFS.hpp>
 
 namespace Koala {

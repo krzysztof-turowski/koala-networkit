@@ -8,6 +8,8 @@
 #include <io/G6GraphReader.hpp>
 
 #include <independent_set/IndependentSet.hpp>
+#include <independent_set/ExactIndependentSet.hpp>
+#include <independent_set/PlanarGraphIndependentSet.hpp>
 #include <independent_set/CographIndependentSet.hpp>
 #include <recognition/CographRecognition.hpp>
 
@@ -25,6 +27,10 @@ requires std::is_same_v<T, Koala::CographIndependentSet>
 int run_algorithm(NetworKit::Graph &G) {
     auto recognition = Koala::HabibPaulCographRecognition(G);
     recognition.run();
+    if (!recognition.isCograph()) {
+        throw std::logic_error("Graph is not a cograph");
+    }
+    
     auto algorithm = T(G, recognition.cotree);
     algorithm.run();
     auto independent_set = algorithm.getIndependentSet();
@@ -59,47 +65,45 @@ void run_g6_tests(const std::string &path, const std::string &algorithm) {
         }
         NetworKit::Graph G = Koala::G6GraphReader().readline(line);
         std::cout << line << " " << std::flush;
+        double epsilon = 1.0 / (G.numberOfNodes() + 1);
         switch (ALGORITHM[algorithm]) {
         case Algorithm::Exact: {
             std::set<int> I;
-            double epsilon = 1 / (G.numberOfNodes() + 1);
             I.insert(run_algorithm<Koala::Mis1IndependentSet>(G));
             I.insert(run_algorithm<Koala::Mis2IndependentSet>(G));
             I.insert(run_algorithm<Koala::Mis3IndependentSet>(G));
             I.insert(run_algorithm<Koala::Mis4IndependentSet>(G));
             I.insert(run_algorithm<Koala::Mis5IndependentSet>(G));
             I.insert(run_algorithm<Koala::MeasureAndConquerIndependentSet>(G));
-            I.insert(run_algorithm<Koala::BakerPlanarGraphIndependentSet>(G, epsilon));
-            I.insert(run_algorithm<Koala::BodlaenderPlanarGraphIndependentSet>(G, epsilon));
             assert(I.size() == 1);
             classification[*I.begin()]++;
             break;
         }
-        case 1:
+        case Algorithm::MIS1:
             run_algorithm<Koala::Mis1IndependentSet>(G);
             break;
-        case 2:
+        case Algorithm::MIS2:
             run_algorithm<Koala::Mis2IndependentSet>(G);
             break;
-        case 3:
+        case Algorithm::MIS3:
             run_algorithm<Koala::Mis3IndependentSet>(G);
             break;
-        case 4:
+        case Algorithm::MIS4:
             run_algorithm<Koala::Mis4IndependentSet>(G);
             break;
-        case 5:
+        case Algorithm::MIS5:
             run_algorithm<Koala::Mis5IndependentSet>(G);
             break;
-        case 6:
+        case Algorithm::MeasureAndConquer:
             run_algorithm<Koala::MeasureAndConquerIndependentSet>(G);
             break;
-        case 10:
+        case Algorithm::Baker:
             run_algorithm<Koala::BakerPlanarGraphIndependentSet>(G, epsilon);
             break;
-        case 11:
+        case Algorithm::Bodlaender:
             run_algorithm<Koala::BodlaenderPlanarGraphIndependentSet>(G, epsilon);
             break;
-        case 20:
+        case Algorithm::Cograph:
             run_algorithm<Koala::CographIndependentSet>(G);
             break;
         default:
@@ -122,45 +126,44 @@ void run_dimacs_tests(const std::string &path, const std::string &algorithm) {
         }
     });
     std::cout << path << " " << std::flush;
-    std::set<int> I;
+    double epsilon = 1.0 / (G.numberOfNodes() + 1);
     switch (ALGORITHM[algorithm]) {
-    case 0: {
+    case Algorithm::Exact: {
+        std::set<int> I;
         I.insert(run_algorithm<Koala::Mis1IndependentSet>(G));
         I.insert(run_algorithm<Koala::Mis2IndependentSet>(G));
         I.insert(run_algorithm<Koala::Mis3IndependentSet>(G));
         I.insert(run_algorithm<Koala::Mis4IndependentSet>(G));
         I.insert(run_algorithm<Koala::Mis5IndependentSet>(G));
         I.insert(run_algorithm<Koala::MeasureAndConquerIndependentSet>(G));
-        I.insert(run_algorithm<Koala::BakerPlanarGraphIndependentSet>(G, epsilon));
-        I.insert(run_algorithm<Koala::BodlaenderPlanarGraphIndependentSet>(G, epsilon));
         assert(I.size() == 1);
         break;
     }
-    case 1:
+    case Algorithm::MIS1:
         run_algorithm<Koala::Mis1IndependentSet>(G);
         break;
-    case 2:
+    case Algorithm::MIS2:
         run_algorithm<Koala::Mis2IndependentSet>(G);
         break;
-    case 3:
+    case Algorithm::MIS3:
         run_algorithm<Koala::Mis3IndependentSet>(G);
         break;
-    case 4:
+    case Algorithm::MIS4:
         run_algorithm<Koala::Mis4IndependentSet>(G);
         break;
-    case 5:
+    case Algorithm::MIS5:
         run_algorithm<Koala::Mis5IndependentSet>(G);
         break;
-    case 6:
+    case Algorithm::MeasureAndConquer:
         run_algorithm<Koala::MeasureAndConquerIndependentSet>(G);
         break;
-    case 10:
-        run_algorithm<Koala::BakerPlanarGraphIndependentSet>(G);
+    case Algorithm::Baker:
+        run_algorithm<Koala::BakerPlanarGraphIndependentSet>(G, epsilon);
         break;
-    case 11:
-        run_algorithm<Koala::BodlaenderPlanarGraphIndependentSet>(G);
+    case Algorithm::Bodlaender:
+        run_algorithm<Koala::BodlaenderPlanarGraphIndependentSet>(G, epsilon);
         break;
-    case 20:
+    case Algorithm::Cograph:
         run_algorithm<Koala::CographIndependentSet>(G);
         break;
     default:

@@ -6,7 +6,7 @@
 #include <independent_set/ExactIndependentSet.hpp>
 #include <independent_set/CographIndependentSet.hpp>
 
-#include <helpers.hpp>
+#include <test/helpers.hpp>
 
 struct IndependentSetParameters {
     int N;
