@@ -1,5 +1,6 @@
 add_subdirectory(coloring)
 add_subdirectory(clique)
+add_subdirectory(clique_cover)
 add_subdirectory(dominating_set)
 add_subdirectory(flow)
 add_subdirectory(graph)

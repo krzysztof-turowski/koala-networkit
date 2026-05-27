@@ -4,4 +4,5 @@ koala_add_module(coloring
     EnumerationVertexColoring.cpp
     CographVertexColoring.cpp
     PerfectGraphVertexColoring.cpp
+    ChordalVertexColoring.cpp
 )
