@@ -35,9 +35,12 @@ ChordalGraphRecognition::State ChordalGraphRecognition::getState() const {
     return is_chordal;
 }
 
-void ChordalGraphRecognition::check() const {
+const PerfectEliminationOrdering& ChordalGraphRecognition::getPEO() const {
     assureFinished();
-    // TODO
+    if (is_chordal != State::CHORDAL) {
+        throw std::logic_error("Cannot retrieve a Perfect Elimination Ordering: The graph is not chordal.");
+    }
+    return peo;
 }
 
 } /* namespace Koala */

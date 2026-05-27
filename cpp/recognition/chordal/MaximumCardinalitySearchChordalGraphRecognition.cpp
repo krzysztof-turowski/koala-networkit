@@ -129,12 +129,16 @@ void MaximumCardinalitySearchChordalGraphRecognition::run() {
 
     if (graph.numberOfNodes() <= 1) {
         is_chordal = State::CHORDAL;
+        if (graph.numberOfNodes() == 1) {
+            peo = PerfectEliminationOrdering(1, graph.upperNodeIdBound());
+            peo.set(*graph.nodeRange().begin(), 1);
+        }
         return;
     }
 
-    PerfectEliminationOrdering ordering = getMCSOrdering();
+    peo = getMCSOrdering();
 
-    is_chordal = isZeroFillIn(ordering) ? State::CHORDAL : State::NOT_CHORDAL;
+    is_chordal = isZeroFillIn(peo) ? State::CHORDAL : State::NOT_CHORDAL;
 }
 
 } /* namespace Koala */

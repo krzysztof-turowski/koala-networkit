@@ -68,13 +68,16 @@ public:
    virtual State getState() const;
 
    /**
-    * Verify the result found by the algorithm.
+    * Returns the Perfect Elimination Ordering (PEO) of the graph.
+    * @throw std::logic_error if the graph is not chordal.
+    * @return A valid Perfect Elimination Ordering.
     */
-   virtual void check() const;
+   virtual const PerfectEliminationOrdering& getPEO() const;
 
 protected:
    NetworKit::Graph graph;
    State is_chordal;
+   PerfectEliminationOrdering peo;
 };
 
 /**
