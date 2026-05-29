@@ -1,3 +1,6 @@
 text/**/* linguist-documentation
 input/**/* text eol=lf
 *.sh text eol=lf
+*.cpp text eol=lf
+*.hpp text eol=lf
+CMakeLists.txt text eol=lf
