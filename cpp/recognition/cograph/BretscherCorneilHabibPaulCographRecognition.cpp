@@ -4,7 +4,7 @@
  *  Created on: 21.04.2024
  *      Author: fixikmila
  */
- 
+
 #include <list>
 #include <vector>
 

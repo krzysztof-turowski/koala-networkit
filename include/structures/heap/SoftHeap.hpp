@@ -41,7 +41,8 @@ class SoftHeap {
     std::vector<T> corruptedElements();
     bool empty() { return elements <= 0; }
 
-    void assertValidState(std::size_t expectedElements, bool checkSize = true, bool checkMinSuf = true);
+    void assertValidState(
+        std::size_t expectedElements, bool checkSize = true, bool checkMinSuf = true);
     template<SoftHeapElement R>
     friend SoftHeap<R> meld(SoftHeap<R>&&, SoftHeap<R>&&);
 

@@ -40,7 +40,9 @@ class Cotree {
 
     void buildTree();
 
-    void setOrder(std::vector<std::pair<std::pair<NetworKit::count, NetworKit::count>, NetworKit::count> > a) {
+    void setOrder(
+            std::vector<std::pair<std::pair<
+            NetworKit::count, NetworKit::count>, NetworKit::count> > a) {
         order = a;
     }
 
