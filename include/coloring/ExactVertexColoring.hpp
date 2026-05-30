@@ -15,41 +15,28 @@
 #include <unordered_set>
 #include <vector>
 
-#include <networkit/base/Algorithm.hpp>
-#include <networkit/graph/Graph.hpp>
+#include <coloring/VertexColoring.hpp>
 
 namespace Koala {
 
-class EnumerationVertexColoring : public NetworKit::Algorithm {
+class EnumerationVertexColoring : public VertexColoring {
  public:
-    /**
-     * Given an input graph, set up the enumeration vertex coloring procedure.
-     *
-     * @param graph The input graph.
-     */
-    explicit EnumerationVertexColoring(const NetworKit::Graph& graph);
-
-    /**
-     * Return the coloring found by the algorithm.
-     *
-     * @return a map from nodes to colors.
-     */
-    const std::map<NetworKit::node, int> getColoring() const;
+    using VertexColoring::VertexColoring;
 
  protected:
-    const std::optional<NetworKit::Graph> graph;
     std::vector<NetworKit::node> ordering;
-    std::unordered_map<NetworKit::node, int> position;
-    std::vector<int> current_solution, best_solution;
-    std::vector<std::set<int>> feasible_colors;
-    std::set<int, std::greater<int>> current_predecessors;
-    int lower_bound, upper_bound, current_bound;
-    int r;
+    std::unordered_map<NetworKit::node, NetworKit::count> position;
+    std::vector<NetworKit::count> current_solution, best_solution;
+    std::vector<std::set<NetworKit::count>> feasible_colors;
+    std::set<NetworKit::count, std::greater<NetworKit::count>> current_predecessors;
+    NetworKit::count lower_bound, upper_bound, current_bound;
+    NetworKit::count r;
 
     void forwards();
     void backwards();
-    void determine_feasible_colors(int i);
-    virtual void determine_current_predecessors(int r) = 0;
+    void determine_feasible_colors(NetworKit::count i);
+    void store_coloring();
+    virtual void determine_current_predecessors(NetworKit::count r) = 0;
 };
 
 class BrownEnumerationVertexColoring : public EnumerationVertexColoring {
@@ -60,7 +47,7 @@ class BrownEnumerationVertexColoring : public EnumerationVertexColoring {
 
  protected:
     std::vector<NetworKit::node> greedy_largest_first_ordering();
-    void determine_current_predecessors(int r);
+    void determine_current_predecessors(NetworKit::count r);
 };
 
 class ChristofidesEnumerationVertexColoring : public BrownEnumerationVertexColoring {
@@ -74,7 +61,7 @@ class ChristofidesEnumerationVertexColoring : public BrownEnumerationVertexColor
     std::vector<std::vector<bool>> transitive_closure;
 
     void calculate_transitive_closure();
-    void determine_current_predecessors(int r);
+    void determine_current_predecessors(NetworKit::count r);
 };
 
 class BrelazEnumerationVertexColoring : public EnumerationVertexColoring {
@@ -86,12 +73,15 @@ class BrelazEnumerationVertexColoring : public EnumerationVertexColoring {
  protected:
     std::vector<NetworKit::node> saturation_largest_first_with_interchange();
     bool is_interchangeable(
-        std::vector<int>& K, NetworKit::node new_node, std::map<NetworKit::node, int>& solution);
+        std::vector<NetworKit::count>& K, NetworKit::node new_node,
+        std::map<NetworKit::node, NetworKit::count>& solution);
     std::vector<NetworKit::node> interchange_component(
-        std::vector<NetworKit::node>& subgraph, std::map<NetworKit::node, int>& solution,
-        NetworKit::node new_node, int alpha);
-    std::vector<int> get_representatives_of_adjacent_predecessors(int i);
-    void determine_current_predecessors(int r);
+        std::vector<NetworKit::node>& subgraph,
+        std::map<NetworKit::node, NetworKit::count>& solution,
+        NetworKit::node new_node, NetworKit::count alpha);
+    std::vector<NetworKit::count> get_representatives_of_adjacent_predecessors(
+        NetworKit::count i);
+    void determine_current_predecessors(NetworKit::count r);
     void backwards();
 };
 
@@ -102,12 +92,13 @@ class KormanEnumerationVertexColoring : public BrownEnumerationVertexColoring {
     void run();
 
  protected:
-    std::vector<int> new_ordering;
+    std::vector<NetworKit::count> new_ordering;
 
-    void dynamic_rearrangement(int i);
+    void dynamic_rearrangement(NetworKit::count i);
     void forwards();
     void backwards();
-    void determine_feasible_colors(int i, std::unordered_set<int> blocked_colors);
+    void determine_feasible_colors(
+        NetworKit::count i, std::unordered_set<NetworKit::count> blocked_colors);
 };
 
 } /* namespace Koala */

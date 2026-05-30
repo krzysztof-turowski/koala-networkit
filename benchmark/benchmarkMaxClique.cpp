@@ -1,9 +1,8 @@
 #include <iostream>
-#include <map>
 #include <set>
 #include <string>
 
-#include <io/G6GraphReader.hpp>
+#include <benchmark/utils.hpp>
 #include <clique/Clique.hpp>
 #include <clique/CographClique.hpp>
 #include <recognition/CographRecognition.hpp>
@@ -27,37 +26,16 @@ int run_algorithm(NetworKit::Graph &G) {
     return max_clique.size();
 }
 
-std::map<std::string, int> ALGORITHM = {
-    {"cograph", 0}
-};
-
 int main(int argc, const char *argv[]) {
-    if (argc != 3) {
-        std::cerr << "Usage: " << argv[0] << " <algorithm> <file>" << std::endl;
+    if (argc != 2) {
+        std::cerr << "Usage: " << argv[0] << " <file>" << std::endl;
         return 1;
     }
-    std::string path(argv[2]);
-    auto position = path.find_last_of(".");
-    if (path.substr(position + 1) == "g6") {
-        std::fstream file(path, std::fstream::in);
-        std::map<int, int> classification;
-        while (true) {
-            std::string line;
-            file >> line;
-            if (!file.good()) {
-                break;
-            }
-            NetworKit::Graph G = Koala::G6GraphReader().readline(line);
-            std::cout << line << " " << std::flush;
-            switch (ALGORITHM[std::string(argv[1])]) {
-                case 0:
-                    run_algorithm<Koala::CographMaxClique>(G);
-                    break;
-            }
-            std::cout << std::endl;
-        }
-    } else {
-        std::cerr << "File type not supported: " << path << std::endl;
-    }
+    Koala::Benchmark::executeForEachGraph(
+        argv[1], [](const std::string &label, NetworKit::Graph G) {
+        std::cout << label << " " << std::flush;
+        run_algorithm<Koala::CographMaxClique>(G);
+        std::cout << std::endl;
+    });
     return 0;
 }

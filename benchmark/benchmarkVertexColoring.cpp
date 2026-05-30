@@ -1,104 +1,154 @@
-#include <algorithm>
+#include <concepts>
 #include <cassert>
+
+#include <algorithm>
 #include <iostream>
 #include <map>
+#include <numeric>
 #include <set>
 #include <string>
 
+#include <benchmark/utils.hpp>
 #include <coloring/CographVertexColoring.hpp>
 #include <coloring/ExactVertexColoring.hpp>
 #include <coloring/GreedyVertexColoring.hpp>
 #include <coloring/PerfectGraphVertexColoring.hpp>
-#include <io/G6GraphReader.hpp>
 #include <recognition/CographRecognition.hpp>
+#include <recognition/PerfectGraphRecognition.hpp>
 
 template<typename T>
-int run_algorithm(NetworKit::Graph &G) {
-    std::map<NetworKit::node, int> colors;
-    if constexpr (std::is_same_v<T, Koala::CographVertexColoring>) {
-        auto recognition = Koala::HabibPaulCographRecognition(G);
-        recognition.run();
-        auto algorithm = T(G, recognition.cotree);
-        algorithm.run();
-        colors = algorithm.getColoring();
-    } else {
-        auto algorithm = T(G);
-        algorithm.run();
-        colors = algorithm.getColoring();
-    }
+NetworKit::count run_algorithm(NetworKit::Graph &G) {
+    auto algorithm = T(G);
+    algorithm.run();
+    auto colors = algorithm.getColoring();
 
-    G.forEdges([&](NetworKit::node u, NetworKit::node v) { assert(colors[u] != colors[v]); });
-    int max_color = 0;
-    for (const auto &[v, c] : colors) {
-        max_color = std::max(max_color, c);
-    }
+    algorithm.check();
+    auto max_color = algorithm.getMaximumColor();
     std::cout << max_color << " " << std::flush;
     return max_color;
 }
 
-std::map<std::string, int> ALGORITHM = {
-    { "exact", 0 },
-    { "RS", 1 }, { "LF", 2 }, { "SL", 3 }, { "SLF", 4 }, { "GIS", 5 },
-    { "Brown", 10 }, { "Christofides", 11 }, { "Brelaz", 12 }, { "Korman", 13 },
-    { "perfect", 20 }, { "cograph", 30}
+template<typename T>
+requires std::derived_from<T, Koala::CographVertexColoring>
+NetworKit::count run_algorithm(NetworKit::Graph &G) {
+    auto recognition = Koala::HabibPaulCographRecognition(G);
+    recognition.run();
+
+    if (!recognition.isCograph()) {
+        throw std::invalid_argument("Graph is not a cograph");
+    }
+    auto algorithm = T(G, recognition.cotree);
+    algorithm.run();
+    auto colors = algorithm.getColoring();
+
+    algorithm.check();
+    auto max_color = algorithm.getMaximumColor();
+    std::cout << max_color << " " << std::flush;
+    return max_color;
+}
+
+template<typename T>
+requires std::derived_from<T, Koala::PerfectGraphVertexColoring>
+NetworKit::count run_algorithm(NetworKit::Graph &G) {
+    auto recognition = Koala::PerfectGraphRecognition(G);
+    recognition.run();
+
+    if (recognition.getState() != Koala::PerfectGraphRecognition::State::PERFECT) {
+        throw std::invalid_argument("Graph is not perfect");
+    }
+    auto algorithm = T(G);
+    algorithm.run();
+    auto colors = algorithm.getColoring();
+
+    algorithm.check();
+    auto max_color = algorithm.getMaximumColor();
+    std::cout << max_color << " " << std::flush;
+    return max_color;
+}
+
+enum class Algorithm : uint32_t {
+    EXACT = 1,
+    RS, LF, SL, SLF, GIS,
+    BROWN = 10, CHRISTOFIDES, BRELAZ, KORMAN,
+    PERFECT = 100, COGRAPH
 };
 
+std::map<std::string, Algorithm> ALGORITHM = {
+    { "exact", Algorithm::EXACT },
+    { "RS", Algorithm::RS },
+    { "LF", Algorithm::LF },
+    { "SL", Algorithm::SL },
+    { "SLF", Algorithm::SLF },
+    { "GIS", Algorithm::GIS },
+    { "Brown", Algorithm::BROWN },
+    { "Christofides", Algorithm::CHRISTOFIDES },
+    { "Brelaz", Algorithm::BRELAZ },
+    { "Korman", Algorithm::KORMAN },
+    { "perfect", Algorithm::PERFECT },
+    { "cograph", Algorithm::COGRAPH }
+};
+
+void choose_algorithm(NetworKit::Graph &G, Algorithm algorithm) {
+    std::set<int> colors;
+    switch (algorithm) {
+    case Algorithm::EXACT:
+        colors.insert(run_algorithm<Koala::BrownEnumerationVertexColoring>(G));
+        colors.insert(run_algorithm<Koala::ChristofidesEnumerationVertexColoring>(G));
+        colors.insert(run_algorithm<Koala::BrelazEnumerationVertexColoring>(G));
+        colors.insert(run_algorithm<Koala::KormanEnumerationVertexColoring>(G));
+        assert(colors.size() == 1);
+        break;
+    case Algorithm::RS:
+        run_algorithm<Koala::RandomSequentialVertexColoring>(G);
+        break;
+    case Algorithm::LF:
+        run_algorithm<Koala::LargestFirstVertexColoring>(G);
+        break;
+    case Algorithm::SL:
+        run_algorithm<Koala::SmallestLastVertexColoring>(G);
+        break;
+    case Algorithm::SLF:
+        run_algorithm<Koala::SaturatedLargestFirstVertexColoring>(G);
+        break;
+    case Algorithm::GIS:
+        run_algorithm<Koala::GreedyIndependentSetVertexColoring>(G);
+        break;
+    case Algorithm::BROWN:
+        run_algorithm<Koala::BrownEnumerationVertexColoring>(G);
+        break;
+    case Algorithm::CHRISTOFIDES:
+        run_algorithm<Koala::ChristofidesEnumerationVertexColoring>(G);
+        break;
+    case Algorithm::BRELAZ:
+        run_algorithm<Koala::BrelazEnumerationVertexColoring>(G);
+        break;
+    case Algorithm::KORMAN:
+        run_algorithm<Koala::KormanEnumerationVertexColoring>(G);
+        break;
+    case Algorithm::PERFECT:
+        run_algorithm<Koala::PerfectGraphVertexColoring>(G);
+        break;
+    case Algorithm::COGRAPH:
+        run_algorithm<Koala::CographVertexColoring>(G);
+        break;
+    }
+}
+
 int main(int argc, char **argv) {
-    if (argc != 2) {
-        std::cerr << "Usage: " << argv[0] << " <algorithm>" << std::endl;
+    if (argc != 3) {
+        std::cerr << "Usage: " << argv[0] << " <algorithm> <file>" << std::endl;
         return 1;
     }
-    while (true) {
-        std::string line;
-        std::cin >> line;
-        if (!std::cin.good()) {
-            break;
-        }
-        NetworKit::Graph G = Koala::G6GraphReader().readline(line);
-        std::set<int> C;
-        std::cout << line << " " << std::flush;
-        switch (ALGORITHM[std::string(argv[1])]) {
-            case 0:
-                C.insert(run_algorithm<Koala::BrownEnumerationVertexColoring>(G));
-                C.insert(run_algorithm<Koala::ChristofidesEnumerationVertexColoring>(G));
-                C.insert(run_algorithm<Koala::BrelazEnumerationVertexColoring>(G));
-                C.insert(run_algorithm<Koala::KormanEnumerationVertexColoring>(G));
-                assert(C.size() == 1);
-                break;
-            case 1:
-                run_algorithm<Koala::RandomSequentialVertexColoring>(G);
-                break;
-            case 2:
-                run_algorithm<Koala::LargestFirstVertexColoring>(G);
-                break;
-            case 3:
-                run_algorithm<Koala::SmallestLastVertexColoring>(G);
-                break;
-            case 4:
-                run_algorithm<Koala::SaturatedLargestFirstVertexColoring>(G);
-                break;
-            case 5:
-                run_algorithm<Koala::GreedyIndependentSetVertexColoring>(G);
-                break;
-            case 10:
-                run_algorithm<Koala::BrownEnumerationVertexColoring>(G);
-                break;
-            case 11:
-                run_algorithm<Koala::ChristofidesEnumerationVertexColoring>(G);
-                break;
-            case 12:
-                run_algorithm<Koala::BrelazEnumerationVertexColoring>(G);
-                break;
-            case 13:
-                run_algorithm<Koala::KormanEnumerationVertexColoring>(G);
-                break;
-            case 20:
-                run_algorithm<Koala::PerfectGraphVertexColoring>(G);
-                break;
-            case 30:
-                run_algorithm<Koala::CographVertexColoring>(G);
-        }
-        std::cout << std::endl;
+    std::string algorithm_name(argv[1]);
+    auto algorithm = ALGORITHM.find(algorithm_name);
+    if (algorithm == ALGORITHM.end()) {
+        throw std::invalid_argument("Unknown algorithm: " + algorithm_name);
     }
+    Koala::Benchmark::executeForEachGraph(
+        argv[2], [&](const std::string &label, NetworKit::Graph G) {
+        std::cout << label << " " << std::flush;
+        choose_algorithm(G, algorithm->second);
+        std::cout << std::endl;
+    });
     return 0;
 }

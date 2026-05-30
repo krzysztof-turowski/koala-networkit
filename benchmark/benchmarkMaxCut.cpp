@@ -1,13 +1,9 @@
 #include <cassert>
-#include <fstream>
+#include <chrono>
 #include <iostream>
 #include <map>
-#include <set>
 
-#include <networkit/graph/GraphTools.hpp>
-
-#include <io/DimacsGraphReader.hpp>
-#include <io/G6GraphReader.hpp>
+#include <benchmark/utils.hpp>
 
 #include <max_cut/BranchAndBoundMaxCut.hpp>
 #include <max_cut/GoemansWilliamsonMaxCut.hpp>
@@ -28,68 +24,41 @@ std::pair<double, double> run_algorithm(NetworKit::Graph &G) {
     return {duration.count(), cutValue};
 }
 
-std::map<std::string, int> ALGORITHM = {
-    { "naive", 0 },
-    { "branchAndBound", 1 },
-    { "rankTwoRelaxation", 2 },
-    { "goemansWilliamson", 3 }
+enum class Algorithm : uint32_t {
+    NAIVE, BRANCH_AND_BOUND, RANK_TWO_RELAXATION, GOEMANS_WILLIAMSON
 };
 
-void process_graph(NetworKit::Graph &G, const std::string &algorithm) {
+std::map<std::string, Algorithm> ALGORITHM = {
+    { "naive", Algorithm::NAIVE },
+    { "branchAndBound", Algorithm::BRANCH_AND_BOUND },
+    { "rankTwoRelaxation", Algorithm::RANK_TWO_RELAXATION },
+    { "goemansWilliamson", Algorithm::GOEMANS_WILLIAMSON }
+};
+
+void process_graph(NetworKit::Graph &G, const std::string &algorithm_name, Algorithm algorithm) {
     std::pair<double, double> result;
 
-    auto it = ALGORITHM.find(algorithm);
-    if (it == ALGORITHM.end()) {
-        std::cerr << "Unknown algorithm: " << algorithm << std::endl;
-        return;
-    }
-
-    switch (it->second) {
-    case 0:
+    switch (algorithm) {
+    case Algorithm::NAIVE:
         result = run_algorithm<Koala::NaiveMaxCut>(G);
         break;
-    case 1:
+    case Algorithm::BRANCH_AND_BOUND:
         result = run_algorithm<Koala::BranchAndBoundMaxCut>(G);
         break;
-    case 2:
+    case Algorithm::RANK_TWO_RELAXATION:
         result = run_algorithm<Koala::RankTwoRelaxationMaxCut>(G);
         break;
-    case 3:
+    case Algorithm::GOEMANS_WILLIAMSON:
         result = run_algorithm<Koala::GoemansWilliamsonMaxCut>(G);
         break;
-    default:
-        std::cerr << "Unknown algorithm: " << algorithm << std::endl;
-        return;
     }
 
     double duration = result.first;
     double cutValue = result.second;
 
-    std::cout << "Algorithm: " << algorithm << " "
+    std::cout << "Algorithm: " << algorithm_name << " "
               << "Time: " << duration << "s "
               << "Cut_Value: " << cutValue << std::endl;
-}
-
-void run_g6_tests(const std::string &algorithm) {
-    while (true) {
-        std::string line;
-        std::cin >> line;
-        if (!std::cin.good()) {
-            break;
-        }
-        NetworKit::Graph G = Koala::G6GraphReader().read(line);
-        std::cout << line << " " << std::flush;
-
-        process_graph(G, algorithm);
-    }
-}
-
-void run_dimacs_tests(const std::string &path, const std::string &algorithm) {
-    auto G = Koala::DimacsGraphReader().read(path);
-
-    std::cout << path << " " << std::flush;
-
-    process_graph(G, algorithm);
 }
 
 int main(int argc, const char *argv[]) {
@@ -98,19 +67,15 @@ int main(int argc, const char *argv[]) {
         return 1;
     }
 
-    std::string algorithm(argv[1]);
-    std::string path(argv[2]);
-    auto position = path.find_last_of(".");
-    std::string ext = path.substr(position + 1);
-
-    if (ext == "g6") {
-        run_g6_tests(algorithm);
-    } else if (ext == "gr") {
-        run_dimacs_tests(path, algorithm);
-    } else {
-        std::cerr << "File type not supported: " << path << std::endl;
-        return 1;
+    std::string algorithm_name(argv[1]);
+    auto algorithm = ALGORITHM.find(algorithm_name);
+    if (algorithm == ALGORITHM.end()) {
+        throw std::invalid_argument("Unknown algorithm: " + algorithm_name);
     }
-
+    Koala::Benchmark::executeForEachGraph(
+        argv[2], [&](const std::string &label, NetworKit::Graph G) {
+        std::cout << label << " " << std::flush;
+        process_graph(G, algorithm_name, algorithm->second);
+    });
     return 0;
 }

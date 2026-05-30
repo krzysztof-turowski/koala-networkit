@@ -22,19 +22,11 @@
 
 namespace Koala {
 
-EnumerationVertexColoring::EnumerationVertexColoring(const NetworKit::Graph& graph)
-    : graph(std::make_optional(graph)) {
-}
-
-const std::map<NetworKit::node, int> EnumerationVertexColoring::getColoring() const {
-    assureFinished();
-    std::map<NetworKit::node, int> final_coloring;
-    if (final_coloring.empty()) {
-        for (NetworKit::count i = 0; i < graph->numberOfNodes(); ++i) {
-            final_coloring[ordering[i]] = best_solution[i];
-        }
+void EnumerationVertexColoring::store_coloring() {
+    colors.clear();
+    for (NetworKit::count i = 0; i < graph->numberOfNodes(); ++i) {
+        colors[ordering[i]] = best_solution[i];
     }
-    return final_coloring;
 }
 
 void EnumerationVertexColoring::forwards() {
@@ -50,7 +42,7 @@ void EnumerationVertexColoring::forwards() {
     }
     best_solution = current_solution;
     NetworKit::node maximal_color_index = NetworKit::none;
-    int maximal_color = 0;
+    NetworKit::count maximal_color = 0;
     for (NetworKit::count i = 0; i < graph->numberOfNodes(); ++i) {
         if (current_solution[i] > maximal_color) {
             maximal_color_index = i, maximal_color = current_solution[i];
@@ -62,7 +54,7 @@ void EnumerationVertexColoring::forwards() {
 void EnumerationVertexColoring::backwards() {
     determine_current_predecessors(r);
     while (!current_predecessors.empty()) {
-        int i = *current_predecessors.begin();
+        NetworKit::count i = *current_predecessors.begin();
         current_predecessors.erase(i);
         feasible_colors[i].erase(current_solution[i]);
         if (!feasible_colors[i].empty() && *(feasible_colors[i]).begin() < current_bound) {
@@ -73,20 +65,20 @@ void EnumerationVertexColoring::backwards() {
     r = 0;
 }
 
-void EnumerationVertexColoring::determine_feasible_colors(int i) {
-    std::set<int> feasible_colors_for_node;
-    int current_maximal_color = 0;
-    for (int j = 0; j < i; ++j) {
+void EnumerationVertexColoring::determine_feasible_colors(NetworKit::count i) {
+    std::set<NetworKit::count> feasible_colors_for_node;
+    NetworKit::count current_maximal_color = 0;
+    for (NetworKit::count j = 0; j < i; ++j) {
         if (current_maximal_color < current_solution[j]) {
             current_maximal_color = current_solution[j];
         }
     }
-    for (int j = 1; j <= current_maximal_color + 1; ++j) {
+    for (NetworKit::count j = 1; j <= current_maximal_color + 1; ++j) {
         if (j >= current_bound)
             break;
         feasible_colors_for_node.insert(j);
     }
-    for (int j = 0; j < i; ++j) {
+    for (NetworKit::count j = 0; j < i; ++j) {
         if (graph->hasEdge(ordering[i], ordering[j])) {
             feasible_colors_for_node.erase(current_solution[j]);
         }
@@ -97,7 +89,7 @@ void EnumerationVertexColoring::determine_feasible_colors(int i) {
 std::vector<NetworKit::node> BrownEnumerationVertexColoring::greedy_largest_first_ordering() {
     std::unordered_set<NetworKit::node> already_ordered;
     std::vector<NetworKit::node> ordering;
-    std::map<NetworKit::node, int> number_of_neighbours_in_ordering;
+    std::map<NetworKit::node, NetworKit::count> number_of_neighbours_in_ordering;
     auto compare = [](const auto& a, const auto& b) {
         if (std::get<0>(a) == std::get<0>(b)) {
             if (std::get<1>(a) == std::get<1>(b)) {
@@ -107,13 +99,13 @@ std::vector<NetworKit::node> BrownEnumerationVertexColoring::greedy_largest_firs
         }
         return std::get<0>(a) > std::get<0>(b);
     };
-    std::set<std::tuple<int, int, NetworKit::node>, decltype(compare)>
+    std::set<std::tuple<NetworKit::count, NetworKit::count, NetworKit::node>, decltype(compare)>
         neighbours_in_ordering_queue;
     NetworKit::node current_node;
 
     NetworKit::node max_degree_node = [](const NetworKit::Graph& graph) {
         NetworKit::node max_degree_node = 0;
-        unsigned int max_degree = 0;
+        NetworKit::count max_degree = 0;
         graph.forNodes([&](NetworKit::node u) {
             if (graph.degree(u) > max_degree) {
                 max_degree = graph.degree(u);
@@ -154,9 +146,9 @@ std::vector<NetworKit::node> BrownEnumerationVertexColoring::greedy_largest_firs
     return ordering;
 }
 
-void BrownEnumerationVertexColoring::determine_current_predecessors(int r) {
-    current_predecessors = std::set<int, std::greater<int>>();
-    for (int i = 0; i < r; ++i) {
+void BrownEnumerationVertexColoring::determine_current_predecessors(NetworKit::count r) {
+    current_predecessors = std::set<NetworKit::count, std::greater<NetworKit::count>>();
+    for (NetworKit::count i = 0; i < r; ++i) {
         current_predecessors.insert(i);
     }
 }
@@ -180,6 +172,7 @@ void BrownEnumerationVertexColoring::run() {
             break;
         }
     }
+    store_coloring();
     hasRun = true;
 }
 
@@ -209,7 +202,7 @@ void ChristofidesEnumerationVertexColoring::calculate_transitive_closure() {
     }
 }
 
-void ChristofidesEnumerationVertexColoring::determine_current_predecessors(int r) {
+void ChristofidesEnumerationVertexColoring::determine_current_predecessors(NetworKit::count r) {
     for (NetworKit::count u = 0; u < graph->numberOfNodes(); ++u) {
         if (transitive_closure[u][r]) {
             current_predecessors.insert(u);
@@ -246,19 +239,21 @@ void ChristofidesEnumerationVertexColoring::run() {
         }
     }
 
+    store_coloring();
     hasRun = true;
 }
 
 std::vector<NetworKit::node> BrelazEnumerationVertexColoring::interchange_component(
-        std::vector<NetworKit::node>& scurrent_boundgraph, std::map<NetworKit::node, int>& solution,
-        NetworKit::node new_node, int alpha) {
+        std::vector<NetworKit::node>& scurrent_boundgraph,
+        std::map<NetworKit::node, NetworKit::count>& solution,
+        NetworKit::node new_node, NetworKit::count alpha) {
     std::unordered_set<NetworKit::node> visited;
     std::vector<NetworKit::node> verticesToRecolor;
     for (NetworKit::node u : scurrent_boundgraph) {
         if (visited.find(u) == visited.end()) {
             std::vector<NetworKit::node> component;
             std::queue<NetworKit::node> queue;
-            std::unordered_set<int> neighborsColors;
+            std::unordered_set<NetworKit::count> neighborsColors;
             queue.push(u);
             visited.insert(u);
             while (!queue.empty()) {
@@ -289,9 +284,10 @@ std::vector<NetworKit::node> BrelazEnumerationVertexColoring::interchange_compon
 }
 
 bool BrelazEnumerationVertexColoring::is_interchangeable(
-        std::vector<int>& K, NetworKit::node new_node, std::map<NetworKit::node, int>& solution) {
-    for (int alpha : K) {
-        for (int beta : K) {
+        std::vector<NetworKit::count>& K, NetworKit::node new_node,
+        std::map<NetworKit::node, NetworKit::count>& solution) {
+    for (NetworKit::count alpha : K) {
+        for (NetworKit::count beta : K) {
             if (alpha == beta) {
                 break;
             }
@@ -317,7 +313,7 @@ bool BrelazEnumerationVertexColoring::is_interchangeable(
 
 std::vector<NetworKit::node>
 BrelazEnumerationVertexColoring::saturation_largest_first_with_interchange() {
-    std::map<NetworKit::node, int> solution;
+    std::map<NetworKit::node, NetworKit::count> solution;
     std::vector<NetworKit::node> ordering;
     NetworKit::node max_degree_node = 0;
     NetworKit::count max_degree = 0;
@@ -343,9 +339,10 @@ BrelazEnumerationVertexColoring::saturation_largest_first_with_interchange() {
     };
 
     auto saturation =
-        std::set<std::tuple<int, int, NetworKit::node>, decltype(satur_comp)>(satur_comp);
+        std::set<std::tuple<NetworKit::count, NetworKit::count, NetworKit::node>,
+                 decltype(satur_comp)>(satur_comp);
 
-    std::unordered_map<NetworKit::node, std::unordered_set<int>> neighbours_colors;
+    std::unordered_map<NetworKit::node, std::unordered_set<NetworKit::count>> neighbours_colors;
     graph->forNodes([&](NetworKit::node u) {
         if (u != max_degree_node) {
             if (graph->hasEdge(max_degree_node, u)) {
@@ -357,16 +354,17 @@ BrelazEnumerationVertexColoring::saturation_largest_first_with_interchange() {
         }
     });
 
-    int max_color = 1, max_clique_size = 0;
+    NetworKit::count max_color = 1, max_clique_size = 0;
     while (solution.size() < graph->numberOfNodes()) {
         auto max_saturation = saturation.begin();
         NetworKit::node u = std::get<2>(*max_saturation);
         saturation.erase(max_saturation);
         ordering.push_back(u);
 
-        int first_valid_color = 1;
-        std::set<int> forbidden_colors;
-        std::vector<std::pair<int, std::vector<NetworKit::node>>> neighbours_color_count;
+        NetworKit::count first_valid_color = 1;
+        std::set<NetworKit::count> forbidden_colors;
+        std::vector<std::pair<NetworKit::count, std::vector<NetworKit::node>>>
+            neighbours_color_count;
         neighbours_color_count.resize(max_color + 1);
         graph->forNeighborsOf(u, [&](NetworKit::node v) {
             if (solution.find(v) != solution.end()) {
@@ -387,8 +385,8 @@ BrelazEnumerationVertexColoring::saturation_largest_first_with_interchange() {
                 max_clique_size = max_color;
             }
         } else {
-            std::vector<int> K;
-            for (int i = 1; i <= max_color; ++i) {
+            std::vector<NetworKit::count> K;
+            for (NetworKit::count i = 1; i <= max_color; ++i) {
                 if (neighbours_color_count[i].first == 1) {
                     K.push_back(i);
                 }
@@ -402,7 +400,7 @@ BrelazEnumerationVertexColoring::saturation_largest_first_with_interchange() {
                 }
             }
         }
-        std::vector<std::tuple<int, int, NetworKit::node>> temp_satur;
+        std::vector<std::tuple<NetworKit::count, NetworKit::count, NetworKit::node>> temp_satur;
         for (const auto& [saturation_degree, degree, node] : saturation) {
             if (graph->hasEdge(u, node)) {
                 neighbours_colors[node].insert(solution[u]);
@@ -423,10 +421,11 @@ BrelazEnumerationVertexColoring::saturation_largest_first_with_interchange() {
     return ordering;
 }
 
-std::vector<int> BrelazEnumerationVertexColoring::get_representatives_of_adjacent_predecessors(
-        int i) {
-    std::vector<int> representatives(current_bound, INT_MAX);
-    for (int j = 0; j < i; ++j) {
+std::vector<NetworKit::count>
+BrelazEnumerationVertexColoring::get_representatives_of_adjacent_predecessors(
+        NetworKit::count i) {
+    std::vector<NetworKit::count> representatives(current_bound, NetworKit::none);
+    for (NetworKit::count j = 0; j < i; ++j) {
         if (graph->hasEdge(ordering[j], ordering[i]) && current_solution[j] < current_bound) {
             if (representatives[current_solution[j]] > j) {
                 representatives[current_solution[j]] = j;
@@ -436,10 +435,10 @@ std::vector<int> BrelazEnumerationVertexColoring::get_representatives_of_adjacen
     return representatives;
 }
 
-void BrelazEnumerationVertexColoring::determine_current_predecessors(int r) {
+void BrelazEnumerationVertexColoring::determine_current_predecessors(NetworKit::count r) {
     auto representatives = get_representatives_of_adjacent_predecessors(r);
-    for (int representative : representatives) {
-        if (representative < INT_MAX) {
+    for (NetworKit::count representative : representatives) {
+        if (representative != NetworKit::none) {
             current_predecessors.insert(representative);
         }
     }
@@ -448,7 +447,7 @@ void BrelazEnumerationVertexColoring::determine_current_predecessors(int r) {
 void BrelazEnumerationVertexColoring::backwards() {
     determine_current_predecessors(r);
     while (!current_predecessors.empty()) {
-        int i = *current_predecessors.begin();
+        NetworKit::count i = *current_predecessors.begin();
         current_predecessors.erase(i);
         determine_current_predecessors(i);
         feasible_colors[i].erase(current_solution[i]);
@@ -484,15 +483,16 @@ void BrelazEnumerationVertexColoring::run() {
             }
         }
     }
+    store_coloring();
     hasRun = true;
 }
 
 void KormanEnumerationVertexColoring::forwards() {
     std::vector<bool> is_colored(graph->numberOfNodes(), false);
-    std::vector<std::unordered_set<int>> neighbour_colors(graph->numberOfNodes());
+    std::vector<std::unordered_set<NetworKit::count>> neighbour_colors(graph->numberOfNodes());
     Aux::BucketPQ queue(graph->numberOfNodes(), -graph->numberOfNodes() + 1, 0);
 
-    for (int i : new_ordering) {
+    for (NetworKit::count i : new_ordering) {
         is_colored[i] = true;
         graph->forNeighborsOf(ordering[i], [&](NetworKit::node v) {
             auto j = position[v];
@@ -533,8 +533,8 @@ void KormanEnumerationVertexColoring::forwards() {
     }
 
     best_solution = current_solution;
-    int maximal_color = 0;
-    int maximal_color_index = -1;
+    NetworKit::count maximal_color = 0;
+    NetworKit::count maximal_color_index = NetworKit::none;
     for (NetworKit::count i = 0; i < graph->numberOfNodes(); ++i) {
         if (best_solution[new_ordering[i]] > maximal_color) {
             maximal_color = best_solution[new_ordering[i]];
@@ -546,7 +546,7 @@ void KormanEnumerationVertexColoring::forwards() {
 }
 
 void KormanEnumerationVertexColoring::backwards() {
-    for (auto i = r - 1; i >= 0; i--) {
+    for (NetworKit::count i = r; i-- > 0;) {
         feasible_colors[new_ordering[i]].erase(current_solution[new_ordering[i]]);
         if (!feasible_colors[new_ordering[i]].empty()) {
             if (*feasible_colors[new_ordering[i]].begin() < current_bound) {
@@ -562,17 +562,17 @@ void KormanEnumerationVertexColoring::backwards() {
 }
 
 void KormanEnumerationVertexColoring::determine_feasible_colors(
-        int i, std::unordered_set<int> blocked_colors) {
-    std::set<int> feasible_colors_for_node;
-    int current_maximal_color = 0;
+        NetworKit::count i, std::unordered_set<NetworKit::count> blocked_colors) {
+    std::set<NetworKit::count> feasible_colors_for_node;
+    NetworKit::count current_maximal_color = 0;
 
-    for (int j = 0; j < i; ++j) {
+    for (NetworKit::count j = 0; j < i; ++j) {
         if (current_maximal_color < current_solution[new_ordering[j]]) {
             current_maximal_color = current_solution[new_ordering[j]];
         }
     }
 
-    for (int j = 1; j <= current_maximal_color + 1; ++j) {
+    for (NetworKit::count j = 1; j <= current_maximal_color + 1; ++j) {
         if (j >= current_bound)
             break;
         if (blocked_colors.find(j) == blocked_colors.end()) {
@@ -612,6 +612,7 @@ void KormanEnumerationVertexColoring::run() {
             break;
         }
     }
+    store_coloring();
     hasRun = true;
 }
 

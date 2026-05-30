@@ -7,13 +7,22 @@
 #include <utility>
 #include <vector>
 
-#include <io/DimacsGraphReader.hpp>
+#include <benchmark/utils.hpp>
 #include <matching/MaximumMatching.hpp>
 
 enum OutputFormat { weight, csv };
+enum class Algorithm : uint32_t { EDMONDS, GABOW, MICALI, SCALING };
+
+std::map<std::string, Algorithm> ALGORITHM = {
+    { "edmonds", Algorithm::EDMONDS },
+    { "gabow", Algorithm::GABOW },
+    { "micali", Algorithm::MICALI },
+    { "scaling", Algorithm::SCALING }
+};
 
 struct Arguments {
-    std::string algorithm;
+    std::string algorithmName;
+    Algorithm algorithm;
     std::string filename;
     bool perfect;
     bool checkPerfect;
@@ -37,7 +46,13 @@ Arguments parseArguments(int argc, char**argv) {
     Arguments args;
 
     // Read algorithm and file name
-    args.algorithm = all_args[0];
+    args.algorithmName = all_args[0];
+    auto algorithm = ALGORITHM.find(args.algorithmName);
+    if (algorithm == ALGORITHM.end()) {
+        std::cout << "Unknown algorithm: " << args.algorithmName << std::endl;
+        exit(1);
+    }
+    args.algorithm = algorithm->second;
     args.filename = all_args[1];
 
     // Check if the file exists
@@ -99,18 +114,17 @@ bool check_matching_perfect(NetworKit::Graph& G) {
 }
 
 Koala::MaximumWeightMatching* get_algorithm(NetworKit::Graph& G, const Arguments& args) {
-    if (args.algorithm == "edmonds") {
+    switch (args.algorithm) {
+    case Algorithm::EDMONDS:
         return new Koala::EdmondsMaximumMatching(G, args.perfect, args.initialization);
-    } else if (args.algorithm == "gabow") {
+    case Algorithm::GABOW:
         return new Koala::GabowMaximumMatching(G, args.perfect, args.initialization);
-    } else if (args.algorithm == "micali") {
+    case Algorithm::MICALI:
         return new Koala::GalilMicaliGabowMaximumMatching(G, args.perfect, args.initialization);
-    } else if (args.algorithm == "scaling") {
+    case Algorithm::SCALING:
         return new Koala::GabowScalingMatching(G, args.perfect);
-    } else {
-        std::cout << "Unknown algorithm: " << args.algorithm << std::endl;
-        exit(1);
     }
+    throw std::logic_error("Unhandled algorithm");
 }
 
 std::pair<int64_t, int> calc_matching_weight(
@@ -126,7 +140,7 @@ std::pair<int64_t, int> calc_matching_weight(
     return {weight / 2, cardinality / 2};
 }
 
-void test_algorithm(NetworKit::Graph& G, Arguments args) {
+void test_algorithm(const std::string &label, NetworKit::Graph& G, const Arguments &args) {
     auto start = std::chrono::high_resolution_clock::now();
     auto algorithm = get_algorithm(G, args);
     algorithm->run();
@@ -142,10 +156,10 @@ void test_algorithm(NetworKit::Graph& G, Arguments args) {
         std::cout << weight << std::endl;
     } else {
         std::cout
-            << args.filename << ","
+            << label << ","
             << G.upperNodeIdBound() << ","
             << G.upperEdgeIdBound() << ","
-            << args.algorithm << ","
+            << args.algorithmName << ","
             << (args.perfect ? "perfect" : "weight") << ","
             << (args.initialization == Koala::BlossomMaximumMatching::InitializationStrategy::empty
                 ? "empty" : "greedy") << ","
@@ -162,18 +176,14 @@ int main(int argc, char **argv) {
     // Parse options
     auto args = parseArguments(argc, argv);
 
-    // Read graph in
-    auto G = Koala::DimacsGraphReader().read(args.filename);
-    G.indexEdges(true);
-
-    // Check if G has a perfect matching if needed
-    if (args.perfect && args.checkPerfect && !check_matching_perfect(G)) {
-        std::cout << "The provided graph does not contain a perfect matching" << std::endl;
-        exit(1);
-    }
-
-    // Run algorithm
-    test_algorithm(G, args);
+    Koala::Benchmark::executeForEachGraph(
+        args.filename, [&](const std::string &label, NetworKit::Graph G) {
+        G.indexEdges(true);
+        if (args.perfect && args.checkPerfect && !check_matching_perfect(G)) {
+            throw std::invalid_argument("The provided graph does not contain a perfect matching");
+        }
+        test_algorithm(label, G, args);
+    });
 
     return 0;
 }

@@ -4,8 +4,8 @@
 #include <set>
 #include <string>
 
+#include <benchmark/utils.hpp>
 #include <dominating_set/ExactDominatingSet.hpp>
-#include <io/G6GraphReader.hpp>
 #include <set_cover/BranchAndReduceSetCover.hpp>
 
 template <typename T>
@@ -18,55 +18,64 @@ int run_algorithm(NetworKit::Graph &G) {
     return dominating_set.size();
 }
 
-std::map<std::string, int> ALGORITHM = {
-    { "exact", 0 },
-    { "FKW", 1 }, { "Schiermeyer", 2 }, { "Grandoni", 3 }, { "FGK", 4 }, { "Rooij", 5 }
+enum class Algorithm : uint32_t { EXACT, FKW, SCHIERMEYER, GRANDONI, FGK, ROOIJ };
+
+std::map<std::string, Algorithm> ALGORITHM = {
+    { "exact", Algorithm::EXACT },
+    { "FKW", Algorithm::FKW },
+    { "Schiermeyer", Algorithm::SCHIERMEYER },
+    { "Grandoni", Algorithm::GRANDONI },
+    { "FGK", Algorithm::FGK },
+    { "Rooij", Algorithm::ROOIJ }
 };
 
+void choose_algorithm(NetworKit::Graph &G, Algorithm algorithm) {
+    std::set<int> dominating_sets;
+    switch (algorithm) {
+    case Algorithm::EXACT:
+        dominating_sets.insert(run_algorithm<Koala::FominKratschWoegingerDominatingSet>(G));
+        dominating_sets.insert(run_algorithm<Koala::SchiermeyerDominatingSet>(G));
+        dominating_sets.insert(
+            run_algorithm<Koala::BranchAndReduceDominatingSet<Koala::GrandoniSetCover>>(G));
+        dominating_sets.insert(run_algorithm<
+            Koala::BranchAndReduceDominatingSet<Koala::FominGrandoniKratschSetCover>>(G));
+        dominating_sets.insert(run_algorithm<
+            Koala::BranchAndReduceDominatingSet<Koala::RooijBodlaenderSetCover>>(G));
+        assert(dominating_sets.size() == 1);
+        break;
+    case Algorithm::FKW:
+        run_algorithm<Koala::FominKratschWoegingerDominatingSet>(G);
+        break;
+    case Algorithm::SCHIERMEYER:
+        run_algorithm<Koala::SchiermeyerDominatingSet>(G);
+        break;
+    case Algorithm::GRANDONI:
+        run_algorithm<Koala::BranchAndReduceDominatingSet<Koala::GrandoniSetCover>>(G);
+        break;
+    case Algorithm::FGK:
+        run_algorithm<Koala::BranchAndReduceDominatingSet<Koala::FominGrandoniKratschSetCover>>(G);
+        break;
+    case Algorithm::ROOIJ:
+        run_algorithm<Koala::BranchAndReduceDominatingSet<Koala::RooijBodlaenderSetCover>>(G);
+        break;
+    }
+}
+
 int main(int argc, char **argv) {
-    if (argc != 2) {
-        std::cerr << "Usage: " << argv[0] << " <algorithm>" << std::endl;
+    if (argc != 3) {
+        std::cerr << "Usage: " << argv[0] << " <algorithm> <file>" << std::endl;
         return 1;
     }
-    while (true) {
-        std::string line;
-        std::cin >> line;
-        if (!std::cin.good()) {
-            break;
-        }
-        NetworKit::Graph G = Koala::G6GraphReader().readline(line);
-        std::set<int> D;
-        std::cout << line << " " << std::flush;
-        switch (ALGORITHM[std::string(argv[1])]) {
-        case 0:
-            D.insert(run_algorithm<Koala::FominKratschWoegingerDominatingSet>(G));
-            D.insert(run_algorithm<Koala::SchiermeyerDominatingSet>(G));
-            D.insert(run_algorithm<
-                Koala::BranchAndReduceDominatingSet<Koala::GrandoniSetCover>>(G));
-            D.insert(run_algorithm<
-                Koala::BranchAndReduceDominatingSet<Koala::FominGrandoniKratschSetCover>>(G));
-            D.insert(run_algorithm<
-                Koala::BranchAndReduceDominatingSet<Koala::RooijBodlaenderSetCover>>(G));
-            assert(D.size() == 1);
-            break;
-        case 1:
-            run_algorithm<Koala::FominKratschWoegingerDominatingSet>(G);
-            break;
-        case 2:
-            run_algorithm<Koala::SchiermeyerDominatingSet>(G);
-            break;
-        case 3:
-            run_algorithm<Koala::BranchAndReduceDominatingSet<Koala::GrandoniSetCover>>(G);
-            break;
-        case 4:
-            run_algorithm<
-                Koala::BranchAndReduceDominatingSet<Koala::FominGrandoniKratschSetCover>>(G);
-            break;
-        case 5:
-            run_algorithm<Koala::BranchAndReduceDominatingSet<Koala::RooijBodlaenderSetCover>>(G);
-            break;
-        }
-        std::cout << std::endl;
+    std::string algorithm_name(argv[1]);
+    auto algorithm = ALGORITHM.find(algorithm_name);
+    if (algorithm == ALGORITHM.end()) {
+        throw std::invalid_argument("Unknown algorithm: " + algorithm_name);
     }
+    Koala::Benchmark::executeForEachGraph(
+        argv[2], [&](const std::string &label, NetworKit::Graph G) {
+        std::cout << label << " " << std::flush;
+        choose_algorithm(G, algorithm->second);
+        std::cout << std::endl;
+    });
     return 0;
 }

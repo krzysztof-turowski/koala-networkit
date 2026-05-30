@@ -24,7 +24,8 @@ class GreedyVertexColoring : public VertexColoring {
     using VertexColoring::VertexColoring;
 
  protected:
-    [[maybe_unused]] std::map<NetworKit::node, int>::iterator greedy_color(NetworKit::node v);
+    [[maybe_unused]] std::map<NetworKit::node, NetworKit::count>::iterator greedy_color(
+        NetworKit::node v);
 };
 
 /**

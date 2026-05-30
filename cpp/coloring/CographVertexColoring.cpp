@@ -66,12 +66,12 @@ void CographVertexColoring::end_of_coloring() {
 void CographVertexColoring::run() {
     hasRun = true;
     NetworKit::count n = graph->numberOfNodes();
-    color.resize(2 * n + 1, 0);
-    number_of_colors.resize(2 * n + 1, 0);
-    used.resize(2 * n + 1, false);
+    color.assign(2 * n + 1, 0);
+    number_of_colors.assign(2 * n + 1, 0);
+    used.assign(2 * n + 1, false);
     st.push(n);
     subtree_colors();
-    used.resize(2 * n + 1, false);
+    used.assign(2 * n + 1, false);
     st.push(n);
     end_of_coloring();
     for (const auto &u : graph->nodeRange()) {
@@ -83,7 +83,7 @@ bool CographVertexColoring::checkColoring() {
     auto &colors = getColoring();
     for (const auto &u : graph->nodeRange()) {
         for (const auto &v : graph->neighborRange(u)) {
-            if (colors[u] == colors[v]) {
+            if (colors.at(u) == colors.at(v)) {
                 return false;
             }
         }

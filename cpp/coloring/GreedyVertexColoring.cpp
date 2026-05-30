@@ -17,8 +17,9 @@
 
 namespace Koala {
 
-std::map<NetworKit::node, int>::iterator GreedyVertexColoring::greedy_color(NetworKit::node v) {
-    std::map<NetworKit::node, int>::iterator first(colors.find(v));
+std::map<NetworKit::node, NetworKit::count>::iterator GreedyVertexColoring::greedy_color(
+        NetworKit::node v) {
+    std::map<NetworKit::node, NetworKit::count>::iterator first(colors.find(v));
     if (first != colors.end()) {
         return first;
     }
@@ -27,7 +28,7 @@ std::map<NetworKit::node, int>::iterator GreedyVertexColoring::greedy_color(Netw
     std::vector<bool> forbidden(max_color, false);
     forbidden[0] = true;
     graph->forInNeighborsOf(v, [&](NetworKit::node u) {
-        std::map<NetworKit::node, int>::iterator second(colors.find(u));
+        std::map<NetworKit::node, NetworKit::count>::iterator second(colors.find(u));
         if (second != colors.end()) {
             int color = second->second;
             if (color < max_color) {

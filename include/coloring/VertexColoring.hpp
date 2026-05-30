@@ -27,18 +27,30 @@ class VertexColoring : public NetworKit::Algorithm {
      *
      * @param graph The input graph.
      */
-    explicit VertexColoring(NetworKit::Graph &graph);
+    explicit VertexColoring(const NetworKit::Graph &graph);
 
     /**
      * Return the coloring found by the algorithm.
      *
      * @return a map from nodes to colors.
      */
-    const std::map<NetworKit::node, int>& getColoring() const;
+    const std::map<NetworKit::node, NetworKit::count>& getColoring() const;
+
+    /**
+     * Return the coloring found by the algorithm.
+     *
+     * @return a maximum color.
+     */
+    NetworKit::count getMaximumColor() const;
+
+    /**
+     * Verify the coloring found by the algorithm.
+     */
+    void check() const;
 
  protected:
     std::optional<NetworKit::Graph> graph;
-    std::map<NetworKit::node, int> colors;
+    std::map<NetworKit::node, NetworKit::count> colors;
 };
 
 } /* namespace Koala */

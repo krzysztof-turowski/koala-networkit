@@ -11,8 +11,7 @@
 
 #include <networkit/graph/Graph.hpp>
 
-#include <io/DimacsGraphReader.hpp>
-
+#include <benchmark/utils.hpp>
 #include "structures/PriorityQueue.hpp"
 #include "structures/heap/RankPairingHeap.hpp"
 #include "structures/heap/SkewHeap.hpp"
@@ -87,42 +86,37 @@ class Dijkstra {
     }
 };
 
-std::map<std::string, int> QUEUE_TYPE = {
-    { "rank_pairing_heap", 0 },
-    { "skew_heap", 1 },
-    { "weak_heap", 2 }
+enum class Algorithm : uint32_t { RANK_PAIRING_HEAP, SKEW_HEAP, WEAK_HEAP };
+
+std::map<std::string, Algorithm> ALGORITHM = {
+    { "rank_pairing_heap", Algorithm::RANK_PAIRING_HEAP },
+    { "skew_heap", Algorithm::SKEW_HEAP },
+    { "weak_heap", Algorithm::WEAK_HEAP }
 };
 
-void runDijkstra(NetworKit::Graph& G, NetworKit::node source, const std::string& queueType) {
+void runDijkstra(
+        NetworKit::Graph& G, NetworKit::node source, const std::string& algorithm_name,
+        Algorithm algorithm) {
     auto start = std::chrono::high_resolution_clock::now();
 
     Dijkstra dijkstra(G, source);
 
-    auto it = QUEUE_TYPE.find(queueType);
-    if (it == QUEUE_TYPE.end()) {
-        std::cerr << "Unknown queue type: " << queueType << std::endl;
-        return;
-    }
-
-    switch (it->second) {
-        case 0:
+    switch (algorithm) {
+        case Algorithm::RANK_PAIRING_HEAP:
             dijkstra.run<Koala::RankPairingHeap<NetworKit::node>>();
             break;
-        case 1:
+        case Algorithm::SKEW_HEAP:
             dijkstra.run<Koala::SkewHeap<NetworKit::node>>();
             break;
-        case 2:
+        case Algorithm::WEAK_HEAP:
             dijkstra.run<Koala::WeakHeap<NetworKit::node>>();
             break;
-        default:
-            std::cerr << "Unhandled queue type: " << queueType << std::endl;
-            return;
     }
 
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> duration = end - start;
 
-    std::cout << "Algorithm: Dijkstra with " << queueType << std::endl;
+    std::cout << "Algorithm: Dijkstra with " << algorithm_name << std::endl;
     std::cout << "Time: " << duration.count() << "s" << std::endl;
 
     double totalDist = 0;
@@ -141,31 +135,36 @@ void runDijkstra(NetworKit::Graph& G, NetworKit::node source, const std::string&
               << " out of " << G.numberOfNodes() << std::endl;
 }
 
-void run_dimacs_test(const std::string &path, const std::string &queueType) {
-    auto G = Koala::DimacsGraphReader().read(path);
-
-    std::cout << "Graph: " << path << std::endl;
+void run_test(
+        const std::string &label, NetworKit::Graph &G, const std::string &algorithm_name,
+        Algorithm algorithm) {
+    std::cout << "Graph: " << label << std::endl;
     std::cout << "Nodes: " << G.numberOfNodes()
               << ", Edges: " << G.numberOfEdges() << std::endl;
 
-    runDijkstra(G, 0, queueType);
+    runDijkstra(G, 0, algorithm_name, algorithm);
 }
 
 int main(int argc, const char *argv[]) {
     if (argc != 3) {
         std::cerr << "Usage: " << argv[0] << " <queue_type> <graph_file>" << std::endl;
         std::cerr << "Available queue types: ";
-        for (const auto& [name, _] : QUEUE_TYPE) {
+        for (const auto& [name, _] : ALGORITHM) {
             std::cerr << name << " ";
         }
         std::cerr << std::endl;
         return 1;
     }
 
-    std::string queueType(argv[1]);
-    std::string path(argv[2]);
-
-    run_dimacs_test(path, queueType);
+    std::string algorithm_name(argv[1]);
+    auto algorithm = ALGORITHM.find(algorithm_name);
+    if (algorithm == ALGORITHM.end()) {
+        throw std::invalid_argument("Unknown algorithm: " + algorithm_name);
+    }
+    Koala::Benchmark::executeForEachGraph(
+        argv[2], [&](const std::string &label, NetworKit::Graph G) {
+        run_test(label, G, algorithm_name, algorithm->second);
+    });
 
     return 0;
 }
