@@ -7,7 +7,6 @@
 
 #pragma once
 
-#include <utility>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -32,7 +31,7 @@ class DynamicTree {
     void link(NetworKit::node, NetworKit::node, int);
     void cut(NetworKit::node, NetworKit::node);
 
-    std::pair<NetworKit::node, NetworKit::node> find_saturated_edge(NetworKit::node);
+    NetworKit::Edge find_saturated_edge(NetworKit::node);
     int get_minimum_path_residue_capacity(NetworKit::node);
 
  private:

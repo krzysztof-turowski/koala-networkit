@@ -7,7 +7,6 @@
 
 #include <limits>
 #include <unordered_set>
-#include <utility>
 
 #include <flow/maximum_flow/DynamicTree.hpp>
 
@@ -55,13 +54,13 @@ void DynamicTree::cut(NetworKit::node u, NetworKit::node v) {
     children[v].erase(u);
 }
 
-std::pair<NetworKit::node, NetworKit::node> DynamicTree::find_saturated_edge(NetworKit::node v) {
+NetworKit::Edge DynamicTree::find_saturated_edge(NetworKit::node v) {
     dyn_item *start = &nodes[v];
     dyn_item *bottleneck = dyn_find_bottleneck(start, 0), *root = dyn_find_root(start);
     if (bottleneck != root) {
-        return std::make_pair(ids[bottleneck], ids[dyn_find_father(bottleneck)]);
+        return NetworKit::Edge(ids[bottleneck], ids[dyn_find_father(bottleneck)]);
     }
-    return std::make_pair(NetworKit::none, NetworKit::none);
+    return NetworKit::Edge();
 }
 
 int DynamicTree::get_minimum_path_residue_capacity(NetworKit::node v) {

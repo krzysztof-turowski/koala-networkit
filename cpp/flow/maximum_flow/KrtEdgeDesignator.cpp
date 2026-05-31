@@ -30,20 +30,20 @@ void KRTEdgeDesignator::initialize_prim() {
 }
 
 void KRTEdgeDesignator::initialize_parameters(const Parameters &parameters) {
-    r0 = parameters.r0.value_or(0.7);
-    x = parameters.x.value_or(2);
+    r0 = parameters.R0.value_or(0.7);
+    x = parameters.X.value_or(2);
     if (r0 <= 0 || x < 2) {
         throw std::invalid_argument("KRTEdgeDesignator requires r0 > 0 and x >= 2");
     }
 
-    l = parameters.l.value_or(
+    l = parameters.L.value_or(
         static_cast<NetworKit::count>(std::floor(176 * x / r0)) + 1);
     if (l == 0 || r0 * l / x <= 176) {
         throw std::invalid_argument("KRTEdgeDesignator requires r0 * l / x > 176");
     }
 
     const long double denominator = std::log(r0 * l / (88 * x));
-    t = parameters.t.value_or(
+    t = parameters.T.value_or(
         3 * static_cast<int>(std::ceil(std::log(std::max<NetworKit::count>(N, 2))
                                       / denominator))
             + 4);

@@ -11,7 +11,7 @@
 #include <flow/KingRaoTarjanMaximumFlow.hpp>
 #include <flow/MalhotraKumarMaheshwariFlow.hpp>
 #include <flow/MaximumFlow.hpp>
-#include <flow/PushRelabel.hpp>
+#include <flow/GoldbergTarjanPushRelabelMaximumFlow.hpp>
 #include <graph/GraphTools.hpp>
 #include <io/DimacsGraphReader.hpp>
 
@@ -19,7 +19,7 @@ enum class Algorithm : uint32_t { ALL, PUSH_RELABEL, BK, MKM, KRT, ELECTRICAL_FL
 
 std::map<std::string, Algorithm> ALGORITHM = {
     { "all", Algorithm::ALL },
-    { "PushRelabel", Algorithm::PUSH_RELABEL },
+    { "GoldbergTarjan", Algorithm::PUSH_RELABEL },
     { "BK", Algorithm::BK },
     { "MKM", Algorithm::MKM },
     { "KRT", Algorithm::KRT },
@@ -39,7 +39,7 @@ void run_test(
     std::set<NetworKit::edgeweight> T;
     switch (algorithm) {
     case Algorithm::ALL:
-        T.insert(run_algorithm<Koala::PushRelabel>(G, s, t));
+        T.insert(run_algorithm<Koala::GoldbergTarjanPushRelabelMaximumFlow>(G, s, t));
         T.insert(run_algorithm<Koala::BoykovKolmogorovFlow>(G, s, t));
         T.insert(run_algorithm<Koala::MalhotraKumarMaheshwariFlow>(G, s, t));
         T.insert(run_algorithm<Koala::KingRaoTarjanMaximumFlow>(G, s, t));
@@ -47,7 +47,7 @@ void run_test(
         assert(T.size() == 1);
         break;
     case Algorithm::PUSH_RELABEL:
-        T.insert(run_algorithm<Koala::PushRelabel>(G, s, t));
+        T.insert(run_algorithm<Koala::GoldbergTarjanPushRelabelMaximumFlow>(G, s, t));
         break;
     case Algorithm::BK:
         T.insert(run_algorithm<Koala::BoykovKolmogorovFlow>(G, s, t));

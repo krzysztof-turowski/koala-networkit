@@ -20,13 +20,13 @@ namespace Koala {
 class KRTEdgeDesignator {
  public:
     struct Parameters {
-        // The general strategy does not prescribe r0 or x. Defaults are 0.7 and 2.
-        // If omitted, l is the smallest value satisfying r0 * l / x > 176 and t is
+        // The general strategy does not prescribe R0 or X. Defaults are 0.7 and 2.
+        // If omitted, L is the smallest value satisfying R0 * L / X > 176 and T is
         // computed from the paper's formula.
-        std::optional<long double> r0 = std::nullopt;
-        std::optional<NetworKit::count> l = std::nullopt;
-        std::optional<long double> x = std::nullopt;
-        std::optional<int> t = std::nullopt;
+        std::optional<long double> R0 = std::nullopt;
+        std::optional<NetworKit::count> L = std::nullopt;
+        std::optional<long double> X = std::nullopt;
+        std::optional<int> T = std::nullopt;
     };
 
  private:

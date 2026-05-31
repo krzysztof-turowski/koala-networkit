@@ -5,7 +5,7 @@
 #include <stdexcept>
 
 #include "flow/MaximumFlow.hpp"
-#include "flow/PushRelabel.hpp"
+#include "flow/GoldbergTarjanPushRelabelMaximumFlow.hpp"
 #include "flow/BoykovKolmogorovFlow.hpp"
 #include "flow/KingRaoTarjanMaximumFlow.hpp"
 #include "flow/MalhotraKumarMaheshwariFlow.hpp"
@@ -57,7 +57,7 @@ TEST(KingRaoTarjanMaximumFlowTest, test_prim_designator_nodes) {
     }
 
     auto algorithm = Koala::KingRaoTarjanMaximumFlow(
-        G, source, target, {.l = 512, .t = 7});
+        G, source, target, {.L = 512, .T = 7});
     algorithm.run();
     EXPECT_EQ(algorithm.getFlowSize(), paths);
 }
@@ -86,7 +86,7 @@ TEST(KingRaoTarjanMaximumFlowTest, matches_push_relabel_on_small_random_graphs) 
                 }
             }
 
-            auto expected = Koala::PushRelabel(G, 0, n - 1);
+            auto expected = Koala::GoldbergTarjanPushRelabelMaximumFlow(G, 0, n - 1);
             expected.run();
             auto actual = Koala::KingRaoTarjanMaximumFlow(G, 0, n - 1);
             actual.run();
@@ -101,7 +101,7 @@ TEST(KRTEdgeDesignatorTest, redesignates_after_designated_edge_removal) {
     G.addEdge(0, 1, 1);
     G.addEdge(0, 2, 1);
     Koala::KRTEdgeDesignator designator;
-    designator.initialize(G, {.l = 512, .t = 7});
+    designator.initialize(G, {.L = 512, .T = 7});
 
     auto first = designator.current_edge(0, 1);
     ASSERT_NE(first, NetworKit::none);
@@ -121,7 +121,7 @@ TEST(KRTEdgeDesignatorTest, redesignates_after_leaving_U_prim) {
         G.addEdge(0, v, 1);
     }
     Koala::KRTEdgeDesignator designator;
-    designator.initialize(G, {.l = 512, .t = 7});
+    designator.initialize(G, {.L = 512, .T = 7});
 
     auto first = designator.current_edge(0, 1);
     ASSERT_NE(first, NetworKit::none);
@@ -137,22 +137,23 @@ TEST(KRTEdgeDesignatorTest, rejects_invalid_parameters) {
     G.addEdge(0, 1, 1);
     Koala::KRTEdgeDesignator designator;
 
-    EXPECT_THROW(designator.initialize(G, {.l = 1}), std::invalid_argument);
+    EXPECT_THROW(designator.initialize(G, {.L = 1}), std::invalid_argument);
 }
 
-class PushRelabelMaximumFlowTest
+class GoldbergTarjanPushRelabelMaximumFlowTest
     : public testing::TestWithParam<MaximumFlowParameters> { };
 
-TEST_P(PushRelabelMaximumFlowTest, test) {
+TEST_P(GoldbergTarjanPushRelabelMaximumFlowTest, test) {
     MaximumFlowParameters const& parameters = GetParam();
     NetworKit::Graph G = build_graph(parameters.N, parameters.EW, true);
-    auto algorithm = Koala::PushRelabel(G, parameters.s, parameters.t);
+    auto algorithm =
+        Koala::GoldbergTarjanPushRelabelMaximumFlow(G, parameters.s, parameters.t);
     algorithm.run();
     EXPECT_EQ(algorithm.getFlowSize(), parameters.flowSize);
 }
 
 INSTANTIATE_TEST_SUITE_P(
-    test_example, PushRelabelMaximumFlowTest, testing::Values(
+    test_example, GoldbergTarjanPushRelabelMaximumFlowTest, testing::Values(
         MaximumFlowParameters{
             4, {{0, 1, 10}, {0, 2, 5}, {1, 2, 15}, {1, 3, 5}, {2, 3, 10}}, 0, 3, 15},
         MaximumFlowParameters{

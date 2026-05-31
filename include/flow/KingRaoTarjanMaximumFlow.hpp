@@ -1,12 +1,7 @@
 #pragma once
 
-#include <map>
-#include <set>
-#include <unordered_map>
-#include <utility>
-#include <vector>
-
-#include "flow/MaximumFlow.hpp"
+#include "flow/PushRelabelMaximumFlow.hpp"
+#include "flow/maximum_flow/KrtEdgeDesignator.hpp"
 
 namespace Koala {
 
@@ -14,42 +9,20 @@ namespace Koala {
  * @ingroup flow
  * The class for the King-Rao-Tarjan maximum flow algorithm
  */
-class KingRaoTarjanMaximumFlow final : public MaximumFlow {
+class KingRaoTarjanMaximumFlow final : public PushRelabelMaximumFlow {
  public:
     KingRaoTarjanMaximumFlow(
         NetworKit::Graph&, NetworKit::node, NetworKit::node,
         KRTEdgeDesignator::Parameters = {});
-
-    /**
-     * Execute the King-Rao-Tarjan maximum flow algorithm.
-     */
     void run();
 
  private:
-    std::unordered_map<std::pair<NetworKit::node, NetworKit::node>, int, pair_hash> flow;
-    std::map<std::pair<NetworKit::node, NetworKit::node>, int> capacity;
-    std::map<NetworKit::node, int> d, excess, hidden_excess;
-    std::set<NetworKit::node> positive_excess;
-    std::set<std::pair<NetworKit::node, NetworKit::node>> E_star;
-
-    DynamicTree dynamic_tree;
     KRTEdgeDesignator edge_designator;
     KRTEdgeDesignator::Parameters edge_designator_parameters;
 
-    int get_visible_excess(NetworKit::node);
-    NetworKit::node get_positive_excess_node();
-    void update_positive_excess(NetworKit::node);
-
-    int get_flow(const std::pair<NetworKit::node, NetworKit::node>&);
-    void set_flow(const std::pair<NetworKit::node, NetworKit::node>&, int);
-    void saturate(const std::pair<NetworKit::node, NetworKit::node>&);
-    void add_edge(const std::pair<NetworKit::node, NetworKit::node>&);
-    void cut(const std::pair<NetworKit::node, NetworKit::node>&);
-
-    void initialize();
-    std::vector<std::pair<NetworKit::node, NetworKit::node>> get_edges_list();
-    void tree_push(NetworKit::node, NetworKit::node);
-    void relabel(NetworKit::node);
+    NetworKit::node get_active_vertex() override;
+    NetworKit::node get_admissible_residual_edge(NetworKit::node) override;
+    void on_relabel(NetworKit::node, int) override;
 };
 
 }  /* namespace Koala */
