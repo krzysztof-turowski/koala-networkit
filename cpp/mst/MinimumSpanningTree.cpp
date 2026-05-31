@@ -257,7 +257,12 @@ const NetworKit::Graph& MinimumSpanningTree::getForest() const {
     return *tree;
 }
 
+void MinimumSpanningTree::initialize() {
+    tree = std::make_optional(NetworKit::GraphTools::copyNodes(*graph));
+}
+
 void KruskalMinimumSpanningTree::run() {
+    initialize();
     hasRun = true;
     std::vector<NetworKit::WeightedEdge> sorted_edges(
         graph->edgeWeightRange().begin(), graph->edgeWeightRange().end());
@@ -272,6 +277,7 @@ void KruskalMinimumSpanningTree::run() {
 }
 
 void PrimMinimumSpanningTree::run() {
+    initialize();
     hasRun = true;
     Heap<std::pair<NetworKit::edgeweight, NetworKit::node>> queue;
     queue.push(std::make_pair(0, *(graph->nodeRange().begin())));
@@ -298,6 +304,7 @@ void PrimMinimumSpanningTree::run() {
 }
 
 void BoruvkaMinimumSpanningTree::run() {
+    initialize();
     hasRun = true;
     NetworKit::UnionFind union_find(graph->upperNodeIdBound());
     NetworKit::Graph G(*graph);
@@ -385,6 +392,7 @@ std::optional<NetworKit::Graph> BoruvkaMinimumSpanningTree::iterate(
 }
 
 void KargerKleinTarjanMinimumSpanningTree::run() {
+    initialize();
     hasRun = true;
     NetworKit::Graph G(*graph);
     recurse(G, *tree);
@@ -630,6 +638,7 @@ void MinimumSpanningTree::check() const {
 }
 
 void Chazelle2000MinimumSpanningTree::run() {
+    initialize();
     auto G = graph.value();
     tree = mst(G, 10);
     hasRun = true;

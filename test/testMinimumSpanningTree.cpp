@@ -16,6 +16,39 @@ struct SpanningTreeParameters {
 };
 
 template <class Algorithm>
+void expect_mst_can_run_twice() {
+    auto G = build_graph(
+        4, {{0, 1, 10}, {0, 2, 5}, {1, 2, 15}, {1, 3, 5}, {2, 3, 10}}, false);
+    auto mst = Algorithm(G);
+
+    for (int iteration = 0; iteration < 2; ++iteration) {
+        mst.run();
+        int tree_weight = 0;
+        mst.getForest().forEdges(
+            [&](NetworKit::node, NetworKit::node, NetworKit::edgeweight weight) {
+                tree_weight += weight;
+            });
+        EXPECT_EQ(mst.getForest().numberOfEdges(), 3);
+        EXPECT_EQ(tree_weight, 20);
+        mst.check();
+    }
+}
+
+void expect_approximate_mst_can_run_twice() {
+    auto G = build_graph(
+        4, {{0, 1, 10}, {0, 2, 5}, {1, 2, 15}, {1, 3, 5}, {2, 3, 10}}, false);
+    auto mst = Koala::ChazelleRubinfeldTrevisanMinimumSpanningTree(G);
+    constexpr unsigned int max_weight = 15;
+    constexpr float eps = 0.45;
+
+    for (int iteration = 0; iteration < 2; ++iteration) {
+        mst.run(max_weight, eps);
+        EXPECT_GE(mst.getTreeWeight(), 20 * (1 - eps));
+        EXPECT_LE(mst.getTreeWeight(), 20 * (1 + eps));
+    }
+}
+
+template <class Algorithm>
 class MinimumSpanningTreeTest : public testing::TestWithParam<SpanningTreeParameters> {
  public:
     void test_mst() {
@@ -204,6 +237,10 @@ TEST_P(KruskalMinimumSpanningTreeTest, test_example) {
     test_mst();
 }
 
+TEST(KruskalMinimumSpanningTreeTest, can_run_twice) {
+    expect_mst_can_run_twice<Koala::KruskalMinimumSpanningTree>();
+}
+
 INSTANTIATE_TEST_SUITE_P(test_example, KruskalMinimumSpanningTreeTest, example_trees);
 INSTANTIATE_TEST_SUITE_P(
     test_corner_cases, KruskalMinimumSpanningTreeTest, corner_case_trees);
@@ -213,6 +250,10 @@ class PrimMinimumSpanningTreeTest
 
 TEST_P(PrimMinimumSpanningTreeTest, test_example) {
     test_mst();
+}
+
+TEST(PrimMinimumSpanningTreeTest, can_run_twice) {
+    expect_mst_can_run_twice<Koala::PrimMinimumSpanningTree>();
 }
 
 INSTANTIATE_TEST_SUITE_P(test_example, PrimMinimumSpanningTreeTest, example_trees);
@@ -225,6 +266,10 @@ TEST_P(BoruvkaMinimumSpanningTreeTest, test_example) {
     test_mst();
 }
 
+TEST(BoruvkaMinimumSpanningTreeTest, can_run_twice) {
+    expect_mst_can_run_twice<Koala::BoruvkaMinimumSpanningTree>();
+}
+
 INSTANTIATE_TEST_SUITE_P(test_example, BoruvkaMinimumSpanningTreeTest, example_trees);
 INSTANTIATE_TEST_SUITE_P(
     test_corner_cases, BoruvkaMinimumSpanningTreeTest, corner_case_trees);
@@ -234,6 +279,10 @@ class KargerKleinTarjanMinimumSpanningTreeTest
 
 TEST_P(KargerKleinTarjanMinimumSpanningTreeTest, test_example) {
     test_mst();
+}
+
+TEST(KargerKleinTarjanMinimumSpanningTreeTest, can_run_twice) {
+    expect_mst_can_run_twice<Koala::KargerKleinTarjanMinimumSpanningTree>();
 }
 
 INSTANTIATE_TEST_SUITE_P(test_example, KargerKleinTarjanMinimumSpanningTreeTest, example_trees);
@@ -250,11 +299,19 @@ TEST_P(ChazelleRubinfeldTrevisanMinimumSpanningTreeTest, test_example) {
 INSTANTIATE_TEST_SUITE_P(test_example, ChazelleRubinfeldTrevisanMinimumSpanningTreeTest,
     example_trees);
 
+TEST(ChazelleRubinfeldTrevisanMinimumSpanningTreeTest, can_run_twice) {
+    expect_approximate_mst_can_run_twice();
+}
+
 class Chazelle2000MinimumSpanningTreeTest
     : public MinimumSpanningTreeTest<Koala::Chazelle2000MinimumSpanningTree> { };
 
 TEST_P(Chazelle2000MinimumSpanningTreeTest, test_example) {
     test_mst();
+}
+
+TEST(Chazelle2000MinimumSpanningTreeTest, can_run_twice) {
+    expect_mst_can_run_twice<Koala::Chazelle2000MinimumSpanningTree>();
 }
 
 INSTANTIATE_TEST_CASE_P(test_example, Chazelle2000MinimumSpanningTreeTest, example_trees);

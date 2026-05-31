@@ -49,6 +49,7 @@ class MinimumSpanningTree : public NetworKit::Algorithm {
     using NodePair = std::pair<NetworKit::node, NetworKit::node>;
 
     std::optional<NetworKit::Graph> graph, tree;
+    void initialize();
 };
 
 /**
