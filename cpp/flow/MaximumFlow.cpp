@@ -33,6 +33,12 @@ int MaximumFlow::getFlowSize() const {
     return flow_size;
 }
 
+KingRaoTarjanMaximumFlow::KingRaoTarjanMaximumFlow(
+    NetworKit::Graph &graph, NetworKit::node source, NetworKit::node target,
+    KRTEdgeDesignator::Parameters edge_designator_parameters)
+: MaximumFlow(graph, source, target),
+  edge_designator_parameters(std::move(edge_designator_parameters)) { }
+
 int KingRaoTarjanMaximumFlow::get_visible_excess(NetworKit::node v) {
     return std::max(0, excess[v] - hidden_excess[v]);
 }
@@ -99,8 +105,20 @@ void KingRaoTarjanMaximumFlow::cut(const edge &e) {
 }
 
 void KingRaoTarjanMaximumFlow::initialize() {
+    flow.clear(), capacity.clear();
+    d.clear(), excess.clear(), hidden_excess.clear();
+    positive_excess.clear(), E_star.clear();
     dynamic_tree.initialize(graph->numberOfNodes());
-    edge_designator.initialize(graph);
+
+    std::vector<edge> original_edges;
+    graph->forEdges([&](NetworKit::node u, NetworKit::node v) {
+        original_edges.emplace_back(u, v);
+    });
+    for (const auto &[u, v] : original_edges) {
+        graph->addEdge(v, u, 0, true);
+    }
+
+    edge_designator.initialize(graph, edge_designator_parameters);
     graph->forEdges([&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight w) {
         capacity[std::make_pair(u, v)] = w;
         hidden_excess[u] += w;

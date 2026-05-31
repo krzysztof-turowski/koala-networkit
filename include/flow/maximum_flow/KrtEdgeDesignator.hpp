@@ -18,39 +18,55 @@
 namespace Koala {
 
 class KRTEdgeDesignator {
-    // Constraint: R0 * L/X >= 176, then T = ceil(log(N) / log((R0 * L)/(88 * X))) + 4;
-    // Parameters selected empirically to (1) match constraints, (2) get best results on datasets
-    static constexpr long double R0 = 0.7, X = 2;
-    static constexpr int L = 512;
-    static constexpr int T = 7;
+ public:
+    struct Parameters {
+        // The general strategy does not prescribe r0 or x. Defaults are 0.7 and 2.
+        // If omitted, l is the smallest value satisfying r0 * l / x > 176 and t is
+        // computed from the paper's formula.
+        std::optional<long double> r0 = std::nullopt;
+        std::optional<NetworKit::count> l = std::nullopt;
+        std::optional<long double> x = std::nullopt;
+        std::optional<int> t = std::nullopt;
+    };
 
-    int N, M, MAX_K;
-    std::vector<int> degU, designated, rl, erl;
+ private:
+    long double r0, x;
+    NetworKit::count l;
+    int t;
+
+    NetworKit::count N, M, MAX_K;
+    std::vector<NetworKit::count> degU;
+    std::vector<NetworKit::node> designated;
+    std::vector<int> rl, erl;
     std::vector<long double> ratios;
-    std::unordered_set<int> U_prim, V_prim;
-    std::vector<std::vector<int>> U, V;
-    std::vector<std::vector<std::unordered_set<int>>> U_neighbors;
+    std::unordered_set<NetworKit::node> U_prim, V_prim;
+    std::vector<std::vector<NetworKit::node>> U, V;
+    std::vector<std::vector<std::unordered_set<NetworKit::node>>> U_neighbors;
 
     void initialize_prim();
+    void initialize_parameters(const Parameters&);
     void initialize_ratios();
     void initialize_neighbors();
 
-    std::unordered_set<int> get_indexed_U(int);
-    std::unordered_set<int> get_indexed_V(int);
+    std::unordered_set<NetworKit::node> get_indexed_U(int);
+    std::unordered_set<NetworKit::node> get_indexed_V(int);
 
-    int encodeId(NetworKit::node, int) const;
-    NetworKit::node decodeId(int) const;
+    NetworKit::node encodeId(NetworKit::node, int) const;
+    NetworKit::node decodeId(NetworKit::node) const;
 
-    void update_rl(int);
-    void update_erl(int);
+    void update_rl(NetworKit::node);
+    void update_erl(NetworKit::node);
 
-    void remove_edge(int, int);
-    int designate_edge(int);
+    bool remove_edge(NetworKit::node, NetworKit::node);
+    NetworKit::node designate_edge(NetworKit::node);
+    void reset_if_needed(NetworKit::node);
+    void remove_edge_and_redesignate(NetworKit::node, NetworKit::node);
 
     long double reset();
 
  public:
     void initialize(const std::optional<NetworKit::Graph>&);
+    void initialize(const std::optional<NetworKit::Graph>&, const Parameters&);
     NetworKit::node current_edge(NetworKit::node, int);
     void response_adversary(NetworKit::node, int);
     void response_adversary(NetworKit::node, int, NetworKit::node, int);

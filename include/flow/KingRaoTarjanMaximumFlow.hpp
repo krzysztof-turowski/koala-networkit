@@ -16,7 +16,9 @@ namespace Koala {
  */
 class KingRaoTarjanMaximumFlow final : public MaximumFlow {
  public:
-    using MaximumFlow::MaximumFlow;
+    KingRaoTarjanMaximumFlow(
+        NetworKit::Graph&, NetworKit::node, NetworKit::node,
+        KRTEdgeDesignator::Parameters = {});
 
     /**
      * Execute the King-Rao-Tarjan maximum flow algorithm.
@@ -27,11 +29,12 @@ class KingRaoTarjanMaximumFlow final : public MaximumFlow {
     std::unordered_map<std::pair<NetworKit::node, NetworKit::node>, int, pair_hash> flow;
     std::map<std::pair<NetworKit::node, NetworKit::node>, int> capacity;
     std::map<NetworKit::node, int> d, excess, hidden_excess;
-    std::set<int> positive_excess;
+    std::set<NetworKit::node> positive_excess;
     std::set<std::pair<NetworKit::node, NetworKit::node>> E_star;
 
     DynamicTree dynamic_tree;
     KRTEdgeDesignator edge_designator;
+    KRTEdgeDesignator::Parameters edge_designator_parameters;
 
     int get_visible_excess(NetworKit::node);
     NetworKit::node get_positive_excess_node();

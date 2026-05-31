@@ -16,7 +16,8 @@
 namespace Koala {
 
 void DynamicTree::initialize(NetworKit::count n) {
-    nodes.resize(n), children.resize(n);
+    ids.clear();
+    nodes.resize(n), children.assign(n, {});
     for (NetworKit::count v = 0; v < n; ++v) {
         ids[&nodes[v]] = v;
         dyn_make_tree(&nodes[v], 0);
