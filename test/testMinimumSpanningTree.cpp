@@ -30,6 +30,7 @@ class MinimumSpanningTreeTest : public testing::TestWithParam<SpanningTreeParame
             });
         EXPECT_EQ(parameters.N - 1, mst.getForest().numberOfEdges());
         EXPECT_EQ(tree_weight, parameters.treeWeight);
+        mst.check();
     }
 
     void test_approximate_mst() {
@@ -185,6 +186,17 @@ auto example_trees = testing::Values(
     }
 );
 
+auto corner_case_trees = testing::Values(
+    SpanningTreeParameters { 1, {}, 0 },
+    SpanningTreeParameters { 2, { { 0, 1, 7 } }, 7 },
+    SpanningTreeParameters { 3, { { 0, 1, 9 }, { 0, 2, 3 }, { 1, 2, 4 } }, 7 },
+    SpanningTreeParameters {
+        4, { { 0, 1, 1 }, { 1, 2, 1 }, { 2, 3, 1 }, { 3, 0, 1 }, { 0, 2, 5 } }, 3 },
+    SpanningTreeParameters {
+        5, { { 0, 1, 8 }, { 0, 2, 2 }, { 1, 2, 3 }, { 1, 3, 1 }, { 2, 4, 4 },
+             { 3, 4, 7 } }, 10 }
+);
+
 class KruskalMinimumSpanningTreeTest
     : public MinimumSpanningTreeTest<Koala::KruskalMinimumSpanningTree> { };
 
@@ -193,6 +205,18 @@ TEST_P(KruskalMinimumSpanningTreeTest, test_example) {
 }
 
 INSTANTIATE_TEST_SUITE_P(test_example, KruskalMinimumSpanningTreeTest, example_trees);
+INSTANTIATE_TEST_SUITE_P(
+    test_corner_cases, KruskalMinimumSpanningTreeTest, corner_case_trees);
+
+class PrimMinimumSpanningTreeTest
+    : public MinimumSpanningTreeTest<Koala::PrimMinimumSpanningTree> { };
+
+TEST_P(PrimMinimumSpanningTreeTest, test_example) {
+    test_mst();
+}
+
+INSTANTIATE_TEST_SUITE_P(test_example, PrimMinimumSpanningTreeTest, example_trees);
+INSTANTIATE_TEST_SUITE_P(test_corner_cases, PrimMinimumSpanningTreeTest, corner_case_trees);
 
 class BoruvkaMinimumSpanningTreeTest
     : public MinimumSpanningTreeTest<Koala::BoruvkaMinimumSpanningTree> { };
@@ -202,6 +226,8 @@ TEST_P(BoruvkaMinimumSpanningTreeTest, test_example) {
 }
 
 INSTANTIATE_TEST_SUITE_P(test_example, BoruvkaMinimumSpanningTreeTest, example_trees);
+INSTANTIATE_TEST_SUITE_P(
+    test_corner_cases, BoruvkaMinimumSpanningTreeTest, corner_case_trees);
 
 class KargerKleinTarjanMinimumSpanningTreeTest
     : public MinimumSpanningTreeTest<Koala::KargerKleinTarjanMinimumSpanningTree> { };
@@ -211,6 +237,8 @@ TEST_P(KargerKleinTarjanMinimumSpanningTreeTest, test_example) {
 }
 
 INSTANTIATE_TEST_SUITE_P(test_example, KargerKleinTarjanMinimumSpanningTreeTest, example_trees);
+INSTANTIATE_TEST_SUITE_P(
+    test_corner_cases, KargerKleinTarjanMinimumSpanningTreeTest, corner_case_trees);
 
 class ChazelleRubinfeldTrevisanMinimumSpanningTreeTest
     : public MinimumSpanningTreeTest<Koala::ChazelleRubinfeldTrevisanMinimumSpanningTree> { };
@@ -230,3 +258,5 @@ TEST_P(Chazelle2000MinimumSpanningTreeTest, test_example) {
 }
 
 INSTANTIATE_TEST_CASE_P(test_example, Chazelle2000MinimumSpanningTreeTest, example_trees);
+INSTANTIATE_TEST_SUITE_P(
+    test_corner_cases, Chazelle2000MinimumSpanningTreeTest, corner_case_trees);

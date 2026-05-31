@@ -563,7 +563,7 @@ float ChazelleRubinfeldTrevisanMinimumSpanningTree::calculateApproximateCCsCount
 
 float ChazelleRubinfeldTrevisanMinimumSpanningTree::calculateApproximateTreeWeight(
         float eps, unsigned int w) const {
-    float approx = graph->numberOfNodes() - w;
+    float approx = static_cast<float>(graph->numberOfNodes()) - static_cast<float>(w);
 
     for (unsigned int w_bound = 1; w_bound < w; ++w_bound) {
         float ccs = calculateApproximateCCsCount(eps, 4 / eps, w, w_bound);
