@@ -78,8 +78,6 @@ void run_g6_tests(const std::string &path, Algorithm algorithm) {
 
 void run_dimacs_tests(const std::string &path, Algorithm algorithm) {
     auto [G, s, t] = Koala::DimacsGraphReader().read_all(path);
-    G = Koala::GraphTools::convertDirectedGraphToUndirected(G, true);
-    G = Koala::GraphTools::convertUndirectedGraphToDirected(G, true);
     std::cout << path << " " << std::flush;
     run_test(G, s, t, algorithm);
 }

@@ -16,20 +16,20 @@ FlowNetwork::FlowNetwork(const NetworKit::Graph &graph)
   flow.assign(N, std::vector<double>(N, 0));
 }
 
-double FlowNetwork::upperCapacity(int u, int v) const {
+double FlowNetwork::upperCapacity(NetworKit::node u, NetworKit::node v) const {
   return graph.weight(u, v) - flow[u][v];
 }
 
-double FlowNetwork::lowerCapacity(int u, int v) const {
+double FlowNetwork::lowerCapacity(NetworKit::node u, NetworKit::node v) const {
   return graph.weight(u, v) + flow[u][v];
 }
 
-void cutIntegral(DynamicTree &dt, int u, int v) {
+void cutIntegral(DynamicTree &dt, NetworKit::node u, NetworKit::node v) {
   if (u == v) {
     return;
   }
   auto [mx, my] = dt.pathMin(u, v);
-  if (abs(dt.weights[mx][my]) <= EPS) {
+  if (std::abs(dt.weights[mx][my]) <= EPS) {
     dt.cut(mx, my);
     cutIntegral(dt, u, mx);
     cutIntegral(dt, my, v);
@@ -39,6 +39,12 @@ void cutIntegral(DynamicTree &dt, int u, int v) {
 void FlowNetwork::roundFlow() {
   std::vector<std::vector<double>> weights(N, std::vector<double>(N, 0));
   for (auto [u, v] : graph.edgeRange()) {
+    double roundedFlow = std::round(flow[u][v]);
+    if (std::abs(flow[u][v] - roundedFlow) <= EPS) {
+      flow[u][v] = roundedFlow;
+      flow[v][u] = -roundedFlow;
+      continue;
+    }
     double intFlow;
     weights[u][v] = modf(flow[u][v], &intFlow);
     weights[v][u] = -weights[u][v];
@@ -66,7 +72,7 @@ void FlowNetwork::roundFlow() {
 
       cutIntegral(dt, u, v);
     }
-    if (abs(dt.weights[u][v]) > EPS) {
+    if (std::abs(dt.weights[u][v]) > EPS) {
       dt.link(u, v);
     }
   }
@@ -79,27 +85,35 @@ void FlowNetwork::roundFlow() {
   }
 }
 
-void FlowNetwork::pushValue(int s, int t, double f) {
+bool FlowNetwork::pushValue(NetworKit::node s, NetworKit::node t, double f) {
   while (f > EPS) {
-    std::vector<int> st;
-    std::vector<std::pair<int, double>> parent(graph.numberOfNodes(), {-1, 0.0});
+    std::vector<NetworKit::node> st;
+    std::vector<std::pair<NetworKit::node, double>> parent(
+        graph.numberOfNodes(), {NetworKit::none, 0.0});
 
     parent[t] = {t, f};
     st.push_back(t);
 
     while (!st.empty()) {
-      int v = st.back();
+      NetworKit::node v = st.back();
       st.pop_back();
+      if (v == s) {
+        break;
+      }
 
       graph.forNeighborsOf(v, [&](NetworKit::node u) {
-        if (parent[u].first == -1) {
+        double residualCapacity = graph.weight(u, v) - flow[v][u];
+        if (parent[u].first == NetworKit::none && residualCapacity > EPS) {
           st.push_back(u);
-          parent[u] = { v, std::min(parent[v].second, graph.weight(u, v) - flow[u][v]) };
+          parent[u] = {v, std::min(parent[v].second, residualCapacity)};
         }
       });
     }
 
-    int v = s;
+    if (parent[s].first == NetworKit::none) {
+      return false;
+    }
+    NetworKit::node v = s;
     double f1 = parent[s].second;
     while (v != t) {
       flow[parent[v].first][v] += f1;
@@ -108,5 +122,6 @@ void FlowNetwork::pushValue(int s, int t, double f) {
     }
     f -= f1;
   }
+  return true;
 }
 }  // namespace Koala

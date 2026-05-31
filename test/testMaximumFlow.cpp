@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <cmath>
 #include <list>
 #include <random>
 #include <stdexcept>
@@ -7,6 +8,8 @@
 #include "flow/MaximumFlow.hpp"
 #include "flow/GoldbergTarjanPushRelabelMaximumFlow.hpp"
 #include "flow/BoykovKolmogorovFlow.hpp"
+#include "flow/electrical_flow/ElectricalFlow.hpp"
+#include "flow/electrical_flow/FlowNetwork.hpp"
 #include "flow/KingRaoTarjanMaximumFlow.hpp"
 #include "flow/MalhotraKumarMaheshwariFlow.hpp"
 #include "flow/maximum_flow/KrtEdgeDesignator.hpp"
@@ -19,6 +22,104 @@ struct MaximumFlowParameters {
     int s, t;
     int flowSize;
 };
+
+template <class Algorithm>
+void expect_maximum_flow_can_run_twice() {
+    NetworKit::Graph G = build_graph(
+        4, {{0, 1, 10}, {0, 2, 5}, {1, 2, 15}, {1, 3, 5}, {2, 3, 10}}, true);
+    auto algorithm = Algorithm(G, 0, 3);
+
+    algorithm.run();
+    EXPECT_EQ(algorithm.getFlowSize(), 15);
+    algorithm.run();
+    EXPECT_EQ(algorithm.getFlowSize(), 15);
+}
+
+class ElectricalFlowTest : public testing::TestWithParam<MaximumFlowParameters> { };
+
+NetworKit::Graph build_electrical_graph(const MaximumFlowParameters &parameters) {
+    return build_graph(parameters.N, parameters.EW, true);
+}
+
+void expect_electrical_flow(
+        const Koala::ElectricalFlow &algorithm, NetworKit::node source, NetworKit::node target) {
+    const auto &G = algorithm.getGraph();
+    const auto &flow = algorithm.getFlow();
+    G.forEdges([&](NetworKit::node u, NetworKit::node v) {
+        if (G.isDirected()) {
+            EXPECT_GE(flow[u][v], -G.weight(u, v));
+        } else {
+            EXPECT_LE(std::abs(flow[u][v]), G.weight(u, v));
+        }
+        EXPECT_NEAR(flow[u][v], std::round(flow[u][v]), 1e-7);
+        EXPECT_NEAR(flow[u][v], -flow[v][u], 1e-7);
+    });
+    G.forNodes([&](NetworKit::node u) {
+        double balance = 0;
+        for (NetworKit::node v = 0; v < G.numberOfNodes(); ++v) {
+            balance += flow[u][v];
+        }
+        EXPECT_NEAR(
+            balance, u == source ? -algorithm.getFlowSize()
+                                 : u == target ? algorithm.getFlowSize() : 0, 1e-7);
+    });
+}
+
+TEST_P(ElectricalFlowTest, computes_maximum_flow) {
+    MaximumFlowParameters const& parameters = GetParam();
+    NetworKit::Graph G = build_electrical_graph(parameters);
+    auto algorithm = Koala::ElectricalFlow(G, parameters.s, parameters.t);
+    algorithm.run();
+    EXPECT_EQ(algorithm.getFlowSize(), parameters.flowSize);
+    expect_electrical_flow(algorithm, parameters.s, parameters.t);
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    execution_paths, ElectricalFlowTest, testing::Values(
+        MaximumFlowParameters{2, {}, 0, 1, 0},
+        MaximumFlowParameters{2, {{0, 1, 7}}, 0, 1, 7},
+        MaximumFlowParameters{4, {{0, 1, 5}, {1, 3, 5}, {0, 2, 7}, {2, 3, 7}}, 0, 3, 12},
+        MaximumFlowParameters{
+            4, {{0, 1, 10}, {1, 2, 3}, {2, 3, 10}, {0, 3, 1}}, 0, 3, 4},
+        MaximumFlowParameters{
+            4, {{0, 1, 3}, {0, 2, 5}, {1, 2, 2}, {2, 1, 3}, {1, 3, 7}, {2, 3, 1}}, 0, 3, 7},
+        MaximumFlowParameters{4, {{0, 1, 5}, {2, 3, 5}}, 0, 3, 0}));
+
+TEST(ElectricalFlowTest, can_run_twice) {
+    NetworKit::Graph G = build_electrical_graph(
+        {4, {{0, 1, 5}, {1, 3, 5}, {0, 2, 7}, {2, 3, 7}}, 0, 3, 12});
+    auto algorithm = Koala::ElectricalFlow(G, 0, 3);
+
+    algorithm.run();
+    EXPECT_EQ(algorithm.getFlowSize(), 12);
+    expect_electrical_flow(algorithm, 0, 3);
+    algorithm.run();
+    EXPECT_EQ(algorithm.getFlowSize(), 12);
+    expect_electrical_flow(algorithm, 0, 3);
+}
+
+TEST(ElectricalFlowTest, computes_undirected_maximum_flow) {
+    NetworKit::Graph G = build_graph(
+        4, {{0, 1, 5}, {1, 3, 5}, {0, 2, 7}, {2, 3, 7}}, false);
+    auto algorithm = Koala::ElectricalFlow(G, 0, 3);
+
+    algorithm.run();
+    EXPECT_EQ(algorithm.getFlowSize(), 12);
+    expect_electrical_flow(algorithm, 0, 3);
+}
+
+TEST(FlowNetworkTest, rounds_near_integer_flow_without_adding_a_unit) {
+    NetworKit::Graph G(2, true, false);
+    G.addEdge(0, 1, 1);
+    Koala::FlowNetwork network(G);
+    network.flow[0][1] = -5e-9;
+    network.flow[1][0] = 5e-9;
+
+    network.roundFlow();
+
+    EXPECT_DOUBLE_EQ(network.flow[0][1], 0);
+    EXPECT_DOUBLE_EQ(network.flow[1][0], 0);
+}
 
 class KingRaoTarjanMaximumFlowTest
     : public testing::TestWithParam<MaximumFlowParameters> { };
@@ -63,14 +164,7 @@ TEST(KingRaoTarjanMaximumFlowTest, test_prim_designator_nodes) {
 }
 
 TEST(KingRaoTarjanMaximumFlowTest, can_run_twice) {
-    NetworKit::Graph G = build_graph(
-        4, {{0, 1, 10}, {0, 2, 5}, {1, 2, 15}, {1, 3, 5}, {2, 3, 10}}, true);
-    auto algorithm = Koala::KingRaoTarjanMaximumFlow(G, 0, 3);
-
-    algorithm.run();
-    EXPECT_EQ(algorithm.getFlowSize(), 15);
-    algorithm.run();
-    EXPECT_EQ(algorithm.getFlowSize(), 15);
+    expect_maximum_flow_can_run_twice<Koala::KingRaoTarjanMaximumFlow>();
 }
 
 TEST(KingRaoTarjanMaximumFlowTest, matches_push_relabel_on_small_random_graphs) {
@@ -168,6 +262,10 @@ INSTANTIATE_TEST_SUITE_P(
                  {16, 21, 10}, {17, 21, 10}, {18, 21, 10}, {19, 21, 10}, {20, 21, 10}}, 0, 21, 0}
 ));
 
+TEST(GoldbergTarjanPushRelabelMaximumFlowTest, can_run_twice) {
+    expect_maximum_flow_can_run_twice<Koala::GoldbergTarjanPushRelabelMaximumFlow>();
+}
+
 class MKMFlowTest
     : public testing::TestWithParam<MaximumFlowParameters> { };
 
@@ -195,6 +293,10 @@ INSTANTIATE_TEST_SUITE_P(
                  {16, 21, 10}, {17, 21, 10}, {18, 21, 10}, {19, 21, 10}, {20, 21, 10}}, 0, 21, 0}
 ));
 
+TEST(MKMFlowTest, can_run_twice) {
+    expect_maximum_flow_can_run_twice<Koala::MalhotraKumarMaheshwariFlow>();
+}
+
 class BKFlowTest
     : public testing::TestWithParam<MaximumFlowParameters> { };
 
@@ -221,3 +323,7 @@ INSTANTIATE_TEST_SUITE_P(
                  {11, 21, 10}, {12, 21, 10}, {13, 21, 10}, {14, 21, 10}, {15, 21, 10},
                  {16, 21, 10}, {17, 21, 10}, {18, 21, 10}, {19, 21, 10}, {20, 21, 10}}, 0, 21, 0}
 ));
+
+TEST(BKFlowTest, can_run_twice) {
+    expect_maximum_flow_can_run_twice<Koala::BoykovKolmogorovFlow>();
+}

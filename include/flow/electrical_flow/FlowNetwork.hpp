@@ -12,11 +12,11 @@ class FlowNetwork {
 
   double size() const;
 
-  double lowerCapacity(int u, int v) const;
-  double upperCapacity(int u, int v) const;
+  double lowerCapacity(NetworKit::node u, NetworKit::node v) const;
+  double upperCapacity(NetworKit::node u, NetworKit::node v) const;
 
   void roundFlow();
-  void pushValue(int s, int t, double f);
+  bool pushValue(NetworKit::node s, NetworKit::node t, double f);
 
   const NetworKit::Graph &graph;
   std::vector<std::vector<double>> flow;

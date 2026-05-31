@@ -6,32 +6,34 @@
 
 #include "flow/electrical_flow/FlowNetwork.hpp"
 
-class GenTest;
-
 namespace Koala {
 class ElectricalFlow {
  public:
-  ElectricalFlow(NetworKit::Graph graph, int s, int t,
+  ElectricalFlow(NetworKit::Graph graph, NetworKit::node s, NetworKit::node t,
                  bool round = true);
   void run();
   double getFlowSize() const;
 
-  const NetworKit::Graph& getGraph() const { return graph; }
-  const std::vector<std::vector<double>>& getFlow() const { return primal.flow; }
+  const NetworKit::Graph& getGraph() const { return originalGraph; }
+  const std::vector<std::vector<double>>& getFlow() const { return flow; }
 
  private:
   bool route_flow();
   void initialize();
   bool is_feasible();
-  void augmentation_step();
+  bool augmentation_step();
   void fixing_step();
 
+  NetworKit::Graph originalGraph;
   NetworKit::Graph graph;
-  const int s, t;
+  const NetworKit::node s, t;
   int U;
+  int initialFlow;
+  bool directed;
   bool round;
   double maximum_flow;
 
+  std::vector<std::vector<double>> flow;
   std::vector<double> demand;
   FlowNetwork primal;
   std::vector<double> dual;
