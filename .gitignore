@@ -1,5 +1,6 @@
 backup/*
 build/*
 input/*
+AGENTS.md
 .codex
 .vscode/*
