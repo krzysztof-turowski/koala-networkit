@@ -5,9 +5,9 @@
 #include <iostream>
 
 #include <networkit/graph/GraphTools.hpp>
-#include <test/helpers.hpp>
-
-#include <mst/MinimumSpanningTree.hpp>
+#include "graph/GraphTools.hpp"
+#include "mst/MinimumSpanningTree.hpp"
+#include "test/helpers.hpp"
 
 struct SpanningTreeParameters {
     int N;

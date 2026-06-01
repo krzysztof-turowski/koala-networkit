@@ -65,6 +65,16 @@ bool isConnected(const NetworKit::Graph &G) {
     return connected_components.getComponents().size() == 1;
 }
 
+bool hasMultiEdges(const NetworKit::Graph &G) {
+    std::unordered_set<NetworKit::Edge> edges;
+    for (const auto &edge : G.edgeRange()) {
+        if (!edges.insert(edge).second) {
+            return true;
+        }
+    }
+    return false;
+}
+
 NetworKit::Graph makeConnected(const NetworKit::Graph &G) {
     NetworKit::Graph Gout(G);
     auto connected_components = NetworKit::ConnectedComponents(Gout);

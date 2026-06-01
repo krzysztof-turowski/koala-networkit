@@ -120,15 +120,15 @@ class KargerKleinTarjanMinimumSpanningTree final : public BoruvkaMinimumSpanning
     static void remove_heavy_edges(NetworKit::Graph &G, NetworKit::Graph &subgraph);
 };
 
-class ChazelleRubinfeldTrevisanMinimumSpanningTree final : public MinimumSpanningTree{
+class ChazelleRubinfeldTrevisanMinimumSpanningTree final : public MinimumSpanningTree {
  public:
     using MinimumSpanningTree::MinimumSpanningTree;
     /**
      * Execute Chazelle-Rubinfeld-Trevisan randomized minimum spanning tree weight algorithm.
-     * 
+     *
      * eps - a constant in (0, 0.5), used to bound running time and result accuracy.
      * The smaller the eps, the more accurate the output.
-     * 
+     *
      * w - maximum edge weight - the algorithm assumes all edges have weights from {1,...,w}
      * as the algorithm is sublinear, w cannot be determined at runtime.
      */
@@ -146,17 +146,17 @@ class ChazelleRubinfeldTrevisanMinimumSpanningTree final : public MinimumSpannin
      */
     const NetworKit::Graph& getForest() const;
 
-    /** 
+    /**
      * Get the approximate weight of minimum spanning tree, calculated in run() method.
     */
-    float getTreeWeight() const;
+    NetworKit::edgeweight getTreeWeight() const;
 
  private:
-    float calculateApproximateDegree(float eps) const;
-    float calculateApproximateCCsCount(
-        float eps, NetworKit::count bfs_bound, unsigned int w, unsigned int w_bound) const;
-    float calculateApproximateTreeWeight(float eps, unsigned int w) const;
-    float treeWeight = -1;
+    float calculate_approximate_degree(float eps) const;
+    float calculate_approximate_ccs_count(
+            float eps, NetworKit::count bfs_bound, unsigned int w_bound) const;
+    NetworKit::edgeweight calculate_approximate_tree_weight(float eps, unsigned int w) const;
+    NetworKit::edgeweight tree_weight = NetworKit::nullWeight;
 };
 
 class Chazelle2000MinimumSpanningTree final : public MinimumSpanningTree {
@@ -168,13 +168,13 @@ class Chazelle2000MinimumSpanningTree final : public MinimumSpanningTree {
     NetworKit::Graph mst(NetworKit::Graph G, int t);
     NetworKit::Graph msf(NetworKit::Graph G, int t);
     std::tuple<NetworKit::Graph, EdgeMap, NetworKit::Graph>
-        boruvkaSteps(NetworKit::Graph G, int c);
-    int verticesOnLevel(int dz);
+        boruvka_steps(NetworKit::Graph G, int c);
+    int vertices_on_level(int dz);
 
-    // Based on the complexity analysis should be at >=16
-    // However then practically it's just a Boruvka
-    static constexpr int C = 4;
-    static constexpr int MIN_NUMBER_NODES = 10;
+    // The paper bounds the number of bad edges by 8m'/c + d^3n' and requires
+    // it to be at most m'/2 + d^3n'. Its smallest hierarchy target is S(t, 1)^3 = 8.
+    static constexpr int C = 16;
+    static constexpr int MIN_NUMBER_NODES = 8;
 };
 
-}  /* namespace Koala */
+}  // namespace Koala
