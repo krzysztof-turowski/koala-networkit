@@ -4,8 +4,8 @@
 
 #include <networkit/graph/Graph.hpp>
 
-#include <flow/electrical_flow/DynamicTree.hpp>
 #include <flow/electrical_flow/FlowNetwork.hpp>
+#include <structures/dynamic_tree/NaiveDynamicTree.hpp>
 
 double constexpr EPS = 1e-8;
 
@@ -24,12 +24,13 @@ double FlowNetwork::lowerCapacity(NetworKit::node u, NetworKit::node v) const {
   return graph.weight(u, v) + flow[u][v];
 }
 
-void cutIntegral(DynamicTree &dt, NetworKit::node u, NetworKit::node v) {
+void cutIntegral(
+    NaiveDynamicTree<double> &dt, NetworKit::node u, NetworKit::node v) {
   if (u == v) {
     return;
   }
   auto [mx, my] = dt.pathMin(u, v);
-  if (std::abs(dt.weights[mx][my]) <= EPS) {
+  if (std::abs(dt.getWeight(mx, my)) <= EPS) {
     dt.cut(mx, my);
     cutIntegral(dt, u, mx);
     cutIntegral(dt, my, v);
@@ -53,33 +54,35 @@ void FlowNetwork::roundFlow() {
     flow[v][u] = -intFlow;
   }
 
-  DynamicTree dt(N, weights);
+  NaiveDynamicTree<double> dt(N, weights);
 
   for (auto [u, v] : graph.edgeRange()) {
     if (dt.findRoot(u) == dt.findRoot(v)) {
-      double s = dt.pathSum(u, v) + dt.weights[v][u];
+      double s = dt.pathSum(u, v) + dt.getWeight(v, u);
       if (s < 0) {
         std::swap(u, v);
       }
       auto [mx, my] = dt.pathMin(u, v);
-      double mf = dt.weights[mx][my] < 0 ? 1.0 + dt.weights[mx][my] : dt.weights[mx][my];
-      double vuf = dt.weights[v][u] < 0 ? 1.0 + dt.weights[v][u] : dt.weights[v][u];
+      double mf = dt.getWeight(mx, my) < 0 ? 1.0 + dt.getWeight(mx, my)
+                                           : dt.getWeight(mx, my);
+      double vuf = dt.getWeight(v, u) < 0 ? 1.0 + dt.getWeight(v, u)
+                                         : dt.getWeight(v, u);
       mf = std::min(mf, vuf);
 
       dt.pathAdd(u, v, mf);
-      dt.weights[v][u] -= mf;
-      dt.weights[u][v] += mf;
+      dt.addWeight(v, u, -mf);
+      dt.addWeight(u, v, mf);
 
       cutIntegral(dt, u, v);
     }
-    if (std::abs(dt.weights[u][v]) > EPS) {
-      dt.link(u, v);
+    if (std::abs(dt.getWeight(u, v)) > EPS) {
+      dt.link(u, v, dt.getWeight(u, v));
     }
   }
 
   for (auto [u, v] : graph.edgeRange()) {
-    double f = dt.weights[u][v] >= 0 ? ceil(dt.weights[u][v])
-                                     : floor(dt.weights[u][v]);
+    double f = dt.getWeight(u, v) >= 0 ? ceil(dt.getWeight(u, v))
+                                       : floor(dt.getWeight(u, v));
     flow[u][v] += f;
     flow[v][u] -= f;
   }
