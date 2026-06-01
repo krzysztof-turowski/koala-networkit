@@ -7,16 +7,17 @@
 
 #pragma once
 
-#include <map>
 #include <optional>
-#include <utility>
 #include <tuple>
+#include <unordered_map>
 
 #include <networkit/base/Algorithm.hpp>
 #include <networkit/graph/Graph.hpp>
 #include <networkit/structures/UnionFind.hpp>
 
 namespace Koala {
+
+using EdgeMap = std::unordered_map<NetworKit::Edge, NetworKit::Edge>;
 
 /**
  * @ingroup mst
@@ -46,9 +47,7 @@ class MinimumSpanningTree : public NetworKit::Algorithm {
     void check() const;
 
  protected:
-    using NodePair = std::pair<NetworKit::node, NetworKit::node>;
-
-    std::optional<NetworKit::Graph> graph, tree;
+    NetworKit::Graph graph, tree;
     void initialize();
 };
 
@@ -98,7 +97,7 @@ class BoruvkaMinimumSpanningTree : public MinimumSpanningTree {
  protected:
     static std::optional<NetworKit::Graph> iterate(
         NetworKit::Graph &G, NetworKit::Graph &F,
-        NetworKit::UnionFind &union_find, std::map<NodePair, NodePair> &E,
+        NetworKit::UnionFind &union_find, EdgeMap &E,
         NetworKit::count steps, bool get_branching_tree);
 };
 
@@ -168,7 +167,7 @@ class Chazelle2000MinimumSpanningTree final : public MinimumSpanningTree {
  private:
     NetworKit::Graph mst(NetworKit::Graph G, int t);
     NetworKit::Graph msf(NetworKit::Graph G, int t);
-    std::tuple<NetworKit::Graph, std::map<NodePair, NodePair>, NetworKit::Graph>
+    std::tuple<NetworKit::Graph, EdgeMap, NetworKit::Graph>
         boruvkaSteps(NetworKit::Graph G, int c);
     int verticesOnLevel(int dz);
 
