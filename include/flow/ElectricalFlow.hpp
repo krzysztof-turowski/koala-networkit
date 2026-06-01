@@ -4,15 +4,15 @@
 
 #include <networkit/graph/Graph.hpp>
 
+#include "flow/MaximumFlow.hpp"
 #include "flow/electrical_flow/FlowNetwork.hpp"
 
 namespace Koala {
-class ElectricalFlow {
+class ElectricalFlow final : public MaximumFlow {
  public:
   ElectricalFlow(NetworKit::Graph graph, NetworKit::node s, NetworKit::node t,
                  bool round = true);
-  void run();
-  double getFlowSize() const;
+  void run() override;
 
   const NetworKit::Graph& getGraph() const { return originalGraph; }
   const std::vector<std::vector<double>>& getFlow() const { return flow; }
@@ -31,7 +31,6 @@ class ElectricalFlow {
   int initialFlow;
   bool directed;
   bool round;
-  double maximum_flow;
 
   std::vector<std::vector<double>> flow;
   std::vector<double> demand;

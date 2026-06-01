@@ -4,7 +4,7 @@
 #include <queue>
 #include <vector>
 
-#include <flow/electrical_flow/ElectricalFlow.hpp>
+#include <flow/ElectricalFlow.hpp>
 #include <flow/electrical_flow/ElectricalNetwork.hpp>
 #include <flow/electrical_flow/FlowNetwork.hpp>
 
@@ -158,9 +158,10 @@ std::vector<double> get_violation(const FlowNetwork &f, const std::vector<double
 
 ElectricalFlow::ElectricalFlow(
     NetworKit::Graph graph, NetworKit::node s, NetworKit::node t, bool round)
-    : originalGraph(graph), graph(initialize_graph(graph, s, t)), s(s), t(t), U(0),
+    : MaximumFlow(graph, s, t), originalGraph(graph), graph(initialize_graph(graph, s, t)),
+      s(s), t(t), U(0),
       initialFlow(get_initial_flow(graph, s, t)), directed(graph.isDirected()), round(round),
-      maximum_flow(0), primal(this->graph) {
+      primal(this->graph) {
   this->graph.forNeighborsOf(t, [&](NetworKit::node v) { U += this->graph.weight(v, t); });
 }
 
@@ -177,16 +178,17 @@ void ElectricalFlow::run() {
   target_flow = L;
   route_flow();
 
-  maximum_flow = directed ? (L - initialFlow) / 2 : L;
+  flow_size = directed ? (L - initialFlow) / 2 : L;
   if (directed) {
-    push_directed_value(originalGraph, flow, s, t, maximum_flow);
+    push_directed_value(originalGraph, flow, s, t, flow_size);
   } else if (round) {
     primal.flow.assign(graph.numberOfNodes(), std::vector<double>(graph.numberOfNodes(), 0));
-    primal.pushValue(s, t, maximum_flow);
+    primal.pushValue(s, t, flow_size);
     flow = primal.flow;
   } else {
     flow = primal.flow;
   }
+  hasRun = true;
 }
 
 bool ElectricalFlow::is_feasible() {
@@ -210,8 +212,6 @@ bool ElectricalFlow::route_flow() {
   }
   return primal.pushValue(s, t, (1.0 - progress) * demand[t]);
 }
-
-double ElectricalFlow::getFlowSize() const { return maximum_flow; }
 
 void ElectricalFlow::initialize() {
   NetworKit::count N = graph.numberOfNodes();
