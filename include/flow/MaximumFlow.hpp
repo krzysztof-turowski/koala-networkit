@@ -8,7 +8,6 @@
 
 #pragma once
 
-#include <functional>
 #include <optional>
 #include <utility>
 
@@ -22,20 +21,6 @@ namespace Koala {
  * The base class for the max flow algorithms.
  *
  */
-
-struct EdgeHash {
-    std::size_t operator()(const NetworKit::Edge& e) const {
-        std::size_t h1 = std::hash<NetworKit::node>{}(e.u);
-        std::size_t h2 = std::hash<NetworKit::node>{}(e.v);
-        return h1 ^ (h2 << 1);  // combine hashes
-    }
-};
-
-struct EdgeEqual {
-    bool operator()(const NetworKit::Edge& lhs, const NetworKit::Edge& rhs) const {
-        return lhs.u == rhs.u && lhs.v == rhs.v;
-    }
-};
 
 class MaximumFlow : public NetworKit::Algorithm {
  public:

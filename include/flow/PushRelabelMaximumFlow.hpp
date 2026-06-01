@@ -13,7 +13,7 @@ class PushRelabelMaximumFlow : public MaximumFlow {
     void run();
 
  protected:
-    std::unordered_map<NetworKit::Edge, int, EdgeHash, EdgeEqual> capacity, flow;
+    std::unordered_map<NetworKit::Edge, int> capacity, flow;
     std::map<NetworKit::node, int> distance, excess;
 
     virtual NetworKit::node get_active_vertex() = 0;

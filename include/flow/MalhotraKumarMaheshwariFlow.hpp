@@ -12,11 +12,11 @@ class MalhotraKumarMaheshwariFlow final : public MaximumFlow {
     void run();
  private:
     int V;
-    std::unordered_map<NetworKit::Edge, int, EdgeHash, EdgeEqual> flow;
+    std::unordered_map<NetworKit::Edge, int> flow;
     NetworKit::Graph graph_stage;
     std::unordered_map<NetworKit::node, int> level;
     std::unordered_map<NetworKit::node, int> inPotential, outPotential;
-    std::unordered_map<NetworKit::Edge, int, EdgeHash, EdgeEqual> capacity;
+    std::unordered_map<NetworKit::Edge, int> capacity;
 
     NetworKit::Edge reverse(const NetworKit::Edge &);
 

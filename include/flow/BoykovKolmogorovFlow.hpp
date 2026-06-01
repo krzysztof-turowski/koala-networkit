@@ -13,11 +13,11 @@ class BoykovKolmogorovFlow final : public MaximumFlow {
     void run();
  private:
     int V;
-    std::unordered_map<NetworKit::Edge, int, EdgeHash, EdgeEqual> flow;
+    std::unordered_map<NetworKit::Edge, int> flow;
     NetworKit::node spath, tpath;
     std::unordered_map<NetworKit::node, NetworKit::node> parent;
     std::unordered_map<NetworKit::node, int> tree;
-    std::unordered_map<NetworKit::Edge, int, EdgeHash, EdgeEqual> capacity;
+    std::unordered_map<NetworKit::Edge, int> capacity;
     std::queue<NetworKit::node> active;
     std::queue<NetworKit::node> orphan;
 
