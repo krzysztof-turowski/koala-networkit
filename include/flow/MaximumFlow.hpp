@@ -8,9 +8,6 @@
 
 #pragma once
 
-#include <optional>
-#include <utility>
-
 #include <networkit/base/Algorithm.hpp>
 #include <networkit/graph/Graph.hpp>
 
@@ -18,13 +15,15 @@ namespace Koala {
 
 /**
  * @ingroup flow
- * The base class for the max flow algorithms.
+ * Base class for maximum-flow algorithms.
  *
+ * Implementations own an internal copy of the input graph and report the value of an
+ * s-t maximum flow after run() completes.
  */
-
 class MaximumFlow : public NetworKit::Algorithm {
  public:
     /**
+     * Construct a maximum-flow instance.
      *
      * @param graph The input graph.
      * @param s     The source vertex.
@@ -35,14 +34,14 @@ class MaximumFlow : public NetworKit::Algorithm {
     /**
      * Return the flow size found by the algorithm.
      *
-     * @return a total flow value.
+     * @return The value of the computed s-t flow.
      */
     int getFlowSize() const;
 
  protected:
-    std::optional<NetworKit::Graph> graph;
+    NetworKit::Graph graph;
     NetworKit::node source, target;
     int flow_size;
 };
 
-}  /* namespace Koala */
+}  // namespace Koala

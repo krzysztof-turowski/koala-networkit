@@ -12,7 +12,7 @@
 #include <unordered_set>
 #include <vector>
 
-#include <flow/maximum_flow/KrtEdgeDesignator.hpp>
+#include "flow/maximum_flow/KrtEdgeDesignator.hpp"
 
 namespace Koala {
 
@@ -67,7 +67,7 @@ void KRTEdgeDesignator::initialize_neighbors() {
         U_neighbors[i].resize(t + 1);
         U_neighbors[i][0] =
             std::unordered_set<NetworKit::node>(U[i].begin(), U[i].end());
-        degU[i] = U[i].size();
+        deg_U[i] = U[i].size();
     }
 }
 
@@ -92,11 +92,11 @@ std::unordered_set<NetworKit::node> KRTEdgeDesignator::get_indexed_V(int k) {
     return VK;
 }
 
-NetworKit::node KRTEdgeDesignator::encodeId(NetworKit::node i, int k) const {
+NetworKit::node KRTEdgeDesignator::encode_id(NetworKit::node i, int k) const {
     return i * MAX_K + k;
 }
 
-NetworKit::node KRTEdgeDesignator::decodeId(NetworKit::node i) const {
+NetworKit::node KRTEdgeDesignator::decode_id(NetworKit::node i) const {
     return i != NetworKit::none ? i / MAX_K : NetworKit::none;
 }
 
@@ -147,7 +147,7 @@ bool KRTEdgeDesignator::remove_edge(NetworKit::node u, NetworKit::node v) {
     for (int ratio = 0; ratio <= t; ++ratio) {
         if (U_neighbors[u][ratio].count(v)) {
             U_neighbors[u][ratio].erase(v);
-            degU[u]--;
+            deg_U[u]--;
             found = true;
             break;
         }
@@ -163,7 +163,7 @@ bool KRTEdgeDesignator::remove_edge(NetworKit::node u, NetworKit::node v) {
         designated[u] = NetworKit::none;
     }
 
-    const bool shifted = was_in_U_prim && degU[u] < l;
+    const bool shifted = was_in_U_prim && deg_U[u] < l;
     if (shifted) {
         U_prim.erase(u);
     }
@@ -267,14 +267,14 @@ void KRTEdgeDesignator::initialize(
     MAX_K = 2 * n, N = (n + 1) * MAX_K, M = 0;
     U = std::vector<std::vector<NetworKit::node>>(N);
     V = std::vector<std::vector<NetworKit::node>>(N);
-    degU = std::vector<NetworKit::count>(N, 0);
+    deg_U = std::vector<NetworKit::count>(N, 0);
     designated = std::vector<NetworKit::node>(N, NetworKit::none);
     rl = std::vector<int>(N, 0), erl = std::vector<int>(N, 0);
     initialize_parameters(parameters);
 
     graph->forEdges([&](NetworKit::node u, NetworKit::node v) {
         for (int k = 1; k < static_cast<int>(MAX_K); k++, M++) {
-            NetworKit::node left = encodeId(u, k), right = encodeId(v, k - 1);
+            NetworKit::node left = encode_id(u, k), right = encode_id(v, k - 1);
             U[left].push_back(right);
             V[right].push_back(left);
         }
@@ -288,19 +288,19 @@ void KRTEdgeDesignator::initialize(
 }
 
 NetworKit::node KRTEdgeDesignator::current_edge(NetworKit::node i, int k) {
-    return decodeId(designated[encodeId(i, k)]);
+    return decode_id(designated[encode_id(i, k)]);
 }
 
 void KRTEdgeDesignator::response_adversary(NetworKit::node a, int da) {
-    NetworKit::node v = encodeId(a, da);
+    NetworKit::node v = encode_id(a, da);
     for (const auto &u : V[v]) {
         remove_edge_and_redesignate(u, v);
     }
 }
 
 void KRTEdgeDesignator::response_adversary(NetworKit::node a, int da, NetworKit::node b, int db) {
-    NetworKit::node u = encodeId(a, da), v = encodeId(b, db);
+    NetworKit::node u = encode_id(a, da), v = encode_id(b, db);
     remove_edge_and_redesignate(u, v);
 }
 
-} /* namespace Koala */
+}  // namespace Koala

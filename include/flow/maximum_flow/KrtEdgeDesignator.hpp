@@ -17,8 +17,17 @@
 
 namespace Koala {
 
+/**
+ * Residual-edge designator used by KingRaoTarjanMaximumFlow.
+ *
+ * The data structure tracks one candidate residual edge per encoded vertex-level state and
+ * updates designations in response to relabels and rejected edges.
+ */
 class KRTEdgeDesignator {
  public:
+    /**
+     * Parameters controlling ratio levels and reset thresholds.
+     */
     struct Parameters {
         // The general strategy does not prescribe R0 or X. Defaults are 0.7 and 2.
         // If omitted, L is the smallest value satisfying R0 * L / X > 176 and T is
@@ -35,7 +44,7 @@ class KRTEdgeDesignator {
     int t;
 
     NetworKit::count N, M, MAX_K;
-    std::vector<NetworKit::count> degU;
+    std::vector<NetworKit::count> deg_U;
     std::vector<NetworKit::node> designated;
     std::vector<int> rl, erl;
     std::vector<long double> ratios;
@@ -51,8 +60,8 @@ class KRTEdgeDesignator {
     std::unordered_set<NetworKit::node> get_indexed_U(int);
     std::unordered_set<NetworKit::node> get_indexed_V(int);
 
-    NetworKit::node encodeId(NetworKit::node, int) const;
-    NetworKit::node decodeId(NetworKit::node) const;
+    NetworKit::node encode_id(NetworKit::node, int) const;
+    NetworKit::node decode_id(NetworKit::node) const;
 
     void update_rl(NetworKit::node);
     void update_erl(NetworKit::node);
@@ -65,11 +74,37 @@ class KRTEdgeDesignator {
     long double reset();
 
  public:
+    /**
+     * Initialize the designator with default parameters.
+     *
+     * @param graph Residual graph represented as an optional graph.
+     */
     void initialize(const std::optional<NetworKit::Graph>&);
+
+    /**
+     * Initialize the designator with explicit parameters.
+     *
+     * @param graph Residual graph represented as an optional graph.
+     * @param parameters Designator tuning parameters.
+     */
     void initialize(const std::optional<NetworKit::Graph>&, const Parameters&);
+
+    /**
+     * Return the currently designated edge endpoint for a vertex-level state.
+     *
+     * @return The designated endpoint, or NetworKit::none if no edge is designated.
+     */
     NetworKit::node current_edge(NetworKit::node, int);
+
+    /**
+     * Notify the designator that a vertex has been relabeled.
+     */
     void response_adversary(NetworKit::node, int);
+
+    /**
+     * Notify the designator that an edge candidate was rejected.
+     */
     void response_adversary(NetworKit::node, int, NetworKit::node, int);
 };
 
-} /* namespace Koala */
+}  // namespace Koala

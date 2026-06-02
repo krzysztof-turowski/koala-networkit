@@ -7,13 +7,30 @@ namespace Koala {
 
 /**
  * @ingroup flow
- * The class for the King-Rao-Tarjan maximum flow algorithm
+ * King-Rao-Tarjan deterministic maximum-flow algorithm.
+ *
+ * This implementation combines the shared push-relabel engine with an edge designator that
+ * supplies residual-edge candidates and responds to relabeling and failed candidates.
+ *
+ * @see https://doi.org/10.1006/jagm.1994.1044
  */
 class KingRaoTarjanMaximumFlow final : public PushRelabelMaximumFlow {
  public:
+    /**
+     * Construct a King-Rao-Tarjan maximum-flow instance.
+     *
+     * @param graph Input graph.
+     * @param source Source vertex.
+     * @param target Sink vertex.
+     * @param edge_designator_parameters Optional designator tuning parameters.
+     */
     KingRaoTarjanMaximumFlow(
         NetworKit::Graph&, NetworKit::node, NetworKit::node,
         KRTEdgeDesignator::Parameters = {});
+
+    /**
+     * Initialize the designator and compute a maximum flow.
+     */
     void run();
 
  private:
@@ -25,4 +42,4 @@ class KingRaoTarjanMaximumFlow final : public PushRelabelMaximumFlow {
     void on_relabel(NetworKit::node, int) override;
 };
 
-}  /* namespace Koala */
+}  // namespace Koala

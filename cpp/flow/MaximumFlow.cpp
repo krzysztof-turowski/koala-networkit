@@ -6,16 +6,16 @@
  *      Ported by: Krzysztof Turowski (krzysztof.szymon.turowski@gmail.com)
  */
 
-#include <flow/MaximumFlow.hpp>
+#include "flow/MaximumFlow.hpp"
 
 namespace Koala {
 
 MaximumFlow::MaximumFlow(NetworKit::Graph &graph, NetworKit::node s, NetworKit::node t)
-: graph(std::make_optional(graph)), source(s), target(t) { }
+    : graph(graph), source(s), target(t) { }
 
 int MaximumFlow::getFlowSize() const {
     assureFinished();
     return flow_size;
 }
 
-} /* namespace Koala */
+}  // namespace Koala

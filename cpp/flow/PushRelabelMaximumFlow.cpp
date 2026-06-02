@@ -3,6 +3,7 @@
 #include <vector>
 
 #include "flow/PushRelabelMaximumFlow.hpp"
+#include "graph/GraphTools.hpp"
 
 namespace Koala {
 
@@ -15,7 +16,7 @@ void PushRelabelMaximumFlow::initialize() {
     distance.clear(), excess.clear();
 
     std::vector<NetworKit::WeightedEdge> original_edges;
-    graph->forEdges([&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight weight) {
+    graph.forEdges([&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight weight) {
         original_edges.emplace_back(u, v, weight);
     });
     for (const auto &e : original_edges) {
@@ -25,18 +26,18 @@ void PushRelabelMaximumFlow::initialize() {
         }
     }
     for (const auto &e : original_edges) {
-        if (!graph->hasEdge(e.v, e.u)) {
-            graph->addEdge(e.v, e.u, 0);
+        if (!graph.hasEdge(e.v, e.u)) {
+            graph.addEdge(e.v, e.u, 0);
         }
     }
-    graph->forEdges([&](NetworKit::node u, NetworKit::node v) {
+    graph.forEdges([&](NetworKit::node u, NetworKit::node v) {
         flow[NetworKit::Edge(u, v)] = 0;
     });
-    graph->forNodes([&](NetworKit::node v) {
+    graph.forNodes([&](NetworKit::node v) {
         distance[v] = 0;
         excess[v] = 0;
     });
-    distance[source] = graph->numberOfNodes();
+    distance[source] = graph.numberOfNodes();
     excess[source] = std::numeric_limits<int>::max();
 }
 
@@ -49,7 +50,7 @@ void PushRelabelMaximumFlow::push(NetworKit::node u, NetworKit::node v) {
 
 void PushRelabelMaximumFlow::relabel(NetworKit::node v) {
     int minimum = std::numeric_limits<int>::max();
-    graph->forNeighborsOf(v, [&](NetworKit::node u) {
+    graph.forNeighborsOf(v, [&](NetworKit::node u) {
         const NetworKit::Edge e(v, u);
         if (capacity[e] - flow[e] > 0) {
             minimum = std::min(minimum, distance[u]);
@@ -65,8 +66,9 @@ void PushRelabelMaximumFlow::relabel(NetworKit::node v) {
 }
 
 void PushRelabelMaximumFlow::run() {
+    GraphTools::ensureDirectedGraph(graph);
     initialize();
-    graph->forNeighborsOf(source, [&](NetworKit::node v) {
+    graph.forNeighborsOf(source, [&](NetworKit::node v) {
         if (capacity[NetworKit::Edge(source, v)] > 0) {
             push(source, v);
         }
@@ -83,4 +85,4 @@ void PushRelabelMaximumFlow::run() {
     hasRun = true;
 }
 
-}  /* namespace Koala */
+}  // namespace Koala

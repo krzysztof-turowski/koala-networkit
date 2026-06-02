@@ -58,6 +58,18 @@ NetworKit::Graph convertUndirectedGraphToDirected(const NetworKit::Graph &G, boo
     return Gout;
 }
 
+void assureUndirectedGraph(const NetworKit::Graph &G) {
+    if (G.isDirected()) {
+        throw std::runtime_error("Algorithm requires an undirected graph.");
+    }
+}
+
+void ensureDirectedGraph(NetworKit::Graph &G) {
+    if (!G.isDirected()) {
+        G = NetworKit::Graph(G, G.isWeighted(), true);
+    }
+}
+
 bool isConnected(const NetworKit::Graph &G) {
     NetworKit::Graph Gout(G);
     auto connected_components = NetworKit::ConnectedComponents(Gout);

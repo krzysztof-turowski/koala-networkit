@@ -261,6 +261,7 @@ void MinimumSpanningTree::initialize() {
 }
 
 void KruskalMinimumSpanningTree::run() {
+    GraphTools::assureUndirectedGraph(graph);
     initialize();
     hasRun = true;
     std::vector<NetworKit::WeightedEdge> sorted_edges(
@@ -276,6 +277,7 @@ void KruskalMinimumSpanningTree::run() {
 }
 
 void PrimMinimumSpanningTree::run() {
+    GraphTools::assureUndirectedGraph(graph);
     initialize();
     hasRun = true;
     Heap<std::pair<NetworKit::edgeweight, NetworKit::node>> queue;
@@ -303,6 +305,7 @@ void PrimMinimumSpanningTree::run() {
 }
 
 void BoruvkaMinimumSpanningTree::run() {
+    GraphTools::assureUndirectedGraph(graph);
     initialize();
     hasRun = true;
     NetworKit::UnionFind union_find(graph.upperNodeIdBound());
@@ -391,6 +394,7 @@ std::optional<NetworKit::Graph> BoruvkaMinimumSpanningTree::iterate(
 }
 
 void KargerKleinTarjanMinimumSpanningTree::run() {
+    GraphTools::assureUndirectedGraph(graph);
     initialize();
     hasRun = true;
     NetworKit::Graph G(graph);
@@ -585,6 +589,7 @@ void ChazelleRubinfeldTrevisanMinimumSpanningTree::run() {
 }
 
 void ChazelleRubinfeldTrevisanMinimumSpanningTree::run(unsigned int w, float eps) {
+    GraphTools::assureUndirectedGraph(graph);
     assert(0 < eps && eps < 0.5);
     assert(0 < w);
 
@@ -638,6 +643,7 @@ void MinimumSpanningTree::check() const {
 }
 
 void Chazelle2000MinimumSpanningTree::run() {
+    GraphTools::assureUndirectedGraph(graph);
     initialize();
     auto G = graph;
     tree = mst(G, 10);

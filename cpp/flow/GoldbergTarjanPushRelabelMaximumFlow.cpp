@@ -3,8 +3,8 @@
 namespace Koala {
 
 NetworKit::node GoldbergTarjanPushRelabelMaximumFlow::get_active_vertex() {
-    for (NetworKit::node v = 0; v < graph->upperNodeIdBound(); ++v) {
-        if (v != source && v != target && graph->hasNode(v) && excess[v] > 0) {
+    for (NetworKit::node v = 0; v < graph.upperNodeIdBound(); ++v) {
+        if (v != source && v != target && graph.hasNode(v) && excess[v] > 0) {
             return v;
         }
     }
@@ -14,7 +14,7 @@ NetworKit::node GoldbergTarjanPushRelabelMaximumFlow::get_active_vertex() {
 NetworKit::node GoldbergTarjanPushRelabelMaximumFlow::get_admissible_residual_edge(
         NetworKit::node v) {
     NetworKit::node result = NetworKit::none;
-    graph->forNeighborsOf(v, [&](NetworKit::node u) {
+    graph.forNeighborsOf(v, [&](NetworKit::node u) {
         const NetworKit::Edge e(v, u);
         if (result == NetworKit::none && capacity[e] - flow[e] > 0
                 && distance[v] == distance[u] + 1) {
@@ -24,4 +24,4 @@ NetworKit::node GoldbergTarjanPushRelabelMaximumFlow::get_admissible_residual_ed
     return result;
 }
 
-}  /* namespace Koala */
+}  // namespace Koala

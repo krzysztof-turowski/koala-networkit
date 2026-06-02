@@ -2,17 +2,19 @@
 #include <vector>
 
 #include "flow/KingRaoTarjanMaximumFlow.hpp"
+#include "graph/GraphTools.hpp"
 
 namespace Koala {
 
 KingRaoTarjanMaximumFlow::KingRaoTarjanMaximumFlow(
     NetworKit::Graph &graph, NetworKit::node source, NetworKit::node target,
     KRTEdgeDesignator::Parameters edge_designator_parameters)
-: PushRelabelMaximumFlow(graph, source, target),
-  edge_designator_parameters(std::move(edge_designator_parameters)) { }
+    : PushRelabelMaximumFlow(graph, source, target),
+      edge_designator_parameters(std::move(edge_designator_parameters)) { }
 
 void KingRaoTarjanMaximumFlow::run() {
-    NetworKit::Graph residual_graph(*graph);
+    GraphTools::ensureDirectedGraph(graph);
+    NetworKit::Graph residual_graph(graph);
     std::vector<NetworKit::Edge> edges;
     residual_graph.forEdges([&](NetworKit::node u, NetworKit::node v) {
         edges.emplace_back(u, v);
@@ -31,8 +33,8 @@ void KingRaoTarjanMaximumFlow::on_relabel(NetworKit::node v, int old_distance) {
 }
 
 NetworKit::node KingRaoTarjanMaximumFlow::get_active_vertex() {
-    for (NetworKit::node v = 0; v < graph->upperNodeIdBound(); ++v) {
-        if (v != source && v != target && graph->hasNode(v) && excess[v] > 0) {
+    for (NetworKit::node v = 0; v < graph.upperNodeIdBound(); ++v) {
+        if (v != source && v != target && graph.hasNode(v) && excess[v] > 0) {
             return v;
         }
     }
@@ -51,4 +53,4 @@ NetworKit::node KingRaoTarjanMaximumFlow::get_admissible_residual_edge(NetworKit
     return NetworKit::none;
 }
 
-}  /* namespace Koala */
+}  // namespace Koala

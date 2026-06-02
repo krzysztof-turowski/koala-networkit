@@ -7,9 +7,23 @@
 
 namespace Koala {
 
+/**
+ * @ingroup flow
+ * Common push-relabel maximum-flow engine.
+ *
+ * Push-relabel algorithms maintain a preflow and repeatedly push excess along admissible
+ * residual edges or relabel active vertices. Concrete algorithms specialize how active
+ * vertices and admissible residual edges are selected.
+ *
+ * @see https://doi.org/10.1145/48014.61051
+ */
 class PushRelabelMaximumFlow : public MaximumFlow {
  public:
     using MaximumFlow::MaximumFlow;
+
+    /**
+     * Compute a maximum flow using the subclass selection policy.
+     */
     void run();
 
  protected:
@@ -26,4 +40,4 @@ class PushRelabelMaximumFlow : public MaximumFlow {
     void relabel(NetworKit::node);
 };
 
-}  /* namespace Koala */
+}  // namespace Koala

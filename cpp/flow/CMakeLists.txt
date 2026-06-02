@@ -5,7 +5,7 @@ koala_add_module(flow
     maximum_flow/KrtEdgeDesignator.cpp
     GoldbergTarjanPushRelabelMaximumFlow.cpp
     MalhotraKumarMaheshwariFlow.cpp
-    BoykovKolmogorovFlow.cpp
+    BoykovKolmogorovMaximumFlow.cpp
 
     # Electrical Flow
     ElectricalFlow.cpp
