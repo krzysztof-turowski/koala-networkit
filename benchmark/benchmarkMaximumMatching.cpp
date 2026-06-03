@@ -1,24 +1,27 @@
 #include <cassert>
 #include <exception>
-#include <filesystem>
 #include <iostream>
 #include <map>
 #include <set>
 #include <string>
 
-#include <io/DimacsGraphReader.hpp>
+#include <benchmark/utils.hpp>
 #include <matching/MaximumMatching.hpp>
 #include <matching/gaussian_matching/BipartiteGaussianMatching.hpp>
 #include <matching/gaussian_matching/GeneralGaussianMatching.hpp>
 #include <matching/gaussian_matching/NaiveGaussianMatching.hpp>
 
-std::map<std::string, int> ALGORITHM = {
-    { "all", 0 },
-    { "MicaliVazirani", 1 },
-    { "NaiveGaussian", 2 },
-    { "Gaussian", 3 },
-    { "Edmonds", 4 },
-    { "Gabow", 5 },
+enum class Algorithm : uint32_t {
+    ALL, MICALI_VAZIRANI, NAIVE_GAUSSIAN, GAUSSIAN, EDMONDS, GABOW
+};
+
+std::map<std::string, Algorithm> ALGORITHM = {
+    { "all", Algorithm::ALL },
+    { "MicaliVazirani", Algorithm::MICALI_VAZIRANI },
+    { "NaiveGaussian", Algorithm::NAIVE_GAUSSIAN },
+    { "Gaussian", Algorithm::GAUSSIAN },
+    { "Edmonds", Algorithm::EDMONDS },
+    { "Gabow", Algorithm::GABOW },
 };
 
 template <typename Algorithm>
@@ -41,10 +44,10 @@ NetworKit::count run_algorithm(NetworKit::Graph &G) {
     return algorithm.getMatching().size() / 2;
 }
 
-void run_test(NetworKit::Graph &G, const std::string &algorithm) {
+void run_test(NetworKit::Graph &G, Algorithm algorithm) {
     std::set<NetworKit::count> T;
-    switch (ALGORITHM[algorithm]) {
-    case 0:
+    switch (algorithm) {
+    case Algorithm::ALL:
         T.insert(run_algorithm<Koala::MicaliVaziraniMatching>(G));
         T.insert(run_algorithm<Koala::GeneralGaussianMatching>(G));
         T.insert(run_algorithm<Koala::NaiveGaussianMatching>(G));
@@ -52,33 +55,23 @@ void run_test(NetworKit::Graph &G, const std::string &algorithm) {
         T.insert(run_algorithm<Koala::GabowMaximumMatching>(G));
         assert(T.size() == 1);
         break;
-    case 1:
+    case Algorithm::MICALI_VAZIRANI:
         T.insert(run_algorithm<Koala::MicaliVaziraniMatching>(G));
         break;
-    case 2:
-        T.insert(run_algorithm<Koala::GeneralGaussianMatching>(G));
-        break;
-    case 3:
+    case Algorithm::NAIVE_GAUSSIAN:
         T.insert(run_algorithm<Koala::NaiveGaussianMatching>(G));
         break;
-    case 4:
+    case Algorithm::GAUSSIAN:
+        T.insert(run_algorithm<Koala::GeneralGaussianMatching>(G));
+        break;
+    case Algorithm::EDMONDS:
         T.insert(run_algorithm<Koala::EdmondsMaximumMatching>(G));
         break;
-    case 5:
+    case Algorithm::GABOW:
         T.insert(run_algorithm<Koala::GabowMaximumMatching>(G));
         break;
-    default:
-        std::cout << "Unknown algorithm: " << algorithm << std::endl;
-        throw std::exception();
     }
     std::cout << std::endl;
-}
-
-void run_dimacs_tests(const std::string &path, const std::string &algorithm) {
-    auto G = Koala::DimacsGraphReader().read(path);
-    G.indexEdges(true);
-    std::cout << path << " " << std::flush;
-    run_test(G, algorithm);
 }
 
 int main(int argc, const char *argv[]) {
@@ -87,20 +80,16 @@ int main(int argc, const char *argv[]) {
         return 1;
     }
 
-    std::string algorithm(argv[1]), path(argv[2]);
-    if (!std::filesystem::exists(path)) {
-        std::cerr << "File " << path << " does not exist" << std::endl;
-        return 1;
+    std::string algorithm_name(argv[1]);
+    auto algorithm = ALGORITHM.find(algorithm_name);
+    if (algorithm == ALGORITHM.end()) {
+        throw std::invalid_argument("Unknown algorithm: " + algorithm_name);
     }
-    if (std::filesystem::is_directory(path)) {
-        std::cerr << path << " is a directory" << std::endl;
-        return 1;
-    }
-
-    if (path.substr(path.find_last_of(".") + 1) == "max") {
-        run_dimacs_tests(path, algorithm);
-    } else {
-        std::cerr << "File type not supported: " << path << std::endl;
-    }
+    Koala::Benchmark::executeForEachGraph(
+        argv[2], [&](const std::string &label, NetworKit::Graph G) {
+        G.indexEdges(true);
+        std::cout << label << " " << std::flush;
+        run_test(G, algorithm->second);
+    });
     return 0;
 }

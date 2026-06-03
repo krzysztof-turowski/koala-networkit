@@ -3,8 +3,7 @@
 #include <set>
 #include <string>
 
-#include "io/G6GraphReader.hpp"
-
+#include <benchmark/utils.hpp>
 #include "recognition/CographRecognition.hpp"
 
 std::string types[] = {
@@ -32,51 +31,38 @@ int run_algorithm(NetworKit::Graph &G, bool verbose = false) {
     return static_cast<int>(algorithm.getState());
 }
 
-std::map<std::string, int> ALGORITHM = {
-    { "all", 0 }, { "BCHP", 1 }, { "CSP", 2 }, { "Dahlhaus", 3 }, { "HabibPaul", 3 }
+enum class Algorithm : uint32_t { ALL, BCHP, CSP, DAHLHAUS, HABIB_PAUL };
+
+std::map<std::string, Algorithm> ALGORITHM = {
+    { "all", Algorithm::ALL },
+    { "BCHP", Algorithm::BCHP },
+    { "CSP", Algorithm::CSP },
+    { "Dahlhaus", Algorithm::DAHLHAUS },
+    { "HabibPaul", Algorithm::HABIB_PAUL }
 };
 
-void run_g6_tests(const std::string &path, const std::string &algorithm) {
-    std::fstream file(path, std::fstream::in);
-    std::map<int, int> classification;
-    while (true) {
-        std::string line;
-        file >> line;
-        if (!file.good()) {
-            break;
-        }
-        auto G = Koala::G6GraphReader().readline(line);
-        std::set<int> T;
-        switch (ALGORITHM[algorithm]) {
-        case 0:
-            std::cout << line << " " << std::flush;
-            T.insert(run_algorithm<Koala::BretscherCorneilHabibPaulCographRecognition>(G, true));
-            T.insert(
-                run_algorithm<Koala::CorneilStewartPerlCographRecognition>(G, true) != 1 ? 2 : 1);
-            T.insert(run_algorithm<Koala::DahlhausCographRecognition>(G, true));
-            T.insert(run_algorithm<Koala::HabibPaulCographRecognition>(G, true));
-            std::cout << std::endl;
-            assert(T.size() == 1);
-            break;
-        case 1:
-            classification[run_algorithm<Koala::BretscherCorneilHabibPaulCographRecognition>(G)]++;
-            break;
-        case 2:
-            classification[run_algorithm<Koala::CorneilStewartPerlCographRecognition>(G)]++;
-            break;
-        case 3:
-            classification[run_algorithm<Koala::DahlhausCographRecognition>(G)]++;
-            break;
-        case 4:
-            classification[run_algorithm<Koala::HabibPaulCographRecognition>(G)]++;
-            break;
-        }
+int choose_algorithm(NetworKit::Graph &G, Algorithm algorithm) {
+    switch (algorithm) {
+    case Algorithm::ALL: {
+        std::set<int> states;
+        states.insert(run_algorithm<Koala::BretscherCorneilHabibPaulCographRecognition>(G, true));
+        states.insert(
+            run_algorithm<Koala::CorneilStewartPerlCographRecognition>(G, true) != 1 ? 2 : 1);
+        states.insert(run_algorithm<Koala::DahlhausCographRecognition>(G, true));
+        states.insert(run_algorithm<Koala::HabibPaulCographRecognition>(G, true));
+        assert(states.size() == 1);
+        return *states.begin();
     }
-    if (ALGORITHM[algorithm]) {
-        for (const auto &[k, v] : classification) {
-            std::cout << types[k] << ": " << v << std::endl;
-        }
+    case Algorithm::BCHP:
+        return run_algorithm<Koala::BretscherCorneilHabibPaulCographRecognition>(G);
+    case Algorithm::CSP:
+        return run_algorithm<Koala::CorneilStewartPerlCographRecognition>(G);
+    case Algorithm::DAHLHAUS:
+        return run_algorithm<Koala::DahlhausCographRecognition>(G);
+    case Algorithm::HABIB_PAUL:
+        return run_algorithm<Koala::HabibPaulCographRecognition>(G);
     }
+    throw std::logic_error("Unhandled algorithm");
 }
 
 int main(int argc, const char *argv[]) {
@@ -84,12 +70,20 @@ int main(int argc, const char *argv[]) {
         std::cerr << "Usage: " << argv[0] << " <algorithm> <file>" << std::endl;
         return 1;
     }
-    std::string path(argv[2]);
-    auto extension = path.substr(path.find_last_of(".") + 1);
-    if (extension == "g6") {
-        run_g6_tests(path, std::string(argv[1]));
-    } else {
-        std::cerr << "File type not supported: " << path << std::endl;
+    std::string algorithm_name(argv[1]);
+    auto algorithm = ALGORITHM.find(algorithm_name);
+    if (algorithm == ALGORITHM.end()) {
+        throw std::invalid_argument("Unknown algorithm: " + algorithm_name);
+    }
+    std::map<int, int> classification;
+    Koala::Benchmark::executeForEachGraph(
+        argv[2], [&](const std::string &label, NetworKit::Graph G) {
+        std::cout << label << " " << std::flush;
+        classification[choose_algorithm(G, algorithm->second)]++;
+        std::cout << std::endl;
+    });
+    for (const auto &[state, count] : classification) {
+        std::cout << types[state] << ": " << count << std::endl;
     }
     return 0;
 }

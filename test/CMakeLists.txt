@@ -13,6 +13,12 @@ koala_make_test(test_maximum_flow testMaximumFlow.cpp)
 koala_make_test(test_minimum_cut testMinCut.cpp)
 koala_make_test(test_maximum_cut testMaxCut.cpp)
 koala_make_test(test_planar_sssp testPlanarSSSP.cpp)
+
+koala_make_test(test_dynamic_tree structures/testDynamicTree.cpp)
+
 koala_make_test(test_bp_gaussian_matching gaussian_matching/testBipartiteGaussianMatching.cpp)
 koala_make_test(test_gen_gaussian_matching gaussian_matching/testGeneralGaussianMatching.cpp)
-koala_make_test(test_electrical_flow electrical_flow/testElectricalFlow.cpp)
+
+koala_make_test(test_krt_edge_designator flow/testKrtEdgeDesignator.cpp)
+koala_make_test(test_electrical_flow flow/testElectricalFlow.cpp)
+koala_make_test(test_flow_network flow/testFlowNetwork.cpp)

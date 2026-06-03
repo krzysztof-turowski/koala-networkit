@@ -3,11 +3,15 @@
 #include <map>
 #include <string>
 
+#include <benchmark/utils.hpp>
 #include <coloring/PerfectGraphVertexColoring.hpp>
-#include <io/G6GraphReader.hpp>
 #include <recognition/PerfectGraphRecognition.hpp>
 
-int main() {
+int main(int argc, const char *argv[]) {
+    if (argc != 2) {
+        std::cerr << "Usage: " << argv[0] << " <file>" << std::endl;
+        return 1;
+    }
     std::map<Koala::PerfectGraphRecognition::State, int> classification;
     std::string types[] = {
         "UNKNOWN",
@@ -20,13 +24,7 @@ int main() {
         "HAS_NEAR_CLEANER_ODD_HOLE"
     };
 
-    while (true) {
-        std::string line;
-        std::cin >> line;
-        if (!std::cin.good()) {
-            break;
-        }
-        NetworKit::Graph G = Koala::G6GraphReader().readline(line);
+    Koala::Benchmark::executeForEachGraph(argv[1], [&](const std::string &, NetworKit::Graph G) {
         auto recognize = Koala::PerfectGraphRecognition(G);
         recognize.run();
         classification[recognize.getState()]++;
@@ -36,7 +34,7 @@ int main() {
             color.run();
             color.check();
         }
-    }
+    });
     for (const auto &[k, v] : classification) {
         std::cout << types[static_cast<int>(k)] << ": " << v << std::endl;
     }

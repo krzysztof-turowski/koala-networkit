@@ -4,7 +4,8 @@
 #include <queue>
 #include <vector>
 
-#include <flow/MalhotraKumarMaheshwariFlow.hpp>
+#include "flow/MalhotraKumarMaheshwariFlow.hpp"
+#include "graph/GraphTools.hpp"
 
 namespace Koala {
 
@@ -15,10 +16,9 @@ NetworKit::Edge MalhotraKumarMaheshwariFlow::reverse(const NetworKit::Edge &p) {
 }
 
 void MalhotraKumarMaheshwariFlow::initialize() {
-    V = graph->numberOfNodes();
-    graph->forEdges([&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight w) {
+    graph.forEdges([&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight w) {
         auto p = NetworKit::Edge(u, v);
-        if (graph->addEdge(v, u, 0, true)) {
+        if (graph.addEdge(v, u, 0, true)) {
             capacity[reverse(p)] = 0;
         }
         flow[p] = 0;
@@ -27,8 +27,8 @@ void MalhotraKumarMaheshwariFlow::initialize() {
     });
 }
 
-bool MalhotraKumarMaheshwariFlow::buildLevelGraph() {
-    graph->forNodes([&](NetworKit::node v) {
+bool MalhotraKumarMaheshwariFlow::build_level_graph() {
+    graph.forNodes([&](NetworKit::node v) {
         level[v] = UNREACHABLE;
     });
     std::queue<NetworKit::node> q;
@@ -38,7 +38,7 @@ bool MalhotraKumarMaheshwariFlow::buildLevelGraph() {
         NetworKit::node u = q.front();
         q.pop();
 
-        graph->forNeighborsOf(u, [&](NetworKit::node w) {
+        graph.forNeighborsOf(u, [&](NetworKit::node w) {
             auto e = NetworKit::Edge(u, w);
             if (level[w] == UNREACHABLE && flow[e] < capacity[e]) {
                 level[w] = level[u] + 1;
@@ -46,31 +46,31 @@ bool MalhotraKumarMaheshwariFlow::buildLevelGraph() {
             }
         });
     }
-    graph_stage = NetworKit::Graph(*graph);
+    graph_stage = NetworKit::Graph(graph);
     return level[target] != UNREACHABLE;
 }
 
-void MalhotraKumarMaheshwariFlow::computePotential() {
-    graph->forNodes([&](NetworKit::node v) {
-        inPotential[v] = 0;
-        outPotential[v] = 0;
+void MalhotraKumarMaheshwariFlow::compute_potential() {
+    graph.forNodes([&](NetworKit::node v) {
+        in_potential[v] = 0;
+        out_potential[v] = 0;
     });
 
-    graph->forEdges([&](NetworKit::node x, NetworKit::node y) {
+    graph.forEdges([&](NetworKit::node x, NetworKit::node y) {
         auto e = NetworKit::Edge(x, y);
         if (level[e.u] + 1 == level[e.v]) {
             if (capacity[e] > flow[e]) {
-                outPotential[e.u]  +=  capacity[e] - flow[e];
-                inPotential[e.v]  +=  capacity[e] - flow[e];
+                out_potential[e.u] += capacity[e] - flow[e];
+                in_potential[e.v] += capacity[e] - flow[e];
             }
         }
     });
 
-    inPotential[source] = std::numeric_limits<int>::max();
-    outPotential[target] = std::numeric_limits<int>::max();
+    in_potential[source] = std::numeric_limits<int>::max();
+    out_potential[target] = std::numeric_limits<int>::max();
 }
 
-void MalhotraKumarMaheshwariFlow::pushForward(NetworKit::node u, NetworKit::edgeweight f) {
+void MalhotraKumarMaheshwariFlow::push_forward(NetworKit::node u, NetworKit::edgeweight f) {
     if (u == target) {
         return;
     }
@@ -81,7 +81,7 @@ void MalhotraKumarMaheshwariFlow::pushForward(NetworKit::node u, NetworKit::edge
         to_push[v] = 0;
     });
 
-    to_push[u]  +=  f;
+    to_push[u] += f;
     q.push(u);
 
     while (!q.empty()) {
@@ -90,13 +90,13 @@ void MalhotraKumarMaheshwariFlow::pushForward(NetworKit::node u, NetworKit::edge
         if (to_push[v] == 0) {
             continue;
         }
-        std::vector<NetworKit::Edge> edgesToRemove;
+        std::vector<NetworKit::Edge> edges_to_remove;
         graph_stage.forEdgesOf(v, [&](NetworKit::node w) {
             auto e = NetworKit::Edge(v, w);
             if (level[v] + 1 != level[e.v]) {
                 return;
             }
-            NetworKit::edgeweight can_be_pushed = std::min(capacity[e]-flow[e], to_push[v]);
+            NetworKit::edgeweight can_be_pushed = std::min(capacity[e] - flow[e], to_push[v]);
             if (can_be_pushed == 0) {
                 return;
             }
@@ -106,21 +106,21 @@ void MalhotraKumarMaheshwariFlow::pushForward(NetworKit::node u, NetworKit::edge
             flow[e] += can_be_pushed;
             flow[reverse(e)] -= can_be_pushed;
             if (capacity[e] - flow[e] == 0) {
-                edgesToRemove.push_back(e);
+                edges_to_remove.push_back(e);
             }
-            inPotential[e.v] -= can_be_pushed;
-            outPotential[v] -= can_be_pushed;
+            in_potential[e.v] -= can_be_pushed;
+            out_potential[v] -= can_be_pushed;
             to_push[v] -= can_be_pushed;
             to_push[e.v] += can_be_pushed;
         });
-        for (const auto& e : edgesToRemove) {
+        for (const auto &e : edges_to_remove) {
             graph_stage.removeEdge(e.u, e.v);
             graph_stage.removeEdge(e.v, e.u);
         }
     }
 }
 
-void MalhotraKumarMaheshwariFlow::pushBackward(NetworKit::node u, NetworKit::edgeweight f) {
+void MalhotraKumarMaheshwariFlow::push_backward(NetworKit::node u, NetworKit::edgeweight f) {
     if (u == source) {
         return;
     }
@@ -131,7 +131,7 @@ void MalhotraKumarMaheshwariFlow::pushBackward(NetworKit::node u, NetworKit::edg
         to_push[v] = 0;
     });
 
-    to_push[u]  +=  f;
+    to_push[u] += f;
     q.push(u);
 
     while (!q.empty()) {
@@ -140,13 +140,13 @@ void MalhotraKumarMaheshwariFlow::pushBackward(NetworKit::node u, NetworKit::edg
         if (to_push[v] == 0) {
             continue;
         }
-        std::vector<NetworKit::Edge> edgesToRemove;
+        std::vector<NetworKit::Edge> edges_to_remove;
         graph_stage.forInEdgesOf(v, [&](NetworKit::node w) {
             auto e = NetworKit::Edge(w, v);
             if (level[v] - 1 != level[e.u]) {
                 return;
             }
-            NetworKit::edgeweight can_be_pushed = std::min(capacity[e]-flow[e], to_push[v]);
+            NetworKit::edgeweight can_be_pushed = std::min(capacity[e] - flow[e], to_push[v]);
             if (can_be_pushed == 0) {
                 return;
             }
@@ -156,26 +156,26 @@ void MalhotraKumarMaheshwariFlow::pushBackward(NetworKit::node u, NetworKit::edg
             flow[e] += can_be_pushed;
             flow[reverse(e)] -= can_be_pushed;
             if (capacity[e] - flow[e] == 0) {
-                edgesToRemove.push_back(e);
+                edges_to_remove.push_back(e);
             }
-            outPotential[e.u] -= can_be_pushed;
-            inPotential[v] -= can_be_pushed;
+            out_potential[e.u] -= can_be_pushed;
+            in_potential[v] -= can_be_pushed;
             to_push[v] -= can_be_pushed;
             to_push[e.u] += can_be_pushed;
         });
-        for (const auto& e : edgesToRemove) {
+        for (const auto &e : edges_to_remove) {
             graph_stage.removeEdge(e.u, e.v);
             graph_stage.removeEdge(e.v, e.u);
         }
     }
 }
 
-void MalhotraKumarMaheshwariFlow::deleteNode(NetworKit::node v) {
-     graph_stage.forInEdgesOf(v, [&](NetworKit::node w) {
+void MalhotraKumarMaheshwariFlow::delete_node(NetworKit::node v) {
+    graph_stage.forInEdgesOf(v, [&](NetworKit::node w) {
         auto e = NetworKit::Edge(w, v);
         if (level[v] - 1 == level[e.u]) {
             if (capacity[e] > flow[e]) {
-                outPotential[e.u]  -=  capacity[e] - flow[e];
+                out_potential[e.u] -= capacity[e] - flow[e];
             }
         }
     });
@@ -183,7 +183,7 @@ void MalhotraKumarMaheshwariFlow::deleteNode(NetworKit::node v) {
         auto e = NetworKit::Edge(v, w);
         if (level[v] + 1 == level[e.v]) {
             if (capacity[e] > flow[e]) {
-                inPotential[e.v]  -=  capacity[e] -flow[e];
+                in_potential[e.v] -= capacity[e] - flow[e];
             }
         }
     });
@@ -192,10 +192,11 @@ void MalhotraKumarMaheshwariFlow::deleteNode(NetworKit::node v) {
 }
 
 void MalhotraKumarMaheshwariFlow::run() {
+    GraphTools::ensureDirectedGraph(graph);
     initialize();
-    int totalFlow = 0;
-    while (buildLevelGraph()) {
-        computePotential();
+    int total_flow = 0;
+    while (build_level_graph()) {
+        compute_potential();
         while (true) {
             NetworKit::node u;
             int minimum = std::numeric_limits<int>::max();
@@ -204,27 +205,27 @@ void MalhotraKumarMaheshwariFlow::run() {
                 if (level[v] == UNREACHABLE) {
                     return;
                 }
-                int pot = std::min(outPotential[v], inPotential[v]);
+                int pot = std::min(out_potential[v], in_potential[v]);
                 if (pot < minimum) {
                     u = v;
                     minimum = pot;
                 }
             });
             if (minimum == 0) {
-                deleteNode(u);
+                delete_node(u);
                 continue;
             }
             if (minimum == std::numeric_limits<int>::max()) {
                 break;
             }
 
-            pushForward(u, minimum);
-            pushBackward(u, minimum);
-            totalFlow += minimum;
-            deleteNode(u);
+            push_forward(u, minimum);
+            push_backward(u, minimum);
+            total_flow += minimum;
+            delete_node(u);
         }
     }
-    flow_size = totalFlow;
+    flow_size = total_flow;
     hasRun = true;
 }
 }  // namespace Koala

@@ -1,6 +1,6 @@
 #include <algorithm>
 #include <cassert>
-#include <iomanip>
+#include <fstream>
 #include <iostream>
 #include <map>
 #include <set>
@@ -25,14 +25,14 @@ NetworKit::edgeweight run_algorithm(NetworKit::Graph &G) {
 template <typename T>
 NetworKit::edgeweight run_algorithm(NetworKit::Graph &G, float eps) {
     auto algorithm = T(G);
-    int max_w = 0xFF;
-    algorithm.run(max_w, eps);
+    int max_weight = 0xFF;
+    algorithm.run(max_weight, eps);
     std::cout << algorithm.getTreeWeight() << " " << std::flush;
     return algorithm.getTreeWeight();
 }
 
 enum class Algorithm : uint32_t {
-    EXACT = 0,
+    EXACT = 1,
     KRUSKAL,
     PRIM,
     BORUVKA,
@@ -47,99 +47,87 @@ std::map<std::string, Algorithm> ALGORITHM = {
     { "Prim", Algorithm::PRIM },
     { "Boruvka", Algorithm::BORUVKA },
     { "KKT", Algorithm::KKT },
-    { "CRT", Algorithm::CRT },
     { "Chazelle", Algorithm::CHAZELLE },
+    { "CRT", Algorithm::CRT },
 };
 
-void run_g6_tests(const std::string &path, const std::string &algorithm) {
+double EPS = 0.1;
+
+NetworKit::edgeweight run_exact(NetworKit::Graph &G) {
+    std::set<NetworKit::edgeweight> T;
+    T.insert(run_algorithm<Koala::KruskalMinimumSpanningTree>(G));
+    T.insert(run_algorithm<Koala::PrimMinimumSpanningTree>(G));
+    T.insert(run_algorithm<Koala::BoruvkaMinimumSpanningTree>(G));
+    for (int i = 0; i < 5; i++) {
+        T.insert(run_algorithm<Koala::KargerKleinTarjanMinimumSpanningTree>(G));
+    }
+    T.insert(run_algorithm<Koala::Chazelle2000MinimumSpanningTree>(G));
+    assert(T.size() == 1);
+
+    if (Koala::GraphTools::hasDistinctIntegerWeights(G)) {
+        for (int i = 0; i < 5; i++) {
+            auto result = run_algorithm<Koala::ChazelleRubinfeldTrevisanMinimumSpanningTree>(
+                G, EPS);
+            assert((1 - EPS) * (*T.begin()) <= result);
+            assert((1 + EPS) * (*T.begin()) >= result);
+        }
+    }
+    return *T.begin();
+}
+
+NetworKit::edgeweight choose_algorithm(NetworKit::Graph &G, const std::string &algorithm_name) {
+    switch (ALGORITHM[algorithm_name]) {
+    case Algorithm::EXACT:
+        return run_exact(G);
+    case Algorithm::KRUSKAL:
+        return run_algorithm<Koala::KruskalMinimumSpanningTree>(G);
+    case Algorithm::PRIM:
+        return run_algorithm<Koala::PrimMinimumSpanningTree>(G);
+    case Algorithm::BORUVKA:
+        return run_algorithm<Koala::BoruvkaMinimumSpanningTree>(G);
+    case Algorithm::KKT:
+        return run_algorithm<Koala::KargerKleinTarjanMinimumSpanningTree>(G);
+    case Algorithm::CHAZELLE:
+        return run_algorithm<Koala::Chazelle2000MinimumSpanningTree>(G);
+    case Algorithm::CRT: {
+        if (Koala::GraphTools::hasDistinctIntegerWeights(G)) {
+            return run_algorithm<Koala::ChazelleRubinfeldTrevisanMinimumSpanningTree>(G, EPS);
+        } else {
+            throw std::invalid_argument(
+                "Algorithm " + algorithm_name + " requires distinct edge weights");
+        }
+    }
+    }
+}
+
+void run_g6_tests(const std::string &path, const std::string &algorithm_name) {
     std::fstream file(path, std::fstream::in);
-    std::map<int, int> classification;
     while (true) {
         std::string line;
         file >> line;
         if (!file.good()) {
             break;
         }
-        auto G_directed = Koala::G6GraphReader().readline(line);
-        auto G = Koala::GraphTools::convertDirectedGraphToUndirected(G_directed, true);
-        std::set<NetworKit::edgeweight> T;
+        auto G = Koala::G6GraphReader().readline(line);
+        G = Koala::GraphTools::convertDirectedGraphToUndirected(G, true);
         std::cout << line << " " << std::flush;
-        switch (ALGORITHM[algorithm]) {
-        case Algorithm::EXACT:
-            T.insert(run_algorithm<Koala::KruskalMinimumSpanningTree>(G));
-            T.insert(run_algorithm<Koala::PrimMinimumSpanningTree>(G));
-            T.insert(run_algorithm<Koala::BoruvkaMinimumSpanningTree>(G));
-            for (int i = 0; i < 5; i++) {
-                T.insert(run_algorithm<Koala::KargerKleinTarjanMinimumSpanningTree>(G));
-            }
-            assert(T.size() == 1);
-            break;
-        case Algorithm::KRUSKAL:
-            run_algorithm<Koala::KruskalMinimumSpanningTree>(G);
-            break;
-        case Algorithm::PRIM:
-            run_algorithm<Koala::PrimMinimumSpanningTree>(G);
-            break;
-        case Algorithm::BORUVKA:
-            run_algorithm<Koala::BoruvkaMinimumSpanningTree>(G);
-            break;
-        case Algorithm::CHAZELLE:
-            run_algorithm<Koala::Chazelle2000MinimumSpanningTree>(G);
-            break;
-        case Algorithm::CRT:
-            run_algorithm<Koala::ChazelleRubinfeldTrevisanMinimumSpanningTree>(G, 0.1);
-        }
+        choose_algorithm(G, algorithm_name);
         std::cout << std::endl;
     }
 }
 
-void run_dimacs_tests(const std::string &path, const std::string &algorithm) {
-    auto G_directed = Koala::DimacsGraphReader().read(path);
-    auto G_distinct = NetworKit::Graph(G_directed.numberOfNodes(), true, false);
-    double max_ew = 0;
-    G_directed.forEdges([&](NetworKit::node, NetworKit::node, NetworKit::edgeweight ew){
-        max_ew = std::max(max_ew, ew);
-    });
-    std::set<double> ews;
-    G_directed.forEdges([&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight w) {
-        if (ews.contains(w)) {
-            max_ew += 1;
-            w = max_ew;
-        }
-        ews.insert(w);
-        if (!G_distinct.hasEdge(u, v) && !G_distinct.hasEdge(v, u) && w > 0) {
-            G_distinct.addEdge(u, v, w);
-        }
-    });
+void run_dimacs_tests(const std::string &path, const std::string &algorithm_name) {
+    auto G = Koala::DimacsGraphReader().read(path);
+    G = Koala::GraphTools::convertDirectedGraphToUndirected(G, true);
 
-    // Ensure that the graph is connected
-    auto connected_components = NetworKit::ConnectedComponents(G_distinct);
-    connected_components.run();
-    auto components = connected_components.getComponents();
-    for (NetworKit::count i = 1; i < connected_components.numberOfComponents(); i++) {
-        G_distinct.addEdge(components[0][0], components[i][0], ++max_ew);
+    bool is_connected = Koala::GraphTools::isConnected(G);
+    if (!is_connected) {
+        throw std::invalid_argument("Graph is not connected");
     }
 
     std::cout << path << " " << std::flush;
-    std::set<NetworKit::edgeweight> T;
-    T.insert(run_algorithm<Koala::KruskalMinimumSpanningTree>(G_distinct));
-    T.insert(run_algorithm<Koala::PrimMinimumSpanningTree>(G_distinct));
-    T.insert(run_algorithm<Koala::BoruvkaMinimumSpanningTree>(G_distinct));
-    T.insert(run_algorithm<Koala::Chazelle2000MinimumSpanningTree>(G_distinct));
-    for (int i = 0; i < 5; i++) {
-        T.insert(run_algorithm<Koala::KargerKleinTarjanMinimumSpanningTree>(G_distinct));
-    }
-    assert(T.size() == 1);
-
-    float eps = 0.1;
-    for (int i = 0; i < 5; i++) {
-        auto w = run_algorithm<Koala::ChazelleRubinfeldTrevisanMinimumSpanningTree>(
-            G_distinct, eps);
-        assert((1 - eps) * (*T.begin()) <= w);
-        assert((1 + eps) * (*T.begin()) >= w);
-    }
+    choose_algorithm(G, algorithm_name);
     std::cout << std::endl;
-    return;
 }
 
 int main(int argc, const char *argv[]) {
@@ -147,14 +135,21 @@ int main(int argc, const char *argv[]) {
         std::cerr << "Usage: " << argv[0] << " <algorithm> <file>" << std::endl;
         return 1;
     }
+    std::string algorithm_name(argv[1]);
     std::string path(argv[2]);
+
+    auto algorithm = ALGORITHM.find(algorithm_name);
+    if (algorithm == ALGORITHM.end()) {
+        throw std::invalid_argument("Unknown algorithm: " + algorithm_name);
+    }
+
     auto position = path.find_last_of(".");
     if (path.substr(position + 1) == "g6") {
-        run_g6_tests(path, std::string(argv[1]));
+        run_g6_tests(path, algorithm_name);
     } else if (path.substr(position + 1) == "gr") {
-        run_dimacs_tests(path, std::string(argv[1]));
+        run_dimacs_tests(path, algorithm_name);
     } else {
-        std::cerr << "File type not supported: " << path << std::endl;
+        throw std::invalid_argument("File type not supported: " + path);
     }
     return 0;
 }

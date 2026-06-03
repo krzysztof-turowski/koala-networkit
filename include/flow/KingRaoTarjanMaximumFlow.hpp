@@ -1,52 +1,45 @@
 #pragma once
 
-#include <map>
-#include <set>
-#include <unordered_map>
-#include <utility>
-#include <vector>
-
-#include "flow/MaximumFlow.hpp"
+#include "flow/PushRelabelMaximumFlow.hpp"
+#include "flow/maximum_flow/KrtEdgeDesignator.hpp"
 
 namespace Koala {
 
 /**
  * @ingroup flow
- * The class for the King-Rao-Tarjan maximum flow algorithm
+ * King-Rao-Tarjan deterministic maximum-flow algorithm.
+ *
+ * This implementation combines the shared push-relabel engine with an edge designator that
+ * supplies residual-edge candidates and responds to relabeling and failed candidates.
+ *
+ * @see https://doi.org/10.1006/jagm.1994.1044
  */
-class KingRaoTarjanMaximumFlow final : public MaximumFlow {
+class KingRaoTarjanMaximumFlow final : public PushRelabelMaximumFlow {
  public:
-    using MaximumFlow::MaximumFlow;
+    /**
+     * Construct a King-Rao-Tarjan maximum-flow instance.
+     *
+     * @param graph Input graph.
+     * @param source Source vertex.
+     * @param target Sink vertex.
+     * @param edge_designator_parameters Optional designator tuning parameters.
+     */
+    KingRaoTarjanMaximumFlow(
+        NetworKit::Graph&, NetworKit::node, NetworKit::node,
+        KRTEdgeDesignator::Parameters = {});
 
     /**
-     * Execute the King-Rao-Tarjan maximum flow algorithm.
+     * Initialize the designator and compute a maximum flow.
      */
     void run();
 
  private:
-    std::unordered_map<std::pair<NetworKit::node, NetworKit::node>, int, pair_hash> flow;
-    std::map<std::pair<NetworKit::node, NetworKit::node>, int> capacity;
-    std::map<NetworKit::node, int> d, excess, hidden_excess;
-    std::set<int> positive_excess;
-    std::set<std::pair<NetworKit::node, NetworKit::node>> E_star;
-
-    DynamicTree dynamic_tree;
     KRTEdgeDesignator edge_designator;
+    KRTEdgeDesignator::Parameters edge_designator_parameters;
 
-    int get_visible_excess(NetworKit::node);
-    NetworKit::node get_positive_excess_node();
-    void update_positive_excess(NetworKit::node);
-
-    int get_flow(const std::pair<NetworKit::node, NetworKit::node>&);
-    void set_flow(const std::pair<NetworKit::node, NetworKit::node>&, int);
-    void saturate(const std::pair<NetworKit::node, NetworKit::node>&);
-    void add_edge(const std::pair<NetworKit::node, NetworKit::node>&);
-    void cut(const std::pair<NetworKit::node, NetworKit::node>&);
-
-    void initialize();
-    std::vector<std::pair<NetworKit::node, NetworKit::node>> get_edges_list();
-    void tree_push(NetworKit::node, NetworKit::node);
-    void relabel(NetworKit::node);
+    NetworKit::node get_active_vertex() override;
+    NetworKit::node get_admissible_residual_edge(NetworKit::node) override;
+    void on_relabel(NetworKit::node, int) override;
 };
 
-}  /* namespace Koala */
+}  // namespace Koala

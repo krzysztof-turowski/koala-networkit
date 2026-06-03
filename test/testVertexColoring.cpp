@@ -75,14 +75,9 @@ auto test_set_exact = testing::Values(
             {4, 5}, {4, 7}, {4, 8}, {5, 7}, {5, 8}, {6, 7}, {7, 8}},
         4});
 
-void check(const auto &parameters, const auto &colors) {
+void check(const auto &parameters, const auto &colors, const NetworKit::count &max_color) {
     for (auto [u, v] : parameters.E) {
         EXPECT_NE(colors.at(u), colors.at(v));
-    }
-
-    int max_color = 0;
-    for (const auto &[v, c] : colors) {
-        max_color = std::max(max_color, c);
     }
     EXPECT_EQ(max_color, parameters.colors);
 }
@@ -92,7 +87,7 @@ TEST_P(RandomSequentialVertexColoringTest, test) {
     NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
     auto algorithm = Koala::RandomSequentialVertexColoring(G);
     algorithm.run();
-    check(parameters, algorithm.getColoring());
+    check(parameters, algorithm.getColoring(), algorithm.getMaximumColor());
 }
 
 INSTANTIATE_TEST_SUITE_P(
@@ -105,7 +100,7 @@ TEST_P(LargestFirstVertexColoringTest, test) {
     NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
     auto algorithm = Koala::LargestFirstVertexColoring(G);
     algorithm.run();
-    check(parameters, algorithm.getColoring());
+    check(parameters, algorithm.getColoring(), algorithm.getMaximumColor());
 }
 
 INSTANTIATE_TEST_SUITE_P(
@@ -135,7 +130,7 @@ TEST_P(SmallestLastVertexColoringTest, test) {
     NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
     auto algorithm = Koala::SmallestLastVertexColoring(G);
     algorithm.run();
-    check(parameters, algorithm.getColoring());
+    check(parameters, algorithm.getColoring(), algorithm.getMaximumColor());
 }
 
 INSTANTIATE_TEST_SUITE_P(
@@ -170,7 +165,7 @@ TEST_P(SaturatedLargestFirstVertexColoringTest, test) {
     NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
     auto algorithm = Koala::SaturatedLargestFirstVertexColoring(G);
     algorithm.run();
-    check(parameters, algorithm.getColoring());
+    check(parameters, algorithm.getColoring(), algorithm.getMaximumColor());
 }
 
 INSTANTIATE_TEST_SUITE_P(
@@ -197,7 +192,7 @@ TEST_P(GreedyIndependentSetVertexColoringTest, test) {
     NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
     auto algorithm = Koala::GreedyIndependentSetVertexColoring(G);
     algorithm.run();
-    check(parameters, algorithm.getColoring());
+    check(parameters, algorithm.getColoring(), algorithm.getMaximumColor());
 }
 
 INSTANTIATE_TEST_SUITE_P(
@@ -215,7 +210,7 @@ TEST_P(BrownEnumerationVertexColoringTest, test) {
     NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
     auto algorithm = Koala::BrownEnumerationVertexColoring(G);
     algorithm.run();
-    check(parameters, algorithm.getColoring());
+    check(parameters, algorithm.getColoring(), algorithm.getMaximumColor());
 }
 
 INSTANTIATE_TEST_SUITE_P(test_example, BrownEnumerationVertexColoringTest, test_set_exact);
@@ -225,7 +220,7 @@ TEST_P(ChristofidesEnumerationVertexColoringTest, test) {
     NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
     auto algorithm = Koala::ChristofidesEnumerationVertexColoring(G);
     algorithm.run();
-    check(parameters, algorithm.getColoring());
+    check(parameters, algorithm.getColoring(), algorithm.getMaximumColor());
 }
 
 INSTANTIATE_TEST_SUITE_P(test_example, ChristofidesEnumerationVertexColoringTest, test_set_exact);
@@ -235,7 +230,7 @@ TEST_P(BrelazEnumerationVertexColoringTest, test) {
     NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
     auto algorithm = Koala::BrelazEnumerationVertexColoring(G);
     algorithm.run();
-    check(parameters, algorithm.getColoring());
+    check(parameters, algorithm.getColoring(), algorithm.getMaximumColor());
 }
 
 INSTANTIATE_TEST_SUITE_P(test_example, BrelazEnumerationVertexColoringTest, test_set_exact);
@@ -245,7 +240,7 @@ TEST_P(KormanEnumerationVertexColoringTest, test) {
     NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
     auto algorithm = Koala::KormanEnumerationVertexColoring(G);
     algorithm.run();
-    check(parameters, algorithm.getColoring());
+    check(parameters, algorithm.getColoring(), algorithm.getMaximumColor());
 }
 
 INSTANTIATE_TEST_SUITE_P(test_example, KormanEnumerationVertexColoringTest, test_set_exact);
@@ -255,7 +250,7 @@ TEST_P(PerfectGraphVertexColoringTest, test) {
     NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
     auto algorithm = Koala::PerfectGraphVertexColoring(G);
     algorithm.run();
-    check(parameters, algorithm.getColoring());
+    check(parameters, algorithm.getColoring(), algorithm.getMaximumColor());
 }
 
 INSTANTIATE_TEST_SUITE_P(
@@ -271,13 +266,10 @@ TEST_P(CographVertexColoringTest, test) {
     NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
     auto recognition = Koala::HabibPaulCographRecognition(G);
     recognition.run();
-    if (recognition.isCograph()) {
-        auto algorithm = Koala::CographVertexColoring(G, recognition.cotree);
-        algorithm.run();
-        check(parameters, algorithm.getColoring());
-    } else {
-        EXPECT_TRUE(false);
-    }
+    EXPECT_TRUE(recognition.isCograph());
+    auto algorithm = Koala::CographVertexColoring(G, recognition.cotree);
+    algorithm.run();
+    check(parameters, algorithm.getColoring(), algorithm.getMaximumColor());
 }
 
 INSTANTIATE_TEST_SUITE_P(
