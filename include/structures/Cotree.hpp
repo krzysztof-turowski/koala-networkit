@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <utility>
 #include <vector>
 
@@ -13,17 +14,40 @@ enum class NodeType {
     COMPLEMENT_NODE
 };
 
+enum class Marked {
+    UNMARKED,
+    MARKED,
+    MARKED_AND_UNMARKED
+};
+
 class Conode {
  public:
-    NetworKit::count left_son, right_son, parent, size;
+    NetworKit::count first_child, next_sibling, previous_sibling, parent, size;
     NodeType type;
+    int number;
+    Marked marked;
+    int md, d;
+    bool in_graph;
+    std::vector<NetworKit::count> out_edges;
+    int number_of_vertices_in_subtree, time_in, time_out;
+    std::array<NetworKit::count, 64> get_up;
 
-    Conode(NetworKit::count l, NetworKit::count r, NetworKit::count p) {
-        left_son = l;
-        right_son = r;
+    Conode(NetworKit::count child, NetworKit::count sibling, NetworKit::count p) {
+        first_child = child;
+        next_sibling = sibling;
+        previous_sibling = NetworKit::none;
         parent = p;
         type = NodeType::UNKNOWN;
         size = 0;
+        number = 0;
+        marked = Marked::UNMARKED;
+        md = 0;
+        d = 0;
+        in_graph = false;
+        number_of_vertices_in_subtree = 0;
+        time_in = 0;
+        time_out = 0;
+        get_up.fill(NetworKit::none);
     }
 };
 
@@ -31,14 +55,44 @@ class Cotree {
  private:
     std::vector<Conode> nodes;
     std::vector<std::pair<std::pair<NetworKit::count, NetworKit::count>, NetworKit::count> > order;
+    NetworKit::count root;
  public:
     NetworKit::Graph *graph;
+
+    Cotree();
 
     explicit Cotree(NetworKit::Graph &Graph);
 
     bool prepared;
 
     void buildTree();
+
+    void reserve(NetworKit::count n);
+
+    NetworKit::count add(NodeType type, int number);
+
+    void clear();
+
+    void setRoot(NetworKit::count node);
+
+    void addChild(NetworKit::count parent, NetworKit::count child);
+
+    void removeChild(NetworKit::count parent, NetworKit::count child);
+
+    void replaceChild(
+            NetworKit::count parent, NetworKit::count old_child, NetworKit::count new_child);
+
+    void moveChildToFront(NetworKit::count parent, NetworKit::count child);
+
+    void unmarkForNewIteration(NetworKit::count node);
+
+    void mark(NetworKit::count node);
+
+    void unmark(NetworKit::count node);
+
+    std::vector<NetworKit::count> removeWereMarked(NetworKit::count node);
+
+    void removeWereNotMarked(NetworKit::count node);
 
     void setOrder(
             std::vector<std::pair<std::pair<
@@ -49,141 +103,8 @@ class Cotree {
     Conode& getNode(NetworKit::count i) {
         return nodes[i];
     }
+
+    NetworKit::count getRoot() const;
+    NetworKit::count upperNodeIdBound() const;
 };
-
-enum class Type {
-    ZERO_ONE,
-    VERTEX
-};
-
-enum class Marked {
-    UNMARKED,
-    MARKED,
-    MARKED_AND_UNMARKED
-};
-
-class CoNode {
- public:
-    Type type;
-    int number;
-    Marked marked;
-    // d is the current number of children
-    // md is the current number of children, which have been both "marked" and "unmarked"
-    int md, d;
-    bool in_graph;
-    CoNode *first_child;
-    CoNode *next, *previous;  // in list of children of its parent
-    CoNode *parent;
-    std::vector<CoNode*> out_edges;  // neighbours of current vertex in G
-    int number_of_vertices_in_subtree = 0, time_in = 0, time_out = 0;
-    CoNode *get_up[30];
-
-    explicit CoNode(Type type, int number);
-
-    void AddChild(CoNode *x);
-    void UnmarkForNewIteration();
-
-    void mark();
-    void unmark();
-
-    std::vector<CoNode *> RemoveWereMarked();
-
-    void RemoveWereNotMarked();
-};
-
-class CoTree {
- private:
-    std::vector<CoNode> save;
- public:
-    CoNode *root;
-
-    void ReserveSpace(int n);
-    CoNode *Add(Type type, int number);
-    void Clear();
-};
-
-inline CoNode::CoNode(Type type, int number)
-    : type(type), number(number), marked(Marked::UNMARKED), md(0), d(0), in_graph(false),
-        first_child(nullptr), next(nullptr), previous(nullptr), parent(nullptr) {}
-
-inline void CoNode::AddChild(CoNode *x) {
-    if (first_child == nullptr) {
-        first_child = x;
-        x->previous = nullptr;
-        x->next = nullptr;
-    } else {
-        first_child->previous = x;
-        x->next = first_child;
-        x->previous = nullptr;
-        first_child = x;
-    }
-    x->parent = this;
-    d++;
-}
-
-inline void CoNode::UnmarkForNewIteration() {
-    marked = Marked::UNMARKED;
-    md = 0;
-}
-
-inline void CoNode::mark() {
-    marked = Marked::MARKED;
-}
-
-inline void CoNode::unmark() {
-    marked = Marked::MARKED_AND_UNMARKED;
-}
-
-inline std::vector<CoNode*> CoNode::RemoveWereMarked() {
-    auto u = first_child;
-    std::vector<CoNode*> vec;
-    while (u != nullptr) {
-        vec.push_back(u);
-        d--;
-        first_child = u->next;
-        if (first_child != nullptr) {
-            first_child->previous = nullptr;
-        }
-        u->previous = nullptr;
-        u->next = nullptr;
-        u = first_child;
-        if (u == nullptr || u->marked != Marked::MARKED_AND_UNMARKED) {
-            break;
-        }
-    }
-    return vec;
-}
-
-inline void CoNode::RemoveWereNotMarked() {
-    auto u = first_child;
-    while (u != nullptr && u->marked == Marked::MARKED_AND_UNMARKED) {
-        u = u->next;
-    }
-    while (u != nullptr) {
-        d--;
-        auto next = u->next;
-        auto previous = u->previous;
-        if (next != nullptr) {
-            next->previous = previous;
-        }
-        if (previous != nullptr) {
-            previous->next = next;
-        }
-        u->previous = nullptr;
-        u->next = nullptr;
-        u = next;
-    }
-}
-
-inline CoNode* CoTree::Add(Type type, int number) {
-    return &save.emplace_back(type, number);
-}
-
-inline void CoTree::Clear() {
-    save.clear();
-}
-
-inline void CoTree::ReserveSpace(int n) {
-    save.reserve(n);
-}
 } /* namespace Koala */

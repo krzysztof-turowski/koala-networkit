@@ -14,7 +14,7 @@
 #include "graph/GraphTools.hpp"
 
 #include "recognition/CographRecognition.hpp"
-#include "structures/CoTree.hpp"
+#include "structures/Cotree.hpp"
 
 namespace Koala {
 
@@ -24,48 +24,36 @@ void CorneilStewartPerlCographRecognition::run() {
 }
 
 void CorneilStewartPerlCographRecognition::unmark() {
-    CoNode *u = marked_with_d_equal_to_md.front();
+    NetworKit::count u = marked_with_d_equal_to_md.front();
     marked_with_d_equal_to_md.pop();
-    u->unmark();
+    T.unmark(u);
     mark_count--;
     mark_and_unmarked_count++;
-    u->md = 0;
-    if (u != T.root) {
-        auto w = u->parent;
-        w->md++;
-        if (w->marked == Marked::UNMARKED) {
+    T.getNode(u).md = 0;
+    if (u != T.getRoot()) {
+        auto w = T.getNode(u).parent;
+        T.getNode(w).md++;
+        if (T.getNode(w).marked == Marked::UNMARKED) {
             mark_count++;
         }
-        w->mark();
-        if (w->md == w->d) {
+        T.mark(w);
+        if (T.getNode(w).md == T.getNode(w).d) {
             marked_with_d_equal_to_md.push(w);
         }
-        auto next = u->next;
-        auto previous = u->previous;
-        auto head = w->first_child;
-        if (previous != nullptr) {
-            previous->next = next;
-            if (next != nullptr) {
-                next->previous = previous;
-            }
-            u->previous = nullptr;
-            u->next = head;
-            head->previous = u;
-            w->first_child = u;
-        }  // else u is head
+        T.moveChildToFront(w, u);
     }
 }
 
-void CorneilStewartPerlCographRecognition::mark(CoNode *x) {
+void CorneilStewartPerlCographRecognition::mark(NetworKit::count x) {
     mark_count = 0;
     mark_and_unmarked_count = 0;
     mark_ever_count = 0;
-    for (auto u : x->out_edges) {
+    for (auto u : T.getNode(x).out_edges) {
         // !!only neighbours which are already in graph
-        if (!(u->in_graph)) {
+        if (!(T.getNode(u).in_graph)) {
             continue;
         }
-        u->mark();
+        T.mark(u);
         mark_ever_count++;
         mark_count++;
         marked_with_d_equal_to_md.push(u);
@@ -73,260 +61,250 @@ void CorneilStewartPerlCographRecognition::mark(CoNode *x) {
     while (!marked_with_d_equal_to_md.empty()) {
         unmark();
     }
-    if (mark_count && T.root->d == 1) {
-        T.root->mark();
+    if (mark_count && T.getNode(T.getRoot()).d == 1) {
+        T.mark(T.getRoot());
     }
 }
 
-void ResetAllCoNodes(CoNode *x, int level = 0) {
-    x->UnmarkForNewIteration();
-    CoNode *y = x->first_child;
-    while (y != nullptr) {
-        ResetAllCoNodes(y, level + 1);
-        y = y->next;
+void reset_all_conodes(Cotree &T, NetworKit::count x) {
+    T.unmarkForNewIteration(x);
+    auto y = T.getNode(x).first_child;
+    while (y != NetworKit::none) {
+        reset_all_conodes(T, y);
+        y = T.getNode(y).next_sibling;
     }
 }
 
-std::pair<CoNode*, CorneilStewartPerlCographRecognition::State>
-CorneilStewartPerlCographRecognition::find_lowest() const {
-    CoNode *y = nullptr;
-    if (T.root->marked == Marked::UNMARKED) {
+std::pair<NetworKit::count, CorneilStewartPerlCographRecognition::State>
+CorneilStewartPerlCographRecognition::find_lowest() {
+    NetworKit::count y = NetworKit::none;
+    if (T.getNode(T.getRoot()).marked == Marked::UNMARKED) {
         return {y, CorneilStewartPerlCographRecognition::State::GRANDPARENT_IS_NOT_IN_SET};
     }
-    if (T.root->md != T.root->d - 1) {
-        y = T.root;
+    if (T.getNode(T.getRoot()).md != T.getNode(T.getRoot()).d - 1) {
+        y = T.getRoot();
     }
-    T.root->unmark();
-    T.root->md = 0;
-    CoNode *w = T.root;
-    std::queue<CoNode*> q;
-    std::stack<CoNode*> s;
-    s.push(T.root);
+    T.unmark(T.getRoot());
+    T.getNode(T.getRoot()).md = 0;
+    NetworKit::count w = T.getRoot();
+    std::queue<NetworKit::count> q;
+    std::stack<NetworKit::count> s;
+    s.push(T.getRoot());
     while (!s.empty()) {
         auto x = s.top();
         s.pop();
-        if (x->marked == Marked::MARKED) {
+        if (T.getNode(x).marked == Marked::MARKED) {
             q.push(x);
         }
-        auto z = x->first_child;
-        while (z != nullptr) {
+        auto z = T.getNode(x).first_child;
+        while (z != NetworKit::none) {
             s.push(z);
-            z = z->next;
+            z = T.getNode(z).next_sibling;
         }
     }
     while (!q.empty()) {
-        CoNode *u = q.front();
+        NetworKit::count u = q.front();
         q.pop();
-        if (u->marked != Marked::MARKED) {
+        if (T.getNode(u).marked != Marked::MARKED) {
             continue;
         }
-        if (y != nullptr) {  // 1 or 2
-            if (y->number == 0) {
+        if (y != NetworKit::none) {  // 1 or 2
+            if (T.getNode(y).number == 0) {
                 return {y, CorneilStewartPerlCographRecognition::State::CONTAINS_0_NODE};
             } else {
                 return {y, CorneilStewartPerlCographRecognition::State::
                 EXISTS_1_NODE_NOT_PROPERLY_MARKED};
             }
         }
-        CoNode *t;
-        if (u->number == 1) {
-            if (u->md != u->d - 1) {
+        NetworKit::count t;
+        if (T.getNode(u).number == 1) {
+            if (T.getNode(u).md != T.getNode(u).d - 1) {
                 y = u;
             }
-            if (u->parent->marked == Marked::MARKED) {  // 1 or 6
-                if (y == nullptr || y->number == 0) {
+            if (T.getNode(T.getNode(u).parent).marked == Marked::MARKED) {  // 1 or 6
+                if (y == NetworKit::none || T.getNode(y).number == 0) {
                     return {y, CorneilStewartPerlCographRecognition::State::CONTAINS_0_NODE};
                 } else {
                     return {y, CorneilStewartPerlCographRecognition::State::WRONG_GRANDPARENT};
                 }
             } else {
-                t = u->parent->parent;
+                t = T.getNode(T.getNode(u).parent).parent;
             }
         } else {
             y = u;
-            t = u->parent;
+            t = T.getNode(u).parent;
         }
-        u->unmark();
-        u->md = 0;
+        T.unmark(u);
+        T.getNode(u).md = 0;
         while (t != w) {
-            if (t == T.root) {  // 4
+            if (t == T.getRoot()) {  // 4
                 return {y, CorneilStewartPerlCographRecognition::State::NO_ONE_PATH};
             }
-            if (t->marked != Marked::MARKED) {  // 3 or 5 or 6
-                if (y == nullptr || y->number == 0) {
+            if (T.getNode(t).marked != Marked::MARKED) {  // 3 or 5 or 6
+                if (y == NetworKit::none || T.getNode(y).number == 0) {
                     return {y, CorneilStewartPerlCographRecognition::State::WRONG_PARENT};
                 } else {
                     return {y, CorneilStewartPerlCographRecognition::State::WRONG_GRANDPARENT};
                     // if y is alpha, else grandparent not in set
                 }
             }
-            if (t->md != t->d - 1) {  // 2
+            if (T.getNode(t).md != T.getNode(t).d - 1) {  // 2
                 return {y, CorneilStewartPerlCographRecognition::State::
                 EXISTS_1_NODE_NOT_PROPERLY_MARKED};
             }
-            if (t->parent->marked == Marked::MARKED) {  // 1
+            if (T.getNode(T.getNode(t).parent).marked == Marked::MARKED) {  // 1
                 return {y, CorneilStewartPerlCographRecognition::State::CONTAINS_0_NODE};
             }
-            t->unmark();
-            t->md = 0;
-            t = t->parent->parent;
+            T.unmark(t);
+            T.getNode(t).md = 0;
+            t = T.getNode(T.getNode(t).parent).parent;
         }
         w = u;
     }
     return {w, CorneilStewartPerlCographRecognition::State::COGRAPH};
 }
 
-std::vector<CoNode*> GetWereMarked(CoNode *u) {
-    auto x = u->first_child;
-    std::vector<CoNode*> a;
-    while (x != nullptr && x->marked == Marked::MARKED_AND_UNMARKED) {
+std::vector<NetworKit::count> get_were_marked(Cotree &T, NetworKit::count u) {
+    auto x = T.getNode(u).first_child;
+    std::vector<NetworKit::count> a;
+    while (x != NetworKit::none && T.getNode(x).marked == Marked::MARKED_AND_UNMARKED) {
         a.push_back(x);
-        x = x->next;
+        x = T.getNode(x).next_sibling;
     }
     return a;
 }
 
-CoNode* GetLastFromChildren(CoNode *u) {
-    auto x = u->first_child;
-    while (x != nullptr && x->marked == Marked::MARKED_AND_UNMARKED) {
-        x = x->next;
+NetworKit::count get_last_from_children(Cotree &T, NetworKit::count u) {
+    auto x = T.getNode(u).first_child;
+    while (x != NetworKit::none && T.getNode(x).marked == Marked::MARKED_AND_UNMARKED) {
+        x = T.getNode(x).next_sibling;
     }
     return x;
 }
 
-void CorneilStewartPerlCographRecognition::insert_x_to_cotree(CoNode *u, CoNode *x) {
-    std::vector<CoNode*> a;
-    int u_number = u->number;
-    a = GetWereMarked(u);
-    if ((a.size() == 1 && u_number == 0) ||
-    (u->d - a.size() == 1 && u_number == 1)) {
-        CoNode *w = a[0];
+void CorneilStewartPerlCographRecognition::insert_x_to_cotree(
+        NetworKit::count u, NetworKit::count x) {
+    std::vector<NetworKit::count> a;
+    int u_number = T.getNode(u).number;
+    a = get_were_marked(T, u);
+    if ((a.size() == 1 && u_number == 0)
+            || (T.getNode(u).d - static_cast<int>(a.size()) == 1 && u_number == 1)) {
+        NetworKit::count w = a[0];
         if (u_number == 1) {
-            w = GetLastFromChildren(u);
+            w = get_last_from_children(T, u);
         }
-        if (w->type == Type::VERTEX) {
-            auto *y = T.Add(Type::ZERO_ONE, u_number ^ 1);
+        if (T.getNode(w).type == NodeType::LEAF) {
+            auto y = T.add(
+                u_number == 0 ? NodeType::COMPLEMENT_NODE : NodeType::UNION_NODE, u_number ^ 1);
             if (u_number == 0) {
-                u->RemoveWereMarked();
+                T.removeWereMarked(u);
             } else {
-                u->RemoveWereNotMarked();
+                T.removeWereNotMarked(u);
             }
-            u->AddChild(y);
-            y->AddChild(x);
-            y->AddChild(w);
+            T.addChild(u, y);
+            T.addChild(y, x);
+            T.addChild(y, w);
         } else {
-            w->AddChild(x);
+            T.addChild(w, x);
         }
     } else {
-        auto vec = u->RemoveWereMarked();
-        auto *y = T.Add(Type::ZERO_ONE, u_number);
+        auto vec = T.removeWereMarked(u);
+        auto y = T.add(u_number == 0 ? NodeType::UNION_NODE : NodeType::COMPLEMENT_NODE, u_number);
         for (auto v : vec) {
-            y->AddChild(v);
+            T.addChild(y, v);
         }
         if (u_number == 1) {
-            auto next = u->next;
-            auto previous = u->previous;
-            if (previous != nullptr) {
-                previous->next = y;
-            }
-            if (next != nullptr) {
-                next->previous = y;
-            }
-            y->previous = previous;
-            y->next = next;
-            if (previous == nullptr && u->parent != nullptr) {
-                u->parent->first_child = y;
-            }
-            if (u->parent != nullptr) {
-                y->parent = u->parent;
+            auto parent = T.getNode(u).parent;
+            if (parent != NetworKit::none) {
+                T.replaceChild(parent, u, y);
             } else {
-                T.root = y;
+                T.setRoot(y);
             }
-            auto *z = T.Add(Type::ZERO_ONE, 0);
-            y->AddChild(z);
-            z->AddChild(x);
-            z->AddChild(u);
+            auto z = T.add(NodeType::UNION_NODE, 0);
+            T.addChild(y, z);
+            T.addChild(z, x);
+            T.addChild(z, u);
         } else {
-            auto *z = T.Add(Type::ZERO_ONE, 1);
-            u->AddChild(z);
-            z->AddChild(x);
-            z->AddChild(y);
+            auto z = T.add(NodeType::COMPLEMENT_NODE, 1);
+            T.addChild(u, z);
+            T.addChild(z, x);
+            T.addChild(z, y);
         }
     }
 }
 
 CorneilStewartPerlCographRecognition::State CorneilStewartPerlCographRecognition::recognition() {
-    T.ReserveSpace(3 * graph.numberOfNodes());
-    auto *R = T.Add(Type::ZERO_ONE, 1);
-    T.root = R;
+    T.reserve(3 * graph.numberOfNodes());
+    auto R = T.add(NodeType::COMPLEMENT_NODE, 1);
+    T.setRoot(R);
     std::vector<NetworKit::node> vertex;
-    std::vector<CoNode*> covertex;
+    std::vector<NetworKit::count> covertex;
     std::map<NetworKit::node, int> pos;
     int count = 0;
     for (auto i : graph.nodeRange()) {
         vertex.push_back(i);
         pos[i] = count++;
-        auto *C = T.Add(Type::VERTEX, static_cast<int> (i));
+        auto C = T.add(NodeType::LEAF, static_cast<int>(i));
         covertex.push_back(C);
     }
     for (auto i : graph.nodeRange()) {
-        std::vector<CoNode*> vec;
+        std::vector<NetworKit::count> vec;
         for (auto u : graph.neighborRange(i)) {
             vec.push_back(covertex[pos[u]]);
         }
-        covertex[pos[i]]->out_edges = vec;
+        T.getNode(covertex[pos[i]]).out_edges = vec;
     }
 
     if (count == 0) {
-        T.Clear();
+        T.clear();
         return State::COGRAPH;
     }
     if (count == 1) {
-        R->AddChild(covertex[0]);
-        T.Clear();
+        T.addChild(R, covertex[0]);
+        T.clear();
         return State::COGRAPH;
     }
     if (graph.hasEdge(vertex[0], vertex[1])) {
-        R->AddChild(covertex[0]);
-        R->AddChild(covertex[1]);
+        T.addChild(R, covertex[0]);
+        T.addChild(R, covertex[1]);
     } else {
-        auto *N = T.Add(Type::ZERO_ONE, 0);
-        R->AddChild(N);
-        N->AddChild(covertex[0]);
-        N->AddChild(covertex[1]);
+        auto N = T.add(NodeType::UNION_NODE, 0);
+        T.addChild(R, N);
+        T.addChild(N, covertex[0]);
+        T.addChild(N, covertex[1]);
     }
-    covertex[0]->in_graph = true;
-    covertex[1]->in_graph = true;
+    T.getNode(covertex[0]).in_graph = true;
+    T.getNode(covertex[1]).in_graph = true;
 
     for (int i = 2; i < count; i++) {
-        ResetAllCoNodes(T.root);
+        reset_all_conodes(T, T.getRoot());
         mark(covertex[i]);
-        if (T.root->marked == Marked::MARKED_AND_UNMARKED) {
+        if (T.getNode(T.getRoot()).marked == Marked::MARKED_AND_UNMARKED) {
             // all nodes of T were marked and unmarked <=>
             // R is marked and unmarked
-            T.root->AddChild(covertex[i]);
+            T.addChild(T.getRoot(), covertex[i]);
         } else if (mark_ever_count == 0) {
-            if (T.root->d == 1) {
-                T.root->first_child->AddChild(covertex[i]);
+            if (T.getNode(T.getRoot()).d == 1) {
+                T.addChild(T.getNode(T.getRoot()).first_child, covertex[i]);
             } else {
-                auto *R1 = T.Add(Type::ZERO_ONE, 1);
-                auto *R2 = T.Add(Type::ZERO_ONE, 0);
-                R1->AddChild(R2);
-                R2->AddChild(T.root);
-                R2->AddChild(covertex[i]);
-                T.root = R1;
+                auto R1 = T.add(NodeType::COMPLEMENT_NODE, 1);
+                auto R2 = T.add(NodeType::UNION_NODE, 0);
+                T.addChild(R1, R2);
+                T.addChild(R2, T.getRoot());
+                T.addChild(R2, covertex[i]);
+                T.setRoot(R1);
             }
         } else {
             auto [v, state] = find_lowest();
             if (state != State::COGRAPH) {
-                T.Clear();
+                T.clear();
                 return state;
             }
             insert_x_to_cotree(v, covertex[i]);
         }
-        covertex[i]->in_graph = true;
+        T.getNode(covertex[i]).in_graph = true;
     }
-    T.Clear();
+    T.clear();
     return State::COGRAPH;
 }
 

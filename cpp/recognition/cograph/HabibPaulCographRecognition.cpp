@@ -14,6 +14,11 @@ void HabibPaulCographRecognition::run() {
     unused_parts.clear();
     NetworKit::count twins_counter = 0;
 
+    if (num_of_nodes == 0) {
+        is_cograph = State::COGRAPH;
+        return;
+    }
+
     permutation.E.resize(graph.numberOfNodes(), element());
     permutation.P.resize(graph.numberOfNodes() + 2, part());
     permutation.first_part = permutation.last_part = &permutation.P[0];
@@ -180,7 +185,7 @@ void HabibPaulCographRecognition::run() {
     }
     if (flag == num_of_nodes - 1) {
         is_cograph = State::COGRAPH;
-        order.push_back({{permutation.first_part->next->pivot->num, -1}, 3});
+        order.push_back({{permutation.first_part->next->first->num, -1}, 3});
         cotree.setOrder(order);
         cotree.buildTree();
     } else {

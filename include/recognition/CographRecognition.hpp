@@ -120,14 +120,14 @@ class CorneilStewartPerlCographRecognition : public CographRecognition {
  private:
     CorneilStewartPerlCographRecognition::State recognition();
     void unmark();
-    void mark(CoNode *x);
-    std::pair<CoNode*, CorneilStewartPerlCographRecognition::State>find_lowest() const;
-    void insert_x_to_cotree(CoNode *u, CoNode *x);
-    CoTree T;
+    void mark(NetworKit::count x);
+    std::pair<NetworKit::count, CorneilStewartPerlCographRecognition::State>find_lowest();
+    void insert_x_to_cotree(NetworKit::count u, NetworKit::count x);
+    Cotree T;
     int mark_count = 0;
     int mark_and_unmarked_count = 0;
     int mark_ever_count = 0;
-    std::queue<CoNode*> marked_with_d_equal_to_md;  // TODO(fixikmila): get rid of this
+    std::queue<NetworKit::count> marked_with_d_equal_to_md;  // TODO(fixikmila): get rid of this
 };
 
 /**
@@ -148,16 +148,16 @@ class DahlhausCographRecognition : public CographRecognition {
 
  private:
     const NetworKit::count A = 10;
-    std::vector<CoNode*> pointer;
-    std::vector<CoTree> save;
+    std::vector<NetworKit::count> pointer;
+    Cotree cotree;
 
-    CoTree& build_cotree(NetworKit::Graph G, std::vector<int> real_index);
-    void high_low_case(CoTree &T, NetworKit::Graph &G, std::vector<int> &real_index);
+    NetworKit::count build_cotree(Cotree &T, NetworKit::Graph G, std::vector<int> real_index);
+    void high_low_case(Cotree &T, NetworKit::Graph &G, std::vector<int> &real_index);
     void big_component(
-        CoTree &T, NetworKit::Graph &G, std::vector<int> &vec, std::vector<int> &real_index);
-    inline void add(int vertex_type, CoTree &T, std::vector<int> &vec,
+        Cotree &T, NetworKit::Graph &G, std::vector<int> &vec, std::vector<int> &real_index);
+    inline void add(int vertex_type, Cotree &T, std::vector<int> &vec,
         std::vector<int> &fake_index, NetworKit::Graph &G, std::vector<int> &real_index);
-    bool check_cotree(const CoTree &T);
+    bool check_cotree(Cotree &T);
 };
 
 class HabibPaulCographRecognition : public CographRecognition {

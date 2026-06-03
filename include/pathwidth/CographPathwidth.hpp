@@ -22,8 +22,8 @@ class CographPathwidth : public Pathwidth {
  public:
     Koala::Cotree &cotree;
 
-    CographPathwidth(NetworKit::Graph &Graph, Koala::Cotree &CoTree)
-        : Pathwidth(Graph), cotree(CoTree) { }
+    CographPathwidth(NetworKit::Graph &Graph, Koala::Cotree &cotree_ref)
+        : Pathwidth(Graph), cotree(cotree_ref) { }
 
     void run();
 };

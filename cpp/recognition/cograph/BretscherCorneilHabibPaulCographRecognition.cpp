@@ -11,12 +11,16 @@
 #include <graph/GraphTools.hpp>
 
 #include <recognition/CographRecognition.hpp>
-#include <structures/CoTree.hpp>
+#include <structures/Cotree.hpp>
 
 namespace Koala {
 
 void BretscherCorneilHabibPaulCographRecognition::run() {
     hasRun = true;
+    if (graph.numberOfNodes() <= 1) {
+        is_cograph = State::COGRAPH;
+        return;
+    }
     std::vector<NetworKit::node> start;
     for (auto u : graph.nodeRange()) {
         start.push_back(u);

@@ -15,6 +15,7 @@ koala_make_test(test_maximum_cut testMaxCut.cpp)
 koala_make_test(test_planar_sssp testPlanarSSSP.cpp)
 
 koala_make_test(test_dynamic_tree structures/testDynamicTree.cpp)
+koala_make_test(test_cotree structures/testCotree.cpp)
 
 koala_make_test(test_bp_gaussian_matching gaussian_matching/testBipartiteGaussianMatching.cpp)
 koala_make_test(test_gen_gaussian_matching gaussian_matching/testGeneralGaussianMatching.cpp)
