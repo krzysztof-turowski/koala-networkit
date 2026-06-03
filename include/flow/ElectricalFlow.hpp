@@ -29,8 +29,8 @@ class ElectricalFlow final : public MaximumFlow {
      * @param t Sink vertex.
      * @param round Whether to round the final flow to an integral flow.
      */
-    ElectricalFlow(NetworKit::Graph graph, NetworKit::node s, NetworKit::node t,
-        bool round = true);
+    ElectricalFlow(
+        NetworKit::Graph graph, NetworKit::node s, NetworKit::node t, bool round = true);
 
     /**
      * Compute a maximum flow with electrical-flow correction steps.
@@ -59,8 +59,7 @@ class ElectricalFlow final : public MaximumFlow {
     const NetworKit::node s, t;
     int U;
     int initial_flow;
-    bool directed;
-    bool round;
+    bool directed, round;
 
     std::vector<std::vector<double>> flow;
     std::vector<double> demand;

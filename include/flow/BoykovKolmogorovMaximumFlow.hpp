@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include <queue>
 #include <unordered_map>
 
@@ -29,17 +30,15 @@ class BoykovKolmogorovMaximumFlow final : public MaximumFlow {
     enum class NodeType { SOURCE, TARGET, FREE };
 
     std::unordered_map<NetworKit::Edge, int> flow;
-    NetworKit::node spath, tpath;
     std::unordered_map<NetworKit::node, NetworKit::node> parent;
     std::unordered_map<NetworKit::node, NodeType> tree;
     std::unordered_map<NetworKit::Edge, int> capacity;
-    std::queue<NetworKit::node> active, orphan;
 
     int tree_capacity(NetworKit::node, NetworKit::node);
-    void initialize();
-    bool grow();
-    int augment();
-    void adopt();
+    void initialize(std::queue<NetworKit::node>&);
+    std::optional<NetworKit::Edge> grow(std::queue<NetworKit::node>&);
+    int augment(const NetworKit::Edge&, std::queue<NetworKit::node>&);
+    void adopt(std::queue<NetworKit::node>&, std::queue<NetworKit::node>&);
     bool origin(NetworKit::node);
 };
 

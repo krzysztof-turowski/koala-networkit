@@ -12,7 +12,7 @@ static NetworKit::Edge reverse(const NetworKit::Edge &p) {
     return NetworKit::Edge(p.v, p.u);
 }
 
-void BoykovKolmogorovMaximumFlow::initialize() {
+void BoykovKolmogorovMaximumFlow::initialize(std::queue<NetworKit::node> &active) {
     graph.forNodes([&](NetworKit::node v) {
         tree[v] = NodeType::FREE;
         parent[v] = NetworKit::none;
@@ -45,7 +45,8 @@ int BoykovKolmogorovMaximumFlow::tree_capacity(NetworKit::node p, NetworKit::nod
     return 0;
 }
 
-bool BoykovKolmogorovMaximumFlow::grow() {
+std::optional<NetworKit::Edge> BoykovKolmogorovMaximumFlow::grow(
+    std::queue<NetworKit::node> &active) {
     while (!active.empty()) {
         NetworKit::node v = active.front();
         active.pop();
@@ -71,16 +72,17 @@ bool BoykovKolmogorovMaximumFlow::grow() {
 
         if (found_vertex != neighbors.end()) {
             const NetworKit::node u = *found_vertex;
-            spath = tree[v] == NodeType::SOURCE ? v : u;
-            tpath = tree[u] == NodeType::TARGET ? u : v;
+            const NetworKit::node spath = tree[v] == NodeType::SOURCE ? v : u;
+            const NetworKit::node tpath = tree[u] == NodeType::TARGET ? u : v;
             active.push(v);
-            return true;
+            return NetworKit::Edge(spath, tpath);
         }
     }
-    return false;
+    return std::nullopt;
 }
 
-int BoykovKolmogorovMaximumFlow::augment() {
+int BoykovKolmogorovMaximumFlow::augment(
+    const NetworKit::Edge &middle, std::queue<NetworKit::node> &orphan) {
     std::vector<NetworKit::Edge> path;
     auto add_path = [&](NetworKit::node u, NetworKit::node root, bool reverse_edges) {
         while (u != root) {
@@ -90,9 +92,9 @@ int BoykovKolmogorovMaximumFlow::augment() {
         }
     };
 
-    add_path(spath, source, false);
-    path.emplace_back(spath, tpath);
-    add_path(tpath, target, true);
+    add_path(middle.u, source, false);
+    path.push_back(middle);
+    add_path(middle.v, target, true);
 
     int bottleneck = std::numeric_limits<int>::max();
     for (const auto &e : path) {
@@ -130,7 +132,8 @@ bool BoykovKolmogorovMaximumFlow::origin(NetworKit::node v) {
     }
 }
 
-void BoykovKolmogorovMaximumFlow::adopt() {
+void BoykovKolmogorovMaximumFlow::adopt(
+    std::queue<NetworKit::node> &active, std::queue<NetworKit::node> &orphan) {
     while (!orphan.empty()) {
         auto p = orphan.front();
         orphan.pop();
@@ -163,13 +166,16 @@ void BoykovKolmogorovMaximumFlow::adopt() {
 
 void BoykovKolmogorovMaximumFlow::run() {
     GraphTools::ensureDirectedGraph(graph);
-    initialize();
+    std::queue<NetworKit::node> active;
+    std::queue<NetworKit::node> orphan;
+    initialize(active);
     while (true) {
-        if (!grow()) {
+        const auto middle = grow(active);
+        if (!middle) {
             break;
         }
-        flow_size += augment();
-        adopt();
+        flow_size += augment(*middle, orphan);
+        adopt(active, orphan);
     }
     hasRun = true;
 }

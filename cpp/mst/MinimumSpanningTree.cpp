@@ -783,6 +783,11 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::msf(NetworKit::Graph G, int t)
 }
 
 NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t) {
+    // The paper bounds the number of bad edges by 8m'/c + d^3n' and requires
+    // it to be at most m'/2 + d^3n'. Its smallest hierarchy target is S(t, 1)^3 = 8.
+    static constexpr int C = 16;
+    static constexpr int MIN_NUMBER_NODES = 8;
+
     // Expects that G is connected and undirected
     assert(Koala::GraphTools::isConnected(G));
     assert(!G.isDirected());

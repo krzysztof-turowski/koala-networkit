@@ -206,11 +206,6 @@ class Chazelle2000MinimumSpanningTree final : public MinimumSpanningTree {
     std::tuple<NetworKit::Graph, EdgeMap, NetworKit::Graph>
         boruvka_steps(NetworKit::Graph G, int c);
     int vertices_on_level(int dz);
-
-    // The paper bounds the number of bad edges by 8m'/c + d^3n' and requires
-    // it to be at most m'/2 + d^3n'. Its smallest hierarchy target is S(t, 1)^3 = 8.
-    static constexpr int C = 16;
-    static constexpr int MIN_NUMBER_NODES = 8;
 };
 
 }  // namespace Koala

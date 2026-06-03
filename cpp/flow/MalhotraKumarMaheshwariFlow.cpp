@@ -16,7 +16,6 @@ NetworKit::Edge MalhotraKumarMaheshwariFlow::reverse(const NetworKit::Edge &p) {
 }
 
 void MalhotraKumarMaheshwariFlow::initialize() {
-    V = graph.numberOfNodes();
     graph.forEdges([&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight w) {
         auto p = NetworKit::Edge(u, v);
         if (graph.addEdge(v, u, 0, true)) {
