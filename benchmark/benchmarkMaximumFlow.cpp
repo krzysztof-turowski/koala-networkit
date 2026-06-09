@@ -6,7 +6,7 @@
 #include <string>
 
 #include <benchmark/utils.hpp>
-#include <flow/BoykovKolmogorovFlow.hpp>
+#include <flow/BoykovKolmogorovMaximumFlow.hpp>
 #include <flow/ElectricalFlow.hpp>
 #include <flow/KingRaoTarjanMaximumFlow.hpp>
 #include <flow/MalhotraKumarMaheshwariFlow.hpp>
@@ -40,7 +40,7 @@ void run_test(
     switch (algorithm) {
     case Algorithm::ALL:
         T.insert(run_algorithm<Koala::GoldbergTarjanPushRelabelMaximumFlow>(G, s, t));
-        T.insert(run_algorithm<Koala::BoykovKolmogorovFlow>(G, s, t));
+        T.insert(run_algorithm<Koala::BoykovKolmogorovMaximumFlow>(G, s, t));
         T.insert(run_algorithm<Koala::MalhotraKumarMaheshwariFlow>(G, s, t));
         T.insert(run_algorithm<Koala::KingRaoTarjanMaximumFlow>(G, s, t));
         T.insert(run_algorithm<Koala::ElectricalFlow>(G, s, t));
@@ -50,7 +50,7 @@ void run_test(
         T.insert(run_algorithm<Koala::GoldbergTarjanPushRelabelMaximumFlow>(G, s, t));
         break;
     case Algorithm::BK:
-        T.insert(run_algorithm<Koala::BoykovKolmogorovFlow>(G, s, t));
+        T.insert(run_algorithm<Koala::BoykovKolmogorovMaximumFlow>(G, s, t));
         break;
     case Algorithm::MKM:
         T.insert(run_algorithm<Koala::MalhotraKumarMaheshwariFlow>(G, s, t));
