@@ -135,14 +135,6 @@ class CorneilStewartPerlCographRecognition : public CographRecognition {
     std::pair<NetworKit::node, CorneilStewartPerlCographRecognition::State> find_lowest(
         const std::vector<NetworKit::node> &marked_nodes);
     void insert_to_cotree(NetworKit::node u, NetworKit::node x);
-    static std::vector<NetworKit::node> get_marked(
-        Cotree &T, NetworKit::node u, std::vector<Marked> &marked);
-    static NetworKit::node get_last_from_children(
-        Cotree &T, NetworKit::node u, std::vector<Marked> &marked);
-    static std::vector<NetworKit::node> remove_marked(
-        Cotree &T, NetworKit::node node, std::vector<Marked> &marked);
-    static void remove_not_marked(
-        Cotree &T, NetworKit::node node, std::vector<Marked> &marked);
 
     Cotree T;
     std::vector<Marked> marked;

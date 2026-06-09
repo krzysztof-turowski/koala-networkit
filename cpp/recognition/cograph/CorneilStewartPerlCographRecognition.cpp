@@ -168,7 +168,7 @@ std::vector<NetworKit::node> get_marked(
     return a;
 }
 
-std::vector<NetworKit::node> CorneilStewartPerlCographRecognition::remove_marked(
+std::vector<NetworKit::node> remove_marked(
         Cotree &T, NetworKit::node node, std::vector<Marked> &marked) {
     auto child = T.getNode(node).first_child;
     std::vector<NetworKit::node> removed;
