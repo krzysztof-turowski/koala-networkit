@@ -6,7 +6,7 @@ namespace Koala {
 
 void CographVertexColoring::subtree_colors() {
     while (!st.empty()) {
-        int v = st.top();
+        NetworKit::node v = st.top();
         Conode &V = cotree.getNode(v);
         if (used[v] == false) {
             used[v] = true;
@@ -39,7 +39,7 @@ void CographVertexColoring::subtree_colors() {
 
 void CographVertexColoring::end_of_coloring() {
     while (!st.empty()) {
-        int v = st.top();
+        NetworKit::node v = st.top();
         Conode &V = cotree.getNode(v);
         if (used[v] == false) {
             used[v] = true;

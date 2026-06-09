@@ -22,7 +22,7 @@ void DahlhausCographRecognition::run() {
     for (auto u : graph.nodeRange()) {
         nodes.push_back(u);
     }
-    std::vector<int> real_index(graph.numberOfNodes());
+    std::vector<NetworKit::node> real_index(graph.numberOfNodes());
     std::iota(real_index.begin(), real_index.end(), 0);
     cotree.clear();
     cotree.reserve(nodes.size() * 4);
@@ -35,24 +35,28 @@ void DahlhausCographRecognition::run() {
     cotree.clear();
 }
 
-bool descendant(Cotree &T, NetworKit::count u, NetworKit::count v) {
-    return T.getNode(u).time_in >= T.getNode(v).time_in
-        && T.getNode(u).time_out <= T.getNode(v).time_out;
+bool descendant(
+        NetworKit::node u, NetworKit::node v, const std::vector<int> &time_in,
+        const std::vector<int> &time_out) {
+    return time_in[u] >= time_in[v] && time_out[u] <= time_out[v];
 }
 
-NetworKit::count lca(Cotree &T, NetworKit::count u, NetworKit::count v, int logarithm) {
-    if (descendant(T, u, v)) {
+NetworKit::node lca(
+        NetworKit::node u, NetworKit::node v, int logarithm, const std::vector<int> &time_in,
+        const std::vector<int> &time_out,
+        const std::vector<std::vector<NetworKit::node>> &get_up) {
+    if (descendant(u, v, time_in, time_out)) {
         return v;
     }
-    if (descendant(T, v, u)) {
+    if (descendant(v, u, time_in, time_out)) {
         return u;
     }
     for (int i = logarithm - 1; i >= 0; i--) {
-        if (!descendant(T, v, T.getNode(u).get_up[i])) {
-            u = T.getNode(u).get_up[i];
+        if (!descendant(v, get_up[u][i], time_in, time_out)) {
+            u = get_up[u][i];
         }
     }
-    return T.getNode(u).get_up[0];
+    return get_up[u][0];
 }
 
 void dfs(
@@ -82,7 +86,8 @@ inline NetworKit::Graph build_graph(
 
 inline void DahlhausCographRecognition::add(
         int vertex_type, Cotree &T, std::vector<int> &vec,
-        std::vector<int> &fake_index, NetworKit::Graph &G, std::vector<int> &real_index) {
+        std::vector<int> &fake_index, NetworKit::Graph &G,
+        std::vector<NetworKit::node> &real_index) {
     auto u2 = T.add(
         vertex_type == 0 ? NodeType::UNION_NODE : NodeType::COMPLEMENT_NODE, vertex_type);
     T.addChild(u2, T.getRoot());
@@ -98,7 +103,7 @@ inline void DahlhausCographRecognition::add(
     for (auto v : vec) {
         fake_index[v] = -1;
     }
-    std::vector<int> new_real_index(vec.size());
+    std::vector<NetworKit::node> new_real_index(vec.size());
     for (std::size_t j = 0; j < vec.size(); j++) {
         new_real_index[j] = real_index[vec[j]];
     }
@@ -204,7 +209,7 @@ compute_gamma_difference(
     return gamma_difference;
 }
 
-void reverse_cotree(Cotree &T, NetworKit::count v) {
+void reverse_cotree(Cotree &T, NetworKit::node v) {
     if (T.getNode(v).type != NodeType::LEAF) {
         T.getNode(v).number ^= 1;
         T.getNode(v).type = T.getNode(v).number == 0
@@ -218,7 +223,8 @@ void reverse_cotree(Cotree &T, NetworKit::count v) {
 }
 
 void DahlhausCographRecognition::big_component(
-        Cotree &T, NetworKit::Graph &G, std::vector<int> &vec, std::vector<int> &real_index) {
+        Cotree &T, NetworKit::Graph &G, std::vector<int> &vec,
+        std::vector<NetworKit::node> &real_index) {
     NetworKit::Graph GC = Koala::GraphTools::toComplement(G);
     NetworKit::count n = GC.numberOfNodes();
     std::vector<int> component(n, -1), fake_index(n, -1);
@@ -239,7 +245,7 @@ void DahlhausCographRecognition::big_component(
         for (std::size_t j = 0; j < c.size(); j++) {
             fake_index[c[j]] = -1;
         }
-        std::vector<int> new_real_index(c.size());
+        std::vector<NetworKit::node> new_real_index(c.size());
         for (std::size_t j = 0; j < c.size(); j++) {
             new_real_index[j] = real_index[c[j]];
         }
@@ -255,7 +261,7 @@ void DahlhausCographRecognition::big_component(
 }
 
 void DahlhausCographRecognition::high_low_case(
-        Cotree &T, NetworKit::Graph &G, std::vector<int> &real_index) {
+        Cotree &T, NetworKit::Graph &G, std::vector<NetworKit::node> &real_index) {
     if (is_cograph != State::COGRAPH) {
         return;
     }
@@ -331,9 +337,10 @@ void DahlhausCographRecognition::high_low_case(
     }
 }
 
-NetworKit::count DahlhausCographRecognition::build_cotree(
+NetworKit::node DahlhausCographRecognition::build_cotree(
         Cotree &T,
-        NetworKit::Graph G, std::vector<int> real_index) {  // should return cotree reference
+        NetworKit::Graph G,
+        std::vector<NetworKit::node> real_index) {  // should return cotree reference
     NetworKit::count n = G.numberOfNodes();
     T.reserve(3 * n);
     if (n == 1) {
@@ -401,58 +408,65 @@ NetworKit::count DahlhausCographRecognition::build_cotree(
     return T.getRoot();
 }
 
-int current_time = 0;
-std::vector<NetworKit::count> dfs_list;
-NetworKit::count number_of_edges_according_to_cotree = 0;
-int maximum_depth = 0;
-
-void check_cotree_recursive(Cotree &T, NetworKit::count v, int depth) {
+void check_cotree_recursive(
+        Cotree &T, NetworKit::node v, int depth, int &current_time,
+        std::vector<NetworKit::node> &dfs_list,
+        std::vector<NetworKit::count> &number_of_vertices_in_subtree,
+        std::vector<int> &time_in, std::vector<int> &time_out,
+        NetworKit::count &number_of_edges_according_to_cotree, int &maximum_depth) {
     maximum_depth = std::max(maximum_depth, depth);
     dfs_list.push_back(v);
-    T.getNode(v).time_in = current_time++;
+    time_in[v] = current_time++;
     if (T.getNode(v).type == NodeType::LEAF) {
-        T.getNode(v).number_of_vertices_in_subtree = 1;
-        T.getNode(v).time_out = current_time++;
+        number_of_vertices_in_subtree[v] = 1;
+        time_out[v] = current_time++;
         return;
     }
     auto child = T.getNode(v).first_child;
     int sum = 0;
-    T.getNode(v).number_of_vertices_in_subtree = 0;
+    number_of_vertices_in_subtree[v] = 0;
     while (child != NetworKit::none) {
-        check_cotree_recursive(T, child, depth + 1);
+        check_cotree_recursive(
+            T, child, depth + 1, current_time, dfs_list, number_of_vertices_in_subtree,
+            time_in, time_out, number_of_edges_according_to_cotree, maximum_depth);
         if (T.getNode(v).number == 1) {
-            number_of_edges_according_to_cotree +=
-                T.getNode(child).number_of_vertices_in_subtree * sum;
+            number_of_edges_according_to_cotree += number_of_vertices_in_subtree[child] * sum;
         }
-        sum += T.getNode(child).number_of_vertices_in_subtree;
-        T.getNode(v).number_of_vertices_in_subtree +=
-            T.getNode(child).number_of_vertices_in_subtree;
+        sum += number_of_vertices_in_subtree[child];
+        number_of_vertices_in_subtree[v] += number_of_vertices_in_subtree[child];
         child = T.getNode(child).next_sibling;
     }
-    T.getNode(v).time_out = current_time++;
+    time_out[v] = current_time++;
 }
 
 bool DahlhausCographRecognition::check_cotree(Cotree &T) {
-    current_time = 0;
-    dfs_list.clear();
-    number_of_edges_according_to_cotree = 0;
-    maximum_depth = 0;
-    check_cotree_recursive(T, T.getRoot(), 0);
+    int current_time = 0;
+    std::vector<NetworKit::node> dfs_list;
+    std::vector<NetworKit::count> number_of_vertices_in_subtree(T.upperNodeIdBound(), 0);
+    std::vector<int> time_in(T.upperNodeIdBound(), 0);
+    std::vector<int> time_out(T.upperNodeIdBound(), 0);
+    NetworKit::count number_of_edges_according_to_cotree = 0;
+    int maximum_depth = 0;
+    check_cotree_recursive(
+        T, T.getRoot(), 0, current_time, dfs_list, number_of_vertices_in_subtree,
+        time_in, time_out, number_of_edges_according_to_cotree, maximum_depth);
+    std::vector<std::vector<NetworKit::node>> get_up(
+        T.upperNodeIdBound(), std::vector<NetworKit::node>(maximum_depth + 1, NetworKit::none));
     for (auto u : dfs_list) {
         if (T.getNode(u).parent == NetworKit::none) {
-            T.getNode(u).get_up[0] = u;
+            get_up[u][0] = u;
         } else {
-            T.getNode(u).get_up[0] = T.getNode(u).parent;
+            get_up[u][0] = T.getNode(u).parent;
         }
     }
     int i = 1;
     for (int number = 2; number <= maximum_depth; i++, number <<= 1) {
         for (auto u : dfs_list) {
-            T.getNode(u).get_up[i] = T.getNode(T.getNode(u).get_up[i - 1]).get_up[i - 1];
+            get_up[u][i] = get_up[get_up[u][i - 1]][i - 1];
         }
     }
     for (auto [u, v] : graph.edgeRange()) {
-        auto ancestor = lca(T, pointer[u], pointer[v], i);
+        auto ancestor = lca(pointer[u], pointer[v], i, time_in, time_out, get_up);
         if (T.getNode(ancestor).type == NodeType::LEAF || T.getNode(ancestor).number != 1) {
             return false;
         }

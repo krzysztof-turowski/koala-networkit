@@ -3,7 +3,7 @@
 namespace Koala {
 
 HabibPaulCographRecognition::HabibPaulCographRecognition(const NetworKit::Graph &graph)
-        : CographRecognition(graph), cotree(this->graph), T(this->graph) { }
+        : CographRecognition(graph), T(this->graph) { }
 
 void HabibPaulCographRecognition::run() {
     hasRun = true;
@@ -185,9 +185,8 @@ void HabibPaulCographRecognition::run() {
     }
     if (flag == num_of_nodes - 1) {
         is_cograph = State::COGRAPH;
-        order.push_back({{permutation.first_part->next->first->num, -1}, 3});
-        cotree.setOrder(order);
-        cotree.buildTree();
+        order.push_back({{permutation.first_part->next->first->num, NetworKit::none}, 3});
+        cotree.buildTree(graph, order);
     } else {
         is_cograph = State::NOT_COGRAPH;
     }

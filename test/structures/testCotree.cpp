@@ -11,16 +11,8 @@ TEST(ConodeTest, initializes_defaults) {
     EXPECT_EQ(node.next_sibling, 2);
     EXPECT_EQ(node.previous_sibling, NetworKit::none);
     EXPECT_EQ(node.parent, 3);
-    EXPECT_EQ(node.size, 0);
     EXPECT_EQ(node.type, Koala::NodeType::UNKNOWN);
-    EXPECT_EQ(node.marked, Koala::Marked::UNMARKED);
-    EXPECT_EQ(node.md, 0);
     EXPECT_EQ(node.d, 0);
-    EXPECT_FALSE(node.in_graph);
-    EXPECT_EQ(node.number_of_vertices_in_subtree, 0);
-    EXPECT_EQ(node.time_in, 0);
-    EXPECT_EQ(node.time_out, 0);
-    EXPECT_EQ(node.get_up[0], NetworKit::none);
 }
 
 TEST(CotreeTest, adds_nodes_and_maintains_child_sibling_links) {
@@ -94,50 +86,14 @@ TEST(CotreeTest, moves_existing_child_to_front_without_changing_size) {
     EXPECT_EQ(tree.getNode(third).previous_sibling, first);
 }
 
-TEST(CotreeTest, removes_marked_prefix_and_unmarked_suffix) {
-    Koala::Cotree tree;
-    auto root = tree.add(Koala::NodeType::UNION_NODE, 0);
-    auto first = tree.add(Koala::NodeType::LEAF, 1);
-    auto second = tree.add(Koala::NodeType::LEAF, 2);
-    auto third = tree.add(Koala::NodeType::LEAF, 3);
-    tree.setRoot(root);
-    tree.addChild(root, first);
-    tree.addChild(root, second);
-    tree.addChild(root, third);
-    tree.unmark(third);
-    tree.unmark(second);
-
-    auto removed = tree.removeWereMarked(root);
-
-    ASSERT_EQ(removed.size(), 2);
-    EXPECT_EQ(removed[0], third);
-    EXPECT_EQ(removed[1], second);
-    EXPECT_EQ(tree.getNode(root).first_child, first);
-    EXPECT_EQ(tree.getNode(root).d, 1);
-
-    auto fourth = tree.add(Koala::NodeType::LEAF, 4);
-    auto fifth = tree.add(Koala::NodeType::LEAF, 5);
-    tree.addChild(root, fourth);
-    tree.addChild(root, fifth);
-    tree.unmark(fifth);
-
-    tree.removeWereNotMarked(root);
-
-    EXPECT_EQ(tree.getNode(root).first_child, fifth);
-    EXPECT_EQ(tree.getNode(fifth).next_sibling, NetworKit::none);
-    EXPECT_EQ(tree.getNode(root).d, 1);
-}
-
 TEST(CotreeTest, build_tree_encodes_habib_paul_order_as_indexed_nary_tree) {
     NetworKit::Graph reduced_graph(1);
-    Koala::Cotree tree(reduced_graph);
-    tree.setOrder({
+    Koala::Cotree tree;
+    tree.buildTree(reduced_graph, {
         {{0, 1}, 0},
         {{1, 2}, 1},
         {{2, NetworKit::none}, 3},
     });
-
-    tree.buildTree();
 
     ASSERT_TRUE(tree.prepared);
     EXPECT_EQ(tree.getRoot(), 3);

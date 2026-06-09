@@ -14,11 +14,13 @@ class CographPathwidth : public Pathwidth {
 
     void subtree_size();
 
-    std::stack<int> st;
+    std::stack<NetworKit::node> st;
 
     std::vector<bool> used;
 
     std::vector<NetworKit::count> path;
+
+    std::vector<NetworKit::count> subtree_sizes;
  public:
     Koala::Cotree &cotree;
 

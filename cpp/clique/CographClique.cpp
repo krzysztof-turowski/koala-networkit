@@ -10,7 +10,7 @@ namespace Koala {
 
 void CographMaxClique::recurse_run() {
     while (!st.empty()) {
-        int v = st.top();
+        NetworKit::node v = st.top();
         Conode &V = cotree.getNode(v);
         if (used[v] == false) {
             used[v] = true;
@@ -40,13 +40,13 @@ void CographMaxClique::recurse_run() {
 
 void CographMaxClique::add_to_set() {
     while (!st.empty()) {
-        int v = st.top();
+        NetworKit::node v = st.top();
         st.pop();
         Conode &V = cotree.getNode(v);
         if (V.type == NodeType::LEAF) {
             max_clique.insert(v);
         } else if (V.type == NodeType::UNION_NODE) {
-            NetworKit::count best = NetworKit::none;
+            NetworKit::node best = NetworKit::none;
             for (auto child = V.first_child; child != NetworKit::none;
                     child = cotree.getNode(child).next_sibling) {
                 if (best == NetworKit::none

@@ -1,26 +1,19 @@
-#include <graph/GraphTools.hpp>
+#include <algorithm>
 
 #include "structures/Cotree.hpp"
 
 namespace Koala {
 
 Cotree::Cotree() {
-    graph = nullptr;
     prepared = false;
     root = NetworKit::none;
 }
 
-Cotree::Cotree(NetworKit::Graph &Graph) {
-    graph = &Graph;
-    prepared = false;
-    root = NetworKit::none;
-}
-
-NetworKit::count Cotree::getRoot() const {
+NetworKit::node Cotree::getRoot() const {
     return root;
 }
 
-NetworKit::count Cotree::upperNodeIdBound() const {
+NetworKit::node Cotree::upperNodeIdBound() const {
     return nodes.size();
 }
 
@@ -28,8 +21,8 @@ void Cotree::reserve(NetworKit::count n) {
     nodes.reserve(n);
 }
 
-NetworKit::count Cotree::add(NodeType type, int number) {
-    NetworKit::count node = nodes.size();
+NetworKit::node Cotree::add(NodeType type, NetworKit::node number) {
+    NetworKit::node node = nodes.size();
     nodes.emplace_back(NetworKit::none, NetworKit::none, NetworKit::none);
     nodes[node].type = type;
     nodes[node].number = number;
@@ -42,7 +35,7 @@ void Cotree::clear() {
     prepared = false;
 }
 
-void Cotree::setRoot(NetworKit::count node) {
+void Cotree::setRoot(NetworKit::node node) {
     root = node;
     if (node != NetworKit::none) {
         nodes[node].parent = NetworKit::none;
@@ -51,7 +44,7 @@ void Cotree::setRoot(NetworKit::count node) {
     }
 }
 
-void Cotree::addChild(NetworKit::count parent, NetworKit::count child) {
+void Cotree::addChild(NetworKit::node parent, NetworKit::node child) {
     if (nodes[child].parent != NetworKit::none) {
         removeChild(nodes[child].parent, child);
     }
@@ -65,12 +58,12 @@ void Cotree::addChild(NetworKit::count parent, NetworKit::count child) {
     nodes[parent].d++;
 }
 
-void Cotree::removeChild(NetworKit::count parent, NetworKit::count child) {
+void Cotree::removeChild(NetworKit::node parent, NetworKit::node child) {
     if (nodes[child].parent != parent) {
         return;
     }
-    NetworKit::count previous = nodes[child].previous_sibling;
-    NetworKit::count next = nodes[child].next_sibling;
+    NetworKit::node previous = nodes[child].previous_sibling;
+    NetworKit::node next = nodes[child].next_sibling;
     if (previous != NetworKit::none) {
         nodes[previous].next_sibling = next;
     } else {
@@ -86,9 +79,9 @@ void Cotree::removeChild(NetworKit::count parent, NetworKit::count child) {
 }
 
 void Cotree::replaceChild(
-        NetworKit::count parent, NetworKit::count old_child, NetworKit::count new_child) {
-    NetworKit::count previous = nodes[old_child].previous_sibling;
-    NetworKit::count next = nodes[old_child].next_sibling;
+        NetworKit::node parent, NetworKit::node old_child, NetworKit::node new_child) {
+    NetworKit::node previous = nodes[old_child].previous_sibling;
+    NetworKit::node next = nodes[old_child].next_sibling;
     if (nodes[new_child].parent != NetworKit::none) {
         removeChild(nodes[new_child].parent, new_child);
     }
@@ -108,7 +101,7 @@ void Cotree::replaceChild(
     nodes[old_child].next_sibling = NetworKit::none;
 }
 
-void Cotree::moveChildToFront(NetworKit::count parent, NetworKit::count child) {
+void Cotree::moveChildToFront(NetworKit::node parent, NetworKit::node child) {
     if (nodes[child].parent != parent || nodes[parent].first_child == child) {
         return;
     }
@@ -116,48 +109,11 @@ void Cotree::moveChildToFront(NetworKit::count parent, NetworKit::count child) {
     addChild(parent, child);
 }
 
-void Cotree::unmarkForNewIteration(NetworKit::count node) {
-    nodes[node].marked = Marked::UNMARKED;
-    nodes[node].md = 0;
-}
-
-void Cotree::mark(NetworKit::count node) {
-    nodes[node].marked = Marked::MARKED;
-}
-
-void Cotree::unmark(NetworKit::count node) {
-    nodes[node].marked = Marked::MARKED_AND_UNMARKED;
-}
-
-std::vector<NetworKit::count> Cotree::removeWereMarked(NetworKit::count node) {
-    auto child = nodes[node].first_child;
-    std::vector<NetworKit::count> removed;
-    while (child != NetworKit::none) {
-        auto next = nodes[child].next_sibling;
-        removed.push_back(child);
-        removeChild(node, child);
-        child = next;
-        if (child == NetworKit::none || nodes[child].marked != Marked::MARKED_AND_UNMARKED) {
-            break;
-        }
-    }
-    return removed;
-}
-
-void Cotree::removeWereNotMarked(NetworKit::count node) {
-    auto child = nodes[node].first_child;
-    while (child != NetworKit::none && nodes[child].marked == Marked::MARKED_AND_UNMARKED) {
-        child = nodes[child].next_sibling;
-    }
-    while (child != NetworKit::none) {
-        auto next = nodes[child].next_sibling;
-        removeChild(node, child);
-        child = next;
-    }
-}
-
-void Cotree::buildTree() {
-    reverse(order.begin(), order.end());
+void Cotree::buildTree(
+        const NetworKit::Graph &graph,
+        std::vector<std::pair<std::pair<
+        NetworKit::node, NetworKit::node>, NetworKit::count> > order) {
+    std::reverse(order.begin(), order.end());
     if (order.empty()) {
         nodes.clear();
         root = NetworKit::none;
@@ -165,7 +121,7 @@ void Cotree::buildTree() {
         return;
     }
 
-    NetworKit::count n = order.size() + graph->numberOfNodes() - 1;
+    NetworKit::node n = order.size() + graph.numberOfNodes() - 1;
     nodes.assign(2 * n, Conode(NetworKit::none, NetworKit::none, NetworKit::none));
     if (n == 0) {
         root = NetworKit::none;
@@ -181,13 +137,13 @@ void Cotree::buildTree() {
     nodes[root].first_child = order[0].first.first;
     nodes[root].d = 1;
 
-    for (NetworKit::count i = 1; i < n; i++) {
-        const NetworKit::count new_node = n + i;
-        const NetworKit::count leaf = order[i].first.first;
-        const NetworKit::count existing = order[i].first.second;
-        const NetworKit::count parent = nodes[existing].parent;
-        const NetworKit::count previous = nodes[existing].previous_sibling;
-        const NetworKit::count next = nodes[existing].next_sibling;
+    for (NetworKit::node i = 1; i < n; i++) {
+        const NetworKit::node new_node = n + i;
+        const NetworKit::node leaf = order[i].first.first;
+        const NetworKit::node existing = order[i].first.second;
+        const NetworKit::node parent = nodes[existing].parent;
+        const NetworKit::node previous = nodes[existing].previous_sibling;
+        const NetworKit::node next = nodes[existing].next_sibling;
 
         nodes[leaf].type = NodeType::LEAF;
         nodes[leaf].parent = new_node;

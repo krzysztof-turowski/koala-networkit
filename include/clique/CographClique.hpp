@@ -20,7 +20,7 @@ class CographMaxClique : public MaxClique {
 
     std::vector<bool> used;
 
-    std::stack<int> st;
+    std::stack<NetworKit::node> st;
 
  public:
     CographMaxClique(NetworKit::Graph &Graph, Koala::Cotree &cotree_ref)

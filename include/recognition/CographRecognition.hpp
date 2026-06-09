@@ -118,16 +118,37 @@ class CorneilStewartPerlCographRecognition : public CographRecognition {
     void run();
 
  private:
+    enum class Marked {
+        UNMARKED,
+        MARKED,
+        MARKED_AND_UNMARKED
+    };
+
     CorneilStewartPerlCographRecognition::State recognition();
-    void unmark();
-    void mark(NetworKit::count x);
-    std::pair<NetworKit::count, CorneilStewartPerlCographRecognition::State>find_lowest();
-    void insert_x_to_cotree(NetworKit::count u, NetworKit::count x);
+    void unmark(
+        NetworKit::node u, std::queue<NetworKit::node> &ready,
+        std::vector<NetworKit::node> &marked_nodes, std::vector<NetworKit::node> &touched);
+    void mark(
+        NetworKit::node x, const std::vector<NetworKit::node> &covertex,
+        const std::vector<bool> &inserted, std::vector<NetworKit::node> &marked_nodes,
+        std::vector<NetworKit::node> &touched);
+    std::pair<NetworKit::node, CorneilStewartPerlCographRecognition::State> find_lowest(
+        const std::vector<NetworKit::node> &marked_nodes);
+    void insert_to_cotree(NetworKit::node u, NetworKit::node x);
+    static std::vector<NetworKit::node> get_marked(
+        Cotree &T, NetworKit::node u, std::vector<Marked> &marked);
+    static NetworKit::node get_last_from_children(
+        Cotree &T, NetworKit::node u, std::vector<Marked> &marked);
+    static std::vector<NetworKit::node> remove_marked(
+        Cotree &T, NetworKit::node node, std::vector<Marked> &marked);
+    static void remove_not_marked(
+        Cotree &T, NetworKit::node node, std::vector<Marked> &marked);
+
     Cotree T;
+    std::vector<Marked> marked;
+    std::vector<NetworKit::count> md;
     int mark_count = 0;
-    int mark_and_unmarked_count = 0;
     int mark_ever_count = 0;
-    std::queue<NetworKit::count> marked_with_d_equal_to_md;  // TODO(fixikmila): get rid of this
 };
 
 /**
@@ -148,15 +169,18 @@ class DahlhausCographRecognition : public CographRecognition {
 
  private:
     const NetworKit::count A = 10;
-    std::vector<NetworKit::count> pointer;
+    std::vector<NetworKit::node> pointer;
     Cotree cotree;
 
-    NetworKit::count build_cotree(Cotree &T, NetworKit::Graph G, std::vector<int> real_index);
-    void high_low_case(Cotree &T, NetworKit::Graph &G, std::vector<int> &real_index);
+    NetworKit::node build_cotree(
+        Cotree &T, NetworKit::Graph G, std::vector<NetworKit::node> real_index);
+    void high_low_case(Cotree &T, NetworKit::Graph &G, std::vector<NetworKit::node> &real_index);
     void big_component(
-        Cotree &T, NetworKit::Graph &G, std::vector<int> &vec, std::vector<int> &real_index);
+        Cotree &T, NetworKit::Graph &G, std::vector<int> &vec,
+        std::vector<NetworKit::node> &real_index);
     inline void add(int vertex_type, Cotree &T, std::vector<int> &vec,
-        std::vector<int> &fake_index, NetworKit::Graph &G, std::vector<int> &real_index);
+        std::vector<int> &fake_index, NetworKit::Graph &G,
+        std::vector<NetworKit::node> &real_index);
     bool check_cotree(Cotree &T);
 };
 
@@ -174,7 +198,7 @@ class HabibPaulCographRecognition : public CographRecognition {
     FactorizingPermutation permutation;
     NetworKit::count num_of_parts, num_of_nodes;
 
-    std::vector<std::pair<std::pair<NetworKit::count, NetworKit::count>,
+    std::vector<std::pair<std::pair<NetworKit::node, NetworKit::node>,
                           NetworKit::count>> order;
     part* H;
     std::list<part*> unused_parts;

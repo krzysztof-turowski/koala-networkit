@@ -18,7 +18,7 @@ class CographVertexColoring : public VertexColoring {
 
     Koala::Cotree &cotree;
 
-    std::stack<int> st;
+    std::stack<NetworKit::node> st;
 
     std::vector<bool> used;
 
