@@ -16,7 +16,7 @@ enum class NodeType {
 class Conode {
  public:
     NetworKit::node first_child, next_sibling, previous_sibling, parent;
-    NetworKit::count d;
+    NetworKit::count size;
     NodeType type;
     NetworKit::node number;
 
@@ -26,8 +26,8 @@ class Conode {
         previous_sibling = NetworKit::none;
         parent = p;
         type = NodeType::UNKNOWN;
-        d = 0;
-        number = 0;
+        size = 0;
+        number = NetworKit::none;
     }
 };
 
@@ -47,7 +47,7 @@ class Cotree {
 
     void reserve(NetworKit::count n);
 
-    NetworKit::node add(NodeType type, NetworKit::node number);
+    NetworKit::node add(NodeType type, NetworKit::node number = NetworKit::none);
 
     void clear();
 
@@ -63,6 +63,10 @@ class Cotree {
     void moveChildToFront(NetworKit::node parent, NetworKit::node child);
 
     Conode& getNode(NetworKit::node i) {
+        return nodes[i];
+    }
+
+    const Conode& getNode(NetworKit::node i) const {
         return nodes[i];
     }
 

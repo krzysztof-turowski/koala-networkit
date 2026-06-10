@@ -9,7 +9,6 @@
 
 #include <list>
 #include <optional>
-#include <queue>
 #include <utility>
 #include <vector>
 
@@ -30,13 +29,7 @@ class CographRecognition : public NetworKit::Algorithm {
     enum class State {
         UNKNOWN,
         COGRAPH,
-        NOT_COGRAPH,
-        CONTAINS_0_NODE,
-        EXISTS_1_NODE_NOT_PROPERLY_MARKED,
-        GRANDPARENT_IS_NOT_IN_SET,
-        NO_ONE_PATH,
-        WRONG_PARENT,
-        WRONG_GRANDPARENT
+        NOT_COGRAPH
      };
 
     /**
@@ -124,23 +117,15 @@ class CorneilStewartPerlCographRecognition : public CographRecognition {
         MARKED_AND_UNMARKED
     };
 
-    CorneilStewartPerlCographRecognition::State recognition();
-    void unmark(
-        NetworKit::node u, std::queue<NetworKit::node> &ready,
-        std::vector<NetworKit::node> &marked_nodes, std::vector<NetworKit::node> &touched);
-    void mark(
-        NetworKit::node x, const std::vector<NetworKit::node> &covertex,
-        const std::vector<bool> &inserted, std::vector<NetworKit::node> &marked_nodes,
-        std::vector<NetworKit::node> &touched);
-    std::pair<NetworKit::node, CorneilStewartPerlCographRecognition::State> find_lowest(
-        const std::vector<NetworKit::node> &marked_nodes);
-    void insert_to_cotree(NetworKit::node u, NetworKit::node x);
+    std::vector<NetworKit::node> mark(
+        const std::vector<NetworKit::node> &processed_vertices);
+    NetworKit::node find_lowest(const std::vector<NetworKit::node> &marked_nodes);
+    void attach_to_cotree(NetworKit::node u, NetworKit::node x);
 
     Cotree T;
-    std::vector<Marked> marked;
+    std::vector<Marked> status;
     std::vector<NetworKit::count> md;
-    int mark_count = 0;
-    int mark_ever_count = 0;
+    std::vector<NetworKit::node> touched;
 };
 
 /**

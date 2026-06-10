@@ -25,7 +25,9 @@ NetworKit::node Cotree::add(NodeType type, NetworKit::node number) {
     NetworKit::node node = nodes.size();
     nodes.emplace_back(NetworKit::none, NetworKit::none, NetworKit::none);
     nodes[node].type = type;
-    nodes[node].number = number;
+    if (type == NodeType::LEAF) {
+        nodes[node].number = number;
+    }
     return node;
 }
 
@@ -55,7 +57,7 @@ void Cotree::addChild(NetworKit::node parent, NetworKit::node child) {
         nodes[nodes[parent].first_child].previous_sibling = child;
     }
     nodes[parent].first_child = child;
-    nodes[parent].d++;
+    nodes[parent].size++;
 }
 
 void Cotree::removeChild(NetworKit::node parent, NetworKit::node child) {
@@ -75,7 +77,7 @@ void Cotree::removeChild(NetworKit::node parent, NetworKit::node child) {
     nodes[child].parent = NetworKit::none;
     nodes[child].previous_sibling = NetworKit::none;
     nodes[child].next_sibling = NetworKit::none;
-    nodes[parent].d--;
+    nodes[parent].size--;
 }
 
 void Cotree::replaceChild(
@@ -135,7 +137,7 @@ void Cotree::buildTree(
     nodes[order[0].first.first].parent = root;
     nodes[order[0].first.first].previous_sibling = NetworKit::none;
     nodes[root].first_child = order[0].first.first;
-    nodes[root].d = 1;
+    nodes[root].size = 1;
 
     for (NetworKit::node i = 1; i < n; i++) {
         const NetworKit::node new_node = n + i;
@@ -159,7 +161,7 @@ void Cotree::buildTree(
         nodes[new_node].next_sibling = next;
         nodes[new_node].previous_sibling = previous;
         nodes[new_node].parent = parent;
-        nodes[new_node].d = 2;
+        nodes[new_node].size = 2;
         nodes[new_node].type = order[i].second == 1
             ? NodeType::COMPLEMENT_NODE : NodeType::UNION_NODE;
 

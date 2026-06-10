@@ -88,8 +88,7 @@ inline void DahlhausCographRecognition::add(
         int vertex_type, Cotree &T, std::vector<int> &vec,
         std::vector<int> &fake_index, NetworKit::Graph &G,
         std::vector<NetworKit::node> &real_index) {
-    auto u2 = T.add(
-        vertex_type == 0 ? NodeType::UNION_NODE : NodeType::COMPLEMENT_NODE, vertex_type);
+    auto u2 = T.add(vertex_type == 0 ? NodeType::UNION_NODE : NodeType::COMPLEMENT_NODE);
     T.addChild(u2, T.getRoot());
     T.setRoot(u2);
     if (vec.empty()) {
@@ -116,7 +115,7 @@ inline void DahlhausCographRecognition::add(
     if (vertex_type == 0) {
         T.addChild(u2, subtree_root);
     } else {
-        auto u1 = T.add(NodeType::UNION_NODE, 0);
+        auto u1 = T.add(NodeType::UNION_NODE);
         T.addChild(u2, u1);
         T.addChild(u1, subtree_root);
     }
@@ -211,9 +210,8 @@ compute_gamma_difference(
 
 void reverse_cotree(Cotree &T, NetworKit::node v) {
     if (T.getNode(v).type != NodeType::LEAF) {
-        T.getNode(v).number ^= 1;
-        T.getNode(v).type = T.getNode(v).number == 0
-            ? NodeType::UNION_NODE : NodeType::COMPLEMENT_NODE;
+        T.getNode(v).type = T.getNode(v).type == NodeType::UNION_NODE
+            ? NodeType::COMPLEMENT_NODE : NodeType::UNION_NODE;
     }
     auto u = T.getNode(v).first_child;
     while (u != NetworKit::none) {
@@ -270,7 +268,7 @@ void DahlhausCographRecognition::high_low_case(
     for (auto u : G.nodeRange()) {
         degree[u] = G.degree(u);
     }
-    auto V = T.add(NodeType::UNION_NODE, 0);
+    auto V = T.add(NodeType::UNION_NODE);
     T.setRoot(V);
     // compute low components
     // sort and compute gamma difference
@@ -429,7 +427,7 @@ void check_cotree_recursive(
         check_cotree_recursive(
             T, child, depth + 1, current_time, dfs_list, number_of_vertices_in_subtree,
             time_in, time_out, number_of_edges_according_to_cotree, maximum_depth);
-        if (T.getNode(v).number == 1) {
+        if (T.getNode(v).type == NodeType::COMPLEMENT_NODE) {
             number_of_edges_according_to_cotree += number_of_vertices_in_subtree[child] * sum;
         }
         sum += number_of_vertices_in_subtree[child];
@@ -467,7 +465,7 @@ bool DahlhausCographRecognition::check_cotree(Cotree &T) {
     }
     for (auto [u, v] : graph.edgeRange()) {
         auto ancestor = lca(pointer[u], pointer[v], i, time_in, time_out, get_up);
-        if (T.getNode(ancestor).type == NodeType::LEAF || T.getNode(ancestor).number != 1) {
+        if (T.getNode(ancestor).type != NodeType::COMPLEMENT_NODE) {
             return false;
         }
     }
