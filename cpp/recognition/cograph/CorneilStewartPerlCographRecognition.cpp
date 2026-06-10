@@ -64,7 +64,7 @@ void CorneilStewartPerlCographRecognition::run() {
         if (status[T.getRoot()] == Marked::MARKED_AND_UNMARKED) {
             // all nodes of T were marked and unmarked <=> R is marked and unmarked
             T.addChild(T.getRoot(), cu);
-        } else if (processed_covertex.empty()) {
+        } else if (processed.empty()) {
             if (T.getNode(T.getRoot()).size == 1) {
                 T.addChild(T.getNode(T.getRoot()).first_child, cu);
             } else {
