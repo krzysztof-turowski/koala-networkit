@@ -7,7 +7,6 @@
 
 #pragma once
 
-#include <list>
 #include <optional>
 #include <utility>
 #include <vector>
@@ -17,9 +16,6 @@
 #include <networkit/graph/Graph.hpp>
 #include <networkit/graph/GraphTools.hpp>
 
-#include "сograph/FactorizingPermutation.hpp"
-#include "сograph/Part.hpp"
-#include "сograph/Twins.hpp"
 #include "structures/Cotree.hpp"
 
 namespace Koala {
@@ -159,22 +155,11 @@ class DahlhausCographRecognition : public CographRecognition {
 
 class HabibPaulCographRecognition : public CographRecognition {
  public:
-    explicit HabibPaulCographRecognition(const NetworKit::Graph &graph);
+    using CographRecognition::CographRecognition;
 
     void run();
 
     Cotree cotree;
-
- private:
-    Twins T;
-
-    FactorizingPermutation permutation;
-    NetworKit::count num_of_parts, num_of_nodes;
-
-    std::vector<std::pair<std::pair<NetworKit::node, NetworKit::node>,
-                          NetworKit::count>> order;
-    part* H;
-    std::list<part*> unused_parts;
 };
 
 } /* namespace Koala */
