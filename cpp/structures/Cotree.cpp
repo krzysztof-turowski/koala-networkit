@@ -1,5 +1,3 @@
-#include <algorithm>
-
 #include "structures/Cotree.hpp"
 
 namespace Koala {
@@ -109,71 +107,6 @@ void Cotree::moveChildToFront(NetworKit::node parent, NetworKit::node child) {
     }
     removeChild(parent, child);
     addChild(parent, child);
-}
-
-void Cotree::buildTree(
-        const NetworKit::Graph &graph,
-        std::vector<std::pair<std::pair<
-        NetworKit::node, NetworKit::node>, NetworKit::count> > order) {
-    std::reverse(order.begin(), order.end());
-    if (order.empty()) {
-        nodes.clear();
-        root = NetworKit::none;
-        prepared = true;
-        return;
-    }
-
-    NetworKit::node n = order.size() + graph.numberOfNodes() - 1;
-    nodes.assign(2 * n, Conode(NetworKit::none, NetworKit::none, NetworKit::none));
-    if (n == 0) {
-        root = NetworKit::none;
-        prepared = true;
-        return;
-    }
-
-    root = n;
-    nodes[root].type = NodeType::UNION_NODE;
-    nodes[order[0].first.first].type = NodeType::LEAF;
-    nodes[order[0].first.first].parent = root;
-    nodes[order[0].first.first].previous_sibling = NetworKit::none;
-    nodes[root].first_child = order[0].first.first;
-    nodes[root].size = 1;
-
-    for (NetworKit::node i = 1; i < n; i++) {
-        const NetworKit::node new_node = n + i;
-        const NetworKit::node leaf = order[i].first.first;
-        const NetworKit::node existing = order[i].first.second;
-        const NetworKit::node parent = nodes[existing].parent;
-        const NetworKit::node previous = nodes[existing].previous_sibling;
-        const NetworKit::node next = nodes[existing].next_sibling;
-
-        nodes[leaf].type = NodeType::LEAF;
-        nodes[leaf].parent = new_node;
-        nodes[leaf].previous_sibling = NetworKit::none;
-
-        if (previous == NetworKit::none) {
-            nodes[parent].first_child = new_node;
-        } else {
-            nodes[previous].next_sibling = new_node;
-        }
-
-        nodes[new_node].first_child = leaf;
-        nodes[new_node].next_sibling = next;
-        nodes[new_node].previous_sibling = previous;
-        nodes[new_node].parent = parent;
-        nodes[new_node].size = 2;
-        nodes[new_node].type = order[i].second == 1
-            ? NodeType::COMPLEMENT_NODE : NodeType::UNION_NODE;
-
-        if (nodes[new_node].next_sibling != NetworKit::none) {
-            nodes[nodes[new_node].next_sibling].previous_sibling = new_node;
-        }
-        nodes[leaf].next_sibling = existing;
-        nodes[existing].parent = new_node;
-        nodes[existing].previous_sibling = leaf;
-        nodes[existing].next_sibling = NetworKit::none;
-    }
-    prepared = true;
 }
 
 } /* namespace Koala */

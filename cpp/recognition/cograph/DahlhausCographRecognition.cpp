@@ -18,6 +18,21 @@
 
 namespace Koala {
 
+namespace {
+
+std::vector<std::vector<NetworKit::node>> connected_components(
+        NetworKit::Graph &G, const std::vector<NetworKit::node> &nodes) {
+    if (nodes.empty()) {
+        return {};
+    }
+    auto induced = NetworKit::GraphTools::subgraphFromNodes(G, nodes.begin(), nodes.end());
+    NetworKit::ConnectedComponents connected_components(induced);
+    connected_components.run();
+    return connected_components.getComponents();
+}
+
+}  // namespace
+
 void DahlhausCographRecognition::run() {
     is_cograph = State::COGRAPH;
     hasRun = true;
@@ -31,15 +46,16 @@ void DahlhausCographRecognition::run() {
     }
 }
 
-inline void DahlhausCographRecognition::add(
-        NodeType node_type, std::vector<NetworKit::node> &vec, NetworKit::Graph &G) {
+inline void DahlhausCographRecognition::attach_to_cotree(
+        NodeType node_type, NetworKit::Graph &G, std::vector<NetworKit::node> &subtree_nodes) {
     auto u2 = T.add(node_type);
     T.addChild(u2, T.getRoot());
     T.setRoot(u2);
-    if (vec.empty()) {
+    if (subtree_nodes.empty()) {
         return;
     }
-    auto C = NetworKit::GraphTools::subgraphFromNodes(G, vec.begin(), vec.end());
+    auto C = NetworKit::GraphTools::subgraphFromNodes(
+        G, subtree_nodes.begin(), subtree_nodes.end());
     auto root = T.getRoot();
     auto subtree_root = build_cotree(C);
     if (is_cograph != State::COGRAPH) {
@@ -60,14 +76,14 @@ void recompute_component(
         std::vector<std::vector<NetworKit::node>> &components,
         std::vector<NetworKit::count> &component) {
     for (std::size_t i = 0; i < components.size(); i++) {
-        for (std::size_t j = 0; j < components[i].size(); j++) {
-            component[components[i][j]] = i;
+        for (auto v : components[i]) {
+            component[v] = i;
         }
     }
 }
 
 std::vector<std::vector<NetworKit::node>> compute_gamma(
-        std::vector<bool> &is_in_vec, std::vector<std::vector<NetworKit::node>> &components,
+        std::vector<bool> &vertices, std::vector<std::vector<NetworKit::node>> &components,
         NetworKit::Graph &G) {
     std::vector<NetworKit::count> component(G.upperNodeIdBound(), NetworKit::none);
     recompute_component(components, component);
@@ -76,10 +92,7 @@ std::vector<std::vector<NetworKit::node>> compute_gamma(
     for (std::size_t i = 0; i < components.size(); i++) {
         for (auto v : components[i]) {
             for (auto u : G.neighborRange(v)) {
-                if (is_in_vec[u] && component[u] == i) {
-                    continue;
-                }
-                if (last_component[u] == i) {
+                if ((vertices[u] && component[u] == i) || last_component[u] == i) {
                     continue;
                 }
                 last_component[u] = i;
@@ -106,11 +119,10 @@ std::vector<std::vector<NetworKit::node>> compute_components_sorted(
     return components_sorted;
 }
 
-std::optional<std::vector<std::vector<NetworKit::node>>>
-compute_gamma_difference(
+std::optional<std::vector<std::vector<NetworKit::node>>> compute_gamma_difference(
         std::vector<std::vector<NetworKit::node>> &components,
         std::vector<std::vector<NetworKit::node>> &gamma, NetworKit::Graph &G,
-        std::vector<bool> &is_in_new_vec) {
+        std::vector<bool> &vertices) {
     std::vector<std::vector<NetworKit::node>> gamma_difference(components.size() + 1);
     std::vector<NetworKit::node> last_position_where_met(
         G.upperNodeIdBound(), NetworKit::none);
@@ -124,7 +136,7 @@ compute_gamma_difference(
         }
     }
     for (auto i : G.nodeRange()) {
-        if (is_in_new_vec[i]) {
+        if (vertices[i]) {
             continue;
         }
         const auto position = last_position_where_met[i] == NetworKit::none
@@ -147,17 +159,10 @@ void reverse_cotree(Cotree &T, NetworKit::node v) {
 }
 
 void DahlhausCographRecognition::big_component(
-        NetworKit::Graph &G, std::vector<NetworKit::node> &vec) {
+        NetworKit::Graph &G, std::vector<NetworKit::node> &component_nodes) {
     NetworKit::Graph GC = Koala::GraphTools::toComplement(G);
     NetworKit::count n = GC.numberOfNodes();
-    std::vector<std::vector<NetworKit::node>> components;
-    if (!vec.empty()) {
-        auto induced = NetworKit::GraphTools::subgraphFromNodes(GC, vec.begin(), vec.end());
-        NetworKit::ConnectedComponents connected_components(induced);
-        connected_components.run();
-        components = connected_components.getComponents();
-    }
-    for (auto c : components) {
+    for (auto c : connected_components(GC, component_nodes)) {
         if (c.size() * A > 2 * n + A) {
             is_cograph = State::NOT_COGRAPH;
             return;
@@ -179,10 +184,6 @@ void DahlhausCographRecognition::high_low_case(NetworKit::Graph &G) {
         return;
     }
     NetworKit::count n = G.numberOfNodes();
-    std::vector<NetworKit::count> degree(G.upperNodeIdBound());
-    for (auto u : G.nodeRange()) {
-        degree[u] = G.degree(u);
-    }
     auto V = T.add(NodeType::UNION_NODE);
     T.setRoot(V);
     // compute low components
@@ -190,20 +191,14 @@ void DahlhausCographRecognition::high_low_case(NetworKit::Graph &G) {
     // 0-low components 1-high components
     // if high component is big, then call big_components
     std::vector<bool> low(G.upperNodeIdBound());
-    std::vector<NetworKit::node> vec;
+    std::vector<NetworKit::node> low_vertices;
     for (auto u : G.nodeRange()) {
-        if (degree[u] * A <= n) {
+        if (G.degree(u) * A <= n) {
             low[u] = true;
-            vec.push_back(u);
+            low_vertices.push_back(u);
         }
     }
-    std::vector<std::vector<NetworKit::node>> components;
-    if (!vec.empty()) {
-        auto induced = NetworKit::GraphTools::subgraphFromNodes(G, vec.begin(), vec.end());
-        NetworKit::ConnectedComponents connected_components(induced);
-        connected_components.run();
-        components = connected_components.getComponents();
-    }
+    auto components = connected_components(G, low_vertices);
     auto gamma = compute_gamma(low, components, G);
     components = compute_components_sorted(n, components, gamma);
     gamma = compute_gamma(low, components, G);
@@ -215,13 +210,14 @@ void DahlhausCographRecognition::high_low_case(NetworKit::Graph &G) {
     auto &gamma_difference_value = *gamma_difference;
 
     for (std::size_t i = 0; i <= components.size(); i++) {
-        bool special_case_big_component = true;
-        if (gamma_difference_value[i].size() * A > (A - 1) * n) {
+        auto &difference = gamma_difference_value[i];
+        bool is_big_component = difference.size() * A > (A - 1) * n;
+        if (is_big_component) {
             std::vector<bool> is_in_gamma_difference(G.upperNodeIdBound());
-            for (auto u : gamma_difference_value[i]) {
+            for (auto u : difference) {
                 is_in_gamma_difference[u] = true;
             }
-            for (auto u : gamma_difference_value[i]) {
+            for (auto u : difference) {
                 NetworKit::count sum = 0;
                 for (auto v : G.neighborRange(u)) {
                     if (!is_in_gamma_difference[v]) {
@@ -229,24 +225,22 @@ void DahlhausCographRecognition::high_low_case(NetworKit::Graph &G) {
                     }
                     sum++;
                 }
-                sum = gamma_difference_value[i].size() - 1 - sum;
+                sum = difference.size() - 1 - sum;
                 if (sum * A >= n) {
-                    special_case_big_component = false;
+                    is_big_component = false;
                     break;
                 }
             }
-        } else {
-            special_case_big_component = false;
         }
-        if (special_case_big_component) {
+        if (is_big_component) {
             std::vector<NetworKit::node> empty;
-            add(NodeType::COMPLEMENT_NODE, empty, G);
-            big_component(G, gamma_difference_value[i]);
+            attach_to_cotree(NodeType::COMPLEMENT_NODE, G, empty);
+            big_component(G, difference);
             if (is_cograph != State::COGRAPH) {
                 return;
             }
         } else {
-            add(NodeType::COMPLEMENT_NODE, gamma_difference_value[i], G);
+            attach_to_cotree(NodeType::COMPLEMENT_NODE, G, difference);
         }
         if (i == components.size()) {
             break;
@@ -255,7 +249,7 @@ void DahlhausCographRecognition::high_low_case(NetworKit::Graph &G) {
             is_cograph = State::NOT_COGRAPH;
             return;
         }
-        add(NodeType::UNION_NODE, components[i], G);
+        attach_to_cotree(NodeType::UNION_NODE, G, components[i]);
     }
 }
 
@@ -290,36 +284,29 @@ NetworKit::node DahlhausCographRecognition::build_cotree(NetworKit::Graph &G) {
     for (auto u : G.neighborRange(v)) {
         is_neighbour[u] = true;
     }
-    std::vector<bool> is_in_vec(G.upperNodeIdBound());
+    std::vector<bool> non_neighbours(G.upperNodeIdBound());
     for (auto i : G.nodeRange()) {
         if (i != v && !is_neighbour[i]) {
             not_neighbours.push_back(i);
-            is_in_vec[i] = true;
+            non_neighbours[i] = true;
         }
     }
-    std::vector<std::vector<NetworKit::node>> components;
-    if (!not_neighbours.empty()) {
-        auto induced = NetworKit::GraphTools::subgraphFromNodes(
-            G, not_neighbours.begin(), not_neighbours.end());
-        NetworKit::ConnectedComponents connected_components(induced);
-        connected_components.run();
-        components = connected_components.getComponents();
-    }
-    auto gamma = compute_gamma(is_in_vec, components, G);
+    auto components = connected_components(G, not_neighbours);
+    auto gamma = compute_gamma(non_neighbours, components, G);
     components = compute_components_sorted(n, components, gamma);
-    gamma = compute_gamma(is_in_vec, components, G);
-    is_in_vec[v] = true;
-    auto gamma_difference = compute_gamma_difference(components, gamma, G, is_in_vec);
+    gamma = compute_gamma(non_neighbours, components, G);
+    non_neighbours[v] = true;
+    auto gamma_difference = compute_gamma_difference(components, gamma, G, non_neighbours);
     if (!gamma_difference) {
         is_cograph = State::NOT_COGRAPH;
         return T.getRoot();
     }
     for (std::size_t i = 0; i <= components.size(); i++) {
-        add(NodeType::COMPLEMENT_NODE, (*gamma_difference)[i], G);
+        attach_to_cotree(NodeType::COMPLEMENT_NODE, G, (*gamma_difference)[i]);
         if (i == components.size()) {
             break;
         }
-        add(NodeType::UNION_NODE, components[i], G);
+        attach_to_cotree(NodeType::UNION_NODE, G, components[i]);
     }
     return T.getRoot();
 }

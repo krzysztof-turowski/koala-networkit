@@ -55,7 +55,7 @@ void CorneilStewartPerlCographRecognition::run() {
         std::vector<NetworKit::node> processed;
         processed.reserve(graph.degree(u));
         for (auto v : graph.neighborRange(u)) {
-            if (v < u) {
+            if (v < u) {  // already inserted vertices
                 processed.push_back(covertex[v]);
             }
         }
@@ -85,8 +85,7 @@ void CorneilStewartPerlCographRecognition::run() {
             attach_to_cotree(low, cu);
         }
         for (auto v : touched) {
-            status[v] = Marked::UNMARKED;
-            md[v] = 0;
+            status[v] = Marked::UNMARKED, md[v] = 0;
         }
         touched.clear();
     }
@@ -98,11 +97,14 @@ std::vector<NetworKit::node> CorneilStewartPerlCographRecognition::mark(
     std::vector<NetworKit::node> marked;
     NetworKit::count mark_count = 0;
     std::queue<NetworKit::node> ready;
-    for (auto u : processed) {
+    auto mark_node = [&](NetworKit::node u) {
         if (status[u] != Marked::MARKED) {
             marked.push_back(u), status[u] = Marked::MARKED, mark_count++;
         }
         touched.push_back(u);
+    };
+    for (auto u : processed) {
+        mark_node(u);
         if (md[u] == T.getNode(u).size) {
             ready.push(u);
         }
@@ -118,10 +120,7 @@ std::vector<NetworKit::node> CorneilStewartPerlCographRecognition::mark(
         if (u != T.getRoot()) {
             auto w = T.getNode(u).parent;
             md[w]++;
-            if (status[w] != Marked::MARKED) {
-                marked.push_back(w), status[w] = Marked::MARKED, mark_count++;
-            }
-            touched.push_back(w);
+            mark_node(w);
             if (md[w] == T.getNode(w).size) {
                 ready.push(w);
             }
@@ -130,9 +129,7 @@ std::vector<NetworKit::node> CorneilStewartPerlCographRecognition::mark(
     }
     if (mark_count > 0 && T.getNode(T.getRoot()).size == 1
             && status[T.getRoot()] != Marked::MARKED) {
-        marked.push_back(T.getRoot()), mark_count++;
-        touched.push_back(T.getRoot());
-        status[T.getRoot()] = Marked::MARKED;
+        mark_node(T.getRoot());
     }
     return marked;
 }
@@ -143,10 +140,16 @@ NetworKit::node CorneilStewartPerlCographRecognition::find_lowest(
     if (status[T.getRoot()] == Marked::UNMARKED) {
         return NetworKit::none;  // GRANDPARENT_IS_NOT_IN_SET
     }
+    auto finish = [&](NetworKit::node u) {
+        status[u] = Marked::MARKED_AND_UNMARKED, md[u] = 0;
+        if (u != T.getRoot()) {
+            T.moveChildToFront(T.getNode(u).parent, u);
+        }
+    };
     if (md[T.getRoot()] + 1 != T.getNode(T.getRoot()).size) {
         y = T.getRoot();
     }
-    status[T.getRoot()] = Marked::MARKED_AND_UNMARKED, md[T.getRoot()] = 0;
+    finish(T.getRoot());
     NetworKit::node w = T.getRoot();
     for (auto u : marked) {
         if (status[u] != Marked::MARKED) {
@@ -176,8 +179,7 @@ NetworKit::node CorneilStewartPerlCographRecognition::find_lowest(
             y = u;
             t = T.getNode(u).parent;
         }
-        status[u] = Marked::MARKED_AND_UNMARKED, md[u] = 0;
-        T.moveChildToFront(T.getNode(u).parent, u);
+        finish(u);
         while (t != w) {
             if (t == T.getRoot()) {
                 return NetworKit::none;  // case 4: NO_ONE_PATH
@@ -195,8 +197,7 @@ NetworKit::node CorneilStewartPerlCographRecognition::find_lowest(
             if (status[T.getNode(t).parent] == Marked::MARKED) {
                 return NetworKit::none;  // case 1: CONTAINS_0_NODE
             }
-            status[t] = Marked::MARKED_AND_UNMARKED, md[t] = 0;
-            T.moveChildToFront(T.getNode(t).parent, t);
+            finish(t);
             t = T.getNode(T.getNode(t).parent).parent;
         }
         w = u;
@@ -225,7 +226,7 @@ void CorneilStewartPerlCographRecognition::attach_to_cotree(NetworKit::node u, N
             T.addChild(w, x);
         }
     } else {
-        auto y = T.add(u_is_zero ? NodeType::UNION_NODE : NodeType::COMPLEMENT_NODE);
+        auto y = T.add(T.getNode(u).type);
         for (auto v : A) {
             T.removeChild(u, v);
             T.addChild(y, v);

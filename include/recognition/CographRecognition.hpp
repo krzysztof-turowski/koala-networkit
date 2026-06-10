@@ -147,9 +147,9 @@ class DahlhausCographRecognition : public CographRecognition {
 
     NetworKit::node build_cotree(NetworKit::Graph &G);
     void high_low_case(NetworKit::Graph &G);
-    void big_component(NetworKit::Graph &G, std::vector<NetworKit::node> &vec);
-    inline void add(
-        NodeType node_type, std::vector<NetworKit::node> &vec, NetworKit::Graph &G);
+    void big_component(NetworKit::Graph &G, std::vector<NetworKit::node> &component_nodes);
+    inline void attach_to_cotree(
+        NodeType node_type, NetworKit::Graph &G, std::vector<NetworKit::node> &subtree_nodes);
     bool check_cotree();
 };
 

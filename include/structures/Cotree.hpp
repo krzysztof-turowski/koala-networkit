@@ -40,11 +40,6 @@ class Cotree {
 
     bool prepared;
 
-    void buildTree(
-            const NetworKit::Graph &graph,
-            std::vector<std::pair<std::pair<
-            NetworKit::node, NetworKit::node>, NetworKit::count> > order);
-
     void reserve(NetworKit::count n);
 
     NetworKit::node add(NodeType type, NetworKit::node number = NetworKit::none);

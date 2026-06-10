@@ -1,5 +1,7 @@
+#include <algorithm>
 #include <deque>
 #include <list>
+#include <tuple>
 #include <vector>
 
 #include "recognition/CographRecognition.hpp"
@@ -15,6 +17,14 @@ struct PartitionPart {
     NetworKit::node division = NetworKit::none;
     bool active = true;
 };
+
+enum class TwinType : NetworKit::count {
+    FALSE_TWINS = 0,
+    TRUE_TWINS = 1,
+    NOT_TWINS = 2
+};
+
+using TwinOrder = std::tuple<NetworKit::node, NetworKit::node, NodeType>;
 
 struct PartitionRefinement {
     std::vector<PartitionPart> parts;
@@ -276,16 +286,48 @@ bool same_neighborhood(
     return common == 0 && (!adjacent || (saw_v && saw_u));
 }
 
-NetworKit::count twins(
+NodeType twins(
         const NetworKit::Graph &graph, NetworKit::node u, NetworKit::node v,
         std::vector<NetworKit::count> &used, NetworKit::count &marker) {
     if (same_neighborhood(graph, u, v, used, ++marker, true)) {
-        return 1;
+        return NodeType::COMPLEMENT_NODE;
     }
     if (same_neighborhood(graph, u, v, used, ++marker, false)) {
-        return 0;
+        return NodeType::UNION_NODE;
     }
-    return 2;
+    return NodeType::UNKNOWN;
+}
+
+void build_cotree(
+        Cotree &cotree, std::vector<TwinOrder> order,
+        NetworKit::count upper_node_id_bound) {
+    std::reverse(order.begin(), order.end());
+    cotree.clear();
+    cotree.prepared = true;
+    if (order.empty()) {
+        return;
+    }
+
+    const NetworKit::node n = order.size() + upper_node_id_bound - 1;
+    cotree.reserve(2 * n);
+    auto root = cotree.add(NodeType::UNION_NODE);
+    cotree.setRoot(root);
+
+    std::vector<NetworKit::node> leaf(upper_node_id_bound, NetworKit::none);
+    auto first = std::get<0>(order[0]);
+    leaf[first] = cotree.add(NodeType::LEAF, first);
+    cotree.addChild(root, leaf[first]);
+
+    for (NetworKit::index i = 1; i < order.size(); ++i) {
+        auto [removed, existing, node_type] = order[i];
+        auto parent = cotree.getNode(leaf[existing]).parent;
+        auto internal = cotree.add(node_type);
+
+        cotree.replaceChild(parent, leaf[existing], internal);
+        leaf[removed] = cotree.add(NodeType::LEAF, removed);
+        cotree.addChild(internal, leaf[existing]);
+        cotree.addChild(internal, leaf[removed]);
+    }
 }
 
 }  // namespace
@@ -305,25 +347,24 @@ void HabibPaulCographRecognition::run() {
     remaining.insert(remaining.end(), permutation.begin(), permutation.end());
     remaining.push_back(NetworKit::none);
 
-    std::vector<std::pair<std::pair<NetworKit::node, NetworKit::node>, NetworKit::count>> order;
+    std::vector<TwinOrder> order;
     std::vector<NetworKit::count> used(graph.upperNodeIdBound(), 0);
     NetworKit::count marker = 0, removed = 0;
     auto z = std::next(remaining.begin());
-    auto right_sentinel = std::prev(remaining.end());
-    while (z != right_sentinel) {
+    while (z != std::prev(remaining.end())) {
         auto previous = std::prev(z);
         auto next = std::next(z);
-        auto twin = twins(working_graph, *z, *previous, used, marker);
-        if (twin < 2) {
-            order.push_back({{*previous, *z}, twin});
+        auto twin_type = twins(working_graph, *z, *previous, used, marker);
+        if (twin_type != NodeType::UNKNOWN) {
+            order.emplace_back(*previous, *z, twin_type);
             working_graph.removeNode(*previous);
             remaining.erase(previous);
             removed++;
             continue;
         }
-        twin = twins(working_graph, *z, *next, used, marker);
-        if (twin < 2) {
-            order.push_back({{*z, *next}, twin});
+        twin_type = twins(working_graph, *z, *next, used, marker);
+        if (twin_type != NodeType::UNKNOWN) {
+            order.emplace_back(*z, *next, twin_type);
             working_graph.removeNode(*z);
             z = remaining.erase(z);
             removed++;
@@ -334,8 +375,8 @@ void HabibPaulCographRecognition::run() {
 
     if (removed == graph.numberOfNodes() - 1) {
         is_cograph = State::COGRAPH;
-        order.push_back({{*std::next(remaining.begin()), NetworKit::none}, 3});
-        cotree.buildTree(working_graph, order);
+        order.emplace_back(*std::next(remaining.begin()), NetworKit::none, NodeType::UNKNOWN);
+        build_cotree(cotree, order, graph.upperNodeIdBound());
     } else {
         is_cograph = State::NOT_COGRAPH;
     }
