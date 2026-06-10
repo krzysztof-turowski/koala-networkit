@@ -146,19 +146,15 @@ class DahlhausCographRecognition : public CographRecognition {
 
  private:
     const NetworKit::count A = 10;
-    std::vector<NetworKit::node> pointer;
-    Cotree cotree;
+    Cotree T;
+    std::vector<NetworKit::node> covertex;
 
-    NetworKit::node build_cotree(
-        Cotree &T, NetworKit::Graph G, std::vector<NetworKit::node> real_index);
-    void high_low_case(Cotree &T, NetworKit::Graph &G, std::vector<NetworKit::node> &real_index);
-    void big_component(
-        Cotree &T, NetworKit::Graph &G, std::vector<int> &vec,
-        std::vector<NetworKit::node> &real_index);
-    inline void add(int vertex_type, Cotree &T, std::vector<int> &vec,
-        std::vector<int> &fake_index, NetworKit::Graph &G,
-        std::vector<NetworKit::node> &real_index);
-    bool check_cotree(Cotree &T);
+    NetworKit::node build_cotree(NetworKit::Graph &G);
+    void high_low_case(NetworKit::Graph &G);
+    void big_component(NetworKit::Graph &G, std::vector<NetworKit::node> &vec);
+    inline void add(
+        NodeType node_type, std::vector<NetworKit::node> &vec, NetworKit::Graph &G);
+    bool check_cotree();
 };
 
 class HabibPaulCographRecognition : public CographRecognition {

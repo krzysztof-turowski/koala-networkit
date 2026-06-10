@@ -12,7 +12,6 @@
 
 namespace Koala {
 
-template<class T>
-using LCA = OptimalLCA<T>;
+using LCA = OptimalLCA;
 
 }  // namespace Koala

@@ -248,6 +248,14 @@ class AugmentedGraph {
 
 namespace Koala {
 
+std::vector<NetworKit::node> get_parent_vector(const NetworKit::Graph &tree) {
+    std::vector<NetworKit::node> parent(tree.upperNodeIdBound(), NetworKit::none);
+    tree.forEdges([&](NetworKit::node u, NetworKit::node v) {
+        parent[v] = u;
+    });
+    return parent;
+}
+
 MinimumSpanningTree::MinimumSpanningTree(
         NetworKit::Graph &graph) : graph(graph), tree(NetworKit::GraphTools::copyNodes(graph)) {}
 
@@ -446,7 +454,7 @@ void KargerKleinTarjanMinimumSpanningTree::remove_heavy_edges(
     NetworKit::Graph branching_tree = *iterate(
         subforest, subforest, union_find, E, std::numeric_limits<NetworKit::count>::max(), true);
     auto branching_tree_augmented = AugmentedGraph(branching_tree);
-    Koala::LCA<AugmentedGraph> lca(branching_tree_augmented);
+    Koala::LCA lca(get_parent_vector(branching_tree), branching_tree_augmented.getRoot());
     std::vector<NetworKit::node> upper, lower;
     std::vector<std::tuple<NetworKit::node, NetworKit::node, NetworKit::edgeweight>> edges;
     G.forEdges([&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight w) {
@@ -629,7 +637,7 @@ void MinimumSpanningTree::check() const {
         }
     });
     auto branching_tree_augmented = AugmentedGraph(branching_tree);
-    auto lca = Koala::LCA(branching_tree_augmented);
+    Koala::LCA lca(get_parent_vector(branching_tree), branching_tree_augmented.getRoot());
     std::vector<NetworKit::node> lower, upper;
     lower.reserve(2 * G_minus_M.size()), upper.reserve(2 * G_minus_M.size());
     for (const auto &[u, v, w] : G_minus_M) {
