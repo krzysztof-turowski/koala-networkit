@@ -81,14 +81,14 @@ class BretscherCorneilHabibPaulCographRecognition : public CographRecognition {
  private:
     class Info {
      public:
-        std::vector<std::vector<std::pair<int, int>>> borders;
-        std::vector<NetworKit::node> ans;
+        std::vector<std::vector<NetworKit::count>> slice_starts;
+        std::vector<NetworKit::node> order;
     };
-    Info info;
-    void lex_bfs_minus(bool is_complement, std::vector<NetworKit::node> &a);
+
+    Info lex_bfs_minus(bool is_complement, const std::vector<NetworKit::node> &order);
     bool neighbourhood_subset_property(
-        bool is_complement, std::vector<NetworKit::node> a,
-        std::vector<std::vector<std::pair<int, int>>> borders);
+        bool is_complement, const std::vector<NetworKit::node> &order,
+        const std::vector<std::vector<NetworKit::count>> &slice_starts);
 };
 
 /**

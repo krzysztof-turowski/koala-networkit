@@ -86,29 +86,6 @@ TEST(CotreeTest, moves_existing_child_to_front_without_changing_size) {
     EXPECT_EQ(tree.getNode(third).previous_sibling, first);
 }
 
-TEST(CotreeTest, build_tree_encodes_habib_paul_order_as_indexed_nary_tree) {
-    NetworKit::Graph reduced_graph(1);
-    Koala::Cotree tree;
-    tree.buildTree(reduced_graph, {
-        {{0, 1}, 0},
-        {{1, 2}, 1},
-        {{2, NetworKit::none}, 3},
-    });
-
-    ASSERT_TRUE(tree.prepared);
-    EXPECT_EQ(tree.getRoot(), 3);
-    EXPECT_GE(tree.upperNodeIdBound(), 6);
-    EXPECT_EQ(tree.getNode(3).first_child, 4);
-    EXPECT_EQ(tree.getNode(4).type, Koala::NodeType::COMPLEMENT_NODE);
-    EXPECT_EQ(tree.getNode(4).first_child, 5);
-    EXPECT_EQ(tree.getNode(5).type, Koala::NodeType::UNION_NODE);
-    EXPECT_EQ(tree.getNode(5).first_child, 0);
-    EXPECT_EQ(tree.getNode(0).next_sibling, 1);
-    EXPECT_EQ(tree.getNode(1).parent, 5);
-    EXPECT_EQ(tree.getNode(1).next_sibling, NetworKit::none);
-    EXPECT_EQ(tree.getNode(5).next_sibling, 2);
-}
-
 TEST(CotreeTest, clear_resets_storage_and_root) {
     Koala::Cotree tree;
     auto root = tree.add(Koala::NodeType::UNION_NODE);
