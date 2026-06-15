@@ -29,7 +29,7 @@ void ChordalIndependentSet::run() {
         NetworKit::node v = peo->alpha_inv[i];
         
         if (!covered[v]) {
-            independentSet.insert(v);
+            independentSet.push_back(v);
             covered[v] = true;
             
             for (auto w : graph->neighborRange(v)) {

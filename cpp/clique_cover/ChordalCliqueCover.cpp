@@ -27,17 +27,17 @@ void ChordalMinCliqueCover::run() {
         NetworKit::node v = peo->alpha_inv[i];
         
         if (!covered[v]) {
-            std::set<NetworKit::node> C_v;
-            C_v.insert(v);
+            std::vector<NetworKit::node> C_v;
+            C_v.push_back(v);
             covered[v] = true;
 
             for (auto w : graph->neighborRange(v)) {
                 if (peo->alpha[w] > i) {
-                    C_v.insert(w);
+                    C_v.push_back(w);
                     covered[w] = true;
                 }
             }
-            
+
             clique_cover.push_back(std::move(C_v));
         }
     }

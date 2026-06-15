@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <list>
+#include <set>
 
 #include "independent_set/IndependentSet.hpp"
 #include "independent_set/CographIndependentSet.hpp"
@@ -22,8 +23,9 @@ class SimpleGraphs : public testing::Test {
         algorithm.run();
 
         auto independentSet = algorithm.getIndependentSet();
+        std::set<NetworKit::node> iset(independentSet.begin(), independentSet.end());
         for (const auto &[u, v] : parameters.E) {
-            EXPECT_FALSE(independentSet.contains(u) && independentSet.contains(v));
+            EXPECT_FALSE(iset.contains(u) && iset.contains(v));
         }
         EXPECT_EQ(independentSet.size(), parameters.expectedSetSize);
     }

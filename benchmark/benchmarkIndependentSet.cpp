@@ -3,6 +3,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include <vector>
 
 #include <benchmark/utils.hpp>
 #include <independent_set/IndependentSet.hpp>
@@ -11,7 +12,7 @@
 
 template<typename T>
 int run_algorithm(NetworKit::Graph &G) {
-    std::set<NetworKit::node> independent_set;
+    std::vector<NetworKit::node> independent_set;
     if constexpr (std::is_same_v<T, Koala::CographIndependentSet>) {
         auto recognition = Koala::HabibPaulCographRecognition(G);
         recognition.run();

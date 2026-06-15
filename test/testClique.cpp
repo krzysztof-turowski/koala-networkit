@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <list>
-#include <set>
+#include <vector>
 
 #include <clique/CographClique.hpp>
 #include <recognition/CographRecognition.hpp>
@@ -18,19 +18,19 @@ class SimpleGraphsClique : public testing::Test {
  protected:
     void verify(MaxCliqueParameters &parameters) {
         NetworKit::Graph G = build_graph(parameters.N, parameters.E);
-        std::set<NetworKit::node> max_clique;
+        std::vector<NetworKit::node> max_clique;
         if constexpr (std::is_same_v<Algorithm, Koala::CographMaxClique>) {
             auto recognition = Koala::HabibPaulCographRecognition(G);
             recognition.run();
             if (recognition.isCograph()) {
                 auto algorithm = Algorithm(G, recognition.cotree);
                 algorithm.run();
-                max_clique = algorithm.getMaxCliqueSet();
+                max_clique = algorithm.getMaxClique();
             }
         } else {
             auto algorithm = Algorithm(G);
             algorithm.run();
-            max_clique = algorithm.getMaxCliqueSet();
+            max_clique = algorithm.getMaxClique();
         }
         for (auto x : max_clique) {
             for (auto y : max_clique) {

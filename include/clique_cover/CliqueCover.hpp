@@ -1,7 +1,6 @@
 #pragma once
 
 #include <optional>
-#include <set>
 #include <vector>
 
 #include <networkit/base/Algorithm.hpp>
@@ -25,15 +24,15 @@ class MinCliqueCover : public NetworKit::Algorithm {
     /**
      * Return the clique cover found by the algorithm.
      *
-     * @return a vector of sets, where each set represents a clique.
+     * @return a vector of vectors, where each inner vector represents a clique.
      */
-    const std::vector<std::set<NetworKit::node>>& getCliqueCover() const;
+    const std::vector<std::vector<NetworKit::node>>& getCliqueCover() const;
 
     virtual void run() = 0;
 
  protected:
     std::optional<NetworKit::Graph> graph;
-    std::vector<std::set<NetworKit::node>> clique_cover;
+    std::vector<std::vector<NetworKit::node>> clique_cover;
 };
 
 } /* namespace Koala */

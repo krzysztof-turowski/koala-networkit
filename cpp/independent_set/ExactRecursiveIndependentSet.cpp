@@ -19,8 +19,7 @@
 namespace Koala {
 
 void RecursiveIndependentSet::run() {
-    auto result = recursive();
-    independentSet = std::set(result.begin(), result.end());
+    independentSet = recursive();
     hasRun = true;
 }
 

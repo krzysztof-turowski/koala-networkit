@@ -1,6 +1,6 @@
 #include <iostream>
-#include <set>
 #include <string>
+#include <vector>
 
 #include <benchmark/utils.hpp>
 #include <clique/Clique.hpp>
@@ -9,17 +9,17 @@
 
 template<typename T>
 int run_algorithm(NetworKit::Graph &G) {
-    std::set<NetworKit::node> max_clique;
+    std::vector<NetworKit::node> max_clique;
     if constexpr (std::is_same_v<T, Koala::CographMaxClique>) {
         auto recognition = Koala::HabibPaulCographRecognition(G);
         recognition.run();
         Koala::CographMaxClique algorithm = T(G, recognition.cotree);
         algorithm.run();
-        max_clique = algorithm.getMaxCliqueSet();
+        max_clique = algorithm.getMaxClique();
     } else {
         auto algorithm = T(G);
         algorithm.run();
-        max_clique = algorithm.getMaxCliqueSet();
+        max_clique = algorithm.getMaxClique();
     }
 
     std::cout << max_clique.size() << " " << std::flush;

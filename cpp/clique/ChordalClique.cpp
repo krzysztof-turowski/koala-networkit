@@ -40,10 +40,10 @@ void ChordalMaxClique::run() {
 
     max_clique.clear();
     if (v_max != NetworKit::none) {
-        max_clique.insert(v_max);
+        max_clique.push_back(v_max);
         for (auto w : graph->neighborRange(v_max)) {
             if (peo->alpha[w] > peo->alpha[v_max]) {
-                max_clique.insert(w);
+                max_clique.push_back(w);
             }
         }
     }

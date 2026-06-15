@@ -42,7 +42,7 @@ void CographIndependentSet::add_to_set() {
         Conode &V = cotree.getNode(v);
         st.pop();
         if (V.type == NodeType::LEAF) {
-            independentSet.insert(v);
+            independentSet.push_back(v);
         } else if (V.type == NodeType::COMPLEMENT_NODE) {
             NetworKit::node best = NetworKit::none;
             for (auto child = V.first_child; child != NetworKit::none;
