@@ -32,7 +32,7 @@ void ChordalMinCliqueCover::run() {
             covered[v] = true;
 
             for (auto w : graph->neighborRange(v)) {
-                if (peo->alpha[w] > i) {
+                if (peo->alpha[w] > i && !covered[w]) {
                     C_v.push_back(w);
                     covered[w] = true;
                 }
