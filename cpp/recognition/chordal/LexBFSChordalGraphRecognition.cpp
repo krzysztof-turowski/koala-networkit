@@ -75,8 +75,9 @@ void LexBFSChordalGraphRecognition::SetQueue::moveToNewSet(NetworKit::node w) {
     if (s == PROCESSED_SET) return;
 
     NetworKit::count s_prime = sets[s].split_into;
+    bool is_new_split = (s_prime == NO_SET);
 
-    if (s_prime == NO_SET) {
+    if (is_new_split) {
         s_prime = free_sets.back();
         free_sets.pop_back();
 
@@ -94,11 +95,12 @@ void LexBFSChordalGraphRecognition::SetQueue::moveToNewSet(NetworKit::node w) {
 
     removeVertex(w, s);
     addVertex(w, s_prime);
+
+    if (sets[s].head == NetworKit::none) removeSet(s);
 }
 
 void LexBFSChordalGraphRecognition::SetQueue::removeEmptySets() {
     for (NetworKit::count s : active_splits) {
-        if (sets[s].head == NetworKit::none) removeSet(s);
         sets[s].split_into = NO_SET;
     }
     active_splits.clear();
