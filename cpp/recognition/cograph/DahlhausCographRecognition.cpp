@@ -160,21 +160,19 @@ void reverse_cotree(Cotree &T, NetworKit::node v) {
 
 void DahlhausCographRecognition::big_component(
         NetworKit::Graph &G, std::vector<NetworKit::node> &component_nodes) {
-    NetworKit::Graph GC = Koala::GraphTools::toComplement(G);
-    NetworKit::count n = GC.numberOfNodes();
-    for (auto c : connected_components(GC, component_nodes)) {
+    NetworKit::count n = G.numberOfNodes();
+    for (auto c : Koala::GraphTools::complementComponents(G, component_nodes)) {
         if (c.size() * A > 2 * n + A) {
             is_cograph = State::NOT_COGRAPH;
             return;
         }
-        auto GI = NetworKit::GraphTools::subgraphFromNodes(GC, c.begin(), c.end());
+        auto induced = NetworKit::GraphTools::subgraphFromNodes(G, c.begin(), c.end());
         auto root = T.getRoot();
-        auto subtree_root = build_cotree(GI);
+        auto subtree_root = build_cotree(induced);
         if (is_cograph != State::COGRAPH) {
             return;
         }
         T.setRoot(root);
-        reverse_cotree(T, subtree_root);  // reverse TI
         T.addChild(T.getRoot(), subtree_root);
     }
 }

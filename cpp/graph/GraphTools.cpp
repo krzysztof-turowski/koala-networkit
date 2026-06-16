@@ -8,6 +8,9 @@
 #include <graph/GraphTools.hpp>
 
 #include <algorithm>
+#include <iterator>
+#include <list>
+#include <queue>
 #include <random>
 #include <set>
 #include <stdexcept>
@@ -75,6 +78,56 @@ bool isConnected(const NetworKit::Graph &G) {
     auto connected_components = NetworKit::ConnectedComponents(Gout);
     connected_components.run();
     return connected_components.getComponents().size() == 1;
+}
+
+std::vector<std::vector<NetworKit::node>> complementComponents(
+        const NetworKit::Graph &G, const std::vector<NetworKit::node> &nodes) {
+    std::list<NetworKit::node> unvisited(nodes.begin(), nodes.end());
+    std::vector<bool> in_unvisited(G.upperNodeIdBound());
+    std::vector<std::list<NetworKit::node>::iterator> position(G.upperNodeIdBound());
+    for (auto it = unvisited.begin(); it != unvisited.end(); ++it) {
+        in_unvisited[*it] = true;
+        position[*it] = it;
+    }
+    std::vector<std::vector<NetworKit::node>> components;
+    std::queue<NetworKit::node> queue;
+    std::vector<NetworKit::node> neighbours;
+
+    while (!unvisited.empty()) {
+        components.emplace_back();
+        queue.push(unvisited.front());
+        in_unvisited[unvisited.front()] = false;
+        unvisited.pop_front();
+        while (!queue.empty()) {
+            auto u = queue.front();
+            queue.pop();
+            components.back().push_back(u);
+
+            neighbours.clear();
+            for (auto v : G.neighborRange(u)) {
+                if (v < in_unvisited.size() && in_unvisited[v]) {
+                    neighbours.push_back(v);
+                    in_unvisited[v] = false;
+                    unvisited.erase(position[v]);
+                }
+            }
+
+            while (!unvisited.empty()) {
+                auto v = unvisited.front();
+                queue.push(v);
+                in_unvisited[v] = false;
+                unvisited.pop_front();
+            }
+
+            for (auto v : neighbours) {
+                in_unvisited[v] = true;
+                unvisited.push_back(v);
+                position[v] = std::prev(unvisited.end());
+            }
+        }
+    }
+
+    return components;
 }
 
 bool hasMultiEdges(const NetworKit::Graph &G) {
