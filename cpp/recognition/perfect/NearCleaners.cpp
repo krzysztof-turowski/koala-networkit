@@ -13,15 +13,20 @@
 #include <set>
 #include <vector>
 
-#include <boost/dynamic_bitset.hpp>
-
 #include "recognition/PerfectGraphRecognition.hpp"
 #include "traversal/PathInplace.hpp"
 
 namespace Koala {
 
-static const NetworKit::count MAX_LENGTH = 512;
-using Bitset = boost::dynamic_bitset<uint64_t>;
+using Bitset = std::vector<bool>;
+
+Bitset operator|(const Bitset &left, const Bitset &right) {
+    Bitset out(left.size());
+    for (NetworKit::index i = 0; i < left.size(); ++i) {
+        out[i] = left[i] || right[i];
+    }
+    return out;
+}
 
 auto get_all_paths(const NetworKit::Graph &graph, NetworKit::count length) {
     std::vector<std::vector<NetworKit::node>> out;
@@ -35,12 +40,9 @@ auto get_all_paths(const NetworKit::Graph &graph, NetworKit::count length) {
 
 template <typename Container>
 Bitset get_bitset(NetworKit::count length, Container positions) {
-    if (length >= MAX_LENGTH) {
-        throw std::length_error("Algorithm cannot be run for graphs on more than 512 vertices");
-    }
     Bitset out(length);
     for (auto i : positions) {
-        out.set(i);
+        out[i] = true;
     }
     return out;
 }
@@ -80,9 +82,9 @@ bool check_odd_hole_with_near_cleaner(
         const std::vector<std::vector<NetworKit::node>> &triplePaths) {
     auto infinity = std::numeric_limits<NetworKit::count>::max();
     auto [D, penultimate] = all_shortest_paths_with_penultimate(
-        graph, [&](auto v) { return !S.test(v); });
+        graph, [&](auto v) { return !S[v]; });
     for (const auto &y1 : graph.nodeRange()) {
-        if (S.test(y1)) {
+        if (S[y1]) {
             continue;
         }
         for (const auto &triple : triplePaths) {

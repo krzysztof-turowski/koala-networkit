@@ -6,8 +6,7 @@
  *      Ported by: Krzysztof Turowski (krzysztof.szymon.turowski@gmail.com)
  */
 
-#include <list>
-#include <set>
+#include <algorithm>
 #include <vector>
 
 #include <graph/GraphTools.hpp>
@@ -61,7 +60,8 @@ void PerfectGraphRecognition::check() const {
 }
 
 bool PerfectGraphRecognition::isComplete(
-        const NetworKit::Graph &graph, const std::vector<NetworKit::node> &X, NetworKit::node v) {
+        const NetworKit::Graph &graph, const std::vector<NetworKit::node> &X,
+        NetworKit::node v) {
     return std::none_of(X.begin(), X.end(), [&](auto i) {
         return v == i || !graph.hasEdge(v, i);
     });
@@ -81,11 +81,7 @@ std::vector<NetworKit::node> PerfectGraphRecognition::getAllCompleteVertices(
 std::vector<std::vector<NetworKit::node>> PerfectGraphRecognition::getAuxiliaryComponents(
         const NetworKit::Graph &graph, const std::vector<NetworKit::node> &V) {
     auto Y = getAllCompleteVertices(graph, V);
-    auto auxiliary_graph = NetworKit::GraphTools::subgraphFromNodes(
-        Koala::GraphTools::toComplement(graph), Y.begin(), Y.end());
-    NetworKit::ConnectedComponents auxiliary_components(auxiliary_graph);
-    auxiliary_components.run();
-    return auxiliary_components.getComponents();
+    return Koala::GraphTools::complementComponents(graph, Y);
 }
 
 PerfectGraphRecognition::State PerfectGraphRecognition::contains_simple_prohibited(

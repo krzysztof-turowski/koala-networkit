@@ -226,7 +226,9 @@ bool PerfectGraphRecognition::contains_t3(const NetworKit::Graph &graph) {
                             }
                             auto P = Koala::Traversal::BFSPath(
                                 graph, v6, v5, [&](int v) { return Fprim.count(v); });
-                            return true;
+                            if (!P.empty() && is_t3(graph, {v1, v2, v3, v4, v5, v6}, P, X)) {
+                                return true;
+                            }
                         }
                     }
                 }
