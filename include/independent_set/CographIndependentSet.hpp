@@ -20,7 +20,7 @@ class CographIndependentSet : public IndependentSet {
 
     std::vector<bool> used;
 
-    std::stack<int> st;
+    std::stack<NetworKit::node> st;
  public:
     CographIndependentSet(NetworKit::Graph &Graph, Koala::Cotree &Cotree)
         : IndependentSet(Graph), cotree(Cotree) { }

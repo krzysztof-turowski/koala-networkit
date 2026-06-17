@@ -19,37 +19,10 @@
 
 namespace Koala {
 
-void nextTupleInPlace(std::vector<NetworKit::node> &vertices, NetworKit::count max) {
-    vertices[0]++;
-    for (unsigned i = 0; i < vertices.size() && vertices[i] >= max; i++) {
-        vertices[i] = 0;
-        if (i + 1 < vertices.size()) {
-            vertices[i + 1]++;
-        }
-    }
-}
-
-std::vector<NetworKit::node> nextTuple(
-        std::vector<NetworKit::node> &vertices, NetworKit::count max) {
-    nextTupleInPlace(vertices, max);
-    return vertices;
-}
-
-std::vector<std::vector<NetworKit::node>> generateTuples(
-        NetworKit::count size, NetworKit::count max) {
-    std::vector<std::vector<NetworKit::node>> out;
-    auto current = std::vector<NetworKit::node>(size);
-    do {
-        out.push_back(current);
-        current = nextTuple(current, max);
-    } while (std::any_of(current.cbegin(), current.cend(), [](auto i){ return i != 0; }));
-    return out;
-}
-
 bool check_prerequisites(
         const NetworKit::Graph &graph, NetworKit::node a, const std::vector<NetworKit::node> &b,
         const std::vector<NetworKit::node> &s) {
-    // We assume b is a Triangle and s is an EmptyStarTriangle
+    // We assume b is a triangle and s is an empty-star-triangle
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
             if (i == j) {
@@ -64,16 +37,16 @@ bool check_prerequisites(
         }
     }
 
-    bool aAdjB = false;
+    bool ab_adjacent = false;
     for (int i = 0; i < 3; i++) {
         if (!graph.hasEdge(a, s[i])) {
             return false;
         }
         if (graph.hasEdge(a, b[i])) {
-            if (aAdjB || b[i] != s[i]) {
+            if (ab_adjacent || b[i] != s[i]) {
                 return false;
             }
-            aAdjB = true;
+            ab_adjacent = true;
         }
     }
     return true;
@@ -253,9 +226,9 @@ bool is_pyramid(
 
 bool PerfectGraphRecognition::contains_pyramid(const NetworKit::Graph &graph) {
     auto triangles = get_all_triangles(graph);
-    auto emptyStarTriangles = get_all_empty_star_triangles(graph);
+    auto empty_star_triangles = get_all_empty_star_triangles(graph);
     for (const auto &b : triangles) {
-        for (const auto &[a, s] : emptyStarTriangles) {
+        for (const auto &[a, s] : empty_star_triangles) {
             if (!check_prerequisites(graph, a, b, s)) {
                 continue;
             }
@@ -264,7 +237,7 @@ bool PerfectGraphRecognition::contains_pyramid(const NetworKit::Graph &graph) {
             auto P = calculate_p_paths(graph, b, s, M);
 
             std::vector<std::pair<int, int>> pairs{{0, 1}, {1, 2}, {2, 0}};
-            std::set<std::pair<NetworKit::node, NetworKit::node>> goodPairs[3];
+            std::set<std::pair<NetworKit::node, NetworKit::node>> good_pairs[3];
             for (const auto &[u, v] : pairs) {
                 for (const auto &m1 : graph.nodeRange()) {
                     if (P[u][m1].empty()) {
@@ -290,23 +263,32 @@ bool PerfectGraphRecognition::contains_pyramid(const NetworKit::Graph &graph) {
                             return color.count(i);
                         });
                         if (found) {
-                            goodPairs[u].emplace(std::make_pair(m1, m2));
+                            good_pairs[u].emplace(std::make_pair(m1, m2));
                         }
                     }
                 }
             }  // (i, j) good pairs completed
 
-            auto triples = generateTuples(3, graph.numberOfNodes());
-            for (const auto &triple : triples) {
-                bool found = std::all_of(pairs.cbegin(), pairs.cend(), [&](const auto &pair) {
-                    const auto& [u, v] = pair;
-                    return goodPairs[u].count(std::make_pair(triple[u], triple[v]));
-                });
-                if (found) {
-                  std::vector<std::vector<NetworKit::node>> paths = {
-                      P[0][triple[0]], P[1][triple[1]], P[2][triple[2]]
-                  };
-                  return true;
+            for (auto m0 : graph.nodeRange()) {
+                if (P[0][m0].empty()) {
+                    continue;
+                }
+                for (auto m1 : graph.nodeRange()) {
+                    if (P[1][m1].empty() || !good_pairs[0].count(std::make_pair(m0, m1))) {
+                        continue;
+                    }
+                    for (auto m2 : graph.nodeRange()) {
+                        if (P[2][m2].empty()
+                                || !good_pairs[1].count(std::make_pair(m1, m2))
+                                || !good_pairs[2].count(std::make_pair(m2, m0))) {
+                            continue;
+                        }
+                        std::vector<std::vector<NetworKit::node>> paths = {
+                            P[0][m0], P[1][m1], P[2][m2]};
+                        if (is_pyramid(graph, a, b, paths)) {
+                            return true;
+                        }
+                    }
                 }
             }
         }

@@ -10,35 +10,28 @@ namespace Koala {
 
 void CographMaxClique::recurse_run() {
     while (!st.empty()) {
-        int v = st.top();
+        NetworKit::node v = st.top();
         Conode &V = cotree.getNode(v);
         if (used[v] == false) {
             used[v] = true;
-            if (V.left_son != NetworKit::none) {
-                st.push(V.left_son);
-            }
-
-            if (V.right_son != NetworKit::none) {
-                st.push(V.right_son);
+            for (auto child = V.first_child; child != NetworKit::none;
+                    child = cotree.getNode(child).next_sibling) {
+                st.push(child);
             }
         } else {
             st.pop();
             if (V.type == NodeType::LEAF) {
                 subgraph_clique_size[v] = 1;
+            } else if (V.type == NodeType::UNION_NODE) {
+                for (auto child = V.first_child; child != NetworKit::none;
+                        child = cotree.getNode(child).next_sibling) {
+                    subgraph_clique_size[v] = std::max(
+                        subgraph_clique_size[v], subgraph_clique_size[child]);
+                }
             } else {
-                NetworKit::count l = 0, r = 0;
-                if (V.left_son != NetworKit::none) {
-                    l = subgraph_clique_size[V.left_son];
-                }
-
-                if (V.right_son != NetworKit::none) {
-                    r = subgraph_clique_size[V.right_son];
-                }
-
-                if (V.type == NodeType::UNION_NODE) {
-                    subgraph_clique_size[v] = std::max(l, r);
-                } else {
-                    subgraph_clique_size[v] = l + r;
+                for (auto child = V.first_child; child != NetworKit::none;
+                        child = cotree.getNode(child).next_sibling) {
+                    subgraph_clique_size[v] += subgraph_clique_size[child];
                 }
             }
         }
@@ -47,32 +40,27 @@ void CographMaxClique::recurse_run() {
 
 void CographMaxClique::add_to_set() {
     while (!st.empty()) {
-        int v = st.top();
+        NetworKit::node v = st.top();
         st.pop();
         Conode &V = cotree.getNode(v);
         if (V.type == NodeType::LEAF) {
             max_clique.insert(v);
+        } else if (V.type == NodeType::UNION_NODE) {
+            NetworKit::node best = NetworKit::none;
+            for (auto child = V.first_child; child != NetworKit::none;
+                    child = cotree.getNode(child).next_sibling) {
+                if (best == NetworKit::none
+                        || subgraph_clique_size[child] > subgraph_clique_size[best]) {
+                    best = child;
+                }
+            }
+            if (best != NetworKit::none) {
+                st.push(best);
+            }
         } else {
-            NetworKit::count l = 0, r = 0;
-            if (V.left_son != NetworKit::none) {
-                l = subgraph_clique_size[V.left_son];
-            }
-            if (V.right_son != NetworKit::none) {
-                r = subgraph_clique_size[V.right_son];
-            }
-            if (V.type == NodeType::UNION_NODE) {
-                if (l >= r) {
-                    st.push(V.left_son);
-                } else {
-                    st.push(V.right_son);
-                }
-            } else {
-                if (V.left_son != NetworKit::none) {
-                    st.push(V.left_son);
-                }
-                if (V.right_son != NetworKit::none) {
-                    st.push(V.right_son);
-                }
+            for (auto child = V.first_child; child != NetworKit::none;
+                    child = cotree.getNode(child).next_sibling) {
+                st.push(child);
             }
         }
     }
@@ -80,13 +68,12 @@ void CographMaxClique::add_to_set() {
 
 void CographMaxClique::run() {
     hasRun = true;
-    NetworKit::count n = cotree.graph->numberOfNodes();
-    subgraph_clique_size.resize(2 * n + 1);
-    used.resize(2 * n + 1);
-    st.push(n);
+    subgraph_clique_size.resize(cotree.upperNodeIdBound());
+    used.resize(cotree.upperNodeIdBound());
+    st.push(cotree.getRoot());
     recurse_run();
-    used.resize(2 * n + 1);
-    st.push(n);
+    used.resize(cotree.upperNodeIdBound());
+    st.push(cotree.getRoot());
     add_to_set();
 }
 

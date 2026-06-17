@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include <vector>
+
 #include <networkit/graph/Graph.hpp>
 
 namespace Koala {
@@ -22,6 +24,8 @@ void assureUndirectedGraph(const NetworKit::Graph&);
 void ensureDirectedGraph(NetworKit::Graph&);
 
 bool isConnected(const NetworKit::Graph&);
+std::vector<std::vector<NetworKit::node>> complementComponents(
+    const NetworKit::Graph&, const std::vector<NetworKit::node>&);
 bool hasMultiEdges(const NetworKit::Graph&);
 NetworKit::Graph makeConnected(const NetworKit::Graph&);
 bool hasDistinctIntegerWeights(const NetworKit::Graph&);

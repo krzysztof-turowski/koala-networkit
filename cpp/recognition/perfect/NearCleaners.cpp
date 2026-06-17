@@ -13,74 +13,78 @@
 #include <set>
 #include <vector>
 
-#include <boost/dynamic_bitset.hpp>
-
 #include "recognition/PerfectGraphRecognition.hpp"
 #include "traversal/PathInplace.hpp"
 
 namespace Koala {
 
-static const NetworKit::count MAX_LENGTH = 512;
-using Bitset = boost::dynamic_bitset<uint64_t>;
+using Bitset = std::vector<bool>;
+
+Bitset operator|(const Bitset &left, const Bitset &right) {
+    Bitset out(left.size());
+    for (NetworKit::index i = 0; i < left.size(); ++i) {
+        out[i] = left[i] || right[i];
+    }
+    return out;
+}
 
 auto get_all_paths(const NetworKit::Graph &graph, NetworKit::count length) {
-  std::vector<std::vector<NetworKit::node>> out;
-  std::vector<NetworKit::node> P;
-  while (Koala::Traversal::NextPathInplace(
-          graph, length, P, Koala::Traversal::PathInplaceMode::INDUCED_PATH)) {
-      out.push_back(P);
-  }
-  return out;
+    std::vector<std::vector<NetworKit::node>> out;
+    std::vector<NetworKit::node> P;
+    while (Koala::Traversal::NextPathInplace(
+            graph, length, P, Koala::Traversal::PathInplaceMode::INDUCED_PATH)) {
+        out.push_back(P);
+    }
+    return out;
 }
 
 template <typename Container>
 Bitset get_bitset(NetworKit::count length, Container positions) {
-    if (length >= MAX_LENGTH) {
-        throw std::length_error("Algorithm cannot be run for graphs on more than 512 vertices");
-    }
     Bitset out(length);
     for (auto i : positions) {
-        out.set(i);
+        out[i] = true;
     }
     return out;
 }
 
 auto all_shortest_paths_with_penultimate(const NetworKit::Graph &graph, auto test) {
-  unsigned n = graph.upperNodeIdBound(), infinity = std::numeric_limits<unsigned>::max();
-  std::vector<std::vector<NetworKit::count>> D(n, std::vector<NetworKit::count>(n, infinity));
-  std::vector<std::vector<NetworKit::node>> penultimate(
-      n, std::vector<NetworKit::node>(n, NetworKit::none));
+    unsigned n = graph.upperNodeIdBound();
+    auto infinity = std::numeric_limits<unsigned>::max();
+    std::vector<std::vector<NetworKit::count>> D(n, std::vector<NetworKit::count>(n, infinity));
+    std::vector<std::vector<NetworKit::node>> penultimate(
+        n, std::vector<NetworKit::node>(n, NetworKit::none));
 
-  graph.forNodes([&](NetworKit::node i) { D[i][i] = 0; });
-  graph.forEdges([&](NetworKit::node i, NetworKit::node j) {
-      D[i][j] = D[j][i] = 1, penultimate[i][j] = i, penultimate[j][i] = j;
-  });
-  for (auto k : graph.nodeRange()) {
-      if (!test(k)) {
-          continue;
-      }
-      for (auto i : graph.nodeRange()) {
-          if (i == k) {
-              continue;
-          }
-          for (auto j : graph.nodeRange()) {
-              if (j != i && j != k && D[i][j] > D[i][k] + D[k][j]) {
-                D[i][j] = D[i][k] + D[k][j], penultimate[i][j] = penultimate[k][j];
-              }
-          }
-      }
-  }
-  return std::make_tuple(D, penultimate);
+    graph.forNodes([&](NetworKit::node i) { D[i][i] = 0; });
+    graph.forEdges([&](NetworKit::node i, NetworKit::node j) {
+        D[i][j] = D[j][i] = 1, penultimate[i][j] = i, penultimate[j][i] = j;
+    });
+    for (auto k : graph.nodeRange()) {
+        if (!test(k)) {
+            continue;
+        }
+        for (auto i : graph.nodeRange()) {
+            if (i == k) {
+                continue;
+            }
+            for (auto j : graph.nodeRange()) {
+                if (j != i && j != k && D[i][k] != infinity && D[k][j] != infinity
+                        && D[i][j] > D[i][k] + D[k][j]) {
+                    D[i][j] = D[i][k] + D[k][j], penultimate[i][j] = penultimate[k][j];
+                }
+            }
+        }
+    }
+    return std::make_tuple(D, penultimate);
 }
 
 bool check_odd_hole_with_near_cleaner(
-          const NetworKit::Graph &graph, const Bitset &S,
-          const std::vector<std::vector<NetworKit::node>> &triplePaths) {
+        const NetworKit::Graph &graph, const Bitset &S,
+        const std::vector<std::vector<NetworKit::node>> &triplePaths) {
     auto infinity = std::numeric_limits<NetworKit::count>::max();
     auto [D, penultimate] = all_shortest_paths_with_penultimate(
-        graph, [&](auto v) { return !S.test(v); });
+        graph, [&](auto v) { return !S[v]; });
     for (const auto &y1 : graph.nodeRange()) {
-        if (S.test(y1)) {
+        if (S[y1]) {
             continue;
         }
         for (const auto &triple : triplePaths) {

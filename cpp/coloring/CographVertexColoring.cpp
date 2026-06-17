@@ -1,42 +1,36 @@
+#include <algorithm>
+
 #include <coloring/CographVertexColoring.hpp>
 
 namespace Koala {
 
 void CographVertexColoring::subtree_colors() {
     while (!st.empty()) {
-        int v = st.top();
+        NetworKit::node v = st.top();
         Conode &V = cotree.getNode(v);
         if (used[v] == false) {
             used[v] = true;
-            if (V.left_son != NetworKit::none) {
-                st.push(V.left_son);
-            }
-            if (V.right_son != NetworKit::none) {
-                st.push(V.right_son);
+            for (auto child = V.first_child; child != NetworKit::none;
+                    child = cotree.getNode(child).next_sibling) {
+                st.push(child);
             }
         } else {
             st.pop();
             if (V.type == NodeType::LEAF) {
                 color[v] = 0;
                 number_of_colors[v] = 1;
+            } else if (V.type == NodeType::COMPLEMENT_NODE) {
+                NetworKit::count color_offset = 0;
+                for (auto child = V.first_child; child != NetworKit::none;
+                        child = cotree.getNode(child).next_sibling) {
+                    color[child] += color_offset;
+                    color_offset += number_of_colors[child];
+                    number_of_colors[v] += number_of_colors[child];
+                }
             } else {
-                if (V.type == NodeType::COMPLEMENT_NODE) {
-                    if (V.left_son != NetworKit::none) {
-                        number_of_colors[v] += number_of_colors[V.left_son];
-                    }
-                    if (V.right_son != NetworKit::none) {
-                        color[V.right_son] += number_of_colors[V.left_son];
-                        number_of_colors[v] += number_of_colors[V.right_son];
-                    }
-                } else {
-                    if (V.left_son != NetworKit::none) {
-                        number_of_colors[v] = number_of_colors[V.left_son];
-                    }
-                    if (V.right_son != NetworKit::none &&
-                        number_of_colors[V.right_son] >
-                        number_of_colors[V.left_son]) {
-                        number_of_colors[v] = number_of_colors[V.right_son];
-                    }
+                for (auto child = V.first_child; child != NetworKit::none;
+                        child = cotree.getNode(child).next_sibling) {
+                    number_of_colors[v] = std::max(number_of_colors[v], number_of_colors[child]);
                 }
             }
         }
@@ -45,17 +39,14 @@ void CographVertexColoring::subtree_colors() {
 
 void CographVertexColoring::end_of_coloring() {
     while (!st.empty()) {
-        int v = st.top();
+        NetworKit::node v = st.top();
         Conode &V = cotree.getNode(v);
         if (used[v] == false) {
             used[v] = true;
-            if (V.left_son != NetworKit::none) {
-                color[V.left_son] += color[v];
-                st.push(V.left_son);
-            }
-            if (V.right_son != NetworKit::none) {
-                color[V.right_son] += color[v];
-                st.push(V.right_son);
+            for (auto child = V.first_child; child != NetworKit::none;
+                    child = cotree.getNode(child).next_sibling) {
+                color[child] += color[v];
+                st.push(child);
             }
         } else {
             st.pop();
@@ -65,14 +56,13 @@ void CographVertexColoring::end_of_coloring() {
 
 void CographVertexColoring::run() {
     hasRun = true;
-    NetworKit::count n = graph->numberOfNodes();
-    color.assign(2 * n + 1, 0);
-    number_of_colors.assign(2 * n + 1, 0);
-    used.assign(2 * n + 1, false);
-    st.push(n);
+    color.assign(cotree.upperNodeIdBound(), 0);
+    number_of_colors.assign(cotree.upperNodeIdBound(), 0);
+    used.assign(cotree.upperNodeIdBound(), false);
+    st.push(cotree.getRoot());
     subtree_colors();
-    used.assign(2 * n + 1, false);
-    st.push(n);
+    used.assign(cotree.upperNodeIdBound(), false);
+    st.push(cotree.getRoot());
     end_of_coloring();
     for (const auto &u : graph->nodeRange()) {
         colors[u] = color[u];

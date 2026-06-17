@@ -12,6 +12,4 @@ koala_add_module(cograph
     cograph/BretscherCorneilHabibPaulCographRecognition.cpp
     cograph/DahlhausCographRecognition.cpp
     cograph/HabibPaulCographRecognition.cpp
-    cograph/FactorizingPermutation.cpp
-    cograph/Twins.cpp
 )

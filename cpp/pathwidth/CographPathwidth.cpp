@@ -6,25 +6,20 @@ namespace Koala {
 
 void CographPathwidth::subtree_size() {
     while (!st.empty()) {
-        int v = st.top();
+        NetworKit::node v = st.top();
         Conode &V = cotree.getNode(v);
         if (used[v] == false) {
             used[v] = true;
-            if (V.left_son != NetworKit::none) {
-                st.push(V.left_son);
-            }
-            if (V.right_son != NetworKit::none) {
-                st.push(V.right_son);
+            for (auto child = V.first_child; child != NetworKit::none;
+                    child = cotree.getNode(child).next_sibling) {
+                st.push(child);
             }
         } else {
-            V.size = 1;
             st.pop();
-            if (V.left_son != NetworKit::none) {
-                V.size += cotree.getNode(V.left_son).size;
-            }
-
-            if (V.right_son != NetworKit::none) {
-                V.size += cotree.getNode(V.right_son).size;
+            subtree_sizes[v] = 1;
+            for (auto child = V.first_child; child != NetworKit::none;
+                    child = cotree.getNode(child).next_sibling) {
+                subtree_sizes[v] += subtree_sizes[child];
             }
         }
     }
@@ -32,41 +27,29 @@ void CographPathwidth::subtree_size() {
 
 void CographPathwidth::pathwidth() {
     while (!st.empty()) {
-        int v = st.top();
+        NetworKit::node v = st.top();
         Conode &V = cotree.getNode(v);
         if (used[v] == false) {
             used[v] = true;
 
-            if (V.left_son != NetworKit::none) {
-                st.push(V.left_son);
-            }
-
-            if (V.right_son != NetworKit::none) {
-                st.push(V.right_son);
+            for (auto child = V.first_child; child != NetworKit::none;
+                    child = cotree.getNode(child).next_sibling) {
+                st.push(child);
             }
         } else {
             st.pop();
             if (V.type == NodeType::LEAF) {
                 path[v] = 1;
+            } else if (V.type == NodeType::UNION_NODE) {
+                for (auto child = V.first_child; child != NetworKit::none;
+                        child = cotree.getNode(child).next_sibling) {
+                    path[v] = std::max(path[v], path[child]);
+                }
             } else {
-                NetworKit::count l = 0, r = 0;
-                if (V.left_son != NetworKit::none) {
-                    l = path[V.left_son];
-                }
-                if (V.right_son != NetworKit::none) {
-                    r = path[V.right_son];
-                }
-                if (V.type == NodeType::UNION_NODE) {
-                    path[v] = std::max(l, r);
-                } else {
-                    NetworKit::count pathwidth = 0;
-                    if (V.left_son != NetworKit::none) {
-                        pathwidth = std::max(pathwidth, r + cotree.getNode(V.left_son).size);
-                    }
-                    if (V.right_son != NetworKit::none) {
-                        pathwidth = std::max(pathwidth, l + cotree.getNode(V.right_son).size);
-                    }
-                    path[v] = pathwidth;
+                for (auto child = V.first_child; child != NetworKit::none;
+                        child = cotree.getNode(child).next_sibling) {
+                    path[v] = std::max(
+                        path[v], path[child] + subtree_sizes[v] - subtree_sizes[child] - 1);
                 }
             }
         }
@@ -75,17 +58,17 @@ void CographPathwidth::pathwidth() {
 
 void CographPathwidth::run() {
     hasRun = true;
-    int n = cotree.graph->numberOfNodes();
-    used.resize(2 * n + 1, false);
-    path.resize(2 * n + 1, 0);
-    st.push(n);
+    used.resize(cotree.upperNodeIdBound(), false);
+    path.resize(cotree.upperNodeIdBound(), 0);
+    subtree_sizes.resize(cotree.upperNodeIdBound(), 0);
+    st.push(cotree.getRoot());
     subtree_size();
-    for (int i = 0; i < 2 * n + 1; i++) {
+    for (NetworKit::node i = 0; i < cotree.upperNodeIdBound(); i++) {
         used[i] = false;
     }
-    st.push(n);
+    st.push(cotree.getRoot());
     pathwidth();
-    width = path[n];
+    width = path[cotree.getRoot()];
 }
 
 } /* namespace Koala */

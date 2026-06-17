@@ -7,9 +7,7 @@
 
 #pragma once
 
-#include <list>
 #include <optional>
-#include <queue>
 #include <utility>
 #include <vector>
 
@@ -18,9 +16,6 @@
 #include <networkit/graph/Graph.hpp>
 #include <networkit/graph/GraphTools.hpp>
 
-#include "сograph/FactorizingPermutation.hpp"
-#include "сograph/Part.hpp"
-#include "сograph/Twins.hpp"
 #include "structures/Cotree.hpp"
 
 namespace Koala {
@@ -30,13 +25,7 @@ class CographRecognition : public NetworKit::Algorithm {
     enum class State {
         UNKNOWN,
         COGRAPH,
-        NOT_COGRAPH,
-        CONTAINS_0_NODE,
-        EXISTS_1_NODE_NOT_PROPERLY_MARKED,
-        GRANDPARENT_IS_NOT_IN_SET,
-        NO_ONE_PATH,
-        WRONG_PARENT,
-        WRONG_GRANDPARENT
+        NOT_COGRAPH
      };
 
     /**
@@ -92,14 +81,14 @@ class BretscherCorneilHabibPaulCographRecognition : public CographRecognition {
  private:
     class Info {
      public:
-        std::vector<std::vector<std::pair<int, int>>> borders;
-        std::vector<NetworKit::node> ans;
+        std::vector<std::vector<NetworKit::count>> slice_starts;
+        std::vector<NetworKit::node> order;
     };
-    Info info;
-    void lex_bfs_minus(bool is_complement, std::vector<NetworKit::node> &a);
+
+    Info lex_bfs_minus(bool is_complement, const std::vector<NetworKit::node> &order);
     bool neighbourhood_subset_property(
-        bool is_complement, std::vector<NetworKit::node> a,
-        std::vector<std::vector<std::pair<int, int>>> borders);
+        bool is_complement, const std::vector<NetworKit::node> &order,
+        const std::vector<std::vector<NetworKit::count>> &slice_starts);
 };
 
 /**
@@ -118,16 +107,21 @@ class CorneilStewartPerlCographRecognition : public CographRecognition {
     void run();
 
  private:
-    CorneilStewartPerlCographRecognition::State recognition();
-    void unmark();
-    void mark(CoNode *x);
-    std::pair<CoNode*, CorneilStewartPerlCographRecognition::State>find_lowest() const;
-    void insert_x_to_cotree(CoNode *u, CoNode *x);
-    CoTree T;
-    int mark_count = 0;
-    int mark_and_unmarked_count = 0;
-    int mark_ever_count = 0;
-    std::queue<CoNode*> marked_with_d_equal_to_md;  // TODO(fixikmila): get rid of this
+    enum class Marked {
+        UNMARKED,
+        MARKED,
+        MARKED_AND_UNMARKED
+    };
+
+    std::vector<NetworKit::node> mark(
+        const std::vector<NetworKit::node> &processed_vertices);
+    NetworKit::node find_lowest(const std::vector<NetworKit::node> &marked_nodes);
+    void attach_to_cotree(NetworKit::node u, NetworKit::node x);
+
+    Cotree T;
+    std::vector<Marked> status;
+    std::vector<NetworKit::count> md;
+    std::vector<NetworKit::node> touched;
 };
 
 /**
@@ -148,36 +142,24 @@ class DahlhausCographRecognition : public CographRecognition {
 
  private:
     const NetworKit::count A = 10;
-    std::vector<CoNode*> pointer;
-    std::vector<CoTree> save;
+    Cotree T;
+    std::vector<NetworKit::node> covertex;
 
-    CoTree& build_cotree(NetworKit::Graph G, std::vector<int> real_index);
-    void high_low_case(CoTree &T, NetworKit::Graph &G, std::vector<int> &real_index);
-    void big_component(
-        CoTree &T, NetworKit::Graph &G, std::vector<int> &vec, std::vector<int> &real_index);
-    inline void add(int vertex_type, CoTree &T, std::vector<int> &vec,
-        std::vector<int> &fake_index, NetworKit::Graph &G, std::vector<int> &real_index);
-    bool check_cotree(const CoTree &T);
+    NetworKit::node build_cotree(NetworKit::Graph &G);
+    void high_low_case(NetworKit::Graph &G);
+    void big_component(NetworKit::Graph &G, std::vector<NetworKit::node> &component_nodes);
+    inline void attach_to_cotree(
+        NodeType node_type, NetworKit::Graph &G, std::vector<NetworKit::node> &subtree_nodes);
+    bool check_cotree();
 };
 
 class HabibPaulCographRecognition : public CographRecognition {
  public:
-    explicit HabibPaulCographRecognition(const NetworKit::Graph &graph);
+    using CographRecognition::CographRecognition;
 
     void run();
 
     Cotree cotree;
-
- private:
-    Twins T;
-
-    FactorizingPermutation permutation;
-    NetworKit::count num_of_parts, num_of_nodes;
-
-    std::vector<std::pair<std::pair<NetworKit::count, NetworKit::count>,
-                          NetworKit::count>> order;
-    part* H;
-    std::list<part*> unused_parts;
 };
 
 } /* namespace Koala */

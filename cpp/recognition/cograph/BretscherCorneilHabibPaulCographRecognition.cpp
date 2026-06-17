@@ -6,60 +6,59 @@
  */
 
 #include <list>
+#include <utility>
 #include <vector>
 
-#include <graph/GraphTools.hpp>
-
-#include <recognition/CographRecognition.hpp>
-#include <structures/CoTree.hpp>
+#include "recognition/CographRecognition.hpp"
 
 namespace Koala {
 
 void BretscherCorneilHabibPaulCographRecognition::run() {
     hasRun = true;
-    std::vector<NetworKit::node> start;
-    for (auto u : graph.nodeRange()) {
-        start.push_back(u);
+    if (graph.numberOfNodes() <= 1) {
+        is_cograph = State::COGRAPH;
+        return;
     }
-    lex_bfs_minus(false, start);
-    auto a = info.ans;
-    lex_bfs_minus(true, a);
-    auto borders1 = info.borders;
-    auto b = info.ans;
-    lex_bfs_minus(false, b);
-    auto borders2 = info.borders;
-    auto c = info.ans;
-    is_cograph = (neighbourhood_subset_property(true, b, borders1)
-        && neighbourhood_subset_property(false, c, borders2)) ? State::COGRAPH : State::NOT_COGRAPH;
+    std::vector<NetworKit::node> start(graph.nodeRange().begin(), graph.nodeRange().end());
+    auto first = lex_bfs_minus(false, start);
+    auto second = lex_bfs_minus(true, first.order);
+    auto third = lex_bfs_minus(false, second.order);
+    is_cograph = (neighbourhood_subset_property(true, second.order, second.slice_starts)
+        && neighbourhood_subset_property(false, third.order, third.slice_starts))
+        ? State::COGRAPH : State::NOT_COGRAPH;
 }
 
-void BretscherCorneilHabibPaulCographRecognition::lex_bfs_minus(
-        bool is_complement, std::vector<NetworKit::node> &a) {
+BretscherCorneilHabibPaulCographRecognition::Info
+BretscherCorneilHabibPaulCographRecognition::lex_bfs_minus(
+        bool is_complement, const std::vector<NetworKit::node> &order) {
     std::vector<NetworKit::node> ans;
-    std::vector<bool> used(a.size());
-    std::vector<std::vector<std::pair<NetworKit::node, unsigned int>>> what_ends_here(a.size());
-    std::vector<std::vector<std::pair<int, int>>> borders(a.size());
+    std::vector<bool> used(graph.upperNodeIdBound());
+    std::vector<std::vector<std::pair<NetworKit::node, NetworKit::count>>> what_ends_here(
+        graph.upperNodeIdBound());
+    std::vector<std::vector<NetworKit::count>> slice_starts(graph.upperNodeIdBound());
     std::list<std::list<NetworKit::node>> L;
     std::list<NetworKit::node> first;
-    for (auto i : a) {
+    for (auto i : order) {
         first.push_back(i);
     }
     L.push_back(first);
-    std::vector<std::_List_iterator<std::list<NetworKit::node>>>
-    in_which_list(a.size(), L.begin()), previous_list(a.size(), L.begin());
-    std::vector<std::list<NetworKit::node>::iterator> in_which_position(a.size());
-    std::vector<bool> used_at_this_step(a.size());
+    std::vector<std::list<std::list<NetworKit::node>>::iterator>
+    in_which_list(graph.upperNodeIdBound(), L.begin()),
+    previous_list(graph.upperNodeIdBound(), L.begin());
+    std::vector<std::list<NetworKit::node>::iterator> in_which_position(
+        graph.upperNodeIdBound());
+    std::vector<bool> used_at_this_step(graph.upperNodeIdBound());
     auto it = L.front().begin();
-    for (unsigned int i : a) {
+    for (auto i : order) {
         in_which_position[i] = it++;
     }
-    int i = 0;
+    NetworKit::count i = 0;
     while (!L.empty()) {
         for (auto &[x, sz] : what_ends_here[i]) {
-            unsigned int current_sum = 0;
+            NetworKit::count current_sum = 0;
             for (const auto &l : L) {
                 if (l.size() + current_sum <= sz) {
-                    borders[x].emplace_back(i + current_sum, i + current_sum + l.size() - 1);
+                    slice_starts[x].emplace_back(i + current_sum);
                     current_sum += l.size();
                 } else {
                     break;
@@ -102,10 +101,8 @@ void BretscherCorneilHabibPaulCographRecognition::lex_bfs_minus(
             } else {
                 previous++;
             }
-            // TODO(kturowski): get rid of hasEdge usage, it is linear time
-            if (!previous->empty() && (!graph.hasEdge(previous->front(), x)
-                || !used_at_this_step[previous->front()] ||
-                previous_list[previous->front()] != previous_list[v])) {
+            if (!previous->empty() && (!used_at_this_step[previous->front()]
+                    || previous_list[previous->front()] != previous_list[v])) {
                 std::list<NetworKit::node> insert;
                 L.insert(copy_number, insert);
                 previous = number;
@@ -135,27 +132,26 @@ void BretscherCorneilHabibPaulCographRecognition::lex_bfs_minus(
             what_ends_here[i + SA].emplace_back(x, slice_size - SA - 1);
         }
     }
-    info.borders = borders, info.ans = ans;
+    return {slice_starts, ans};
 }
 
 bool BretscherCorneilHabibPaulCographRecognition::neighbourhood_subset_property(
-        bool is_complement, std::vector<NetworKit::node> a,
-        std::vector<std::vector<std::pair<int, int>>> borders) {
-    std::vector<bool> used(a.size());
-    std::vector<int> positions(a.size());
-    for (unsigned int i = 0; i < a.size(); i++) {
-        positions[a[i]] = i;
+        bool is_complement, const std::vector<NetworKit::node> &order,
+        const std::vector<std::vector<NetworKit::count>> &slice_starts) {
+    std::vector<bool> used(graph.upperNodeIdBound());
+    std::vector<NetworKit::count> positions(graph.upperNodeIdBound(), NetworKit::none);
+    for (NetworKit::count i = 0; i < order.size(); i++) {
+        positions[order[i]] = i;
     }
-    for (auto i : a) {
-        if (borders[i].empty()) {
-            continue;
-        }
-        for (unsigned int j = 0; j < borders[i].size() - 1; j++) {
-            auto [l, r] = borders[i][j];
-            auto y = a[l];
-            auto p = a[borders[i][j + 1].first];
+    for (auto x : order) {
+        const auto &starts = slice_starts[x];
+        for (NetworKit::count j = 0; j + 1 < starts.size(); j++) {
+            auto l = starts[j];
+            auto r = starts[j + 1] - 1;
+            auto y = order[l];
+            auto p = order[starts[j + 1]];
             if (is_complement) {
-                int count = 0;
+                NetworKit::count count = 0;
                 for (auto z : graph.neighborRange(p)) {
                     if (positions[z] < positions[p]) {
                         used[z] = true;
