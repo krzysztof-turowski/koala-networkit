@@ -21,7 +21,7 @@ MaximumCardinalitySearchChordalGraphRecognition::SetArray::SetArray(const Networ
 }
 
 void MaximumCardinalitySearchChordalGraphRecognition::SetArray::add(
-    NetworKit::node v, NetworKit::count set) {
+    NetworKit::node v, NetworKit::index set) {
     vertices[v].next = head[set];
     vertices[v].prev = NetworKit::none;
     if (head[set] != NetworKit::none) {
@@ -31,7 +31,7 @@ void MaximumCardinalitySearchChordalGraphRecognition::SetArray::add(
 }
 
 void MaximumCardinalitySearchChordalGraphRecognition::SetArray::remove(
-    NetworKit::node v, NetworKit::count set) {
+    NetworKit::node v, NetworKit::index set) {
     if (vertices[v].prev != NetworKit::none) {
         vertices[vertices[v].prev].next = vertices[v].next;
     }
@@ -47,11 +47,11 @@ void MaximumCardinalitySearchChordalGraphRecognition::SetArray::remove(
     vertices[v].next = NetworKit::none;
 }
 
-bool MaximumCardinalitySearchChordalGraphRecognition::SetArray::isEmpty(NetworKit::count set) const {
+bool MaximumCardinalitySearchChordalGraphRecognition::SetArray::isEmpty(NetworKit::index set) const {
     return head[set] == NetworKit::none;
 }
 
-NetworKit::node MaximumCardinalitySearchChordalGraphRecognition::SetArray::getHead(NetworKit::count set) const {
+NetworKit::node MaximumCardinalitySearchChordalGraphRecognition::SetArray::getHead(NetworKit::index set) const {
     return head[set];
 }
 
@@ -66,9 +66,9 @@ PerfectEliminationOrdering MaximumCardinalitySearchChordalGraphRecognition::getM
     std::vector<NetworKit::count> size(bound, 0);
     SetArray sets(graph);
 
-    NetworKit::count max_nonempty_set = SetArray::INITIAL_SET;
+    NetworKit::index max_nonempty_set = SetArray::INITIAL_SET;
 
-    for (NetworKit::count i = n; i >= 1; i--) {
+    for (NetworKit::index i = n; i >= 1; i--) {
         while (max_nonempty_set > 0 && sets.isEmpty(max_nonempty_set)) {
             max_nonempty_set--;
         }
@@ -98,9 +98,9 @@ bool MaximumCardinalitySearchChordalGraphRecognition::isZeroFillIn(const Perfect
     NetworKit::count bound = graph.upperNodeIdBound();
 
     std::vector<NetworKit::node> follower(bound);
-    std::vector<NetworKit::count> index(bound);
+    std::vector<NetworKit::index> index(bound);
 
-    for (NetworKit::count i = 1; i <= n; i++) {
+    for (NetworKit::index i = 1; i <= n; i++) {
         NetworKit::node w = ordering.alpha_inv[i];
         follower[w] = w;
         index[w] = i;

@@ -22,7 +22,7 @@ void ChordalMaxClique::run() {
     NetworKit::count omega_max = 0;
     NetworKit::node v_max = NetworKit::none;
 
-    for (NetworKit::count i = n; i >= 1; i--) {
+    for (NetworKit::index i = n; i >= 1; i--) {
         NetworKit::node v = peo->alpha_inv[i];
         NetworKit::count n_plus_size = 0;
         

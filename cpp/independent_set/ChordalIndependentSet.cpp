@@ -25,7 +25,7 @@ void ChordalIndependentSet::run() {
     std::vector<uint8_t> covered(bound, false);
     independentSet.clear();
 
-    for (NetworKit::count i = 1; i <= n; i++) {
+    for (NetworKit::index i = 1; i <= n; i++) {
         NetworKit::node v = peo->alpha_inv[i];
         
         if (!covered[v]) {

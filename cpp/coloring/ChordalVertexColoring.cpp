@@ -23,7 +23,7 @@ void ChordalVertexColoring::run() {
     std::vector<uint8_t> used_colors(n + 1, false); 
     colors.clear();
 
-    for (NetworKit::count i = n; i >= 1; i--) {
+    for (NetworKit::index i = n; i >= 1; i--) {
         NetworKit::node v = peo->alpha_inv[i];
         std::vector<NetworKit::node> n_plus;
 

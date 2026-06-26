@@ -21,12 +21,12 @@ namespace Koala {
  * this will be a Perfect Elimination Ordering.
  */
 struct PerfectEliminationOrdering {
-   std::vector<NetworKit::count> alpha;     // node -> position in ordering
+   std::vector<NetworKit::index> alpha;     // node -> position in ordering
    std::vector<NetworKit::node> alpha_inv;  // position in ordering -> node
 
    PerfectEliminationOrdering(NetworKit::count n = 0, NetworKit::count bound = 0);
 
-   void set(NetworKit::node v, NetworKit::count pos);
+   void set(NetworKit::node v, NetworKit::index pos);
 };
 
 /**
@@ -113,12 +113,12 @@ private:
    class SetArray {
    public:
       SetArray(const NetworKit::Graph& graph);
-      void add(NetworKit::node v, NetworKit::count set);
-      void remove(NetworKit::node v, NetworKit::count set);
-      NetworKit::node getHead(NetworKit::count set) const;
-      bool isEmpty(NetworKit::count set) const;
+      void add(NetworKit::node v, NetworKit::index set);
+      void remove(NetworKit::node v, NetworKit::index set);
+      NetworKit::node getHead(NetworKit::index set) const;
+      bool isEmpty(NetworKit::index set) const;
 
-      static constexpr NetworKit::count INITIAL_SET = 0;
+      static constexpr NetworKit::index INITIAL_SET = 0;
 
    private:
       struct VertexNode {
@@ -171,24 +171,24 @@ private:
       bool isProcessed(NetworKit::node w) const;
 
    private:
-      static constexpr NetworKit::count NO_SET = 0;
-      static constexpr NetworKit::count INITIAL_SET = 1;
-      static constexpr NetworKit::count PROCESSED_SET =
-         std::numeric_limits<NetworKit::count>::max();
+      static constexpr NetworKit::index NO_SET = 0;
+      static constexpr NetworKit::index INITIAL_SET = 1;
+      static constexpr NetworKit::index PROCESSED_SET =
+         std::numeric_limits<NetworKit::index>::max();
 
-      void removeVertex(NetworKit::node v, NetworKit::count set);
-      void addVertex(NetworKit::node v, NetworKit::count set);
-      void removeSet(NetworKit::count set);
+      void removeVertex(NetworKit::node v, NetworKit::index set);
+      void addVertex(NetworKit::node v, NetworKit::index set);
+      void removeSet(NetworKit::index set);
 
       struct SetNode {
          NetworKit::node head{ NetworKit::none };
-         NetworKit::count prev{ NO_SET };
-         NetworKit::count next{ NO_SET };
-         NetworKit::count split_into{ NO_SET };
+         NetworKit::index prev{ NO_SET };
+         NetworKit::index next{ NO_SET };
+         NetworKit::index split_into{ NO_SET };
       };
 
       struct VertexNode {
-         NetworKit::count set_id{ NO_SET };
+         NetworKit::index set_id{ NO_SET };
          NetworKit::node prev{ NetworKit::none };
          NetworKit::node next{ NetworKit::none };
       };
@@ -196,9 +196,9 @@ private:
       std::vector<SetNode> sets;
       std::vector<VertexNode> vertices;
 
-      NetworKit::count first_set;
-      std::vector<NetworKit::count> free_sets;
-      std::vector<NetworKit::count> active_splits;
+      NetworKit::index first_set;
+      std::vector<NetworKit::index> free_sets;
+      std::vector<NetworKit::index> active_splits;
    };
 };
 

@@ -16,7 +16,7 @@ PerfectEliminationOrdering::PerfectEliminationOrdering(NetworKit::count n, Netwo
     : alpha(bound, 0), alpha_inv(n + 1, NetworKit::none) {
 }
 
-void PerfectEliminationOrdering::set(NetworKit::node v, NetworKit::count pos) {
+void PerfectEliminationOrdering::set(NetworKit::node v, NetworKit::index pos) {
     alpha[v] = pos;
     alpha_inv[pos] = v;
 }
