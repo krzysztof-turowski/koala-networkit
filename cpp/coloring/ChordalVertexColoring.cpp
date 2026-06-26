@@ -12,7 +12,7 @@
 namespace Koala {
 
 ChordalVertexColoring::ChordalVertexColoring(
-    NetworKit::Graph &graph, const PerfectEliminationOrdering &peo)
+    const NetworKit::Graph &graph, const PerfectEliminationOrdering &peo)
     : VertexColoring(graph), peo(peo) {
 }
 

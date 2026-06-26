@@ -1,5 +1,5 @@
 /*
- * ChordalMaxClique.hpp
+ * ChordalClique.hpp
  *
  *  Created on: 2026-06-26
  *      Author: Mateusz Przebieracz

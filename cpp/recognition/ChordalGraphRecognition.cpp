@@ -7,7 +7,6 @@
 
 #include "recognition/ChordalGraphRecognition.hpp"
 
-#include <algorithm>
 #include <vector>
 
 namespace Koala {

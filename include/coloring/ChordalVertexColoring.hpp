@@ -27,7 +27,7 @@ class ChordalVertexColoring final : public VertexColoring {
      * @param graph The input chordal graph.
      * @param peo A valid perfect elimination ordering.
      */
-    ChordalVertexColoring(NetworKit::Graph &graph, const PerfectEliminationOrdering &peo);
+    ChordalVertexColoring(const NetworKit::Graph &graph, const PerfectEliminationOrdering &peo);
 
     void run() override;
 

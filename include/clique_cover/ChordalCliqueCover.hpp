@@ -1,5 +1,5 @@
 /*
- * ChordalMinCliqueCover.hpp
+ * ChordalCliqueCover.hpp
  *
  *  Created on: 2026-06-26
  *      Author: Mateusz Przebieracz
