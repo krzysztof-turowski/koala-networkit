@@ -7,10 +7,10 @@
 
 #pragma once
 
+#include <optional>
+
 #include "independent_set/IndependentSet.hpp"
 #include "recognition/ChordalGraphRecognition.hpp"
-
-#include <optional>
 
 namespace Koala {
 

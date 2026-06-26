@@ -13,7 +13,7 @@ void ChordalIndependentSet::run() {
     hasRun = true;
     NetworKit::count n = graph->numberOfNodes();
     NetworKit::count bound = graph->upperNodeIdBound();
-    
+
     if (n == 0) return;
 
     if (!peo.has_value()) {
@@ -27,11 +27,11 @@ void ChordalIndependentSet::run() {
 
     for (NetworKit::index i = 1; i <= n; i++) {
         NetworKit::node v = peo->alpha_inv[i];
-        
+
         if (!covered[v]) {
             independentSet.push_back(v);
             covered[v] = true;
-            
+
             for (auto w : graph->neighborRange(v)) {
                 if (peo->alpha[w] > i) {
                     covered[w] = true;

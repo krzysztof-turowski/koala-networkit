@@ -4,14 +4,15 @@
 
 namespace Koala {
 
-ChordalVertexColoring::ChordalVertexColoring(NetworKit::Graph &graph, const PerfectEliminationOrdering &peo)
+ChordalVertexColoring::ChordalVertexColoring(
+    NetworKit::Graph &graph, const PerfectEliminationOrdering &peo)
     : VertexColoring(graph), peo(peo) {
 }
 
 void ChordalVertexColoring::run() {
     hasRun = true;
     NetworKit::count n = graph->numberOfNodes();
-    
+
     if (n == 0) return;
 
     if (!peo.has_value()) {
@@ -20,7 +21,7 @@ void ChordalVertexColoring::run() {
         peo = recognizer.getPEO();
     }
 
-    std::vector<uint8_t> used_colors(n + 1, false); 
+    std::vector<uint8_t> used_colors(n + 1, false);
     colors.clear();
 
     for (NetworKit::index i = n; i >= 1; i--) {

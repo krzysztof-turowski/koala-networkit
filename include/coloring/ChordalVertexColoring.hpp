@@ -7,10 +7,10 @@
 
 #pragma once
 
+#include <optional>
+
 #include "coloring/VertexColoring.hpp"
 #include "recognition/ChordalGraphRecognition.hpp"
-
-#include <optional>
 
 namespace Koala {
 

@@ -2,6 +2,9 @@
  * LexBFSChordalGraphRecognition.cpp
  */
 
+#include <algorithm>
+#include <vector>
+
 #include "recognition/ChordalGraphRecognition.hpp"
 
 namespace Koala {
@@ -21,7 +24,8 @@ LexBFSChordalGraphRecognition::SetQueue::SetQueue(const NetworKit::Graph& graph)
     for (auto v : graph.nodeRange()) addVertex(v, INITIAL_SET);
 }
 
-void LexBFSChordalGraphRecognition::SetQueue::removeVertex(NetworKit::node v, NetworKit::index set) {
+void LexBFSChordalGraphRecognition::SetQueue::removeVertex(
+    NetworKit::node v, NetworKit::index set) {
     NetworKit::node prev = vertices[v].prev;
     NetworKit::node next = vertices[v].next;
 

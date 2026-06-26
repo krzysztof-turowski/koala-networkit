@@ -7,10 +7,10 @@
 
 #pragma once
 
+#include <optional>
+
 #include "clique/Clique.hpp"
 #include "recognition/ChordalGraphRecognition.hpp"
-
-#include <optional>
 
 namespace Koala {
 

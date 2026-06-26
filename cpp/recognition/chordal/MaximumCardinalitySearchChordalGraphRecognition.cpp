@@ -5,6 +5,9 @@
  *      Author: Mateusz Przebieracz
  */
 
+#include <limits>
+#include <vector>
+
 #include "recognition/ChordalGraphRecognition.hpp"
 
 namespace Koala {
@@ -34,8 +37,7 @@ void MaximumCardinalitySearchChordalGraphRecognition::SetArray::remove(
     NetworKit::node v, NetworKit::index set) {
     if (vertices[v].prev != NetworKit::none) {
         vertices[vertices[v].prev].next = vertices[v].next;
-    }
-    else {
+    } else {
         head[set] = vertices[v].next;
     }
 
@@ -47,11 +49,13 @@ void MaximumCardinalitySearchChordalGraphRecognition::SetArray::remove(
     vertices[v].next = NetworKit::none;
 }
 
-bool MaximumCardinalitySearchChordalGraphRecognition::SetArray::isEmpty(NetworKit::index set) const {
+bool MaximumCardinalitySearchChordalGraphRecognition::SetArray::isEmpty(
+    NetworKit::index set) const {
     return head[set] == NetworKit::none;
 }
 
-NetworKit::node MaximumCardinalitySearchChordalGraphRecognition::SetArray::getHead(NetworKit::index set) const {
+NetworKit::node MaximumCardinalitySearchChordalGraphRecognition::SetArray::getHead(
+    NetworKit::index set) const {
     return head[set];
 }
 
@@ -93,7 +97,8 @@ PerfectEliminationOrdering MaximumCardinalitySearchChordalGraphRecognition::getM
     return ordering;
 }
 
-bool MaximumCardinalitySearchChordalGraphRecognition::isZeroFillIn(const PerfectEliminationOrdering& ordering) const {
+bool MaximumCardinalitySearchChordalGraphRecognition::isZeroFillIn(
+    const PerfectEliminationOrdering& ordering) const {
     NetworKit::count n = graph.numberOfNodes();
     NetworKit::count bound = graph.upperNodeIdBound();
 

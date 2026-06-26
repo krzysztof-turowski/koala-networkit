@@ -1,3 +1,6 @@
+#include <utility>
+#include <vector>
+
 #include "clique_cover/ChordalCliqueCover.hpp"
 
 namespace Koala {
@@ -11,7 +14,7 @@ void ChordalMinCliqueCover::run() {
     hasRun = true;
     NetworKit::count n = graph->numberOfNodes();
     NetworKit::count bound = graph->upperNodeIdBound();
-    
+
     if (n == 0) return;
 
     if (!peo.has_value()) {
@@ -25,7 +28,7 @@ void ChordalMinCliqueCover::run() {
 
     for (NetworKit::index i = 1; i <= n; i++) {
         NetworKit::node v = peo->alpha_inv[i];
-        
+
         if (!covered[v]) {
             std::vector<NetworKit::node> C_v;
             C_v.push_back(v);

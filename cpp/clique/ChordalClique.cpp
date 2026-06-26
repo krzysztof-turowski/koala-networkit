@@ -10,7 +10,7 @@ ChordalMaxClique::ChordalMaxClique(
 void ChordalMaxClique::run() {
     hasRun = true;
     NetworKit::count n = graph->numberOfNodes();
-    
+
     if (n == 0) return;
 
     if (!peo.has_value()) {
@@ -25,13 +25,13 @@ void ChordalMaxClique::run() {
     for (NetworKit::index i = n; i >= 1; i--) {
         NetworKit::node v = peo->alpha_inv[i];
         NetworKit::count n_plus_size = 0;
-        
+
         for (auto w : graph->neighborRange(v)) {
             if (peo->alpha[w] > i) {
                 n_plus_size++;
             }
         }
-        
+
         if (n_plus_size + 1 > omega_max) {
             omega_max = n_plus_size + 1;
             v_max = v;
