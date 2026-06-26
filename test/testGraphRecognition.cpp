@@ -104,19 +104,24 @@ INSTANTIATE_TEST_SUITE_P(
     test_cographs_habib_paul_example, CographHabibPaulRecognitionTest, cographs);
 
 auto chordal_graphs = testing::Values(
+    GraphRecognitionParameters{0, {}, true},
+    GraphRecognitionParameters{1, {}, true},
+    GraphRecognitionParameters{4, {}, true},
+    GraphRecognitionParameters{4, {{0, 1}, {0, 2}, {0, 3}, {1, 2}, {1, 3}, {2, 3}}, true},
     GraphRecognitionParameters{4, {{0, 1}, {1, 2}, {2, 3}, {3, 0}, {0, 2}}, true},
     GraphRecognitionParameters{4, {{0, 1}, {1, 2}, {2, 3}, {3, 0}}, false},
     GraphRecognitionParameters{5, {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {4, 0}}, false},
     GraphRecognitionParameters{4, {{0, 1}, {0, 2}, {0, 3}}, true},
-    GraphRecognitionParameters{5, {{0, 1}, {0, 2}, {0, 3}, {0, 4}, 
-                                   {1, 2}, {1, 3}, {1, 4}, 
-                                   {2, 3}, {2, 4}, 
-                                   {3, 4}}, true},
+    GraphRecognitionParameters{
+        5, {{0, 1}, {0, 2}, {0, 3}, {0, 4},
+            {1, 2}, {1, 3}, {1, 4},
+            {2, 3}, {2, 4},
+            {3, 4}}, true},
     GraphRecognitionParameters{5, {{0, 1}, {1, 2}, {2, 0}, {3, 4}}, true},
-    GraphRecognitionParameters{6, {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {4, 5}, {5, 0}, 
-                                   {1, 4}, {1, 5}, {2, 4}}, true},
-    GraphRecognitionParameters{5, {{0, 1}, {1, 2}, {2, 3}, {3, 0}, {0, 4}}, false}
-);
+    GraphRecognitionParameters{
+        6, {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {4, 5}, {5, 0},
+            {1, 4}, {1, 5}, {2, 4}}, true},
+    GraphRecognitionParameters{5, {{0, 1}, {1, 2}, {2, 3}, {3, 0}, {0, 4}}, false});
 
 template <typename Algorithm>
 void ChordalRecognitionTest(GraphRecognitionParameters parameters) {
@@ -128,8 +133,10 @@ void ChordalRecognitionTest(GraphRecognitionParameters parameters) {
     EXPECT_EQ(is_chordal, parameters.is_recognized);
 }
 
-class ChordalGraphMCSRecognitionTest : public testing::TestWithParam<GraphRecognitionParameters> { };
-class ChordalGraphLexBFSRecognitionTest : public testing::TestWithParam<GraphRecognitionParameters> { };
+class ChordalGraphMCSRecognitionTest
+    : public testing::TestWithParam<GraphRecognitionParameters> { };
+class ChordalGraphLexBFSRecognitionTest
+    : public testing::TestWithParam<GraphRecognitionParameters> { };
 
 TEST_P(ChordalGraphMCSRecognitionTest, test_chordal_graphs) {
     ChordalRecognitionTest<Koala::MaximumCardinalitySearchChordalGraphRecognition>(GetParam());
@@ -139,14 +146,6 @@ TEST_P(ChordalGraphLexBFSRecognitionTest, test_chordal_graphs) {
     ChordalRecognitionTest<Koala::LexBFSChordalGraphRecognition>(GetParam());
 }
 
+INSTANTIATE_TEST_SUITE_P(test_chordal_graphs_mcs, ChordalGraphMCSRecognitionTest, chordal_graphs);
 INSTANTIATE_TEST_SUITE_P(
-    test_chordal_graphs_mcs, 
-    ChordalGraphMCSRecognitionTest, 
-    chordal_graphs
-);
-
-INSTANTIATE_TEST_SUITE_P(
-    test_chordal_graphs_lexbfs, 
-    ChordalGraphLexBFSRecognitionTest, 
-    chordal_graphs
-);
+    test_chordal_graphs_lexbfs, ChordalGraphLexBFSRecognitionTest, chordal_graphs);
