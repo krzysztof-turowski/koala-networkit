@@ -1,8 +1,8 @@
 /*
  * ChordalGraphRecognition.hpp
  *
- *  Created on:
- *      Author:
+ *  Created on: 2026-06-26
+ *      Author: Mateusz Przebieracz
  */
 
 #pragma once

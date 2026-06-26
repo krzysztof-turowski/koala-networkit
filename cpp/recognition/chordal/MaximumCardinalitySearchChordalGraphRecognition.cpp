@@ -1,7 +1,7 @@
 /*
  * MaximumCardinalitySearchChordalGraphRecognition.cpp
  *
- *  Created on: 2026-04-14
+ *  Created on: 2026-06-26
  *      Author: Mateusz Przebieracz
  */
 

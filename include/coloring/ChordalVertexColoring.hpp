@@ -1,7 +1,7 @@
 /*
  * ChordalVertexColoring.hpp
  *
- *  Created on: 2026-05-25
+ *  Created on: 2026-06-26
  *      Author: Mateusz Przebieracz
  */
 

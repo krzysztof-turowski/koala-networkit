@@ -1,3 +1,10 @@
+/*
+ * CliqueCover.cpp
+ *
+ *  Created on: 2026-06-26
+ *      Author: Mateusz Przebieracz
+ */
+
 #include <graph/GraphTools.hpp>
 
 #include "clique_cover/CliqueCover.hpp"

@@ -1,3 +1,10 @@
+/*
+ * ChordalVertexColoring.cpp
+ *
+ *  Created on: 2026-06-26
+ *      Author: Mateusz Przebieracz
+ */
+
 #include "coloring/ChordalVertexColoring.hpp"
 
 #include <vector>

@@ -1,8 +1,8 @@
 /*
  * ChordalGraphRecognition.cpp
  *
- *  Created on:
- *      Author:
+ *  Created on: 2026-06-26
+ *      Author: Mateusz Przebieracz
  */
 
 #include "recognition/ChordalGraphRecognition.hpp"

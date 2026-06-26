@@ -1,3 +1,10 @@
+/*
+ * ChordalIndependentSet.cpp
+ *
+ *  Created on: 2026-06-26
+ *      Author: Mateusz Przebieracz
+ */
+
 #include "independent_set/ChordalIndependentSet.hpp"
 
 #include <vector>

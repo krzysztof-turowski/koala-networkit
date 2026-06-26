@@ -1,3 +1,10 @@
+/*
+ * ChordalClique.cpp
+ *
+ *  Created on: 2026-06-26
+ *      Author: Mateusz Przebieracz
+ */
+
 #include "clique/ChordalClique.hpp"
 
 namespace Koala {
