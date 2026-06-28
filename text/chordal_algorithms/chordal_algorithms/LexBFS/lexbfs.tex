@@ -1,0 +1,139 @@
+\chapter{Chordal graph recognition algorithm of Rose, Tarjan, and Lueker}
+
+\section{Introduction}
+Let us consider the linear recognition algorithm for chordal graphs by Rose, Tarjan, and Lueker \cite{RoseTarjanLueker1976}. Historically, this was the first linear-time algorithm for chordal graph recognition. It relies on a specialized graph traversal technique known as Lexicographic Breadth-First Search (LexBFS). 
+
+\section{Idea}
+The fundamental idea is that a graph is chordal if and only if it has a perfect elimination ordering (PEO). The algorithm generates a specific vertex ordering $\alpha \colon V \to \{1, \dots, n\}$ that is guaranteed to be a PEO if the graph is chordal. Once this ordering is generated, a second phase verifies whether the ordering actually produces zero fill-in. If it does, the graph is chordal; otherwise, it is not.
+
+The algorithm consists of two parts: \texttt{LexBFS} (to generate the ordering) and \texttt{FILL} (to verify whether the ordering is a PEO).
+
+\section{Function \texttt{LexBFS}}
+
+\subsection{Idea}
+LexBFS assigns an elimination ordering $\alpha$ from $n$ down to $1$. Each unnumbered vertex $v$ maintains a label consisting of the elimination numbers of its already-numbered neighbors, sorted in decreasing order. At each step, the algorithm selects the unnumbered vertex with the lexicographically largest label.
+
+\subsection{Implementation}
+Explicitly maintaining and comparing lists of numbers would be too slow. To achieve an $O(n + m)$ time complexity, we group unnumbered vertices that have the exact same label into sets. These sets are kept in a queue, ordered lexicographically from highest to lowest label. 
+
+Initially, all vertices have an empty label and are placed in a single set. When a vertex $v$ is numbered, we examine all its unnumbered neighbors. For each unnumbered neighbour $w$, we remove it from its current set $S$. If this is the first time we are removing a vertex from $S$ during the processing of $v$, we create a new set $S'$ immediately preceding $S$ in the queue, and place $w$ into $S'$. This guarantees that vertices gaining the new highest number in their label are moved ahead of those that do not, maintaining the lexicographic order.
+
+\subsection{Pseudocode}
+
+\begin{algorithm}[H]
+\caption{Lexicographic Breadth-First Search (\texttt{LexBFS})}
+\begin{algorithmic}[1]
+\Function{LexBFS}{$G = (V, E)$}
+    \State Create a single set $S_0$ containing all vertices $V$
+    \State Initialize a queue $Q$ containing only $S_0$
+    \For{$i \gets n$ \textbf{downto} $1$}
+        \State Let $S$ be the first non-empty set in $Q$
+        \State Remove a vertex $v$ from $S$
+        \State $\alpha[v] \gets i, \ \alpha^{-1}[i] \gets v$
+        \For{each unnumbered neighbor $w$ of $v$}
+            \State Let $S_w$ be the set containing $w$
+            \If{a new set $S'_w$ was not created for $S_w$ during step $i$}
+                \State Create a new set $S'_w$ and insert it in $Q$ just before $S_w$
+            \EndIf
+            \State Move $w$ from $S_w$ to $S'_w$
+        \EndFor
+        \State Remove any empty sets from $Q$
+    \EndFor
+    \State \Return $\alpha, \alpha^{-1}$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\section{Function \texttt{FILL}}
+
+\subsection{Idea}
+\texttt{FILL} tests for zero fill-in by simulating the elimination process. For each vertex $v$, its higher-numbered neighbors must form a clique. By Lemma \ref{lem:peo_follower}, this implies that all such neighbors must also be neighbors of $f(v)$ -- the follower of $v$. We propagate these edges to $f(v)$ and count them. If the total number of edges in this simulated elimination graph exceeds the original number of edges, fill-in was created, meaning $G$ is not chordal.
+
+
+\subsection{Implementation}
+We initialize lists $A[v]$ with the original higher-numbered neighbors and record the total initial edge count $m_{\text{orig}}$. For each $v$ in elimination order, we use a boolean array \texttt{test} to simultaneously deduplicate $A[v]$, find $f(v)$, and count the unique edges. The unique neighbors (excluding $f(v)$) are then appended to $A[f(v)]$. If the accumulated edge count $m_{\text{elim}}$ exceeds the original $m_{\text{orig}}$, $\alpha$ is not a PEO.
+
+\subsection{Pseudocode}
+
+\begin{algorithm}[H]
+\caption{Zero Fill-In Test (\texttt{FILL})}
+\begin{algorithmic}[1]
+\Function{Fill}{$G = (V, E), \alpha, \alpha^{-1}$}
+    \State Initialize lists $A[v] = \{w \in N(v) : \alpha[v] < \alpha[w]\}$ for all $v$
+    \State $m_{\text{orig}} \gets \sum |A[v]|$
+    \State $\texttt{test} \gets$ boolean array of size $n+1$, initialized to \textbf{false}
+    \State $m_{\text{elim}} \gets 0$
+    
+    \For{$i \gets 1$ \textbf{to} $n-1$}
+        \State $v \gets \alpha^{-1}[i]$
+        \State $k \gets n$, $\texttt{unique\_A} \gets$ empty list
+        
+        \For{each $w \in A[v]$}
+            \If{\textbf{not} $\texttt{test}[\alpha[w]]$}
+                \State $\texttt{test}[\alpha[w]] \gets \textbf{true}$
+                \State $\texttt{unique\_A}.\texttt{append}(w)$
+                \State $k \gets \min\{k, \alpha[w]\}$
+            \EndIf
+        \EndFor
+        
+        \State $m_{\text{elim}} \gets m_{\text{elim}} + \texttt{unique\_A.size()}$
+        \If{$m_{\text{elim}} > m_{\text{orig}}$} \Return \texttt{NOT\_CHORDAL} \EndIf
+        
+        \State $f(v) \gets \alpha^{-1}[k]$
+        \For{each $w \in \texttt{unique\_A}$}
+            \State $\texttt{test}[\alpha[w]] \gets \textbf{false}$
+            \If{$w \neq f(v)$} $A[f(v)].\texttt{append}(w)$ \EndIf
+        \EndFor
+    \EndFor
+    \State \Return \texttt{CHORDAL}
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+
+\section{Correctness}
+
+To prove the correctness of the overall algorithm, we first show that \texttt{LexBFS} generates a perfect elimination ordering, and then we show that \texttt{FILL} correctly verifies it.
+
+\begin{lemma}
+Any ordering $\alpha$ generated by \texttt{LexBFS} satisfies Property P.
+\end{lemma}
+\begin{proof}
+Suppose $u <_\alpha v <_\alpha w$ with $\{u, w\} \in E$ and $\{v, w\} \notin E$. When \texttt{LexBFS} selects $v$ to be numbered, $w$ has already been numbered (since $v <_\alpha w$), and $u$ is unnumbered. Let $L(y)$ denote the lexicographic label of an unnumbered vertex $y$. Because $\{u, w\} \in E$ and $\{v, w\} \notin E$, the elimination number $\alpha(w)$ is present in $L(u)$ but not in $L(v)$.
+
+However, the algorithm chooses to number $v$ before $u$, meaning $L(v)$ is lexicographically greater than or equal to $L(u)$. For this to be true despite $\alpha(w) \in L(u)$, there must be some elimination number strictly greater than $\alpha(w)$ that is present in $L(v)$ but not in $L(u)$. Let this number belong to a vertex $x$. Since $\alpha(x) > \alpha(w) > \alpha(v)$, $x$ was numbered before $v$. Thus, $v <_\alpha x$, $\{v, x\} \in E$, and $\{u, x\} \notin E$, satisfying Property P.
+\end{proof}
+
+\begin{theorem}
+If $G$ is a chordal graph, the ordering $\alpha$ generated by \texttt{LexBFS} is a perfect elimination ordering.
+\end{theorem}
+\begin{proof}
+Follows immediately from the previous lemma and Theorem \ref{thm:property_p_peo}.
+\end{proof}
+
+\begin{theorem}
+The \texttt{FILL} algorithm correctly determines whether $\alpha$ is a perfect elimination ordering.
+\end{theorem}
+\begin{proof}
+By Lemma \ref{lem:peo_follower}, $\alpha$ is a PEO if and only if for every $v$, all of its higher-numbered neighbors $w$ are connected to the follower $f(v)$. 
+
+The \texttt{FILL} algorithm mathematically simulates the creation of an elimination graph $G^*$ by enforcing this lemma. For each vertex $v$, the algorithm identifies the follower $f(v)$ (denoted in the code as $\alpha^{-1}[k]$) and adds the required edges $\{w, f(v)\}$ to the adjacency lists. It accumulates the total number of unique edges required to satisfy the lemma into $m_{\text{elim}}$.
+
+If $\alpha$ is a PEO, no new edges are required; every propagated edge already exists in the graph, and $m_{\text{elim}}$ will exactly equal the original number of higher-numbered edges, $m_{\text{orig}}$. If $m_{\text{elim}} > m_{\text{orig}}$, it implies that a missing edge was propagated to enforce the clique condition, meaning fill-in was generated, and $G$ is not chordal.
+\end{proof}
+
+\section{Complexity}
+
+\begin{theorem}
+The total time complexity of the algorithm is $O(n + m)$.
+\end{theorem}
+
+\begin{proof}
+Let us analyze the complexity of the two phases separately:
+\begin{itemize}
+    \item \texttt{LexBFS}: By implementing the queue of sets and the sets themselves as doubly-linked lists, all set operations take constant time. Each vertex is added to and removed from a set exactly once, taking $O(1)$ time. The inner loop processes each edge $\{v, w\}$ exactly twice. Moving a vertex to a newly created preceding set involves basic pointer operations in a doubly linked list, which is $O(1)$. Thus, the \texttt{LexBFS} phase runs in $O(n + m)$ time.
+    
+    \item \texttt{FILL}: We simulate the elimination process by maintaining adjacency lists $A[v]$ of higher-numbered neighbors. The use of the \texttt{test} array allows us to eliminate duplicates in time proportional to $|A[v]|$. Because the algorithm aborts and returns \texttt{NOT\_CHORDAL} the moment the total number of edges $m_{\text{elim}}$ in the elimination graph exceeds the original number of edges $m_{\text{orig}}$, the maximum number of elements appended to, and subsequently processed from, all $A[v]$ lists across the entire execution is strictly bounded by $m_{\text{orig}}$. Since maintaining the \texttt{test} array and updating elements takes $O(1)$ time per element, this phase also runs in strictly $O(n + m)$ time.
+\end{itemize}
+Combining both parts, the overall time complexity of the chordal graph recognition algorithm is $O(n + m)$, and the space complexity is $O(n + m)$ to store the graph, the sets, and the simulated adjacency lists.
+\end{proof}

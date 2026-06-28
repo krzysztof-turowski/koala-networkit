@@ -1,0 +1,172 @@
+\chapter{Introduction}
+
+\section{Chordal graph information}
+
+Chordal graphs, also known as triangulated graphs or rigid circuit graphs, form one of the most widely studied classes of perfect graphs. Early foundational work on chordal graphs was conducted by Dirac (1961) \cite{Dirac1961}, who first characterized them in terms of simplicial vertices, and by Fulkerson and Gross (1965) \cite{FulkersonGross1965}. 
+
+The subclasses of chordal graphs include trees, interval graphs, split graphs, and strongly chordal graphs. Regarding the superclasses of chordal graphs, they encompass perfect graphs, weakly chordal graphs, and hole-free graphs \cite{Brandstadt1999}. 
+
+An important application of chordal graphs arises in numerical linear algebra, specifically in the study of Gaussian elimination on sparse symmetric matrices, where they model zero fill-in \cite{RoseTarjanLueker1976}. They also play a significant role in relational database theory for representing acyclic database schemes \cite{TarjanYannakakis1984}.
+
+This thesis focuses on the implementation and analysis of linear-time algorithms for chordal graphs. We begin by examining two foundational recognition methods: Lexicographic Breadth-First Search (LexBFS) and Maximum Cardinality Search (MCS). Both algorithms confirm a graph's chordality by constructing a Perfect Elimination Ordering (PEO). Building on this, we show how the PEO can be used to solve several classical graph problems in linear time, specifically finding the maximum clique, minimum vertex coloring, maximum independent set, and minimum clique cover. 
+
+While the PEO allows for efficient solutions to many graph problems that are otherwise difficult on general graphs, other problems remain computationally demanding even for this class. Table \ref{tab:chordal_complexity} summarizes the computational complexity of various well-known graph problems when restricted to chordal graphs. The algorithms that we implement and discuss in this work are marked in \textbf{bold}.
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{|l|c|}
+\hline
+\textbf{Problem} & \textbf{Complexity} \\
+\hline
+\textbf{Recognition} & \textbf{Linear} \cite{RoseTarjanLueker1976, TarjanYannakakis1984} \\
+\textbf{Maximum Clique} & \textbf{Linear} \cite{Gavril1972} \\
+\textbf{Minimum Vertex Coloring} & \textbf{Linear} \cite{Gavril1972}  \\
+\textbf{Maximum Independent Set} & \textbf{Linear} \cite{Gavril1972} \\
+\textbf{Minimum Clique Cover} & \textbf{Linear} \cite{Gavril1972} \\
+Treewidth Decomposition & Polynomial \cite{Bodlaender1993} \\
+Feedback Vertex Set & Polynomial \cite{Festa2000} \\
+Graph Isomorphism & GI-complete \cite{Zemlyachenko1985} \\
+Cutwidth Decomposition & NP-complete \cite{Heggernes2008} \\
+Domination & NP-complete \cite{BoothJohnson1982} \\
+Hamiltonian Cycle / Path & NP-complete \cite{ColbournStewart1985} \\
+Maximum Cut & NP-complete \cite{BodlaenderJansen2000} \\
+\hline
+\end{tabular}
+\caption{Computational complexity of selected graph problems for chordal graphs. The algorithms implemented in this work are highlighted in bold.}
+\label{tab:chordal_complexity}
+\end{table}
+
+\section{Basic definitions}
+
+The following standard graph theory definitions are sourced from Bollobás' ``Modern Graph Theory'' \cite{Bollobas1998}. We begin by defining the fundamental components of a graph and its substructures.
+
+\begin{definition}[Graph]
+A graph $G$ is an ordered pair of disjoint sets $(V, E)$ such that $V$ is a set of vertices and $E$ is a subset of the set $\binom{V}{2}$ of unordered pairs of $V$. We typically denote the number of vertices by $n = |V|$ and the number of edges by $m = |E|$.
+\end{definition}
+
+\begin{definition}[Subgraph]
+A graph $G' = (V', E')$ is a subgraph of $G = (V, E)$ if $V' \subseteq V$ and $E' \subseteq E$.
+\end{definition}
+
+\begin{definition}[Induced subgraph]
+If $G' = (V', E')$ is a subgraph of $G$ and $G'$ contains all the edges of $G$ that join two vertices in $V'$, then $G'$ is said to be an induced subgraph of $G$ or spanned by $V'$ and it is denoted by $G[V']$.
+\end{definition}
+
+Next, we formalize the concepts of vertex connectivity and graph traversal.
+
+\begin{definition}[Neighbors]
+We denote a set of neighbors of vertex $v$ in a graph $G = (V, E)$ by $N(v) = \{x : \{v,x\} \in E\}$. The degree of a vertex $v$, denoted as $\deg(v)$, is the size of its neighborhood, i.e., $\deg(v) = |N(v)|$. 
+\end{definition}
+
+\begin{definition}[Path]
+A path is a sequence of distinct vertices $v_1, v_2, \dots, v_k$ such that $\{v_i, v_{i+1}\} \in E$ for $1 \le i < k$. 
+\end{definition}
+
+\begin{definition}[Cycle]
+If a path $v_1, v_2, \dots, v_k$ is such that $k \ge 3$ and $\{v_k, v_1\} \in E$, then it is said to be a cycle. The length of a cycle is the number of its vertices.
+\end{definition}
+
+Having established the basic structural components of a graph, we now introduce the specific subsets and numerical parameters associated with four classical graph optimization problems. 
+
+\begin{definition}[Clique and Clique Number]
+A clique in a graph $G$ is a subset of vertices $C \subseteq V$ such that every two distinct vertices in $C$ are adjacent. The \textit{clique number} of $G$, denoted by $\omega(G)$, is the number of vertices in a maximum clique of $G$.
+\end{definition}
+
+\begin{definition}[Independent Set and Independence Number]
+An independent set in a graph $G$ is a subset of vertices $I \subseteq V$ such that no two vertices in $I$ are adjacent. The \textit{independence number} of $G$, denoted by $\alpha(G)$, is the number of vertices in a maximum independent set of $G$.
+\end{definition}
+
+\begin{definition}[Vertex Coloring and Chromatic Number]
+A proper vertex coloring of a graph $G$ is an assignment of colors to the vertices of $V$ such that no two adjacent vertices share the same color. The \textit{chromatic number} of $G$, denoted by $\chi(G)$, is the minimum number of colors required for a proper vertex coloring of $G$.
+\end{definition}
+
+\begin{definition}[Clique Cover and Clique Cover Number]
+A clique cover of a graph $G$ is a partition of the vertex set $V$ into subsets, such that each subset induces a clique in $G$. The \textit{clique cover number} of $G$, denoted by $k(G)$, is the minimum number of cliques needed to cover all vertices of $G$.
+\end{definition}
+
+\section{Chordal graph}
+
+We continue by defining the class of chordal graphs.
+
+\begin{definition}[Chord]
+Let $C = v_1, v_2, \dots, v_k$ be a cycle in a graph $G$. A chord of $C$ is an edge $\{v_i, v_j\} \in E$ that connects two non-consecutive vertices of the cycle.
+\end{definition}
+
+\begin{definition}[Chordal graph]
+A graph $G$ is chordal if every cycle of length at least $4$ has a chord. 
+\end{definition}
+
+Equivalently, a graph is chordal if and only if it does not contain any induced cycle of length $4$ or greater (i.e., it is hole-free). 
+
+\section{Perfect elimination ordering and followers}
+
+The algorithmic recognition of chordal graphs relies heavily on the concept of vertex orderings. Let $\alpha \colon V \to \{1, 2, \dots, n\}$ be a bijection defining a total ordering of the vertices of $G$. We will use the notation $v <_\alpha w$ to denote that $\alpha(v) < \alpha(w)$.
+
+Relative to an ordering $\alpha$, the neighborhood $N(v)$ of a vertex $v$ can be partitioned into two disjoint sets:
+\begin{itemize}
+    \item $N^+(v) = \{w \in N(v) : v <_\alpha w\}$, which denotes the set of neighbors of $v$ that appear after $v$ in the ordering,
+    \item $N^-(v) = \{w \in N(v) : w <_\alpha v\}$, which denotes the set of neighbors of $v$ that appear before $v$ in the ordering.
+\end{itemize}
+
+\begin{definition}[Perfect elimination ordering \cite{RoseTarjanLueker1976}]
+A perfect elimination ordering (PEO) of a graph $G = (V, E)$ is an ordering of its vertices such that for every vertex $v$, $N^+(v)$ induces a clique in $G$.
+\end{definition}
+
+The cornerstone of chordal graph recognition algorithms is the following theorem, originally proven by Dirac:
+
+\begin{theorem} \textup{\cite{Dirac1961}}
+A graph $G$ is a chordal graph if and only if it has a perfect elimination ordering.
+\end{theorem}
+
+When verifying if a generated ordering is a PEO, checking every pair of vertices in $N^+(v)$ would be computationally expensive. Instead, both algorithms for recognition rely on a more efficient structural property using the concept of a \textit{follower}.
+
+\begin{definition}[Follower]
+Let $\alpha$ be an ordering of vertices in $G$. For any vertex $v$ where $N^+(v) \neq \emptyset$, its follower $f(v)$ is the vertex in $N^+(v)$ with the minimum $\alpha$ value, i.e., $f(v) = \arg\min_u\{\alpha(u) \colon u \in N^+(v)\}$.
+\end{definition}
+
+\begin{lemma}[PEO-Follower Lemma]
+\label{lem:peo_follower}
+An ordering $\alpha$ is a perfect elimination ordering of $G = (V, E)$ if and only if for every vertex $v \in V$ with $N^+(v) \neq \emptyset$, and for every $w \in N^+(v) \setminus \{f(v)\}$, the edge $\{f(v), w\} \in E$.
+\end{lemma}
+
+\begin{proof}
+$(\implies)$ If $\alpha$ is a PEO, then $N^+(v)$ induces a clique. Since $f(v)$ and $w$ are distinct vertices in $N^+(v)$, they must be adjacent.
+
+$(\impliedby)$ We prove by induction on $i = \alpha(v)$ from $n$ down to $1$ that $N^+(v)$ is a clique. The base cases $i=n$ and $i=n-1$ are trivial, as $|N^+(v)| \le 1$. Assume the claim holds for all vertices with $\alpha(x) > i$, meaning that the ordering restricted to the subgraph induced by vertices $\{\alpha^{-1}(n), \dots, \alpha^{-1}(i+1)\}$ is a valid PEO. Consider the vertex $v$ with $\alpha(v) = i$. 
+
+Let $w_1$ and $w_2$ be distinct vertices in $N^+(v)$. By definition, $f(v)$ is the vertex in $N^+(v)$ minimizing $\alpha$. If $f(v)$ is either $w_1$ or $w_2$, then the lemma's condition directly ensures $\{w_1, w_2\} \in E$. Otherwise, the condition implies $\{f(v), w_1\} \in E$ and $\{f(v), w_2\} \in E$, making both $w_1$ and $w_2$ higher-numbered neighbors of $f(v)$. Since $\alpha(f(v)) > \alpha(v) = i$, the inductive hypothesis ensures that $N^+(f(v))$ induces a clique. Consequently, $w_1$ and $w_2$ must be adjacent. Thus, $N^+(v)$ is a clique. The entire ordering $\alpha$ is confirmed to be a PEO once the induction reaches $1$.
+\end{proof}
+
+\section{Property P}
+
+To generate a PEO, popular greedy algorithms traverse the graph in a specific way. Tarjan and Yannakakis \cite{TarjanYannakakis1984} generalized the correctness of these traversals by defining a structural invariant we will refer to as \textit{Property P}.
+
+\begin{definition}[Property P]
+An ordering $\alpha$ satisfies Property P if, for any three vertices $u <_\alpha v <_\alpha w$ where $\{u, w\} \in E$ and $\{v, w\} \notin E$, there exists a vertex $x$ such that $v <_\alpha x$, $\{v, x\} \in E$, and $\{u, x\} \notin E$.
+\end{definition}
+
+\begin{theorem}
+\label{thm:property_p_peo}
+If a graph $G$ is chordal, any ordering $\alpha$ satisfying Property P is a perfect elimination ordering.
+\end{theorem}
+
+\begin{proof}
+Assume $G$ is chordal and $\alpha$ has Property P. We prove by contradiction that $\alpha$ is a PEO. 
+
+If $\alpha$ is not a PEO, then there must exist a vertex whose higher-numbered neighbors do not induce a clique. Thus, there exist vertices $u$, $v$, and $w$ such that $u <_\alpha v <_\alpha w$, with $\{u, v\} \in E$ and $\{u, w\} \in E$, but $\{v, w\} \notin E$. This forms a chordless path $w, u, v$ of length 2. If we denote $v_0 = w$, $v_1 = u$, and $v_2 = v$, we observe that $v_0 >_\alpha v_2 >_\alpha v_1$ and $v_1 <_\alpha v_2$.
+
+Let us generalize this structure. We define a \textit{V-shaped chordless path} as a chordless path $P = v_0, v_1, \dots, v_k$ ($k \ge 2$) such that for some index \\ $i \in \{1, 2, \ldots, k-1\}$, the elimination numbers strictly decrease from the endpoints down to $v_i$:
+\[ v_0 >_\alpha v_k >_\alpha v_1 >_\alpha v_2 > \dots >_\alpha v_i \quad \text{and} \quad v_i <_\alpha v_{i+1} < \dots <_\alpha v_k \]
+Since the path $w, u, v$ (with $k=2$ and $i=1$) satisfies these inequalities, the set of V-shaped chordless paths is non-empty. Among all such paths, choose one that maximizes the elimination number of its second-highest endpoint, $\alpha(v_k)$.
+
+Since $v_0$ and $v_1$ are adjacent but $v_0$ and $v_k$ are not, we have the triplet $v_1 <_\alpha v_k <_\alpha v_0$ with $\{v_1, v_0\} \in E$ and $\{v_k, v_0\} \notin E$. By Property P, there exists a vertex $x$ such that $v_k <_\alpha x$, $\{v_k, x\} \in E$, and $\{v_1, x\} \notin E$. 
+
+Let $j \ge 2$ be the minimum index such that $v_j$ is adjacent to $x$ (we know $j \neq 1$ because $\{v_1, x\} \notin E$). Because $G$ is chordal, $x$ cannot be adjacent to $v_0$; otherwise, the sequence $v_0, v_1, \dots, v_j, x, v_0$ would form a chordless cycle of length 4 or more. Thus, $\{v_0, x\} \notin E$. 
+
+Because $x$ is adjacent to $v_j$ but not to $v_0, \dots, v_{j-1}$, a new chordless path is formed between $v_0$ and $x$. 
+\begin{itemize}
+    \item If $v_0 >_\alpha x$, the path $v_0, v_1, \dots, v_j, x$ is a V-shaped chordless path.
+    \item If $x >_\alpha v_0$, the path $x, v_j, v_{j-1}, \dots, v_0$ is a V-shaped chordless path.
+\end{itemize}
+In either case, the new path has a second-highest endpoint strictly greater than $v_k$ (since both $x >_\alpha v_k$ and $v_0 >_\alpha v_k$). This contradicts our choice of $P$ as the path maximizing $\alpha(v_k)$. Therefore, no such V-shaped chordless path can exist, which in turn means our initial assumption was false. Thus, $\alpha$ must be a perfect elimination ordering.
+\end{proof}

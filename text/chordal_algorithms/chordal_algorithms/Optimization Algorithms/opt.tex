@@ -1,0 +1,226 @@
+\chapter{Some optimization problems on chordal graphs}
+
+\section{Introduction}
+
+In the general study of algorithmic graph theory, classical optimization problems such as finding the maximum clique, minimum vertex coloring, maximum independent set, and minimum clique cover are known to be NP-complete. However, chordal graphs belong to the family of \textit{perfect graphs}, which inherently satisfy the strong duality relationships $\omega(G) = \chi(G)$ and $\alpha(G) = k(G)$. \cite{Berge1961}
+
+More importantly, from a computational perspective, the existence of a Perfect Elimination Ordering (PEO) allows us to bypass the NP-completeness of these problems entirely. The foundational work translating the mathematical properties of chordal graphs into linear-time optimization algorithms was introduced by Fănică Gavril in 1972 \cite{Gavril1972}.
+
+In this chapter, we assume that a recognition algorithm (such as LexBFS or MCS) has already been executed on the chordal graph $G=(V, E)$, providing a valid perfect elimination ordering $\alpha$ alongside its inverse array $\alpha^{-1}$. By utilizing $N^+(v)$, we will demonstrate how to solve all four of these classical problems in a single pass over the ordering.
+
+% =========================================================================
+% MAXIMUM CLIQUE
+% =========================================================================
+
+\section{Maximum Clique}
+
+\subsection{Idea}
+In a general graph, finding a maximum clique requires an exhaustive search. In a chordal graph, the PEO completely localizes this search. Because every vertex $v$ together with $N^+(v)$ forms a clique by the definition of a PEO, every maximal clique in the graph is uniquely anchored by the vertex within it that appears earliest in the elimination ordering. Consequently, to find the maximum clique, we simply need to evaluate the size of the clique $\{v\} \cup N^+(v)$ for all $v \in V$ and select the largest one.
+
+\subsection{Implementation}
+Assuming we have the PEO $\alpha$, determining the size of the maximum clique is straightforward. We initialize a variable $\omega_{max} = 0$. We then iterate over every vertex $v \in V$, isolating its higher-numbered neighbors to compute $|N^+(v)|$. The size of the clique initiated by $v$ is exactly $|N^+(v)| + 1$. We update $\omega_{max}$ if this value is strictly greater than the current $\omega_{max}$. To extract the actual vertices of the maximum clique (rather than just its size), we simply remember the vertex $v_{max}$ that yielded the maximum value. The maximum clique itself is exactly $\{v_{max}\} \cup N^+(v_{max})$.
+
+\subsection{Pseudocode}
+
+\begin{algorithm}[H]
+\caption{Find Maximum Clique}
+\begin{algorithmic}[1]
+\Function{Maximum-Clique}{$G = (V, E), \alpha$}
+    \State $\omega_{max} \gets 0$
+    \State $v_{max} \gets \textbf{null}$
+    
+    \For{each $v \in V$}
+        \State $N^+ \gets$ empty list
+        \For{each neighbor $w$ of $v$}
+            \If{$\alpha[v] < \alpha[w]$}
+                \State $N^+.\texttt{append}(w)$
+            \EndIf
+        \EndFor
+        
+        \State $\texttt{current\_size} \gets N^+.\texttt{size}() + 1$
+        
+        \If{$\texttt{current\_size} > \omega_{max}$}
+            \State $\omega_{max} \gets \texttt{current\_size}$
+            \State $v_{max} \gets v$
+        \EndIf
+    \EndFor
+    
+    \State $\texttt{MaxClique} \gets$ empty list
+    \State $\texttt{MaxClique}.\texttt{append}(v_{max})$
+    \For{each neighbor $w$ of $v_{max}$}
+        \If{$\alpha[v_{max}] < \alpha[w]$}
+            \State $\texttt{MaxClique}.\texttt{append}(w)$
+        \EndIf
+    \EndFor
+    
+    \State \Return $\texttt{MaxClique}, \omega_{max}$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Correctness}
+
+\begin{theorem}
+The \textsc{Maximum-Clique} algorithm correctly identifies the maximum clique of a chordal graph.
+\end{theorem}
+\begin{proof}
+Let $C$ be an arbitrary maximal clique in the chordal graph $G$. Since $C$ is a finite subset of vertices, there must exist a unique vertex $v \in C$ such that $\alpha(v) = \min_{w \in C} \alpha(w)$. Because $v$ is the vertex in $C$ with the smallest elimination number, every other vertex $w \in C$ satisfies $\alpha(v) < \alpha(w)$. Furthermore, since $C$ is a clique, $v$ is adjacent to all other vertices in $C$. Thus, $(C \setminus \{v\}) \subseteq N^+(v)$, which implies $C \subseteq \{v\} \cup N^+(v)$.
+
+By the definition of a perfect elimination ordering, $\{v\} \cup N^+(v)$ is a clique in $G$. Since $C$ is a maximal clique and $C \subseteq \{v\} \cup N^+(v)$, it must be that $C = \{v\} \cup N^+(v)$. 
+
+Because every maximal clique takes this exact form, the set of all maximal cliques in $G$ is a subset of the collection of sets $\{\{v\} \cup N^+(v)\}_{v \in V}$. Therefore, calculating $|N^+(v)| + 1$ for all vertices and taking the maximum is guaranteed to find the size of the maximum clique of $G$.
+\end{proof}
+
+% =========================================================================
+% MINIMUM VERTEX COLORING
+% =========================================================================
+
+\section{Minimum Vertex Coloring}
+
+\subsection{Idea}
+The standard First-Fit (or greedy) coloring algorithm sequentially assigns each vertex the smallest available color not already used by its colored neighbors. While First-Fit performs poorly on general graphs for arbitrary vertex orderings, it behaves perfectly on chordal graphs if the vertices are processed in the exact reverse order of the perfect elimination ordering (from $n$ down to $1$). In this specific sequence, the local constraints dynamically force a globally optimal coloring.
+
+\subsection{Implementation}
+To implement the First-Fit algorithm, we process the vertices $v = \alpha^{-1}[i]$ in decreasing order of $i$. When coloring $v$, the neighbors that have already been assigned a color are exactly the set $N^+(v)$. 
+
+We maintain an array $\texttt{color}[v]$ initialized to $0$. To find the smallest available color for $v$ in $O(|N^+(v)|)$ time, we use an auxiliary boolean array $\texttt{used}$. We mark the colors of all vertices in $N^+(v)$ as \textbf{true} in the $\texttt{used}$ array, scan sequentially for the first \textbf{false} index to assign to $\texttt{color}[v]$, and then reset the modified entries in the $\texttt{used}$ array to prepare for the next iteration.
+
+\subsection{Pseudocode}
+
+\begin{algorithm}[H]
+\caption{Minimum Vertex Coloring}
+\begin{algorithmic}[1]
+\Function{First-Fit}{$G = (V, E), \alpha, \alpha^{-1}$}
+    \State $\texttt{color} \gets$ array of size $n+1$, initialized to $0$
+    \State $\texttt{used} \gets$ boolean array of size $n+1$, initialized to \textbf{false}
+    \State $\chi_{max} \gets 0$
+    
+    \For{$i \gets n$ \textbf{downto} $1$}
+        \State $v \gets \alpha^{-1}[i]$
+        
+        \For{each neighbor $w$ of $v$}
+            \If{$\alpha[v] < \alpha[w]$}
+                \State $\texttt{used}[\texttt{color}[w]] \gets \textbf{true}$
+            \EndIf
+        \EndFor
+        
+        \State $\texttt{color}[v] \gets \min\{c\in\mathbb{N}_+ : \texttt{used}[c] = \textbf{false}\}$
+        \State $\chi_{max} \gets \max\{\chi_{max}, \texttt{color}[v]\}$
+
+        \For{each neighbor $w$ of $v$} \Comment{Reset array for the next iteration}
+            \If{$\alpha[v] < \alpha[w]$}
+                \State $\texttt{used}[\texttt{color}[w]] \gets \textbf{false}$
+            \EndIf
+        \EndFor
+    \EndFor
+    
+    \State \Return $\texttt{color}, \chi_{max}$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Correctness}
+
+\begin{theorem}
+The \textsc{First-Fit} algorithm operating in reverse perfect elimination order produces an optimal coloring of a chordal graph, proving that $\chi(G) = \omega(G)$.
+\end{theorem}
+\begin{proof}
+It is a universal fact for all graphs that the chromatic number $\chi(G)$ must be at least the size of the maximum clique $\omega(G)$, because every vertex in a clique must receive a distinct color. Hence, $\chi(G) \ge \omega(G)$.
+
+Consider the First-Fit algorithm running in reverse PEO. When the algorithm attempts to assign a color to a vertex $v$, the only constraints acting upon $v$ come from the set of its already colored neighbors, which is exactly $N^+(v)$. 
+
+Because $\alpha$ is a perfect elimination ordering, the set $\{v\} \cup N^+(v)$ induces a clique in $G$. The size of this clique is $|N^+(v)| + 1$. By the definition of the maximum clique $\omega(G)$, no clique in $G$ can exceed $\omega(G)$ in size. Therefore, $|N^+(v)| + 1 \le \omega(G)$, which directly implies that $|N^+(v)| \le \omega(G) - 1$.
+
+Since $v$ has at most $\omega(G) - 1$ already-colored neighbors, there will always be at least one available color in the range $\{1, 2, \dots, \omega(G)\}$. 
+
+Thus, the algorithm will successfully color the entire graph without ever requiring a color strictly greater than $\omega(G)$. This proves that $\chi(G) \le \omega(G)$. Thus, the algorithm is optimal and $\chi(G) = \omega(G)$.
+\end{proof}
+
+% =========================================================================
+% MAXIMUM INDEPENDENT SET & MINIMUM CLIQUE COVER
+% =========================================================================
+
+\section[Maximum Independent Set and Minimum Clique Cover]{Maximum Independent Set\\ and Minimum Clique Cover}
+
+\subsection{Idea}
+Because an independent set contains vertices that are pairwise non-adjacent, no single clique can ever cover more than one vertex of an independent set. Thus, the size of any independent set is a natural lower bound for the size of any clique cover, establishing the universal inequality $\alpha(G) \le k(G)$. If we can construct an independent set and a clique cover of the exact same size, we guarantee that both are perfectly optimal. Gavril \cite{Gavril1972} demonstrated that by greedily processing a chordal graph in the perfect elimination order (from $1$ to $n$), both structures can be built simultaneously and optimally.
+
+\subsection{Implementation}
+We maintain a boolean array $\texttt{covered}$ initialized to \textbf{false} for all vertices. We also initialize an empty list $I$ to store the maximum independent set, and a list of lists $K$ to store the minimum clique cover. We process the vertices $v = \alpha^{-1}[i]$ in increasing order of $i$ from $1$ to $n$. 
+
+If $v$ is already marked as $\texttt{covered}$, we simply ignore it and continue. If $v$ is not $\texttt{covered}$, it means that no clique generated so far has encompassed $v$. We immediately append $v$ to our independent set $I$. At the same time, we construct a new clique $C_v = \{v\} \cup N^+(v)$ and append $C_v$ to our clique cover $K$. Finally, we mark $v$ and all of its neighbors in $N^+(v)$ as $\texttt{covered}$. Once the loop concludes, $I$ contains the maximum independent set, and $K$ contains the minimum clique cover.
+
+\subsection{Pseudocode}
+
+\begin{algorithm}[H]
+\caption{Max Independent Set \& Min Clique Cover}
+\begin{algorithmic}[1]
+\Function{Independent-Set-Clique-Cover}{$G = (V, E), \alpha, \alpha^{-1}$}
+    \State $\texttt{covered} \gets$ boolean array of size $n+1$, initialized to \textbf{false}
+    \State $I \gets$ empty list \Comment{Maximum Independent Set}
+    \State $K \gets$ empty list of lists \Comment{Minimum Clique Cover}
+    
+    \For{$i \gets 1$ \textbf{to} $n$}
+        \State $v \gets \alpha^{-1}[i]$
+        
+        \If{\textbf{not} $\texttt{covered}[v]$}
+            \State $I.\texttt{append}(v)$
+            \State $C_v \gets$ empty list
+            \State $C_v.\texttt{append}(v)$
+            \State $\texttt{covered}[v] \gets \textbf{true}$
+            
+            \For{each neighbor $w$ of $v$}
+                \If{$\alpha[v] < \alpha[w]$}
+                    \State $C_v.\texttt{append}(w)$
+                    \State $\texttt{covered}[w] \gets \textbf{true}$
+                \EndIf
+            \EndFor
+            
+            \State $K.\texttt{append}(C_v)$
+        \EndIf
+    \EndFor
+    
+    \State \Return $I, K$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Correctness}
+
+\begin{theorem}
+The \textsc{Independent-Set-Clique-Cover} algorithm produces a valid independent set $I$ and a valid clique cover $K$ of equal size, proving that $\alpha(G) = k(G)$.
+\end{theorem}
+\begin{proof}
+We must verify three things: that $K$ is a valid clique cover, that $I$ is a valid independent set, and that their optimality is guaranteed.
+
+\textbf{1. $K$ is a valid clique cover:} Every subset $C_v$ added to $K$ is of the form $\{v\} \cup N^+(v)$. Because $\alpha$ is a PEO, this subset is a clique in $G$. Furthermore, every vertex in the graph is eventually marked as covered. A vertex is covered either because it triggered the creation of its own clique $C_v$, or because it was swept into the clique $C_u$ of some earlier, lower-numbered neighbor $u$. Hence, the union of all cliques in $K$ covers $V$.
+
+\textbf{2. $I$ is a valid independent set:} Suppose that two vertices $u, v \in I$ are adjacent. Because $\alpha$ is a total ordering, one must appear before the other. Without loss of generality, assume $\alpha(u) < \alpha(v)$. Since they are adjacent, $v$ is a higher-numbered neighbor of $u$, meaning $v \in N^+(u)$.
+
+When the algorithm processed $u$ at step $\alpha(u)$, it was added to $I$, and the clique $C_u = \{u\} \cup N^+(u)$ was generated. During this step, every vertex in $C_u$ was permanently marked as \texttt{covered}. Since $v \in N^+(u)$, $v$ was marked as covered at step $\alpha(u)$. Later, when the algorithm reached step $\alpha(v)$ to evaluate $v$, the condition \textbf{if not} $\texttt{covered}[v]$ would evaluate to \textbf{false}. Consequently, $v$ could not possibly be added to $I$. This contradicts the assumption that both $u$ and $v$ are in $I$. Thus, no two vertices in $I$ can be adjacent, and $I$ is a valid independent set.
+
+\textbf{3. Optimality:} By the mechanics of the algorithm, exactly one element is added to $I$ each time a new clique is added to $K$. Therefore, $|I| = |K|$. As established earlier, the size of any independent set cannot exceed the size of any clique cover, meaning $|I| \le \alpha(G) \le k(G) \le |K|$. Since $|I| = |K|$, this collapses into an equality: $|I| = \alpha(G) = k(G) = |K|$. This proves that both the generated independent set and the clique cover are optimal.
+\end{proof}
+
+% =========================================================================
+% RUNNING TIME
+% =========================================================================
+
+\section{Complexity}
+
+\begin{theorem}
+The total time complexity for each of the optimization algorithms presented in this chapter is $O(n + m)$.
+\end{theorem}
+
+\begin{proof}
+This linear complexity stems from the fact that all algorithms utilize the exact same structural traversal mechanism. Processing the vertices in the order dictated by $\alpha$ (either forward or reverse) allows the algorithms to evaluate local constraints simply by inspecting the adjacency list $N(v)$ of each vertex $v$ and filtering for higher-numbered neighbors $N^+(v)$.
+
+Specifically:
+\begin{itemize}
+    \item \textbf{Maximum Clique:} For each vertex $v$, identifying $N^+(v)$ requires a single iteration over the adjacency list of $v$. The size computation and maximum update take $O(1)$ time per vertex. 
+    \item \textbf{Minimum Vertex Coloring:} The algorithm iterates through $N(v)$ twice per vertex (once to mark the colors used by $N^+(v)$ and once to unmark them). Finding the lowest available color using the boolean array takes time proportional to the number of used colors, which is bounded by $\deg(v)$.
+    \item \textbf{Independent Set and Clique Cover:} The algorithm iterates through $N(v)$ exactly once when an uncovered vertex $v$ is encountered, in order to mark the vertices forming the newly covered clique as \texttt{covered}.
+\end{itemize}
+
+In all algorithms, the dominant operation is iterating over the adjacency lists. Over the course of the outer loop running $n$ times, every adjacency list is traversed a constant number of times. The sum of the degrees of all vertices is $2m$. Combined with $O(n)$ array initializations, the total time complexity for any of these optimization passes is strictly bounded by $O(n + m)$.
+\end{proof}
