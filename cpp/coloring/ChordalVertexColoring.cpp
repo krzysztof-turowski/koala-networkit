@@ -29,16 +29,17 @@ void ChordalVertexColoring::run() {
     }
 
     std::vector<uint8_t> used_colors(n + 1, false);
-    colors.clear();
+    std::vector<NetworKit::count> color_arr(graph->upperNodeIdBound(), 0);
+    std::vector<NetworKit::node> n_plus;
 
     for (NetworKit::index i = n; i >= 1; i--) {
         NetworKit::node v = peo->alpha_inv[i];
-        std::vector<NetworKit::node> n_plus;
+        n_plus.clear();
 
         for (auto w : graph->neighborRange(v)) {
             if (peo->alpha[w] > i) {
                 n_plus.push_back(w);
-                used_colors[colors[w]] = true;
+                used_colors[color_arr[w]] = true;
             }
         }
 
@@ -46,11 +47,16 @@ void ChordalVertexColoring::run() {
         while (used_colors[c]) {
             c++;
         }
-        colors[v] = c;
+        color_arr[v] = c;
 
         for (auto w : n_plus) {
-            used_colors[colors[w]] = false;
+            used_colors[color_arr[w]] = false;
         }
+    }
+
+    colors.clear();
+    for (auto v : graph->nodeRange()) {
+        colors.emplace_hint(colors.end(), v, color_arr[v]);
     }
 }
 
