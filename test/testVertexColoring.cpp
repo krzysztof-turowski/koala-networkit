@@ -3,10 +3,13 @@
 #include <algorithm>
 #include <list>
 
+#include <coloring/ChordalVertexColoring.hpp>
+#include <coloring/CographVertexColoring.hpp>
 #include <coloring/ExactVertexColoring.hpp>
 #include <coloring/GreedyVertexColoring.hpp>
-#include <coloring/CographVertexColoring.hpp>
 #include <coloring/PerfectGraphVertexColoring.hpp>
+#include <recognition/ChordalGraphRecognition.hpp>
+#include <recognition/CographRecognition.hpp>
 
 #include <test/helpers.hpp>
 
@@ -276,4 +279,33 @@ INSTANTIATE_TEST_SUITE_P(
     test_example, CographVertexColoringTest, testing::Values(
     VertexColoringParameters{
         6, {{0, 2}, {0, 3}, {0, 4}, {0, 1}, {5, 1}, {5, 2}, {5, 3}, {5, 4}}, 1}
+));
+
+class ChordalVertexColoringTest
+    : public testing::TestWithParam<VertexColoringParameters> { };
+
+TEST_P(ChordalVertexColoringTest, test) {
+    VertexColoringParameters const &parameters = GetParam();
+    NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
+    auto recognition = Koala::MaximumCardinalitySearchChordalGraphRecognition(G);
+    recognition.run();
+    EXPECT_TRUE(recognition.isChordal());
+    auto algorithm = Koala::ChordalVertexColoring(G, recognition.getPEO());
+    algorithm.run();
+    check(parameters, algorithm.getColoring(), algorithm.getMaximumColor());
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    test_example, ChordalVertexColoringTest, testing::Values(
+    VertexColoringParameters{0, {}, 0},
+    VertexColoringParameters{1, {}, 1},
+    VertexColoringParameters{4, {{0, 1}, {0, 2}, {0, 3}}, 2},
+    VertexColoringParameters{4, {{0, 1}, {1, 2}, {2, 3}, {3, 0}, {0, 2}}, 3},
+    VertexColoringParameters{
+        5, {{0, 1}, {0, 2}, {0, 3}, {0, 4},
+            {1, 2}, {1, 3}, {1, 4}, {2, 3}, {2, 4}, {3, 4}}, 5},
+    VertexColoringParameters{5, {{0, 1}, {1, 2}, {2, 0}, {3, 4}}, 3},
+    VertexColoringParameters{
+        6, {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {4, 5}, {5, 0},
+            {1, 4}, {1, 5}, {2, 4}}, 3}
 ));

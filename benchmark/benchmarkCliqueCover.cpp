@@ -4,21 +4,13 @@
 #include <vector>
 
 #include <benchmark/utils.hpp>
-#include <clique/ChordalClique.hpp>
-#include <clique/CographClique.hpp>
+#include <clique_cover/ChordalCliqueCover.hpp>
 #include <recognition/ChordalGraphRecognition.hpp>
-#include <recognition/CographRecognition.hpp>
 
 template<typename T>
 int run_algorithm(NetworKit::Graph &G) {
-    std::vector<NetworKit::node> max_clique;
-    if constexpr (std::is_same_v<T, Koala::CographMaxClique>) {
-        auto recognition = Koala::HabibPaulCographRecognition(G);
-        recognition.run();
-        Koala::CographMaxClique algorithm = T(G, recognition.cotree);
-        algorithm.run();
-        max_clique = algorithm.getMaxClique();
-    } else if constexpr (std::is_same_v<T, Koala::ChordalMaxClique>) {
+    std::vector<std::vector<NetworKit::node>> cover;
+    if constexpr (std::is_same_v<T, Koala::ChordalMinCliqueCover>) {
         auto recognition = Koala::MaximumCardinalitySearchChordalGraphRecognition(G);
         recognition.run();
         if (!recognition.isChordal()) {
@@ -26,31 +18,23 @@ int run_algorithm(NetworKit::Graph &G) {
         }
         auto algorithm = T(G, recognition.getPEO());
         algorithm.run();
-        max_clique = algorithm.getMaxClique();
-    } else {
-        auto algorithm = T(G);
-        algorithm.run();
-        max_clique = algorithm.getMaxClique();
+        cover = algorithm.getCliqueCover();
     }
 
-    std::cout << max_clique.size() << " " << std::flush;
-    return max_clique.size();
+    std::cout << cover.size() << " " << std::flush;
+    return cover.size();
 }
 
-enum class Algorithm : uint32_t { COGRAPH, CHORDAL };
+enum class Algorithm : uint32_t { CHORDAL };
 
 std::map<std::string, Algorithm> ALGORITHM = {
-    { "cograph", Algorithm::COGRAPH },
     { "chordal", Algorithm::CHORDAL }
 };
 
 void choose_algorithm(NetworKit::Graph &G, Algorithm algorithm) {
     switch (algorithm) {
-    case Algorithm::COGRAPH:
-        run_algorithm<Koala::CographMaxClique>(G);
-        break;
     case Algorithm::CHORDAL:
-        run_algorithm<Koala::ChordalMaxClique>(G);
+        run_algorithm<Koala::ChordalMinCliqueCover>(G);
         break;
     }
 }

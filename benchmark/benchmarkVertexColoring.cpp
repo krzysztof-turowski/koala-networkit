@@ -9,10 +9,12 @@
 #include <string>
 
 #include <benchmark/utils.hpp>
+#include <coloring/ChordalVertexColoring.hpp>
 #include <coloring/CographVertexColoring.hpp>
 #include <coloring/ExactVertexColoring.hpp>
 #include <coloring/GreedyVertexColoring.hpp>
 #include <coloring/PerfectGraphVertexColoring.hpp>
+#include <recognition/ChordalGraphRecognition.hpp>
 #include <recognition/CographRecognition.hpp>
 #include <recognition/PerfectGraphRecognition.hpp>
 
@@ -48,6 +50,24 @@ NetworKit::count run_algorithm(NetworKit::Graph &G) {
 }
 
 template<typename T>
+requires std::derived_from<T, Koala::ChordalVertexColoring>
+NetworKit::count run_algorithm(NetworKit::Graph &G) {
+    auto recognition = Koala::MaximumCardinalitySearchChordalGraphRecognition(G);
+    recognition.run();
+    if (!recognition.isChordal()) {
+        throw std::invalid_argument("Graph is not chordal");
+    }
+    auto algorithm = T(G, recognition.getPEO());
+    algorithm.run();
+    auto colors = algorithm.getColoring();
+
+    algorithm.check();
+    auto max_color = algorithm.getMaximumColor();
+    std::cout << max_color << " " << std::flush;
+    return max_color;
+}
+
+template<typename T>
 requires std::derived_from<T, Koala::PerfectGraphVertexColoring>
 NetworKit::count run_algorithm(NetworKit::Graph &G) {
     auto recognition = Koala::PerfectGraphRecognition(G);
@@ -70,7 +90,7 @@ enum class Algorithm : uint32_t {
     EXACT = 1,
     RS, LF, SL, SLF, GIS,
     BROWN = 10, CHRISTOFIDES, BRELAZ, KORMAN,
-    PERFECT = 100, COGRAPH
+    PERFECT = 100, COGRAPH, CHORDAL
 };
 
 std::map<std::string, Algorithm> ALGORITHM = {
@@ -85,7 +105,8 @@ std::map<std::string, Algorithm> ALGORITHM = {
     { "Brelaz", Algorithm::BRELAZ },
     { "Korman", Algorithm::KORMAN },
     { "perfect", Algorithm::PERFECT },
-    { "cograph", Algorithm::COGRAPH }
+    { "cograph", Algorithm::COGRAPH },
+    { "chordal", Algorithm::CHORDAL }
 };
 
 void choose_algorithm(NetworKit::Graph &G, Algorithm algorithm) {
@@ -130,6 +151,9 @@ void choose_algorithm(NetworKit::Graph &G, Algorithm algorithm) {
         break;
     case Algorithm::COGRAPH:
         run_algorithm<Koala::CographVertexColoring>(G);
+        break;
+    case Algorithm::CHORDAL:
+        run_algorithm<Koala::ChordalVertexColoring>(G);
         break;
     }
 }

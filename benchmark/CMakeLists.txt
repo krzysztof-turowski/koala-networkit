@@ -44,6 +44,16 @@ koala_make_benchmark(
     benchmarkMaxClique.sh)
 
 koala_make_benchmark(
+    benchmark_chordal_graphs
+    benchmarkChordalGraphs.cpp
+    benchmarkChordalGraphs.sh)
+
+koala_make_benchmark(
+    benchmark_clique_cover
+    benchmarkCliqueCover.cpp
+    benchmarkCliqueCover.sh)
+
+koala_make_benchmark(
     benchmark_dominating_set
     benchmarkDominatingSet.cpp
     benchmarkDominatingSet.sh)
@@ -62,8 +72,3 @@ koala_make_benchmark(
     benchmark_planar_shortest_path
     benchmarkPlanarShortestPath.cpp
     benchmarkPlanarShortestPath.sh)
-
-koala_make_benchmark(
-    benchmark_chordal_recognition
-    benchmarkChordalRecognition.cpp
-    benchmarkChordalRecognition.sh)
