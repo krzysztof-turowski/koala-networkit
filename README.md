@@ -81,6 +81,7 @@ Moreover, they set up an online graph editor <a href="https://stos.eti.pg.gda.pl
 1. [Graph recognition](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/recognition/):
     1. [Perfect graphs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/recognition/PerfectGraphRecognition.hpp)
     1. [Cographs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/recognition/CographRecognition.hpp): Habib-Paul, Bretscher-Corneil-Habib-Paul, Corneil-Stewart-Perl, Dahlhaus (sequential)
+    1. [Chordal graphs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/recognition/ChordalGraphRecognition.hpp): Rose-Tarjan-Lueker (LexBFS), Tarjan-Yannakakis
 1. [Graph traversal](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/traversal/): [BFS](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/traversal/BFS.hpp), [DFS](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/traversal/DFS.hpp)
 1. Graph width parameters:
     1. [Algorithm for treewidth and pathwidth in cographs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/pathwidth/CographPathwidth.hpp)
@@ -102,10 +103,15 @@ Moreover, they set up an online graph editor <a href="https://stos.eti.pg.gda.pl
     1. [Exact exponential-time algorithms](https://github.com/krzysztof-turowski/koala-networkit/blob/master/include/coloring/ExactVertexColoring.hpp): Brown, Christofides, Brélaz, Korman
     1. [Grötschel-Lovász-Schrijver algorithm for perfect graphs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/coloring/PerfectGraphVertexColoring.hpp)
     1. [Algorithm for cographs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/coloring/CographVertexColoring.hpp)
+    1. [Algorithm for chordal graphs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/coloring/ChordalVertexColoring.hpp)
 1. [Maximum independent set](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/independent_set/)
     1. [Algorithm for cographs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/independent_set/CographIndependentSet.hpp)
+    1. [Algorithm for chordal graphs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/independent_set/ChordalIndependentSet.hpp)
 1. [Maximum clique](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/clique/)
     1. [Algorithm for cographs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/clique/CographClique.hpp)
+    1. [Algorithm for chordal graphs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/clique/ChordalClique.hpp)
+1. [Minimum clique cover](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/clique_cover/)
+    1. [Algorithm for chordal graphs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/clique_cover/ChordalCliqueCover.hpp)
 1. [Minimum dominating set](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/dominating_set/): Grandoni, Fomin-Grandoni-Kratsch, van Rooij-Bodlaender, Fomin-Kratsch-Woeginger, Schiermeyer
 1. Minimum set cover: [exact branch and reduce](https://github.com/krzysztof-turowski/koala-networkit/blob/master/include/set_cover/BranchAndReduceSetCover.hpp)
 1. [Priority queue](https://github.com/krzysztof-turowski/koala-networkit/blob/master/include/structures/PriorityQueue.hpp)
