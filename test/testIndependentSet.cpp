@@ -1,9 +1,12 @@
 #include <gtest/gtest.h>
 
 #include <list>
+#include <set>
 
-#include "independent_set/IndependentSet.hpp"
+#include "independent_set/ChordalIndependentSet.hpp"
 #include "independent_set/CographIndependentSet.hpp"
+#include "independent_set/IndependentSet.hpp"
+#include "recognition/ChordalGraphRecognition.hpp"
 
 #include "test/helpers.hpp"
 
@@ -22,8 +25,9 @@ class SimpleGraphs : public testing::Test {
         algorithm.run();
 
         auto independentSet = algorithm.getIndependentSet();
+        std::set<NetworKit::node> iset(independentSet.begin(), independentSet.end());
         for (const auto &[u, v] : parameters.E) {
-            EXPECT_FALSE(independentSet.contains(u) && independentSet.contains(v));
+            EXPECT_FALSE(iset.contains(u) && iset.contains(v));
         }
         EXPECT_EQ(independentSet.size(), parameters.expectedSetSize);
     }
@@ -110,3 +114,36 @@ using Algorithms = testing::Types<
     Koala::MeasureAndConquerIndependentSet>;
 
 INSTANTIATE_TYPED_TEST_CASE_P(IndependentSet, SimpleGraphs, Algorithms);
+
+class ChordalIndependentSetTest
+    : public testing::TestWithParam<IndependentSetParameters> { };
+
+TEST_P(ChordalIndependentSetTest, test) {
+    IndependentSetParameters const &parameters = GetParam();
+    NetworKit::Graph G = build_graph(parameters.N, parameters.E, false);
+    auto recognition = Koala::MaximumCardinalitySearchChordalGraphRecognition(G);
+    recognition.run();
+    EXPECT_TRUE(recognition.isChordal());
+    auto algorithm = Koala::ChordalIndependentSet(G, recognition.getPEO());
+    algorithm.run();
+    auto iset = algorithm.getIndependentSet();
+    std::set<NetworKit::node> nodes(iset.begin(), iset.end());
+    for (const auto &[u, v] : parameters.E)
+        EXPECT_FALSE(nodes.contains(u) && nodes.contains(v));
+    EXPECT_EQ(static_cast<int>(iset.size()), parameters.expectedSetSize);
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    test_example, ChordalIndependentSetTest, testing::Values(
+    IndependentSetParameters{0, {}, 0},
+    IndependentSetParameters{1, {}, 1},
+    IndependentSetParameters{4, {{0, 1}, {0, 2}, {0, 3}}, 3},
+    IndependentSetParameters{4, {{0, 1}, {1, 2}, {2, 3}, {3, 0}, {0, 2}}, 2},
+    IndependentSetParameters{
+        5, {{0, 1}, {0, 2}, {0, 3}, {0, 4},
+            {1, 2}, {1, 3}, {1, 4}, {2, 3}, {2, 4}, {3, 4}}, 1},
+    IndependentSetParameters{5, {{0, 1}, {1, 2}, {2, 0}, {3, 4}}, 2},
+    IndependentSetParameters{
+        6, {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {4, 5}, {5, 0},
+            {1, 4}, {1, 5}, {2, 4}}, 2}
+));

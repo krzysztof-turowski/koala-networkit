@@ -3,19 +3,28 @@
 #include <map>
 #include <set>
 #include <string>
+#include <vector>
 
 #include <benchmark/utils.hpp>
+#include <independent_set/ChordalIndependentSet.hpp>
 #include <independent_set/IndependentSet.hpp>
 #include <independent_set/CographIndependentSet.hpp>
+#include <recognition/ChordalGraphRecognition.hpp>
 #include <recognition/CographRecognition.hpp>
 
 template<typename T>
 int run_algorithm(NetworKit::Graph &G) {
-    std::set<NetworKit::node> independent_set;
+    std::vector<NetworKit::node> independent_set;
     if constexpr (std::is_same_v<T, Koala::CographIndependentSet>) {
         auto recognition = Koala::HabibPaulCographRecognition(G);
         recognition.run();
         auto algorithm = T(G, recognition.cotree);
+        algorithm.run();
+        independent_set = algorithm.getIndependentSet();
+    } else if constexpr (std::is_same_v<T, Koala::ChordalIndependentSet>) {
+        auto recognition = Koala::MaximumCardinalitySearchChordalGraphRecognition(G);
+        recognition.run();
+        auto algorithm = T(G, recognition.getPEO());
         algorithm.run();
         independent_set = algorithm.getIndependentSet();
     } else {
@@ -29,7 +38,7 @@ int run_algorithm(NetworKit::Graph &G) {
 }
 
 enum class Algorithm : uint32_t {
-    EXACT, BRUTE_FORCE, MIS1, MIS2, MIS3, MIS4, MIS5, MEASURE_AND_CONQUER, COGRAPH
+    EXACT, BRUTE_FORCE, MIS1, MIS2, MIS3, MIS4, MIS5, MEASURE_AND_CONQUER, COGRAPH, CHORDAL
 };
 
 std::map<std::string, Algorithm> ALGORITHM = {
@@ -38,7 +47,8 @@ std::map<std::string, Algorithm> ALGORITHM = {
     { "MIS1", Algorithm::MIS1 }, { "MIS2", Algorithm::MIS2 }, { "MIS3", Algorithm::MIS3 },
     { "MIS4", Algorithm::MIS4 }, { "MIS5", Algorithm::MIS5 },
     { "MeasureAndConquer", Algorithm::MEASURE_AND_CONQUER },
-    { "cograph", Algorithm::COGRAPH }
+    { "cograph", Algorithm::COGRAPH },
+    { "chordal", Algorithm::CHORDAL }
 };
 
 NetworKit::Graph normalize_graph(NetworKit::Graph &G_directed) {
@@ -87,6 +97,9 @@ void choose_algorithm(NetworKit::Graph &G, Algorithm algorithm) {
         break;
     case Algorithm::COGRAPH:
         run_algorithm<Koala::CographIndependentSet>(G);
+        break;
+    case Algorithm::CHORDAL:
+        run_algorithm<Koala::ChordalIndependentSet>(G);
         break;
     }
 }

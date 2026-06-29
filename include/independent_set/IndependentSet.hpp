@@ -34,9 +34,9 @@ class IndependentSet : public NetworKit::Algorithm {
     /**
      * Return the independent set found by the algorithm.
      *
-     * @return a set of nodes that form an independent set.
+     * @return a vector of nodes that form an independent set.
      */
-    const std::set<NetworKit::node>& getIndependentSet() const;
+    const std::vector<NetworKit::node>& getIndependentSet() const;
 
     /**
      * Execute the maximum independent set finding procedure.
@@ -82,7 +82,7 @@ class IndependentSet : public NetworKit::Algorithm {
     std::vector<NetworKit::node> runIndependentSetDegree2() const;
 
     std::optional<NetworKit::Graph> graph;
-    std::set<NetworKit::node> independentSet;
+    std::vector<NetworKit::node> independentSet;
 };
 
 /**

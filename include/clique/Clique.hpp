@@ -1,7 +1,7 @@
 #pragma once
 
 #include <optional>
-#include <set>
+#include <vector>
 
 #include <networkit/base/Algorithm.hpp>
 #include <networkit/graph/Graph.hpp>
@@ -11,14 +11,14 @@ class MaxClique : public NetworKit::Algorithm {
  public:
     explicit MaxClique(const NetworKit::Graph &graph);
 
-    std::set<NetworKit::node> &getMaxCliqueSet();
+    std::vector<NetworKit::node> &getMaxClique();
 
     virtual void run() = 0;
 
     void check() const;
 
  protected:
-    std::set<NetworKit::node> max_clique;
+    std::vector<NetworKit::node> max_clique;
     std::optional<NetworKit::Graph> graph;
 };
 

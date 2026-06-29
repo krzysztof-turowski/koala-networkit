@@ -21,15 +21,17 @@ bool IndependentSet::edgeComparator(const NetworKit::Edge& a, const NetworKit::E
     return a.u < b.u || (a.u == b.u && a.v < b.v);
 }
 
-const std::set<NetworKit::node>& IndependentSet::getIndependentSet() const {
+const std::vector<NetworKit::node>& IndependentSet::getIndependentSet() const {
     assureFinished();
     return independentSet;
 }
 
 void IndependentSet::check() const {
     assureFinished();
+    std::set<NetworKit::node> independentSetLookup(
+        independentSet.begin(), independentSet.end());
     graph->forEdges([&](NetworKit::node u, NetworKit::node v) {
-        assert(!(independentSet.contains(u) && independentSet.contains(v)));
+        assert(!(independentSetLookup.contains(u) && independentSetLookup.contains(v)));
     });
 }
 
@@ -197,7 +199,7 @@ void BruteForceIndependentSet::run() {
             independentSet.clear();
             for (std::size_t i = 0; i < testSet.size(); ++i) {
                 if (testSet[i]) {
-                    independentSet.insert(i);
+                    independentSet.push_back(i);
                 }
             }
             best = testSetSize;

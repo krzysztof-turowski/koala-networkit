@@ -44,7 +44,7 @@ void CographMaxClique::add_to_set() {
         st.pop();
         Conode &V = cotree.getNode(v);
         if (V.type == NodeType::LEAF) {
-            max_clique.insert(v);
+            max_clique.push_back(v);
         } else if (V.type == NodeType::UNION_NODE) {
             NetworKit::node best = NetworKit::none;
             for (auto child = V.first_child; child != NetworKit::none;

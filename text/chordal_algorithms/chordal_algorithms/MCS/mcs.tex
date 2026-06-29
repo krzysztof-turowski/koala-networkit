@@ -1,0 +1,141 @@
+\chapter{Chordal graph recognition algorithm of Tarjan and Yannakakis}
+
+\section{Introduction}
+Let us consider a linear recognition algorithm for chordal graphs by Tarjan and Yannakakis \cite{TarjanYannakakis1984}. While LexBFS solved the recognition problem in linear time, Tarjan and Yannakakis later introduced a simplified approach based on a new search strategy called Maximum Cardinality Search (MCS). Its main ideas are highly intuitive and avoid the complex queue-of-sets data structure required for lexicographic sorting, replacing it with straightforward bucket-based arrays.
+
+\section{Idea}
+Similar to LexBFS, the algorithm depends on finding a perfect elimination ordering. The algorithm consists of two distinct parts: \texttt{MCS} computes an ordering $\alpha$ that is guaranteed to be a PEO if $G$ is chordal. Then, \texttt{ZERO-FILL-IN-TEST} verifies whether this ordering actually produces zero fill-in.
+Let us look at each of the parts in turn.
+
+\section{Function \texttt{MCS}}
+
+\subsection{Idea}
+Maximum Cardinality Search numbers the vertices from $n$ down to $1$. Instead of maintaining sorted labels of numbered neighbors, it simply counts them. As the next vertex to number, we select an unnumbered vertex adjacent to the largest number of previously numbered vertices.
+
+\subsection{Implementation}
+To implement the MCS efficiently in linear time, we maintain an array of sets $\texttt{set}[i]$ containing all unnumbered vertices adjacent to exactly $i$ numbered vertices. We track the maximum index $j$ such that $\texttt{set}[j]$ is nonempty and keep track of the set a vertex is in with an array $\texttt{size}[v]$. When a vertex $v$ is removed from $\texttt{set}[j]$ and numbered, we iterate over its unnumbered neighbors. A neighbor $w$ currently in $\texttt{set}[k]$ is moved to $\texttt{set}[k+1]$. 
+
+\subsection{Pseudocode}
+
+\begin{algorithm}[H]
+\caption{Maximum Cardinality Search (\texttt{MCS})}
+\begin{algorithmic}[1]
+\Function{MCS}{$G = (V, E)$}
+    \State Initialize $\texttt{set}[0 \dots n-1]$ as empty doubly linked lists
+    \For{each $v \in V$}
+        \State $\texttt{size}[v] \gets 0$, $\texttt{set}[0].\texttt{add}(v)$
+    \EndFor
+    \State $j \gets 0$
+    \For{$i \gets n$ \textbf{downto} $1$}
+        \State $v \gets \texttt{set}[j].\texttt{pop}()$
+        \State $\alpha[v] \gets i$, $\alpha^{-1}[i] \gets v$
+        \State $\texttt{size}[v] \gets -1$ \Comment{Mark as processed}
+        \For{each neighbor $w$ of $v$}
+            \If{$\texttt{size}[w] \ge 0$} \Comment{If $w$ is unnumbered}
+                \State $\texttt{set}[\texttt{size}[w]].\texttt{remove}(w)$
+                \State $\texttt{size}[w] \gets \texttt{size}[w] + 1$
+                \State $\texttt{set}[\texttt{size}[w]].\texttt{add}(w)$
+            \EndIf
+        \EndFor
+        \State $j \gets j + 1$
+        \While{$j \ge 0$ \textbf{and} $\texttt{set}[j] = \emptyset$}
+            \State $j \gets j - 1$
+        \EndWhile
+    \EndFor
+    \State \Return $\alpha, \alpha^{-1}$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+
+\section{Function \texttt{ZERO-FILL-IN-TEST}}
+
+\subsection{Idea}
+Like the LexBFS \texttt{FILL} phase, this test verifies the PEO-Follower Lemma (Lemma \ref{lem:peo_follower}): for every vertex $v$, its follower $f(v)$ must be connected to all other higher-numbered neighbors $w$. 
+
+However, Tarjan and Yannakakis achieve this much more elegantly. Instead of actively propagating adjacency lists forward and counting simulated edges, their algorithm processes each vertex $w$ and looks backward at its lower-numbered neighbors $v$. By using a simple index array to mark the neighbors of $w$, it verifies the existence of the required $\{f(v), w\}$ edges on the fly in $O(1)$ time. This completely avoids dynamic allocations and edge counting, resulting in a significantly simpler and cleaner implementation.
+
+\subsection{Implementation}
+We process vertices $w = \alpha^{-1}[i]$ from $i = 1$ to $n$. We maintain two arrays: $f[v]$ initialized to $v$, and $\texttt{index}[v]$. For each lower-numbered neighbour $v$ of $w$, we set $\texttt{index}[v] = i$ and, if $v$ does not yet have a follower, we assign $f[v] = w$. 
+
+Then, we loop through those same lower-numbered neighbors $v$ again. For $G$ to be chordal, the designated follower $f[v]$ must be connected to $w$. We verify this by checking if $\texttt{index}[f[v]] = i$. If it is not, a fill-in edge is required, and the graph is not chordal.
+
+\subsection{Pseudocode}
+
+
+\begin{algorithm}[H]
+\caption{Zero Fill-In Test}
+\begin{algorithmic}[1]
+\Function{Test-Zero-Fill-In}{$G = (V, E), \alpha, \alpha^{-1}$}
+    \For{$v \in V$} 
+        \State Initialize $f[v] \gets v$ and $\texttt{index}[v] \gets 0$ 
+    \EndFor
+    \For{$i \gets 1$ \textbf{to} $n$}
+        \State $w \gets \alpha^{-1}[i]$
+        \State $\texttt{index}[w] \gets i$
+        
+        \For{each neighbor $v$ of $w$ \textbf{with} $\alpha[v] < i$}
+            \State $\texttt{index}[v] \gets i$
+            \If{$f[v] = v$} $f[v] \gets w$ \EndIf
+        \EndFor
+        
+        \For{each neighbor $v$ of $w$ \textbf{with} $\alpha[v] < i$}
+            \If{$\texttt{index}[f[v]] < i$}
+                \State \Return \texttt{NOT\_CHORDAL} \Comment{Fill-in detected}
+            \EndIf
+        \EndFor
+    \EndFor
+    \State \Return \texttt{CHORDAL}
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\section{Correctness}
+
+Similar to LexBFS, we prove the correctness of MCS by showing that it satisfies Property P, and that the \texttt{ZERO-FILL-IN-TEST} correctly evaluates the Follower condition from the Introduction.
+
+\begin{lemma}
+Any ordering $\alpha$ generated by Maximum Cardinality Search satisfies Property P.
+\end{lemma}
+\begin{proof}
+Suppose $u <_\alpha v <_\alpha w$ with $\{u, w\} \in E$ and $\{v, w\} \notin E$. At the step when the algorithm selects $v$ to be numbered, $w$ is already numbered, while $u$ remains unnumbered.
+
+Because the algorithm chooses to number $v$ before $u$, $v$ must be adjacent to at least as many already-numbered vertices as $u$. We know that $u$ is adjacent to the already-numbered vertex $w$, but $v$ is not. Therefore, to make up for this difference in count, $v$ must be adjacent to some other already-numbered vertex $x$ that is not adjacent to $u$.
+
+Since $x$ is already numbered when $v$ is selected, we have $v <_\alpha x$. Thus, we have established that $\{v, x\} \in E$ and $\{u, x\} \notin E$, which satisfies the definition of Property P.
+\end{proof}
+
+\begin{theorem}
+If $G$ is a chordal graph, the ordering $\alpha$ generated by \texttt{MCS} is a perfect elimination ordering.
+\end{theorem}
+\begin{proof}
+Follows immediately from the previous lemma and Theorem \ref{thm:property_p_peo}.
+\end{proof}
+
+\begin{theorem}
+The \texttt{ZERO-FILL-IN-TEST} algorithm correctly determines whether $\alpha$ is a perfect elimination ordering.
+\end{theorem}
+\begin{proof}
+By Lemma \ref{lem:peo_follower}, $\alpha$ is a PEO if and only if for every vertex $v$ and every higher-numbered neighbor $w \neq f(v)$, the edge $\{f(v), w\}$ exists. We can view this requirement from the perspective of $w$: for each vertex $w$ and each of its lower-numbered neighbors $v$, if $w \neq f(v)$, then $w$ must be adjacent to $f(v)$.
+
+The \texttt{ZERO-FILL-IN-TEST} directly validates this. The algorithm processes each vertex $w = \alpha^{-1}[i]$ in increasing elimination order. 
+
+In the first inner loop, it iterates over all lower-numbered neighbors $v$ of $w$, assigning $\texttt{index}[v] \gets i$. This effectively turns the $\texttt{index}$ array into an $O(1)$ lookup table for the neighborhood of $w$: for any vertex $x <_\alpha w$, $\texttt{index}[x] = i$ if and only if $\{x, w\} \in E$. During this loop, the algorithm also correctly identifies and assigns the follower $f(v) = w$ the first time a higher-numbered neighbor of $v$ is encountered.
+
+In the second inner loop, it iterates over the same lower-numbered neighbors $v$ of $w$ and evaluates $\texttt{index}[f[v]]$. Because $f(v) \le_\alpha w$, checking if $\texttt{index}[f[v]] = i$ is equivalent to checking whether the required edge $\{f(v), w\}$ exists in $G$ (or if $f(v) = w$). If the value is strictly less than $i$, the required edge is missing, violating Lemma \ref{lem:peo_follower}. The algorithm immediately detects this and correctly concludes that $\alpha$ produces fill-in and $G$ is not chordal.
+\end{proof}
+
+\section{Complexity}
+
+\begin{theorem}
+The total time complexity of the algorithm is $O(n + m)$.
+\end{theorem}
+
+\begin{proof}
+Let us analyze the complexity of the two phases separately:
+\begin{itemize}
+    \item \texttt{MCS}: The initialization of the structures takes $O(n)$ time. The outer loop executes $n$ times. The inner loop iterates over the neighbors of the current vertex $v$. Moving a vertex $w$ from one set to another takes $O(1)$ time due to the doubly linked list implementation. The variable $j$ is incremented at most $m$ times (once per edge) and decremented at most $m + n$ times overall since it is bounded by $n$ and never drops below $0$. Therefore, the total time for \texttt{MCS} is $O(\sum_{v \in V} \deg(v) + n) = O(n + m)$.
+    \item \texttt{ZERO-FILL-IN-TEST}: The outer loop runs $n$ times. The inner loops iterate over the neighbors of $w$ that occur before $w$ in the ordering. Each edge $\{v, w\}$ is processed exactly twice (once in each inner loop) when the higher-numbered endpoint $w$ is visited. All operations inside the loops, including checking and updating the arrays $f$ and $\texttt{index}$, are performed in $O(1)$ time. Thus, the total time complexity of this function is $O(n + m)$.
+\end{itemize}
+Combining both parts, the overall time complexity of the chordal graph recognition algorithm is $O(n + m)$, and the space complexity is $O(n + m)$ to store the graph and the sets.
+\end{proof}

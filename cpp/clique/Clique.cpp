@@ -1,5 +1,3 @@
-#include <set>
-
 #include <graph/GraphTools.hpp>
 
 #include "clique/Clique.hpp"
@@ -9,7 +7,7 @@ namespace Koala {
 MaxClique::MaxClique(const NetworKit::Graph &graph)
         : graph(std::make_optional(graph)) {}
 
-std::set<NetworKit::node>& MaxClique::getMaxCliqueSet() {
+std::vector<NetworKit::node>& MaxClique::getMaxClique() {
     assureFinished();
     return max_clique;
 }
