@@ -1,0 +1,14 @@
+defaultIndent: "    "
+
+modifyLineBreaks:
+  textWrapOptions:
+    columns: 80
+    # 'when: after' is a pro-trick! It tells latexindent to calculate the
+    # 80 characters AFTER applying your 4-space indent, ensuring perfect margins.
+    when: after
+
+environments:
+  document: 1
+  equation: 1
+  itemize: 1
+  enumerate: 1
