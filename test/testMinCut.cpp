@@ -8,7 +8,7 @@
 #include "min_cut/KargerSteinMinCut.hpp"
 #include "min_cut/StoerWagnerMinCut.hpp"
 
-#include "test/helpers.hpp"
+#include "helpers.hpp"
 
 struct MinCutParameters {
     int N;

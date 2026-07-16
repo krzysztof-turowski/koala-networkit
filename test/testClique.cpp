@@ -7,7 +7,8 @@
 #include <clique/CographClique.hpp>
 #include <recognition/ChordalGraphRecognition.hpp>
 #include <recognition/CographRecognition.hpp>
-#include <test/helpers.hpp>
+
+#include "helpers.hpp"
 
 struct MaxCliqueParameters {
     int N;

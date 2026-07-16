@@ -14,7 +14,7 @@
 #include <io/S6GraphReader.hpp>
 #include <io/S6GraphWriter.hpp>
 
-#include <test/helpers.hpp>
+#include "helpers.hpp"
 
 struct GraphIOParameters {
     std::string G;

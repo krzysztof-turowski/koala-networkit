@@ -5,7 +5,7 @@
 #include "pathwidth/CographPathwidth.hpp"
 #include "recognition/CographRecognition.hpp"
 
-#include "test/helpers.hpp"
+#include "helpers.hpp"
 
 struct MaxCliqueParameters {
     int N;

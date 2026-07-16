@@ -5,7 +5,8 @@
 
 #include <clique_cover/ChordalCliqueCover.hpp>
 #include <recognition/ChordalGraphRecognition.hpp>
-#include <test/helpers.hpp>
+
+#include "helpers.hpp"
 
 struct CliqueCoverParameters {
     int N;
