@@ -10,7 +10,7 @@
 #include <utility>
 #include <vector>
 
-#include <networkit/auxiliary/BucketPQ.hpp>
+#include <networkit/auxiliary/BucketPriorityQueue.hpp>
 #include <networkit/graph/GraphTools.hpp>
 
 #include "coloring/GreedyVertexColoring.hpp"

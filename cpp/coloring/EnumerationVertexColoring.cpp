@@ -16,7 +16,7 @@
 #include <utility>
 #include <vector>
 
-#include <networkit/auxiliary/BucketPQ.hpp>
+#include <networkit/auxiliary/BucketPriorityQueue.hpp>
 
 #include "coloring/ExactVertexColoring.hpp"
 
