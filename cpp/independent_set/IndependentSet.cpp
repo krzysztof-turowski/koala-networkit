@@ -53,7 +53,7 @@ std::vector<NetworKit::node> IndependentSet::getNeighbors2(NetworKit::node v) co
             visitedNodes.push_back(n2);
         });
     }
-    std::vector<bool> visitedOnGraph(graph->numberOfNodes());
+    std::vector<bool> visitedOnGraph(graph->upperNodeIdBound());
     visitedOnGraph[v] = true;
     for (auto x : neighbors) {
         visitedOnGraph[x] = true;

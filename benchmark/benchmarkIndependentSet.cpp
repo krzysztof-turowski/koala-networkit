@@ -8,6 +8,7 @@
 #include <benchmark/utils.hpp>
 #include <independent_set/ChordalIndependentSet.hpp>
 #include <independent_set/IndependentSet.hpp>
+#include <independent_set/BakerKOuterplanarGraphIndependentSet.hpp>
 #include <independent_set/CographIndependentSet.hpp>
 #include <recognition/ChordalGraphRecognition.hpp>
 #include <recognition/CographRecognition.hpp>
@@ -38,7 +39,7 @@ int run_algorithm(NetworKit::Graph &G) {
 }
 
 enum class Algorithm : uint32_t {
-    EXACT, BRUTE_FORCE, MIS1, MIS2, MIS3, MIS4, MIS5, MEASURE_AND_CONQUER, COGRAPH, CHORDAL
+    EXACT, BRUTE_FORCE, MIS1, MIS2, MIS3, MIS4, MIS5, MEASURE_AND_CONQUER, COGRAPH, KOUTERPLANAR, CHORDAL
 };
 
 std::map<std::string, Algorithm> ALGORITHM = {
@@ -48,6 +49,7 @@ std::map<std::string, Algorithm> ALGORITHM = {
     { "MIS4", Algorithm::MIS4 }, { "MIS5", Algorithm::MIS5 },
     { "MeasureAndConquer", Algorithm::MEASURE_AND_CONQUER },
     { "cograph", Algorithm::COGRAPH },
+    { "k-outerplanar", Algorithm::KOUTERPLANAR },
     { "chordal", Algorithm::CHORDAL }
 };
 
@@ -97,6 +99,9 @@ void choose_algorithm(NetworKit::Graph &G, Algorithm algorithm) {
         break;
     case Algorithm::COGRAPH:
         run_algorithm<Koala::CographIndependentSet>(G);
+        break;
+    case Algorithm::KOUTERPLANAR:
+        run_algorithm<Koala::BakerKOuterplanarGraphIndependentSet>(G);
         break;
     case Algorithm::CHORDAL:
         run_algorithm<Koala::ChordalIndependentSet>(G);
