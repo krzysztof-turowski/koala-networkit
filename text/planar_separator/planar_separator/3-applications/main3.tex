@@ -1,0 +1,88 @@
+\chapter{Applications of planar separator theorem}
+\section{Matching algorithm}
+
+\subsection{Algorithm}
+In this section we will discuss an efficient algorithm for finding a maximum
+matching in a planar graph. The maximum matching problem asks for a maximum
+number of pairwise nonadjacent edges in a graph. Although there exists an
+exact algorithm to find a maximum matching for planar graphs in $O(n \sqrt{n})$
+time, we can based on theorems recalled in Chapter 2 exhibit an approximation
+algorithm that runs in $O(n \log{n})$ time. ........
+\\
+
+\begin{algorithm}[H]
+\caption{REDUCE procedure}
+\label{alg:reduce}
+\begin{algorithmic}[1]
+    \Procedure{REDUCE}{$G, s(G)$}
+        \State $N \gets |V(G)|$
+        \State $v \gets \min_{u \in V(G)} \deg(u)$
+        \If{$N \leq \log{\log{n}}$}
+            \State Find exact matching $S^*(G)$ using any reasonable algorithm
+            \State $S(G) \gets S^*(G)$
+        \ElsIf{$\deg(v) < 3$}
+            \If{$\deg(v) = 0$}
+                \State $G' \gets G - v$
+                \State \Call{REDUCE}{$G', S(G')$}
+                \State $S(G) \gets S(G')$
+            \ElsIf{$\deg(v) = 1$}
+                \State $u \gets \text{vertex adjacent to } v$
+                \State $G' \gets G - \{u, v\}$
+                \State \Call{REDUCE}{$G', S(G')$}
+                \State $S(G) \gets S(G') \cup \{(v, u)\}$
+            \ElsIf{$\deg(v) = 2$}
+                \State $u, w \gets \text{neighbors of } v$
+                \State $G' \gets \text{graph made from } G \text{ by identifying }
+                v, u \text{ and } w$
+                \State \Call{REDUCE}{$G', S(G')$}
+                \If{$S(G') \text{ does not have and edge adjacent to } u \text{ w } G$}
+                    \State $S(G) \gets S(G') \cup \{(v, w)\}$
+                \Else
+                    \State $S(G) \gets S(G') \cup \{(v, u)\}$
+                \EndIf
+            \EndIf
+
+        \Else
+            \State Run Algorithm $MISP$ with $\epsilon =
+            {\log{\log{n}}}/N$ on $G$
+            \State $S(G) \gets \text{result of algorithm}$
+        \EndIf
+    \EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+\begin{theorem}\label{thm:matching}
+    The approximation algorithm MATCHING for the maximum matching problem on
+    planar graphs has running time $O(n \log n)$ and worst-case ratio
+    $1 - O(1/\sqrt{\log{\log{n}}})$.
+\end{theorem}
+
+\subsection{Correctness}
+We will start the proof to Thorem \ref{thm:matching} by proving that it returns
+a matching with stated worst-case ratio. For that we will split the proof into
+two parts. First we will show that reductions performed by REDUCE procedure
+make the approximation error smaller than that of the graph before a reduction.
+And secondly, we will show that in base cases the algorithm returns the correct
+worst-case ratio. We will define a matching of $G$ as $S(G)$.
+
+\subsubsection{Reductions}
+\begin{enumerate}
+    \item $G$ has a vertex of degree 0. Let $G' = G - v$. Then we have that
+        $S(G) = S(G')$, as
+\end{enumerate}
+
+\subsubsection{Base cases}
+
+\subsection{Time complexity}
+
+\section{Vertex cover algorithm}
+Another NP-complete problem we will look at is Vertex Cover. In
+\cite{chibaApplicationsLiptonTarjans1981} we can find an algorithm very similar
+to the one for matching problem discussed in a previous section. However for
+VC another interesting approach may be found in
+\cite{bar-yehudaApproximatingVertexCover1982} which will be shown in this
+section.
+This algorithm once again is based on approximation scheme that can be found
+in \cite{liptonApplicationsPlanarSeparator1977} and that was already discussed
+in Chapter 2. So we will get an approximation algorithm with running time
+$O(n \log{n})$ and error $O(\sqrt{\log{\log{n}}})$.
