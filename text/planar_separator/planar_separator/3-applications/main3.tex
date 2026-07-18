@@ -8,7 +8,7 @@ number of pairwise nonadjacent edges in a graph. Although there exists an
 exact algorithm to find a maximum matching for planar graphs in $O(n \sqrt{n})$
 time, we can based on theorems recalled in Chapter 2 exhibit an approximation
 algorithm that runs in $O(n \log{n})$ time and which worst-case ratio is 1 -
-$O(1/ \log{\log{n}})$. One can find it interesting why we cannot use Algorithm
+$O(1/ \sqrt{\log\log n})$. One can find it interesting why we cannot use Algorithm
 $MISP$ directly and have worst-case ratio and running time guaranteed by Theorem
 \ref{thm:MISP-main-theorem}. That is because the third property is not
 satisfied. The counter example is graph $K_{1, n-1}$ which matching is 1
@@ -33,7 +33,7 @@ the matching is a positive fraction of $n$.
     \Procedure{REDUCE}{$G, s(G)$}
         \State $N \gets |V(G)|$
         \State $v \gets \min_{u \in V(G)} \deg(u)$
-        \If{$N \leq \log{\log{n}}$}
+        \If{$N \leq \log\log n$}
             \State Find exact matching $S^*(G)$ using any reasonable algorithm
             \State $S(G) \gets S^*(G)$
         \ElsIf{$\deg(v) < 3$}
@@ -45,13 +45,14 @@ the matching is a positive fraction of $n$.
                 \State $u \gets \text{vertex adjacent to } v$
                 \State $G' \gets G - \{u, v\}$
                 \State \Call{REDUCE}{$G', S(G')$}
-                \State $S(G) \gets S(G') \cup \{(v, u)\}$
+                \State $S(G) \gets S(G') \cup \{ (v, u) \}$
             \ElsIf{$\deg(v) = 2$}
                 \State $u, w \gets \text{neighbors of } v$
                 \State $G' \gets \text{graph made from } G \text{ by identifying }
                 v, u \text{ and } w$
                 \State \Call{REDUCE}{$G', S(G')$}
-                \If{$S(G') \text{ does not have and edge adjacent to } u \text{ w } G$}
+                \If{$S(G') \text{ does not have an edge adjacent to } u \text{
+                in } G$}
                     \State $S(G) \gets S(G') \cup \{(v, w)\}$
                 \Else
                     \State $S(G) \gets S(G') \cup \{(v, u)\}$
@@ -60,7 +61,7 @@ the matching is a positive fraction of $n$.
 
         \Else
             \State Run Algorithm $MISP$ with $\epsilon =
-            {\log{\log{n}}}/N$ on $G$
+            {\log\log n}/N$ on $G$
             \State $S(G) \gets \text{result of algorithm}$
         \EndIf
     \EndProcedure
@@ -70,7 +71,7 @@ the matching is a positive fraction of $n$.
 \begin{theorem}\label{thm:matching}
     The approximation algorithm MATCHING for the maximum matching problem on
     planar graphs has running time $O(n \log n)$ and worst-case ratio
-    $1 - O(1/\sqrt{\log{\log{n}}})$.
+    $1 - O(1/\sqrt{\log \log n}) $.
 \end{theorem}
 
 \begin{proof}
@@ -82,9 +83,9 @@ make the approximation error smaller than that of the graph before a reduction.
 And secondly, we will show that in base cases the algorithm returns the correct
 worst-case ratio. We will define the maximum matching of $G$ as $S^*(G)$ and the
 matching produced by algorithm as $S(G)$. We will show that
-$$
-\frac{|S(G)|}{|S^*(G)|} \geq 1 - O\left(\frac{1}{\sqrt{\log{\log{n}}}}\right)
-$$
+\begin{align*}
+    \frac{|S(G)|}{|S^*(G)|} \geq 1 - O\left( \frac{1}{\sqrt{\log\log n}} \right)
+\end{align*}
 
 \subsubsection{Reductions}
 \begin{enumerate}
@@ -105,7 +106,7 @@ $$
         where the last equality stems from properties of rational numbers.
     \item $G$ has a vertex of degree 2. Let $u, w$ be vertices adjacent to $v$
         and $G'$ be a graph obtained from $G$ by identifying those three
-        vertices into single vertex $v'$. Let $S(G) = S(G') \cup (u,v)$ if no
+        vertices into single vertex $v'$. Let $S(G) = S(G') \cup \{(u,v)\}$ if no
         edge adjacent to $u$ in $G$ was selected to $S(G')$. Otherwise let
         $S(G) = S(G') \cup (w,v)$. Clearly we have $|S(G)| = |S(G')| + 1$. Now
         if the matching $S^*(G)$ contains either $(v,u)$ or $(v,w)$, let's say
@@ -113,7 +114,7 @@ $$
         correct matching of size at most one less than the latter. In the other
         case if both $u$ and $w$ were incident to edges in $S^*(G)$, then the
         matching $S^*(G')$ has to select one of them, so the property is
-        conserved. In both cases we have $S^*(G) \leq S^*(G') + 1$. So again
+        conserved. In both cases we have $|S^*(G)| \leq |S^*(G')| + 1$. So again
 
         $$
          \frac{|S(G)|}{|S^*(G)|} \geq
@@ -130,8 +131,8 @@ We have two base cases to discuss here:
         of the original one, we apply an exact matching algorithm, so
         $\frac{|S(G)|}{|S^*(G)|} = 1$ (if the denominator is 0, then we set this
         ratio to 1)
-    \item If $N \geq \log{\log{n}}$ and $\forall_{v \in V(G)} \, deg(v) \geq 3$
-        we apply $MISP$ algorithm. For it to correct we have to check conditions
+    \item If $N \geq \log\log n$ and $\forall_{v \in V(G)} \, \deg(v) \geq 3$
+        we apply $MISP$ algorithm. To prove its correctness we have to check conditions
         from Theorem \ref{thm:MISP-main-theorem}:
         \begin{enumerate}
             \item Satisfied, as $S(G)$ is a matching so a subgraph induced by it
@@ -143,11 +144,11 @@ We have two base cases to discuss here:
                 maximum matching is of size at least $S^*(G) - |C|$. And this is
                 also the size of $S(G)$ as we run the exact algorithm for
                 matching here. So $|S(G)| \geq S^*(G) - |C|$, by rearranging we
-                have $|S^*(G)| - |S(G)| = |C| = O(|C|)$, so the error is bound
+                have $|S^*(G)| - |S(G)| \leq |C| = O(|C|)$, so the error is bound
                 by size of $C$.
             \item Here we will use the theorem from \cite{nishizeki1979lower}
-                which guarantees that if $G$ is planar and has degree of at
-                least 3, then $|S^*(G)| \geq N/3$, so the optimal solution is a
+                which guarantees that if $G$ is planar and has minimum degree of
+                at least 3, then $|S^*(G)| \geq N/3$, so the optimal solution is a
                 positive fraction of $N$.
             \item We can easily check in linear time if the set found by the
                 algorithm is the matching
@@ -160,18 +161,18 @@ We have two base cases to discuss here:
 \subsection{Time complexity}
 At first we should discuss the time complexity of reductions. By keeping a graph
 as adjacency lists, so that each vertex not only has a previous reference and
-next preference but also the cross reference to other linked lists, we can
-perform a deletion in $O(deg(v))$. And as each vertex is deleted only once, we
+next reference but also the cross reference to other linked lists, we can
+perform a deletion in $O(\deg(v))$. And as each vertex is deleted only once, we
 can do that in amortized time $O(1)$. Another operation is identification of
 vertices which can be performed in total time $O(n \log{n})$
 \cite{chibaApplicationsLiptonTarjans1981}. To do that we keep an additional
 adjacency matrix and rewiring edges from the vertex of a smaller degree to one
 of higher. As each vertex is present in $O(\log{n})$ such rewirings, we get the
 needed time complexity.
-Now we can look at running time of base cases. If $N \leq \log{\log{n}}$ we use
+Now we can look at running time of base cases. If $N \leq \log\log n$ we use
 an exact algorithm to find the matching. If its time complexity is at most
 $O(n2^N)$, then it is enough for our desired time complexity. And if $N \geq
-\log{\log{n}}$, then from Theorem \ref{thm:MISP-main-theorem} we have guaranteed
+\log\log n$, then from Theorem \ref{thm:MISP-main-theorem} we have guaranteed
 $O(\max \{ N \log{N}, N 2^{ \epsilon N} \}) = O(N \log{n}) = O(n \log{n})$.
 
 \end{proof}
@@ -186,4 +187,4 @@ section.
 This algorithm once again is based on approximation scheme that can be found
 in \cite{liptonApplicationsPlanarSeparator1977} and that was already discussed
 in Chapter 2. So we will get an approximation algorithm with running time
-$O(n \log{n})$ and error $O(\sqrt{\log{\log{n}}})$.
+$O(n \log{n})$ and error $O(\sqrt{\log\log n})$.
