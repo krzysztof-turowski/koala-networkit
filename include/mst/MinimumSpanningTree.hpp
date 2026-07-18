@@ -12,7 +12,7 @@
 #include <unordered_map>
 
 #include <networkit/base/Algorithm.hpp>
-#include <networkit/graph/Graph.hpp>
+#include <networkit/graph/AdjListGraph.hpp>
 #include <networkit/structures/UnionFind.hpp>
 
 namespace Koala {

@@ -6,7 +6,7 @@
 
 #include <structures/DynamicTree.hpp>
 
-#include <networkit/graph/Graph.hpp>
+#include <networkit/graph/AdjListGraph.hpp>
 
 namespace Koala {
 

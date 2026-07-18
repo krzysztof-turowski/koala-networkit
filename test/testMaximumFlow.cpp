@@ -11,7 +11,7 @@
 #include "flow/KingRaoTarjanMaximumFlow.hpp"
 #include "flow/MalhotraKumarMaheshwariFlow.hpp"
 
-#include "helpers.hpp"
+#include "test/helpers.hpp"
 
 struct MaximumFlowParameters {
     int N;

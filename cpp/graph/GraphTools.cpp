@@ -18,7 +18,7 @@
 #include <vector>
 
 #include <networkit/components/ConnectedComponents.hpp>
-#include <networkit/graph/Graph.hpp>
+#include <networkit/graph/AdjListGraph.hpp>
 
 namespace Koala {
 

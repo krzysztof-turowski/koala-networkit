@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include <networkit/graph/Graph.hpp>
+#include <networkit/graph/AdjListGraph.hpp>
 
 namespace Koala {
 

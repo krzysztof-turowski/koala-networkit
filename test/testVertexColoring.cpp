@@ -11,7 +11,7 @@
 #include <recognition/ChordalGraphRecognition.hpp>
 #include <recognition/CographRecognition.hpp>
 
-#include "helpers.hpp"
+#include "test/helpers.hpp"
 
 struct VertexColoringParameters {
     int N;

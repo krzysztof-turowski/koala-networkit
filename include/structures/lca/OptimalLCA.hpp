@@ -12,7 +12,7 @@
 #include <unordered_set>
 #include <vector>
 
-#include <networkit/graph/Graph.hpp>
+#include <networkit/graph/AdjListGraph.hpp>
 
 inline constexpr NetworKit::count log2(NetworKit::count n) {
     return n > 1 ? 1 + log2(n >> 1) : 0;

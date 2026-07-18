@@ -1,6 +1,6 @@
 #pragma once
 
-#include <networkit/graph/Graph.hpp>
+#include <networkit/graph/AdjListGraph.hpp>
 
 namespace Koala {
 class DynamicComponents {

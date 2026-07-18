@@ -6,7 +6,7 @@
 
 #include "shortest_path/PlanarSSSP.hpp"
 
-#include "helpers.hpp"
+#include "test/helpers.hpp"
 
 struct SSSPParameters {
     std::string name;

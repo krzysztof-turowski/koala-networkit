@@ -6,7 +6,7 @@
 #include "recognition/CographRecognition.hpp"
 #include "recognition/PerfectGraphRecognition.hpp"
 
-#include "helpers.hpp"
+#include "test/helpers.hpp"
 
 struct GraphRecognitionParameters {
     int N;

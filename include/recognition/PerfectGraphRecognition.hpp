@@ -13,7 +13,7 @@
 
 #include <networkit/base/Algorithm.hpp>
 #include <networkit/components/ConnectedComponents.hpp>
-#include <networkit/graph/Graph.hpp>
+#include <networkit/graph/AdjListGraph.hpp>
 #include <networkit/graph/GraphTools.hpp>
 
 namespace Koala {

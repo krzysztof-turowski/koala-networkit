@@ -5,7 +5,7 @@
 #include <utility>
 #include <vector>
 
-#include <networkit/graph/Graph.hpp>
+#include <networkit/graph/AdjListGraph.hpp>
 
 // Based on boost::hash_combine
 struct pair_hash {

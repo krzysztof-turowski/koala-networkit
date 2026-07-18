@@ -2,7 +2,7 @@
 
 #include <cmath>
 
-#include <networkit/graph/Graph.hpp>
+#include <networkit/graph/AdjListGraph.hpp>
 
 #include "flow/electrical_flow/FlowNetwork.hpp"
 

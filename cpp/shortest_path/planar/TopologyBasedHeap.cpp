@@ -6,7 +6,7 @@
 #include <vector>
 
 #include <networkit/distance/MultiTargetDijkstra.hpp>
-#include <networkit/graph/Graph.hpp>
+#include <networkit/graph/AdjListGraph.hpp>
 #include <networkit/graph/GraphTools.hpp>
 
 #include "shortest_path/planar/TopologyBasedHeap.hpp"

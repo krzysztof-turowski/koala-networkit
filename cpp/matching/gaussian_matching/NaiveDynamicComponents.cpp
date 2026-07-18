@@ -1,6 +1,6 @@
 #include <vector>
 
-#include <networkit/graph/Graph.hpp>
+#include <networkit/graph/AdjListGraph.hpp>
 
 #include <matching/gaussian_matching/DynamicComponents.hpp>
 #include <matching/gaussian_matching/utils.hpp>
@@ -37,4 +37,3 @@ int DynamicComponents::getComponentSize(NetworKit::node v) const {
   return std::count(visited.begin(), visited.end(), true);
 }
 }  // namespace Koala
-

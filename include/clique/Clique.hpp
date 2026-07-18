@@ -4,7 +4,7 @@
 #include <vector>
 
 #include <networkit/base/Algorithm.hpp>
-#include <networkit/graph/Graph.hpp>
+#include <networkit/graph/AdjListGraph.hpp>
 
 namespace Koala {
 class MaxClique : public NetworKit::Algorithm {
@@ -23,4 +23,3 @@ class MaxClique : public NetworKit::Algorithm {
 };
 
 } /* namespace Koala */
-

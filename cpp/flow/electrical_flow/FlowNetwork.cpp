@@ -2,7 +2,7 @@
 #include <utility>
 #include <vector>
 
-#include <networkit/graph/Graph.hpp>
+#include <networkit/graph/AdjListGraph.hpp>
 
 #include "flow/electrical_flow/FlowNetwork.hpp"
 #include "structures/dynamic_tree/NaiveDynamicTree.hpp"

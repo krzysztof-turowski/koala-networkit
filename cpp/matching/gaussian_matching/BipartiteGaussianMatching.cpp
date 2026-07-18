@@ -6,7 +6,7 @@
 #include <vector>
 
 #include <networkit/graph/DFS.hpp>
-#include <networkit/graph/Graph.hpp>
+#include <networkit/graph/AdjListGraph.hpp>
 
 #include <matching/gaussian_matching/BipartiteGaussianMatching.hpp>
 #include <matching/gaussian_matching/LazyGaussElimination.hpp>

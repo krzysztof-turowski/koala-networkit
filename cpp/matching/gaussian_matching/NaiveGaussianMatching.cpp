@@ -1,6 +1,6 @@
 #include <NTL/ZZ_p.h>
 
-#include <networkit/graph/Graph.hpp>
+#include <networkit/graph/AdjListGraph.hpp>
 
 #include "matching/gaussian_matching/NaiveGaussElimination.hpp"
 #include "matching/gaussian_matching/NaiveGaussianMatching.hpp"

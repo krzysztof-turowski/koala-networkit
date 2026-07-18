@@ -8,7 +8,7 @@
 #include <vector>
 
 #include <networkit/base/Algorithm.hpp>
-#include <networkit/graph/Graph.hpp>
+#include <networkit/graph/AdjListGraph.hpp>
 
 #include "matching/gaussian_matching/utils.hpp"
 

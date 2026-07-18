@@ -14,7 +14,7 @@
 #include "independent_set/IndependentSet.hpp"
 #include "recognition/ChordalGraphRecognition.hpp"
 
-#include "helpers.hpp"
+#include "test/helpers.hpp"
 
 struct IndependentSetParameters {
     int N;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <networkit/graph/Graph.hpp>
+#include <networkit/graph/AdjListGraph.hpp>
 
 #include "independent_set/BakerIndependentSet.hpp"
 #include "independent_set/IndependentSet.hpp"

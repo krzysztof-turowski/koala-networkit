@@ -4,14 +4,14 @@
 #include <cstddef>
 #include <list>
 
-#include <networkit/graph/Graph.hpp>
+#include <networkit/graph/AdjListGraph.hpp>
 
 #include <dominating_set/BakerKOuterplanarGraphDominatingSet.hpp>
 #include <dominating_set/BakerPlanarGraphDominatingSet.hpp>
 #include <dominating_set/ExactDominatingSet.hpp>
 #include <set_cover/BranchAndReduceSetCover.hpp>
 
-#include "helpers.hpp"
+#include "test/helpers.hpp"
 
 struct DominatingSetParameters {
     int N;

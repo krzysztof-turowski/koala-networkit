@@ -80,7 +80,7 @@ option(KOALA_BUILD_BENCHMARKS "Build benchmarks" ON)
 
 function(koala_add_module modname)
     foreach(file ${ARGN})
-        target_sources(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_LIST_DIR}/${file})
+        target_sources(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/${file})
     endforeach()
 endfunction()
 
@@ -103,18 +103,20 @@ target_link_libraries(${PROJECT_NAME}
 add_subdirectory(cpp)
 
 function(koala_make_test testname testfile)
-    add_executable(${testname} ${CMAKE_CURRENT_LIST_DIR}/${testfile})
+    add_test(NAME ${testname} COMMAND ${testname})
+    set_tests_properties(${testname} PROPERTIES WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+    add_executable(${testname} ${testfile})
     koala_common_options(${testname})
+    target_include_directories(${testname} PRIVATE "${CMAKE_SOURCE_DIR}")
     target_link_libraries(${testname} ${PROJECT_NAME} gtest gtest_main)
-    add_test(${testname} ${testname})
 endfunction()
 
 function(koala_make_benchmark testname testfile scriptfile)
-    add_executable(${testname} ${CMAKE_CURRENT_LIST_DIR}/${testfile})
+    add_executable(${testname} ${testfile})
     koala_common_options(${testname})
     target_link_libraries(${testname} ${PROJECT_NAME})
     add_custom_command(TARGET ${testname}
-        POST_BUILD COMMAND /bin/sh ${CMAKE_CURRENT_LIST_DIR}/${scriptfile} ${ARGN})
+        POST_BUILD COMMAND /bin/sh ${CMAKE_CURRENT_SOURCE_DIR}/${scriptfile} ${ARGN})
 endfunction()
 
 if(KOALA_BUILD_TESTS)

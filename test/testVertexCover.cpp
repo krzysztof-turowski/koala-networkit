@@ -8,7 +8,7 @@
 #include <utility>
 #include <vector>
 
-#include <networkit/graph/Graph.hpp>
+#include <networkit/graph/AdjListGraph.hpp>
 
 #include "dominating_set/BakerDominatingSet.hpp"
 #include "dominating_set/BakerKOuterplanarGraphDominatingSet.hpp"

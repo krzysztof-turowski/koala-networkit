@@ -9,7 +9,7 @@
 #include <type_traits>
 #include <vector>
 
-#include <networkit/graph/Graph.hpp>
+#include <networkit/graph/AdjListGraph.hpp>
 
 #include <benchmark/utils.hpp>
 #include "structures/PriorityQueue.hpp"

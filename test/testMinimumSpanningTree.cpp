@@ -9,7 +9,7 @@
 #include "graph/GraphTools.hpp"
 #include "mst/MinimumSpanningTree.hpp"
 
-#include "helpers.hpp"
+#include "test/helpers.hpp"
 
 struct SpanningTreeParameters {
     int N;

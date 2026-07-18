@@ -8,7 +8,7 @@
 #include <set>
 #include <vector>
 
-#include <networkit/graph/Graph.hpp>
+#include <networkit/graph/AdjListGraph.hpp>
 
 #include "techniques/BakerKOuterplanarGraphScheme.hpp"
 

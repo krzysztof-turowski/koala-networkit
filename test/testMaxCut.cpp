@@ -7,7 +7,7 @@
 #include "max_cut/GoemansWilliamsonMaxCut.hpp"
 #include "max_cut/NaiveMaxCut.hpp"
 
-#include "helpers.hpp"
+#include "test/helpers.hpp"
 
 struct MaxCutParameters {
     int N;

@@ -6,7 +6,7 @@
 #include <vector>
 
 #include <networkit/base/Algorithm.hpp>
-#include <networkit/graph/Graph.hpp>
+#include <networkit/graph/AdjListGraph.hpp>
 
 namespace Koala {
 class PlanarSSSP : public NetworKit::Algorithm {
