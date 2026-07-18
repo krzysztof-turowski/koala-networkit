@@ -1,7 +1,12 @@
 #include <gtest/gtest.h>
 
+#include <array>
+#include <cstddef>
 #include <list>
 
+#include <networkit/graph/Graph.hpp>
+
+#include <dominating_set/BakerKOuterplanarGraphDominatingSet.hpp>
 #include <dominating_set/ExactDominatingSet.hpp>
 #include <set_cover/BranchAndReduceSetCover.hpp>
 
@@ -12,6 +17,48 @@ struct DominatingSetParameters {
     std::list<std::pair<int, int>> E;
     int minimumDominatingSetSize;
 };
+
+namespace {
+
+NetworKit::Graph makeTriangleChain(NetworKit::count number_of_triangles) {
+    NetworKit::Graph graph(3 * number_of_triangles);
+    for (NetworKit::count i = 0; i < number_of_triangles; ++i) {
+        graph.addEdge(3 * i, 3 * i + 1);
+        graph.addEdge(3 * i + 1, 3 * i + 2);
+        graph.addEdge(3 * i + 2, 3 * i);
+    }
+    for (NetworKit::node j = 0;
+         j + 3 < 3 * number_of_triangles; ++j) {
+        graph.addEdge(j, j + 3);
+    }
+    return graph;
+}
+
+NetworKit::Graph makeSquareChain(NetworKit::count number_of_squares) {
+    NetworKit::Graph graph(4 * number_of_squares);
+    for (NetworKit::count i = 0; i < number_of_squares; ++i) {
+        graph.addEdge(4 * i, 4 * i + 1);
+        graph.addEdge(4 * i + 1, 4 * i + 2);
+        graph.addEdge(4 * i + 2, 4 * i + 3);
+        graph.addEdge(4 * i + 3, 4 * i);
+    }
+    for (NetworKit::node j = 0;
+         j + 4 < 4 * number_of_squares; ++j) {
+        graph.addEdge(j, j + 4);
+    }
+    return graph;
+}
+
+void verifyBakerDominatingSet(
+        NetworKit::Graph graph, std::size_t expected_size) {
+    Koala::BakerKOuterplanarGraphDominatingSet algorithm(graph);
+    algorithm.run();
+    algorithm.check();
+    EXPECT_EQ(algorithm.getDominatingSet().size(), expected_size);
+    EXPECT_TRUE(algorithm.getBakerForest().hasTwoKBoundaryBound());
+}
+
+}  // namespace
 
 class GrandoniTest
     : public testing::TestWithParam<DominatingSetParameters> {};
@@ -101,3 +148,31 @@ TEST_P(SchiermeyerTest, test) {
 }
 
 INSTANTIATE_TEST_SUITE_P(test_example, SchiermeyerTest, testing::Values(parameter_set));
+
+TEST(BakerKOuterplanarGraphDominatingSetTest, TriangleChains) {
+    constexpr std::array<std::size_t, 7> expected_sizes = {
+        1, 2, 3, 4, 4, 5, 6
+    };
+    for (NetworKit::count number_of_triangles = 1;
+         number_of_triangles <= expected_sizes.size();
+         ++number_of_triangles) {
+        SCOPED_TRACE(number_of_triangles);
+        verifyBakerDominatingSet(
+            makeTriangleChain(number_of_triangles),
+            expected_sizes[number_of_triangles - 1]);
+    }
+}
+
+TEST(BakerKOuterplanarGraphDominatingSetTest, SquareChains) {
+    constexpr std::array<std::size_t, 7> expected_sizes = {
+        2, 2, 3, 4, 5, 6, 7
+    };
+    for (NetworKit::count number_of_squares = 1;
+         number_of_squares <= expected_sizes.size();
+         ++number_of_squares) {
+        SCOPED_TRACE(number_of_squares);
+        verifyBakerDominatingSet(
+            makeSquareChain(number_of_squares),
+            expected_sizes[number_of_squares - 1]);
+    }
+}

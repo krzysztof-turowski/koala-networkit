@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <limits>
 #include <optional>
+#include <set>
 #include <vector>
 
 #include <networkit/graph/Graph.hpp>
@@ -14,22 +15,25 @@
 namespace Koala {
 
 /**
- * Problem adapter for maximum independent set in the Baker scheme.
+ * Problem adapter for minimum vertex cover in the Baker scheme.
  *
- * State 0 excludes a vertex and state 1 includes it. Table values are
- * maximized, and an original edge forbids assigning state 1 to both endpoints.
+ * State 0 excludes a vertex and state 1 includes it. Every original edge must
+ * have at least one included endpoint. Table values are minimized.
  */
-class BakerIndependentSet {
+class BakerVertexCover {
  public:
     using Value = std::int64_t;
-    using Solution = std::vector<NetworKit::node>;
+    using Solution = std::set<NetworKit::node>;
+
+    static constexpr std::size_t EXCLUDED = 0;
+    static constexpr std::size_t INCLUDED = 1;
 
     std::size_t stateCount() const {
         return 2;
     }
 
     Value infeasibleValue() const {
-        return std::numeric_limits<Value>::lowest() / 4;
+        return std::numeric_limits<Value>::max() / 4;
     }
 
     Value identityValue() const {
@@ -41,13 +45,13 @@ class BakerIndependentSet {
     }
 
     Value vertexValue(NetworKit::node, std::size_t state) const {
-        return state == 1 ? 1 : 0;
+        return state == INCLUDED ? 1 : 0;
     }
 
     bool isValidEdge(
-        NetworKit::node, std::size_t first_state,
-        NetworKit::node, std::size_t second_state) const {
-        return first_state == 0 || second_state == 0;
+            NetworKit::node, std::size_t first_state,
+            NetworKit::node, std::size_t second_state) const {
+        return first_state == INCLUDED || second_state == INCLUDED;
     }
 
     Value combineValues(Value first, Value second) const {
@@ -250,20 +254,18 @@ class BakerIndependentSet {
     }
 
     bool better(Value first, Value second) const {
-        return first > second;
+        return first < second;
     }
 
     void appendToSolution(
-        NetworKit::node vertex, std::size_t state, Solution &solution) const {
-        if (state == 1) {
-            solution.push_back(vertex);
+            NetworKit::node vertex, std::size_t state,
+            Solution &solution) const {
+        if (state == INCLUDED) {
+            solution.insert(vertex);
         }
     }
 
-    void finalizeSolution(Solution &solution) const {
-        std::sort(solution.begin(), solution.end());
-        solution.erase(std::unique(solution.begin(), solution.end()), solution.end());
-    }
+    void finalizeSolution(Solution &) const { }
 };
 
 }  // namespace Koala

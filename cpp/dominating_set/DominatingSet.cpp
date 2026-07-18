@@ -21,14 +21,16 @@ const std::set<NetworKit::node>& DominatingSet::getDominatingSet() const {
 
 void DominatingSet::check() const {
     assureFinished();
-    std::vector<bool> dominated(graph->numberOfNodes());
+    std::vector<bool> dominated(graph->upperNodeIdBound());
     for (const auto &u : dominating_set) {
         dominated[u] = true;
         graph->forNeighborsOf(u, [&dominated](NetworKit::node v) {
             dominated[v] = true;
         });
     }
-    assert(std::all_of(dominated.begin(), dominated.end(), [](bool d) { return d; }));
+    graph->forNodes([&dominated](NetworKit::node u) {
+        assert(dominated[u]);
+    });
 }
 
 }  /* namespace Koala */

@@ -1,10 +1,13 @@
 #include <cassert>
+#include <cstdint>
 #include <iostream>
 #include <map>
 #include <set>
+#include <stdexcept>
 #include <string>
 
 #include <benchmark/utils.hpp>
+#include <dominating_set/BakerKOuterplanarGraphDominatingSet.hpp>
 #include <dominating_set/ExactDominatingSet.hpp>
 #include <set_cover/BranchAndReduceSetCover.hpp>
 
@@ -18,7 +21,9 @@ int run_algorithm(NetworKit::Graph &G) {
     return dominating_set.size();
 }
 
-enum class Algorithm : uint32_t { EXACT, FKW, SCHIERMEYER, GRANDONI, FGK, ROOIJ };
+enum class Algorithm : uint32_t {
+    EXACT, FKW, SCHIERMEYER, GRANDONI, FGK, ROOIJ, KOUTERPLANAR
+};
 
 std::map<std::string, Algorithm> ALGORITHM = {
     { "exact", Algorithm::EXACT },
@@ -26,7 +31,8 @@ std::map<std::string, Algorithm> ALGORITHM = {
     { "Schiermeyer", Algorithm::SCHIERMEYER },
     { "Grandoni", Algorithm::GRANDONI },
     { "FGK", Algorithm::FGK },
-    { "Rooij", Algorithm::ROOIJ }
+    { "Rooij", Algorithm::ROOIJ },
+    { "k-outerplanar", Algorithm::KOUTERPLANAR }
 };
 
 void choose_algorithm(NetworKit::Graph &G, Algorithm algorithm) {
@@ -58,6 +64,11 @@ void choose_algorithm(NetworKit::Graph &G, Algorithm algorithm) {
     case Algorithm::ROOIJ:
         run_algorithm<Koala::BranchAndReduceDominatingSet<Koala::RooijBodlaenderSetCover>>(G);
         break;
+    case Algorithm::KOUTERPLANAR:
+        run_algorithm<Koala::BakerKOuterplanarGraphDominatingSet>(G);
+        break;
+    default:
+        throw std::invalid_argument("Unknown algorithm");
     }
 }
 

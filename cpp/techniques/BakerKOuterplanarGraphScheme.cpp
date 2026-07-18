@@ -1519,7 +1519,8 @@ class ForestBuilder {
                     tree.vertices[vertex.children.back()].rightBoundaryIndex;
             }
         }
-        computeMiddleBoundaryIndices(tree, parent_tree, parent_face);
+        computeMiddleBoundaryIndices(
+            tree, parent_tree, parent_face, work);
 
         for (auto &vertex : tree.vertices) {
             vertex.boundary.left.push_back(vertex.labelLeft);
@@ -1539,10 +1540,45 @@ class ForestBuilder {
         verifySiblingBoundaries(tree);
     }
 
+    NetworKit::node lowerFaceVertex(
+            const ComponentWork &work, std::size_t vertex_index,
+            NetworKit::count level) const {
+        const auto leaf_dart =
+            work.treeVertices[vertex_index].leafDart;
+        const auto outer_dart =
+            work.embedding.dart(leaf_dart).twin;
+        if (outer_dart >= work.referenceGlobalDart.size()
+            || !work.referenceGlobalDart[outer_dart].has_value()) {
+            throw std::logic_error(
+                "A Baker exterior edge has no triangulation side");
+        }
+        const auto global_outer =
+            *work.referenceGlobalDart[outer_dart];
+        const auto face = globalFaces_.faceOfDart[global_outer];
+        NetworKit::node result = NetworKit::none;
+        for (const auto dart : globalFaces_.boundaries[face]) {
+            const auto candidate = globalGraph_.dart(dart).from;
+            if (levels_.at(candidate) + 1 != level) {
+                continue;
+            }
+            if (result != NetworKit::none && result != candidate) {
+                throw std::logic_error(
+                    "A Baker exterior edge has two lower face vertices");
+            }
+            result = candidate;
+        }
+        if (result == NetworKit::none) {
+            throw std::logic_error(
+                "A Baker exterior edge has no lower face vertex");
+        }
+        return result;
+    }
+
     void computeMiddleBoundaryIndices(
             Koala::BakerFaceTree &tree,
             const Koala::BakerFaceTree &parent_tree,
-            const Koala::BakerFaceTreeVertex &parent_face) {
+            const Koala::BakerFaceTreeVertex &parent_face,
+            const ComponentWork &work) {
         std::vector<NetworKit::node> cuts;
         cuts.reserve(parent_face.children.size() + 1);
         for (const auto child : parent_face.children) {
@@ -1551,7 +1587,9 @@ class ForestBuilder {
         cuts.push_back(
             parent_tree.vertices[parent_face.children.back()].labelRight);
 
-        for (auto &vertex : tree.vertices) {
+        for (std::size_t vertex_index = 0;
+             vertex_index < tree.vertices.size(); ++vertex_index) {
+            auto &vertex = tree.vertices[vertex_index];
             if (vertex.type == Koala::BakerFaceTreeVertexType::FACE) {
                 continue;
             }
@@ -1564,40 +1602,37 @@ class ForestBuilder {
                 vertex.middleBoundaryIndex = left;
                 continue;
             }
-
-            std::unordered_map<NetworKit::node, std::size_t>
-                first_occurrence;
-            std::unordered_map<NetworKit::node, std::size_t>
-                last_occurrence;
-            for (std::size_t index = left; index <= right; ++index) {
-                first_occurrence.try_emplace(cuts[index], index);
-                last_occurrence[cuts[index]] = index;
-            }
-            std::size_t lower_middle = left;
-            std::size_t upper_middle = right;
-            bool right_has_lower_neighbor = false;
-            for (const auto &[node, first] : first_occurrence) {
-                if (input_.hasEdge(vertex.labelLeft, node)) {
-                    lower_middle = std::max(lower_middle, first);
-                }
-                if (input_.hasEdge(vertex.labelRight, node)) {
-                    right_has_lower_neighbor = true;
-                    upper_middle = std::min(
-                        upper_middle, last_occurrence[node]);
-                }
-            }
-
-            std::size_t selected = right;
-            if (right_has_lower_neighbor
-                && lower_middle <= upper_middle) {
-                for (std::size_t index = lower_middle;
-                     index <= upper_middle; ++index) {
-                    if (input_.hasEdge(
+            if (vertex.type
+                == Koala::BakerFaceTreeVertexType::SINGLETON) {
+                std::size_t selected = right;
+                for (std::size_t index = left;
+                     index <= right; ++index) {
+                    if (globalGraph_.hasEdge(
                             vertex.labelRight, cuts[index])) {
                         selected = index;
                         break;
                     }
                 }
+                vertex.middleBoundaryIndex = selected;
+                continue;
+            }
+            const auto middle_point =
+                lowerFaceVertex(work, vertex_index, tree.level);
+
+            // The incident triangle identifies Baker's occurrence of z_p.
+            std::size_t selected = right;
+            bool found = false;
+            for (std::size_t index = left;
+                 index <= right; ++index) {
+                if (cuts[index] == middle_point) {
+                    selected = index;
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                throw std::logic_error(
+                    "A Baker middle point lies outside its LB/RB interval");
             }
             vertex.middleBoundaryIndex = selected;
         }
@@ -1645,11 +1680,25 @@ class ForestBuilder {
         for (std::size_t cut = 0; cut < cuts.size(); ++cut) {
             cut_positions[cuts[cut]].push_back(cut);
         }
-        std::unordered_map<NetworKit::node, std::size_t> cut_cursors;
 
         if (tree.leaves.empty()) {
             throw std::logic_error("A non-singleton Baker tree has no leaves");
         }
+        std::vector<std::vector<NetworKit::node>> transition_points(
+            tree.leaves.size());
+        for (std::size_t leaf = 1; leaf < tree.leaves.size(); ++leaf) {
+            const auto previous = tree.leaves[leaf - 1];
+            const auto current = tree.leaves[leaf];
+            const auto incoming = work.embedding.dart(
+                work.treeVertices[current].leafDart).twin;
+            const auto outgoing = work.embedding.dart(
+                work.treeVertices[previous].leafDart).twin;
+            transition_points[leaf] = collectWedgeTargets(
+                work, globalGraph_, incoming, outgoing);
+        }
+
+        std::unordered_map<NetworKit::node, std::size_t> cut_cursors;
+        std::unordered_map<NetworKit::node, std::size_t> original_cursors;
         tree.vertices[tree.leaves.front()].leftBoundaryIndex = 0;
         for (std::size_t leaf = 1; leaf < tree.leaves.size(); ++leaf) {
             const auto previous = tree.leaves[leaf - 1];
@@ -1660,16 +1709,38 @@ class ForestBuilder {
                 throw std::logic_error(
                     "Successive level-tree leaves do not share a node");
             }
-            const auto previous_outer = work.embedding.dart(
-                work.treeVertices[current].leafDart).twin;
-            const auto current_outer = work.embedding.dart(
-                work.treeVertices[previous].leafDart).twin;
-            const auto dividing_points = collectWedgeTargets(
-                work, globalGraph_, previous_outer, current_outer);
+            const auto &dividing_points = transition_points[leaf];
             const std::size_t lower_bound =
                 tree.vertices[previous].leftBoundaryIndex;
             std::size_t selected = invalid_index;
+            // The plane graph can contain several occurrences of one cutpoint.
+            // A vertex-only lookup cannot distinguish Baker's y_p occurrences.
+            // Prefer the next distinct original dividing point when one exists;
+            // this advances to its actual occurrence instead of reusing y_p at
+            // the left boundary through a parallel triangulation or bridge dart.
             for (const auto point : dividing_points) {
+                if (point == cuts[lower_bound]
+                    || !input_.hasEdge(dividing_vertex, point)) {
+                    continue;
+                }
+                const auto positions = cut_positions.find(point);
+                if (positions == cut_positions.end()) {
+                    continue;
+                }
+                auto &cursor = original_cursors[point];
+                while (cursor < positions->second.size()
+                       && positions->second[cursor] <= lower_bound) {
+                    ++cursor;
+                }
+                if (cursor < positions->second.size()) {
+                    selected = std::min(
+                        selected, positions->second[cursor]);
+                }
+            }
+            for (const auto point : dividing_points) {
+                if (selected != invalid_index) {
+                    break;
+                }
                 const auto positions = cut_positions.find(point);
                 if (positions == cut_positions.end()) {
                     continue;

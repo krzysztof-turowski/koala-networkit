@@ -59,6 +59,11 @@ koala_make_benchmark(
     benchmarkDominatingSet.sh)
 
 koala_make_benchmark(
+    benchmark_vertex_cover
+    benchmarkVertexCover.cpp
+    benchmarkVertexCover.sh)
+
+koala_make_benchmark(
     benchmark_vertex_coloring
     benchmarkVertexColoring.cpp
     benchmarkVertexColoring.sh)

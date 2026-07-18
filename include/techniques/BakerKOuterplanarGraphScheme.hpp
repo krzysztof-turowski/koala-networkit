@@ -148,10 +148,10 @@ BakerForest buildBakerForest(const NetworKit::Graph &graph);
 /**
  * General dynamic program over Baker's explicit k-outerplanar slices.
  *
- * Problem supplies Value, Solution, stateCount(), infeasibleValue(),
- * identityValue(), isInfeasible(), vertexValue(), isValidEdge(),
- * combineValues(), removeDuplicate(), better(), appendToSolution(), and
- * finalizeSolution(). Fake embedding edges are never passed to isValidEdge().
+ * Problem supplies the finite state semantics for each named table operation.
+ * The scheme itself only constructs Baker's slices and enumerates their bounded
+ * boundary assignments. Fake embedding edges are never treated as original
+ * graph edges by a problem adapter.
  *
  * @tparam Problem Finite-state, additive boundary-table problem adapter.
  */
@@ -201,6 +201,11 @@ class BakerKOuterplanarGraphScheme {
         if (state_count_ == 0) {
             throw std::logic_error("A Baker problem must define at least one state");
         }
+        if (problem_.adjustmentCount() == 0
+            || problem_.adjustmentCount() > state_count_) {
+            throw std::logic_error(
+                "A Baker adapter exceeded its bounded adjust transitions");
+        }
 
         const std::size_t tree_count = baker_forest_.trees.size();
         tables_.clear();
@@ -222,9 +227,15 @@ class BakerKOuterplanarGraphScheme {
             const auto table = computeTable(root_tree, tree.root);
             std::size_t best_code = invalid_index_;
             Value best_value = problem_.infeasibleValue();
+            std::vector<std::size_t> states(2 * table->level, 0);
             for (std::size_t code = 0; code < table->values.size(); ++code) {
                 const Value &candidate = table->values[code];
                 if (problem_.isInfeasible(candidate)) {
+                    continue;
+                }
+                decode(code, states);
+                if (!problem_.isFinalAssignment(
+                        table->boundary, states)) {
                     continue;
                 }
                 if (best_code == invalid_index_
@@ -290,27 +301,33 @@ class BakerKOuterplanarGraphScheme {
             input->level, input->boundary, TableOperation::ADJUST);
         output->first = input;
 
-        std::vector<std::size_t> states(2 * input->level, 0);
-        for (std::size_t code = 0; code < input->values.size(); ++code) {
-            const Value &input_value = input->values[code];
-            if (problem_.isInfeasible(input_value)) {
-                continue;
-            }
-            decode(code, states);
-            Value value = input_value;
-            if (x == y) {
-                if (states[0] != states[input->level]) {
+        std::vector<std::size_t> output_states(2 * input->level, 0);
+        std::vector<std::size_t> input_states(2 * input->level, 0);
+        const std::size_t adjustment_count = problem_.adjustmentCount();
+        for (std::size_t output_code = 0;
+             output_code < output->values.size(); ++output_code) {
+            decode(output_code, output_states);
+            for (std::size_t transition = 0;
+                 transition < adjustment_count; ++transition) {
+                if (!problem_.adjustInputStates(
+                        *graph_, input->boundary, x, y, output_states,
+                        transition, input_states)) {
                     continue;
                 }
-                value = problem_.removeDuplicate(
-                    value, x, states[0]);
-            } else if (graph_->hasEdge(x, y)
-                       && !problem_.isValidEdge(
-                           x, states[0], y, states[input->level])) {
-                continue;
+                const std::size_t input_code = encode(input_states);
+                const Value &input_value = input->values[input_code];
+                if (problem_.isInfeasible(input_value)) {
+                    continue;
+                }
+                Value candidate = problem_.adjustValue(
+                    input_value, x, y, output_states);
+                if (problem_.isInfeasible(output->values[output_code])
+                    || problem_.better(
+                        candidate, output->values[output_code])) {
+                    output->values[output_code] = std::move(candidate);
+                    output->decisions[output_code].first = input_code;
+                }
             }
-            output->values[code] = std::move(value);
-            output->decisions[code].first = code;
         }
         return output;
     }
@@ -334,7 +351,11 @@ class BakerKOuterplanarGraphScheme {
 
         const std::size_t side_assignments = assignmentCount(left->level);
         std::vector<std::size_t> left_states(left->level, 0);
-        std::vector<std::size_t> middle_states(left->level, 0);
+        std::vector<std::size_t> merge_states(left->level, 0);
+        std::vector<std::size_t> first_left_states(left->level, 0);
+        std::vector<std::size_t> first_middle_states(left->level, 0);
+        std::vector<std::size_t> second_middle_states(left->level, 0);
+        std::vector<std::size_t> second_right_states(left->level, 0);
         std::vector<std::size_t> right_states(left->level, 0);
 
         for (std::size_t left_code = 0;
@@ -348,11 +369,39 @@ class BakerKOuterplanarGraphScheme {
                 for (std::size_t middle_code = 0;
                      middle_code < side_assignments; ++middle_code) {
                     ++baker_forest_.statistics.mergeTransitions;
-                    decodeSide(middle_code, middle_states);
+                    decodeSide(middle_code, merge_states);
+                    bool feasible = true;
+                    for (std::size_t i = 0; i < left->level; ++i) {
+                        if (!problem_.mergeInputStates(
+                                left->boundary.left[i],
+                                left->boundary.right[i],
+                                right->boundary.right[i], left_states[i],
+                                merge_states[i], right_states[i],
+                                first_left_states[i], first_middle_states[i],
+                                second_middle_states[i],
+                                second_right_states[i])) {
+                            feasible = false;
+                            break;
+                        }
+                    }
+                    if (!feasible) {
+                        continue;
+                    }
+                    const std::size_t first_left_code =
+                        encode(first_left_states);
+                    const std::size_t first_middle_code =
+                        encode(first_middle_states);
+                    const std::size_t second_middle_code =
+                        encode(second_middle_states);
+                    const std::size_t second_right_code =
+                        encode(second_right_states);
                     const std::size_t first_code =
-                        combineSideCodes(left_code, middle_code, left->level);
+                        combineSideCodes(
+                            first_left_code, first_middle_code, left->level);
                     const std::size_t second_code =
-                        combineSideCodes(middle_code, right_code, left->level);
+                        combineSideCodes(
+                            second_middle_code, second_right_code,
+                            left->level);
                     const Value &first_value = left->values[first_code];
                     const Value &second_value = right->values[second_code];
                     if (problem_.isInfeasible(first_value)
@@ -360,13 +409,11 @@ class BakerKOuterplanarGraphScheme {
                         continue;
                     }
 
-                    Value candidate =
-                        problem_.combineValues(first_value, second_value);
-                    for (std::size_t i = 0; i < left->level; ++i) {
-                        candidate = problem_.removeDuplicate(
-                            candidate, left->boundary.right[i],
-                            middle_states[i]);
-                    }
+                    // A Problem may use the bounded middle code to route an
+                    // obligation, so correct duplicates from the actual child state.
+                    Value candidate = problem_.mergeValue(
+                        first_value, second_value,
+                        left->boundary.right, first_middle_states);
                     if (problem_.isInfeasible(output->values[output_code])
                         || problem_.better(
                             candidate, output->values[output_code])) {
@@ -414,6 +461,10 @@ class BakerKOuterplanarGraphScheme {
             decode(output_code, output_states);
             for (std::size_t top_state = 0;
                  top_state < state_count_; ++top_state) {
+                if (!problem_.canContract(
+                        input->boundary.left[0], top_state)) {
+                    continue;
+                }
                 input_states[0] = top_state;
                 input_states[input->level] = top_state;
                 for (std::size_t i = 0; i < output_level; ++i) {
@@ -509,35 +560,9 @@ class BakerKOuterplanarGraphScheme {
 
         for (std::size_t code = 0; code < output->values.size(); ++code) {
             decode(code, output_states);
-            if (output_states[0] != output_states[output->level]) {
-                continue;
-            }
-            const std::size_t state = output_states[0];
-            if (graph_->hasEdge(vertex, vertex)
-                && !problem_.isValidEdge(vertex, state, vertex, state)) {
-                continue;
-            }
-
-            bool feasible = true;
-            for (std::size_t i = 0; i < input->level; ++i) {
-                input_states[i] = output_states[i + 1];
-                input_states[input->level + i] =
-                    output_states[output->level + i + 1];
-                const auto left_vertex = input->boundary.left[i];
-                const auto right_vertex = input->boundary.right[i];
-                if (graph_->hasEdge(vertex, left_vertex)
-                    && !problem_.isValidEdge(
-                        vertex, state, left_vertex, input_states[i])) {
-                    feasible = false;
-                }
-                if (graph_->hasEdge(vertex, right_vertex)
-                    && !problem_.isValidEdge(
-                        vertex, state, right_vertex,
-                        input_states[input->level + i])) {
-                    feasible = false;
-                }
-            }
-            if (!feasible) {
+            if (!problem_.extendInputStates(
+                    *graph_, vertex, input->boundary,
+                    output_states, input_states)) {
                 continue;
             }
 
@@ -546,8 +571,8 @@ class BakerKOuterplanarGraphScheme {
             if (problem_.isInfeasible(input_value)) {
                 continue;
             }
-            output->values[code] = problem_.combineValues(
-                input_value, problem_.vertexValue(vertex, state));
+            output->values[code] = problem_.extendValue(
+                input_value, vertex, output_states[0]);
             output->decisions[code].first = input_code;
         }
         return output;
@@ -598,6 +623,10 @@ class BakerKOuterplanarGraphScheme {
         std::size_t result = 0;
         std::size_t multiplier = 1;
         for (const auto state : states) {
+            if (state >= state_count_) {
+                throw std::logic_error(
+                    "A Baker adapter produced an unknown boundary state");
+            }
             result += state * multiplier;
             multiplier *= state_count_;
         }
@@ -642,66 +671,14 @@ class BakerKOuterplanarGraphScheme {
             TableOperation operation) {
         auto table = makeEmptyTable(level, boundary, operation);
         std::vector<std::size_t> states(2 * level, 0);
-        std::vector<NetworKit::node> vertices;
-        vertices.reserve(2 * level);
-        vertices.insert(
-            vertices.end(), boundary.left.begin(), boundary.left.end());
-        vertices.insert(
-            vertices.end(), boundary.right.begin(), boundary.right.end());
 
         for (std::size_t code = 0; code < table->values.size(); ++code) {
             decode(code, states);
-            bool consistent = true;
-            for (std::size_t i = 0; i < level; ++i) {
-                if (boundary.left[i] == boundary.right[i]
-                    && states[i] != states[level + i]) {
-                    consistent = false;
-                    break;
-                }
+            const auto value = problem_.directValue(
+                *graph_, boundary, states);
+            if (value.has_value()) {
+                table->values[code] = *value;
             }
-            if (!consistent) {
-                continue;
-            }
-
-            bool feasible = true;
-            Value value = problem_.identityValue();
-            for (std::size_t i = 0; i < vertices.size(); ++i) {
-                const auto vertex = vertices[i];
-                if (graph_->hasEdge(vertex, vertex)
-                    && !problem_.isValidEdge(
-                        vertex, states[i], vertex, states[i])) {
-                    feasible = false;
-                    break;
-                }
-                value = problem_.combineValues(
-                    value, problem_.vertexValue(vertex, states[i]));
-            }
-            for (std::size_t first = 0;
-                 feasible && first < vertices.size(); ++first) {
-                for (std::size_t second = first + 1;
-                     second < vertices.size(); ++second) {
-                    if (vertices[first] == vertices[second]) {
-                        continue;
-                    }
-                    if (graph_->hasEdge(vertices[first], vertices[second])
-                        && !problem_.isValidEdge(
-                            vertices[first], states[first],
-                            vertices[second], states[second])) {
-                        feasible = false;
-                        break;
-                    }
-                }
-            }
-            if (!feasible) {
-                continue;
-            }
-            for (std::size_t i = 0; i < level; ++i) {
-                if (boundary.left[i] == boundary.right[i]) {
-                    value = problem_.removeDuplicate(
-                        value, boundary.left[i], states[i]);
-                }
-            }
-            table->values[code] = std::move(value);
         }
         return table;
     }
