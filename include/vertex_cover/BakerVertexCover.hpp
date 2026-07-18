@@ -184,6 +184,16 @@ class BakerVertexCover {
             merge_state, first_middle_state, second_middle_state);
     }
 
+    bool canonicalMergeOutputStates(
+            NetworKit::node, NetworKit::node,
+            std::size_t left_state, std::size_t right_state,
+            std::size_t &output_left_state,
+            std::size_t &output_right_state) const {
+        output_left_state = left_state;
+        output_right_state = right_state;
+        return left_state < stateCount() && right_state < stateCount();
+    }
+
     Value mergeValue(
             Value first, Value second,
             const std::vector<NetworKit::node> &middle_boundary,

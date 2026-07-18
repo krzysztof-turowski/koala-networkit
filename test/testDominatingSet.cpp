@@ -71,7 +71,11 @@ void verifyBakerDominatingSet(
     Koala::BakerKOuterplanarGraphDominatingSet algorithm(graph);
     algorithm.run();
     algorithm.check();
-    EXPECT_EQ(algorithm.getDominatingSet().size(), expected_size);
+    EXPECT_EQ(algorithm.getDominatingSet().size(), expected_size)
+        << "solution="
+        << ::testing::PrintToString(algorithm.getDominatingSet())
+        << " levels="
+        << ::testing::PrintToString(algorithm.getBakerForest().levels);
     EXPECT_TRUE(algorithm.getBakerForest().hasTwoKBoundaryBound());
 }
 
@@ -90,6 +94,9 @@ class FominKratschWoegingerTest
     : public testing::TestWithParam<DominatingSetParameters> {};
 
 class SchiermeyerTest
+    : public testing::TestWithParam<DominatingSetParameters> {};
+
+class BakerGraph6ErrorsDominatingSetTest
     : public testing::TestWithParam<DominatingSetParameters> {};
 
 auto parameter_set = DominatingSetParameters{
@@ -165,6 +172,37 @@ TEST_P(SchiermeyerTest, test) {
 }
 
 INSTANTIATE_TEST_SUITE_P(test_example, SchiermeyerTest, testing::Values(parameter_set));
+
+TEST_P(BakerGraph6ErrorsDominatingSetTest, SolvesRegressionGraph) {
+    const auto &parameters = GetParam();
+    const auto graph = build_graph(parameters.N, parameters.E, false);
+    verifyBakerDominatingSet(
+        graph, parameters.minimumDominatingSetSize);
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    BakerErrors, BakerGraph6ErrorsDominatingSetTest, testing::Values(
+    // G@P\~{
+    DominatingSetParameters{
+        8,
+        {{2, 3}, {1, 4}, {1, 5}, {3, 5}, {4, 5},
+         {0, 6}, {2, 6}, {3, 6}, {4, 6}, {5, 6},
+         {0, 7}, {1, 7}, {2, 7}, {3, 7}, {4, 7}, {5, 7}, {6, 7}},
+        1},
+    // H??ZVIV
+    DominatingSetParameters{
+        9,
+        {{3, 5}, {4, 5}, {1, 6}, {2, 6}, {4, 6},
+         {0, 7}, {1, 7}, {2, 7}, {5, 7},
+         {0, 8}, {3, 8}, {5, 8}, {6, 8}, {7, 8}},
+        2},
+    // I???FE]^_
+    DominatingSetParameters{
+        10,
+        {{0, 7}, {1, 7}, {2, 7}, {6, 7},
+         {0, 8}, {3, 8}, {4, 8}, {5, 8}, {6, 8},
+         {1, 9}, {2, 9}, {3, 9}, {4, 9}, {5, 9}, {6, 9}},
+        2}));
 
 TEST(BakerKOuterplanarGraphDominatingSetTest, TriangleChains) {
     constexpr std::array<std::size_t, 7> expected_sizes = {

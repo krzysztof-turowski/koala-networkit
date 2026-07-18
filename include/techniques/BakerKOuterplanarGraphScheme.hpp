@@ -418,6 +418,8 @@ class BakerKOuterplanarGraphScheme {
         const std::size_t side_assignments = assignmentCount(left->level);
         std::vector<std::size_t> left_states(left->level, 0);
         std::vector<std::size_t> merge_states(left->level, 0);
+        std::vector<std::size_t> output_left_states(left->level, 0);
+        std::vector<std::size_t> output_right_states(left->level, 0);
         std::vector<std::size_t> first_left_states(left->level, 0);
         std::vector<std::size_t> first_middle_states(left->level, 0);
         std::vector<std::size_t> second_middle_states(left->level, 0);
@@ -430,8 +432,25 @@ class BakerKOuterplanarGraphScheme {
             for (std::size_t right_code = 0;
                  right_code < side_assignments; ++right_code) {
                 decodeSide(right_code, right_states);
-                const std::size_t output_code =
-                    combineSideCodes(left_code, right_code, left->level);
+                // Canonicalization may identify two surviving occurrences
+                // without adding a state digit to the merge enumeration.
+                bool canonical = true;
+                for (std::size_t i = 0; i < left->level; ++i) {
+                    if (!problem_.canonicalMergeOutputStates(
+                            left->boundary.left[i],
+                            right->boundary.right[i], left_states[i],
+                            right_states[i], output_left_states[i],
+                            output_right_states[i])) {
+                        canonical = false;
+                        break;
+                    }
+                }
+                if (!canonical) {
+                    continue;
+                }
+                const std::size_t output_code = combineSideCodes(
+                    encode(output_left_states), encode(output_right_states),
+                    left->level);
                 for (std::size_t middle_code = 0;
                      middle_code < side_assignments; ++middle_code) {
                     ++baker_forest_.statistics.mergeTransitions;

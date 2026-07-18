@@ -24,6 +24,8 @@ namespace Koala {
  * this relaxation permits a three-way merge split and an O(3^(3k) n) bound.
  * When a shared physical vertex survives on an output boundary, the same
  * three transition codes route no, left, or right certificate ownership.
+ * If a cutpoint occurs on both surviving boundaries, a certificate carried
+ * by either occurrence certifies the physical vertex on both occurrences.
  */
 class BakerDominatingSet {
  public:
@@ -246,6 +248,33 @@ class BakerDominatingSet {
         return mergeRightPreservedState(
             merge_state, output_right_state, first_middle_state,
             second_middle_state, second_right_state);
+    }
+
+    bool canonicalMergeOutputStates(
+            NetworKit::node left_vertex, NetworKit::node right_vertex,
+            std::size_t left_state, std::size_t right_state,
+            std::size_t &output_left_state,
+            std::size_t &output_right_state) const {
+        if (left_state >= stateCount() || right_state >= stateCount()) {
+            return false;
+        }
+        output_left_state = left_state;
+        output_right_state = right_state;
+        if (left_vertex != right_vertex) {
+            return true;
+        }
+
+        const bool left_selected = left_state == SELECTED;
+        const bool right_selected = right_state == SELECTED;
+        if (left_selected != right_selected) {
+            return false;
+        }
+        if (!left_selected
+            && (left_state == CERTIFIED || right_state == CERTIFIED)) {
+            output_left_state = CERTIFIED;
+            output_right_state = CERTIFIED;
+        }
+        return true;
     }
 
     Value mergeValue(
