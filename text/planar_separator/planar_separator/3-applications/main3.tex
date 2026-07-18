@@ -75,7 +75,7 @@ the matching is a positive fraction of $n$.
 
 \begin{proof}
 \subsection{Correctness}
-We will start the proof to Thorem \ref{thm:matching} by proving that it returns
+We will start the proof to Theorem \ref{thm:matching} by proving that it returns
 a matching with stated worst-case ratio. For that we will split the proof into
 two parts. First we will show that reductions performed by REDUCE procedure
 make the approximation error smaller than that of the graph before a reduction.
@@ -94,7 +94,7 @@ $$
     \item $G$ has a vertex of degree 1. Let $u$ be the vertex adjacent to $v$ in
         $G$ and $G' = G - \{u, v\}$. If $S(G')$ is a matching produced by the
         algorithm then clearly $|S(G)| = |S(G')| + 1$ as we can add $(u,v)$ to
-        the mathing. Also since $S^*(G)$ has exactly one edge adjacent to $u$
+        the matching. Also since $S^*(G)$ has exactly one edge adjacent to $u$
         then by removing it we can reduce the matching by at most one, so we
         have $S^*(G) \leq S^*(G') + 1$. Now we can derive:
         $$
@@ -104,13 +104,13 @@ $$
         $$
         where the last equality stems from properties of rational numbers.
     \item $G$ has a vertex of degree 2. Let $u, w$ be vertices adjacent to $v$
-        and $G'$ be a graph obtained from $G$ by indentifying those three
+        and $G'$ be a graph obtained from $G$ by identifying those three
         vertices into single vertex $v'$. Let $S(G) = S(G') \cup (u,v)$ if no
         edge adjacent to $u$ in $G$ was selected to $S(G')$. Otherwise let
         $S(G) = S(G') \cup (w,v)$. Clearly we have $|S(G)| = |S(G')| + 1$. Now
         if the matching $S^*(G)$ contains either $(v,u)$ or $(v,w)$, let's say
         $(v,u)$ then by removing it by contraction to $v'$, $S^*(G')$ is a
-        correct mathing of size at most one less than the latter. In the other
+        correct matching of size at most one less than the latter. In the other
         case if both $u$ and $w$ were incident to edges in $S^*(G)$, then the
         matching $S^*(G')$ has to select one of them, so the property is
         conserved. In both cases we have $S^*(G) \leq S^*(G') + 1$. So again
@@ -127,7 +127,7 @@ worse than the original graph $G$.
 We have two base cases to discuss here:
 \begin{enumerate}
     \item If $N \leq \log{\log{n}}$, so we reduced our graph to a small fraction
-        of the original one, we apply an exact mathing algorithm, so
+        of the original one, we apply an exact matching algorithm, so
         $\frac{|S(G)|}{|S^*(G)|} = 1$ (if the denominator is 0, then we set this
         ratio to 1)
     \item If $N \geq \log{\log{n}}$ and $\forall_{v \in V(G)} \, deg(v) \geq 3$
@@ -142,7 +142,7 @@ We have two base cases to discuss here:
                 incident vertices in $C$. So in the induced graph $G - C$ the
                 maximum matching is of size at least $S^*(G) - |C|$. And this is
                 also the size of $S(G)$ as we run the exact algorithm for
-                matching here. So $|S(G)| \geq S^*(G) - |C|$, by rearanging we
+                matching here. So $|S(G)| \geq S^*(G) - |C|$, by rearranging we
                 have $|S^*(G)| - |S(G)| = |C| = O(|C|)$, so the error is bound
                 by size of $C$.
             \item Here we will use the theorem from \cite{nishizeki1979lower}
@@ -159,13 +159,13 @@ We have two base cases to discuss here:
 
 \subsection{Time complexity}
 At first we should discuss the time complexity of reductions. By keeping a graph
-as adjecency lists, so that each vertex not only has a previous reference and
+as adjacency lists, so that each vertex not only has a previous reference and
 next preference but also the cross reference to other linked lists, we can
 perform a deletion in $O(deg(v))$. And as each vertex is deleted only once, we
-can do that in amortized time $O(1)$. Another operation is indentification of
+can do that in amortized time $O(1)$. Another operation is identification of
 vertices which can be performed in total time $O(n \log{n})$
-\cite{chibaApplicationsLiptonTarjans1981}. To do that we keep an aditional
-adjecency matrix and rewiring edges from the vertex of a smaller degree to one
+\cite{chibaApplicationsLiptonTarjans1981}. To do that we keep an additional
+adjacency matrix and rewiring edges from the vertex of a smaller degree to one
 of higher. As each vertex is present in $O(\log{n})$ such rewirings, we get the
 needed time complexity.
 Now we can look at running time of base cases. If $N \leq \log{\log{n}}$ we use
