@@ -24,6 +24,10 @@ class BakerIndependentSet {
     using Value = std::int64_t;
     using Solution = std::vector<NetworKit::node>;
 
+    bool isMaximization() const {
+        return true;
+    }
+
     std::size_t stateCount() const {
         return 2;
     }

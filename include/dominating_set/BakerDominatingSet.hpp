@@ -34,6 +34,10 @@ class BakerDominatingSet {
     static constexpr std::size_t CERTIFIED = 1;
     static constexpr std::size_t PENDING = 2;
 
+    bool isMaximization() const {
+        return false;
+    }
+
     std::size_t stateCount() const {
         return 3;
     }

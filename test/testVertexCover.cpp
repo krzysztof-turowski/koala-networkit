@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <limits>
@@ -14,6 +15,7 @@
 #include "dominating_set/ExactDominatingSet.hpp"
 #include "independent_set/IndependentSet.hpp"
 #include "vertex_cover/BakerKOuterplanarGraphVertexCover.hpp"
+#include "vertex_cover/BakerPlanarGraphVertexCover.hpp"
 
 namespace Koala {
 namespace {
@@ -158,6 +160,22 @@ NetworKit::Graph makeSquareChain(NetworKit::count number_of_squares) {
     for (NetworKit::node j = 0;
          j + 4 < 4 * number_of_squares; ++j) {
         graph.addEdge(j, j + 4);
+    }
+    return graph;
+}
+
+NetworKit::Graph makeOuterFaceRegressionGraph() {
+    // G?NP}{
+    NetworKit::Graph graph(8);
+    constexpr std::array<std::pair<NetworKit::node, NetworKit::node>, 15>
+        edges = {{
+            {2, 4}, {3, 4},
+            {0, 5}, {1, 5}, {3, 5},
+            {2, 6}, {3, 6}, {4, 6}, {5, 6},
+            {0, 7}, {1, 7}, {3, 7}, {4, 7}, {5, 7}, {6, 7}
+        }};
+    for (const auto &[u, v] : edges) {
+        graph.addEdge(u, v);
     }
     return graph;
 }
@@ -399,6 +417,50 @@ TEST(BakerKOuterplanarGraphCoverTest, RejectsNonplanarGraph) {
     EXPECT_THROW(vertex_cover.run(), std::invalid_argument);
     BakerKOuterplanarGraphDominatingSet dominating_set(graph);
     EXPECT_THROW(dominating_set.run(), std::invalid_argument);
+}
+
+TEST(BakerPlanarGraphVertexCoverTest, TriangleAndSquareChains) {
+    constexpr NetworKit::count parameter = 2;
+    for (NetworKit::count number_of_faces = 1;
+         number_of_faces <= 4; ++number_of_faces) {
+        for (const auto &[graph, optimum] : {
+                 std::pair{
+                     makeTriangleChain(number_of_faces),
+                     2 * number_of_faces},
+                 std::pair{
+                     makeSquareChain(number_of_faces),
+                     2 * number_of_faces}}) {
+            SCOPED_TRACE(number_of_faces);
+            BakerPlanarGraphVertexCover algorithm(graph, 0.5);
+            algorithm.run();
+            algorithm.check();
+
+            const auto result_size = algorithm.getVertexCover().size();
+            EXPECT_LE(result_size * parameter, optimum * (parameter + 1));
+            const auto &statistics =
+                algorithm.getBakerApproximationStatistics();
+            EXPECT_EQ(statistics.parameter, parameter);
+            EXPECT_EQ(statistics.promisedOuterplanarity, parameter + 1);
+            EXPECT_LE(
+                statistics.maximumSubproblemOuterplanarity,
+                statistics.promisedOuterplanarity);
+            EXPECT_EQ(statistics.residueCandidates, parameter);
+        }
+    }
+}
+
+TEST(BakerPlanarGraphVertexCoverTest, UsesInheritedOuterFace) {
+    const auto graph = makeOuterFaceRegressionGraph();
+    BakerPlanarGraphVertexCover algorithm(graph, 1.0);
+    algorithm.run();
+    algorithm.check();
+
+    const auto &statistics = algorithm.getBakerApproximationStatistics();
+    EXPECT_EQ(statistics.parameter, 1);
+    EXPECT_EQ(statistics.promisedOuterplanarity, 2);
+    EXPECT_LE(
+        statistics.maximumSubproblemOuterplanarity,
+        statistics.promisedOuterplanarity);
 }
 
 }  // namespace

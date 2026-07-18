@@ -9,6 +9,7 @@
 #include <independent_set/ChordalIndependentSet.hpp>
 #include <independent_set/IndependentSet.hpp>
 #include <independent_set/BakerKOuterplanarGraphIndependentSet.hpp>
+#include <independent_set/BakerPlanarGraphIndependentSet.hpp>
 #include <independent_set/CographIndependentSet.hpp>
 #include <recognition/ChordalGraphRecognition.hpp>
 #include <recognition/CographRecognition.hpp>
@@ -38,8 +39,19 @@ int run_algorithm(NetworKit::Graph &G) {
     return independent_set.size();
 }
 
+template <typename T>
+int run_approximation_algorithm(NetworKit::Graph &graph, double epsilon) {
+    auto algorithm = T(graph, epsilon);
+    algorithm.run();
+    algorithm.check();
+    const auto &independent_set = algorithm.getIndependentSet();
+    std::cout << independent_set.size() << " " << std::flush;
+    return independent_set.size();
+}
+
 enum class Algorithm : uint32_t {
-    EXACT, BRUTE_FORCE, MIS1, MIS2, MIS3, MIS4, MIS5, MEASURE_AND_CONQUER, COGRAPH, KOUTERPLANAR, CHORDAL
+    EXACT, BRUTE_FORCE, MIS1, MIS2, MIS3, MIS4, MIS5,
+    MEASURE_AND_CONQUER, COGRAPH, KOUTERPLANAR, PLANAR, CHORDAL
 };
 
 std::map<std::string, Algorithm> ALGORITHM = {
@@ -50,6 +62,8 @@ std::map<std::string, Algorithm> ALGORITHM = {
     { "MeasureAndConquer", Algorithm::MEASURE_AND_CONQUER },
     { "cograph", Algorithm::COGRAPH },
     { "k-outerplanar", Algorithm::KOUTERPLANAR },
+    { "planar", Algorithm::PLANAR },
+    { "Baker", Algorithm::PLANAR },
     { "chordal", Algorithm::CHORDAL }
 };
 
@@ -63,7 +77,8 @@ NetworKit::Graph normalize_graph(NetworKit::Graph &G_directed) {
     return G;
 }
 
-void choose_algorithm(NetworKit::Graph &G, Algorithm algorithm) {
+void choose_algorithm(
+        NetworKit::Graph &G, Algorithm algorithm, double epsilon) {
     std::set<int> independent_sets;
     switch (algorithm) {
     case Algorithm::EXACT:
@@ -103,15 +118,22 @@ void choose_algorithm(NetworKit::Graph &G, Algorithm algorithm) {
     case Algorithm::KOUTERPLANAR:
         run_algorithm<Koala::BakerKOuterplanarGraphIndependentSet>(G);
         break;
+    case Algorithm::PLANAR:
+        run_approximation_algorithm<
+            Koala::BakerPlanarGraphIndependentSet>(G, epsilon);
+        break;
     case Algorithm::CHORDAL:
         run_algorithm<Koala::ChordalIndependentSet>(G);
         break;
+    default:
+        throw std::invalid_argument("Unknown algorithm");
     }
 }
 
 int main(int argc, const char *argv[]) {
-    if (argc != 3) {
-        std::cerr << "Usage: " << argv[0] << " <algorithm> <file>" << std::endl;
+    if (argc < 3 || argc > 4) {
+        std::cerr << "Usage: " << argv[0]
+                  << " <algorithm> <file> [epsilon]" << std::endl;
         return 1;
     }
     std::string algorithm_name(argv[1]);
@@ -119,11 +141,17 @@ int main(int argc, const char *argv[]) {
     if (algorithm == ALGORITHM.end()) {
         throw std::invalid_argument("Unknown algorithm: " + algorithm_name);
     }
+    const bool is_approximation = algorithm->second == Algorithm::PLANAR;
+    if (argc != (is_approximation ? 4 : 3)) {
+        throw std::invalid_argument(
+            "The planar Baker algorithm requires an epsilon argument");
+    }
+    const double epsilon = is_approximation ? std::stod(argv[3]) : 0.0;
     Koala::Benchmark::executeForEachGraph(
         argv[2], [&](const std::string &label, NetworKit::Graph input_graph) {
         auto G = normalize_graph(input_graph);
         std::cout << label << " " << std::flush;
-        choose_algorithm(G, algorithm->second);
+        choose_algorithm(G, algorithm->second, epsilon);
         std::cout << std::endl;
     });
     return 0;

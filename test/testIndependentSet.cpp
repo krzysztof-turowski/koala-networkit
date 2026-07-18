@@ -1,12 +1,14 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <array>
 #include <cstddef>
 #include <list>
 #include <set>
 #include <vector>
 
 #include "independent_set/BakerKOuterplanarGraphIndependentSet.hpp"
+#include "independent_set/BakerPlanarGraphIndependentSet.hpp"
 #include "independent_set/ChordalIndependentSet.hpp"
 #include "independent_set/CographIndependentSet.hpp"
 #include "independent_set/IndependentSet.hpp"
@@ -185,6 +187,21 @@ NetworKit::Graph makeSquareChain(NetworKit::count number_of_squares) {
     }
     for (NetworKit::node j = 0; j + 4 < 4 * number_of_squares; ++j) {
         graph.addEdge(j, j + 4);
+    }
+    return graph;
+}
+
+NetworKit::Graph makeOuterFaceRegressionGraph() {
+    // G??KzW
+    NetworKit::Graph graph(8);
+    constexpr std::array<std::pair<NetworKit::node, NetworKit::node>, 9>
+        edges = {{
+            {4, 5},
+            {0, 6}, {3, 6}, {4, 6}, {5, 6},
+            {1, 7}, {2, 7}, {4, 7}, {5, 7}
+        }};
+    for (const auto &[u, v] : edges) {
+        graph.addEdge(u, v);
     }
     return graph;
 }
@@ -651,4 +668,83 @@ TEST(BakerKOuterplanarGraphIndependentSetTest, RejectsNonplanarGraph) {
     }
     Koala::BakerKOuterplanarGraphIndependentSet algorithm(graph);
     EXPECT_THROW(algorithm.run(), std::invalid_argument);
+}
+
+TEST(BakerPlanarGraphIndependentSetTest, TriangleAndSquareChains) {
+    constexpr NetworKit::count parameter = 2;
+    for (NetworKit::count number_of_faces = 1;
+         number_of_faces <= 4; ++number_of_faces) {
+        for (const auto &[graph, optimum] : {
+                 std::pair{makeTriangleChain(number_of_faces), number_of_faces},
+                 std::pair{makeSquareChain(number_of_faces), 2 * number_of_faces}}) {
+            SCOPED_TRACE(number_of_faces);
+            Koala::BakerPlanarGraphIndependentSet algorithm(graph, 0.5);
+            algorithm.run();
+            algorithm.check();
+
+            const auto result_size = algorithm.getIndependentSet().size();
+            EXPECT_GE(result_size * (parameter + 1), optimum * parameter);
+            const auto &statistics =
+                algorithm.getBakerApproximationStatistics();
+            EXPECT_EQ(statistics.parameter, parameter);
+            EXPECT_EQ(statistics.promisedOuterplanarity, parameter);
+            EXPECT_LE(
+                statistics.maximumSubproblemOuterplanarity,
+                statistics.promisedOuterplanarity);
+            EXPECT_EQ(statistics.residueCandidates, parameter + 1);
+        }
+    }
+}
+
+TEST(BakerPlanarGraphIndependentSetTest, EmptyAndInvalidInput) {
+    NetworKit::Graph empty_graph(0);
+    Koala::BakerPlanarGraphIndependentSet empty_algorithm(empty_graph, 0.5);
+    empty_algorithm.run();
+    empty_algorithm.check();
+    EXPECT_TRUE(empty_algorithm.getIndependentSet().empty());
+
+    EXPECT_THROW(
+        Koala::BakerPlanarGraphIndependentSet(empty_graph, 0.0),
+        std::invalid_argument);
+
+    NetworKit::Graph nonplanar_graph(6);
+    for (NetworKit::node first = 0; first < 3; ++first) {
+        for (NetworKit::node second = 3; second < 6; ++second) {
+            nonplanar_graph.addEdge(first, second);
+        }
+    }
+    Koala::BakerPlanarGraphIndependentSet nonplanar_algorithm(
+        nonplanar_graph, 0.5);
+    EXPECT_THROW(nonplanar_algorithm.run(), std::invalid_argument);
+}
+
+TEST(BakerPlanarGraphIndependentSetTest, TranslatesSparseNodeIdentifiers) {
+    NetworKit::Graph graph(8);
+    graph.addEdge(0, 3);
+    graph.addEdge(3, 7);
+    for (const NetworKit::node removed : {1, 2, 4, 5, 6}) {
+        graph.removeNode(removed);
+    }
+
+    Koala::BakerPlanarGraphIndependentSet algorithm(graph, 0.5);
+    algorithm.run();
+    algorithm.check();
+    EXPECT_GE(algorithm.getIndependentSet().size(), 2);
+    for (const auto vertex : algorithm.getIndependentSet()) {
+        EXPECT_TRUE(graph.hasNode(vertex));
+    }
+}
+
+TEST(BakerPlanarGraphIndependentSetTest, UsesInheritedOuterFace) {
+    const auto graph = makeOuterFaceRegressionGraph();
+    Koala::BakerPlanarGraphIndependentSet algorithm(graph, 1.0);
+    algorithm.run();
+    algorithm.check();
+
+    const auto &statistics = algorithm.getBakerApproximationStatistics();
+    EXPECT_EQ(statistics.parameter, 1);
+    EXPECT_EQ(statistics.promisedOuterplanarity, 1);
+    EXPECT_LE(
+        statistics.maximumSubproblemOuterplanarity,
+        statistics.promisedOuterplanarity);
 }

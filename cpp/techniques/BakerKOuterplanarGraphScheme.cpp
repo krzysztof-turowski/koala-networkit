@@ -334,6 +334,46 @@ PlaneGraph makePlaneGraph(
     return result;
 }
 
+Embedding restrictEmbedding(
+        const BoostGraph &boost_graph,
+        const std::vector<NetworKit::node> &local_to_global,
+        const Koala::BakerPlaneEmbedding &embedding) {
+    std::unordered_map<NetworKit::node, std::size_t> global_to_local;
+    global_to_local.reserve(local_to_global.size());
+    for (std::size_t local = 0; local < local_to_global.size(); ++local) {
+        global_to_local.emplace(local_to_global[local], local);
+    }
+
+    Embedding result(local_to_global.size());
+    for (std::size_t local = 0; local < local_to_global.size(); ++local) {
+        const auto global = local_to_global[local];
+        if (global >= embedding.rotation.size()) {
+            throw std::invalid_argument(
+                "A prescribed Baker embedding has no vertex rotation");
+        }
+        std::unordered_set<std::size_t> seen_neighbors;
+        for (const auto global_neighbor : embedding.rotation[global]) {
+            const auto local_neighbor = global_to_local.find(global_neighbor);
+            if (local_neighbor == global_to_local.end()) {
+                throw std::invalid_argument(
+                    "A prescribed Baker rotation contains a foreign vertex");
+            }
+            const auto [boost_edge, exists] = edge(
+                local, local_neighbor->second, boost_graph);
+            if (!exists || !seen_neighbors.insert(local_neighbor->second).second) {
+                throw std::invalid_argument(
+                    "A prescribed Baker rotation contains an invalid edge");
+            }
+            result[local].push_back(boost_edge);
+        }
+        if (result[local].size() != degree(local, boost_graph)) {
+            throw std::invalid_argument(
+                "A prescribed Baker rotation omits a graph edge");
+        }
+    }
+    return result;
+}
+
 std::size_t selectOuterFace(
         const PlaneGraph &, const PlaneGraph::Faces &faces) {
     std::size_t best_face = 0;
@@ -345,6 +385,34 @@ std::size_t selectOuterFace(
         }
     }
     return best_face;
+}
+
+std::size_t selectOuterFace(
+        const PlaneGraph &graph, const PlaneGraph::Faces &faces,
+        std::vector<NetworKit::node> requested_vertices) {
+    std::sort(requested_vertices.begin(), requested_vertices.end());
+    requested_vertices.erase(
+        std::unique(
+            requested_vertices.begin(), requested_vertices.end()),
+        requested_vertices.end());
+
+    for (std::size_t face = 0; face < faces.boundaries.size(); ++face) {
+        std::vector<NetworKit::node> boundary_vertices;
+        boundary_vertices.reserve(faces.boundaries[face].size());
+        for (const auto dart : faces.boundaries[face]) {
+            boundary_vertices.push_back(graph.dart(dart).from);
+        }
+        std::sort(boundary_vertices.begin(), boundary_vertices.end());
+        boundary_vertices.erase(
+            std::unique(
+                boundary_vertices.begin(), boundary_vertices.end()),
+            boundary_vertices.end());
+        if (boundary_vertices == requested_vertices) {
+            return face;
+        }
+    }
+    throw std::invalid_argument(
+        "Requested Baker outer-face vertices do not form an embedding face");
 }
 
 LevelMap computeLevels(
@@ -1817,6 +1885,20 @@ class ForestBuilder {
 namespace Koala {
 
 BakerForest buildBakerForest(const NetworKit::Graph &graph) {
+    return buildBakerForest(graph, BakerPlaneEmbedding{}, {});
+}
+
+BakerForest buildBakerForest(
+        const NetworKit::Graph &graph,
+        const std::vector<NetworKit::node> &outer_face_vertices) {
+    return buildBakerForest(
+        graph, BakerPlaneEmbedding{}, outer_face_vertices);
+}
+
+BakerForest buildBakerForest(
+        const NetworKit::Graph &graph,
+        const BakerPlaneEmbedding &prescribed_embedding,
+        const std::vector<NetworKit::node> &outer_face_vertices) {
     if (graph.isDirected()) {
         throw std::invalid_argument(
             "BakerKOuterplanarGraphScheme requires an undirected graph");
@@ -1824,6 +1906,16 @@ BakerForest buildBakerForest(const NetworKit::Graph &graph) {
 
     BakerForest forest;
     forest.levels.assign(graph.upperNodeIdBound(), 0);
+    forest.embedding.rotation.resize(graph.upperNodeIdBound());
+    std::unordered_set<NetworKit::node> requested_outer_vertices;
+    requested_outer_vertices.reserve(outer_face_vertices.size());
+    for (const auto vertex : outer_face_vertices) {
+        if (!graph.hasNode(vertex)) {
+            throw std::invalid_argument(
+                "A requested Baker outer-face vertex is missing");
+        }
+        requested_outer_vertices.insert(vertex);
+    }
     if (graph.numberOfNodes() == 0) {
         return forest;
     }
@@ -1831,6 +1923,18 @@ BakerForest buildBakerForest(const NetworKit::Graph &graph) {
     NetworKit::ConnectedComponents connected_components(graph);
     connected_components.run();
     for (auto component : connected_components.getComponents()) {
+        std::vector<NetworKit::node> component_outer_face;
+        if (!requested_outer_vertices.empty()) {
+            for (const auto vertex : component) {
+                if (requested_outer_vertices.contains(vertex)) {
+                    component_outer_face.push_back(vertex);
+                }
+            }
+            if (component_outer_face.empty()) {
+                throw std::invalid_argument(
+                    "A graph component has no requested Baker outer face");
+            }
+        }
         if (component.size() == 1) {
             const auto vertex = component.front();
             forest.levels[vertex] = 1;
@@ -1855,23 +1959,36 @@ BakerForest buildBakerForest(const NetworKit::Graph &graph) {
         std::vector<NetworKit::node> local_to_global;
         BoostGraph boost_graph =
             makeBoostGraph(graph, component, local_to_global);
-        Embedding embedding(num_vertices(boost_graph));
+        Embedding boost_embedding(num_vertices(boost_graph));
         const bool planar = boost::boyer_myrvold_planarity_test(
             boost::boyer_myrvold_params::graph = boost_graph,
-            boost::boyer_myrvold_params::embedding = embedding.data());
+            boost::boyer_myrvold_params::embedding =
+                boost_embedding.data());
         if (!planar) {
             throw std::invalid_argument(
                 "BakerKOuterplanarGraphScheme requires a planar graph");
         }
+        if (!prescribed_embedding.rotation.empty()) {
+            boost_embedding = restrictEmbedding(
+                boost_graph, local_to_global, prescribed_embedding);
+        }
 
         PlaneGraph plane_graph = makePlaneGraph(
-            boost_graph, embedding, local_to_global,
+            boost_graph, boost_embedding, local_to_global,
             graph.upperNodeIdBound());
         const auto initial_faces = plane_graph.faces();
-        const std::size_t outer_face =
-            selectOuterFace(plane_graph, initial_faces);
+        const std::size_t outer_face = component_outer_face.empty()
+            ? selectOuterFace(plane_graph, initial_faces)
+            : selectOuterFace(
+                plane_graph, initial_faces, component_outer_face);
         auto levels = computeLevels(
             plane_graph, initial_faces, outer_face);
+        for (const auto vertex : component) {
+            for (const auto dart : plane_graph.rotation(vertex)) {
+                forest.embedding.rotation[vertex].push_back(
+                    plane_graph.dart(dart).to);
+            }
+        }
         for (const auto vertex : component) {
             const auto level = levels.find(vertex);
             if (level == levels.end() || level->second == 0) {

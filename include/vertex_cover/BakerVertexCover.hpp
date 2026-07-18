@@ -28,6 +28,10 @@ class BakerVertexCover {
     static constexpr std::size_t EXCLUDED = 0;
     static constexpr std::size_t INCLUDED = 1;
 
+    bool isMaximization() const {
+        return false;
+    }
+
     std::size_t stateCount() const {
         return 2;
     }

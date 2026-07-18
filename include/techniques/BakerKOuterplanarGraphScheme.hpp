@@ -84,6 +84,13 @@ struct BakerOperationStatistics {
 };
 
 /**
+ * Rotation system of a planar embedding, indexed by graph node identifier.
+ */
+struct BakerPlaneEmbedding {
+    std::vector<std::vector<NetworKit::node>> rotation;
+};
+
+/**
  * Baker's forest of ordered level-component trees and their explicit slices.
  */
 class BakerForest {
@@ -131,6 +138,7 @@ class BakerForest {
     std::vector<BakerFaceTree> trees;
     std::vector<std::size_t> roots;
     std::vector<NetworKit::count> levels;
+    BakerPlaneEmbedding embedding;
     std::vector<BakerFakeEdge> fakeEdges;
     BakerOperationStatistics statistics;
 
@@ -138,12 +146,37 @@ class BakerForest {
     NetworKit::count outerplanarity_ = 0;
 
     friend BakerForest buildBakerForest(const NetworKit::Graph &graph);
+    friend BakerForest buildBakerForest(
+        const NetworKit::Graph &graph,
+        const std::vector<NetworKit::node> &outer_face_vertices);
+    friend BakerForest buildBakerForest(
+        const NetworKit::Graph &graph,
+        const BakerPlaneEmbedding &embedding,
+        const std::vector<NetworKit::node> &outer_face_vertices);
 };
 
 /**
  * Construct the ordered face trees, LB/RB maps, and slices from Baker's paper.
  */
 BakerForest buildBakerForest(const NetworKit::Graph &graph);
+
+/**
+ * Construct a Baker forest using one prescribed outer face per component.
+ *
+ * The intersection of outer_face_vertices with each connected component must
+ * be exactly the vertex set of a face in the computed planar embedding.
+ */
+BakerForest buildBakerForest(
+    const NetworKit::Graph &graph,
+    const std::vector<NetworKit::node> &outer_face_vertices);
+
+/**
+ * Construct a Baker forest from a prescribed embedding and outer faces.
+ */
+BakerForest buildBakerForest(
+    const NetworKit::Graph &graph,
+    const BakerPlaneEmbedding &embedding,
+    const std::vector<NetworKit::node> &outer_face_vertices);
 
 /**
  * General dynamic program over Baker's explicit k-outerplanar slices.
@@ -192,6 +225,38 @@ class BakerKOuterplanarGraphScheme {
      */
     Solution solve(const NetworKit::Graph &graph) {
         baker_forest_ = buildBakerForest(graph);
+        return solvePreparedForest(graph);
+    }
+
+    /**
+     * Construct and solve using prescribed outer-face vertices.
+     *
+     * @param graph Undirected planar graph.
+     * @param outer_face_vertices Union of one outer-face vertex set for each
+     *        connected component.
+     * @return A solution reconstructed by Problem.
+     */
+    Solution solve(
+            const NetworKit::Graph &graph,
+            const std::vector<NetworKit::node> &outer_face_vertices) {
+        baker_forest_ = buildBakerForest(graph, outer_face_vertices);
+        return solvePreparedForest(graph);
+    }
+
+    /**
+     * Construct and solve using a prescribed embedding and outer faces.
+     */
+    Solution solve(
+            const NetworKit::Graph &graph,
+            const BakerPlaneEmbedding &embedding,
+            const std::vector<NetworKit::node> &outer_face_vertices) {
+        baker_forest_ = buildBakerForest(
+            graph, embedding, outer_face_vertices);
+        return solvePreparedForest(graph);
+    }
+
+ private:
+    Solution solvePreparedForest(const NetworKit::Graph &graph) {
         if (!baker_forest_.hasTwoKBoundaryBound()) {
             throw std::logic_error("A Baker slice exceeded its formal 2k boundary");
         }
@@ -259,6 +324,7 @@ class BakerKOuterplanarGraphScheme {
         return solution;
     }
 
+ public:
     const BakerForest &getBakerForest() const {
         return baker_forest_;
     }

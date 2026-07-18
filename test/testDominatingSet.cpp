@@ -7,6 +7,7 @@
 #include <networkit/graph/Graph.hpp>
 
 #include <dominating_set/BakerKOuterplanarGraphDominatingSet.hpp>
+#include <dominating_set/BakerPlanarGraphDominatingSet.hpp>
 #include <dominating_set/ExactDominatingSet.hpp>
 #include <set_cover/BranchAndReduceSetCover.hpp>
 
@@ -45,6 +46,22 @@ NetworKit::Graph makeSquareChain(NetworKit::count number_of_squares) {
     for (NetworKit::node j = 0;
          j + 4 < 4 * number_of_squares; ++j) {
         graph.addEdge(j, j + 4);
+    }
+    return graph;
+}
+
+NetworKit::Graph makeOuterFaceRegressionGraph() {
+    // G?NP}{
+    NetworKit::Graph graph(8);
+    constexpr std::array<std::pair<NetworKit::node, NetworKit::node>, 15>
+        edges = {{
+            {2, 4}, {3, 4},
+            {0, 5}, {1, 5}, {3, 5},
+            {2, 6}, {3, 6}, {4, 6}, {5, 6},
+            {0, 7}, {1, 7}, {3, 7}, {4, 7}, {5, 7}, {6, 7}
+        }};
+    for (const auto &[u, v] : edges) {
+        graph.addEdge(u, v);
     }
     return graph;
 }
@@ -175,4 +192,52 @@ TEST(BakerKOuterplanarGraphDominatingSetTest, SquareChains) {
             makeSquareChain(number_of_squares),
             expected_sizes[number_of_squares - 1]);
     }
+}
+
+TEST(BakerPlanarGraphDominatingSetTest, TriangleAndSquareChains) {
+    constexpr NetworKit::count parameter = 1;
+    constexpr std::array<std::size_t, 3> triangle_optima = {1, 2, 3};
+    constexpr std::array<std::size_t, 3> square_optima = {2, 2, 3};
+    for (NetworKit::count number_of_faces = 1;
+         number_of_faces <= triangle_optima.size(); ++number_of_faces) {
+        for (const auto &[graph, optimum] : {
+                 std::pair{
+                     makeTriangleChain(number_of_faces),
+                     triangle_optima[number_of_faces - 1]},
+                 std::pair{
+                     makeSquareChain(number_of_faces),
+                     square_optima[number_of_faces - 1]}}) {
+            SCOPED_TRACE(number_of_faces);
+            NetworKit::Graph mutable_graph = graph;
+            Koala::BakerPlanarGraphDominatingSet algorithm(
+                mutable_graph, 1.0);
+            algorithm.run();
+            algorithm.check();
+
+            const auto result_size = algorithm.getDominatingSet().size();
+            EXPECT_LE(result_size * parameter, optimum * (parameter + 1));
+            const auto &statistics =
+                algorithm.getBakerApproximationStatistics();
+            EXPECT_EQ(statistics.parameter, parameter);
+            EXPECT_EQ(statistics.promisedOuterplanarity, parameter + 1);
+            EXPECT_LE(
+                statistics.maximumSubproblemOuterplanarity,
+                statistics.promisedOuterplanarity);
+            EXPECT_EQ(statistics.residueCandidates, parameter);
+        }
+    }
+}
+
+TEST(BakerPlanarGraphDominatingSetTest, UsesInheritedOuterFace) {
+    auto graph = makeOuterFaceRegressionGraph();
+    Koala::BakerPlanarGraphDominatingSet algorithm(graph, 1.0);
+    algorithm.run();
+    algorithm.check();
+
+    const auto &statistics = algorithm.getBakerApproximationStatistics();
+    EXPECT_EQ(statistics.parameter, 1);
+    EXPECT_EQ(statistics.promisedOuterplanarity, 2);
+    EXPECT_LE(
+        statistics.maximumSubproblemOuterplanarity,
+        statistics.promisedOuterplanarity);
 }
