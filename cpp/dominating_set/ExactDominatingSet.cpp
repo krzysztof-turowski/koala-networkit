@@ -16,7 +16,6 @@
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/max_cardinality_matching.hpp>
-#include <networkit/graph/GraphTools.hpp>
 
 #include <dominating_set/ExactDominatingSet.hpp>
 
@@ -148,9 +147,23 @@ std::set<NetworKit::node> FominKratschWoegingerDominatingSet::find_big_MODS_recu
 std::set<NetworKit::node> FominKratschWoegingerDominatingSet::find_MODS_for_minimum_degree_3(
         NetworKit::Graph &G) {
     auto unrequired = merge(free, bound);
-    // TODO(kturowski): implement efficient joint procedure in GraphTools
-    auto G_prim = NetworKit::GraphTools::toUndirected(
-        NetworKit::GraphTools::subgraphFromNodes(G, unrequired.begin(), unrequired.end()));
+    std::vector<bool> is_unrequired(G.upperNodeIdBound(), false);
+    for (NetworKit::node u : unrequired) {
+        is_unrequired[u] = true;
+    }
+
+    NetworKit::Graph G_prim(G.upperNodeIdBound(), false, false);
+    for (NetworKit::node u = 0; u < G.upperNodeIdBound(); ++u) {
+        if (!is_unrequired[u]) {
+            G_prim.removeNode(u);
+        }
+    }
+    G.forEdges([&](NetworKit::node u, NetworKit::node v) {
+        // G has both orientations between active vertices. Keep one of them.
+        if (u <= v && is_unrequired[u] && is_unrequired[v]) {
+            G_prim.addEdge(u, v);
+        }
+    });
     for (NetworKit::count i = 1; 8 * i <= 3 * unrequired.size(); i++) {
         std::set<NetworKit::node> solution;
         if (find_small_MODS_recursive(G_prim, unrequired, 0, i, solution)) {
