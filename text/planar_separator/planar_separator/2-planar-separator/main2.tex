@@ -16,7 +16,7 @@ problems on planar graphs in polynomial time. Let's look at the following
 lemma.
 \needspace{4\baselineskip}
 \begin{lemma}\label{lem:epsilon-planar-separator}
-	Let $G$ be a planar graph with $n$ vertices, with nonnegative
+	Let $G$ be a planar graph with $n$ vertices, with non-negative
 	vertex costs summing to no more than one, and let $0 < \epsilon < 1$. Then
 	there exists some set $C$ of $O(\sqrt{n/ \epsilon})$ vertices such that
 	removal of $C$ from $G$ leaves no connected component with cost
@@ -108,7 +108,7 @@ solves the problem $P$.
 		\State Apply Corollary \ref{cor:epsilon-planar-separator} to a given graph
 		to find separator $C$ and connected components of $G - C$ with maximum size $\epsilon n$
 		\State In each component $G_i$ of $G-C$ find a maximum set $S_i$ inducing a subgraph
-		with property $Q$ by checking every subset of $V_i(G_i)$
+		with property $Q$ by checking every subset of $V(G_i)$
 		\State Return $S \gets \bigcup S_i$
 	\end{algorithmic}
 \end{algorithm}
@@ -130,7 +130,38 @@ of Algorithm~\ref{alg:MISP}.
 	\end{enumerate}
 \end{lemma}
 \begin{proof}
-	The proof follows proof in Lipton and Tarjan's book.
+    \subsubsection{Time complexity}
+    Algorithm $MISP$ has two main steps that affect the time complexity. The
+    first step is simply $O(n \log n)$ by Corollary
+    \ref{cor:epsilon-planar-separator}. In step two, for each connected
+    component $i$ we find $S_i$ by checking every subset. Let $n_i = |V(G_i)|$,
+    then we can find $S_i$ in $O(n_i 2^{n_i})$ time (because from condition 4
+    , we know that property $Q$ is recognizable in linear time). So the total time is
+    $$
+    O\left(\max \left\{ \sum_{i=1}^n n_i 2^{n_i} | \sum_{i=1}^n n_i = n \, \text{and} \, 0 \leq n
+    \leq \epsilon n \right\} \right) = O\left( \frac{n}{\epsilon n} \epsilon n 2^{\epsilon n}
+    \right) = O(n 2^{\epsilon n})
+    $$
+    First equality stems from calculus and the fact that function $x2^x$ is
+    strictly convex, so to maximize the value of the sum, we shall assign $n_i =
+    \epsilon n$. We can see from both of those steps that the total time
+    complexity has to be $O(\max\{ n \log n, n 2^{\epsilon n} \})$.
+
+    \subsubsection{Relative error}
+    We shall define $S^*$ as the maximum set of $V$ that induces a subgraph
+    satisfying property $Q$ and $S$ as the set produced by algorithm. We can see
+    that condition 1 guarantees that we can compose a global solution $S$ as a
+    union of $S_i$, because each subgraph of $G$ induced by $S_i$ satisfies
+    property $Q$. From condition 2 we shall see that $|S^*| - |S| = O(|C|) =
+    O(\sqrt{n/ \epsilon})$. Combining that with condition 3 that guarantees
+    us $|S^*| = \Omega(n)$ and by performing some simple operations on
+    asymptotic functions we get that:
+    $$
+    \frac{|S^*| - |S|}{|S^*|} \leq c_1 \sqrt \left{ \frac{n}{\epsilon} \right
+    } \cdot \frac{c_2}{n} = c_1c_2 \sqrt \left { \frac{1}{\epsilon n}
+    \right } = O(1/ \sqrt{\epsilon n})
+    $$
+    Which concludes our proof.
 \end{proof}
 
 \begin{theorem}\label{thm:MISP-main-theorem}\cite{chibaApplicationsLiptonTarjans1981}
@@ -145,12 +176,3 @@ of Algorithm~\ref{alg:MISP}.
 	then there is an approximation algorithm for P on planar graphs with time
 	complexity $O(n\log{n})$ and worst-case ratio $1-O(1/\sqrt{\log{\log{n}}})$
 \end{theorem}
-\begin{proof}
-	If we can prove that conditions from Lemma~\ref{lem:MISP-upperbound} are all
-	satisfied, we can conclude the proof by setting $\epsilon = \log{\log{n}}/n$.
-	Let's look at the conditions one by one:
-	\begin{enumerate}
-		\item beka
-		\item this one is equivalent to $(c)$
-	\end{enumerate}
-\end{proof}
