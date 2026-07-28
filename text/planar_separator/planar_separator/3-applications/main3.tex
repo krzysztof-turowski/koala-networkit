@@ -7,13 +7,15 @@ matching in a planar graph. The maximum matching problem asks for a maximum
 number of pairwise nonadjacent edges in a graph. Although there exists an
 exact algorithm to find a maximum matching for planar graphs in $O(n \sqrt{n})$
 time, we can based on theorems recalled in Chapter 2 exhibit an approximation
-algorithm that runs in $O(n \log{n})$ time and which worst-case ratio is 1 -
+algorithm that runs in $O(n \log{n})$ time and whose worst-case ratio is 1 -
 $O(1/ \sqrt{\log\log n})$. One can find it interesting why we cannot use Algorithm
 $MISP$ directly and have worst-case ratio and running time guaranteed by Lemma~
 \ref{lem:MISP-upperbound}. That is because the third property is not
-satisfied. The counter example is graph $K_{1, n-1}$ which matching is 1
+satisfied. The counter example is graph $K_{1, n-1}$ whose matching size is 1
 regardless of the size of the graph, and that property demands that the size of
-the matching is a positive fraction of $n$.
+the matching is a positive fraction of $n$. It is also really important to see
+that even though $MISP$ algorithm was defined for problems with sets of vertices
+it easily extendable to sets of edges which we can employ in this section.
 
 \begin{algorithm}[H]
 \caption{MATCHING procedure}
@@ -53,9 +55,9 @@ the matching is a positive fraction of $n$.
                 \State \Call{REDUCE}{$G', S(G')$}
                 \If{$S(G') \text{ does not have an edge adjacent to } u \text{
                 in } G$}
-                    \State $S(G) \gets S(G') \cup \{(v, w)\}$
-                \Else
                     \State $S(G) \gets S(G') \cup \{(v, u)\}$
+                \Else
+                    \State $S(G) \gets S(G') \cup \{(v, w)\}$
                 \EndIf
             \EndIf
 

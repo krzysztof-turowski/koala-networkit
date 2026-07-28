@@ -7,7 +7,7 @@ on is the planar separator theorem introduced by Lipton and Tarjan
 	vertex costs summing to no more than one. Then we can partition
 	vertices of $G$ into three sets $A$, $B$, and $C$ such that
 	there exists no edge ${u, v} \in E(G)$ with $u \in A$ and $v \in B$, neither
-	$A$ nor $B$ has more than $2n/3$ cost, and $C$ contains no more
+	$A$ nor $B$ has more than $2/3$ cost, and $C$ contains no more
 	than $2\sqrt{2}\sqrt{n}$ vertices.
 	Moreover, such a partition can be found in $O(n)$ time.
 \end{theorem}
@@ -64,11 +64,15 @@ is called the \emph{fundamental cycle} defined by $e$.
     summing to no more than one. Suppose that $G$ has a spanning tree $T$ with
     radius $r$. Vertices of $G$ can be partitioned into three
     sets $A, B, C$ such that $A$ and $B$ are disjoint, costs of $A$ and $B$ do
-    not exceed $2/3$ and $C$ is the cycle of length at most $2r + 1$.
+    not exceed $2/3$ and $C$ consists of at most $2r + 1$ vertices, one
+    of the vertices being the root of $T$.
 \end{lemma}
 \begin{proof}
     We shall see that if $G$ has a vertex $v$ with cost at least $1/3$, the lemma is
-    true, as we can set $A = \{v\}$, $B = G \setminus \{v\}$, $C = \emptyset$.
+    true. Let $C$ be the path from $v$ to the root of $T$. We can see that it
+    has less than $2r + 1$ vertices and contains the root. Moreover its cost is
+    at least $1/3$ so if we assign the rest of vertices of $G$ to $A$ and let $B
+    = \emptyset$ then the lemma is true.
     Thus let's assume that $G$ does not have a vertex with cost at least $1/3$.
     Let's now embed $G$ in plane using any algorithm (you can use one from this
     article \cite{hopcroft1974efficient}), and make that graph maximal. Now each
@@ -114,7 +118,7 @@ is called the \emph{fundamental cycle} defined by $e$.
     well as levels $l_2+1, \dots, r+1$, it is possible to find a partition of $G$ into
     sets $A, B, C$, such that neither $A$ nor $B$ have cost exceeding $2/3$,
     there is no edge connecting any vertex from $A$ with any vertex from $B$ and
-    $C$ has at most $L(l_1) + L(l_2) + \max \{ 0, 2(l_2 - l_1 - 1) \}$.
+    $C$ has at most $L(l_1) + L(l_2) + \max \{ 0, 2(l_2 - l_1 - 1) \}$ vertices.
 \end{lemma}
 
 \begin{proof}
@@ -145,7 +149,7 @@ is called the \emph{fundamental cycle} defined by $e$.
     original graph G as well as all of the vertices from $C_H - \{ t' \}$. We
     can see that it works because by Lemma~\ref{lem:fundamental_cycle}, the cost
     of $A$ does not exceed $2/3$. Moreover because of our construction, $C$ has
-    the cost of at most $L(l_1) + L(l_2) + 2(l_2 - l_1 - 1)$. However we can see
+    the size of at most $L(l_1) + L(l_2) + 2(l_2 - l_1 - 1)$. However we can see
     that the cost of $A \cup C_H$ has to be at least $1/3$, as $A$ was the set
     with greater cost among $A_H, B_H$. Hence the cost of $B$ is bounded by
     $2/3$ as the cost of $V(G) - D_2$ is less than $1/3$.
@@ -153,17 +157,6 @@ is called the \emph{fundamental cycle} defined by $e$.
 
 \subsubsection{Main theorem}
 Now we have all of the tools to tackle Theorem~\ref{thm:planar-separator}.
-To remind what we are trying to prove:
-
-\begin{theorem}[Planar Separator Theorem \cite{liptonSeparatorTheoremPlanar1979}]
-	Let $G$ be a planar graph with $n$ vertices, with non-negative
-	vertex costs summing to no more than one. Then we can partition
-	vertices of $G$ into three sets $A$, $B$, and $C$ such that
-	there exists no edge ${u, v} \in E(G)$ with $u \in A$ and $v \in B$, neither
-	$A$ nor $B$ has more than $2n/3$ cost, and $C$ contains no more
-	than $2\sqrt{2}\sqrt{n}$ vertices.
-	Moreover, such a partition can be found in $O(n)$ time.
-\end{theorem}
 \begin{proof}
 Assume at first that $G$ is connected. At first we partition into layers using
 BFS layering getting a spanning tree $T$ rooted in $t$ with radius $r$.
@@ -195,10 +188,13 @@ $l_0$ does not exist. Then for $\forall_{i \leq l_1} L(i) \geq 2 \sqrt{k} -
 $l_1 + 1/2 \geq \sqrt{k}$. If we take the floor of that we have that $l_1 \geq
 \left \lfloor{k}\right \rfloor$. And now by definition of $k$ we have:
 \begin{align*}
-    k &= \sum_{i=0}^{l_1} L(i) \overset{(1)}{\geq} \sum_{i=l_1 - \left \lfloor{k}\right \rfloor}^{l_1} L(i)
-    \overset{(2)}{\geq} \sum_{i=l_1 - \left \lfloor{k}\right \rfloor}^{l_1} 2\sqrt{k} - 2(l_1 - i) \\
-      & \overset{(3)}{\geq} (4\sqrt{k} - 2 \left \lfloor{k}\right \rfloor) (\left \lfloor{k}\right \rfloor + 1)/2
-      \geq \left \lfloor{k}\right \rfloor(\left \lfloor{k}\right \rfloor + 1) > k
+    k &= \sum_{i=0}^{l_1} L(i) \overset{(1)}{\geq} \sum_{i=l_1 - \sqrt{\left
+\lfloor{k}\right \rfloor}}^{l_1} L(i)
+\overset{(2)}{\geq} \sum_{i=l_1 - \sqrt{\left \lfloor{k}\right \rfloor}}^{l_1} 2\sqrt{k} - 2(l_1 - i) \\
+      & \overset{(3)}{\geq} (4\sqrt{k} - 2 \sqrt{\left \lfloor{k}\right
+          \rfloor}) (\sqrt{\left \lfloor{k}\right \rfloor} + 1)/2
+          \geq \sqrt{\left \lfloor{k}\right \rfloor}(\sqrt{\left
+      \lfloor{k}\right \rfloor} + 1) > k
 \end{align*}
 Inequality $(1)$ comes from the fact that we can restrict the range over which
 we sum as $l_1 + 1/2 \geq \sqrt{k}$. Inequality $(2)$ stems from the fact that
