@@ -42,10 +42,67 @@ and follows directly from Lemma~\ref{lem:neighborhood}.
     $\bigcup_{i=0}^{l-1} L_i$ and $\bigcup_{i=l+1}^{r} L_i$
 \end{lemma}
 
-\subsubsection{Fundamental cycle}
-\begin{lemma}\label{lem:fundamental_cycle}
-   eza
+\begin{theorem}\label{thm:jordan-curve}
+    Let $C$ be any closed curve in the plane. Removal of $C$ divides the plane
+    into exactly two connected regions: "inside" and "outside" of $C$.
+\end{theorem}
+
+\begin{lemma}\label{lem:shrinking}
+    Let $G$ be any planar graph. Shrinking any connected subgraph of $G$ to a
+    single vertex preserves planarity.
 \end{lemma}
+
+\subsubsection{Fundamental cycle}
+\begin{defn}\label{def:fundamental_cycle}
+Let $G = (V, E)$ be a graph and let $T$ be a spanning tree of $G$.
+For any non-tree edge $e = (u, v) \in E \setminus E(T)$, the unique simple cycle
+consisting of $e$ and the unique path in $T$ connecting $u$ and $v$
+is called the \emph{fundamental cycle} defined by $e$.
+\end{defn}
+\begin{lemma}\label{lem:fundamental_cycle}
+    Let $G$ be a planar graph with $n$ vertices, with non-negative vertex costs
+    summing to no more than one. Suppose that $G$ has a spanning tree $T$ with
+    radius $r$. Vertices of $G$ can be partitioned into three
+    sets $A, B, C$ such that $A$ and $B$ are disjoint, costs of $A$ and $B$ do
+    not exceed $2/3$ and $C$ is the cycle of length at most $2r + 1$.
+\end{lemma}
+\begin{proof}
+    We shall see that if $G$ has a vertex $v$ with cost at least $1/3$, the lemma is
+    true, as we can set $A = \{v\}$, $B = G \setminus \{v\}$, $C = \emptyset$.
+    Thus let's assume that $G$ does not have a vertex with cost at least $1/3$.
+    Let's now embed $G$ in plane using any algorithm (you can use one from this
+    article \cite{hopcroft1974efficient}), and make that graph maximal. Now each
+    one of the non-tree edges (those added when making $G$ maximal as well)
+    creates a cycle $C$ with tree edges, its length being at most $2r + 1$ if it
+    contains the root of $T$ and $2r - 1$ otherwise. From \ref{thm:jordan-curve}
+    we know that $C$ splits the plane into two parts the \textit{inside} and
+    \textit{outside}. If we can prove that there exists a cycle $C$ such that
+    neither side contains vertices whose total cost exceeds $2/3$, then the
+    lemma is proven.
+    Let $(x, z)$ be a non-tree edge that minimizes the maximum cost of either sides of
+    the cycle $C'$ that it closes. If there are some more edges like that, pick
+    the one with the smallest number of faces on the maximized side. Let's say
+    without loss of generality, that the \textit{inside} has the cost at least
+    as high as the \textit{outside}. If that cost does not exceed $2/3$ then the
+    lemma is true. Otherwise let's consider a triangle $F_T$ inside $C'$ such that
+    $(x, z)$ is one of its boundaries. Let $y$ be the third vertex of $F_T$.
+    Now we have to do case analysis based on properties of the edges of $F_T$:
+    \begin{itemize}
+        \item if both $(x, y), (y, z)$ lie on the cycle then $F_T$ is the cycle, which
+        contradicts with the fact that inside has a positive cost, so it has to
+        have vertices
+    \item if one of $(x, y), (y, z)$ (assume without loss of generality it is
+        $(x, y)$) lies on the cycle, then $(y, z)$ is a non-tree edge that
+        defines a new cycle $C''$ with the same cost, but one less face that
+        $C'$ which contradicts with choice of $(x, z)$.
+    \item if none of $(x, y), (y, z)$, we have to make another case analysis
+        looking at all possible configurations of those two edges being a tree
+        edge. All those configurations lead to a contradiction (a complete proof
+        is to be found in \cite{liptonSeparatorTheoremPlanar1979}).
+    \end{itemize}
+    As we can see, all of the cases lead to contradiction, so the cost inside
+    $C'$ has to be at most $2/3$.
+\end{proof}
 
 \subsubsection{Layering}
 \begin{lemma}\label{lem:layering}
@@ -79,7 +136,7 @@ and follows directly from Lemma~\ref{lem:neighborhood}.
     \\
     Let's then suppose that the cost of $D_2$ is greater that $2/3$. Delete
     all vertices on levels $l_2$ and above, and shrink levels $0, \dots,
-    l_1$ into one vertex $t'$ with cost 0. From Lemma asdasda we know that shrinking
+    l_1$ into one vertex $t'$ with cost 0. From Lemma~\ref{lem:shrinking} we know that shrinking
     vertices preserves planarity. We can now see that the new graph $H$ has a
     spanning tree rooted in $t'$ and radius $l_2 - l_1 - 1$. Apply
     Lemma~\ref{lem:fundamental_cycle} to $H$ and let $A_H, B_H, C_H$ be the resulting
@@ -174,5 +231,86 @@ graph $G$ for example in adjacency lists representation
         there is no cc with cost at least $2/3$, then follow the last part of
         the proof for Theorem~\ref{thm:planar-separator}. Otherwise, go to the
         next step.
-    \item Find a BFS spanning tree of the most costly component
+    \item Find a BFS spanning tree of the most costly component. Compute the
+        level of a vertex and for each level, compute $L(l)$, so the number of
+        vertices on $l$-th level.
+
+    \item Find $l_1$ such that the cost of levels $0, \cdots, l_1 - 1$ does not
+        exceed $1/2$ and the cost of levels $0, \cdots, l_1$ is greater or equal
+        that $1/2$. Now find the highest level $l_0 \leq l_1$ such that
+        $L(l_0) + 2(l_1 - l_0) \leq 2 \sqrt{k}$ and lowest level $l_2 \geq l_1 +
+        1$ such that $L(l_2) + 2(l_2-l_1-1) \leq 2 \sqrt{n - k}$.
+
+    \item Delete all vertices on level $l_2$ and above. Construct a new vertex
+        $x$ and shrink all the levels from 0 to $l_0$ to that one vertex,
+        rewiring the edges on the boundary of $l_0$ level to $x$. (to see how it
+        is exactly done you can refer to \cite{liptonSeparatorTheoremPlanar1979}
+        or implementation of the algorithm in \texttt{PlanarSeparator.cpp})
+
+    \item Construct a BFS spanning tree $T_x$ rooted in $x$. Keep track for each
+        vertex $v$ of its parent in $T_x$ and the total cost of descendants of
+        $v$ including $v$ itself. Make the graph maximal by triangulation.
+
+    \item Choose any non-tree edge $(v_1, w_1)$ and by following parent pointers
+        find a corresponding cycle $C_1$. Compute costs of either sides of the
+        cycle and call the side with greater cost \textit{inside}.
+
+    \item Find a cycle with inside cost not exceeding $2/3$ using
+        Algorithm~\ref{alg:fundamental_cycle}.
+
+    \item Use the cycle found in the previous step and levels found in step 4
+        to construct a vertex partition as described in proof for
+        Lemma~\ref{lem:layering}. Extend the partition found for the most costly
+        connected component to entire graph like in the proof for
+        Theorem~\ref{thm:planar-separator}.
 \end{enumerate}
+\subsubsection*{Time complexity}
+It is easy to see that all the steps, but step 8, take $O(n)$ time. So all we
+have to do is prove this lemma:
+\begin{lemma}\label{lem:fundamental_cycle_algo}
+    Algorithm~\ref{alg:fundamental_cycle} has time complexity $O(n)$.
+\end{lemma}
+\begin{proof}
+    In each step of the algorithm we remove at least one face of the planar
+    graph, so the number of iterations is bound by $O(n)$. In each iteration we
+    do some $O(1)$ work, work proportional to the length of path $P_T$ and some
+    work proportional to the number of edges scanned in cycles $R_1, R_2$. We
+    can see that if $e \in P_T$, then that computation regarding tree path is
+    done only once, as that edge will in the next iteration be on the boundary
+    of new cycle. So all the work regarding computations of $P_T$ amortizes to
+    $O(n)$. Regarding scanning, we can see that if we scanned $k$ edges in each
+    cycle before stopping we did computations proportional to $O(k)$. But in the
+    next iteration at least $k$ edges will be outside the next cycles. So those
+    computations amortize to $O(n)$ as well.
+\end{proof}
+        \begin{algorithm}[H]
+    \caption{$\text{FUNDAMENTAL\_CYCLE}$}
+    \label{alg:fundamental_cycle}
+    \begin{algorithmic}[1]
+        \State $i \gets 1$
+        \State $C_i \gets C_1$
+        \State Let $(v_i, w_i)$ be a non-tree edge completing $C_i$
+        \While{cost inside $C_i$ exceeds $2/3$}
+        \State Let $(v_i, y, w_i)$ be a triangle inside $C_i$ with boundary edge
+        $(v_i, w_i)$
+        \If{$(v_i, y) \in E(T_x)$ or $(w_i, y) \in E(T_x)$}
+        \State Let $(v_{i+1}, w_{i+1})$ be a non-tree edge among $(v_i, y),
+        (w_i, y)$
+        \State Let $C_{i+1}$ be a cycle defined by $(v_{i+1}, w_{i+1})$
+        \State Compute cost inside $C_{i+1}$
+        \Else
+        \State Find tree path $P_T$ from $y$ to $C_i$ path
+        \State Let $z$ be the first vertex in $P_T$ from $y$ that is on $C_i$
+        \State Compute cost of all vertices on $P_T \setminus \{z\}$
+        \State We have two cycles $R_1$ defined by $(y, v_i)$ and $R_2$ defined
+        by $(y, w_i)$
+        \State Scan alternatively one edge in $R_1$ and one in $R_2$
+        \State Stop scanning when one of those two cycles have been scanned
+        \State Find the cost of both cycles by reusing cost of $C_i$
+        and $P_T \setminus \{z\}$
+        \State Let $(v_{i+1}, w_{i+1})$ be the edge among $(v_i, y),
+        (w_i, y)$ whose cycle has more cost inside
+        \EndIf
+        \EndWhile
+    \end{algorithmic}
+\end{algorithm}

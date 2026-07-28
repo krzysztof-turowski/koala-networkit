@@ -9,8 +9,8 @@ exact algorithm to find a maximum matching for planar graphs in $O(n \sqrt{n})$
 time, we can based on theorems recalled in Chapter 2 exhibit an approximation
 algorithm that runs in $O(n \log{n})$ time and which worst-case ratio is 1 -
 $O(1/ \sqrt{\log\log n})$. One can find it interesting why we cannot use Algorithm
-$MISP$ directly and have worst-case ratio and running time guaranteed by Theorem
-\ref{thm:MISP-main-theorem}. That is because the third property is not
+$MISP$ directly and have worst-case ratio and running time guaranteed by Lemma~
+\ref{lem:MISP-upperbound}. That is because the third property is not
 satisfied. The counter example is graph $K_{1, n-1}$ which matching is 1
 regardless of the size of the graph, and that property demands that the size of
 the matching is a positive fraction of $n$.
@@ -133,7 +133,7 @@ We have two base cases to discuss here:
         ratio to 1)
     \item If $N \geq \log\log n$ and $\forall_{v \in V(G)} \, \deg(v) \geq 3$
         we apply $MISP$ algorithm. To prove its correctness we have to check conditions
-        from Theorem \ref{thm:MISP-main-theorem}:
+        from Lemma~\ref{lem:MISP-upperbound}:
         \begin{enumerate}
             \item Satisfied, as $S(G)$ is a matching so a subgraph induced by it
                 satisfies the property that no two edges can have a common
@@ -155,7 +155,7 @@ We have two base cases to discuss here:
         \end{enumerate}
         We can see that all the conditions are satisfied, so by setting
         $\epsilon = \log{\log{n}}/N$ we have the desired worst-case error by
-        Theorem \ref{thm:MISP-main-theorem}.
+        Lemma~\ref{lem:MISP-upperbound}.
 \end{enumerate}
 
 \subsection{Time complexity}
@@ -172,13 +172,13 @@ needed time complexity.
 Now we can look at running time of base cases. If $N \leq \log\log n$ we use
 an exact algorithm to find the matching. If its time complexity is at most
 $O(n2^N)$, then it is enough for our desired time complexity. And if $N \geq
-\log\log n$, then from Theorem \ref{thm:MISP-main-theorem} we have guaranteed
+\log\log n$, then from Lemma~\ref{lem:MISP-upperbound} we have guaranteed
 $O(\max \{ N \log{N}, N 2^{ \epsilon N} \}) = O(N \log{n}) = O(n \log{n})$.
 
 \end{proof}
 
 \section{Vertex cover algorithm}
-Another NP-complete problem we will look at is Vertex Cover. In
+Another problem we will look at is Vertex Cover. In
 \cite{chibaApplicationsLiptonTarjans1981} we can find an algorithm very similar
 to the one for matching problem discussed in a previous section. However for
 VC another interesting approach may be found in
@@ -188,3 +188,31 @@ This algorithm once again is based on approximation scheme that can be found
 in \cite{liptonApplicationsPlanarSeparator1977} and that was already discussed
 in Chapter 2. So we will get an approximation algorithm with running time
 $O(n \log{n})$ and error $O(\sqrt{\log\log n})$.
+\begin{defn}\label{def:rosary}
+Let $G = (V, E)$ be a simple planar graph. A rosary in $G$ is a simple circuit
+of even length $2l$, denoted by $v_1 - v_2 - \dots - v_{2l} - v_1$, such that the
+degree of every even-indexed vertex is exactly two
+for all $i = 1, 2, \dots, l$.
+\end{defn}
+\begin{defn}\label{def:bead}
+Let $G = (V, E)$ be a simple planar graph. A vertex $v \in V$ of degree two is
+called a bead if it plays the role of an even-indexed vertex $v_{2i}$ in
+some rosary in $G$.
+\end{defn}
+\begin{defn}
+    Let $G = (V, E)$ be a simple planar graph. We will call it proper if the degree
+    of all vertices is at least 2 and the set $Y_B$ of all its beads satisfies
+$|Y_B| < 1/6 |V|$.
+\end{defn}
+\noindent
+In \cite{bar-yehudaApproximatingVertexCover1982} authors prove a very useful
+theorem regarding proper graphs.
+\begin{theorem}\label{thm:proper}
+    Let $G = (V, E)$ be a simple planar graph with all vertices having degree at
+    least 2. Then we have:
+    $$
+    |VC^*| > \frac{1}{5}(|V| - |Y_B|)
+    $$
+\end{theorem}
+\noindent
+If $G$ is proper then by Theorem~\ref{thm:proper} we have $|V|/|VC^*| < 6$.
