@@ -180,16 +180,44 @@ $O(\max \{ N \log{N}, N 2^{ \epsilon N} \}) = O(N \log{n}) = O(n \log{n})$.
 \end{proof}
 
 \section{Vertex cover algorithm}
-Another problem we will look at is Vertex Cover. In
+Another problem we will look at is Vertex Cover which is NP-complete. In
 \cite{chibaApplicationsLiptonTarjans1981} we can find an algorithm very similar
 to the one for matching problem discussed in a previous section. However for
 VC another interesting approach may be found in
 \cite{bar-yehudaApproximatingVertexCover1982} which will be shown in this
 section.
-This algorithm once again is based on approximation scheme that can be found
-in \cite{liptonApplicationsPlanarSeparator1977} and that was already discussed
-in Chapter 2. So we will get an approximation algorithm with running time
-$O(n \log{n})$ and error $O(\sqrt{\log\log n})$.
+At first we shall define what a vertex cover is.
+\begin{defn}\label{def:vertex-cover}
+    Let $G = (V, E)$ be a graph. We call $VC \subseteq V$ a vertex cover if for each 
+    $e \in E$ one of its endpoints is in $VC$.
+\end{defn}
+Vertex Cover Problem asks for a minimum $VC$ in $G$. Another related problem is the
+Independent Set Problem that asks for a maximum independent set.
+\begin{defn}
+    Let $G = (V, E)$ be a graph. We call $I \subseteq V$ and independent set if for 
+    every two $v, u \in I$, $(u, v) \notin E$.
+\end{defn}
+It is clear that those problems are complementary, so solving Independent Set Problem
+gives a solution to Vertex Cover Problem as $VC \cup I = V$. In \cite{liptonApplicationsPlanarSeparator1977}
+authors give an approximation algorithm (which is essentially MISP algorithm discussed in Chapter 2) to find
+a maximum independent set in $O(n \log n)$ time with
+relative error $O(1/\sqrt{\log \log n})$, which means that for some constant $c$:
+$$
+\frac{|I^*| - |I|}{|I^*|} \leq \frac{c}{\sqrt{\log \log n}}
+$$
+But we know that $|VC^*| + |I^*| = n$, so after some simple arithmetics:
+$$
+\frac{|VC| - |VC^*|}{|VC^*|} \leq \frac{c (n/|VC^*| - 1)}{\sqrt{\log \log n}}
+$$
+This means that in order to use approximation scheme from \cite{liptonApplicationsPlanarSeparator1977}
+for independent set to solve VC Problem we will have to show that $n/|VC^*|$ converges
+to some $\epsilon_0 > 1$.
+\\
+To do that we will have to pre-process graph $G$ and apply approximation scheme afterwards.
+At start we shall start with a few definitions introduced by authors of
+\cite{bar-yehudaApproximatingVertexCover1982}.
+
+
 \begin{defn}\label{def:rosary}
 Let $G = (V, E)$ be a simple planar graph. A rosary in $G$ is a simple circuit
 of even length $2l$, denoted by $v_1 - v_2 - \dots - v_{2l} - v_1$, such that the
@@ -217,4 +245,73 @@ theorem regarding proper graphs.
     $$
 \end{theorem}
 \noindent
-If $G$ is proper then by Theorem~\ref{thm:proper} we have $|V|/|VC^*| < 6$.
+If $G$ is proper then by Theorem~\ref{thm:proper} we have $|V|/|VC^*| < 6$. And that is exactly 
+what we need to apply the approximation scheme. So the preparatory algorithm from
+\cite{bar-yehudaApproximatingVertexCover1982} will reduce $G$ to a proper graph. The general
+idea of that algorithm is to at first get rid of all vertices with degree less than 2 and later 
+reduce the size of set of beads. We shall see exact steps in listing for Algorithm~\ref{alg:prep}.
+We will denote a graph induced by subset $S \subseteq V$ as $\wtG(S)$.
+
+\begin{algorithm}[H]
+\caption{Preparatory algorithm}
+\label{alg:prep}
+\begin{algorithmic}[1]
+    \Procedure{PREP}{$G$}
+    \State $ VC \gets \emptyset$
+    \State $ U \gets \emptyset $
+    \State $ STOP \gets 0$
+    \While{$STOP \neq 1$}
+    \While{$\exists_{v \in V(\wtG(V \setminus U))} \deg(v) < 2$}
+    \If{$v \in V \setminus U$, $ \deg(v) = 0$ in $\wtG(V \setminus U))$}
+        \State Add $v$ to $U$
+    \EndIf
+    \If{$v \in V \setminus U$, $ \deg(v) = 1$ in $\wtG(V \setminus U))$ }
+        \State Let $(v, u) \in E(\wtG(V \setminus U))$ be the edge of $v$
+        \State Add $v, u$ to $U$ and $u$ to $VC$
+    \EndIf
+    \EndWhile
+
+    \While{There are simple isolated circuits in $\wtG(V \setminus U)$}
+    \State Let $v_1, \dots, v_k, v_1$ be a simple isolated circuit in $\wtG(V \setminus U)$
+    \State $\forall$ odd $i \in \{1, \dots, k\}$ $\rightarrow$ add $v_i$ to $VC$
+    \State $\forall$ $i \in \{1, \dots, k\}$ $\rightarrow$ add $v_i$ to $U$
+    \EndWhile
+    \State $B(X, Y, E') \gets \text{BIPARTITE($\wtG(V \setminus U)$)}$
+    \If{$|Y| \geq 1/6 |V \setminus U|$}
+        \State $VC \gets VC \cup X$
+        \State $U \gets U \cup X \cup Y$
+    \EndIf
+    \If{$|Y| < 1/6 |V \setminus U|$ or $V \setminus U = \emptyset$}
+        \State $STOP \gets 1$
+    \EndIf
+    \EndWhile
+    \EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]
+\caption{BIPARTITE procedure}
+\label{alg:bipartite}
+\begin{algorithmic}[1]
+    \Procedure{BIPARTITE}{$H$ with no isolated circuits and $\deg(v) \geq 2$}
+    \State Label all $v : \deg(v) > 2$ with "+"
+    \State Add those vertices to queue $Q$
+    \While{$Q$ not empty}
+    \State $v \gets Q.popFront()$
+    \State Let $L$ be all unlabelled vertices adjacent to $v$ in $H$
+    \State $\forall v_L \in L$ $\rightarrow$ label opposite to $v$ (using "+" or "-")
+    \State $\forall v_L \in L$ $\rightarrow$ $Q.add(v_L)$
+    \EndWhile
+    \State $X \gets \{ v : v \in V(H) \, \text{and labelled "+"}\}$
+    \State $Y \gets \{ v : v \in V(H) \, \text{and labelled "-"}\}$
+    \State $E' \gets \{(u, v) : u \in X, v \in Y, (u, v) \in E(H)\}$
+    \State Let $B = (X, Y, E')$ be a bipartite graph
+    \While{$\exists v \in B: \deg_B(v) < 2$}
+        \State Remove $v$ and incident edges
+    \EndWhile
+    \State \Return $B$
+    \EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+
