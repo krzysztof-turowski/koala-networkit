@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <iostream>
 #include <map>
+#include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
@@ -123,8 +124,9 @@ Koala::MaximumWeightMatching* get_algorithm(NetworKit::Graph& G, const Arguments
         return new Koala::GalilMicaliGabowMaximumMatching(G, args.perfect, args.initialization);
     case Algorithm::SCALING:
         return new Koala::GabowScalingMatching(G, args.perfect);
+    default:
+        throw std::logic_error("Unhandled algorithm");
     }
-    throw std::logic_error("Unhandled algorithm");
 }
 
 std::pair<int64_t, int> calc_matching_weight(

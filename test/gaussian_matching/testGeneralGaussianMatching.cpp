@@ -1,9 +1,8 @@
 #include <gtest/gtest.h>
 
-#include <random>
+#include <list>
 #include <vector>
 
-#include "io/DimacsGraphReader.hpp"
 #include "matching/gaussian_matching/GeneralGaussianMatching.hpp"
 
 #include "../helpers.hpp"
@@ -11,8 +10,8 @@
 class GenTest : public testing::Test {};
 
 TEST(GenTest, testSuccess) {
-  srand(time(NULL));
-  auto G = Koala::DimacsGraphReader().read("input/perfect.in");
+  const std::list<std::pair<int, int>> edges = {{0, 1}, {0, 2}, {1, 3}};
+  auto G = build_graph(4, edges, false);
   int n = G.numberOfNodes();
 
   Koala::GeneralGaussianMatching gen(G);

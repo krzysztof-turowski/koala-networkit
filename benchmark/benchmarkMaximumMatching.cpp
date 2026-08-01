@@ -3,6 +3,7 @@
 #include <iostream>
 #include <map>
 #include <set>
+#include <stdexcept>
 #include <string>
 
 #include <benchmark/utils.hpp>
@@ -70,6 +71,8 @@ void run_test(NetworKit::Graph &G, Algorithm algorithm) {
     case Algorithm::GABOW:
         T.insert(run_algorithm<Koala::GabowMaximumMatching>(G));
         break;
+    default:
+        throw std::logic_error("Unhandled algorithm");
     }
     std::cout << std::endl;
 }

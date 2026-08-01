@@ -86,7 +86,7 @@ void HenzingerPlanarSSSP::run() {
         return;
     }
     normal_graph = PlanarGraphTools::convertToMaxDegree3(graph, true);
-    auto graph_for_division = GraphTools::convertDirectedGraphToUndirected(normal_graph);
+    auto graph_for_division = GraphTools::convertDirectedGraphToUndirected(normal_graph, true);
     NetworKit::count c = 6;  // arbitrary parameter: number of boundary nodes in region of division
     NetworKit::count r4;
     if (r == NetworKit::none) {

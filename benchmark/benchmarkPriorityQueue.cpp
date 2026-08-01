@@ -5,6 +5,7 @@
 #include <limits>
 #include <map>
 #include <queue>
+#include <stdexcept>
 #include <string>
 #include <type_traits>
 #include <vector>
@@ -111,6 +112,8 @@ void runDijkstra(
         case Algorithm::WEAK_HEAP:
             dijkstra.run<Koala::WeakHeap<NetworKit::node>>();
             break;
+        default:
+            throw std::logic_error("Unhandled algorithm");
     }
 
     auto end = std::chrono::high_resolution_clock::now();

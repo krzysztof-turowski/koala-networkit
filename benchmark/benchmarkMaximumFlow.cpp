@@ -3,6 +3,7 @@
 #include <iostream>
 #include <map>
 #include <set>
+#include <stdexcept>
 #include <string>
 
 #include <benchmark/utils.hpp>
@@ -61,6 +62,8 @@ void run_test(
     case Algorithm::ELECTRICAL_FLOW:
         T.insert(run_algorithm<Koala::ElectricalFlow>(G, s, t));
         break;
+    default:
+        throw std::logic_error("Unhandled algorithm");
     }
     std::cout << std::endl;
 }

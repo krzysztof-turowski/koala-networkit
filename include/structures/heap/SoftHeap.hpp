@@ -27,10 +27,10 @@ class SoftHeap {
     explicit SoftHeap(float eps = 0.3);
     explicit SoftHeap(T e, float eps = 0.3);
     SoftHeap(const SoftHeap&);
-    SoftHeap(SoftHeap&&);
+    SoftHeap(SoftHeap&&) noexcept;
 
     SoftHeap& operator=(const SoftHeap&);
-    SoftHeap& operator=(SoftHeap&&);
+    SoftHeap& operator=(SoftHeap&&) noexcept;
 
     template<SoftHeapElement R>
     friend SoftHeap<R> insert(SoftHeap<R>&&, R);
@@ -56,7 +56,7 @@ class SoftHeap {
         std::list<T> corruptedList;
         std::list<T> originalList;
 
-        TreeNode() {}
+        TreeNode() noexcept = default;
         explicit TreeNode(T val) {
             ckey = val->key;
             originalList = std::list{val};
@@ -151,7 +151,7 @@ SoftHeap<T>::SoftHeap(const SoftHeap& other)
 {}
 
 template<SoftHeapElement T>
-SoftHeap<T>::SoftHeap(SoftHeap<T>&& other)
+SoftHeap<T>::SoftHeap(SoftHeap<T>&& other) noexcept
     : eps(other.eps), elements(other.elements), r(other.r), rank(other.rank),
         guard(std::move(other.guard)), allElementsAdded(std::move(other.allElementsAdded)) {
     other.guard.reset();
@@ -163,15 +163,14 @@ SoftHeap<T>& SoftHeap<T>::operator=(const SoftHeap&) {
 }
 
 template<SoftHeapElement T>
-SoftHeap<T>& SoftHeap<T>::operator=(SoftHeap<T>&& other) {
+SoftHeap<T>& SoftHeap<T>::operator=(SoftHeap<T>&& other) noexcept {
     eps = other.eps;
     r = other.r;
     rank = other.rank;
-    guard = other.guard;
+    guard = std::move(other.guard);
     elements = other.elements;
     insertCount = other.insertCount;
     allElementsAdded = std::move(other.allElementsAdded);
-    other.guard.reset();
     return *this;
 }
 

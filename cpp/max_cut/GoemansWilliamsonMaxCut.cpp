@@ -10,25 +10,59 @@ extern "C" {
 #include <declarations.h>
 }
 
+#include <Eigen/Eigenvalues>
+
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
 #include <random>
+#include <stdexcept>
 #include <vector>
 
 #include <max_cut/GoemansWilliamsonMaxCut.hpp>
 
 namespace Koala {
+namespace {
+
+NetworKit::edgeweight flipGain(
+        const NetworKit::Graph &graph, const std::vector<bool> &cut, NetworKit::node u) {
+    NetworKit::edgeweight gain = 0;
+    graph.forNeighborsOf(u, [&](NetworKit::node v, NetworKit::edgeweight weight) {
+        gain += cut[u] == cut[v] ? weight : -weight;
+    });
+    return gain;
+}
+
+void improveCut(const NetworKit::Graph &graph, std::vector<bool> &cut) {
+    bool improved;
+    do {
+        improved = false;
+        for (auto u : graph.nodeRange()) {
+            if (flipGain(graph, cut, u) > 0) {
+                cut[u] = !cut[u];
+                improved = true;
+            }
+        }
+    } while (improved);
+}
+
+}  // namespace
 
 void GoemansWilliamsonMaxCut::run() {
     // Declarations
     int n = graph->numberOfNodes();
     maxCutSet.assign(n, false);
+    maxCutValue = 0;
+    if (n == 0) {
+        hasRun = true;
+        return;
+    }
+
     struct blockmatrix C, X, Z;
     double *b = NULL, *y = NULL;
     double pobj, dobj;
     struct constraintmatrix *constraints = NULL;
-    maxCutValue = 0;
 
     // Prepare constraints
     initializeSDP(C, b, constraints);
@@ -37,27 +71,47 @@ void GoemansWilliamsonMaxCut::run() {
     initsoln(n, 1, C, b, constraints, &X, &y, &Z);
     easy_sdp(n, 1, C, b, constraints, 0.0, &X, &y, &Z, &pobj, &dobj);
 
-    std::vector<double> r = randomUnitVector(n);
-
+    Eigen::MatrixXd covariance(n, n);
     for (int i = 0; i < n; ++i) {
-        double sum = 0;
         for (int j = 0; j < n; ++j) {
-            sum += X.blocks[1].data.mat[i * n + j] * r[j];
+            covariance(i, j) = X.blocks[1].data.mat[ijtok(i + 1, j + 1, n)];
         }
-        maxCutSet[i] = (sum >= 0);
     }
 
-    // Calculate cut
-    maxCutValue = calculateCutValue(maxCutSet);
+    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> solver(covariance);
+    if (solver.info() != Eigen::Success) {
+        free_prob(n, 1, C, b, constraints, X, y, Z);
+        throw std::runtime_error("Failed to factor the MaxCut SDP solution");
+    }
+    Eigen::VectorXd eigenvalues = solver.eigenvalues().cwiseMax(0).cwiseSqrt();
+    Eigen::MatrixXd vectors = solver.eigenvectors() * eigenvalues.asDiagonal();
+
+    const int rounds = std::clamp(4 * n, 32, 128);
+    for (int round = 0; round < rounds; ++round) {
+        std::vector<double> random_vector = randomUnitVector(n);
+        Eigen::Map<Eigen::VectorXd> hyperplane(random_vector.data(), n);
+        std::vector<bool> cut(n);
+        for (int i = 0; i < n; ++i) {
+            cut[i] = vectors.row(i).dot(hyperplane) >= 0;
+        }
+        improveCut(*graph, cut);
+
+        double cut_value = calculateCutValue(cut);
+        if (cut_value > maxCutValue) {
+            maxCutValue = cut_value;
+            maxCutSet = std::move(cut);
+        }
+    }
 
     free_prob(n, 1, C, b, constraints, X, y, Z);
+    hasRun = true;
 }
 
 std::vector<double> GoemansWilliamsonMaxCut::randomUnitVector(int dim) {
     std::vector<double> r(dim);
     double norm = 0;
     std::mt19937 generator(std::random_device {}());
-    std::uniform_real_distribution<double> distribution(-0.5, 0.5);
+    std::normal_distribution<double> distribution;
 
     for (int i = 0; i < dim; ++i) {
         r[i] = distribution(generator);

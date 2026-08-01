@@ -18,8 +18,8 @@ void NaiveGaussianMatching::run() {
   MatZp AG = generateMatrix(G);
   auto M1 = NaiveGaussElimination::pivotElimination(
       AG, [&AG](int r, int c) { return AG[r][c] != 0; });
-  for (int c = 0; c < M1.size(); c++) {
-    M.insert({c, M1[c]});
+  for (std::size_t c = 0; c < M1.size(); c++) {
+    M.insert({static_cast<int>(c), M1[c]});
   }
 }
 

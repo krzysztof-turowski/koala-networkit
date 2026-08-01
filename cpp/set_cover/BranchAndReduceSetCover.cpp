@@ -276,7 +276,7 @@ bool RooijBodlaenderSetCover::reduce() {
 NetworKit::index RooijBodlaenderSetCover::find_counting_rule_reduction_set() {
     for (NetworKit::index i = 0; i < family.size(); i++) {
         auto &candidate = family.at(i);
-        int count_frequency_two = 0;
+        std::size_t count_frequency_two = 0;
         std::set<NetworKit::node> not_covered;
         for (auto &element : candidate) {
             if (occurences.at(element).size() == 2) {

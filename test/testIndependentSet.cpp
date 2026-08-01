@@ -13,6 +13,7 @@
 #include "independent_set/CographIndependentSet.hpp"
 #include "independent_set/IndependentSet.hpp"
 #include "recognition/ChordalGraphRecognition.hpp"
+#include "recognition/CographRecognition.hpp"
 
 #include "test/helpers.hpp"
 
@@ -153,6 +154,27 @@ INSTANTIATE_TEST_SUITE_P(
         6, {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {4, 5}, {5, 0},
             {1, 4}, {1, 5}, {2, 4}}, 2}
 ));
+
+TEST(CographIndependentSetTest, mapsCotreeLeavesToGraphNodes) {
+    IndependentSetParameters parameters = {
+        6, {{0, 1}, {0, 2}, {0, 3}, {0, 4}, {5, 1}, {5, 2}, {5, 3}, {5, 4}}, 4};
+    auto G = build_graph(parameters.N, parameters.E, false);
+    Koala::HabibPaulCographRecognition recognition(G);
+    recognition.run();
+    ASSERT_TRUE(recognition.isCograph());
+
+    Koala::CographIndependentSet algorithm(G, recognition.cotree);
+    algorithm.run();
+    auto independent_set = algorithm.getIndependentSet();
+    std::set<NetworKit::node> nodes(independent_set.begin(), independent_set.end());
+    for (auto node : independent_set) {
+        EXPECT_TRUE(G.hasNode(node));
+    }
+    for (const auto &[u, v] : parameters.E) {
+        EXPECT_FALSE(nodes.contains(u) && nodes.contains(v));
+    }
+    EXPECT_EQ(independent_set.size(), parameters.expectedSetSize);
+}
 
 namespace {
 

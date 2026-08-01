@@ -42,7 +42,7 @@ void CographIndependentSet::add_to_set() {
         Conode &V = cotree.getNode(v);
         st.pop();
         if (V.type == NodeType::LEAF) {
-            independentSet.push_back(v);
+            independentSet.push_back(V.number);
         } else if (V.type == NodeType::COMPLEMENT_NODE) {
             NetworKit::node best = NetworKit::none;
             for (auto child = V.first_child; child != NetworKit::none;
@@ -65,14 +65,14 @@ void CographIndependentSet::add_to_set() {
 }
 
 void CographIndependentSet::run() {
-    hasRun = true;
-    independent_set_size.resize(cotree.upperNodeIdBound(), 0);
+    independentSet.clear();
+    independent_set_size.assign(cotree.upperNodeIdBound(), 0);
     st.push(cotree.getRoot());
-    used.resize(cotree.upperNodeIdBound(), false);
+    used.assign(cotree.upperNodeIdBound(), false);
     recurse_run();
     st.push(cotree.getRoot());
-    used.resize(cotree.upperNodeIdBound(), false);
     add_to_set();
+    hasRun = true;
 }
 
 NetworKit::count CographIndependentSet::bruteForceIndependetSetSize(NetworKit::Graph &Graph) {

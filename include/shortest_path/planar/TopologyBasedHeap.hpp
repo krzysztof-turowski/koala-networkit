@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -9,7 +10,8 @@
 
 // Based on boost::hash_combine
 struct pair_hash {
-    size_t operator()(const std::pair<NetworKit::node, NetworKit::node>& pair) const {
+    std::size_t operator()(
+            const std::pair<NetworKit::node, NetworKit::node>& pair) const noexcept {
         return pair.first ^
                (pair.second + 0x9e3779b97f4a7c15 + (pair.first << 12) + (pair.first >> 4));
     }

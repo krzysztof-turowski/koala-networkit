@@ -89,7 +89,8 @@ bool check_odd_hole_with_near_cleaner(
         }
         for (const auto &triple : triplePaths) {
             if (std::ranges::any_of(
-                    std::views::iota(0, 3), [&](auto i) { return triple[i] == y1; })) {
+                    std::views::iota(0, 3),
+                    [&](auto i) noexcept { return triple[i] == y1; })) {
                 continue;
             }
             auto x1 = triple[0], x3 = triple[1], x2 = triple[2];

@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <functional>
 #include <list>
+#include <stdexcept>
 #include <utility>
 #include <tuple>
 #include <vector>
@@ -138,7 +139,7 @@ GabowScalingMatching::scale(const std::vector<MaximumWeightMatching::intweight>&
     old_root = T;
 
     // Calculate the dual weights
-    T->for_blossoms([this] (OldBlossom* B) {
+    T->for_blossoms([this] (OldBlossom* B) noexcept {
         // Use weights from recursive call
         B->z = 2 * B->z;
     });
@@ -346,7 +347,7 @@ void GabowScalingMatching::heavy_path_decomposition(
 void GabowScalingMatching::path(OldBlossom* B, MaximumWeightMatching::intweight outer_dual) {
     z_outer = outer_dual;
     path_root = highest_undissolved = B;
-    path_root->for_nodes([this] (NetworKit::node v) {
+    path_root->for_nodes([this] (NetworKit::node v) noexcept {
         vertex_path[v] = path_root;
     });
 
@@ -418,7 +419,7 @@ void GabowScalingMatching::enumerate_shells() {
 
         // Remember the blossom of each vertex before path augmentation
         for (auto B : shell->shell_blossoms) {
-            B->for_nodes([this, B] (NetworKit::node v) {
+            B->for_nodes([this, B] (NetworKit::node v) noexcept {
                 current_blossom[v] = B;
             });
             B->label = free;
@@ -437,7 +438,7 @@ void GabowScalingMatching::enumerate_shells() {
     }
 }
 
-void GabowScalingMatching::change_blossom_base(Blossom* B, NetworKit::node new_base, Edge edge) {
+void GabowScalingMatching::change_blossom_base(Blossom* B, NetworKit::node new_base, Edge) {
     if (matched_edge[B->base] != NetworKit::none) {
         remove_edge_from_matching(matched_edge[B->base]);
     }
@@ -501,7 +502,7 @@ void GabowScalingMatching::augmentPaths() {
     NetworKit::index counter = 0;
 
     // Contract the graph into blossoms
-    path_root->for_nodes([this, &counter] (NetworKit::node v) {
+    path_root->for_nodes([this, &counter] (NetworKit::node v) noexcept {
         if (v == current_blossom[v]->base) {
             actual_to_contracted[v] = counter;
             counter++;
@@ -603,6 +604,8 @@ void GabowScalingMatching::shell_search(OldBlossom* B) {
             case Event::Type::dissolveShell:
                 dissolveShell(event.args.S);
                 break;
+            default:
+                throw std::logic_error("Unhandled matching event type");
         }
     }
 }
@@ -1202,11 +1205,11 @@ void GabowScalingMatching::create_new_blossom(
     std::list<std::pair<Blossom*, Edge>> subblossoms;
 
     // Construct the subblossom list
-    for (int i = v_path.size() - 1; i > 0; --i)
-        subblossoms.emplace_back(v_path[i-1].blossom, v_path[i].edge);
+    for (std::size_t i = v_path.size(); i > 1; --i)
+        subblossoms.emplace_back(v_path[i - 2].blossom, v_path[i - 1].edge);
     if (v_path.size() > 0) subblossoms.emplace_back(v, v_path[0].edge);
     subblossoms.emplace_back(u, reverse(edge));
-    for (int i = 0; i < u_path.size(); ++i)
+    for (std::size_t i = 0; i < u_path.size(); ++i)
         subblossoms.emplace_back(u_path[i].blossom, reverse(u_path[i].edge));
 
     Blossom* new_blossom = new Blossom {

@@ -44,9 +44,13 @@ Matching BipartiteGaussianMatching::getMatching() {
 
 void BipartiteGaussianMatching::run() {
   initZp(ZP_MOD);
+  M.clear();
 
-  assert(U.size() == V.size());
-  int n = std::max(U.size(), V.size());
+  if (U.size() != V.size()) {
+    hasRun = true;
+    return;
+  }
+  int n = U.size();
   AG = zeroMat(n, n);
   for (auto u : U) {
     for (auto v : G.neighborRange(u)) {
@@ -56,8 +60,10 @@ void BipartiteGaussianMatching::run() {
     }
   }
 
-  if (determinant(AG) == 0)
+  if (determinant(AG) == 0) {
+    hasRun = true;
     return;
+  }
 
   MatZp B;
   NTL::inv(B, AG);
@@ -67,6 +73,7 @@ void BipartiteGaussianMatching::run() {
   for (std::size_t i = 0; i < eliminated.size(); ++i) {
     M.insert({i, eliminated[i]});
   }
+  hasRun = true;
 }
 
 std::pair<std::vector<int>, std::vector<int>> getComponents(const NetworKit::Graph &G) {

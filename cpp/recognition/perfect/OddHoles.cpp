@@ -150,7 +150,8 @@ bool is_t3(const NetworKit::Graph &graph, const std::vector<NetworKit::node> &V,
         return false;
     }
     for (unsigned i = 1; i < P.size() - 1; i++) {
-        if (std::ranges::any_of(std::views::iota(0, 4), [&](auto j) { return V[j] == P[i]; })) {
+        if (std::ranges::any_of(
+                std::views::iota(0, 4), [&](auto j) noexcept { return V[j] == P[i]; })) {
             return false;
         }
         if (std::any_of(X.begin(), X.end(), [&](auto x) { return x == P[i]; })) {

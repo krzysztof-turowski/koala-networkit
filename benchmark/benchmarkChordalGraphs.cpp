@@ -2,6 +2,7 @@
 #include <iostream>
 #include <map>
 #include <set>
+#include <stdexcept>
 #include <string>
 
 #include <benchmark/utils.hpp>
@@ -39,8 +40,9 @@ int choose_algorithm(NetworKit::Graph &G, Algorithm algorithm) {
         return run_algorithm<Koala::MaximumCardinalitySearchChordalGraphRecognition>(G);
     case Algorithm::LEXBFS:
         return run_algorithm<Koala::LexBFSChordalGraphRecognition>(G);
+    default:
+        throw std::logic_error("Unhandled algorithm");
     }
-    throw std::logic_error("Unhandled algorithm");
 }
 
 int main(int argc, const char *argv[]) {

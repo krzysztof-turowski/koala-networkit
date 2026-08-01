@@ -46,9 +46,15 @@ class FibonacciHeap {
  public:
     typedef Key value_type;
 
-    class iterator : public std::iterator<std::input_iterator_tag, NetworKit::index> {
+    class iterator {
         NetworKit::index data;
      public:
+        using iterator_category = std::input_iterator_tag;
+        using value_type = NetworKit::index;
+        using difference_type = std::ptrdiff_t;
+        using pointer = const NetworKit::index*;
+        using reference = NetworKit::index;
+
         explicit iterator(NetworKit::index data = NetworKit::none) : data(data) { }
         iterator(const iterator &other) : data(other.data) { }
         bool operator==(const iterator &other) const { return data == other.data; }

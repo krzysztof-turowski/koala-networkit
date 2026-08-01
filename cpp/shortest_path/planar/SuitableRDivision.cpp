@@ -86,10 +86,12 @@ std::pair<std::unordered_set<NetworKit::node>, std::unordered_set<NetworKit::nod
     current = edge.u;
     last = edge.v;
     while (current != local_root_node) {
-        auto start =
-            std::find(graph[current].begin(), graph[current].end(), last) - graph[current].begin();
-        auto end = std::find(graph[current].begin(), graph[current].end(), parent[current]) -
-                   graph[current].begin();
+        auto start = static_cast<std::size_t>(
+            std::find(graph[current].begin(), graph[current].end(), last) -
+            graph[current].begin());
+        auto end = static_cast<std::size_t>(
+            std::find(graph[current].begin(), graph[current].end(), parent[current]) -
+            graph[current].begin());
         for (std::size_t i = (start + 1) % graph[current].size(); i != end;
             i = (i + 1) % graph[current].size()) {
             inside_DFS(graph[current][i], graph, inside);
@@ -99,11 +101,12 @@ std::pair<std::unordered_set<NetworKit::node>, std::unordered_set<NetworKit::nod
     }
 
     // ROOT
-    auto start = std::find(graph[local_root_node].begin(), graph[local_root_node].end(), last) -
-                 graph[local_root_node].begin();
-    auto end =
+    auto start = static_cast<std::size_t>(
+        std::find(graph[local_root_node].begin(), graph[local_root_node].end(), last) -
+        graph[local_root_node].begin());
+    auto end = static_cast<std::size_t>(
         std::find(graph[local_root_node].begin(), graph[local_root_node].end(), root_right_child) -
-        graph[local_root_node].begin();
+        graph[local_root_node].begin());
     for (std::size_t i = (start + 1) % graph[local_root_node].size(); i != end;
         i = (i + 1) % graph[local_root_node].size()) {
         inside_DFS(graph[local_root_node][i], graph, inside);
@@ -442,9 +445,12 @@ node_subsets_t make_suitable_graph_division_from_queue(
         }
     }
 
-    auto is_mergable = [&](NetworKit::index c) {
-        if (is_set_used[c]) return false;
-        if (2 * small_sets[c].size() > r || 2 * number_of_boundary_nodes[c] > c * sqr) return false;
+    auto is_mergable = [&](NetworKit::index component) {
+        if (is_set_used[component]) return false;
+        if (2 * small_sets[component].size() > r ||
+            2 * static_cast<NetworKit::count>(number_of_boundary_nodes[component]) > c * sqr) {
+            return false;
+        }
         return true;
     };
 

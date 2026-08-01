@@ -15,7 +15,7 @@ class ArrayPriorityQueue {
     explicit ArrayPriorityQueue(NetworKit::count bucket_size): bucket_size(bucket_size) { reset(); }
 
     void scheduleEvent(NetworKit::index event_time, Event event) {
-        if (event_time < timeNow()) return;
+        if (event_time < static_cast<NetworKit::index>(timeNow())) return;
         auto bucket = event_time / bucket_size;
         if (bucket == current_bucket)
             add_to_current_bucket(event_time % bucket_size, event);

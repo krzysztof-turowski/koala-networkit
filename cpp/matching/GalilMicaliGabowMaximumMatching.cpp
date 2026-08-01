@@ -1,3 +1,4 @@
+#include <stdexcept>
 #include <vector>
 
 #include <matching/MaximumMatching.hpp>
@@ -382,8 +383,9 @@ MaximumWeightMatching::weight GalilMicaliGabowMaximumMatching::current_y(NetworK
             return y[v];
         case odd:
             return y_odd.current_priority(v);
+        default:
+            throw std::logic_error("Unhandled blossom label");
     }
-    return 0;
 }
 
 MaximumWeightMatching::weight GalilMicaliGabowMaximumMatching::slack(NetworKit::edgeid edge) {

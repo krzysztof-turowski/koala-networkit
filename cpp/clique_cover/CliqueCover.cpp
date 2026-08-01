@@ -18,4 +18,4 @@ const std::vector<std::vector<NetworKit::node>>& MinCliqueCover::getCliqueCover(
     return clique_cover;
 }
 
-}
+}  // namespace Koala

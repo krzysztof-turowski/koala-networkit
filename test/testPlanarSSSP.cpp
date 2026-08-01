@@ -66,7 +66,8 @@ SSSPParameters generate_line_graph_edges(int length, bool directed = false) {
         edges.emplace_back(i, i + 1, 1);
     }
 
-    return {"line", length, edges, 0, length - 1, length - 1, directed};
+    return {"line", length, edges, 0, static_cast<NetworKit::node>(length - 1),
+        length - 1, directed};
 }
 
 SSSPParameters generate_triangular_grid_edges(int levels, bool directed = false) {
@@ -75,7 +76,7 @@ SSSPParameters generate_triangular_grid_edges(int levels, bool directed = false)
     int node = 0;
     int row_start;
     int next_row_start;
-    int current, left_child, right_child;
+    int current, left_child, right_child = 0;
     for (int row = 0; row < levels - 1; ++row) {
         row_start = node;
         next_row_start = node + row + 1;
@@ -93,7 +94,8 @@ SSSPParameters generate_triangular_grid_edges(int levels, bool directed = false)
         node = next_row_start;
     }
 
-    return {"triangular-grid", right_child + 1, edges, 0, right_child, levels - 1, directed};
+    return {"triangular-grid", right_child + 1, edges, 0,
+        static_cast<NetworKit::node>(right_child), levels - 1, directed};
 }
 
 INSTANTIATE_TEST_SUITE_P(Default, PlanarSSSPTest,

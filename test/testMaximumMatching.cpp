@@ -60,7 +60,7 @@ void check_proper_matching(const auto& graph, const auto& matching) {
     for (auto [u, v] : matching) {
         if (v != NetworKit::none) {
             EXPECT_TRUE(graph.hasEdge(u, v));
-            EXPECT_EQ(u, matching[v]);
+            EXPECT_EQ(u, matching.at(v));
         }
     }
 }

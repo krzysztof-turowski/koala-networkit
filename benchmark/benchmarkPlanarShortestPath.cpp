@@ -2,6 +2,7 @@
 #include <iostream>
 #include <map>
 #include <set>
+#include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
@@ -45,6 +46,8 @@ void choose_algorithm(NetworKit::Graph &G, NetworKit::Graph &G_directed, Algorit
     case Algorithm::HENZINGER:
         run_algorithm<Koala::HenzingerPlanarSSSP>(G_directed);
         break;
+    default:
+        throw std::logic_error("Unhandled algorithm");
     }
 }
 

@@ -12,7 +12,7 @@
 struct MaxCutParameters {
     int N;
     std::list<std::tuple<int, int, int>> EW;
-    int expectedMaxCutValue;
+    int optimalCutValue;
 };
 
 class MaxCutTest : public testing::TestWithParam<MaxCutParameters> {};
@@ -25,7 +25,18 @@ TEST_P(MaxCutTest, TestMaxCutSolution) {
 
     algorithm.run();
 
-    EXPECT_EQ(algorithm.getMaxCutValue(), parameters.expectedMaxCutValue);
+    const auto &cut = algorithm.getMaxCutSet();
+    ASSERT_EQ(cut.size(), G.upperNodeIdBound());
+    NetworKit::edgeweight cut_value = 0;
+    G.forEdges([&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight weight) {
+        if (cut[u] != cut[v]) {
+            cut_value += weight;
+        }
+    });
+
+    constexpr double approximation_ratio = 0.87856;
+    EXPECT_EQ(algorithm.getMaxCutValue(), cut_value);
+    EXPECT_GE(cut_value, approximation_ratio * parameters.optimalCutValue);
 }
 
 INSTANTIATE_TEST_SUITE_P(

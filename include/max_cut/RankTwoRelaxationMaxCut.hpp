@@ -29,7 +29,7 @@ class RankTwoRelaxationMaxCut final : public MaxCut {
     void run();
 
  private:
-    static const double alpha = 0.001;
+    static constexpr double alpha = 0.001;
     static const int maxIterations = 100000;
     std::vector<double> theta;
 

@@ -22,11 +22,10 @@ class SimpleGraphsPathwidth : public testing::Test {
         if constexpr (std::is_same_v<Algorithm, Koala::CographPathwidth>) {
             auto recognition = Koala::HabibPaulCographRecognition(G);
             recognition.run();
-            if (recognition.isCograph()) {
-                auto algorithm = Algorithm(G, recognition.cotree);
-                algorithm.run();
-                pathwidth = algorithm.getPathwidthSize();
-            }
+            ASSERT_TRUE(recognition.isCograph());
+            auto algorithm = Algorithm(G, recognition.cotree);
+            algorithm.run();
+            pathwidth = algorithm.getPathwidthSize();
         } else {
             auto algorithm = Algorithm(G);
             algorithm.run();

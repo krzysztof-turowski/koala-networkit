@@ -25,7 +25,7 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     set(KOALA_LINKER_FLAGS "${KOALA_LINKER_FLAGS} -fopenmp")
 endif()
 
-set(CMAKE_CXX_CPPLINT cpplint --linelength=100 --extensions=cpp,hpp --filter=-legal/copyright,-build/c++11,-build/c++17,-build/c++20,-runtime/references,-runtime/string --recursive --exclude=${CMAKE_SOURCE_DIR}/backup --exclude=${CMAKE_SOURCE_DIR}/build --exclude=${CMAKE_SOURCE_DIR}/input --exclude=${CMAKE_SOURCE_DIR}/lib)
+set(CMAKE_CXX_CPPLINT cpplint --quiet --linelength=100 --extensions=cpp,hpp --filter=-legal/copyright,-build/c++11,-build/c++17,-build/c++20,-runtime/references,-runtime/string --recursive --exclude=${CMAKE_SOURCE_DIR}/backup --exclude=${CMAKE_SOURCE_DIR}/build --exclude=${CMAKE_SOURCE_DIR}/input --exclude=${CMAKE_SOURCE_DIR}/lib)
 
 include(FetchContent)
 
@@ -44,6 +44,7 @@ FetchContent_MakeAvailable(networkit)
 
 set(NETWORKIT_SOURCE_DIRS
   "${CMAKE_SOURCE_DIR}/lib/networkit/include"
+  "${CMAKE_SOURCE_DIR}/lib/networkit/extlibs/dhb/include"
   "${CMAKE_SOURCE_DIR}/lib/networkit/extlibs/ttmath"
   "${CMAKE_SOURCE_DIR}/lib/networkit/extlibs/tlx"
 )

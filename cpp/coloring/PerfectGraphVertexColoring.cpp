@@ -198,7 +198,8 @@ std::vector<int> PerfectGraphVertexColoring::get_maximum_weighted_stable_set(
     });
     auto stable_set = get_maximum_stable_set(auxiliary_graph);
     std::vector<int> out;
-    for (int i = 0, index = 0; i < stable_set.size(); i++) {
+    int index = 0;
+    for (int i = 0; i < static_cast<int>(stable_set.size()); i++) {
         if (stable_set[i]) {
             index = std::find_if(
                 count.begin() + index, count.end(), [&](int v) { return v > i; }) - count.begin();

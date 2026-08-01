@@ -463,7 +463,7 @@ class PriorityQueue2 {
 
     void reset_group(Group* group) {
         group->active = false;
-        group->Delta_last = group->Delta_last = 0;
+        group->Delta_last = 0;
         group->elements.set_all_priorities(std::make_pair(infinite_priority, no_value));
     }
 

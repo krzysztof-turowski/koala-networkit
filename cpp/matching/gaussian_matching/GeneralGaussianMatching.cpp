@@ -16,12 +16,11 @@
 #include <matching/gaussian_matching/utils.hpp>
 
 namespace Koala {
-void dfs(int u, std::vector<bool> &visited, std::set<int> &connected,
-         std::function<std::vector<int>(int)> edgesOf);
-std::vector<std::set<int>> getSimpleComponents(const NetworKit::Graph &graph, const MatZp &AG);
-std::vector<std::set<int>> getConnectedComponents(
-    const NetworKit::Graph &graph, std::vector<bool> visited);
-std::set<int> getNontrivialClass(const MatZp &AG);
+static void dfs(int u, std::vector<bool> &visited, std::set<int> &connected,
+                std::function<std::vector<int>(int)> edgesOf);
+static std::vector<std::set<int>> getSimpleComponents(
+    const NetworKit::Graph &graph, const MatZp &AG);
+static std::set<int> getNontrivialClass(const MatZp &AG);
 
 static Matching greedyMatching(const NetworKit::Graph &G);
 static Matching generalMatching(const NetworKit::Graph &G, const MatZp &AG);
@@ -39,11 +38,15 @@ GeneralGaussianMatching::GeneralGaussianMatching(const NetworKit::Graph &G1) {
 
 void GeneralGaussianMatching::run() {
   initZp(ZP_MOD);
+  M.clear();
 
-  if (G.numberOfNodes() == 0)
+  if (G.numberOfNodes() == 0) {
+    hasRun = true;
     return;
+  }
   auto AG = generateMatrix(G);
   M = generalMatching(G, AG);
+  hasRun = true;
 }
 
 Matching GeneralGaussianMatching::getMatching() {
@@ -135,6 +138,7 @@ Matching partition(const NetworKit::Graph &G, const MatZp &AG) {
 Matching simplePartition(const NetworKit::Graph &G, const MatZp &AG) {
   Matching M;
   DynamicComponents DC(G);
+  const int original_node_count = static_cast<int>(G.numberOfNodes());
 
   auto Sv = getNontrivialClass(AG);
   if (Sv.size() == 0) {
@@ -209,7 +213,7 @@ Matching simplePartition(const NetworKit::Graph &G, const MatZp &AG) {
   std::vector<int> componentOf(G.numberOfNodes());
   for (int i = 0; auto &comp : components) {
     for (auto v : comp) {
-      if (v == G.numberOfNodes())
+      if (v == original_node_count)
         continue;
       componentOf[v] = i;
     }
@@ -238,8 +242,8 @@ Matching simplePartition(const NetworKit::Graph &G, const MatZp &AG) {
       int cv = v == s ? u : v;
       for (auto sv : Sv) {
         if (G.hasEdge(cv, sv)) {
-          assert(sv != G.numberOfNodes());
-          assert(cv != G.numberOfNodes());
+          assert(sv != original_node_count);
+          assert(cv != original_node_count);
           M.insert({cv, sv});
           SG.removeNode(sv);
           Sv.erase(sv);
@@ -247,8 +251,8 @@ Matching simplePartition(const NetworKit::Graph &G, const MatZp &AG) {
         }
       }
     } else {
-      assert(u != G.numberOfNodes());
-      assert(v != G.numberOfNodes());
+      assert(u != original_node_count);
+      assert(v != original_node_count);
       M.insert({u, v});
     }
   }
@@ -311,8 +315,8 @@ Matching simplePartition(const NetworKit::Graph &G, const MatZp &AG) {
     assert(MCi.size() == SCi.numberOfNodes() / 2);
     for (auto [u, v] : MCi) {
       assert(u != v);
-      assert(u != G.numberOfNodes());
-      assert(v != G.numberOfNodes());
+      assert(u != original_node_count);
+      assert(v != original_node_count);
       M.insert({u, v});
     }
   }
@@ -387,24 +391,6 @@ static std::vector<std::set<int>> getSimpleComponents(const NetworKit::Graph &G,
       }
     }
     return edges;
-  };
-
-  for (auto v : G.nodeRange()) {
-    if (visited[v])
-      continue;
-    connected.push_back(std::set<int>());
-    dfs(v, visited, connected[connected.size() - 1], edgesOf);
-  }
-  return connected;
-}
-
-static std::vector<std::set<int>> getConnectedComponents(
-    const NetworKit::Graph &G, std::vector<bool> visited) {
-  int n = G.numberOfNodes();
-
-  std::vector<std::set<int>> connected;
-  auto edgesOf = [&](int u) {
-    return std::vector<int>(G.neighborRange(u).begin(), G.neighborRange(u).end());
   };
 
   for (auto v : G.nodeRange()) {

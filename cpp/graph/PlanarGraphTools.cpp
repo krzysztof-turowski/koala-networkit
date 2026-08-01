@@ -119,7 +119,7 @@ NetworKit::Graph makeMaximalPlanar(NetworKit::Graph& G) {
     return convert_boost_to_networKit(g, node_map, G);
 }
 
-NetworKit::Graph convertToMaxDegree3(NetworKit::Graph& G, bool directed = false) {
+NetworKit::Graph convertToMaxDegree3(NetworKit::Graph& G, bool directed) {
     planar_embedding_t embedding = findPlanarEmbedding(G);
     NetworKit::count result_size = G.numberOfNodes();
 
@@ -176,11 +176,7 @@ NetworKit::Graph convertToMaxDegree3(NetworKit::Graph& G, bool directed = false)
     }
 
     for (auto node : result.nodeRange()) {
-        NetworKit::count count = 0;
-        for (auto neighbor : result.neighborRange(node)) {
-            count++;
-        }
-        assert(count < 4);
+        assert(result.degree(node) < 4);
     }
 
     return result;

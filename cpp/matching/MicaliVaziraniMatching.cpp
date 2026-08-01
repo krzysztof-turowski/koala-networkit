@@ -102,7 +102,8 @@ void MicaliVaziraniMatching::search() {
 
     iter = max_iter = 0;
     augmentation_happened = false;
-    for (iter = 0; iter < candidates.size() && !augmentation_happened; iter++) {
+    for (iter = 0;
+         iter < static_cast<int>(candidates.size()) && !augmentation_happened; iter++) {
         for (auto v : candidates[iter]) {
             graph.forEdgesOf(v, [this] (NetworKit::node v, NetworKit::node u, NetworKit::edgeid e) {
                 if (V[u].erased || E[e].type != EdgeData::Type::none ||
@@ -127,7 +128,7 @@ void MicaliVaziraniMatching::search() {
             });
         }
 
-        for (int i = 0; i < bridges[2 * iter + 1].size(); ++i) {
+        for (std::size_t i = 0; i < bridges[2 * iter + 1].size(); ++i) {
             auto e = bridges[2 * iter + 1][i];
             auto s = E[e].v;
             auto t = E[e].u;

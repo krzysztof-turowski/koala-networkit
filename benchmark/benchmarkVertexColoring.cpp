@@ -6,6 +6,7 @@
 #include <map>
 #include <numeric>
 #include <set>
+#include <stdexcept>
 #include <string>
 
 #include <benchmark/utils.hpp>
@@ -155,6 +156,8 @@ void choose_algorithm(NetworKit::Graph &G, Algorithm algorithm) {
     case Algorithm::CHORDAL:
         run_algorithm<Koala::ChordalVertexColoring>(G);
         break;
+    default:
+        throw std::logic_error("Unhandled algorithm");
     }
 }
 

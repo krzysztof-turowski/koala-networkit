@@ -55,7 +55,7 @@ void CographVertexColoring::end_of_coloring() {
 }
 
 void CographVertexColoring::run() {
-    hasRun = true;
+    colors.clear();
     color.assign(cotree.upperNodeIdBound(), 0);
     number_of_colors.assign(cotree.upperNodeIdBound(), 0);
     used.assign(cotree.upperNodeIdBound(), false);
@@ -64,9 +64,13 @@ void CographVertexColoring::run() {
     used.assign(cotree.upperNodeIdBound(), false);
     st.push(cotree.getRoot());
     end_of_coloring();
-    for (const auto &u : graph->nodeRange()) {
-        colors[u] = color[u];
+    for (NetworKit::node v = 0; v < cotree.upperNodeIdBound(); ++v) {
+        const Conode &node = cotree.getNode(v);
+        if (node.type == NodeType::LEAF) {
+            colors[node.number] = color[v];
+        }
     }
+    hasRun = true;
 }
 
 bool CographVertexColoring::checkColoring() {

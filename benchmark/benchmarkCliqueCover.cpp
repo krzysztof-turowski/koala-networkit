@@ -1,5 +1,6 @@
 #include <iostream>
 #include <map>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -36,6 +37,8 @@ void choose_algorithm(NetworKit::Graph &G, Algorithm algorithm) {
     case Algorithm::CHORDAL:
         run_algorithm<Koala::ChordalMinCliqueCover>(G);
         break;
+    default:
+        throw std::logic_error("Unhandled algorithm");
     }
 }
 

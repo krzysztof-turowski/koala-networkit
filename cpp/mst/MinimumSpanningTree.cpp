@@ -54,7 +54,7 @@ class BranchingTree {
         B_edges[v] = w;
     }
 
-    void update(const NetworKit::Graph &G, const NetworKit::UnionFind &union_find) {
+    void update(const NetworKit::Graph &G, NetworKit::UnionFind &union_find) {
         std::unordered_map<NetworKit::node, NetworKit::node> V_B_next;
         for (const auto &v : G.nodeRange()) {
             V_B_next[v] = B.addNode();
@@ -198,8 +198,8 @@ class AugmentedGraph {
             }
             std::vector<NetworKit::index> elements;
             auto hset = i;
-            for (NetworKit::index j = 0; (1 << j) <= hset; j++) {
-                if ((1 << j) & hset) {
+            for (NetworKit::index j = 0; (h_set{1} << j) <= hset; j++) {
+                if ((h_set{1} << j) & hset) {
                     elements.push_back(j);
                 }
             }
@@ -215,7 +215,7 @@ class AugmentedGraph {
         // sup{j' \in down(Dv, Su) : w(Pv(j')) > w(v)}
         auto k = binary_search(P, getWeight(v), down(D[v], S));
         // BUG in the paper: S = down(D[v], S & (1 << (k + 1) - 1) | (1 << depth[v]));
-        S = down(D[v], S & ((1 << (k + 1)) - 1) | (1 << depth[v]));
+        S = down(D[v], (S & ((h_set{1} << (k + 1)) - 1)) | (h_set{1} << depth[v]));
         for (auto i = L[v]; i != NetworKit::none; i = L_next[i]) {
             answer[i] = P[median[down(1 << depth[upper[i]], S)]];
         }
@@ -451,8 +451,10 @@ void KargerKleinTarjanMinimumSpanningTree::remove_heavy_edges(
     subforest.forEdges([&](NetworKit::node u, NetworKit::node v) {
         E.insert({NetworKit::Edge(u, v, true), {u, v}});
     });
+    auto boruvka_forest = NetworKit::GraphTools::copyNodes(subforest);
     NetworKit::Graph branching_tree = *iterate(
-        subforest, subforest, union_find, E, std::numeric_limits<NetworKit::count>::max(), true);
+        subforest, boruvka_forest, union_find, E,
+        std::numeric_limits<NetworKit::count>::max(), true);
     auto branching_tree_augmented = AugmentedGraph(branching_tree);
     Koala::LCA lca(get_parent_vector(branching_tree), branching_tree_augmented.getRoot());
     std::vector<NetworKit::node> upper, lower;
@@ -627,8 +629,10 @@ void MinimumSpanningTree::check() const {
         E.insert({NetworKit::Edge(u, v, true), {u, v}});
     });
     // Note: Boruvka runs in linear time on trees
+    auto boruvka_forest = NetworKit::GraphTools::copyNodes(tree_copy);
     NetworKit::Graph branching_tree = *BoruvkaMinimumSpanningTree::iterate(
-        tree_copy, tree_copy, union_find, E, std::numeric_limits<NetworKit::count>::max(), true);
+        tree_copy, boruvka_forest, union_find, E,
+        std::numeric_limits<NetworKit::count>::max(), true);
     std::vector<std::tuple<NetworKit::node, NetworKit::node, NetworKit::edgeweight>> G_minus_M;
     G_minus_M.reserve(graph.numberOfEdges() - tree.numberOfEdges());
     graph.forEdges([&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight w) {
@@ -922,8 +926,8 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
             min_link[i][last_i] = min_link[i][best_j];
         }
 
-        for (std::size_t i = 0; i < d; ++i) {
-            for (std::size_t j = 0; j < d; ++j) {
+        for (std::size_t i = 0; i < static_cast<std::size_t>(d); ++i) {
+            for (std::size_t j = 0; j < static_cast<std::size_t>(d); ++j) {
                 if (i >= k() || j > k()) {
                     min_link[i][j] = {
                         NetworKit::Edge(), std::numeric_limits<NetworKit::edgeweight>::max()};
@@ -970,7 +974,6 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
 
     auto fusion = [&]() -> edge {
         auto [uv_edge, mini, minj] = min_border_edge();
-        NetworKit::node uG0{uv_edge.u}, vG0{uv_edge.v};
         auto [link_i, link_j, ab] = leftmost_smaller_min_link(uv_edge.ckey);
         if (link_i == -1) return uv_edge;
         auto [a, b] = ab;
@@ -984,7 +987,7 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
         size_t new_p = parent.size();
         parent.push_back(new_p);
         fusion_node.push_back(true);
-        while (k() > link_i) {
+        while (k() > static_cast<std::size_t>(link_i)) {
             for (auto v : Cz[k()]) {
                 parent[v] = new_p;
             }
@@ -1008,7 +1011,7 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
         }
     };
 
-    int extensions = 0;
+    NetworKit::count extensions = 0;
     auto extension = [&](edge e) {
         extensions += 1;
         NetworKit::node u = e.u, v = e.v;
@@ -1017,7 +1020,7 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
         heaps.push_back(std::vector<SoftHeap<edge*>>());
         for (std::size_t i = 0; i <= Cz.size(); ++i) heaps[heaps.size() - 1].push_back(
             SoftHeap<edge*>(&dummy_edge, 0.1));
-        Cz.push_back({v});
+        Cz.push_back({static_cast<int>(v)});
         for (std::size_t i = 0; i < heaps.size(); ++i) {
             heaps[i].push_back(SoftHeap<edge*>(&dummy_edge, 0.1));
         }
@@ -1036,7 +1039,8 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
     };
 
     auto should_retract = [&]() {
-        return Cz.size() == d || (Cz[k()].size() >= desired_size[k()] && k() > 0);
+        return Cz.size() == static_cast<std::size_t>(d) ||
+            (Cz[k()].size() >= static_cast<std::size_t>(desired_size[k()]) && k() > 0);
     };
 
     auto should_finish = [&]() {
@@ -1046,7 +1050,8 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
     auto initialization = [&]() {
         int eid_now = 0;
         G0.forEdges([&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight ew) {
-            edges[eid_now] = edge{u, v, ew, ew, eid_now, false, false};
+            edges[eid_now] = edge{
+                static_cast<int>(u), static_cast<int>(v), ew, ew, eid_now, false, false};
             G0_edge_id[NetworKit::Edge(u, v, true)] = eid_now;
             eid_now += 1;
         });
@@ -1055,7 +1060,7 @@ NetworKit::Graph Chazelle2000MinimumSpanningTree::mst(NetworKit::Graph G, int t)
         Cz.push_back({0});
         heaps.push_back({SoftHeap<edge*>(&dummy_edge, 0.1), SoftHeap<edge*>(&dummy_edge, 0.1)});
         heaps.push_back({SoftHeap<edge*>(&dummy_edge, 0.1), SoftHeap<edge*>(&dummy_edge, 0.1)});
-        G0.forEdgesOf(0, [&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight ew) {
+        G0.forEdgesOf(0, [&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight) {
             int eid = G0_edge_id[NetworKit::Edge(u, v, true)];
             insert_new_border_edge(&edges[eid], u, v);
         });

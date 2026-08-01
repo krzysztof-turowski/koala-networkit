@@ -32,8 +32,11 @@ void LexBFSChordalGraphRecognition::SetQueue::removeVertex(
     NetworKit::node prev = vertices[v].prev;
     NetworKit::node next = vertices[v].next;
 
-    if (prev != NetworKit::none) vertices[prev].next = next;
-    else sets[set].head = next;
+    if (prev != NetworKit::none) {
+        vertices[prev].next = next;
+    } else {
+        sets[set].head = next;
+    }
 
     if (next != NetworKit::none) vertices[next].prev = prev;
 
@@ -56,8 +59,11 @@ void LexBFSChordalGraphRecognition::SetQueue::removeSet(NetworKit::index set) {
     NetworKit::index prev = sets[set].prev;
     NetworKit::index next = sets[set].next;
 
-    if (prev != NO_SET) sets[prev].next = next;
-    else first_set = next;
+    if (prev != NO_SET) {
+        sets[prev].next = next;
+    } else {
+        first_set = next;
+    }
 
     if (next != NO_SET) sets[next].prev = prev;
 
@@ -93,8 +99,11 @@ void LexBFSChordalGraphRecognition::SetQueue::moveToNewSet(NetworKit::node w) {
         sets[s_prime].next = s;
         sets[s].prev = s_prime;
 
-        if (p != NO_SET) sets[p].next = s_prime;
-        else first_set = s_prime;
+        if (p != NO_SET) {
+            sets[p].next = s_prime;
+        } else {
+            first_set = s_prime;
+        }
 
         sets[s].split_into = s_prime;
         active_splits.push_back(s);

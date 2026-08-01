@@ -23,7 +23,7 @@ struct BranchAndBoundMaxCut::Node {
 
 int BranchAndBoundMaxCut::bound(Node u) {
     int result = calculateCutValue(u.set);
-    graph->forEdges([&](NetworKit::node j, NetworKit::node k, NetworKit::edgeweight w) {
+    graph->forEdges([&](NetworKit::node j, NetworKit::node, NetworKit::edgeweight w) {
         if (j >= u.level) {
             result += w;
         }

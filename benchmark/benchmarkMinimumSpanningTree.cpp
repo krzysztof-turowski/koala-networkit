@@ -4,6 +4,7 @@
 #include <iostream>
 #include <map>
 #include <set>
+#include <stdexcept>
 #include <string>
 
 #include <networkit/components/ConnectedComponents.hpp>
@@ -97,6 +98,8 @@ NetworKit::edgeweight choose_algorithm(NetworKit::Graph &G, const std::string &a
                 "Algorithm " + algorithm_name + " requires distinct edge weights");
         }
     }
+    default:
+        throw std::logic_error("Unhandled algorithm");
     }
 }
 

@@ -44,7 +44,7 @@ void CographMaxClique::add_to_set() {
         st.pop();
         Conode &V = cotree.getNode(v);
         if (V.type == NodeType::LEAF) {
-            max_clique.push_back(v);
+            max_clique.push_back(V.number);
         } else if (V.type == NodeType::UNION_NODE) {
             NetworKit::node best = NetworKit::none;
             for (auto child = V.first_child; child != NetworKit::none;
@@ -67,14 +67,14 @@ void CographMaxClique::add_to_set() {
 }
 
 void CographMaxClique::run() {
-    hasRun = true;
-    subgraph_clique_size.resize(cotree.upperNodeIdBound());
-    used.resize(cotree.upperNodeIdBound());
+    max_clique.clear();
+    subgraph_clique_size.assign(cotree.upperNodeIdBound(), 0);
+    used.assign(cotree.upperNodeIdBound(), false);
     st.push(cotree.getRoot());
     recurse_run();
-    used.resize(cotree.upperNodeIdBound());
     st.push(cotree.getRoot());
     add_to_set();
+    hasRun = true;
 }
 
 NetworKit::count CographMaxClique::bruteForceCliqueSize(NetworKit::Graph &Graph) {

@@ -23,7 +23,7 @@ bool eliminate(MatZp &A, int r, int c) {
 }
 
 std::vector<int> NaiveGaussElimination::pivotElimination(
-    MatZp &A, std::function<bool(int, int)> isCellAllowed, bool bipartite = false) {
+    MatZp &A, std::function<bool(int, int)> isCellAllowed, bool bipartite) {
   int n = A.NumCols();
 
   std::vector<int> res(n);

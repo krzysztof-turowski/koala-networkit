@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <limits>
 #include <list>
+#include <stdexcept>
 #include <utility>
 #include <vector>
 
@@ -79,6 +80,8 @@ void BlossomMaximumMatching::initialize(
         });
 
         return;
+    default:
+        throw std::logic_error("Unhandled matching initialization strategy");
     }
 }
 

@@ -150,7 +150,7 @@ auto calculate_p_paths(
                     continue;
                 }
                 bool noPath = !M.count(m) && std::ranges::any_of(
-                    std::views::iota(0, 3), [&](auto j) {
+                    std::views::iota(0, 3), [&](auto j) noexcept {
                         return (i != j) && (graph.hasEdge(s[j], m) || graph.hasEdge(m, b[j]));
                 });
                 if (noPath) {

@@ -1,6 +1,7 @@
 #include <iostream>
 #include <map>
 #include <set>
+#include <stdexcept>
 #include <string>
 
 #include <benchmark/utils.hpp>
@@ -61,8 +62,9 @@ int choose_algorithm(NetworKit::Graph &G, Algorithm algorithm) {
         return run_algorithm<Koala::DahlhausCographRecognition>(G);
     case Algorithm::HABIB_PAUL:
         return run_algorithm<Koala::HabibPaulCographRecognition>(G);
+    default:
+        throw std::logic_error("Unhandled algorithm");
     }
-    throw std::logic_error("Unhandled algorithm");
 }
 
 int main(int argc, const char *argv[]) {
