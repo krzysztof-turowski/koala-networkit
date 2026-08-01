@@ -26,7 +26,7 @@ class KargerSteinMinCut final : public MinCut {
     /**
      * Executes the Min-Cut problem solver `repeat` times and takes the best solution.
      */
-    void run();
+    void run() override;
 
     /**
      * Executes the Min-Cut problem solver without repeat.

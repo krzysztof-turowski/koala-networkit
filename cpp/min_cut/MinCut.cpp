@@ -18,10 +18,12 @@ MinCut::MinCut(NetworKit::Graph &graphInput)
     : graph(std::make_optional(graphInput)) {}
 
 int MinCut::getMinCutValue() const {
+    assureFinished();
     return minCutValue;
 }
 
 const std::vector<bool>& MinCut::getMinCutSet() const {
+    assureFinished();
     return minCutSet;
 }
 

@@ -26,7 +26,7 @@ class RankTwoRelaxationMaxCut final : public MaxCut {
     /**
      * Executes the Max-Cut problem solver.
      */
-    void run();
+    void run() override;
 
  private:
     static constexpr double alpha = 0.001;

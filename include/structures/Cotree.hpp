@@ -35,6 +35,7 @@ class Cotree {
  private:
     std::vector<Conode> nodes;
     NetworKit::node root;
+
  public:
     Cotree();
 

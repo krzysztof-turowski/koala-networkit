@@ -145,6 +145,7 @@ void KargerSteinMinCut::run() {
         bestMinCutValue = std::min(bestMinCutValue, minCutValue);
     }
     minCutValue = bestMinCutValue;
+    hasRun = true;
 }
 
 void KargerSteinMinCut::runOnce() {

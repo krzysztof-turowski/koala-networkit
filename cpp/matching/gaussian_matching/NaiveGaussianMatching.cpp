@@ -11,9 +11,13 @@ static MatZp generateMatrix(const NetworKit::Graph &G);
 
 NaiveGaussianMatching::NaiveGaussianMatching(const NetworKit::Graph &G1) : G(G1) {}
 
-Matching NaiveGaussianMatching::getMatching() { return M; }
+Matching NaiveGaussianMatching::getMatching() {
+  assureFinished();
+  return M;
+}
 
 void NaiveGaussianMatching::run() {
+  initZp(ZP_MOD);
   M.clear();
   MatZp AG = generateMatrix(G);
   auto M1 = NaiveGaussElimination::pivotElimination(
@@ -21,6 +25,7 @@ void NaiveGaussianMatching::run() {
   for (std::size_t c = 0; c < M1.size(); c++) {
     M.insert({static_cast<int>(c), M1[c]});
   }
+  hasRun = true;
 }
 
 static MatZp generateMatrix(const NetworKit::Graph &G) {

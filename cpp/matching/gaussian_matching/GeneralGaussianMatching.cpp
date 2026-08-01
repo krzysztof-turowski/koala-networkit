@@ -50,6 +50,7 @@ void GeneralGaussianMatching::run() {
 }
 
 Matching GeneralGaussianMatching::getMatching() {
+  assureFinished();
   Matching M1;
   for (auto [u, v] : M) {
     M1.insert({oldIdx[u], oldIdx[v]});

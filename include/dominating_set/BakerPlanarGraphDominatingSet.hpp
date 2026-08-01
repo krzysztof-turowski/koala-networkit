@@ -27,7 +27,7 @@ class BakerPlanarGraphDominatingSet final
     /**
      * Compute a Baker planar approximation.
      */
-    void run();
+    void run() override;
 };
 
 }  // namespace Koala

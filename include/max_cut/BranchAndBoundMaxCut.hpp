@@ -26,7 +26,7 @@ class BranchAndBoundMaxCut final : public MaxCut {
     /**
      * Executes the Max-Cut problem solver.
      */
-    void run();
+    void run() override;
 
  private:
     struct Node;

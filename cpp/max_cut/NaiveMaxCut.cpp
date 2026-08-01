@@ -18,6 +18,7 @@ namespace Koala {
 void NaiveMaxCut::run() {
     maxCutValue = 0;
     std::vector<bool> set(graph->numberOfNodes(), false);
+    maxCutSet = set;
     bool improved = true;
 
     while (improved) {
@@ -34,6 +35,7 @@ void NaiveMaxCut::run() {
             }
         }
     }
+    hasRun = true;
 }
 
 }  // namespace Koala

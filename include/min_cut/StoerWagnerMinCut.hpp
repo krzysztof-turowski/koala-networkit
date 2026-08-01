@@ -26,7 +26,7 @@ class StoerWagnerMinCut final : public MinCut {
     /**
      * Executes the Min-Cut problem solver.
      */
-    void run();
+    void run() override;
 
  private:
     // Helper functions

@@ -43,7 +43,12 @@ NetworKit::Graph toComplement(const NetworKit::Graph &G) {
 }
 
 NetworKit::Graph convertDirectedGraphToUndirected(const NetworKit::Graph &G, bool weighted) {
-    NetworKit::Graph Gout(G.numberOfNodes(), weighted, false);
+    NetworKit::Graph Gout(G.upperNodeIdBound(), weighted, false);
+    for (NetworKit::node u = 0; u < G.upperNodeIdBound(); ++u) {
+        if (!G.hasNode(u)) {
+            Gout.removeNode(u);
+        }
+    }
     G.forEdges([&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight w) {
         Gout.increaseWeight(u, v, w);
     });
@@ -52,7 +57,12 @@ NetworKit::Graph convertDirectedGraphToUndirected(const NetworKit::Graph &G, boo
 }
 
 NetworKit::Graph convertUndirectedGraphToDirected(const NetworKit::Graph &G, bool weighted) {
-    NetworKit::Graph Gout(G.numberOfNodes(), weighted, true);
+    NetworKit::Graph Gout(G.upperNodeIdBound(), weighted, true);
+    for (NetworKit::node u = 0; u < G.upperNodeIdBound(); ++u) {
+        if (!G.hasNode(u)) {
+            Gout.removeNode(u);
+        }
+    }
     G.forEdges([&](NetworKit::node u, NetworKit::node v, NetworKit::edgeweight w) {
         Gout.increaseWeight(u, v, w);
         Gout.increaseWeight(v, u, w);

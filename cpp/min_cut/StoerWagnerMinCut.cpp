@@ -26,6 +26,7 @@ void StoerWagnerMinCut::run() {
     while (localVertices.size() > 1) {
         minCutValue = std::min(minCutValue, minCutPhase(localVertices, edges));
     }
+    hasRun = true;
 }
 
 double StoerWagnerMinCut::minCutPhase(std::vector<NetworKit::node>& vertices,

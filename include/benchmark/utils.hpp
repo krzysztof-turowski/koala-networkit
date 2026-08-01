@@ -33,4 +33,4 @@ void executeForEachGraph(const std::string &path, Callback callback) {
     throw std::invalid_argument("File type not supported: " + path);
 }
 
-} // namespace Koala::Benchmark
+}  // namespace Koala::Benchmark

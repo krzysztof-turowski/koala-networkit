@@ -37,6 +37,7 @@ void BranchAndBoundMaxCut::branchAndBound() {
     Node root;
     root.level = 0;
     root.set.resize(graph->numberOfNodes(), false);
+    maxCutSet = root.set;
     root.bound = bound(root);
     stack.push_back(root);
 
@@ -66,6 +67,7 @@ void BranchAndBoundMaxCut::branchAndBound() {
 
 void BranchAndBoundMaxCut::run() {
     branchAndBound();
+    hasRun = true;
 }
 
 }  // namespace Koala

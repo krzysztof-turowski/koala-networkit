@@ -18,7 +18,7 @@ namespace Koala {
 class BipartiteGaussianMatching : public NetworKit::Algorithm {
  public:
   explicit BipartiteGaussianMatching(const NetworKit::Graph &G);
-  void run();
+  void run() override;
   Matching getMatching();
 
   NetworKit::Graph G;

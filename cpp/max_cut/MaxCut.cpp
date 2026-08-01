@@ -18,10 +18,12 @@ MaxCut::MaxCut(NetworKit::Graph &graphInput)
     : graph(std::make_optional(graphInput)) {}
 
 int MaxCut::getMaxCutValue() const {
+    assureFinished();
     return maxCutValue;
 }
 
 const std::vector<bool>& MaxCut::getMaxCutSet() const {
+    assureFinished();
     return maxCutSet;
 }
 

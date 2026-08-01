@@ -28,7 +28,7 @@ class HaoOrlinMinCut final : public MinCut {
     /**
      * Executes the Min-Cut problem solver `repeat` times and takes the best solution.
      */
-    void run() {
+    void run() override {
         minCutValue = INT_MAX;
         minCutSet.assign(graph->numberOfNodes(), false);
         std::vector<bool> visited(graph->numberOfNodes(), false);
@@ -53,6 +53,7 @@ class HaoOrlinMinCut final : public MinCut {
             visited[t_prime] = true;
             S.push_back(t_prime);
         }
+        hasRun = true;
     }
 
  private:

@@ -18,7 +18,7 @@ namespace Koala {
 class GeneralGaussianMatching : public NetworKit::Algorithm {
  public:
   explicit GeneralGaussianMatching(const NetworKit::Graph &G);
-  void run();
+  void run() override;
   Matching getMatching();
 
   NetworKit::Graph G;

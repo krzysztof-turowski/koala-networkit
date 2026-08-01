@@ -6,7 +6,6 @@
  * Author: Michał Miziołek
  */
 
-#include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <limits>
@@ -64,8 +63,6 @@ void RankTwoRelaxationMaxCut::gradientDescent(double alpha, int maxIterations) {
         if (theta[i] < 0) theta[i] += 2 * M_PI;
         if (theta[i] >= 2 * M_PI) theta[i] -= 2 * M_PI;
     }
-
-    std::sort(theta.begin(), theta.end());
 }
 
 void RankTwoRelaxationMaxCut::perturbTheta() {
@@ -74,18 +71,25 @@ void RankTwoRelaxationMaxCut::perturbTheta() {
 }
 
 void RankTwoRelaxationMaxCut::run() {
+    if (graph->numberOfNodes() == 0) {
+        theta.clear();
+        maxCutSet.clear();
+        maxCutValue = 0;
+        hasRun = true;
+        return;
+    }
+
     theta.resize(graph->numberOfNodes());
     perturbTheta();
     maxCutSet = procedureCut();
     maxCutValue = calculateCutValue(maxCutSet);
 
-    if (maxCutSet[graph->numberOfNodes() - 1] == true) {
-        maxCutSet[graph->numberOfNodes() - 1] = false;
-        double candidateValue = calculateCutValue(maxCutSet);
-        if (candidateValue > maxCutValue) {
-            maxCutValue = candidateValue;
+    if (maxCutSet.back()) {
+        for (NetworKit::count i = 0; i < maxCutSet.size(); ++i) {
+            maxCutSet[i] = !maxCutSet[i];
         }
     }
+    hasRun = true;
 }
 
 }  // namespace Koala

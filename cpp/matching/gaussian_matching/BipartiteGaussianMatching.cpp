@@ -33,6 +33,7 @@ BipartiteGaussianMatching::BipartiteGaussianMatching(const NetworKit::Graph &G1)
 }
 
 Matching BipartiteGaussianMatching::getMatching() {
+  assureFinished();
   Matching M1;
   for (auto [ui, vi] : M) {
     int u = oldIdx[U[ui]];
