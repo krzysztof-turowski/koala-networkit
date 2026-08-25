@@ -252,7 +252,60 @@ idea of that algorithm is to at first get rid of all vertices with degree less t
 reduce the size of set of beads. We shall see exact steps in listing for Algorithm~\ref{alg:prep}.
 We will denote a graph induced by subset $S \subseteq V$ as $\wtG(S)$.
 
-\begin{algorithm}[H]
+\subsubsection{Correctness of the algorithm}
+We shall at first prove that Algorithm~\ref{alg:prep} outputs a minimum vertex cover
+for $\wtG(U)$ and $\wtG(V \setminus U)$ which shall be a proper graph.
+The algorithm has three phase that can be extracted:
+\begin{enumerate}
+    \item The first phase is deleting all the vertices with vertex degree less than 2.
+        We can see that the that the covering of deleted induced subgraphs is optimal.
+        \begin{itemize}
+            \item If $\deg(v) = 0$, then it does not have an incident edge to it, so 
+                the algorithms does not take it into the vertex cover which is optimal
+                for the minimum vertex cover.
+            \item If $\deg(v) = 1$, then it has to be picked to a minimum vertex cover or 
+                its adjacent vertex $u$ to cover the incident edge $e$. The algorithm here 
+                makes an optimal choice one again of picking $u$ to the vertex cover, as 
+                it may have more incidents than only $e$ as opposed to $v$.
+        \end{itemize}
+
+    \item The second phase is deleting all of the isolated cycles. It is easy to see that 
+        here the algorithm makes an optimal decision, as it adds to the vertex cover all the
+        vertices with odd indices. It is the optimal decision, as the cycle has exactly $k$ edges
+        to cover, so the minimum number of vertices to pick to cover the cycle 
+        $\left \lceil{k/2}\right \rceil $, which is achieved by picking all the odd indices.
+
+    \item Now we shall focus on the third part of the algorithm, which is the construction of 
+        a bipartite graph from the residual graph $\wtG(V \setminus U)$. The algorithm picks the whole
+        vertex set $X$ to $VC$. To prove that it is optimal we have to show:
+        \begin{lemma} \label{lem:vc-bipartie}
+            Let $B(X, Y, E)$ be a bipartite graph in which for every $x \in X$, $\deg(x) \geq 2$ and 
+            for every $y \in Y$, $\deg(y) \leq 2$.
+        \end{lemma}
+        \begin{proof}
+            The proof follows by induction on $|Y|$. For the base case $|Y| = 0$, we have that $|X| = 0$
+            (because the degree for each vertex of $x$ has to be at least 2) and $E = \emptyset$ which 
+            trivially holds.
+            \\ 
+            Now for induction step suppose that the theorem holds for all $|Y| < m$, and let $B(X, Y, E)$
+            be such a bipartite graph that $|Y| = m$. Let $y$ the vertex in $Y$ with minimum degree.
+            If $\deg(y) = 0$ then delete $y$ from $B$ and the lemma is true by induction on the reduced graph, 
+            so it is true for the original graph as well. If $\deg(y) = 1$, let $x$ by the adjacent vertex from $X$.
+            Remove $x$, $y$ and all their incident edges. The set $X \setminus \{x\}$ is therefore the 
+            minimum vertex cover of the bipartite graph $B(\{X \setminus x\}, \{Y \setminus y\}, E')$ by induction.
+            So for the original graph add $x$ to the vertex cover, so that it covers all the removed incident edges.
+            By doing that we have that $X$ is the minimum vertex cover of the original graph. If $\deg(y) = 2$, then 
+            all vertices in $B(X, Y, E)$ have degrees at least 2, so there are cycles. Pick any simple cycle $C$. All the 
+            vertices from $C$ that are in $X$ form the minimum vertex cover for that cycle. Remove $C$ and all the incident 
+            edges. The minimum vertex cover for $B(X', Y', E')$ is $X'$ by induction, so with addition of the deleted 
+            vertices from $C$ that formed the minimum vertex cover for $C$ we have that $X$ is the minimum vertex cover for
+            the original graph $B(X, Y, E)$.
+        \end{proof}
+
+        Now the only thing that is left to be proven is that 
+\end{enumerate}
+
+\begin{algorithm}
 \caption{Preparatory algorithm}
 \label{alg:prep}
 \begin{algorithmic}[1]

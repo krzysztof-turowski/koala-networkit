@@ -6,13 +6,27 @@ The planar separator theorem is a fundamental result in graph theory that
 states that any planar graph can be separated into two roughly equal parts
 by removing a small number of vertices. This theorem has numerous
 applications in various fields, including computer science, engineering,
-and mathematics. \newpage
-
+and mathematics, serving as the baseline for designing highly efficient 
+divide and conquer algorithms. The main idea of this thesis is to bridge the 
+gap between the theoretical guarantees of the planar separator theorem and
+practical performance of the algorithms:
+\begin{itemize}
+    \item At first we shall see the background for separator theorems in general
+        and later explore planar graphs to see why they are special and how 
+        we can use their properties to design efficient algorithms.
+    \item In the second section we shall see the outline of the proof for 
+        Lipton and Tarjan planar separator theorem with addition to a few 
+        lemmas that will be the cornerstone for developing approximation 
+        algorithms in the third section.
+    \item In the third section we will see the practical consequences of 
+        all the lemmas developed in the previous section. We shall explore 
+        two algorithms for two different problems: maximum matching problems
+        and minimum vertex cover problem which is $NP$-complete.
+    \item In the last section we will focus on practical implementations of 
+        the stated algorithms, and see how their performance scales with different
+        topological families of planar graphs and different sizes.
+\end{itemize}
 \section{Background}
-
-This thesis deals with algorithms based on planar separators. Let's define
-what a separator is at first then.
-
 \begin{defn}
     A set $S \subseteq V(G)$ is a separator if induced graph $G^* = G - S$
     has at least two connected components $A,B \subseteq G^*$.
