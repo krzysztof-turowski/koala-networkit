@@ -1,0 +1,445 @@
+% ============================================================
+\chapter{Algorytm Shoshana--Zwicka}
+% ============================================================
+
+Algorytm Shoshana--Zwicka \cite{ShoshanZwick1999} rozwiązuje problem wszystkich najkrótszych ścieżek w grafach nieskierowanych z wagami krawędzi ze zbioru $\{1, 2, \ldots, M\}$. Algorytm ten działa w czasie $O(Mn^\omega)$.
+Zaczniemy od omówienia prostszej wersji algorytmu, zwanej USP (ang.\ \emph{Unweighted Shortest Paths}), przeznaczonej dla grafów nieważonych -- zrozumienie tej części jest kluczowe dla wyprowadzenia wariantu ważonego. Następnie uogólnimy ją do algorytmu WUSP (ang.\ \emph{Weighted Undirected Shortest Paths}) dla grafów ważonych. Na końcu omówimy błąd w oryginalnym sformułowaniu algorytmu, wskazany przez Eirinakisa, Williamsona i Subramaniego \cite{Eirinakis2017}.
+
+\section{Definicje}
+\subsection{Iloczyny i macierze indykatorowe}
+
+\begin{definicja}[\cite{ShoshanZwick1999}, Iloczyn odległościowy]
+Dla dwóch macierzy $A = (a_{ij})$ oraz $B = (b_{ij})$ rozmiaru $n \times n$ ich \emph{iloczynem odległościowym} (iloczynem $(\min, +)$) nazywamy macierz $C = A \star B$ wymiaru $n \times n$ o elementach
+\[
+c_{ij} = \min_{k = 1, \ldots, n} \{a_{ik} + b_{kj}\}, \quad 1 \leq i, j \leq n.
+\]
+\end{definicja}
+
+\begin{definicja}[Macierz wskaźnikowa -- wersja boolowska]
+Dla zbioru $X \subseteq \{0, 1, \ldots, n\}$ macierzą indykatorową $D_X$ nazywamy macierz $n \times n$ zadaną wzorem
+\[
+(D_X)_{ij} = \begin{cases} 1, & \text{gdy } \delta(i, j) \in X,\\ 0, & \text{w przeciwnym razie}. \end{cases}
+\]
+\end{definicja}
+
+\begin{definicja}[Operacje na zbiorach odległości]
+Dla dwóch zbiorów odległości $X, Y$ definiujemy:
+\[
+X + Y = \{x + y : x \in X, y \in Y\}, \qquad X \bullet Y = \bigcup_{x \in X,\, y \in Y} \bigl[\, |x - y|,\; x + y \,\bigr].
+\]
+\end{definicja}
+
+\begin{definicja}[Separacja zbioru]
+Niech $X = \bigcup_{r=1}^{p} [a_r, b_r]$, gdzie $a_r \leq b_r$ dla $1 \leq r \leq p$ oraz $b_r < a_{r+1}$ dla $1 \leq r < p$. Separację zbioru $X$ definiujemy jako
+\[
+\mathrm{sep}(X) = \min\{a_r - b_{r-1} : r = 2, \ldots, p\}.
+\]
+\end{definicja}
+
+\begin{definicja}[Macierz indykatorowa -- wersja ważona]
+Dla zbioru $X = \bigcup_{r=1}^{p} [a_r, b_r] \subseteq [0, Mn]$ macierzą $D_X$ nazywamy macierz $n \times n$ o elementach
+\[
+(D_X)_{ij} = \begin{cases}
+-M & \text{gdy } a_r \leq \delta(i,j) \leq b_r - M \text{ dla pewnego } r \text{ (strefa przycięta)},\\
+\delta(i,j) - b_r & \text{gdy } b_r - M < \delta(i,j) \leq b_r + M \text{ (strefa dokładna)},\\
++\infty & \text{w przeciwnym razie (strefa nieskończona).}
+\end{cases}
+\]
+\end{definicja}
+
+\subsection{Operacje liczbowe na macierzach}
+
+\begin{definicja}[Obcinanie]
+Dla macierzy $A = (a_{ij})$ oraz $a \leq b$ definiujemy macierz $\mathrm{clip}(A, a, b)$ o elementach
+\[
+(\mathrm{clip}(A, a, b))_{ij} = \begin{cases}
+a & \text{gdy } a_{ij} < a, \\
+a_{ij} & \text{gdy } a \leq a_{ij} \leq b, \\
++\infty & \text{gdy } a_{ij} > b.
+\end{cases}
+\]
+\end{definicja}
+
+\begin{definicja}[Wycinanie]
+Dla macierzy $A = (a_{ij})$ oraz $a \leq b$ definiujemy macierz $\mathrm{chop}(A, a, b)$ o elementach
+\[
+(\mathrm{chop}(A, a, b))_{ij} = \begin{cases}
+a_{ij} & \text{gdy } a \leq a_{ij} \leq b, \\
++\infty & \text{w przeciwnym razie.}
+\end{cases}
+\]
+\end{definicja}
+
+\begin{definicja}[Liczbowe odpowiedniki operacji boolowskich]
+Dla macierzy $A = (a_{ij})$ oraz $B = (b_{ij})$ definiujemy:
+\[
+(A \,\hat{\wedge}\, B)_{ij} = \begin{cases}
+a_{ij} & \text{gdy } b_{ij} < 0, \\
++\infty & \text{w przeciwnym razie,}
+\end{cases}
+\]
+\[
+(A \,\hat{\wedge}\neg\, B)_{ij} = \begin{cases}
+a_{ij} & \text{gdy } b_{ij} \geq 0, \\
++\infty & \text{w przeciwnym razie,}
+\end{cases}
+\]
+\[
+(A \,\hat{\vee}\, B)_{ij} = \begin{cases}
+a_{ij} & \text{gdy } a_{ij} \neq +\infty, \\
+b_{ij} & \text{gdy } a_{ij} = +\infty,\; b_{ij} \neq +\infty, \\
++\infty & \text{gdy } a_{ij} = b_{ij} = +\infty.
+\end{cases}
+\]
+Są to liczbowe odpowiedniki boolowskich $\wedge$, $\wedge\neg$, $\vee$.
+\end{definicja}
+
+\section{Wprowadzenie teoretyczne}
+
+Głównym narzędziem algorytmu jest iloczyn odległościowy macierzy oznaczany jako iloczyn $(\min, +)$. Iloczyn odległościowy dwóch macierzy $n \times n$ o elementach ze zbioru $\{1, 2, \ldots, M, +\infty\}$ można obliczyć w czasie $O(Mn^\omega)$ przy użyciu algorytmu Alona, Galila i Margalita \cite{Alon}.
+
+Obliczanie iloczynów odległościowych efektywnie jest jednak nietrywialnym zadaniem.
+Przypomnijmy, że dla dwóch macierzy $A = (a_{ij})$ i $B = (b_{ij})$
+rozmiaru $n \times n$ ich iloczyn odległościowy definiujemy jako macierz
+$C = A \star B$ o elementach
+\[
+c_{ij} = \min_{k=1,\ldots,n} \{a_{ik} + b_{kj}\}.
+\]
+Iloczyn ten wydaje się być podobny do zwykłego mnożenia
+macierzy, w którym $c_{ij} = \sum_k a_{ik} \cdot b_{kj}$: w obu przypadkach
+element $(i,j)$ wyznaczamy przez kombinację $i$-tego wiersza $A$
+z $j$-tą kolumną $B$. Różnica polega jednak na zastąpieniu
+pary operacji $(\sum, \cdot)$ parą $(\min, +)$.
+
+Struktura algebraiczna $(\min, +)$ tworzy \emph{półpierścień}: działanie
+$\min$ pełni rolę dodawania, a $+$ pełni rolę mnożenia. Półpierścień
+różni się od pierścienia brakiem elementu odwrotnego dla $\min$ -- właśnie ta różnica jest
+kluczowa. Kerr \cite{Kerr1970} wykazał, że w modelu algebraicznym
+dopuszczającym wyłącznie operacje $\min$ i $+$ obliczenie iloczynu
+odległościowego wymaga $\Omega(n^3)$ operacji. Oznacza to, że algorytm
+szybkie mnożenia macierzy w czasie subkubicznym\cite{Alman2024} nie może
+być zastosowany bezpośrednio do iloczynu odległościowego -- algorytmy
+te zakładają istnienie struktury pierścienia, której półpierścień
+$(\min, +)$ nie spełnia.
+
+\subsection{Redukcja do mnożeń boolowskich}
+
+Alon, Galil i Margalit \cite{Alon} pokazali, jak ominąć ograniczenie
+Kerra przez redukcję iloczynu odległościowego do skończonej liczby
+zwykłych mnożeń macierzy boolowskich. Mnożenie boolowskie macierzy obliczamy przez zwykłe mnożenie macierzy nad $\mathbb{Z}$
+(następnie zamieniając każdy wpis niezerowy na $1$), co kosztuje $O(n^\omega)$.
+
+Redukcja opiera się na następującej obserwacji. Niech $A$ i $B$ będą
+macierzami o elementach całkowitoliczbowych z $\{1, \ldots, M\}$.
+Dla każdego progu $t \in \{1, \ldots, M\}$ definiujemy macierze
+progowe:
+\[
+A^{(t)}_{ij} = \mathbf{1}[a_{ij} \leq t], \qquad
+B^{(t)}_{ij} = \mathbf{1}[b_{ij} \leq t].
+\]
+
+\begin{lemat}[{\cite[Twierdzenie 3]{Alon}}]
+\label{lem:redukcja}
+Niech $A$ i $B$ będą macierzami $n \times n$ o elementach
+całkowitoliczbowych z $\{1, \ldots, M\}$, a $C = A \star B$
+ich iloczynem odległościowym. Wówczas dla każdej pary $(i,j)$:
+\[
+c_{ij} = \min\!\left\{s \in \{2, \ldots, 2M\} :
+\exists\, t \in \{1,\ldots,s-1\} \text{ takie, że }
+\bigl(A^{(t)} \cdot B^{(s-t)}\bigr)_{ij} = 1\right\}.
+\]
+\end{lemat}
+
+\begin{proof}
+Ustalmy parę $(i,j)$ i niech $s = c_{ij}$, to znaczy
+$s = \min_k\{a_{ik} + b_{kj}\}$. Niech $k^*$ będzie indeksem
+realizującym to minimum. Niech $t = a_{ik^*}$, wówczas
+$b_{k^* j} = s - t$. Z definicji macierzy progowych mamy
+$A^{(t)}_{ik^*} = \mathbf{1}[a_{ik^*} \leq t] = 1$ oraz
+$B^{(s-t)}_{k^*j} = \mathbf{1}[b_{k^*j} \leq s-t] = 1$,
+skąd $(A^{(t)} \cdot B^{(s-t)})_{ij} = 1$ dla $t = a_{ik^*}$.
+
+Z drugiej strony, jeśli $(A^{(t)} \cdot B^{(s'-t)})_{ij} = 1$
+dla pewnych $t$ i $s' < s$, to istnieje $k$ takie, że $a_{ik} \leq t$
+i $b_{kj} \leq s' - t$, skąd $a_{ik} + b_{kj} \leq s' < s$
+-- sprzeczność z definicją $s = \min_k\{a_{ik}+b_{kj}\}$.
+Zatem $s$ jest najmniejszą wartością, dla której iloczyn boolowski
+daje jedynkę, co kończy dowód.
+\end{proof}
+
+\subsection{Złożoność obliczania iloczynu odległościowego}
+
+Na podstawie Lematu \ref{lem:redukcja} możemy obliczyć $c_{ij}$
+dla wszystkich par $(i,j)$ jednocześnie, iterując $s = 2, 3, \ldots, 2M$
+i dla każdego $s$ sprawdzając, dla których par iloczyn boolowski
+$A^{(t)} \cdot B^{(s-t)}$ po raz pierwszy daje jedynkę.
+Łączna liczba mnożeń boolowskich wynosi $O(M)$ (dla każdego $s$
+wystarczy jedno mnożenie z odpowiednio dobranym $t$), a każde
+z nich kosztuje $O(n^\omega)$. Stąd:
+
+\begin{twierdzenie}[{\cite[Twierdzenie 3]{Alon}}]
+\label{thm:dist-product}
+Iloczyn odległościowy dwóch macierzy $n \times n$ o elementach
+całkowitoliczbowych z $\{1, \ldots, M\}$ można obliczyć
+w czasie $O(Mn^\omega)$.
+\end{twierdzenie}
+
+\[
+\begin{array}{c}
+\underbrace{\text{Iloczyn } (\min,+)}_{\Omega(n^3) \text{ bez redukcji}} \\[6pt]
+\downarrow \scriptstyle{\text{Lemat \ref{lem:redukcja}}} \\[6pt]
+\underbrace{O(M) \text{ mnożeń boolowskich}}_{O(n^\omega) \text{ każde}} \\[6pt]
+\downarrow \scriptstyle{\text{redukcja}} \\[6pt]
+\underbrace{O(M) \text{ mnożeń nad } \mathbb{Z}}_{O(n^\omega) \text{ każde}} \\[6pt]
+\Downarrow \\[4pt]
+O(Mn^\omega)
+\end{array}
+\]
+
+\subsection{Podejście naiwne i jego ograniczenia}
+Jeśli $D$ jest macierzą sąsiedztwa grafu ważonego ($d_{ij}$ to waga krawędzi $(i,j)$ lub $+\infty$ w przypadku braku krawędzi, a $d_{ii} = 0$), to macierz $D^n$ zawiera wszystkie najkrótsze odległości w grafie. Macierz tę można obliczyć za pomocą $\lceil \log_2 n \rceil$ mnożeń metodą szybkiego potęgowania.
+
+Naiwne podejście ma taką wadę, że nawet gdy wyjściowe wagi są ograniczone przez $M$, to elementy kolejnych potęg mogą sięgać $nM$, a obliczanie iloczynów odległościowych macierzy o tak dużych elementach jest drogie. Główny wkład pracy Shoshana i Zwicka polega na pokazaniu, że problem APSP dla grafów nieskierowanych można rozwiązać przy pomocy jedynie $O(\log(Mn))$ iloczynów.
+
+Kluczową własnością grafów nieskierowanych, wykorzystywaną w algorytmie, jest obustronna nierówność trójkąta.
+
+\begin{lemat}
+Dla dowolnych trzech wierzchołków $i, j, k \in V$ w grafie nieskierowanym zachodzi:
+\[
+|\delta(i,k) - \delta(k,j)| \leq \delta(i,j) \leq \delta(i,k) + \delta(k,j).
+\]
+\end{lemat}
+
+Nierówność lewostronna, to odwrotna nierówność trójkąta i wynika z faktu, że $\delta(j,k) = \delta(k,j)$ w grafach nieskierowanych. Właśnie ta własność umożliwia utrzymanie elementów macierzy w ograniczonym zakresie.
+
+\section{Algorytm USP dla grafów nieważonych}
+
+Rozważmy najpierw przypadek grafu nieważonego $G = (V, E)$ z $|V| = n$, którego macierz sąsiedztwa oznaczamy przez $A$. Zakładając spójność grafu, wszystkie odległości spełniają $0 \leq \delta(i,j) < n$, więc do ich zakodowania wystarczy $\ell = \lceil \log_2 n \rceil$ bitów.
+
+Zamiast wyznaczać odległości jako liczbę, algorytm znajduje jej kodowanie bit po bicie. Dla każdej pozycji $k$ algorytm odpowiada na pytanie boolowskie „czy $k$-ty bit odległości $\delta(i,j)$ jest ustawiony?''. Aby odpowiedzieć na to pytanie, wystarczy sprawdzić, czy $\delta(i,j) \bmod 2^{k+1} \geq 2^k$ -- czyli czy odległość leży w prawej połowie bloku rozmiaru $2^{k+1}$.
+
+\begin{lemat}
+Dla dowolnych zbiorów odległości $X, Y$ oraz dowolnego grafu nieskierowanego dla wszystkich $i, j = 1, \ldots, n$ zachodzi:
+\[
+(D_{X+Y})_{ij} \leq (D_X \cdot D_Y)_{ij} \leq (D_{X \bullet Y})_{ij},
+\]
+dla $\cdot$ oznaczającego iloczyn macierzy boolowskich.
+\end{lemat}
+
+\begin{proof}
+Dla pierwszej nierówności załóżmy, że $(D_{X+Y})_{ij} = 1$, tj.\ $\delta(i,j) = x + y$ dla pewnych $x \in X$, $y \in Y$. Niech $p$ będzie najkrótszą ścieżką z $i$ do $j$, a $k$ -- wierzchołkiem na $p$ spełniającym $\delta(i,k) = x$; wówczas $\delta(k,j) = y$, więc iloczyn w pozycji $(i,j)$ daje 1. Dla drugiej nierówności załóżmy, że iloczyn daje 1 w pozycji $(i,j)$, tj.\ istnieje $k$ z $\delta(i,k) \in X$ oraz $\delta(k,j) \in Y$; z nierówności trójkąta $\delta(i,j) \in X \bullet Y$.
+\end{proof}
+
+Lemat ten jest istotny dla całego algorytmu, ponieważ ustala
+związek między mnożeniem boolowskim (które jest szybkie -- $O(n^\omega)$)
+a informacją o odległościach, którą liczymy. Bezpośrednie
+obliczenie odległości wymaga iloczynu $(\min, +)$ o złożoności
+$\Omega(n^3)$. Mnożenie boolowskie jest znacznie tańsze, ale nie
+oblicza odległości wprost -- odpowiada jedynie na pytanie o istnienie
+świadka $k$ spełniającego $\delta(i,k) \in X$ i $\delta(k,j) \in Y$.
+
+Dolne ograniczenie $D_{X+Y} \leq D_X \cdot D_Y$
+gwarantuje, że żadne prawdziwe trafienie nie zostanie utracone:
+jeśli $\delta(i,j) = x + y$ dla $x \in X$, $y \in Y$, to na najkrótszej
+ścieżce z $i$ do $j$ istnieje wierzchołek $k$ z $\delta(i,k) = x$
+i $\delta(k,j) = y$, więc mnożenie boolowskie na pewno zwróci jedynkę.
+
+Górne ograniczenie $D_X \cdot D_Y \leq D_{X \bullet Y}$
+ogranicza zakres fałszywych trafień: mnożenie boolowskie może
+dać jedynkę nawet gdy $\delta(i,j) \notin X + Y$, ponieważ świadek $k$
+z $\delta(i,k) \in X$ i $\delta(k,j) \in Y$ nie musi leżeć na
+najkrótszej ścieżce z $i$ do $j$. Z obustronnej nierówności trójkąta
+wynika jedynie $\delta(i,j) \in X \bullet Y$, co jest zbiorem szerszym
+niż $X + Y$.
+
+Cały algorytm USP jest zbudowany wokół tego, że mnożenie boolowskie jest szybkie i służy jako niedokładne narzędzie do wyznaczania bitów
+odległości, a krok filtrowania ($\wedge\, C_{k+1}$) eliminuje fałszywe
+trafienia, korzystając z informacji o bitach
+wyznaczonych we wcześniejszych iteracjach. Bez lematu nie
+wiedzielibyśmy, czy fałszywe trafienia są w ogóle kontrolowalne --
+lemat gwarantuje, że leżą one w przewidywalnym zbiorze
+$X \bullet Y \setminus (X + Y)$.
+
+Algorytm USP, przedstawiony jako Algorytm \ref{alg:usp}, składa się z trzech faz. W pierwszej fazie obliczane są macierze indykatorowe $A_k = D_{[0, 2^k)}$ oraz $B_k = D_{[0, 2^k]}$, tj.\ macierze $0$--$1$, w których wpis $(i,j)$ wynosi $1$ dokładnie wtedy, gdy odległość $\delta(i,j)$ należy do odpowiedniego przedziału. Innymi słowy, $A_k$ wskazuje pary wierzchołków odległe o mniej niż $2^k$, a $B_k$ -- o co najwyżej $2^k$. Macierze te są obliczane przez potęgowanie kwadratowe: wykorzystując tożsamość $[0, 2^{k}) \subseteq [0, 2^{k-1}] \bullet [0, 2^{k-1}]$, otrzymujemy $A_k$ i $B_k$ jako iloczyny boolowskie macierzy z poprzedniej iteracji. W drugiej fazie, schodząc od bitu najwyższego ku najniższemu, wyznaczane są macierze $C_k$ kodujące bity odległości. Trzecia faza składa bity w pełną macierz odległości.
+
+
+\begin{algorithm}
+\caption{USP -- APSP w grafie nieważonym nieskierowanym}
+\label{alg:usp}
+\begin{algorithmic}[1]
+\Require $A$: macierz sąsiedztwa $n \times n$
+\Ensure $D$: macierz odległości $n \times n$
+\State $\ell \leftarrow \lceil \log_2 n \rceil$
+\State $A_0 \leftarrow I$; $B_0 \leftarrow A \vee I$
+\For{$k = 1, 2, \ldots, \ell$}
+  \State $A_k \leftarrow A_{k-1} \cdot B_{k-1}$
+  \State $B_k \leftarrow B_{k-1} \cdot B_{k-1}$
+\EndFor
+\State $C_\ell \leftarrow \mathbf{1}$; $F_\ell \leftarrow \mathbf{1}$; $P_\ell \leftarrow I$; $Q_\ell \leftarrow \mathbf{0}$
+\For{$k = \ell - 1, \ell - 2, \ldots, 0$}
+  \State $C_k \leftarrow [(P_{k+1} \cdot A_k) \wedge C_{k+1}] \vee [(Q_{k+1} \cdot A_k) \wedge \neg C_{k+1}]$
+  \State $F_k \leftarrow [(P_{k+1} \cdot B_k) \wedge C_{k+1}] \vee [(Q_{k+1} \cdot B_k) \wedge \neg C_{k+1}]$
+  \State $P_k \leftarrow P_{k+1} \vee Q_{k+1}$
+  \State $Q_k \leftarrow F_k \wedge \neg C_k$
+\EndFor
+\State $D \leftarrow \sum_{k=0}^{\ell} 2^k (\neg C_k)$
+\State \Return $D$
+\end{algorithmic}
+\end{algorithm}
+
+Trzonem algorytmu jest pętla schodząca z $k = \ell - 1, \ell - 2, \ldots, 0$, obliczająca macierze $C_k$. Macierze te mają konkretną interpretację: $(C_k)_{ij} = 1$ dokładnie wtedy, gdy $k$-ty bit $\delta(i,j)$ wynosi zero. To bezpośrednio daje końcowy wzór $D = \sum_{k=0}^\ell 2^k (\neg C_k)$.
+
+Aby zrozumieć, skąd bierze się formuła obliczająca $C_k$, wyobraźmy sobie oś liczbową podzieloną na bloki rozmiaru $2^{k+2}$ (czyli dwa razy większe niż bloki istotne dla $C_k$). Każdy taki duży blok zawiera cztery ćwiartki rozmiaru $2^k$. Macierze z poprzedniej iteracji kodują następujące informacje: $C_{k+1}$ rozróżnia, czy odległość leży w lewej czy prawej połowie dużego bloku; $P_{k+1}$ wskazuje pary, których odległość jest na lewym końcu dużego bloku, a $Q_{k+1}$ -- na środku.
+
+\begin{lemat}
+Dla każdego $1 \leq k \leq \ell$ po zakończeniu pętli zachodzi:
+\[
+C_k = D_{\{x\,:\,0 \leq x \bmod 2^{k+1} < 2^k\}}, \quad
+F_k = D_{\{x\,:\,0 \leq x \bmod 2^{k+1} \leq 2^k\}}
+\]
+\[
+P_k = D_{\{x\,:\,x \bmod 2^{k+1} = 0\}}, \quad Q_k = D_{\{x\,:\,x \bmod 2^{k+1} = 2^k\}}.
+\]
+\end{lemat}
+
+Pierwszy przypadek rozpoznaje iloczyn $P_{k+1} \cdot A_k$ -- bo szuka par $(i,j)$, dla których istnieje świadek $s$ z $\delta(i,s) \bmod 2^{k+2}$ bliskim zeru oraz $\delta(s,j) < 2^k$. Prawdziwe trafienia leżą jednak zawsze w lewej połowie większego bloku, a tę sytuację rozpoznaje $C_{k+1}$. Złożenie z $\wedge C_{k+1}$ eliminuje zatem fałszywe trafienia. Drugi przypadek obsługujemy analogicznie, tylko zamieniamy $P_{k+1}$ na $Q_{k+1}$ i filtr zmieniamy na $\wedge \neg C_{k+1}$. Pozostałe aktualizacje wynikają z prostszych tożsamości -- zbiór lewych krańców mniejszych bloków to suma lewych krańców i środków większych bloków (stąd $P_k = P_{k+1} \vee Q_{k+1}$), a środki mniejszych bloków to dokładnie te odległości, które należą do $F_k$, ale nie do $C_k$ (stąd $Q_k = F_k \wedge \neg C_k$).
+
+\begin{twierdzenie}
+Algorytm USP oblicza wszystkie odległości w grafie nieważonym nieskierowanym przy użyciu $O(\log n)$ iloczynów macierzy boolowskich, a jego łączny czas działania wynosi $O(n^\omega)$.
+\end{twierdzenie}
+
+\section{Algorytm WUSP dla grafów ważonych}
+
+Uogólnienie algorytmu USP na grafy ważone napotyka na fundamentalny problem: w grafie nieważonym odległości leżą w zakresie $[0, n)$ i do ich zakodowania wystarczy $\ell = \lceil \log_2 n \rceil$ bitów, ale w grafie z wagami ze zbioru $\{1, \ldots, M\}$ odległości sięgają $(n-1)M$, a iloczyn odległościowy macierzy o tak dużych elementach ma złożoność $O(nM \cdot n^\omega)$.
+
+Główna idea Shoshana i Zwicka polega na tym, żeby nigdy nie przechowywać pełnych odległości w macierzach. Zamiast tego, każda macierz ''widzi'' odległości przez wąskie okno szerokości $2M$, przechowując jedynie przesunięcie $\delta(i,j) - b_r$ względem najbliższego punktu odniesienia $b_r$. Dzięki temu elementy macierzy pozostają w zakresie $[-M, M] \cup \{+\infty\}$, a każdy iloczyn odległościowy ma złożoność $O(M n^\omega)$.
+
+Dlaczego okienko szerokości $2M$ wystarcza? Kluczową rolę odgrywa następujący fakt, wynikający z ograniczenia wag krawędzi:
+
+\begin{lemat}[\cite{ShoshanZwick1999}, Lemat okienkowy]
+Niech $p$ będzie ścieżką z $i$ do $j$ w grafie z wagami krawędzi z $[1, M]$. Jeśli $x$ i $y$ są kolejnymi wierzchołkami na $p$, to odległość od $j$ zmienia się o co najwyżej $M$, tj.\ $|p(j,y) - p(j,x)| \leq M$.
+\end{lemat}
+
+Oznacza to, że na każdej najkrótszej ścieżce zawsze istnieje wierzchołek, którego odległość od źródła wpada w dowolne okno o szerokości $M$. To gwarantuje, że przy obliczaniu iloczynu odległościowego świadek $k$ minimalizujący $a_{ik} + b_{kj}$ zawsze znajdzie się w strefie dokładnej okienka -- nigdy nie utracimy informacji potrzebnej do poprawnego obliczenia.
+
+Omówmy dokładnie przejście z wersji nieważonej (USP) do ważonej (WUSP). Algorytm USP operuje na bitach odległości bezpośrednio: $k$-ty bit odległości $\delta(i,j)$ jest ustawiony, gdy $\delta(i,j) \bmod 2^{k+1} \geq 2^k$. W WUSP schemat jest taki sam, ale przeskalowany o czynnik $M$: zamiast bloków rozmiaru $2^k$ mamy bloki rozmiaru $2^{k+m}$ (bo $M = 2^m$), a zamiast macierzy boolowskich $0$--$1$ mamy macierze o wartościach w $[-M, M]$. Tabela poniżej podsumowuje te zależność:
+
+\begin{center}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{|l|l|l|}
+\hline
+& \textbf{USP (nieważony)} & \textbf{WUSP (ważony)} \\
+\hline
+Zakres odległości & $[0, n-1]$ & $[0, (n-1)M]$ \\
+Rozmiar bloku & $2^k$ & $2^{k+m}$ \\
+Typ macierzy & boolowskie $\{0, 1\}$ & liczbowe $[-M, M] \cup \{+\infty\}$ \\
+Iloczyn & boolowski $\cdot$ & odległościowy $\star$ i $\mathrm{clip}$ \\
+Operacje logiczne & $\wedge$, $\wedge\neg$, $\vee$ & $\hat{\wedge}$, $\hat{\wedge}\neg$, $\hat{\vee}$ \\
+Wynik bitu $k$ & $(C_k)_{ij} = 0$ & $(C_k)_{ij} \geq 0$ \\
+\hline
+\end{tabular}
+\end{center}
+
+W WUSP iloczyn odległościowy $D_X \star D_Y$ może wygenerować wartości wykraczające poza $[-M, M]$. Operacja $\mathrm{clip}(\cdot, -M, M)$ przycina te wartości -- z lematu \ref{seplemma} o iloczynach indykatorowych wynika, że takie przycięcie nie traci informacji potrzebnej do odróżnienia prawdziwych trafień od fałszywych.
+
+\begin{lemat}
+\label{seplemma}
+Niech $X$ i $Y = [0, y]$ będą zbiorami odległości, przy czym $y \geq M$ oraz $\mathrm{sep}(X) > 2y + 3M$. Wówczas:
+\[
+D_{X \bullet Y} \geq \mathrm{clip}(D_X \star D_Y, -M, M) \geq D_{X+Y}.
+\]
+\end{lemat}
+
+Lemat ten jest ważoną wersją lematu z algorytmu USP. Dowód rozpada się na cztery przypadki w zależności od stref (przycięta, dokładna, nieskończona), w których leżą elementy $(D_X)_{ik}$ oraz $(D_Y)_{kj}$ dla świadka $k$, i w każdym z nich wykorzystuje lemat okienkowy do zagwarantowania istnienia odpowiedniego świadka.
+
+Warunek $\mathrm{sep}(X) > 2y + 3M$ gwarantuje, że okna dokładności sąsiednich przedziałów zbioru $X$ nie nakładają się, nawet po uwzględnieniu zbioru $Y$. Dzięki temu błędne trafienia są eliminowane przez $\mathrm{clip}$.
+
+
+Algorytm WUSP, przedstawiony jako Algorytm \ref{alg:wusp}, składa się z czterech etapów.
+
+\begin{algorithm}
+\caption{WUSP -- APSP w grafie ważonym nieskierowanym}
+\label{alg:wusp}
+\begin{algorithmic}[1]
+\Require $A$: macierz wag $n \times n$ (wartości w $\{1,\ldots,M\} \cup \{+\infty\}$), $M = 2^m$
+\Ensure $D$: macierz odległości
+\State $\ell \leftarrow \lceil \log_2 n \rceil$; $m \leftarrow \log_2 M$
+\For{$k = 1$ \textbf{do} $m+1$}
+  \State $A \leftarrow \mathrm{clip}(A \star A, 0, 2M)$
+\EndFor
+\State $A_0 \leftarrow A - M$
+\For{$k = 1$ \textbf{do} $\ell$}
+  \State $A_k \leftarrow \mathrm{clip}(A_{k-1} \star A_{k-1}, -M, M)$
+\EndFor
+\State $C_\ell \leftarrow -M$; $P_\ell \leftarrow \mathrm{clip}(A, 0, M)$; $Q_\ell \leftarrow +\infty$
+\For{$k = \ell - 1$ \textbf{w dół do} $0$}
+  \State $C_k \leftarrow [\mathrm{clip}(P_{k+1} \star A_k, -M, M) \,\hat{\wedge}\, C_{k+1}] \,\hat{\vee}\, [\mathrm{clip}(Q_{k+1} \star A_k, -M, M) \,\hat{\wedge}\neg\, C_{k+1}]$
+  \State $P_k \leftarrow P_{k+1} \,\hat{\vee}\, Q_{k+1}$
+  \State $Q_k \leftarrow \mathrm{chop}(C_k, 1-M, M)$
+\EndFor
+\For{$k = 1$ \textbf{do} $\ell$}
+  \State $B_k \leftarrow (C_k \geq 0)$
+\EndFor
+\State $(B_0)_{ij} \leftarrow (0 \leq (P_0)_{ij} < M)$
+\State $R \leftarrow P_0 \bmod M$
+\State $D \leftarrow M \cdot \sum_{k=0}^{\ell} 2^k B_k + R$
+\State \Return $D$
+\end{algorithmic}
+\end{algorithm}
+
+\textbf{Etap 1} (linie 2--4): potęgowanie macierzy wag w iloczynie odległościowym z obcinaniem wartości powyżej $2M$. Po $m+1$ iteracjach macierz $D$ zawiera dokładne odległości dla par o $\delta(i,j) \leq 2M$ i $+\infty$ dla pozostałych. Ten etap nie ma odpowiednika w USP, ale jest niezbędny, ponieważ w grafie ważonym sąsiedzi mogą być oddaleni o więcej niż $1$, a algorytm musi znać bliskie odległości, aby poprawnie zainicjalizować kolejne etapy.
+
+\textbf{Etap 2} (linie 6--8): budowa macierzy $A_0, A_1, \ldots, A_\ell$, gdzie $A_k = D_{[0, 2^{k+m}]}$. Każda macierz $A_k$ koduje, czy odległość $\delta(i,j)$ wynosi co najwyżej $2^{k+m}$, ale nie przez wartość boolowską, lecz przez przesunięcie w okienku -- dokładnie tak, jak $B_k$ w USP kodowała $\delta(i,j) \leq 2^k$, ale teraz z dokładnością do $M$. Krok indukcyjny wynika z lematu \ref{seplemma} zastosowanego do $X = Y = [0, 2^{k+m-1}]$ i tożsamości $[0, 2^a] \bullet [0, 2^a] = [0, 2^{a+1}]$.
+
+\textbf{Etap 3} (linie 10--14): analog głównej pętli USP, operujący na blokach długości przeskalowanej przez $M$. Zdefiniujmy zbiory
+\[
+\begin{aligned}
+X_k &= \{x : 0 \leq x \bmod 2^{k+m+1} \leq 2^{k+m}\}, \\
+Y_k &= \{x : x \bmod 2^{k+m+1} = 0\}, \\
+Z_k &= \{x : x \bmod 2^{k+m+1} = 2^{k+m}\}.
+\end{aligned}
+\]
+Są to dokładne odpowiedniki zbiorów z USP, z zastąpieniem $2^k$ przez $2^{k+m}$. Po zakończeniu pętli zachodzi $C_k = D_{X_k}$, $P_k = D_{Y_k}$, $Q_k = D_{Z_k}$. Mechanizm eliminacji fałszywych trafień jest identyczny jak w USP: operacja $\hat{\wedge}\, C_{k+1}$ (odpowiednio \ $\hat{\wedge}\neg\, C_{k+1}$) filtruje trafienia pochodzące z niewłaściwej połowy bloku -- z tą różnicą, że zamiast wartości boolowskiej $0/1$ jako filtra używa się znaku wartości $C_{k+1}$.
+
+\textbf{Etap 4} (linie 16--20): złożenie bitów odległości. Dla $k \geq 1$ test $(C_k)_{ij} \geq 0$ sprawdza, czy $\delta(i,j)$ leży poza strefą przyciętą $X_k$, co oznacza, że $(k+m)$-ty bit jest ustawiony. Bit na pozycji $m$ oraz $m$ najniższych bitów wymagają osobnej obsługi, gdyż macierze $C_0$ i $A_{-1}$ nie istnieją -- oryginalne sformułowanie tego etapu zawiera błąd, który omawiamy w następnym podrozdziale.
+
+\begin{twierdzenie}
+Algorytm WUSP oblicza wszystkie odległości w grafie ważonym nieskierowanym o wagach krawędzi w zakresie $\{1, \ldots, M\}$ przy użyciu $O(\log(Mn))$ iloczynów odległościowych macierzy o elementach skończonych w zakresie $\{-M, \ldots, M\}$. Łączny czas działania wynosi $O(Mn^\omega)$.
+\end{twierdzenie}
+
+
+\section{Korekta algorytmu Shoshana--Zwicka}
+
+Eirinakis, Williamson i Subramani \cite{Eirinakis2017} wykazali, że oryginalna wersja algorytmu Shoshana--Zwicka zawiera błąd w ostatnim etapie odtwarzania odległości. Sama konstrukcja macierzy $A_k$, $C_k$, $P_k$, $Q_k$ pozostaje poprawna; problem dotyczy wyłącznie sposobu interpretacji macierzy $P_0$ w końcowym wzorze.
+
+W oryginalnej wersji ostatni etap wyznacza
+\[
+B_0 = (0 \leq P_0 < M), \qquad R = P_0 \bmod M, \qquad D = M \sum_{k=0}^{\ell} 2^k B_k + R,
+\]
+przy założeniu, że $B_0$ koduje $m$-ty bit odległości (o wadze $M = 2^m$), a $R$ przechowuje $m$ najniższych bitów, czyli $\delta(i,j) \bmod M$. Składnik $M B_0 + R$ miał wówczas odtwarzać $\delta(i,j) \bmod 2M$. Milcząco przyjęto, że $(P_0)_{ij} \geq 0$ -- a to nie zawsze jest prawdą.
+
+Skąd dokładnie biorą się ujemne wartości $P_0$? Wiemy, że $P_0 = D_{Y_0}$, gdzie $Y_0 = \{0, 2M, 4M, \ldots\}$. Każdy punkt $b_r = r \cdot 2M$ wyznacza okno dokładności $(b_r - M, b_r + M]$. Sąsiednie okna stykają się i pokrywają całą oś, a wartość $(P_0)_{ij} = \delta(i,j) - b_r$ zależy od tego, po której stronie najbliższego punktu $Y_0$ leży $\delta(i,j)$.
+
+Zapisując $\delta(i,j) = q \cdot 2M + s$, gdzie $s = \delta(i,j) \bmod 2M$, otrzymujemy:
+\[
+(P_0)_{ij} = \begin{cases}
+s, & \text{gdy } s \leq M \quad (\delta \text{ leży w oknie wokół } q \cdot 2M),\\[2pt]
+s - 2M, & \text{gdy } s > M \quad (\delta \text{ leży w oknie wokół } (q+1) \cdot 2M).
+\end{cases}
+\]
+W pierwszym przypadku $(P_0)_{ij} \in [0, M]$, w drugim $(P_0)_{ij} \in (-M, 0)$.
+
+Wynika z tego, że $(P_0)_{ij} < 0$ dokładnie wtedy, gdy $\delta(i,j) \bmod 2M > M$, czyli gdy $m$-ty bit odległości jest równy $1$. Formuła $B_0=(0\leq P_0<M)$ opisuje sytuację przeciwną, czyli odpowiada negacji $m$-tego bitu. Ponadto $R=P_0\bmod M$ nie daje poprawnej wartości $\delta(i,j)\bmod M$, gdy $(P_0)_{ij}$ jest ujemne.
+
+
+Eirinakis, Williamson i Subramani proponują:
+\[
+\widehat{B}_0 = (-M < P_0 < 0), \qquad \widehat{R} = P_0, \qquad D = M \sum_{k=1}^{\ell} 2^k B_k + 2M \widehat{B}_0 + \widehat{R}.
+\]
+Idea jest prosta: jeżeli $(P_0)_{ij} \geq 0$, to $(P_0)_{ij}$ to już $\delta \bmod 2M$ i wystarczy je przepisać; jeżeli $(P_0)_{ij} < 0$, to brakuje $2M$, by uzupełnić wartość do $\delta \bmod 2M$. Składnik $2M \widehat{B}_0 + \widehat{R}$ dokładnie to robi, dając
+\[
+(2M \widehat{B}_0 + \widehat{R})_{ij} = \delta(i,j) \bmod 2M.
+\]
+Składnik ten w pełni uwzględnia $m$-ty bit, dlatego sumowanie $B_k$ zaczyna się od $k=1$. Korekta zmienia tylko sposób odczytu wyniku i nie wpływa na złożoność algorytmu.
+
+\newpage
