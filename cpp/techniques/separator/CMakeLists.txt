@@ -4,4 +4,6 @@ koala_add_module(separator
     MISP.cpp
     PlanarSeparatorMatching.cpp
     PlanarSeparatorVertexCover.cpp
+    BalancedSeparator.cpp
+    LiptonTarjanFundamentalCycle.cpp
 )
