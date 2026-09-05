@@ -2,7 +2,7 @@
 #include "networkit/Globals.hpp"
 #include "networkit/components/ConnectedComponents.hpp"
 #include "techniques/separator/GraphUtils.hpp"
-#include "techniques/separator/PlanarSeparator.hpp"
+#include "techniques/separator/LiptonTarjanPlanarSeparator.hpp"
 #include <queue>
 #include <vector>
 
@@ -85,7 +85,7 @@ void EpsilonPlanarSeparator::run() {
             return newVec;
         };
 
-        PlanarSeparator sepAlgo(K, kCost);
+        LiptonTarjanPlanarSeparator sepAlgo(K, kCost);
         sepAlgo.run();
 
         for (auto v : sepAlgo.getSeparator())

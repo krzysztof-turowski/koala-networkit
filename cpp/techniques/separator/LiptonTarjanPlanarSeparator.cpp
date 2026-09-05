@@ -1,4 +1,4 @@
-#include "techniques/separator/PlanarSeparator.hpp"
+#include "techniques/separator/LiptonTarjanPlanarSeparator.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -21,14 +21,14 @@
 
 namespace Koala {
 
-PlanarSeparator::PlanarSeparator(const NetworKit::Graph& graph,
+LiptonTarjanPlanarSeparator::LiptonTarjanPlanarSeparator(const NetworKit::Graph& graph,
                                  const std::vector<double>& costs)
     : BalancedSeparator(graph), vertex_cost(costs) {}
 
-PlanarSeparator::PlanarSeparator(const NetworKit::Graph& graph)
+LiptonTarjanPlanarSeparator::LiptonTarjanPlanarSeparator(const NetworKit::Graph& graph)
     : BalancedSeparator(graph), vertex_cost(graph.upperNodeIdBound(), 1.0) {}
 
-void PlanarSeparator::run() {
+void LiptonTarjanPlanarSeparator::run() {
     clean_partitions();
 
     if (graph.numberOfNodes() == 0) {
@@ -119,7 +119,7 @@ void PlanarSeparator::run() {
     hasRun = true;
 }
 
-std::tuple<int, int, int> PlanarSeparator::find_partition_levels(
+std::tuple<int, int, int> LiptonTarjanPlanarSeparator::find_partition_levels(
     const NetworKit::Graph& G, std::vector<NetworKit::node>& verticesAtLevel,
     std::vector<int>& lvl) {
     std::vector<NetworKit::count> prefixVertices(verticesAtLevel.size());
@@ -180,7 +180,7 @@ std::tuple<int, int, int> PlanarSeparator::find_partition_levels(
     return {l0, l1, l2};
 }
 
-std::vector<double> PlanarSeparator::find_subtree_costs(
+std::vector<double> LiptonTarjanPlanarSeparator::find_subtree_costs(
     const NetworKit::Graph& H, const std::vector<NetworKit::node>& parentH,
     const std::vector<double>& vertex_cost, NetworKit::node root) {
     std::vector<std::vector<NetworKit::node>> childrenH(
@@ -210,7 +210,7 @@ std::vector<double> PlanarSeparator::find_subtree_costs(
     return costsH;
 }
 
-std::vector<NetworKit::count> PlanarSeparator::find_number_of_vertices_at_level(
+std::vector<NetworKit::count> LiptonTarjanPlanarSeparator::find_number_of_vertices_at_level(
     const std::vector<int>& lvl) {
     int maxLevel = -1;
     for (auto l : lvl) {
@@ -224,7 +224,7 @@ std::vector<NetworKit::count> PlanarSeparator::find_number_of_vertices_at_level(
 }
 
 std::pair<std::vector<int>, std::vector<NetworKit::node>>
-PlanarSeparator::perform_BFS_and_find_spanning_tree(const NetworKit::Graph& G,
+LiptonTarjanPlanarSeparator::perform_BFS_and_find_spanning_tree(const NetworKit::Graph& G,
                                                     NetworKit::node startNode) {
     NetworKit::count n = G.upperNodeIdBound();
 
@@ -248,7 +248,7 @@ PlanarSeparator::perform_BFS_and_find_spanning_tree(const NetworKit::Graph& G,
 }
 
 std::pair<NetworKit::Graph, NetworKit::node>
-PlanarSeparator::find_contracted_subgraph(const NetworKit::Graph& G,
+LiptonTarjanPlanarSeparator::find_contracted_subgraph(const NetworKit::Graph& G,
                                           planar_embedding_t& embedding,
                                           std::vector<int>& lvl, int l0,
                                           int l2) {
@@ -288,7 +288,7 @@ PlanarSeparator::find_contracted_subgraph(const NetworKit::Graph& G,
     return {H, x};
 }
 
-bool PlanarSeparator::are_connected_components_eligible_for_partition(
+bool LiptonTarjanPlanarSeparator::are_connected_components_eligible_for_partition(
     std::vector<std::vector<NetworKit::node>>& components) {
     double highestCost = 0.0;
     for (const auto& cc : components) {
@@ -300,7 +300,7 @@ bool PlanarSeparator::are_connected_components_eligible_for_partition(
     return highestCost <= 2.0 / 3.0;
 }
 
-void PlanarSeparator::find_separator_from_components(
+void LiptonTarjanPlanarSeparator::find_separator_from_components(
     std::vector<std::vector<NetworKit::node>>& components) {
     double mostExpensiveComponentCost = 0.0;
     size_t mostExpensiveComponentId = 0;
@@ -356,7 +356,7 @@ void PlanarSeparator::find_separator_from_components(
     }
 }
 
-void PlanarSeparator::extract_separator_and_partition_from_cycle(
+void LiptonTarjanPlanarSeparator::extract_separator_and_partition_from_cycle(
     const NetworKit::Graph& G, const std::vector<int>& lvl, int l0, int l2,
     std::vector<NetworKit::node>& finalCycle, NetworKit::node x) {
     NetworKit::Graph graphCopy = G;
@@ -383,7 +383,7 @@ void PlanarSeparator::extract_separator_and_partition_from_cycle(
     find_separator_from_components(connectedComponents);
 }
 
-void PlanarSeparator::extract_level_partition(const NetworKit::Graph& G,
+void LiptonTarjanPlanarSeparator::extract_level_partition(const NetworKit::Graph& G,
                                               const std::vector<int>& lvl,
                                               int l0, int l2) {
     struct Part {
@@ -439,7 +439,7 @@ void PlanarSeparator::extract_level_partition(const NetworKit::Graph& G,
     }
 }
 
-double PlanarSeparator::compute_middle_cost(const NetworKit::Graph& G,
+double LiptonTarjanPlanarSeparator::compute_middle_cost(const NetworKit::Graph& G,
                                             const std::vector<int>& lvl, int l0,
                                             int l2) {
     double middleCost = 0.0;
@@ -451,7 +451,7 @@ double PlanarSeparator::compute_middle_cost(const NetworKit::Graph& G,
     return middleCost;
 }
 
-void PlanarSeparator::clean_partitions() {
+void LiptonTarjanPlanarSeparator::clean_partitions() {
     partition.separator.clear();
     partition.A.clear();
     partition.B.clear();

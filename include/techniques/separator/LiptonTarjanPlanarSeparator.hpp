@@ -14,10 +14,10 @@
 
 namespace Koala {
 
-class PlanarSeparator : public BalancedSeparator {
+class LiptonTarjanPlanarSeparator : public BalancedSeparator {
    public:
-    explicit PlanarSeparator(const NetworKit::Graph& graph);
-    PlanarSeparator(const NetworKit::Graph& graph,
+    explicit LiptonTarjanPlanarSeparator(const NetworKit::Graph& graph);
+    LiptonTarjanPlanarSeparator(const NetworKit::Graph& graph,
                     const std::vector<double>& vertexCost);
     void run() override;
 

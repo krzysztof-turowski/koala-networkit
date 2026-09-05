@@ -1,5 +1,5 @@
 koala_add_module(separator
-    PlanarSeparator.cpp
+    LiptonTarjanPlanarSeparator.cpp
     EpsilonPlanarSeparator.cpp
     MISP.cpp
     PlanarSeparatorMatching.cpp
