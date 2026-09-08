@@ -1,9 +1,6 @@
 koala_add_module(separator
     LiptonTarjanPlanarSeparator.cpp
-    EpsilonPlanarSeparator.cpp
     MISP.cpp
-    PlanarSeparatorMatching.cpp
-    PlanarSeparatorVertexCover.cpp
     BalancedSeparator.cpp
     LiptonTarjanFundamentalCycle.cpp
 )
