@@ -1,8 +1,9 @@
 #pragma once
 
-#include <networkit/base/Algorithm.hpp>
+#include <utility>
 #include <networkit/graph/Graph.hpp>
 #include <Eigen/Dense>
+#include "shortest_path/AllPairsShortestPaths.hpp"
 
 namespace Koala {
 
@@ -14,20 +15,19 @@ namespace Koala {
  * Time complexity: O(M(n) * log n) where M(n) is the matrix
  * multiplication time.
  */
-class APDAlgorithm : public NetworKit::Algorithm {
+class SeidelAPSP : public AllPairsShortestPaths<int> {
  public:
     using Matrix = Eigen::MatrixXi;
 
-    explicit APDAlgorithm(const NetworKit::Graph& G);
+    explicit SeidelAPSP(const NetworKit::Graph &graph): AllPairsShortestPaths<int>(graph) { checkInput(); }
+
+    explicit SeidelAPSP(NetworKit::Graph &&graph): AllPairsShortestPaths<int>(std::move(graph)) { checkInput(); }
 
     void run() override;
 
-    const Matrix& getDistances() const;
-    int getDistance(NetworKit::node u, NetworKit::node v) const;
-
  private:
-    const NetworKit::Graph* G;
-    Matrix distances;
+    // Throw if the stored graph is directed or weighted.
+    void checkInput() const;
 
     Matrix APD(const Matrix& A) const;
 };

@@ -1,8 +1,10 @@
 #include "shortest_path/Spira.hpp"
 
-#include <algorithm>
 #include <limits>
 #include <queue>
+#include <stdexcept>
+
+#include <networkit/graph/GraphTools.hpp>
 
 namespace Koala {
 
@@ -13,10 +15,6 @@ static const NetworKit::edgeweight INF = std::numeric_limits<NetworKit::edgeweig
 struct Edge {
     NetworKit::node target;
     NetworKit::edgeweight weight;
-
-    bool operator<(const Edge& other) const {
-        return weight < other.weight;
-    }
 };
 
 struct State {
@@ -31,27 +29,28 @@ struct State {
 
 }
 
-SpiraAlgorithm::SpiraAlgorithm(const NetworKit::Graph& G) : G(&G) {
-    if (!G.isWeighted()) {
+void SpiraAPSP::checkInput() const {
+    if (!graph->isWeighted()) {
         throw std::invalid_argument("Graph must be weighted for Spira's algorithm.");
     }
 }
 
-void SpiraAlgorithm::run() {
-    const NetworKit::count n = G->upperNodeIdBound();
-    const NetworKit::count actual_nodes = G->numberOfNodes();
+void SpiraAPSP::run() {
+    const NetworKit::count n = graph->upperNodeIdBound();
+    const NetworKit::count actual_nodes = graph->numberOfNodes();
+
+    NetworKit::GraphTools::sortEdgesByWeight(*graph);
 
     std::vector<std::vector<Edge>> adj(n);
-    G->forNodes([&](NetworKit::node u) {
-        G->forNeighborsOf(u, [&](NetworKit::node v, NetworKit::edgeweight w) {
+    for (const auto u : graph->nodeRange()) {
+        for (const auto [v, w] : graph->weightNeighborRange(u)) {
             adj[u].push_back({v, w});
-        });
-        std::sort(adj[u].begin(), adj[u].end());
-    });
+        }
+    }
 
     distances.assign(n, std::vector<NetworKit::edgeweight>(n, INF));
 
-    G->forNodes([&](NetworKit::node origin) {
+    for (const auto origin : graph->nodeRange()) {
         distances[origin][origin] = 0.0;
         std::vector<bool> labeled(n, false);
         labeled[origin] = true;
@@ -86,19 +85,11 @@ void SpiraAlgorithm::run() {
 
             if (!found) break;
         }
-    });
+    }
+
+    computeDiameter();
 
     hasRun = true;
-}
-
-const std::vector<std::vector<NetworKit::edgeweight>>& SpiraAlgorithm::getDistances() const {
-    assureFinished();
-    return distances;
-}
-
-NetworKit::edgeweight SpiraAlgorithm::getDistance(NetworKit::node u, NetworKit::node v) const {
-    assureFinished();
-    return distances[u][v];
 }
 
 }  // namespace Koala

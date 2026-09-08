@@ -1,30 +1,30 @@
 #pragma once
 
+#include <utility>
 #include <vector>
-#include <networkit/base/Algorithm.hpp>
 #include <networkit/graph/Graph.hpp>
+#include "shortest_path/AllPairsShortestPaths.hpp"
 
 namespace Koala {
 
 /**
  * @ingroup shortest_path
  * All-Pairs Shortest Paths for weighted, undirected graphs
- * using Spira's algorithm.
+ * using Spira's algorithm (run once per source).
  *
- * Time complexity: O(n^2 * m * log n) worst case.
+ * Time complexity: O(n * m * log n) worst case, O(n^2 * log n) average case.
  */
-class SpiraAlgorithm : public NetworKit::Algorithm {
+class SpiraAPSP : public AllPairsShortestPaths<NetworKit::edgeweight> {
  public:
-    explicit SpiraAlgorithm(const NetworKit::Graph& G);
+    explicit SpiraAPSP(const NetworKit::Graph &graph): AllPairsShortestPaths<NetworKit::edgeweight>(graph) { checkInput(); }
+
+    explicit SpiraAPSP(NetworKit::Graph &&graph): AllPairsShortestPaths<NetworKit::edgeweight>(std::move(graph)) { checkInput(); }
 
     void run() override;
 
-    const std::vector<std::vector<NetworKit::edgeweight>>& getDistances() const;
-    NetworKit::edgeweight getDistance(NetworKit::node u, NetworKit::node v) const;
-
  private:
-    const NetworKit::Graph* G;
-    std::vector<std::vector<NetworKit::edgeweight>> distances;
+    // Throw if the stored graph is not weighted.
+    void checkInput() const;
 };
 
 }  // namespace Koala
