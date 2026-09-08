@@ -62,22 +62,28 @@ void PlanarSeparatorMatching::contract(int &currentGraphSize, NetworKit::node v,
     std::unordered_set<NetworKit::node> neighborsOfLarger;
     G.forNeighborsOf(larger, [&](NetworKit::node t) { neighborsOfLarger.insert(t); });
 
+    std::vector<NetworKit::node> potenital_small_degrees;
+
     G.forNeighborsOf(smaller, [&](NetworKit::node t) {
         if (t != v && t != larger) {
             if (!neighborsOfLarger.contains(t)) {
                 G.addEdge(larger, t);
                 neighborsOfLarger.insert(t);
                 action.moved_nodes.push_back(t);
+            } else {
+                potenital_small_degrees.push_back(t);
             }
         }
     });
-
-    if (G.degree(larger) <= 2) {
-        Q.push(larger);
-    }
-
     G.removeNode(v);
     G.removeNode(smaller);
+
+    for (auto t : potenital_small_degrees) {
+        if (G.hasNode(t) && G.degree(t) <= 2) {
+            Q.push(t);
+        }
+    }
+
     stk.push_back(action);
     currentGraphSize -= 2;
 }
