@@ -1,0 +1,402 @@
+\chapter{Applications of planar separator theorem}
+\section{Matching algorithm}
+
+\subsection{Algorithm}
+In this section we will discuss an efficient algorithm for finding a maximum
+matching in a planar graph. The maximum matching problem asks for a maximum
+number of pairwise nonadjacent edges in a graph. Although there exists an
+exact algorithm to find a maximum matching for planar graphs in $O(n \sqrt{n})$
+time, we can based on theorems recalled in Chapter 2 exhibit an approximation
+algorithm that runs in $O(n \log{n})$ time and whose worst-case ratio is 1 -
+$O(1/ \sqrt{\log\log n})$. One can find it interesting why we cannot use Algorithm
+$MISP$ directly and have worst-case ratio and running time guaranteed by Lemma~
+\ref{lem:MISP-upperbound}. That is because the third property is not
+satisfied. The counter example is graph $K_{1, n-1}$ whose matching size is 1
+regardless of the size of the graph, and that property demands that the size of
+the matching is a positive fraction of $n$. It is also really important to see
+that even though $MISP$ algorithm was defined for problems with sets of vertices
+it easily extendable to sets of edges which we can employ in this section.
+
+\begin{algorithm}[H]
+\caption{MATCHING procedure}
+\label{alg:matching}
+\begin{algorithmic}[1]
+    \Procedure{MATCHING}{}
+    \State \Call{REDUCE}{G, S(G)}
+    \State \Return{S(G)}
+    \EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]
+\caption{REDUCE procedure}
+\label{alg:reduce}
+\begin{algorithmic}[1]
+    \Procedure{REDUCE}{$G, s(G)$}
+        \State $N \gets |V(G)|$
+        \State $v \gets \min_{u \in V(G)} \deg(u)$
+        \If{$N \leq \log\log n$}
+            \State Find exact matching $S^*(G)$ using any reasonable algorithm
+            \State $S(G) \gets S^*(G)$
+        \ElsIf{$\deg(v) < 3$}
+            \If{$\deg(v) = 0$}
+                \State $G' \gets G - v$
+                \State \Call{REDUCE}{$G', S(G')$}
+                \State $S(G) \gets S(G')$
+            \ElsIf{$\deg(v) = 1$}
+                \State $u \gets \text{vertex adjacent to } v$
+                \State $G' \gets G - \{u, v\}$
+                \State \Call{REDUCE}{$G', S(G')$}
+                \State $S(G) \gets S(G') \cup \{ (v, u) \}$
+            \ElsIf{$\deg(v) = 2$}
+                \State $u, w \gets \text{neighbors of } v$
+                \State $G' \gets \text{graph made from } G \text{ by identifying }
+                v, u \text{ and } w$
+                \State \Call{REDUCE}{$G', S(G')$}
+                \If{$S(G') \text{ does not have an edge adjacent to } u \text{
+                in } G$}
+                    \State $S(G) \gets S(G') \cup \{(v, u)\}$
+                \Else
+                    \State $S(G) \gets S(G') \cup \{(v, w)\}$
+                \EndIf
+            \EndIf
+
+        \Else
+            \State Run Algorithm $MISP$ with $\epsilon =
+            {\log\log n}/N$ on $G$
+            \State $S(G) \gets \text{result of algorithm}$
+        \EndIf
+    \EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+\begin{theorem}\label{thm:matching}
+    The approximation algorithm MATCHING for the maximum matching problem on
+    planar graphs has running time $O(n \log n)$ and worst-case ratio
+    $1 - O(1/\sqrt{\log \log n}) $.
+\end{theorem}
+
+\begin{proof}
+\subsection{Correctness}
+We will start the proof to Theorem \ref{thm:matching} by proving that it returns
+a matching with stated worst-case ratio. For that we will split the proof into
+two parts. First we will show that reductions performed by REDUCE procedure
+make the approximation error smaller than that of the graph before a reduction.
+And secondly, we will show that in base cases the algorithm returns the correct
+worst-case ratio. We will define the maximum matching of $G$ as $S^*(G)$ and the
+matching produced by algorithm as $S(G)$. We will show that
+\begin{align*}
+    \frac{|S(G)|}{|S^*(G)|} \geq 1 - O\left( \frac{1}{\sqrt{\log\log n}} \right)
+\end{align*}
+
+\subsubsection{Reductions}
+\begin{enumerate}
+    \item $G$ has a vertex of degree 0. Let $G' = G - v$. Then we have that
+        $S(G) = S(G')$, as there is no edge adjacent to $v$. For the same reason
+        we have $S^*(G) = S^*(G')$, so the reduction does not affect the ratio.
+    \item $G$ has a vertex of degree 1. Let $u$ be the vertex adjacent to $v$ in
+        $G$ and $G' = G - \{u, v\}$. If $S(G')$ is a matching produced by the
+        algorithm then clearly $|S(G)| = |S(G')| + 1$ as we can add $(u,v)$ to
+        the matching. Also since $S^*(G)$ has exactly one edge adjacent to $u$
+        then by removing it we can reduce the matching by at most one, so we
+        have $S^*(G) \leq S^*(G') + 1$. Now we can derive:
+        $$
+         \frac{|S(G)|}{|S^*(G)|} \geq
+         \frac{|S(G')| + 1}{|S^*(G')| + 1} \geq
+         \frac{|S(G')|}{|S^*(G')|}
+        $$
+        where the last equality stems from properties of rational numbers.
+    \item $G$ has a vertex of degree 2. Let $u, w$ be vertices adjacent to $v$
+        and $G'$ be a graph obtained from $G$ by identifying those three
+        vertices into single vertex $v'$. Let $S(G) = S(G') \cup \{(u,v)\}$ if no
+        edge adjacent to $u$ in $G$ was selected to $S(G')$. Otherwise let
+        $S(G) = S(G') \cup (w,v)$. Clearly we have $|S(G)| = |S(G')| + 1$. Now
+        if the matching $S^*(G)$ contains either $(v,u)$ or $(v,w)$, let's say
+        $(v,u)$ then by removing it by contraction to $v'$, $S^*(G')$ is a
+        correct matching of size at most one less than the latter. In the other
+        case if both $u$ and $w$ were incident to edges in $S^*(G)$, then the
+        matching $S^*(G')$ has to select one of them, so the property is
+        conserved. In both cases we have $|S^*(G)| \leq |S^*(G')| + 1$. So again
+
+        $$
+         \frac{|S(G)|}{|S^*(G)|} \geq
+         \frac{|S(G')| + 1}{|S^*(G')| + 1} \geq
+         \frac{|S(G')|}{|S^*(G')|}
+        $$
+\end{enumerate}
+We can see that all of the reductions create a graph if a worst-case ratio no
+worse than the original graph $G$.
+\subsubsection{Base cases}
+We have two base cases to discuss here:
+\begin{enumerate}
+    \item If $N \leq \log{\log{n}}$, so we reduced our graph to a small fraction
+        of the original one, we apply an exact matching algorithm, so
+        $\frac{|S(G)|}{|S^*(G)|} = 1$ (if the denominator is 0, then we set this
+        ratio to 1)
+    \item If $N \geq \log\log n$ and $\forall_{v \in V(G)} \, \deg(v) \geq 3$
+        we apply $MISP$ algorithm. To prove its correctness we have to check conditions
+        from Lemma~\ref{lem:MISP-upperbound}:
+        \begin{enumerate}
+            \item Satisfied, as $S(G)$ is a matching so a subgraph induced by it
+                satisfies the property that no two edges can have a common
+                vertex
+            \item Let $S^*(G)$ be the maximum matching. By removing vertices of
+                a separator $C$ at most $|C|$ edges from the matching have
+                incident vertices in $C$. So in the induced graph $G - C$ the
+                maximum matching is of size at least $S^*(G) - |C|$. And this is
+                also the size of $S(G)$ as we run the exact algorithm for
+                matching here. So $|S(G)| \geq S^*(G) - |C|$, by rearranging we
+                have $|S^*(G)| - |S(G)| \leq |C| = O(|C|)$, so the error is bound
+                by size of $C$.
+            \item Here we will use the theorem from \cite{nishizeki1979lower}
+                which guarantees that if $G$ is planar and has minimum degree of
+                at least 3, then $|S^*(G)| \geq N/3$, so the optimal solution is a
+                positive fraction of $N$.
+            \item We can easily check in linear time if the set found by the
+                algorithm is the matching
+        \end{enumerate}
+        We can see that all the conditions are satisfied, so by setting
+        $\epsilon = \log{\log{n}}/N$ we have the desired worst-case error by
+        Lemma~\ref{lem:MISP-upperbound}.
+\end{enumerate}
+
+\subsection{Time complexity}
+At first we should discuss the time complexity of reductions. By keeping a graph
+as adjacency lists, so that each vertex not only has a previous reference and
+next reference but also the cross reference to other linked lists, we can
+perform a deletion in $O(\deg(v))$. And as each vertex is deleted only once, we
+can do that in amortized time $O(1)$. Another operation is identification of
+vertices which can be performed in total time $O(n \log{n})$
+\cite{chibaApplicationsLiptonTarjans1981}. To do that we keep an additional
+adjacency matrix and rewiring edges from the vertex of a smaller degree to one
+of higher. As each vertex is present in $O(\log{n})$ such rewirings, we get the
+needed time complexity.
+Now we can look at running time of base cases. If $N \leq \log\log n$ we use
+an exact algorithm to find the matching. If its time complexity is at most
+$O(n2^N)$, then it is enough for our desired time complexity. And if $N \geq
+\log\log n$, then from Lemma~\ref{lem:MISP-upperbound} we have guaranteed
+$O(\max \{ N \log{N}, N 2^{ \epsilon N} \}) = O(N \log{n}) = O(n \log{n})$.
+
+\end{proof}
+
+\section{Vertex cover algorithm}
+Another problem we will look at is Vertex Cover which is NP-complete. In
+\cite{chibaApplicationsLiptonTarjans1981} we can find an algorithm very similar
+to the one for matching problem discussed in a previous section. However for
+VC another interesting approach may be found in
+\cite{bar-yehudaApproximatingVertexCover1982} which will be shown in this
+section.
+At first we shall define what a vertex cover is.
+\begin{defn}\label{def:vertex-cover}
+    Let $G = (V, E)$ be a graph. We call $VC \subseteq V$ a vertex cover if for each 
+    $e \in E$ one of its endpoints is in $VC$.
+\end{defn}
+Vertex Cover Problem asks for a minimum $VC$ in $G$. Another related problem is the
+Independent Set Problem that asks for a maximum independent set.
+\begin{defn}
+    Let $G = (V, E)$ be a graph. We call $I \subseteq V$ and independent set if for 
+    every two $v, u \in I$, $(u, v) \notin E$.
+\end{defn}
+It is clear that those problems are complementary, so solving Independent Set Problem
+gives a solution to Vertex Cover Problem as $VC \cup I = V$. In \cite{liptonApplicationsPlanarSeparator1977}
+authors give an approximation algorithm (which is essentially MISP algorithm discussed in Chapter 2) to find
+a maximum independent set in $O(n \log n)$ time with
+relative error $O(1/\sqrt{\log \log n})$, which means that for some constant $c$:
+$$
+\frac{|I^*| - |I|}{|I^*|} \leq \frac{c}{\sqrt{\log \log n}}
+$$
+But we know that $|VC^*| + |I^*| = n$, so after some simple arithmetics:
+$$
+\frac{|VC| - |VC^*|}{|VC^*|} \leq \frac{c (n/|VC^*| - 1)}{\sqrt{\log \log n}}
+$$
+This means that in order to use approximation scheme from \cite{liptonApplicationsPlanarSeparator1977}
+for independent set to solve VC Problem we will have to show that $n/|VC^*|$ converges
+to some $\epsilon_0 > 1$.
+\\
+To do that we will have to pre-process graph $G$ and apply approximation scheme afterwards.
+At start we shall start with a few definitions introduced by authors of
+\cite{bar-yehudaApproximatingVertexCover1982}.
+
+
+\begin{defn}\label{def:rosary}
+Let $G = (V, E)$ be a simple planar graph. A rosary in $G$ is a simple circuit
+of even length $2l$, denoted by $v_1 - v_2 - \dots - v_{2l} - v_1$, such that the
+degree of every even-indexed vertex is exactly two
+for all $i = 1, 2, \dots, l$.
+\end{defn}
+\begin{defn}\label{def:bead}
+Let $G = (V, E)$ be a simple planar graph. A vertex $v \in V$ of degree two is
+called a bead if it plays the role of an even-indexed vertex $v_{2i}$ in
+some rosary in $G$.
+\end{defn}
+\begin{defn}
+    Let $G = (V, E)$ be a simple planar graph. We will call it proper if the degree
+    of all vertices is at least 2 and the set $Y_B$ of all its beads satisfies
+$|Y_B| < 1/6 |V|$.
+\end{defn}
+\noindent
+In \cite{bar-yehudaApproximatingVertexCover1982} authors prove a very useful
+theorem regarding proper graphs.
+\begin{theorem}\label{thm:proper}
+    Let $G = (V, E)$ be a simple planar graph with all vertices having degree at
+    least 2. Then we have:
+    $$
+    |VC^*| > \frac{1}{5}(|V| - |Y_B|)
+    $$
+\end{theorem}
+\noindent
+If $G$ is proper then by Theorem~\ref{thm:proper} we have $|V|/|VC^*| < 6$. And that is exactly 
+what we need to apply the approximation scheme. So the preparatory algorithm from
+\cite{bar-yehudaApproximatingVertexCover1982} will reduce $G$ to a proper graph. The general
+idea of that algorithm is to at first get rid of all vertices with degree less than 2 and later 
+reduce the size of set of beads. We shall see exact steps in listing for Algorithm~\ref{alg:prep}.
+
+\begin{algorithm}[H]
+\caption{Preparatory algorithm}
+\label{alg:prep}
+\small
+\begin{algorithmic}[1]
+    \Procedure{PREP}{$G$}
+    \State $ VC \gets \emptyset$
+    \State $ U \gets \emptyset $
+    \State $ STOP \gets 0$
+    \While{$STOP \neq 1$}
+    \While{$\exists_{v \in V(\wtG(V \setminus U))} \deg(v) < 2$}
+    \If{$v \in V \setminus U$, $ \deg(v) = 0$ in $\wtG(V \setminus U))$}
+        \State Add $v$ to $U$
+    \EndIf
+    \If{$v \in V \setminus U$, $ \deg(v) = 1$ in $\wtG(V \setminus U))$ }
+        \State Let $(v, u) \in E(\wtG(V \setminus U))$ be the edge of $v$
+        \State Add $v, u$ to $U$ and $u$ to $VC$
+    \EndIf
+    \EndWhile
+
+    \While{There are simple isolated circuits in $\wtG(V \setminus U)$}
+    \State Let $v_1, \dots, v_k, v_1$ be a simple isolated circuit in $\wtG(V \setminus U)$
+    \State $\forall$ odd $i \in \{1, \dots, k\}$ $\rightarrow$ add $v_i$ to $VC$
+    \State $\forall$ $i \in \{1, \dots, k\}$ $\rightarrow$ add $v_i$ to $U$
+    \EndWhile
+    \State $B(X, Y, E') \gets \text{BIPARTITE($\wtG(V \setminus U)$)}$
+    \If{$|Y| \geq 1/6 |V \setminus U|$}
+        \State $VC \gets VC \cup X$
+        \State $U \gets U \cup X \cup Y$
+    \EndIf
+    \If{$|Y| < 1/6 |V \setminus U|$ or $V \setminus U = \emptyset$}
+        \State $STOP \gets 1$
+    \EndIf
+    \EndWhile
+    \EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+\subsubsection{Correctness of the algorithm}
+We shall at first prove that Algorithm~\ref{alg:prep} outputs a minimum vertex cover
+for $\wtG(U)$ and $\wtG(V \setminus U)$ which shall be a proper graph.
+The algorithm has three phase that can be extracted:
+\begin{enumerate}
+    \item The first phase is deleting all the vertices with vertex degree less than 2.
+        We can see that the that the covering of deleted induced subgraphs is optimal.
+        \begin{itemize}
+            \item If $\deg(v) = 0$, then it does not have an incident edge to it, so 
+                the algorithms does not take it into the vertex cover which is optimal
+                for the minimum vertex cover.
+            \item If $\deg(v) = 1$, then it has to be picked to a minimum vertex cover or 
+                its adjacent vertex $u$ to cover the incident edge $e$. The algorithm here 
+                makes an optimal choice one again of picking $u$ to the vertex cover, as 
+                it may have more incidents than only $e$ as opposed to $v$.
+        \end{itemize}
+
+    \item The second phase is deleting all of the isolated cycles. It is easy to see that 
+        here the algorithm makes an optimal decision, as it adds to the vertex cover all the
+        vertices with odd indices. It is the optimal decision, as the cycle has exactly $k$ edges
+        to cover, so the minimum number of vertices to pick to cover the cycle 
+        $\left \lceil{k/2}\right \rceil $, which is achieved by picking all the odd indices.
+\begin{algorithm}[H]
+\caption{BIPARTITE procedure}
+\label{alg:bipartite}
+\small
+\begin{algorithmic}[1]
+    \Procedure{BIPARTITE}{$H$ with no isolated circuits and $\deg(v) \geq 2$}
+    \State Label all $v : \deg(v) > 2$ with "+"
+    \State Add those vertices to queue $Q$
+    \While{$Q$ not empty}
+    \State $v \gets Q.popFront()$
+    \State Let $L$ be all unlabelled vertices adjacent to $v$ in $H$
+    \State $\forall v_L \in L$ $\rightarrow$ label opposite to $v$ (using "+" or "-")
+    \State $\forall v_L \in L$ $\rightarrow$ $Q.add(v_L)$
+    \EndWhile
+    \State $X \gets \{ v : v \in V(H) \, \text{and labelled "+"}\}$
+    \State $Y \gets \{ v : v \in V(H) \, \text{and labelled "-"}\}$
+    \State $E' \gets \{(u, v) : u \in X, v \in Y, (u, v) \in E(H)\}$
+    \State Let $B = (X, Y, E')$ be a bipartite graph
+    \While{$\exists v \in B: \deg_B(v) < 2$}
+        \State Remove $v$ and incident edges
+    \EndWhile
+    \State \Return $B$
+    \EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+    \item Now we shall focus on the third part of the algorithm, which is the construction of 
+        a bipartite graph from the residual graph $\wtG(V \setminus U)$. The algorithm picks the whole
+        vertex set $X$ to $VC$. To prove that it is optimal we have to show:
+        \begin{lemma} \label{lem:vc-bipartie}
+            Let $B(X, Y, E)$ be a bipartite graph in which for every $x \in X$, $\deg(x) \geq 2$ and 
+            for every $y \in Y$, $\deg(y) \leq 2$.
+        \end{lemma}
+        \begin{proof}
+            The proof follows by induction on $|Y|$. For the base case $|Y| = 0$, we have that $|X| = 0$
+            (because the degree for each vertex of $x$ has to be at least 2) and $E = \emptyset$ which 
+            trivially holds.
+            \\ 
+            Now for induction step suppose that the theorem holds for all $|Y| < m$, and let $B(X, Y, E)$
+            be such a bipartite graph that $|Y| = m$. Let $y$ the vertex in $Y$ with minimum degree.
+            If $\deg(y) = 0$ then delete $y$ from $B$ and the lemma is true by induction on the reduced graph, 
+            so it is true for the original graph as well. If $\deg(y) = 1$, let $x$ by the adjacent vertex from $X$.
+            Remove $x$, $y$ and all their incident edges. The set $X \setminus \{x\}$ is therefore the 
+            minimum vertex cover of the bipartite graph $B(\{X \setminus x\}, \{Y \setminus y\}, E')$ by induction.
+            So for the original graph add $x$ to the vertex cover, so that it covers all the removed incident edges.
+            By doing that we have that $X$ is the minimum vertex cover of the original graph. If $\deg(y) = 2$, then 
+            all vertices in $B(X, Y, E)$ have degrees at least 2, so there are cycles. Pick any simple cycle $C$. All the 
+            vertices from $C$ that are in $X$ form the minimum vertex cover for that cycle. Remove $C$ and all the incident 
+            edges. The minimum vertex cover for $B(X', Y', E')$ is $X'$ by induction, so with addition of the deleted 
+            vertices from $C$ that formed the minimum vertex cover for $C$ we have that $X$ is the minimum vertex cover for
+            the original graph $B(X, Y, E)$.
+        \end{proof}
+        Now we can see that by construction from the Algorithm~\ref{alg:bipartite}, all of the vertices with degree 
+        greater than 2 land in set $X$ of the bipartite graph, so by Lemma~\ref{lem:vc-bipartie} $X$ is the minimum 
+        vertex cover of $B(X, Y, E)$.
+\end{enumerate}
+Now we can observe that if Algorithm~\ref{alg:prep} halts with $V \setmius U = \emptyset$, then by the arguments that were 
+just established, $VC$ is the minimum vertex cover of the whole graph, and the residual graph is empty. On the other hand
+if the algorithm halts with the condition $|Y| < 1/6 |V \setminus U|$, then set $VC$ is the minimum vertex cover of $\wtG(U)$.
+Moreover the degrees of all of the vertices is at least 2. The only thing that is left to prove is that the set of beads 
+$Y_B$ satisfies $|Y_B| < 1/6 |V \setminus U|$.
+\begin{lemma}
+    If $y$ is a bead, then $y \in Y$.
+\end{lemma}
+\begin{proof}
+    Let $(y_1, x_1, \dots, y_l, x_l)$ be a rosary in $H$ (input graph to Algorithm~\ref{alg:bipartite}). Since $H$
+    contains no isolated circuits as a result of earlier steps for Algorithm~\ref{alg:prep}, some of the $x$ vertices 
+    are of degree greater that 2 and are labelled $+$ in Algorithm~\ref{alg:bipartite}. All the other vertices in a rosary 
+    are of degree 2 (so their neighbors are only other vertices from the rosary) and therefore their labelling cannot be
+    affected by a vertex not from the rosary. It follows that every bead will finally get labelled $-$, so all of the beads will
+    land in $Y$.
+\end{proof}
+By this lemma we have that $Y_B \subseteq Y$, so $\wtG(V \setminus U)$ is a proper graph.
+
+\subsubsection{Time complexity}
+We can show that the time complexity of the preparatory Algorithm~\ref{alg:prep} is $O(n)$. Construction of the 
+bipartite graph, so the running time of Algorithm~\ref{alg:bipartite} is $O(n)$ as this is just a BFS. Moreover 
+time spent on all of the transformations like deletion of vertices and isolated circuits is also $O(n)$. Note that
+with every step of the outer while loop of Algorithm~\ref{alg:prep}, the number of vertices in $V \setminus U$ is 
+reduced by a factor of $5/6$. Let $n_i = |V \setminus U|$ at i-th step of the outer while loop. Let $cn_i$ be the bound 
+of the complexity of the i-th step. Since $n_i \leq (5/6)^i n$ then the total running time of Algorithm~\ref{alg:prep} is 
+$$
+\sum_{i=0}^{\infty} cn_i \leq \sum_{i=0}^{\infty} (5/6)^i n = 6 \cdot n \cdot c = O(n)
+$$
+
+
+
+
+

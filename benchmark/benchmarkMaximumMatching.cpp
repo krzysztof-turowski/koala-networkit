@@ -13,7 +13,7 @@
 #include <matching/gaussian_matching/NaiveGaussianMatching.hpp>
 
 enum class Algorithm : uint32_t {
-    ALL, MICALI_VAZIRANI, NAIVE_GAUSSIAN, GAUSSIAN, EDMONDS, GABOW
+    ALL, MICALI_VAZIRANI, NAIVE_GAUSSIAN, GAUSSIAN, EDMONDS, GABOW, PLANAR_SEPARATOR
 };
 
 std::map<std::string, Algorithm> ALGORITHM = {
@@ -23,6 +23,7 @@ std::map<std::string, Algorithm> ALGORITHM = {
     { "Gaussian", Algorithm::GAUSSIAN },
     { "Edmonds", Algorithm::EDMONDS },
     { "Gabow", Algorithm::GABOW },
+    { "PlanarSeparator", Algorithm::PLANAR_SEPARATOR}
 };
 
 template <typename Algorithm>
@@ -54,6 +55,7 @@ void run_test(NetworKit::Graph &G, Algorithm algorithm) {
         T.insert(run_algorithm<Koala::NaiveGaussianMatching>(G));
         T.insert(run_algorithm<Koala::EdmondsMaximumMatching>(G));
         T.insert(run_algorithm<Koala::GabowMaximumMatching>(G));
+        T.insert(run_algorithm<Koala::PlanarSeparatorMatching>(G));
         assert(T.size() == 1);
         break;
     case Algorithm::MICALI_VAZIRANI:
@@ -70,6 +72,9 @@ void run_test(NetworKit::Graph &G, Algorithm algorithm) {
         break;
     case Algorithm::GABOW:
         T.insert(run_algorithm<Koala::GabowMaximumMatching>(G));
+        break;
+    case Algorithm::PLANAR_SEPARATOR:
+        T.insert(run_algorithm<Koala::PlanarSeparatorMatching>(G));
         break;
     default:
         throw std::logic_error("Unhandled algorithm");

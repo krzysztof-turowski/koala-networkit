@@ -1,0 +1,230 @@
+\section{Definitions and important lemmas}
+\begin{defn} \label{defn:graph}
+  Graph $G$ is a tuple $(V, E)$, where $V$ is called a vertex set and 
+  $E$ are 2-element subsets of $V$.
+\end{defn}
+
+In this work we only deal with undirected graphs and for simplicity we 
+shall define $(u, v) \in E$, where $u, v \in V$ as an undirected edge.
+
+\begin{defn}
+    A vertex $v \in G$ is called incident to $e \in E$ if $v \in e$. We call
+    two vertices $u, v \in G$ adjacent in $G$ if they are incident to the same 
+    edge.
+\end{defn}
+
+\begin{defn}
+    We define a degree of a vertex $v$ in a graph $G = (V, E)$ as the number of edges 
+    in $G$ that $v$ is incident to and denote it as $\deg(v)$.
+\end{defn}
+
+\begin{defn}
+    We call graph $G' = (V', E')$ a subgraph of $G = (V, E)$ ($G' \subseteq G$) if 
+    $V' \subseteq V$ and $E' \subseteq E$.
+\end{defn}
+
+\begin{defn}
+Let $G = (V, E)$ be a graph and let $V' \subseteq V$. A subgraph $G' = (V', E')$ 
+of $G$ is called the subgraph induced by $V'$ if for every pair of vertices 
+$u, v \in V'$, the edge $(u, v) \in E'$ if and only if $(u, v) \in E$. 
+This subgraph is denoted by $\wtG(V')$.
+\end{defn}
+
+\begin{defn} \label{defn:path}
+    Let $G = (V, E)$ be a graph. We define a path $P$ to be a sequence of vertices in $G$
+    $(v_1, \dots, v_k)$ where each consecutive pair of vertices in that sequence is connected by an 
+    edge in $G$. The path is called simple if all the vertices in the sequence are distinct.
+\end{defn}
+
+\begin{defn} \label{defn:cycle}
+    Let $G = (V, E)$ be a graph. A cycle of length $k \ge 3$ is a sequence of 
+    vertices $(v_1, \dots, v_k, v_1)$ such that all vertices $v_1, \dots, v_k$ 
+    are distinct, and every consecutive pair of vertices in the sequence 
+    (including $(v_k, v_1)$) is connected by an edge in $E$.
+\end{defn}
+
+\begin{defn} \label{defn:connectivity}
+    Let $G = (V, E)$ be a graph. We call $G$ connected if for each $u, v \in V$ there exists a path
+    in $G$ connecting $u$ and $v$.
+\end{defn}
+
+\begin{defn} \label{defn:connected-component}
+    Let $G = (V, E)$ be a graph. A subgraph $G' = (V', E')$ is called a connected 
+    component of $G$ if $G'$ is the subgraph induced by $V'$, 
+    $G'$ is connected, and $V'$ is a maximal subset of $V$ with respect to this property.
+\end{defn}
+
+\begin{defn} \label{defn:tree}
+    Let $G = (V, E)$ be a graph. We call $G$ a forest if it does not contain any cycles (i. e. is acyclic).
+    We call a connected forest a tree $T$.
+\end{defn}
+
+\begin{defn} \label{defn:spanning-tree}
+    Let $G = (V, E)$ be a connected graph. We call $T = (V, E_T)$ a spanning tree of $G$ if $T$ is a tree and $E_T \subseteq E$.
+\end{defn}
+
+\begin{defn} \label{defn:bipartite}
+    Let $G = (V, E)$ be a graph. We call $G$ a bipartite graph if there exists a partition of $V$ into two subsets $A, B$ such that
+    $A \cap B = \emptyset$ and no two vertices in the same subset are adjacent in $G$.
+\end{defn}
+
+\begin{defn} \label{defn:isomorphism}
+    Let $G = (V, E)$ and $G' = (V', E')$. We call a map $\phi : V \rightarrow V'$ a homomorphism if $(\phi(u), \phi(v)) \in E'$
+    whenever $(u, v) \in E$. If $\phi$ is a bijection and $\phi'$ is also a homomorphism, then $\phi$ is an isomorphism. We call 
+    $G$ and $G'$ isomorphic if there exists a map $\phi: V \rightarrow V'$ that is an isomorphism. 
+\end{defn}
+
+\subsection{Planar graphs}
+After basic definitions for undirected graphs in general, we shall move on to definitions specific to planar graphs which are
+the class of graphs that we are interested in this paper.
+\begin{defn} \label{defn:plane-graph}
+    A plane graph is a pair $(V, E)$ of finite sets with the following properties:
+    \begin{enumerate}
+        \item $V \subseteq \mathbb{R}^2$
+        \item every edge in $E$ is an arc between two vertices from $V$
+        \item different edges have different sets of endpoints
+        \item the interior of an edge contains no vertex and no point of any other edge
+    \end{enumerate}
+\end{defn}
+\noindent
+A plane graph defines a graph $G$ on $(V, E)$ in a natural way.
+\begin{defn}
+    Let $G = (V, E)$ be a plane graph. We call the regions of $\mathbb{R}^2 \setminus G$ the faces of $G$.
+\end{defn}
+Since $G$ is bounded, exactly one face of $G$ is unbounded. This face is the outer face of $G$, while all other faces
+are called inner faces. We denote a set of faces of $G$ as $F(G)$. Now we can see that because of the specific definition 
+of plane graphs they have some really interesting properties that no other class has. The famous theorem for plane graph is the
+Euler's formula, that connects the number of vertices, edges and faces of a plane graph in one equation.
+
+\begin{theorem} [Euler's Formula] \label{thm:euler}
+    Let $G = (V, E)$ be a connected plane graph. Number of edges, vertices and faces of $G$ is connected by the following formula:
+    \begin{equation*}
+        |V| - |E| + |F(G)| = 2
+    \end{equation*}
+\end{theorem}
+
+To obtain a very important lemma, which bounds the number of edges in a plane graph by the number of vertices, we have to introduce
+one more lemma.
+
+\begin{lemma} \label{lem:maximal}
+    A plane graph $G = (V, E)$ with at least 3 vertices is maximally plane (it is impossible to add any more edges without violating
+    planarity) when it is the plane triangulation (i.e. each face is a triangle - a cycle of length 3 on plane);
+\end{lemma}
+
+Now we can finally introduce:
+\begin{corollary} \label{corollary:planar-bound}
+    A plane graph $G = (V, E)$ with at least 3 vertices has at most $3 |V| - 6$ edges. Every plane triangulation has exactly $3 |V| - 6$
+    edges.
+\end{corollary}
+
+\begin{proof}
+    By Lemma~\ref{lem:maximal} we can prove only the second part of the Corollary, and the first part naturally follows (as plane triangulation
+    is maximally plane, so adding more edges would destroy planarity). Let $G$ be a 
+    plane triangulation. At first we shall see that if each face is a triangle, then if we can see that each face contributes exactly 3
+    edges to the total number of edges. On the other hand if we look at it from the perspective of an edge, we can see that each edge is 
+    incident to exactly two faces. By that double counting argument we have that $2 |E| = 3 | F(G) |$, so $|F(G)| = 2/3 |E|$. By putting that
+    into Euler's formula we get $|V| - 1/3 |E| = 2$, which is exactly $|E| = 3 |V| - 6$.
+\end{proof}
+
+We shall see that this is a very important property of plane graphs, as they are sparse graphs, so each $O(|V| + |E|)$ algorithm on 
+them is an $O(|V|)$ algorithm. Now we shall look at the concept of a minor of a graph and see a property of plane graphs that identifies
+them among other classes of graphs.
+
+\begin{defn} \label{defn:contraction}
+    Let $G = (V, E)$ be a graph and let $(u,v) \in E$ be an edge. We call edge contraction of $(u, v)$ an operation which transforms 
+    $G$ into $G'$ by merging vertices $u$ and $v$ into one vertex $v'$, such that it is adjacent in $G'$ to all the vertices that $u$ and $v$
+    were adjacent to in $G$. We also remove all the loops and multi edges that are created in such operation.
+\end{defn}
+
+This edge contraction definitions leads to a definition of a minor.
+
+\begin{defn} \label{defn:minor}
+    Let $G = (V, E)$ be a graph. A graph $H$ is a minor of $G$ (denoted by $H \preccurlyeq G$) if it is isomorphic to a graph $G'$ that 
+    can be obtained from $G$ in a finite sequence of vertex deletions, edge deletions and edge contractions.
+\end{defn}
+
+By using Corollary~\ref{corollary:planar-bound} we can perform a simple test to filter out the graphs that are not plane graphs. The example of
+such a graph is $K_5$ (a maximal graph on 5 vertices). It has 5 vertices and 15 edges, and by putting into formula we get $10 \leq 9$ which 
+is a contradiction. Interestingly an even tighter bound than the one from \ref{corollary:planar-bound} can be found for bipartite graphs.
+
+\begin{corollary} \label{corollary:bipartite-bound}
+    A bipartite plane graph $G = (V, E)$ with at least 4 vertices has at most $2 |V| - 4$ edges.
+\end{corollary}
+\begin{proof}
+    In each bipartite graph each face is bounded by a cycle of length at least 4. So by counting faces, each one contributes at least 4 edges.
+    On the other side each edge is incident to exactly 2 faces. So by double counting we have $2|E| \geq 4|F(G)|$, so $|F(G)| \leq 1/2 |E|$.
+    By putting that into Euler's formula we get $|V| - 1/2|E| \geq 2$ and thus $|E| \leq 2|V| - 4$.
+\end{proof}
+
+Using this corollary we can show that $K_{3, 3}$ (a maximal bipartite graph with sets of sizes 3 and 3) is not a plane graph. Interestingly 
+these two graphs ($K_5$ and $K_{3,3}$) are the biggest obstacle for a graph to be a plane graph. This fact is embodied by the following famous theorem.
+
+\begin{theorem} [Wagner's theorem] \label{thm:wagner}
+    Graph $G = (V, E)$ is a plane graph if and only if its minors include neither $K_5$  nor $K_{3,3}$.
+\end{theorem}
+
+We shall see that this theorem is much stronger than what I wrote earlier. Not only are $K_5$ and $K_{3,3}$ biggest obstacles for a graph to 
+be a plane graph. Actually the minors of those graphs are the only obstacles. All those properties were shown for plane graphs. Now we can 
+complete everything by defining what a planar graph is.
+
+\begin{defn} \label{defn:embedding}
+    The planar embedding of a graph $G = (V, E)$ in a plane is an isomorphism of $G$ with any plane graph $H$.
+\end{defn}
+
+\begin{defn} [Planar Graph] \label{defn:planar}
+    Graph $G = (V, E)$ is called planar if there exists a planar embedding that maps it to a plane graph $H$.
+\end{defn}
+
+\subsection{Hard problems and planar graphs}
+From the previous section we can see that planar graphs are a very special class of graphs. Some of their properties actually help reduce 
+the time complexity for some problems by a large margin. The example is maximum-clique problem which asks to find the biggest clique in 
+a graph. For any abstract graph, that problem is $NP$-complete. However for planar graphs it can be done in $O(n)$ time. It is due to the fact 
+that the maximum size of a clique in planar graphs is 4, which comes directly from Theorem~\ref{thm:wagner}. To show a simple algorithm to solve that
+problem we will need one more lemma.
+
+\begin{lemma} \label{lem:small-deg}
+    Let $G = (V, E)$ be a planar graph. There exists a vertex $v$ such that $\deg(v) \leq 5$.
+\end{lemma}
+\begin{proof}
+    Let's suppose that the minimum degree of $G$ is 6. Then we can once again construct a double counting argument:
+    each edge is incident to exactly two edges, and each vertex is incident to at least 6 edges. So we have 
+    $2|E| \geq 6|V|$, then $|E| \geq 3|V|$. Now we can use Corollary~\ref{corollary:planar-bound} and conclude that
+    $3|V| \leq 3|V| - 6$ which leads to contradiction.
+\end{proof}
+
+This lemma leads us to a simple algorithm:
+\begin{enumerate}
+    \item While there are vertices in a graph, pick the vertex with the smallest degree, let's call it $v$
+    \item By Lemma~\ref{lem:small-deg} we know that $\deg(v) \leq 5$. So we can in constant time (at most $2^5$)
+        check for the biggest clique in the neighborhood of $v$ and save that number.
+    \item Delete $v$ and its incident edges.
+\end{enumerate}
+
+For each vertex, constant number of iterations is performed, so the time complexity is $O(n)$. 
+And although most of the $NP$-complete problems are still in this complexity class for planar graphs, there is another opportunity
+to reduce the time of computation. We can resort to approximation algorithms that will utilize planar separator theorem, that is the 
+main topic of this paper.
+
+\subsection{Approximation algorithms}
+When we can exchange the optimality of the solution for the problem to gain some computation time, we shall take into 
+consideration approximation algorithms. The idea of such an algorithm is that the found solution will be worse than the optimal 
+by some factor, in exchange for better time complexity. In some cases one can find a quicker algorithm for a polynomial problem, but 
+sometimes we can find a polynomial approximation algorithm to an $NP$-complete problem which is a great improvement in terms of time 
+complexity.
+
+\begin{defn} \cite{williamson2011design} \label{defn:opt-problem}
+    An $\alpha$-approximation algorithm for an optimization problem is a polynomial time algorithm that for all instances of a problem 
+    produces a solution whose value is within a factor of $\alpha$ of the value of an optimal solution.
+\end{defn}
+
+For an $\alpha$-approximation algorithm, we shall call $\alpha$ the approximation ratio, and $1 - \alpha$ the approximation error.
+We can also look for something better than a constant approximation ratio. There are some problems for which we can get a solution 
+arbitrarily close to the optimal solution. These problems have polynomial-time approximation schemes.
+
+\begin{defn}
+    A polynomial-time approximation scheme is a family of algorithms $\{A_{\epsilon}\}$, where there is an algorithm for each $\epsilon > 0$,
+    such that $A_{\epsilon}$ is a $(1 + \epsilon)$-algorithm (for minimization problems) or $(1 - \epsilon)$-algorithm (for maximization problems).
+\end{defn}
+
+In Chapter 3 we shall explore how planar separators can be utilized to create approximation schemes for two problems: an already polynomial-time 
+problem of finding maximum matching for which we shall find an $O(n \log n)$ algorithm, and $NP$-complete problem of finding a minimum vertex cover.

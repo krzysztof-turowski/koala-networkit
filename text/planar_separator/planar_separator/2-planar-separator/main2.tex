@@ -1,0 +1,177 @@
+\chapter{Planar Separator Theorem}
+
+\section{Planar Separator Algorithm}
+\input{2-planar-separator/main2_1.tex}
+
+\section{Divide and Conquer Approach}
+We can recall the divide and conquer approach to solve problems
+\cite{cormenIntroductionAlgorithms2022}. We can divide the problem into
+smaller subproblems, solve each subproblem independently, and then
+combine the results to get the solution to the original problem.
+\subsubsection{Approximation algorithms for NP-complete problems}
+If we look at Theorem \ref{thm:planar-separator}, we can see that it
+gives us a way to divide a planar graph into smaller parts efficiently.
+This is particularly useful for finding approximate solutions to NP-complete
+problems on planar graphs in polynomial time. Let's look at the following
+lemma.
+\needspace{4\baselineskip}
+\begin{lemma}\label{lem:epsilon-planar-separator}
+	Let $G$ be a planar graph with $n$ vertices, with non-negative
+	vertex costs summing to no more than one, and let $0 < \epsilon < 1$. Then
+	there exists some set $C$ of $O(\sqrt{n/ \epsilon})$ vertices such that
+	removal of $C$ from $G$ leaves no connected component with cost
+	more than $\epsilon$. Moreover, such a set can be found in $O(n\log n)$ time.
+\end{lemma}
+\begin{proof}
+	We will consider two cases in here:
+
+	If $\epsilon \leq 1 / n $, we can simply take $C = V(G)$,
+	which has $O(\sqrt{n/ \epsilon})$ vertices and $G - C = \emptyset$ , so it
+	has no connected components with cost greater than $\epsilon$ trivially.
+
+	If $\epsilon > 1 / n$, we introduce a simple algorithm:
+	\begin{algorithm}[H]\caption{Finding $\epsilon$-planar separator}\label{alg:epsilon-planar-separator}
+		\begin{algorithmic}[1]
+			\State $C \gets \emptyset$
+			\While{$G - C$ has a component with cost greater than $\epsilon$}
+			\State Let $K$ be such a connected component
+			\State Apply Theorem \ref{thm:planar-separator} to $K$ producing
+			a partition $A_1$, $B_1$, and $C_1$
+			\State $C \gets C \cup C_1$
+			\EndWhile
+			\State \textbf{return} $C$
+		\end{algorithmic}
+	\end{algorithm}
+
+	\noindent
+	We can see that in each iteration of the while loop of the algorithm, we
+	split the greatest component into two smaller ones, each with cost at
+	most $2/3$ of the original component.
+	Let $L : P(V) \to \mathbb{N}$ be a function that assigns a level to each
+	component that arises during the execution of the algorithm. We can
+	define it as follows: $L(K) = 0$ if $K$ is the component of $G - C$
+	when the algorithm halts. Otherwise $L(K) = 1 + \max(L(A_i))$, where $A_i$ is the component created by splitting $K$ during the execution of
+	the algorithm. With such a definition, we can see that $\forall_{A, B}\,
+		L(A) = L(B) \implies A \cap B = \emptyset$, because all components that are
+	produced in the same iteration of the while loop are disjoint by construction of the algorithm and we can see that if $A \subset B$, then $L(A) < L(B)$, because $A$ is produced by splitting $B$.
+	Moreover, we can see that each level one component has cost at least $\epsilon$,
+	because it is yet to be split by the algorithm. Thus for $i \geq 1$, each
+	component has cost at least $(3/2)^{i-1} \epsilon$, as it has to be split $i-1$ times for some component to get to level 1, when it will have cost at least $\epsilon$.
+	And by Theorem \ref{thm:planar-separator}, each time its cost will be 2/3
+	of cost before splitting. Now let's observe that because the cost of whole
+	graph $G$ is at most 1, then the total number of components at level $i$
+	is at most $1 / ((3/2)^{i-1} \epsilon) = (2/3) ^ {i-1} / \epsilon$.
+	In particular, the maximum level $k$ of the component must satisfy
+	$$ 1 \leq (2/3) ^ {k-1} / \epsilon \leq (2/3) ^ {k-1} n $$
+	So we can derive
+	from that $k \leq 1 + \log_{3/2} n$. We can then see that the height of the
+	recursion tree of the algorithm is $O(\log n)$ and thus the algorithm will run in $O(n \log n)$ time.
+
+	Now we need to prove the bound on the size of $C$. Let $K_1, ..., K_m$ be the
+	components on some level $i \geq 1$ of sizes $n_1, ..., n_m$ respectively.
+	When splitting each of these components, we add at most $2\sqrt{2} \sum_{j=1}
+		^{m} \sqrt{n_j}$ vertices to $C$ by Theorem \ref{thm:planar-separator}. We
+	can recall now the bound $m$ by the number of components at $i$-th level,
+	namely: $m \leq (2/3)^{i-1} / \epsilon$. We trivially also have $ \sum_{j=1}^{m} n_j \leq n$.
+	To obtain the higher bound on $|C|$ we want to maximize the sum $\sum_{j=1}^m
+		\sqrt{n_j}$ subject to constraint $ \sum_{j=1}^{m} n_j \leq n$. For some fixed
+	level $m$ that sum is maximized by setting $n_j = n / m$. Now we can find a
+	bound for the number of vertices added to $C$ on each level:
+	$$
+		2\sqrt{2} \sum_{j=1}^m \sqrt{n_j} \leq 2\sqrt{2} \sum_{j=1}^m \sqrt{n/m}
+		= 2\sqrt{2} \sqrt{nm} \leq 2\sqrt{2} (2/3) ^ {(i-1)/2} \sqrt{n / \epsilon}
+	$$
+	Now we can bound $|C|$:
+	$$
+		|C| \leq \sqrt{n / \epsilon} \sum_{i=1}^\infty 2\sqrt{2} (2/3) ^ {(i-1)/2}
+	$$
+	We know that the series converges to some constant as it is just a geometric series with $|q| < 1$, which means that $|C| = O(\sqrt{n/\epsilon})$
+\end{proof}
+\noindent
+By setting cost of each vertex in the graph to $1/n$ we have to following:
+\begin{corollary}\label{cor:epsilon-planar-separator}
+	Let $G$ be a planar graph with $n$ vertices and let $0 < \epsilon < 1$. Then
+	there exists some set $C$ of $O(\sqrt{n/ \epsilon})$ vertices such that
+	removal of $C$ from $G$ leaves no connected component with
+	more than $\epsilon n$ vertices. Moreover, such a set can be found in $O(n\log n)$ time.
+\end{corollary}
+
+Now we will introduce a class of problems described as \textbf{maximum induced
+	subgraph problem} $P$ on graph $G$ with some graph property $Q$. The problem
+asks for a maximum set $S$ of $V$ that induces a subgraph with property $Q$
+\cite{chibaApplicationsLiptonTarjans1981}. Following just proved Lemma \ref{lem:epsilon-planar-separator}
+we can deduce an algorithm (Algorithm \ref{alg:MISP}, which we will call MISP from now on). We can clearly observe that the algorithm halts and successfully
+solves the problem $P$.
+\begin{algorithm}[H]\caption{MISP algorithm}\label{alg:MISP}
+	\begin{algorithmic}[1]
+		\State $0 < \epsilon < 1$
+		\State Apply Corollary \ref{cor:epsilon-planar-separator} to a given graph
+		to find separator $C$ and connected components of $G - C$ with maximum size $\epsilon n$
+		\State In each component $G_i$ of $G-C$ find a maximum set $S_i$ inducing a subgraph
+		with property $Q$ by checking every subset of $V(G_i)$
+		\State Return $S \gets \bigcup S_i$
+	\end{algorithmic}
+\end{algorithm}
+
+Now we will introduce a lemma, that shows an upper bound on time complexity
+of Algorithm~\ref{alg:MISP}.
+\begin{lemma}\label{lem:MISP-upperbound} \cite{chibaApplicationsLiptonTarjans1981}
+	The approximation MISP Algorithm (Algorithm~\ref{alg:MISP}) has time
+	complexity $O(\max\{{n\log n, n2^{\epsilon n}\}})$ and relative error of
+	$O(1/\sqrt{\epsilon n})$ if the following conditions are satisfied:
+	\begin{enumerate}
+		\item The subgraph of G induced by S satisfies property Q.
+		\item The error $|S^{*}| - |S|$ is bounded by the number of vertices
+		      of C, that is, $|S^{*}| - |S| = O(|C|)$, where $S^{*}$ is a maximum
+		      vertex set inducing a subgraph of G with Q.
+		\item $|S^*|$ is a positive fraction of n.
+		\item Property $Q$ is recognizable in linear time (that is, one can
+		      determine in linear time whether a graph satisfies Q or not).
+	\end{enumerate}
+\end{lemma}
+\begin{proof}
+    \subsubsection{Time complexity}
+    Algorithm $MISP$ has two main steps that affect the time complexity. The
+    first step is simply $O(n \log n)$ by Corollary
+    \ref{cor:epsilon-planar-separator}. In step two, for each connected
+    component $i$ we find $S_i$ by checking every subset. Let $n_i = |V(G_i)|$,
+    then we can find $S_i$ in $O(n_i 2^{n_i})$ time (because from condition 4
+    , we know that property $Q$ is recognizable in linear time). So the total time is
+    $$
+    O\left(\max \left\{ \sum_{i=1}^n n_i 2^{n_i} | \sum_{i=1}^n n_i = n \, \text{and} \, 0 \leq n
+    \leq \epsilon n \right\} \right) = O\left( \frac{n}{\epsilon n} \epsilon n 2^{\epsilon n}
+    \right) = O(n 2^{\epsilon n})
+    $$
+    First equality stems from calculus and the fact that function $x2^x$ is
+    strictly convex, so to maximize the value of the sum, we shall assign $n_i =
+    \epsilon n$. We can see from both of those steps that the total time
+    complexity has to be $O(\max\{ n \log n, n 2^{\epsilon n} \})$.
+
+    \subsubsection{Relative error}
+    We shall define $S^*$ as the maximum set of $V$ that induces a subgraph
+    satisfying property $Q$ and $S$ as the set produced by algorithm. We can see
+    that condition 1 guarantees that we can compose a global solution $S$ as a
+    union of $S_i$, because each subgraph of $G$ induced by $S_i$ satisfies
+    property $Q$. From condition 2 we shall see that $|S^*| - |S| = O(|C|) =
+    O(\sqrt{n/ \epsilon})$. Combining that with condition 3 that guarantees
+    us $|S^*| = \Omega(n)$ and by performing some simple operations on
+    asymptotic functions we get that:
+$$
+\frac{|S^*| - |S|}{|S^*|} \leq c_1 \sqrt{ \frac{n}{\epsilon} } \cdot
+\frac{c_2}{n} = c_1c_2 \sqrt{ \frac{1}{\epsilon n} } = O(1/ \sqrt{\epsilon n})
+$$
+    Which concludes our proof.
+\end{proof}
+
+% \begin{theorem}\label{thm:MISP-main-theorem}\cite{chibaApplicationsLiptonTarjans1981}
+% 	If P is a maximum induced subgraph problem with respect to property Q which
+% 	is:
+% 	\renewcommand{\labelenumi}{(\alph{enumi})}
+% 	\begin{enumerate}
+% 		\item hereditary
+% 		\item determined by components
+% 		\item recognizable in linear time
+% 	\end{enumerate}
+% 	then there is an approximation algorithm for P on planar graphs with time
+% 	complexity $O(n\log{n})$ and worst-case ratio $1-O(1/\sqrt{\log{\log{n}}})$
+% \end{theorem}

@@ -5,6 +5,7 @@ koala_add_module(matching
     GalilMicaliGabowMaximumMatching.cpp
     MicaliVaziraniMatching.cpp
     GabowScalingMatching.cpp
+    PlanarMaximumMatching.cpp
 
     # Gaussian Matching
     gaussian_matching/BipartiteGaussianMatching.cpp

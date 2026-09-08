@@ -1,0 +1,312 @@
+The main theorem, this whole thesis and all algorithms are based
+on is the planar separator theorem introduced by Lipton and Tarjan
+\needspace{6\baselineskip}
+
+\begin{theorem}[Planar Separator Theorem \cite{liptonSeparatorTheoremPlanar1979}]\label{thm:planar-separator}
+	Let $G$ be a planar graph with $n$ vertices, with non-negative
+	vertex costs summing to no more than one. Then we can partition
+	vertices of $G$ into three sets $A$, $B$, and $C$ such that
+	there exists no edge ${u, v} \in E(G)$ with $u \in A$ and $v \in B$, neither
+	$A$ nor $B$ has more than $2/3$ cost, and $C$ contains no more
+	than $2\sqrt{2}\sqrt{n}$ vertices.
+	Moreover, such a partition can be found in $O(n)$ time.
+\end{theorem}
+
+To prove this theorem we will base on a few already proven facts on planar
+graphs as well as some lemmas, that we will introduce ourselves.
+
+\subsubsection{BFS layering}
+One of the most important parts of the proof of
+Theorem~\ref{thm:planar-separator} is the concepts of layers which are levels of
+a BFS spanning tree.
+\begin{defn}
+    Let $G$ be a connected planar graph and $t \in V(G)$ be a vertex that we
+    will call the root of a tree. A BFS spanning tree is a tree $T$ rooted in
+    $t$ such that $\forall_{v \in V(G)} \, d_T(t, v) = d_G(t, v)$.
+\end{defn}
+
+Using this spanning tree we can partition the vertex set $V$ into disjoint sets
+that we will call layers (or levels interchangeably). So we can define it as $L_i = \{ u
+\in V : d(t, u) = i\}$ ($L_0 = \{ t \} $). Moreover we denote number of vertices on $i$-th level as
+$L(i) = |L_i|$.
+Such a layering has two important properties that will be very useful in the
+future.
+\begin{lemma}\label{lem:neighborhood}
+    If $(u, v) \in E$ and $u \in L_j, v \in L_i$, then $|i - j| \leq 1$
+\end{lemma}
+The proof for this lemma is very simple by following the construction of BFS
+spanning tree during BFS traversal. The other property is also very intuitive
+and follows directly from Lemma~\ref{lem:neighborhood}.
+\begin{lemma}\label{lem:separation}
+    For $l \in \{ 1, \dots, r-1 \}$ removal of $L_l$ separates $G$ into two disconnected components
+    $\bigcup_{i=0}^{l-1} L_i$ and $\bigcup_{i=l+1}^{r} L_i$
+\end{lemma}
+
+\begin{theorem}\label{thm:jordan-curve}
+    Let $C$ be any closed curve in the plane. Removal of $C$ divides the plane
+    into exactly two connected regions: "inside" and "outside" of $C$.
+\end{theorem}
+
+\begin{lemma}\label{lem:shrinking}
+    Let $G$ be any planar graph. Shrinking any connected subgraph of $G$ to a
+    single vertex preserves planarity.
+\end{lemma}
+
+\subsubsection{Fundamental cycle}
+\begin{defn}\label{def:fundamental_cycle}
+Let $G = (V, E)$ be a graph and let $T$ be a spanning tree of $G$.
+For any non-tree edge $e = (u, v) \in E \setminus E(T)$, the unique simple cycle
+consisting of $e$ and the unique path in $T$ connecting $u$ and $v$
+is called the \emph{fundamental cycle} defined by $e$.
+\end{defn}
+\begin{lemma}\label{lem:fundamental_cycle}
+    Let $G$ be a planar graph with $n$ vertices, with non-negative vertex costs
+    summing to no more than one. Suppose that $G$ has a spanning tree $T$ with
+    radius $r$. Vertices of $G$ can be partitioned into three
+    sets $A, B, C$ such that $A$ and $B$ are disjoint, costs of $A$ and $B$ do
+    not exceed $2/3$ and $C$ consists of at most $2r + 1$ vertices, one
+    of the vertices being the root of $T$.
+\end{lemma}
+\begin{proof}
+    We shall see that if $G$ has a vertex $v$ with cost at least $1/3$, the lemma is
+    true. Let $C$ be the path from $v$ to the root of $T$. We can see that it
+    has less than $2r + 1$ vertices and contains the root. Moreover its cost is
+    at least $1/3$ so if we assign the rest of vertices of $G$ to $A$ and let $B
+    = \emptyset$ then the lemma is true.
+    Thus let's assume that $G$ does not have a vertex with cost at least $1/3$.
+    Let's now embed $G$ in plane using any algorithm (you can use one from this
+    article \cite{hopcroft1974efficient}), and make that graph maximal. Now each
+    one of the non-tree edges (those added when making $G$ maximal as well)
+    creates a cycle $C$ with tree edges, its length being at most $2r + 1$ if it
+    contains the root of $T$ and $2r - 1$ otherwise. From \ref{thm:jordan-curve}
+    we know that $C$ splits the plane into two parts the \textit{inside} and
+    \textit{outside}. If we can prove that there exists a cycle $C$ such that
+    neither side contains vertices whose total cost exceeds $2/3$, then the
+    lemma is proven.
+    Let $(x, z)$ be a non-tree edge that minimizes the maximum cost of either sides of
+    the cycle $C'$ that it closes. If there are some more edges like that, pick
+    the one with the smallest number of faces on the maximized side. Let's say
+    without loss of generality, that the \textit{inside} has the cost at least
+    as high as the \textit{outside}. If that cost does not exceed $2/3$ then the
+    lemma is true. Otherwise let's consider a triangle $F_T$ inside $C'$ such that
+    $(x, z)$ is one of its boundaries. Let $y$ be the third vertex of $F_T$.
+    Now we have to do case analysis based on properties of the edges of $F_T$:
+    \begin{itemize}
+        \item if both $(x, y), (y, z)$ lie on the cycle then $F_T$ is the cycle, which
+        contradicts with the fact that inside has a positive cost, so it has to
+        have vertices
+    \item if one of $(x, y), (y, z)$ (assume without loss of generality it is
+        $(x, y)$) lies on the cycle, then $(y, z)$ is a non-tree edge that
+        defines a new cycle $C''$ with the same cost, but one less face that
+        $C'$ which contradicts with choice of $(x, z)$.
+    \item if none of $(x, y), (y, z)$, we have to make another case analysis
+        looking at all possible configurations of those two edges being a tree
+        edge. All those configurations lead to a contradiction (a complete proof
+        is to be found in \cite{liptonSeparatorTheoremPlanar1979}).
+    \end{itemize}
+    As we can see, all of the cases lead to contradiction, so the cost inside
+    $C'$ has to be at most $2/3$.
+\end{proof}
+
+\subsubsection{Layering}
+\begin{lemma}\label{lem:layering}
+    Let $G$ be a planar graph with $n$ vertices, with non-negative vertex costs
+    summing to no more than one. Suppose that vertices are partitioned into
+    layers using a BFS spanning tree $T$ rooted in $t$ and with radius $r$. Let
+    $r+1$ be an additional level with no vertices. Given any two levels $l_1,
+    l_2$ such that levels $0, \dots, l_1-1$ have total cost not exceeding $2/3$ as
+    well as levels $l_2+1, \dots, r+1$, it is possible to find a partition of $G$ into
+    sets $A, B, C$, such that neither $A$ nor $B$ have cost exceeding $2/3$,
+    there is no edge connecting any vertex from $A$ with any vertex from $B$ and
+    $C$ has at most $L(l_1) + L(l_2) + \max \{ 0, 2(l_2 - l_1 - 1) \}$ vertices.
+\end{lemma}
+
+\begin{proof}
+    Let's assume that $l_1 \geq l_2$. Then we can select $A =
+    \bigcup_{i=0}^{l_1-1} L_i$, $B = \bigcup_{i=l_1+1}^{r+1} L_i$ and $C =
+    L_{l_1}$. We can see that the lemma is true, as costs of $A$ and $C$ do not
+    exceed their postulated costs. And because $l_1 \geq l_2$, then $B \subseteq
+    \bigcup_{i=l_2+1}^{r+1} L_i$ so its cost does not exceed $2/3$.
+    \\
+    Thus suppose $l_1 < l_2$.
+    Let's define sets: $D_1 =
+    \bigcup_{i=0}^{l_1-1} L_i, D_2 = \bigcup_{i=l_1 + 1}^{l_2-1} L_i, D_3 =
+    \bigcup_{i=l_2 + 1}^{r+1} L_i$, all of which may be empty. We can see that
+    they are disjoint by Lemma~\ref{lem:separation}. The only set that
+    can have cost exceeding $2/3$ is $D_2$ (by assumptions of Lemma~\ref{lem:layering}). If
+    cost of $D_2$ is less or equal $2/3$, then the lemma is true, as we can set
+    the most costly part be $A$, $B$ other two parts and $C = L_{l_1} \cup
+    L_{l_2}$.
+    \\
+    Let's then suppose that the cost of $D_2$ is greater that $2/3$. Delete
+    all vertices on levels $l_2$ and above, and shrink levels $0, \dots,
+    l_1$ into one vertex $t'$ with cost 0. From Lemma~\ref{lem:shrinking} we know that shrinking
+    vertices preserves planarity. We can now see that the new graph $H$ has a
+    spanning tree rooted in $t'$ and radius $l_2 - l_1 - 1$. Apply
+    Lemma~\ref{lem:fundamental_cycle} to $H$ and let $A_H, B_H, C_H$ be the resulting
+    partition. Let $A$ be the set among $A_H$ and $B_H$ that has greater cost
+    and let $C$ consist of all of the vertices in $L_{l_1}$, $L_{l_2}$ in the
+    original graph G as well as all of the vertices from $C_H - \{ t' \}$. We
+    can see that it works because by Lemma~\ref{lem:fundamental_cycle}, the cost
+    of $A$ does not exceed $2/3$. Moreover because of our construction, $C$ has
+    the size of at most $L(l_1) + L(l_2) + 2(l_2 - l_1 - 1)$. However we can see
+    that the cost of $A \cup C_H$ has to be at least $1/3$, as $A$ was the set
+    with greater cost among $A_H, B_H$. Hence the cost of $B$ is bounded by
+    $2/3$ as the cost of $V(G) - D_2$ is less than $1/3$.
+\end{proof}
+
+\subsubsection{Main theorem}
+Now we have all of the tools to tackle Theorem~\ref{thm:planar-separator}.
+\begin{proof}
+Assume at first that $G$ is connected. At first we partition into layers using
+BFS layering getting a spanning tree $T$ rooted in $t$ with radius $r$.
+Additionally we define two empty boundary levels $L_{-1}$ and $L_{r+1}$. Let us
+define $l_1$ as the number of the level such that the cost of vertices included in
+levels $0$ through $l_1 - 1$ is strictly less than $1/2$ and the cost of
+vertices in levels $0$ through $l_1$ be at least $1/2$. If no such level exists
+then the cost of vertices is less or equal than $1/2$, and such we can assign $A
+V(G)$, $B = C = \emptyset$, thus the theorem is true. We shall define
+$k = \sum_{i=0}^{l_1}L(i)$. Now, we find two levels:
+\begin{itemize}
+    \item $l_0$ such that $l_0 \leq l_1$ and $L(l_0) + 2(l_1 - l_0) \leq 2
+        \sqrt{k}$
+    \item $l_2$ such that $l_1 + 1 \leq l_2$ and $L(l_2) + 2(l_2-l_1-1) \leq 2
+        \sqrt{n - k}$
+\end{itemize}
+If $l_0, l_2$ exist then by Lemma~\ref{lem:layering} (as by definition of
+$l_1$ and thus $l_0, l_2$ conditions for it hold) we have a partition $A, B, C$
+and the cost of $C$ does not exceed $2(\sqrt{k} + \sqrt{n-k})$. Now by employing
+Cauchy-Schwartz inequality:
+$$
+    (u_1v_1 + u_2v_2)^2 \leq (u_1^2 + u_2^2)(v_1^2 + v_2^2)
+$$
+with $u^T = [2, 2]$ and $v^T = [\sqrt{k}, \sqrt{n - k}]$ we can deduce that the
+cost of $C$ is bounded by $2\sqrt{2} \sqrt{n}$.
+Now we shall see that such levels $l_0$ and $l_2$ exist. Let's suppose that
+$l_0$ does not exist. Then for $\forall_{i \leq l_1} L(i) \geq 2 \sqrt{k} -
+2(l_1 - i)$. As $L(0) = 1$ we shall have $1 \geq 2\sqrt{k} - 2l_1$ and thus
+$l_1 + 1/2 \geq \sqrt{k}$. If we take the floor of that we have that $l_1 \geq
+\left \lfloor{k}\right \rfloor$. And now by definition of $k$ we have:
+\begin{align*}
+    k &= \sum_{i=0}^{l_1} L(i) \overset{(1)}{\geq} \sum_{i=l_1 - \sqrt{\left
+\lfloor{k}\right \rfloor}}^{l_1} L(i)
+\overset{(2)}{\geq} \sum_{i=l_1 - \sqrt{\left \lfloor{k}\right \rfloor}}^{l_1} 2\sqrt{k} - 2(l_1 - i) \\
+      & \overset{(3)}{\geq} (4\sqrt{k} - 2 \sqrt{\left \lfloor{k}\right
+          \rfloor}) (\sqrt{\left \lfloor{k}\right \rfloor} + 1)/2
+          \geq \sqrt{\left \lfloor{k}\right \rfloor}(\sqrt{\left
+      \lfloor{k}\right \rfloor} + 1) > k
+\end{align*}
+Inequality $(1)$ comes from the fact that we can restrict the range over which
+we sum as $l_1 + 1/2 \geq \sqrt{k}$. Inequality $(2)$ stems from the fact that
+$L(i) \geq 2 \sqrt{k} - 2(l_1 - i)$. And inequality $(3)$ comes from the
+arithmetic sum formula. And thus we can see a contradiction, so $l_0$ exists.
+An analogous, symmetric proof can be given for $l_2$ existence. This concludes
+proof for a connected graph. \\
+If $G$ is not connected, let $G_1, \dots, G_k$ be connected components of $G$.
+If no connected component has cost exceeding $1/3$, then let $i$ be the minimum
+index such that the cost of $V(G_1), \dots, V(G_i)$ exceeds $1/3$. Then we
+can set $A = V(G_1) \cup \dots V(G_i)$, $B = V(G_{i+1}) \cup \dots V(G_k)$ and
+$C = \emptyset$ and find our partition. When there is some component with cost
+at least $1/3$ and not exceeding $2/3$ let's say $G_j$, then we can set $A =
+V(G_j)$, $B = V(G) \setminus V(G_j)$, $C = \emptyset$ and find our partition.
+If there is some component with cost at least $2/3$ then we can employ for that
+connected component an argument in the first section of this proof to find a
+partition $A^*, B^*, C^*$. We can then set $C = C^*$, $A$ will be the vertex set
+among $A^*$ and $B^*$ that has the greater cost and $B$ shall be the rest of the
+vertices in the graph. It is easy to see that this concludes our proof.
+\end{proof}
+\subsubsection{$O(n)$ Algorithm}
+Following the constructions used in order to proof
+Theorem~\ref{thm:planar-separator}, Lipton and Tarjan developed an $O(n)$
+algorithm to find a partition described in it. On the input we get a planar
+graph $G$ for example in adjacency lists representation
+\begin{enumerate}
+    \item Find a planar embedding of $G$ using an efficient $O(n)$ algorithm
+        described in \cite{hopcroft1974efficient}.
+    \item Find connected components of $G$ and calculate costs of each one. If
+        there is no cc with cost at least $2/3$, then follow the last part of
+        the proof for Theorem~\ref{thm:planar-separator}. Otherwise, go to the
+        next step.
+    \item Find a BFS spanning tree of the most costly component. Compute the
+        level of a vertex and for each level, compute $L(l)$, so the number of
+        vertices on $l$-th level.
+
+    \item Find $l_1$ such that the cost of levels $0, \cdots, l_1 - 1$ does not
+        exceed $1/2$ and the cost of levels $0, \cdots, l_1$ is greater or equal
+        that $1/2$. Now find the highest level $l_0 \leq l_1$ such that
+        $L(l_0) + 2(l_1 - l_0) \leq 2 \sqrt{k}$ and lowest level $l_2 \geq l_1 +
+        1$ such that $L(l_2) + 2(l_2-l_1-1) \leq 2 \sqrt{n - k}$.
+
+    \item Delete all vertices on level $l_2$ and above. Construct a new vertex
+        $x$ and shrink all the levels from 0 to $l_0$ to that one vertex,
+        rewiring the edges on the boundary of $l_0$ level to $x$. (to see how it
+        is exactly done you can refer to \cite{liptonSeparatorTheoremPlanar1979}
+        or implementation of the algorithm in \texttt{PlanarSeparator.cpp})
+
+    \item Construct a BFS spanning tree $T_x$ rooted in $x$. Keep track for each
+        vertex $v$ of its parent in $T_x$ and the total cost of descendants of
+        $v$ including $v$ itself. Make the graph maximal by triangulation.
+
+    \item Choose any non-tree edge $(v_1, w_1)$ and by following parent pointers
+        find a corresponding cycle $C_1$. Compute costs of either sides of the
+        cycle and call the side with greater cost \textit{inside}.
+
+    \item Find a cycle with inside cost not exceeding $2/3$ using
+        Algorithm~\ref{alg:fundamental_cycle}.
+
+    \item Use the cycle found in the previous step and levels found in step 4
+        to construct a vertex partition as described in proof for
+        Lemma~\ref{lem:layering}. Extend the partition found for the most costly
+        connected component to entire graph like in the proof for
+        Theorem~\ref{thm:planar-separator}.
+\end{enumerate}
+\subsubsection*{Time complexity}
+It is easy to see that all the steps, but step 8, take $O(n)$ time. So all we
+have to do is prove this lemma:
+\begin{lemma}\label{lem:fundamental_cycle_algo}
+    Algorithm~\ref{alg:fundamental_cycle} has time complexity $O(n)$.
+\end{lemma}
+\begin{proof}
+    In each step of the algorithm we remove at least one face of the planar
+    graph, so the number of iterations is bound by $O(n)$. In each iteration we
+    do some $O(1)$ work, work proportional to the length of path $P_T$ and some
+    work proportional to the number of edges scanned in cycles $R_1, R_2$. We
+    can see that if $e \in P_T$, then that computation regarding tree path is
+    done only once, as that edge will in the next iteration be on the boundary
+    of new cycle. So all the work regarding computations of $P_T$ amortizes to
+    $O(n)$. Regarding scanning, we can see that if we scanned $k$ edges in each
+    cycle before stopping we did computations proportional to $O(k)$. But in the
+    next iteration at least $k$ edges will be outside the next cycles. So those
+    computations amortize to $O(n)$ as well.
+\end{proof}
+        \begin{algorithm}[H]
+    \caption{$\text{FUNDAMENTAL\_CYCLE}$}
+    \label{alg:fundamental_cycle}
+    \begin{algorithmic}[1]
+        \State $i \gets 1$
+        \State $C_i \gets C_1$
+        \State Let $(v_i, w_i)$ be a non-tree edge completing $C_i$
+        \While{cost inside $C_i$ exceeds $2/3$}
+        \State Let $(v_i, y, w_i)$ be a triangle inside $C_i$ with boundary edge
+        $(v_i, w_i)$
+        \If{$(v_i, y) \in E(T_x)$ or $(w_i, y) \in E(T_x)$}
+        \State Let $(v_{i+1}, w_{i+1})$ be a non-tree edge among $(v_i, y),
+        (w_i, y)$
+        \State Let $C_{i+1}$ be a cycle defined by $(v_{i+1}, w_{i+1})$
+        \State Compute cost inside $C_{i+1}$
+        \Else
+        \State Find tree path $P_T$ from $y$ to $C_i$ path
+        \State Let $z$ be the first vertex in $P_T$ from $y$ that is on $C_i$
+        \State Compute cost of all vertices on $P_T \setminus \{z\}$
+        \State We have two cycles $R_1$ defined by $(y, v_i)$ and $R_2$ defined
+        by $(y, w_i)$
+        \State Scan alternatively one edge in $R_1$ and one in $R_2$
+        \State Stop scanning when one of those two cycles have been scanned
+        \State Find the cost of both cycles by reusing cost of $C_i$
+        and $P_T \setminus \{z\}$
+        \State Let $(v_{i+1}, w_{i+1})$ be the edge among $(v_i, y),
+        (w_i, y)$ whose cycle has more cost inside
+        \EndIf
+        \EndWhile
+    \end{algorithmic}
+\end{algorithm}

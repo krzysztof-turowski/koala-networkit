@@ -1,0 +1,72 @@
+\chapter{Introduction}
+
+\section{Motivation}
+
+The planar separator theorem is a fundamental result in graph theory that
+states that any planar graph can be separated into two roughly equal parts
+by removing a small number of vertices. This theorem has numerous
+applications in various fields, including computer science, engineering,
+and mathematics, serving as the baseline for designing highly efficient 
+divide and conquer algorithms. The main idea of this thesis is to bridge the 
+gap between the theoretical guarantees of the planar separator theorem and
+practical performance of the algorithms:
+\begin{itemize}
+    \item At first we shall see the background for separator theorems in general
+        and later explore planar graphs to see why they are special and how 
+        we can use their properties to design efficient algorithms.
+    \item In the second section we shall see the outline of the proof for 
+        Lipton and Tarjan planar separator theorem with addition to a few 
+        lemmas that will be the cornerstone for developing approximation 
+        algorithms in the third section.
+    \item In the third section we will see the practical consequences of 
+        all the lemmas developed in the previous section. We shall explore 
+        two algorithms for two different problems: maximum matching problems
+        and minimum vertex cover problem which is $NP$-complete.
+    \item In the last section we will focus on practical implementations of 
+        the stated algorithms, and see how their performance scales with different
+        topological families of planar graphs and different sizes.
+\end{itemize}
+\section{Background}
+\begin{defn}
+    A set $S \subseteq V(G)$ is a separator if induced graph $G^* = G - S$
+    has at least two connected components $A,B \subseteq G^*$.
+\end{defn}
+
+One of the first times this concept was brought to a broader audience was
+in \cite{jordan1869assemblages}, where Jordan proved that every free tree T
+has a separator of size 1 (a single vertex), whose removal partitions T into
+two or more connected components each of size at most $n/2$.
+
+Through the years, more and more classes of graphs started to show some
+interesting properties regarding vertex separators, so a general theorem was
+assembled, which is called a $f(n)$-separator theorem:
+\begin{theorem}\label{thm:fnseparator}
+    Let $S$ be a class of graphs closed under a subgraph relation (i.e. if
+    $G_1 \in S$ and $G_2$ is a subgraph of $G_1$, then $G_2 \in S$). There
+    exist constants $\alpha < 1$, $\beta > 0$ such that if $G$ is any n-vertex
+    graph in $S$, the vertices of $G$ can be partitioned into three sets $A,B,C$
+    such that no edge connects any vertex in $A$ and $B$, neither $A$ nor $B$
+    have more than $\alpha n$ vertices and $C$ contains no more than $\beta
+    f(n)$ vertices
+\end{theorem}
+
+Such theorem regarding planar graphs, where $f(n) = O(\sqrt{n}),$ $ \alpha = 2/3,
+$ $\beta = 1$ is called planar separator theorem. First breakthrough in that area
+was in 1951 \cite{ungar1951theorem}, when Ungar proved a slightly weaker theorem
+with $f(n) = O(\sqrt{n} \log^{3/2}n)$. A small improvement to that was later
+achieved in 1973 by George \cite{george1973nested} where he proved that any
+grid graph of size $n$ has a $O({\sqrt{n}})$ separator. However, the first to
+prove planar separator theorem in the full form were Lipton and Tarjan in 1977
+\cite{liptonSeparatorTheoremPlanar1979}, where it was proven that for each
+planar graph a separator of size at most $2\sqrt{2} \sqrt{n}$ exists.
+In many articles later after Lipton and Tarjan, the constant $\beta$ was
+reduced, however its lower bound is $(\sqrt{4\pi \sqrt{3}})/3$ which was proven
+by Djidjev in \cite{djidjev1982problem}.
+Djidjev established this absolute limit not by looking at flat grids,
+but by constructing worst-case planar graphs based on the triangulation
+of a sphere, proving mathematically that no algorithm can separate
+these dense spherical meshes with fewer vertices.
+
+\input{1-introduction/main1_3.tex}
+
+
