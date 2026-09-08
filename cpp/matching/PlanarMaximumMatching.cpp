@@ -188,7 +188,6 @@ void PlanarSeparatorMatching::reduce_procedure(NetworKit::Graph &graph) {
                         copyG.indexEdges();
                     }
                     auto localMatching = get_exact_matching(copyG);
-                    std::cout << localMatching.size() << std::endl;
                     return localMatching;
                 });
             mispAlgo.run();
