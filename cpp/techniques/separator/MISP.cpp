@@ -1,6 +1,5 @@
 #include "techniques/separator/MISP.hpp"
 #include <algorithm>
-#include <chrono>
 #include <queue>
 #include <unordered_map>
 #include <unordered_set>
@@ -87,15 +86,12 @@ std::vector<NetworKit::node> MISP<T>::find_espilon_planar_separator() {
             continue;
         std::unordered_set<NetworKit::node> compSet(idToComponentMap[curId].begin(),
                                                     idToComponentMap[curId].end());
-        auto start_mapping = std::chrono::high_resolution_clock::now();
 
         auto induced = NetworKit::GraphTools::subgraphFromNodes(graph, compSet);
         auto kMap = NetworKit::GraphTools::getContinuousNodeIds(induced);
         auto reverseKMap = NetworKit::GraphTools::invertContinuousNodeIds(kMap, induced);
         auto K = NetworKit::GraphTools::getCompactedGraph(induced, kMap);
 
-        auto end_mapping = std::chrono::high_resolution_clock::now();
-        total_mapping += std::chrono::duration<double>(end_mapping - start_mapping).count();
         std::vector<double> kCost(K.upperNodeIdBound(), 0.0);
         for (auto &[orig, kId] : kMap) {
             kCost[kId] = vertex_cost[orig];
@@ -115,12 +111,9 @@ std::vector<NetworKit::node> MISP<T>::find_espilon_planar_separator() {
             return originalNodes;
         };
 
-        auto start_process = std::chrono::high_resolution_clock::now();
         processSide(translatePartition(sepAlgo.getPartitionA()), idToComponentMap, Q, idCnt);
 
         processSide(translatePartition(sepAlgo.getPartitionB()), idToComponentMap, Q, idCnt);
-        auto end_process = std::chrono::high_resolution_clock::now();
-        total_process_side += std::chrono::duration<double>(end_process - start_process).count();
     }
 
     return separator;
