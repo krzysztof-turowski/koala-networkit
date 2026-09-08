@@ -9,11 +9,6 @@
 
 namespace Koala {
 
-struct MCFEdgeParams {
-    int capacity;
-    int cost;
-};
-
 class MinimumCostFlow : public NetworKit::Algorithm {
  public:
     explicit MinimumCostFlow(MCFlowNetwork const& network) : network(network) {}
@@ -24,6 +19,8 @@ class MinimumCostFlow : public NetworKit::Algorithm {
     }
 
     virtual std::int64_t getFlow(NetworKit::Edge const&) = 0;
+    virtual std::unordered_map<NetworKit::Edge, std::int64_t> getMinCostFlow() const = 0;
+
     std::int64_t getMinCost() const {
         return min_cost;
     }

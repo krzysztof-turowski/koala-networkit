@@ -7,9 +7,9 @@ koala_add_module(flow
     MalhotraKumarMaheshwariFlow.cpp
     BoykovKolmogorovMaximumFlow.cpp
     minimum_cost_flow/MCFlowNetwork.cpp
-    minimum_cost_flow/EdmondsKarpMCF.cpp
-    minimum_cost_flow/OrlinMCF.cpp
-    minimum_cost_flow/SuccessiveApproxMCC.cpp
+    minimum_cost_flow/EdmondsKarpMinimumCostFlow.cpp
+    minimum_cost_flow/OrlinMinimumCostFlow.cpp
+    minimum_cost_flow/SuccessiveApproximationMinimumCostFlow.cpp
 
     # Electrical Flow
     ElectricalFlow.cpp

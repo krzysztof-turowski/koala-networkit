@@ -12,31 +12,29 @@
 
 namespace Koala {
 
-class SuccessiveApproxMCC final : public MinimumCostFlow {
+class SuccessiveApproximationMinimumCostFlow final : public MinimumCostFlow {
   struct Edge {
-    uint32_t from, to;
+    NetworKit::node from, to;
     int64_t cost, capacity, flow;
   };
   std::vector<Edge> edges;
-  std::vector<std::vector<uint64_t>> neigh_list;
-
+  std::vector<std::vector<NetworKit::index>> neighbors;
+  std::unordered_map<NetworKit::Edge, int64_t> computed_flow;
   void run_impl() override;
   bool is_imbalanced();
   void initialize();
-  void push(uint64_t eid);
+  void push(NetworKit::index eid);
   void relabel(NetworKit::node const&);
   void refine();
   void wave();
   bool discharge(NetworKit::node const&);
 
-  double cp(uint64_t eid);
-  int64_t uf(uint64_t eid);
-  void force_flow(uint64_t eid, int64_t f);
+  double cp(NetworKit::index eid);
+  int64_t uf(NetworKit::index eid);
+  void force_flow(NetworKit::index eid, int64_t f);
   std::vector<double> potential;
   std::vector<int64_t> excess;
-  uint32_t nodes_number{0};
-
-  std::unordered_map<NetworKit::Edge, int64_t> computed_flow;
+  NetworKit::count nodes_number{0};
 
   double epsi{0.};
 
@@ -44,17 +42,19 @@ class SuccessiveApproxMCC final : public MinimumCostFlow {
    public:
     virtual NetworKit::node getNext() { return 0; }
     virtual void moveToStart() {}
+    virtual ~DischargeList() = default;
   };
 
   class ToposortList : public DischargeList {
    public:
-    explicit ToposortList(SuccessiveApproxMCC&);
+    explicit ToposortList(SuccessiveApproximationMinimumCostFlow&);
+
 
     NetworKit::node getNext() override;
     void moveToStart() override;
 
    private:
-    SuccessiveApproxMCC &approx;
+    SuccessiveApproximationMinimumCostFlow &approx;
     std::list<NetworKit::node> nodes;
     std::vector<bool> vis;
     void dfs(NetworKit::node);
@@ -64,8 +64,11 @@ class SuccessiveApproxMCC final : public MinimumCostFlow {
   };
 
  public:
-  explicit SuccessiveApproxMCC(const MCFlowNetwork& network) : MinimumCostFlow(network) {}
-  int64_t getFlow(const NetworKit::Edge& edge);
+  explicit SuccessiveApproximationMinimumCostFlow(const MCFlowNetwork& network) : MinimumCostFlow(network) {}
+  int64_t getFlow(const NetworKit::Edge& edge) override;
+  std::unordered_map<NetworKit::Edge, std::int64_t> getMinCostFlow() const override {
+      return computed_flow;
+  }
 };
 
 }  /* namespace Koala */

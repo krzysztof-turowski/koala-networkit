@@ -1,4 +1,5 @@
 #include <flow/minimum_cost_flow/MCFlowNetwork.hpp>
+#include <networkit/graph/GraphTools.hpp>
 
 #include <algorithm>
 #include <limits>
@@ -54,18 +55,18 @@ void MCFlowNetwork::addEdge(node s, node t, int64 cost = 0, int64 capacity = 0) 
 }
 
 void MCFlowNetwork::makeConnected() {
-    int64 maxCost{0};
+    int64 max_cost{0};
     for (auto [edge, cost] : cost) {
-        maxCost = std::max(maxCost, (int64)std::abs(cost));
+        max_cost = std::max(max_cost, (int64)std::abs(cost));
     }
 
-    maxCost *=  graph.numberOfEdges() + 1;
+    max_cost *=  graph.numberOfEdges() + 1;
 
     NetworKit::node sx = graph.addNode();
     NetworKit::node sx2 = graph.addNode();
     graph.addEdge(sx, sx2, std::numeric_limits<NetworKit::edgeweight>::max());
     capacity[{sx, sx2}] = std::numeric_limits<int64>::max();
-    cost[{sx, sx2}] = maxCost;
+    cost[{sx, sx2}] = max_cost;
     graph.forNodes([&](NetworKit::node u) {
         if (sx == u || sx2 == u) return;
         auto bound = graph.upperEdgeIdBound();
@@ -76,7 +77,8 @@ void MCFlowNetwork::makeConnected() {
 }
 
 void MCFlowNetwork::makeUncapacitated() {
-    NetworKit::Graph g(graph.upperNodeIdBound(), true, true);
+    NetworKit::Graph g = NetworKit::GraphTools::copyNodes(graph);
+    
 
     graph.forEdges([&](node u, node v, NetworKit::edgeweight weight) {
         int64 cap = capacity[{u, v}];

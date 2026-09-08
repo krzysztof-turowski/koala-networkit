@@ -1,4 +1,3 @@
-// TODO(krygier): undirected graph, antisymmetric costs
 #include <gtest/gtest.h>
 
 #include <list>
@@ -6,9 +5,9 @@
 #include <unordered_map>
 #include <vector>
 
-#include <flow/minimum_cost_flow/SuccessiveApproxMCC.hpp>
-#include <flow/minimum_cost_flow/EdmondsKarpMCF.hpp>
-#include <flow/minimum_cost_flow/OrlinMCF.hpp>
+#include <flow/minimum_cost_flow/SuccessiveApproximationMinimumCostFlow.hpp>
+#include <flow/minimum_cost_flow/EdmondsKarpMinimumCostFlow.hpp>
+#include <flow/minimum_cost_flow/OrlinMinimumCostFlow.hpp>
 
 #include "test/helpers.hpp"
 
@@ -148,7 +147,7 @@ class EdmondsKarpTest
 TEST_P(EdmondsKarpTest, test) {
     MinCostFlowParams const& parameters = GetParam();
     auto network = getInstance(parameters);
-    auto algorithm = Koala::EdmondsKarpMCF(network);
+    auto algorithm = Koala::EdmondsKarpMinimumCostFlow(network);
     algorithm.run();
 
     EXPECT_EQ(algorithm.getMinCost(), parameters.minCost);
@@ -163,7 +162,7 @@ class OrlinTest
 TEST_P(OrlinTest, test) {
     MinCostFlowParams const& parameters = GetParam();
     auto network = getInstance(parameters);
-    auto algorithm = Koala::OrlinMCF(network);
+    auto algorithm = Koala::OrlinMinimumCostFlow(network);
     algorithm.run();
 
     EXPECT_EQ(algorithm.getMinCost(), parameters.minCost);
@@ -172,19 +171,19 @@ TEST_P(OrlinTest, test) {
 INSTANTIATE_TEST_SUITE_P(test_example_orlin, OrlinTest, testing::ValuesIn(basic_tests));
 INSTANTIATE_TEST_SUITE_P(test_complex_orlin, OrlinTest, testing::ValuesIn(complex_tests));
 
-class SuccessiveApproxTest
+class SuccessiveApproximationTest
     : public testing::TestWithParam<MinCostFlowParams> { };
 
-TEST_P(SuccessiveApproxTest, test) {
+TEST_P(SuccessiveApproximationTest, test) {
     MinCostFlowParams const& parameters = GetParam();
     auto network = getInstance(parameters);
-    auto algorithm = Koala::SuccessiveApproxMCC(network);
+    auto algorithm = Koala::SuccessiveApproximationMinimumCostFlow(network);
     algorithm.run();
 
     EXPECT_EQ(algorithm.getMinCost(), parameters.minCost);
 }
 
 INSTANTIATE_TEST_SUITE_P(
-    test_example_successive, SuccessiveApproxTest, testing::ValuesIn(basic_tests));
+    test_example_successive, SuccessiveApproximationTest, testing::ValuesIn(basic_tests));
 INSTANTIATE_TEST_SUITE_P(
-    test_complex_successive, SuccessiveApproxTest, testing::ValuesIn(complex_tests));
+    test_complex_successive, SuccessiveApproximationTest, testing::ValuesIn(complex_tests));

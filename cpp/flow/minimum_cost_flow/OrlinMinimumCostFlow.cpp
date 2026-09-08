@@ -1,4 +1,4 @@
-#include <flow/minimum_cost_flow/OrlinMCF.hpp>
+#include <flow/minimum_cost_flow/OrlinMinimumCostFlow.hpp>
 
 #include <algorithm>
 #include <functional>
@@ -17,14 +17,14 @@ using int64 = std::int64_t;
 
 namespace Koala {
 
-int64 OrlinMCF::getFlow(const NetworKit::Edge& edge) {
+int64 OrlinMinimumCostFlow::getFlow(const NetworKit::Edge& edge) {
     if (maxflow.has_value()) {
         return maxflow->getFlow({edge.u, edge.v});
     }
     return 0;
 }
 
-void OrlinMCF::initialize() {
+void OrlinMinimumCostFlow::initialize() {
     uncapacitated_nodes_bounds.first = network.getGraph().upperNodeIdBound();
     network.makeUncapacitated();
     uncapacitated_nodes_bounds.second = network.getGraph().upperNodeIdBound();
@@ -42,23 +42,23 @@ void OrlinMCF::initialize() {
     dist.assign(max_nodeid, {std::numeric_limits<int64_t>::max(), 0});
     visited.assign(max_nodeid, false);
     edges.assign(2 * graph.numberOfEdges(), Edge());
-    int ptr = 0;
+    NetworKit::index ptr = 0;
 
-    neigh_list.assign(max_nodeid, std::vector<uint32_t>());
+    neighbors.assign(max_nodeid, std::vector<NetworKit::index>());
 
     graph.forNodes([&](node u) {
         graph.forNeighborsOf(u, [&](node v) {
-            uint32_t from = static_cast<uint32_t>(u);
-            uint32_t to = static_cast<uint32_t>(v);
+            node from = u;
+            node to = v;
             int64 cost = network.cost[{u, v}];
             int64 capacity = network.capacity[{u, v}];
-            neigh_list[from].push_back(2*ptr);
+            neighbors[from].push_back(2*ptr);
             edges[2*ptr] = {
                 from, to,
                 cost, capacity, 0LL
             };
 
-            neigh_list[to].push_back(2*ptr+1);
+            neighbors[to].push_back(2*ptr+1);
             edges[2*ptr + 1] = {
                 to, from,
                 -cost, 0LL, 0LL
@@ -70,21 +70,21 @@ void OrlinMCF::initialize() {
     make_reduced_costs_nonnegative();
 }
 
-bool OrlinMCF::is_added_uncapacitated(node v) const {
+bool OrlinMinimumCostFlow::is_added_uncapacitated(node v) const {
     auto [begin, end] = uncapacitated_nodes_bounds;
     return begin <= v && v < end;
 }
 
-void OrlinMCF::apply_potential() {
+void OrlinMinimumCostFlow::apply_potential() {
     for (Edge& edge : edges) {
         edge.cost += potential[edge.to] - potential[edge.from];
     }
     std::fill(potential.begin(), potential.end(), 0);
 }
 
-void OrlinMCF::contract_nodes(uint32_t u, uint32_t v) {
+void OrlinMinimumCostFlow::contract_nodes(node u, node v) {
     if (u > v) std::swap(u, v);
-    for (uint32_t edge_idx : neigh_list[v]) {
+    for (NetworKit::index edge_idx : neighbors[v]) {
         Edge& edge = edges[edge_idx];
         if (edge.to == u) {
             edge.capacity = 0;
@@ -93,7 +93,7 @@ void OrlinMCF::contract_nodes(uint32_t u, uint32_t v) {
             edges[edge_idx ^ 1].flow = 0;
         } else {
             edge.from = u;
-            neigh_list[u].push_back(edge_idx);
+            neighbors[u].push_back(edge_idx);
 
             edges[edge_idx ^ 1].to = u;
         }
@@ -102,15 +102,15 @@ void OrlinMCF::contract_nodes(uint32_t u, uint32_t v) {
     excess[u] += excess[v];
     excess[v] = 0;
     --nodes_number;
-    neigh_list[v].clear();
+    neighbors[v].clear();
 }
 
-void OrlinMCF::push_no_excess(uint32_t edge_idx, int64_t amount) {
+void OrlinMinimumCostFlow::push_no_excess(NetworKit::index edge_idx, int64_t amount) {
     edges[edge_idx].flow += amount;
     edges[edge_idx ^ 1].flow -= amount;
 }
 
-int64_t OrlinMCF::find_optimal_delta(int64_t delta) {
+int64_t OrlinMinimumCostFlow::find_optimal_delta(int64_t delta) {
     for (const Edge& edge : edges) {
         if (edge.flow != 0) {
             return delta;
@@ -125,11 +125,12 @@ int64_t OrlinMCF::find_optimal_delta(int64_t delta) {
     return newDelta;
 }
 
-void OrlinMCF::contraction_phase(int64_t delta) {
+void OrlinMinimumCostFlow::contraction_phase(int64_t delta) {
     apply_potential();
-    for (int i = 0; i < edges.size(); ++i) {
+    for (NetworKit::index i = 0; i < edges.size(); ++i) {
         const Edge& edge = edges[i];
-        if (edge.from != edge.to && edge.flow >= 3 * delta * nodes_number) {
+        if (edge.from != edge.to
+                && edge.flow >= 3 * delta * static_cast<int64_t>(nodes_number)) {
             contract_nodes(edge.from, edge.to);
             // { u, v, edge_cost }
             contracted_nodes.push({edge.from, edge.to, original_edges[i].cost});
@@ -137,7 +138,7 @@ void OrlinMCF::contraction_phase(int64_t delta) {
     }
 }
 
-bool OrlinMCF::is_imbalanced() {
+bool OrlinMinimumCostFlow::is_imbalanced() {
     for (const int64_t& supply : excess) {
         if (supply != 0) {
             return true;
@@ -146,7 +147,7 @@ bool OrlinMCF::is_imbalanced() {
     return false;
 }
 
-void OrlinMCF::uncontract_nodes_potential() {
+void OrlinMinimumCostFlow::uncontract_nodes_potential() {
     while (!contracted_nodes.empty()) {
         auto [u, v, cost] = contracted_nodes.top();
         contracted_nodes.pop();
@@ -159,18 +160,18 @@ void OrlinMCF::uncontract_nodes_potential() {
     }
 }
 
-void OrlinMCF::augmenting_phase(uint32_t s, uint32_t t, int64_t delta) {
+void OrlinMinimumCostFlow::augmenting_phase(node s, node t, int64_t delta) {
     dijkstra(s, delta);
-    uint32_t ptr = t;
+    node ptr = t;
     while (ptr != s) {
-        uint32_t edge_idx = dist[ptr].second;
+        NetworKit::index edge_idx = dist[ptr].second;
         push_no_excess(edge_idx, delta);
         ptr = edges[edge_idx].from;
     }
     excess[s] -= delta;
     excess[t] += delta;
 
-    for (uint32_t i = 0; i < max_nodeid; i++) {
+    for (node i = 0; i < max_nodeid; i++) {
         if (dist[i].first != std::numeric_limits<int64_t>::max()) {
             potential[i] -= dist[i].first;
             potential_computed[i] -= dist[i].first;
@@ -178,7 +179,7 @@ void OrlinMCF::augmenting_phase(uint32_t s, uint32_t t, int64_t delta) {
     }
 }
 
-void OrlinMCF::run_impl() {
+void OrlinMinimumCostFlow::run_impl() {
     initialize();
 
     int64_t delta = std::numeric_limits<int64_t>::max();
@@ -188,11 +189,11 @@ void OrlinMCF::run_impl() {
         contraction_phase(delta);
 
         auto [uncap_begin, uncap_end] = uncapacitated_nodes_bounds;
-        for (uint32_t u = uncap_begin; u < uncap_end; u++) {
-            for (uint32_t edge_idx : neigh_list[u]) {
-                uint32_t in_arc = edge_idx ^ 1;
+        for (node u = uncap_begin; u < uncap_end; u++) {
+            for (NetworKit::index edge_idx : neighbors[u]) {
+                NetworKit::index in_arc = edge_idx ^ 1;
                 const Edge& e = edges[in_arc];
-                uint32_t v = e.from;
+                node v = e.from;
                 while (excess[u] <= -ALPHA*delta && excess[v] >= ALPHA*delta
                        && e.cost == 0
                        && e.capacity >= e.flow + delta) {
@@ -210,9 +211,9 @@ void OrlinMCF::run_impl() {
             }
         }
 
-        std::stack<uint32_t> S, T;
+        std::stack<node> S, T;
 
-        for (uint32_t i = 0; i < max_nodeid; i++) {
+        for (node i = 0; i < max_nodeid; i++) {
             if (excess[i] >= ALPHA*delta) {
                 S.push(i);
             } else if (excess[i] <= -ALPHA*delta) {
@@ -221,8 +222,8 @@ void OrlinMCF::run_impl() {
         }
 
         while (!S.empty() && !T.empty()) {
-            uint32_t s = S.top();
-            uint32_t t = T.top();
+            node s = S.top();
+            node t = T.top();
 
             augmenting_phase(s, t, delta);
             if (excess[s] < ALPHA*delta) {
@@ -240,14 +241,14 @@ void OrlinMCF::run_impl() {
     compute_final_flows();
 }
 
-void OrlinMCF::dijkstra(uint32_t source, int64_t delta) {
-    std::priority_queue<std::pair<int64_t, uint32_t>,
-                        std::vector<std::pair<int64_t, uint32_t>>,
+void OrlinMinimumCostFlow::dijkstra(node source, int64_t delta) {
+    std::priority_queue<std::pair<int64_t, node>,
+                        std::vector<std::pair<int64_t, node>>,
                         std::greater<>> pq;
 
     std::fill(
         dist.begin(), dist.end(),
-        std::make_pair(std::numeric_limits<int64_t>::max(), uint64_t{0}));
+        std::make_pair(std::numeric_limits<int64_t>::max(), NetworKit::index{0}));
     std::fill(visited.begin(), visited.end(), false);
     dist[source] = {0, 0};
     pq.push({0, source});
@@ -259,18 +260,18 @@ void OrlinMCF::dijkstra(uint32_t source, int64_t delta) {
         if (visited[u]) continue;
         visited[u] = true;
 
-        for (uint32_t edge_idx : neigh_list[u]) {
+        for (NetworKit::index edge_idx : neighbors[u]) {
             const Edge& edge = edges[edge_idx];
             if (edge.capacity >= edge.flow + delta) {
-                uint32_t v = edge.to;
+                node v = edge.to;
                 int64_t new_dist = d + edge.cost - potential[u] + potential[v];
                 if (new_dist < dist[v].first) {
                     dist[v] = {new_dist, edge_idx};
                     if (is_added_uncapacitated(v)) {
-                        for (uint32_t e2 : neigh_list[v]) {
+                        for (NetworKit::index e2 : neighbors[v]) {
                             const Edge& edge2 = edges[e2];
                             if (edge2.to != u && edge2.capacity >= edge2.flow + delta) {
-                                uint32_t k = edge2.to;
+                                node k = edge2.to;
                                 int64_t nd2 = new_dist + edge2.cost - potential[v] + potential[k];
                                 if (nd2 < dist[k].first) {
                                     dist[k] = {nd2, e2};
@@ -287,13 +288,13 @@ void OrlinMCF::dijkstra(uint32_t source, int64_t delta) {
     }
 }
 
-void OrlinMCF::make_reduced_costs_nonnegative() {
+void OrlinMinimumCostFlow::make_reduced_costs_nonnegative() {
     constexpr int64_t INF = std::numeric_limits<int32_t>::max();
     std::vector<int64_t> d(max_nodeid, INF);
     d[0] = 0;
 
     bool changed = true;
-    for (uint32_t iter = 0; iter < nodes_number && changed; ++iter) {
+    for (NetworKit::count iter = 0; iter < nodes_number && changed; ++iter) {
         changed = false;
         for (const Edge& edge : edges) {
             if (edge.from == edge.to || edge.capacity <= edge.flow) continue;
@@ -306,22 +307,20 @@ void OrlinMCF::make_reduced_costs_nonnegative() {
         }
     }
 
-    for (uint32_t v = 0; v < max_nodeid; ++v) {
+    for (node v = 0; v < max_nodeid; ++v) {
         if (d[v] == INF) continue;
         potential[v] -= d[v];
         potential_computed[v] -= d[v];
     }
 }
 
-void OrlinMCF::compute_final_flows() {
-    auto& orignal_graph = network.getGraph();
-
+void OrlinMinimumCostFlow::compute_final_flows() {
     NetworKit::Graph maxflow_graph(max_nodeid, true, true);
     original_graph.forEdges([&](node u, node v) {
         auto cost = network.cost[{u, v}];
 
         if (cost - potential_computed[u] + potential_computed[v] == 0) {
-            int max = std::numeric_limits<int>::max();
+            NetworKit::edgeweight max = std::numeric_limits<int>::max();
             maxflow_graph.addEdge(u, v, max);
         }
     });
@@ -339,9 +338,12 @@ void OrlinMCF::compute_final_flows() {
     maxflow.emplace(maxflow_graph, s, t);
     maxflow->run();
     min_cost = 0;
+    computed_flow.clear();
     maxflow_graph.forEdges([&](node u, node v) {
         if (u == s || v == t) return;
-        min_cost += network.cost[{u, v}] * maxflow->getFlow({u, v});
+        int64_t flow = maxflow->getFlow({u, v});
+        computed_flow[{u, v}] = flow;
+        min_cost += network.cost[{u, v}] * flow;
     });
 }
 

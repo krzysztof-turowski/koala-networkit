@@ -1,31 +1,32 @@
-#include <flow/minimum_cost_flow/SuccessiveApproxMCC.hpp>
+#include <flow/minimum_cost_flow/SuccessiveApproximationMinimumCostFlow.hpp>
 
 #include <algorithm>
 #include <climits>
 #include <limits>
+#include <memory>
 #include <vector>
 
 namespace Koala {
 
 using node = NetworKit::node;
 
-inline double SuccessiveApproxMCC::cp(uint64_t eid) {
+inline double SuccessiveApproximationMinimumCostFlow::cp(NetworKit::index eid) {
     const Edge& edge = edges[eid];
     return static_cast<double>(edge.cost) - potential[edge.from] + potential[edge.to];
 }
 
-inline int64_t SuccessiveApproxMCC::uf(uint64_t eid) {
+inline int64_t SuccessiveApproximationMinimumCostFlow::uf(NetworKit::index eid) {
     return edges[eid].capacity - edges[eid].flow;
 }
 
-bool SuccessiveApproxMCC::is_imbalanced() {
+bool SuccessiveApproximationMinimumCostFlow::is_imbalanced() {
     for (auto e : excess) {
         if (e) return true;
     }
     return false;
 }
 
-void SuccessiveApproxMCC::force_flow(uint64_t eid, int64_t f) {
+void SuccessiveApproximationMinimumCostFlow::force_flow(NetworKit::index eid, int64_t f) {
     Edge& edge = edges[eid];
     edge.flow += f;
     edges[eid ^ 1].flow -= f;
@@ -33,17 +34,17 @@ void SuccessiveApproxMCC::force_flow(uint64_t eid, int64_t f) {
     excess[edge.to] += f;
 }
 
-void SuccessiveApproxMCC::push(uint64_t eid) {
+void SuccessiveApproximationMinimumCostFlow::push(NetworKit::index eid) {
     node u = edges[eid].from;
     if (excess[u] > 0) {
         force_flow(eid, std::min(uf(eid), excess[u]));
     }
 }
 
-void SuccessiveApproxMCC::relabel(NetworKit::node const& u) {
+void SuccessiveApproximationMinimumCostFlow::relabel(NetworKit::node const& u) {
     double mi = std::numeric_limits<double>::infinity();
 
-    for (uint64_t eid : neigh_list[u]) {
+    for (NetworKit::index eid : neighbors[u]) {
         if (uf(eid) > 0) {
             const Edge& edge = edges[eid];
             mi = std::min(mi, potential[edge.to] + epsi + edge.cost);
@@ -53,9 +54,9 @@ void SuccessiveApproxMCC::relabel(NetworKit::node const& u) {
     potential[u] = mi;
 }
 
-void SuccessiveApproxMCC::refine() {
+void SuccessiveApproximationMinimumCostFlow::refine() {
     epsi /= 2;
-    for (uint64_t eid = 0; eid < edges.size(); ++eid) {
+    for (NetworKit::index eid = 0; eid < edges.size(); ++eid) {
         double reduced = cp(eid);
         if (reduced < 0) {
             force_flow(eid, uf(eid));
@@ -64,8 +65,8 @@ void SuccessiveApproxMCC::refine() {
     wave();
 }
 
-void SuccessiveApproxMCC::wave() {
-    DischargeList* list = new ToposortList(*this);
+void SuccessiveApproximationMinimumCostFlow::wave() {
+    std::unique_ptr<DischargeList> list = std::make_unique<ToposortList>(*this);
 
     NetworKit::node v = list->getNext();
     while (is_imbalanced()) {
@@ -77,12 +78,11 @@ void SuccessiveApproxMCC::wave() {
         }
         v = list->getNext();
     }
-    delete list;
 }
 
-bool SuccessiveApproxMCC::discharge(NetworKit::node const& u) {
+bool SuccessiveApproximationMinimumCostFlow::discharge(NetworKit::node const& u) {
     int64_t& ex = excess[u];
-    for (uint64_t eid : neigh_list[u]) {
+    for (NetworKit::index eid : neighbors[u]) {
         if (ex && cp(eid) < 0 && uf(eid) > 0) {
             push(eid);
         }
@@ -96,9 +96,9 @@ bool SuccessiveApproxMCC::discharge(NetworKit::node const& u) {
     return false;
 }
 
-void SuccessiveApproxMCC::initialize() {
+void SuccessiveApproximationMinimumCostFlow::initialize() {
     auto& graph = network.getGraph();
-    uint32_t nodeBound = graph.upperNodeIdBound();
+    NetworKit::count nodeBound = graph.upperNodeIdBound();
     nodes_number = graph.numberOfNodes();
     potential.clear();
     excess.assign(nodeBound, 0);
@@ -109,27 +109,26 @@ void SuccessiveApproxMCC::initialize() {
 
     potential.assign(nodeBound, 0);
     edges.reserve(2 * graph.numberOfEdges());
-    int ptr = 0;
 
-    neigh_list.assign(nodeBound, std::vector<uint64_t>());
-    int64_t maxCost = 0;
+    neighbors.assign(nodeBound, std::vector<NetworKit::index>());
+    int64_t max_cost = 0;
 
     graph.forNodes([&](node u) {
         graph.forNeighborsOf(u, [&](node v) {
-            uint32_t from = static_cast<uint32_t>(u);
-            uint32_t to = static_cast<uint32_t>(v);
+            node from = u;
+            node to = v;
             int64_t cost = network.cost[{u, v}];
             int64_t capacity = network.capacity[{u, v}];
 
-            neigh_list[from].push_back(edges.size());
+            neighbors[from].push_back(edges.size());
             edges.push_back({
                 from, to,
                 cost, capacity, 0LL
             });
 
-            maxCost = std::max(maxCost, std::abs(cost));
+            max_cost = std::max(max_cost, std::abs(cost));
 
-            neigh_list[to].push_back(edges.size());
+            neighbors[to].push_back(edges.size());
             edges.push_back({
                 to, from,
                 -cost, 0LL, 0LL
@@ -137,10 +136,10 @@ void SuccessiveApproxMCC::initialize() {
         });
     });
 
-    epsi = static_cast<double>(maxCost);
+    epsi = static_cast<double>(max_cost);
 }
 
-void SuccessiveApproxMCC::run_impl() {
+void SuccessiveApproximationMinimumCostFlow::run_impl() {
     initialize();
 
     while (epsi >= 1.0/nodes_number) {
@@ -156,8 +155,8 @@ void SuccessiveApproxMCC::run_impl() {
     min_cost /= 2;
 }
 
-SuccessiveApproxMCC::ToposortList::ToposortList(
-    SuccessiveApproxMCC &approx) : approx(approx) {
+SuccessiveApproximationMinimumCostFlow::ToposortList::ToposortList(
+    SuccessiveApproximationMinimumCostFlow &approx) : approx(approx) {
     vis.assign(approx.nodes_number, 0);
     auto& graph = approx.network.getGraph();
     for (auto v : graph.nodeRange()) {
@@ -166,10 +165,10 @@ SuccessiveApproxMCC::ToposortList::ToposortList(
     it2 = nodes.begin();
 }
 
-void SuccessiveApproxMCC::ToposortList::dfs(NetworKit::node u) {
+void SuccessiveApproximationMinimumCostFlow::ToposortList::dfs(NetworKit::node u) {
     vis[u] = true;
 
-    for (auto eid : approx.neigh_list[u]) {
+    for (auto eid : approx.neighbors[u]) {
         if (approx.cp(eid) < 0 && approx.uf(eid) > 0) {
             auto v = approx.edges[eid].to;
             if (!vis[v]) {
@@ -181,7 +180,7 @@ void SuccessiveApproxMCC::ToposortList::dfs(NetworKit::node u) {
     nodes.push_front(u);
 }
 
-NetworKit::node SuccessiveApproxMCC::ToposortList::getNext() {
+NetworKit::node SuccessiveApproximationMinimumCostFlow::ToposortList::getNext() {
     if (it2 != nodes.end()) {
         it1 = it2;
         it2++;
@@ -192,22 +191,15 @@ NetworKit::node SuccessiveApproxMCC::ToposortList::getNext() {
     return *it1;
 }
 
-void SuccessiveApproxMCC::ToposortList::moveToStart() {
+void SuccessiveApproximationMinimumCostFlow::ToposortList::moveToStart() {
     if (it1 != nodes.end()) {
         nodes.splice(nodes.begin(), nodes, it1);
     }
 }
 
-int64_t SuccessiveApproxMCC::getFlow(const NetworKit::Edge& edge) {
+int64_t SuccessiveApproximationMinimumCostFlow::getFlow(const NetworKit::Edge& edge) {
     return computed_flow[edge];
 }
 
-// static void print_flows(edgeid_map<int> &printable) {
-//     // std::cerr<< " --- AFTER REFINE TEST --- \n";
-//     for(auto [e, f] : printable){
-//         // std::cerr << "ARC {" << e.first<< ", "<<e.second<<"} FLOW: " << f <<  "\n";
-//     }
-//     // std:: cerr<< " --- PRINT END --- \n\n";
-// }
 
 } /* namespace Koala */

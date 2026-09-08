@@ -7,9 +7,9 @@
 #include <unordered_map>
 
 #include <flow/MinimumCostFlow.hpp>
-#include <flow/minimum_cost_flow/EdmondsKarpMCF.hpp>
-#include <flow/minimum_cost_flow/OrlinMCF.hpp>
-#include <flow/minimum_cost_flow/SuccessiveApproxMCC.hpp>
+#include <flow/minimum_cost_flow/EdmondsKarpMinimumCostFlow.hpp>
+#include <flow/minimum_cost_flow/OrlinMinimumCostFlow.hpp>
+#include <flow/minimum_cost_flow/SuccessiveApproximationMinimumCostFlow.hpp>
 #include <io/DimacsGraphReader.hpp>
 
 template <typename FlowAlgorithm>
@@ -54,11 +54,12 @@ int main(int argc, char **argv) {
     std::cout << "\nProcessing file: " << file_path << std::endl;
 
     if (ALGORITHM[algorithm] == 1) {
-        run_mcf_algorithm<Koala::EdmondsKarpMCF>(file_path, "EdmondsKarp");
+        run_mcf_algorithm<Koala::EdmondsKarpMinimumCostFlow>(file_path, "EdmondsKarp");
     } else if (ALGORITHM[algorithm] == 2) {
-        run_mcf_algorithm<Koala::OrlinMCF>(file_path, "Orlin");
+        run_mcf_algorithm<Koala::OrlinMinimumCostFlow>(file_path, "Orlin");
     } else if (ALGORITHM[algorithm] == 3) {
-        run_mcf_algorithm<Koala::SuccessiveApproxMCC>(file_path, "SuccessiveApproximation");
+        run_mcf_algorithm<Koala::SuccessiveApproximationMinimumCostFlow>(
+            file_path, "SuccessiveApproximation");
     } else {
         std::cerr << "Unknown algorithm: " << algorithm << std::endl;
         return 1;
