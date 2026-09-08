@@ -1,0 +1,38 @@
+\section{Pseudocode}
+In this section we present a complete pseudocode, with the optimizations described in the previous section.
+In the description, we denote the contracted network by $\hat{G} = (\hat{V}, \hat{E})$.
+\begin{algorithm}[H]
+\caption{\textsc{StronglyPolynomialCapacityScaling}$(G, b,c)$}
+\label{alg:strongly_poly_capacity_scaling}
+    \begin{algorithmic}[1]
+        \State $x \gets 0^m$, $\pi \gets 0^n$
+        \State $e(i) \gets b(i)$ for all $i \in V$
+        \State $\Delta \gets 2^{\lceil\log( \max \{|e(i)| \colon i \in V\})\rceil}$
+        \While{there is a node $i\in \hat{V}$ with $e(i) \neq 0 $} 
+            \If{$x_{ij} = 0$ for each $(i,j) \in \hat{E}$ \textbf{and} $2^{\lceil\log |e(i)|\rceil} < \Delta$ for each $i \in \hat{V}$}
+                \State $\Delta \gets 2^{\lceil\log( \max \{|e(i)| \colon i \in V\})\rceil}$
+            \EndIf
+
+            \While{there is an arc $(i,j) \in \hat{E}$ with $x_{ij} \geq 3n\Delta$} \Comment{$\Delta$-scaling phase}
+                \State $c_{kl} \gets c^\pi_{kl}$ for each arc $(k,l) \in \hat{E}$
+                \State $\hat{G} \gets$ \Call{Contract}{$\hat{G}, i, j$}
+            \EndWhile
+            \State $S(\Delta) \gets \{i\in \hat{V} \colon e(i) \geq \alpha\Delta\}$
+            \State $T(\Delta) \gets \{i\in \hat{V} \colon e(i) \leq -\alpha\Delta\}$
+
+            \While{$S(\Delta)\neq \emptyset$ \textbf{and} $T(\Delta)\neq \emptyset$}
+                \State select $k \in S(\Delta)$ and $l\in T(\Delta)$ \Comment{$c^\pi$ from \Cref{def:reduced_cost}}
+                \State $d \gets$ \Call{Distances}{$G(x,\Delta),c^\pi, k$} \Comment{the weight of the arc $(i,j)$ is $c_{ij}^\pi$}
+                \State $P \gets$ \Call{ShortestPath}{$\hat{G}
+                (x,\Delta), d,k,l$}  \Comment{shortest path from $k$ to $l$} 
+                \State $\pi \gets \pi -d$
+                \State $x \gets$ \Call{Augment}{$x, P,\Delta$} \Comment{send $\Delta$ units through path $P$}
+                \State update $S(\Delta)$, $T(\Delta)$
+            \EndWhile
+            \State $\Delta \gets \Delta/2$
+        \EndWhile
+        \State \Call{Uncontract}{$\hat{G}, x$}
+        \State \Return x
+    \end{algorithmic}
+\end{algorithm}
+

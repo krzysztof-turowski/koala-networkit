@@ -1,0 +1,30 @@
+\section{The algorithm}
+
+This section outlines the core concepts of the algorithm and its components, beginning with the successive approximation framework. Let $C = \max \{|c_{ij}|\colon (i,j) \in E\}$ denote the maximum possible cost in the considered network.
+
+\subsection{The successive approximation framework}
+
+The general procedure is outlined below.
+
+Initially, the potentials $\pi$ and the flow $x$ are set to zero. To enforce $\epsilon$-optimality, we start with a sufficiently large $\epsilon$ that is at least as great as all arc costs in the network, i.e., $\epsilon = C$.
+
+We then enter a loop. In each iteration, while $\epsilon > 1/n$, we halve $\epsilon$ and calculate the new $\epsilon$-optimal circulation $x$ and its potential $\pi$. Once $\epsilon < 1/n$, the optimal solution is found, according to \Cref{thm:optimal_epsi_circulation}.
+
+The \textsc{Refine} operation is described later. To implement it, we will reuse several concepts established in the maximum flow problem.
+
+\begin{algorithm}[H]
+\caption{\textsc{SuccessiveApproximationAlgorithm}$(G,c, u)$}
+\label{alg:succ_approx_framework}
+    \begin{algorithmic}[1]
+        \State $x \gets 0^m$ 
+        \State $\pi \gets 0^n$
+        \State $\epsilon \gets C$
+        \While {$\epsilon > 1/n$}
+        \State $\epsilon \gets \epsilon/2$
+        \State $x, \pi \gets$ \Call{Refine}{$x,\pi,\epsilon$}
+        \EndWhile
+        \State\Return x
+    \end{algorithmic}
+\end{algorithm}
+
+

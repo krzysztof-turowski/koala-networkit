@@ -1,0 +1,44 @@
+\section{Dual problem}
+The minimum cost problem, as defined above, is a linear programming problem. For every problem of that kind we can associate another strongly related linear programming problem called its \textit{dual}. The idea is based on the desire to limit the possible optimal values. For instance, the objective function value of any feasible solution of the dual is less than or equal to the objective function of any feasible solution of the primal.
+
+Sometimes dual problems are much more convenient to work with, than original, primal problems. It is a common pattern for algorithms solving minimum cost flow problem, including those shown in this work.
+
+Upon forming the dual of a (primal) linear programming problem, each constraint of the primal, except for the non-negativity of arc flows, gets a corresponding \textit{dual variable}. For the minimum cost flow problem, we have two dual variables, namely $\pi(i)$ and $\alpha_{ij}$ . The first one is associated with the mass balance constraint of node $i$ and the second one corresponds to the capacity constraint of arc $(i,j)$.
+
+\begin{defn}[Dual minimum cost flow problem \cite{ahuja1993network}]
+\label{dualdef}
+Let $G=(V,E)$ be a directed network with a cost $c_{ij}$ and a capacity $u_{ij}$ associated with every arc $(i,j) \in E$. For each node $i \in V$, we have a number $b(i)$ which indicates its supply $(b(i) > 0$), or demand $(b(i) < 0)$. The \textbf{dual minimum cost flow problem} can be stated as follows:
+
+\[
+    \text{maximize}\ w(\pi, \alpha) = b\pi-u\alpha= \sum_{i \in V} b(i)\pi(i) - \sum_{(i,j) \in E} u_{ij}\alpha_{ij}
+\]    
+subject to
+\begin{align*}
+    \pi(i) - \pi(j) - \alpha_{ij} \leq c_{ij}\ \quad &\text{for all } (i,j)\in E,\\
+ \alpha_{ij} \geq 0  \quad &\text{for all }(i,j) \in E, \\
+\pi(j) \text{ unrestricted }&\text{for all } j\in V.
+\end{align*}
+\end{defn}
+
+In the two following theorems, we state that the primal and the dual are equivalent. The proofs may be found in \cite[p.312--313]{ahuja1993network}.
+
+\begin{theorem}[Weak duality theorem \cite{ahuja1993network}]
+\label{weak_dual}
+    Let $z(x)$ denote the objective function value of some feasible solution $x$ of the minimum cost flow problem and let $w(\pi, \alpha)$ denote the objective function value of some feasible solution $(\pi, \alpha)$ of its dual. Then $w(\pi, \alpha) \leq z(x)$.
+\end{theorem}
+
+The first constraint of \Cref{dualdef} can be rewritten as $\alpha_{ij} \geq -c^\pi_{ij}$. We want to maximize the value of the objective function, so we want to assign the smallest possible value to $\alpha_{ij}$. Thus $\alpha_{ij} = \max\{0, -c^\pi_{ij}\}$. Now we can rewrite the dual objective instead of $w(\pi, \alpha)$ as 
+\[
+w(\pi) = \sum_{i \in V} b(i)\pi(i) - \sum_{(i,j)\in E} \max\{0, -c^\pi_{ij}\}u_{ij}.
+\]
+
+\begin{theorem}[Strong duality theorem \cite{ahuja1993network}]
+\label{strong_dual}
+For any choice of problem data, the minimum cost flow problem always has a solution $x^*$ and the dual minimum cost flow problem has a solution $\pi$ satisfying the property that $z(x^*) = w(\pi)$.
+\end{theorem}
+
+This theorem shows that if the minimum cost flow problem has an optimal solution $x^*$, then it has a matching dual solution $\pi$ satisfying the condition $z(x^*) = w(\pi)$. Moreover, the complementary slackness optimality conditions imply strong duality. The following theorem states the converse:
+
+\begin{theorem}[Theorem 9.7 in \cite{ahuja1993network}]
+    If $x$ is a feasible flow and $\pi$ is an (arbitrary) vector satisfying the property that $z(x) = w(\pi)$, then the pair $(x, \pi)$ satisfies the complementary slackness optimality conditions.
+\end{theorem}

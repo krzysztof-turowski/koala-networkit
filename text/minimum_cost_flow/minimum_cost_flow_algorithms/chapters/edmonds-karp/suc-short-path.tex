@@ -1,0 +1,50 @@
+\section{Successive shortest path algorithm}
+
+First, we present a simplified algorithm, followed by some improvements.
+\Cref{alg:succ_shortest} proceeds as follows:
+\begin{enumerate}
+    \item Choose two nodes $k, l \in V$ such that $e(k) > 0$ and $e(l) < 0$.
+    \item Compute the shortest path from $k$ to $l$ using reduced costs as weights.
+    \item Update the potentials, as shown in \Cref{lem:edmonds_base_lemma}.
+    \item Augment as much flow as possible along the path from $k$ to $l$.
+\end{enumerate}
+
+We repeat these steps until $e(i) = 0$ for every $i \in V$. The pseudocode is provided below.
+
+\begin{algorithm}[H]
+\caption{\textsc{SuccessiveShortestPathAlgorithm}$(G,b,c,u)$}
+\label{alg:succ_shortest}
+    \begin{algorithmic}[1]
+        \State $x \gets 0^m$, $\pi \gets 0^n$
+        \State $e(i) \gets b(i)$ for all $i \in V$
+        \State $S \gets \{i\colon e(i)> 0 \}$, $T \gets \{ i\colon e(i) <0\}$
+        \While {$S \neq \emptyset$}
+        \State select nodes $k\in S$ and $l \in T$ \Comment{$c^\pi$ from \Cref{def:reduced_cost}}
+        \State $d\gets $ \Call{Distances}{$G(x), c^\pi, k$} \Comment{the weight of the arc $(i,j)$ is $c_{ij}^\pi$}
+        \State $P \gets $ \Call{ShortestPath}{$G(x),d,k,l$} \Comment{shortest path  from $k$ to $l$}
+        \State $\pi \gets \pi - d$
+        \State $\delta \gets \min \{e(k), -e(l), \min\{r_{ij}\colon (i,j)\in P\}\}$ \Comment{$r_{ij}$ from \Cref{def:residual}}
+        \State $x \gets$ \Call{Augment}{$x,P, \delta$}
+        \State update $S$, $T$
+        \EndWhile
+        \State \Return $x$
+    \end{algorithmic}
+\end{algorithm}
+
+\subsection{Correctness}
+
+We now show that during every step of the loop, the pseudoflow satisfies the reduced cost optimality condition given in \Cref{red_cost_opt_cond}. Due to \Cref{ass:cost_nonnegativity}, an initial empty flow meets these conditions. 
+
+No augmentation breaks flow feasibility, as the augmented flow value does not exceeded the minimal residual capacity on the path. \Cref{shortest-optimality} ensures that the new flow also preserves the optimality conditions. 
+
+In each iteration, we decrease the excess on some node by at least one unit, gradually correcting the imbalance. Thus, the algorithm terminates when the imbalance at every node reaches zero. Since all necessary conditions are preserved throughout, the algorithm successfully finds an optimal solution.
+
+% Moreover, we have $c_{ij}^\pi \geq 0$ for every arc $(i,j)$ in the residual graph $G(x)$, since we assumed cost nonnegativity. Because of that and \Cref{ass:one_scc}, the distances $d$ are well defined.
+
+% As long as there is a node with nonzero imbalance, both $S$ and $T$ must be nonempty.
+% Therefore, in each iteration we solve a shortest path problem on nonnegative arcs, and decrease the excess of some node, so certainly the algorithm will stop when there are no more nodes with nonzero imbalance, that is, when we find a feasible flow. By \Cref{shortest-optimality} the optimality conditions are preserved, and by \Cref{red_cost_opt_cond} the optimal solution is found. 
+\subsection{Complexity}
+
+Let $U$ denote an upper bound on the largest supply of the node and $C$ denote an upper bound on the cost of the arc.
+
+On every loop iteration, we augment at least one unit of flow. Therefore, each $k\in S$ can be chosen at most $U$ times. Thus the algorithm terminates in at most $nU$ iterations. Let $SP(n,m,C)$ denote the time taken to solve a shortest path problem in a graph with $n$ nodes and $m$ arcs, with nonnegative arc lengths bounded by some constant $C$. Since the reduced costs are bounded by $nC$, the running time of \Cref{alg:succ_shortest} is $O(n U\cdot SP(n,m,nC))$.

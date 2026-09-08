@@ -95,6 +95,7 @@ Moreover, they set up an online graph editor <a href="https://stos.eti.pg.gda.pl
     1. Maximum weighted matching: Edmonds, Gabow, Galil-Micali-Gabow (all blossom-based) and Gabow (scaling) algorithms
 1. [Flow algorithms](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/flow/)
     1. [Maximum flow](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/flow/MaximumFlow.hpp): push-relabel, Malhotra-Kumar-Maheshwari, King-Rao-Tarjan, Mądry (electrical flow), Boykov-Kolmogorov
+    1. [Minimum cost flow](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/flow/MinimumCostFlow.hpp): Edmonds-Karp, Orlin, Goldberg-Tarjan (successive approximation)
 1. Cut algorithms:
     1. [Maximum cut](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/max_cut/): Goemans-Williamson (SDP relaxation), Burer-Monteiro-Zhang (rank-two relaxation)
     1. [Minimum cut](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/min_cut/): Karger, Karger-Stein, Stoer-Wagner for undirected graphs, Hao-Orlin for directed graphs

@@ -2,6 +2,7 @@
 
 #include <map>
 #include <unordered_map>
+#include <utility>
 
 #include "flow/MaximumFlow.hpp"
 
@@ -25,6 +26,14 @@ class PushRelabelMaximumFlow : public MaximumFlow {
      * Compute a maximum flow using the subclass selection policy.
      */
     void run();
+
+    /**
+     * Return the flow value on a given edge.
+     *
+     * @param edge The edge to query.
+     * @return The flow value on the edge.
+     */
+    int getFlow(const std::pair<NetworKit::node, NetworKit::node>&) const;
 
  protected:
     std::unordered_map<NetworKit::Edge, int> capacity, flow;

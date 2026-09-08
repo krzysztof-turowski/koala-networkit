@@ -1,0 +1,156 @@
+\section{Introduction}
+
+The minimum cost flow problem is one of the most fundamental problems of network flows. In this problem we consider a capacitated network flow with a cost per unit assigned to every arc. Then, given a supply or demand for each node, the point is to find a flow of minimum cost. 
+
+One can observe that the shortest path problem and the maximum flow problem can be easily reduced to the minimum cost.
+
+The problem found many applications in various fields, including transport \cite{krile2004}, medicine \cite{padfield2011}, military \cite{wegmuller2002}, and many more. One such application is provided below to illustrate the issue.
+
+\subsection{Protein Pocket Matching}
+
+Protein structures possess surface cavities or depressions, known as \textit{pockets}, which determine their capacity to bind with other molecules. A key objective is to evaluate how well computational models, such as AlphaFold \cite{alphafold-db}, preserve these binding pockets compared to experimentally determined structures. 
+
+Assuming we have two aligned protein structures—one experimental and one predicted—we identify their pockets using a detection tool such as P2Rank \cite{p2rank} and extract the geometric midpoint of each pocket. Let $A$ and $B$ denote the sets of pocket midpoints for the experimental and predicted structures, respectively. For any pair of points $i \in A$ and $j \in B$, let $d_{ij}$ represent their spatial distance.
+
+Our goal is to match the closest corresponding pockets between the two structures. While traditional bipartite matching can be solved using maximum flow algorithms, our objective minimizes distance, requiring a minimum-cost flow formulation. 
+
+We construct a directed network containing a node for each midpoint in sets $A$ and $B$. We insert directed arcs from every $i \in A$ to every $j \in B$, assigning each arc a cost of $d_{ij}$ and infinite capacity. Next, we introduce a source node $s$ and a sink node $t$. We connect $s$ to each node $i \in A$ using arcs with a cost of $0$ and a capacity of $1$. Similarly, we connect each node $j \in B$ to $t$ with zero-cost, unit-capacity arcs.
+
+Because the detection algorithm may identify pockets in one structure that are absent in the other, we must account for unmatched pockets. We address this by adding a bypass arc $s \rightarrow t$ with infinite capacity and a fixed penalty cost $\omega$. Finally, letting $b(i)$ denote the supply or demand at node $i$, we set the source supply to $b(s) = \max\{|A|, |B|\}$ and the sink demand to $b(t) = -\max\{|A|, |B|\}$. \Cref{fig:protein_pockets} illustrates the complete network architecture.
+
+
+\begin{figure}
+    \centering
+    \begin{tikzpicture}[
+    >=Stealth,
+    vertex/.style={circle, draw, minimum size=8mm, inner sep=0pt, font=\small},
+    elabel/.style={fill=white, inner sep=1.5pt, font=\scriptsize}
+]
+
+\node[vertex] (s) at (0, 0) {$s$};
+
+\node[vertex] (u1) at (3, 3) {$u_1$};
+\node[vertex] (u2) at (3, 1.5) {$u_2$};
+\node[vertex] (u3) at (3, 0) {$u_3$};
+\node[vertex] (u4) at (3, -1.5) {$u_4$};
+\node[vertex] (u5) at (3, -3) {$u_5$};
+
+\node[vertex] (v1) at (7, 2) {$v_1$};
+\node[vertex] (v2) at (7, 0) {$v_2$};
+\node[vertex] (v3) at (7, -2) {$v_3$};
+
+\node[vertex] (t) at (10, 0) {$t$};
+
+\begin{scope}[on background layer]
+    \node[draw, dashed, rounded corners, fit=(u1) (u5), inner sep=10pt, label=above:{\textbf{Set $A$}}] {};
+    \node[draw, dashed, rounded corners, fit=(v1) (v3), inner sep=10pt, label=above:{\textbf{Set $B$}}] {};
+\end{scope}
+
+\foreach \i in {1,...,5} {
+    \draw[->] (s) -- node[elabel, pos=0.5  ] {$(0,1)$} (u\i);
+}
+
+\draw[->] (u1) -- node[elabel, pos=0.5] {$(d_{11}, \infty)$} (v1);
+\draw[->] (u1) -- node[elabel, pos=0.5] {$(d_{12}, \infty)$} (v2);
+\draw[->] (u1) -- node[elabel, pos=0.5] {$(d_{13}, \infty)$} (v3);
+
+\node[font=\Large] at (5, -0.8) {$\vdots$};
+\node[font=\Large] at (5, -1.8) {$\vdots$};
+
+\foreach \j in {1,...,3} {
+    \draw[->] (v\j) -- node[elabel, pos=0.5] {$(0,1)$} (t);
+}
+
+\draw[->, rounded corners=5pt] (s) -- (0, -4.2) -- node[elabel] {$(\omega, \infty)$} (10, -4.2) -- (t);
+
+\end{tikzpicture}
+    \caption{Protein structure pockets matching network}
+    \label{fig:protein_pockets}
+\end{figure}
+
+
+\begin{center}
+
+\end{center}
+
+
+\subsection{An overview of the most notable results}
+The minimum cost flow problem has been studied extensively, especially in the early 1990s. In recent years, researchers have developed many techniques to design more effective algorithms to solve the problem. In this section, we list some known algorithms and their running times.
+
+There are many different approaches to the problem that could be divided into three distinct sections. The first, classical algorithms had \textit{pseudo-polynomial} deterministic time complexity, then there were developed more sophisticated \textit{polynomial} deterministic time algorithms, and the latest, \textit{randomized} polynomial time algorithms.
+
+Let $U = \max_{e\in E} \{ u_e\}$ denote the maximum capacity and let $C = \max_{e \in E} \{|c_e| \}$ denote the maximum arc cost. We call the algorithm \textit{polynomial} when its running time is polynomially bounded in terms of $n$, $m$, $\log U$ and $\log C$ as the input network can be encoded on the polynomial number bits with respect to these quantities. We say that the algorithm is \textit{strongly polynomial} if its time complexity is polynomially bounded only in terms of $n$ or $m$.
+
+Many algorithms reduce the minimum cost flow problems to simpler problems, including the \textit{shortest path problem} (marked as $SP$), the \textit{maximum flow problem} ($MF$) and the \textit{negative cost cycle} ($NC$). When the time complexity of an algorithm is stated as $O(mn^2C) \cdot SP$, it means that the running time of the algorithm is dominated by solving the shortest path problem $O(mn^2 C)$ times. 
+
+\subsubsection{Classical pseudo-polynomial algorithms for MCF}
+In \Cref{tab:classical} we recall some classical minimum cost flow algorithms, running in pseudo-polynomial times.
+\begin{table}[ht!]
+\centering
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Year}       & \textbf{Running time}          & \textbf{Reference}  \\        
+\midrule
+1960      & \(O(mn^2C) \cdot SP\)               & Iri \cite{iri1960}, Busacker and Gowen \cite{busacker1960} \\
+1960      & \(O(mU)\cdot SP\) & Minty \cite{minty1960}, Fulkerson \cite{fulkerson1960} \\
+1962 & \(O(n \min \{U,C\}) \cdot (SP+MF)\) & Ford and Fulkerson \cite{ford1962} \\
+1967 & \(O(mC) \cdot NC \) & Klein \cite{klein1967} \\
+1969 & \(O(nU) \cdot SP\) & Edmonds and Karp \cite{edmonds1969} \\
+\bottomrule
+\end{tabular}
+
+\caption{Classical pseudo-polynomial algorithms for MCF from \cite{algorithms-survey}}
+\label{tab:classical}
+\end{table}
+
+\subsubsection{Polynomial algorithms}
+In the 1970s and 1980s several polynomial-time algorithms were developed for minimum cost flow. Their time complexity and authors are shown in \Cref{tab:polyalgs}. The algorithms in bold are the main topic of this work. 
+
+\begin{table}[ht!]
+\centering
+
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Year}       & \textbf{Running time}          & \textbf{Reference}  \\        
+\midrule
+\textbf{1972}      &  \bfseries\boldmath \(O(m \log U) \cdot SP\)               & \textbf{Edmonds and Karp} \cite{edmonds1972} \\
+1980      & \(O(m \log C) \cdot MF\) & Röck \cite{rock1980}\\
+1984 & \(O(m^2 \log n)\ \cdot SP\) & Orlin \cite{orlin1984}, Fujishige \cite{fujishige1984}\\
+1985 & \(O(m^2 \log n) \cdot MF \) & Tardos \cite{tardos1985} \\
+1986 & \(O(n^2 \log n) \cdot SP\) & Galil and Tardos \cite{galil1986} \\
+1987 & \(O(m n \log n \log  U \log(nC))\) & Gabow and Tarjan \cite{gabow1987} \\
+ \textbf{1987} & \bfseries\boldmath\(O(n^3 \log(nC))\) & \textbf{Goldberg and Tarjan} \cite{goldberg-MY} \\
+\textbf{1988} & \bfseries\boldmath\(O(m \log n) \cdot SP\) & \textbf{Orlin} \cite{orlin1993faster} \\
+1988 & \(O(m n \log \log U \log (nC))\) & Ahuja et al. \cite{ahuja-MY} \\
+\bottomrule
+\end{tabular}
+
+\caption{Polynomial time algorithms for MCF from \cite{algorithms-survey}}
+\label{tab:polyalgs}
+
+\end{table}
+
+\subsubsection{Randomized algorithms}
+In \Cref{tab:randomized}, we cite some recent randomized algorithms for minimum cost flow problem. Despite the lack of detailed description in this work, they are worth mentioning because they are current state-of-the-art MCF algorithms.
+
+\begin{table}[ht!]
+\centering
+
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Year}       & \textbf{Running time}          & \textbf{Reference}  \\        
+\midrule
+2008      & \(O(m^{3/2}\,\polylog n\log U)\)               & Daitch and Spielman \cite{daitch2008} \\
+2014      & \(O(m \sqrt{n}\,\polylog n \log^2 U)\) & Lee and Sidford \cite{lee2014}\\
+2021 & \(O((m \log(U C) + n^{1.5} \log^2(UC))\,\polylog n)\) & van den Brand et al. \cite{brand2021} \\
+2021 & \(O(m^{3/2-1/762}\,\polylog n \log (U+C)) \) & Axiotis et al. \cite{axiotis2021} \\
+2022 & \(O(m^{3/2-1/58}\,\polylog n \log(U+C))\) & van den Brand et al. \cite{brand2022} \\
+2022 & \(O(m^{1+o(1)}\log U \log C)\) & Chen et al. \cite{chen2022} \\
+
+\bottomrule
+\end{tabular}
+
+\caption{Recent randomized algorithms for MCF from \cite{algorithms-survey}}
+\label{tab:randomized}
+\end{table}
+

@@ -1,0 +1,84 @@
+\section{Correctness and complexity of the algorithm}
+
+\subsection{Correctness}
+We now show the correctness of the algorithm.
+
+\begin{lemma}[Lemma 9 in \cite{orlin1993faster}]\label{lem:integral_multiple}
+    At every step of the strongly polynomial time algorithm, the flow and the residual capacity of each arc $(i,j)$ in the residual network is an integral multiple of the scale factor $\Delta$.
+\end{lemma}
+
+\begin{proof}
+    Recall that $\Delta$ is a power of 2. At each consecutive phase, we divide $\Delta$ by two. Since we always send $\Delta$ units of flow, the flow value for each arc is divisible by $\Delta$. The network is uncapacitated, thus for any residual arc $(i,j)$, the residual capacity $r_{ij}$, is either $r_{ij} = \infty$, or $r_{ij} = x_{ji}$.  
+\end{proof}
+
+This lemma ensures that each augmentation can send exactly $\Delta$ units of flow. Throughout its execution, the algorithm maintains a pseudoflow that satisfies the optimality conditions, and it terminates once we get a feasible flow.
+
+At the end of each $\Delta$-scaling phase, the reduced cost optimality conditions remain satisfied for $G(x, \Delta)$. The further analysis is similar to the one from \Cref{alg:capacity_scaling}. 
+
+\subsection{Complexity}
+
+Let $\Delta'$ and $\Delta$ denote the scaling factors in two consecutive phases, with $\Delta' \geq 2\Delta$ (the inequality may be strict, if the condition in the line 5 of \Cref{alg:strongly_poly_capacity_scaling} holds). We say that a node $k$ is \emph{regenerated} if, at the start of the $\Delta$-scaling phase, its excess satisfies $\alpha\Delta \leq |e(k)| < \alpha\Delta'$. If we contract some pair of nodes during the $\Delta$-scaling phase, into one node $k$, we do not consider the node $k$ as regenerated in that phase \cite{orlin1993faster}.
+
+The following lemma provides an upper bound on the number of augmentations that can occur during the $\Delta$-scaling phase. The proof is complicated, so we decided not to quote it, but it can be found in \cite{orlin1993faster}.
+
+\begin{lemma}[Lemma 10 in \cite{orlin1993faster}] \label{lem:augmentation_bound}
+    The number of augmentations during the $\Delta$-scaling phase is bounded by the number of regenerated nodes plus the number of contractions in that phase.
+\end{lemma}
+
+
+
+\begin{lemma} [Lemma 12 in \cite{orlin1993faster}]
+At each stage of the algorithm, $e(k) = b(k)\, \text{mod}\,\Delta$ for every node $k\in \hat{V}$.
+\end{lemma}
+
+\begin{proof}[Proof (see {\cite[p.~346]{orlin1993faster}})]
+    The value $e(k)$ is $b(k)$ minus the flow of each outgoing residual arc. By \Cref{lem:integral_multiple}, each arc flow is a multiple of $\Delta$. Thus we Hence, $e(k) = b(k)\, \text{mod}\, \Delta$.
+\end{proof}
+
+\begin{lemma} [Lemma 13 in \cite{orlin1993faster}]\label{lem:regenerated_inequality}
+    The first time that a node $k$ is regenerated, it satisfies $|e(k)| \leq 2\alpha|b(k)|/(2-2\alpha)$.
+\end{lemma}
+Due to the long and tedious calculations involved, the proof of this lemma has been omitted.
+
+We need to introduce a lemma proving the idea of the contraction.
+
+\begin{lemma}[Lemma 8 in \cite{orlin1993faster}] \label{lem:contraction_bound}
+Suppose that at the termination of the $\Delta$-scaling phase, $|b(i)| > 5n^2\Delta$ for some node $i$ in $V$. Then there is an arc $(i,j)$ or $(j,i)$ incident to node $i$ such that the flow on the arc is at least $3n\Delta$.
+\end{lemma}
+
+\begin{proof}[Proof (see {\cite[p.344]{orlin1993faster}})]
+Let $i\in V$ satisfy $b(i) > 5n^2\Delta$ (for $b(i) < -5n^2 \Delta$, the proof is analogous). Note that after the $\Delta$-scaling phase, the total bound for excess or deficit cannot be greater than $2n\Delta$. Thus, we have $e(i) \leq 2n\Delta$. The number of adjacent nodes to $i$ is less than $n$. Therefore, we bound the value of flow between any adjacent node by $(b(i) - e(i))/n \geq (5n^2\Delta - 2n\Delta)/n \geq 3n\Delta$.
+\end{proof}
+
+
+\begin{lemma}[Lemma 14 in \cite{orlin1993faster}]
+    Each node is regenerated $O(\log n)$ times.
+\end{lemma}
+\begin{proof}[Proof (from {\cite[p.~347]{orlin1993faster}})]
+    Suppose that a node $k$ is regenerated for the first time at the $\Delta^*$-scaling phase. Let $\alpha^* = 2\alpha/(2-2\alpha)$. Then $\alpha\Delta^* \leq |e(k)| \leq \alpha^*|b(k)|$, where the second inequality follows from \Cref{lem:regenerated_inequality}. After $\lceil\log(5\alpha^*n^2/\alpha)\rceil = O(\log n)$ scaling phases, the scale factor is at most $\Delta^*/5\alpha^*n^2 \leq |b(k)|/5n^2$. By \Cref{lem:contraction_bound}, there exists a strongly feasible arc emanating from node $k$. The node $k$ then contracts into a new node and is (vacuously) not regenerated again.
+\end{proof}
+
+Since there are at most $n$ nodes in the contracted network, the following theorem is immediate.
+
+\begin{theorem}[Theorem 2 in \cite{orlin1993faster}]\label{thm:augmentations_bound}
+    The total number of augmentations over all scaling phases is $O(n \log n)$.
+\end{theorem}
+
+Next theorem bounds the number of scaling phases performed by algorithm. We state the theorem without a proof. Since we know by \Cref{thm:augmentations_bound} that the number of scaling phases with at least one augmentation is $O(n \log n)$, it must be proven that the bound on the number of scaling phases without any augmentation is also $O(n\log n)$. This proof is more technical, and may be found in \cite{orlin1993faster}. Having the bounds, the following theorem is immediate.
+\begin{theorem}[Theorem 3 in \cite{orlin1993faster}]\label{thm:scaling_phases_bound} 
+    The algorithm performs $O(n \log n)$ scaling phases.
+\end{theorem}
+
+\begin{theorem}[Theorem 4 in \cite{orlin1993faster}]
+    The strongly polynomial algorithm determines the minimum cost flow in the contracted network in $O((n\log n)SP(n,m))$ time.
+\end{theorem}
+\begin{proof}[Proof (from {\cite[p.~347]{orlin1993faster}})]
+    Let us overview the time complexity of the operations in $\Delta$-scaling phase. Reducing the scale factor by a factor other than two requires $O(m)$ time. Identification of the contractible arcs can also be done in $O(m)$ time. We identify the sets $S(\Delta)$ and $T(\Delta)$ in $O(n)$ running time. By \Cref{thm:scaling_phases_bound} there are $O(n\log n)$ scaling phases, so these operations require $O((n\log n) m$ total time.
+    Each augmentation involes solving a shortest path problem and augmenting flow along this time. So the total time needed to perform these operations is $O((n \log n )SP(n,m))$
+\end{proof}
+
+The last theorem applies for the capacitated networks using the shortest path algorithm approach given in \Cref{sec:modified_spp}. Recall that for the capacitated network, we need to add an additional node for each arc to transform it into an uncapacitated network. Those modifications explain the difference between time complexities.
+
+\begin{theorem}[Theorem 5 in \cite{orlin1993faster}]
+    The strongly polynomial algorithm from \cite{orlin1993faster} solves the uncapacitated minimum cost flow problem in $O(n\log n (m + n \log n))$ time, and the capacitated minimum cost flow problem in $O(m \log n (m+ n\log n))$ time.
+\end{theorem}

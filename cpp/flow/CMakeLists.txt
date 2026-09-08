@@ -6,6 +6,10 @@ koala_add_module(flow
     GoldbergTarjanPushRelabelMaximumFlow.cpp
     MalhotraKumarMaheshwariFlow.cpp
     BoykovKolmogorovMaximumFlow.cpp
+    minimum_cost_flow/MCFlowNetwork.cpp
+    minimum_cost_flow/EdmondsKarpMinimumCostFlow.cpp
+    minimum_cost_flow/OrlinMinimumCostFlow.cpp
+    minimum_cost_flow/SuccessiveApproximationMinimumCostFlow.cpp
 
     # Electrical Flow
     ElectricalFlow.cpp

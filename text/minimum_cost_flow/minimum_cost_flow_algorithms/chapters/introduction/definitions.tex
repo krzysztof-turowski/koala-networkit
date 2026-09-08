@@ -1,0 +1,46 @@
+\section{Notations and assumptions}
+
+\begin{defn}[Graph and network \cite{ahuja1993network}]
+A \textbf{directed graph} $G=(V,E)$ consists of a set $V$ of nodes and a set $E$ of arc whose elements are ordered pairs of distinct nodes. A \textbf{directed network} is a directed graph whose nodes and/or arcs have associated numerical values. 
+\end{defn}
+In this paper, we use terms \textit{graph} and \textit{network} interchangeably. 
+
+\begin{defn}[Flow \cite{ahuja1993network}]
+\label{def:flow}
+    A \textbf{flow} $x$ is a function $x\colon E \rightarrow \mathbb{R}$ for a given function $b\colon V \to \mathbb{R}$ that satisfies the following constraints:
+    \begin{itemize}
+        \item $\sum _ {\{j\colon (i,j) \in E\}} x_{ij} - \sum _ {\{j\colon (j,i) \in E\}} x_{ji} = b(i)\ \text{for all } i\in V$,
+        \item $0 \leq x_{ij} \leq u_{ij} \ \text{for all }(i,j) \in E$.
+    \end{itemize}
+\end{defn}
+
+
+\begin{defn}[Minimum cost flow \cite{ahuja1993network}]
+\label{def:mincostflow}
+Let $G=(V,E)$ be a directed network with a cost $c_{ij}$ and a capacity $u_{ij}$ associated with every arc $(i,j) \in E$. For each node $i \in V$, we have a number $b(i)$, $b\colon V \to \mathbb{R}$ that indicates its \textbf{supply} $(b(i) > 0)$, or \textbf{demand} $(b(i) < 0)$. The \textbf{minimum cost flow problem} can be stated as follows:
+
+\[
+    \text{minimize}\ z(x) = cx = \sum_{(i,j) \in E} c_{ij} x_{ij}
+\]    
+among all flows $x$.
+
+\end{defn}
+
+For simplicity, we often use an algebraic notation for some functions, implicitly converting them to vectors, that is, $b$ (without any brackets) or $c$ (without any subscripts) can be used as vectors of values $b(i)$ for each node $i \in V$ and $c_{ij}$ for each edge $(i,j) \in E$ respectively. The usage depends on the context.
+
+\begin{defn}[Pseudoflow \cite{orlin1993faster}]
+A \textbf{pseudoflow} $x$ is a function $x\colon E \rightarrow \mathbb{R}$ that satisfies only the non-negativity constraint $0 \leq x_{ij} \leq u_{ij}$ for all ${(i,j)\in E}$.
+\end{defn}
+
+Clearly every flow $x$ for any $b$ is also a pseudoflow.
+
+\begin{defn}[Imbalance \cite{orlin1993faster}]\label{def:imbalance}
+For a given pseudoflow $x \colon E\to \mathbb{R}$, we define the \textbf{imbalance} at node $i$ to be
+\[
+e(i) = b(i) + \sum_{\{j\colon(j,i)\in E\}} x_{ji} - \sum_{\{j\colon(i,j)\in E\}} x_{ij}.\]
+\end{defn}
+A positive $e(i)$ is referred to as an \textit{excess} and a negative $e(i)$ is called a \textit{deficit}.
+
+\begin{defn}[Residual network \cite{orlin1993faster}]\label{def:residual}
+The \textbf{residual network} for a graph $G=(V,E)$ with costs $c\colon E \to \mathbb{R}$, capacities $u\colon E\to \mathbb{R}$ and pseudoflow $x\colon E \to \mathbb{R}$ is denoted as $G(x) = (V, E')$ and defined as follows. We replace each arc $(i,j) \in E$ with two arcs $(i,j),(j,i)\in E'$. The arc $(i,j)$ has cost $c_{ij}$ and \textbf{residual capacity} $r_{ij} = u_{ij} - x_{ij}$ and the arc $(j,i)$ has cost $-c_{ij}$ and residual capacity $r_{ji} = x_{ij}$. A residual network consists \textbf{only} of arcs with positive residual capacity.
+\end{defn}
