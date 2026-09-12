@@ -55,8 +55,6 @@ class SuccessiveApproximationMinimumCostFlow final : public MinimumCostFlow {
    private:
     SuccessiveApproximationMinimumCostFlow &algorithm;
     std::list<NetworKit::node> nodes;
-    std::vector<bool> visited;
-    void dfs(NetworKit::node u);
 
     std::list<NetworKit::node>::iterator current;
     std::list<NetworKit::node>::iterator next;
