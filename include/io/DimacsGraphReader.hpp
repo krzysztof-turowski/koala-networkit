@@ -48,7 +48,7 @@ class DimacsGraphReader final : public NetworKit::GraphReader {
      * @param[in]  path  input file path
      * @param[out]  the graph read from file, together with source and target nodes
      */
-    std::tuple<NetworKit::Graph, NetworKit::node, NetworKit::node> read_all(
+    std::tuple<NetworKit::Graph, NetworKit::node, NetworKit::node> read_all_no_costs(
         const std::string &path);
 
     /**
@@ -58,7 +58,7 @@ class DimacsGraphReader final : public NetworKit::GraphReader {
      * @param[in]  path  input file path
      * @param[out]  the graph read from file, together with source and target nodes
      */
-    McfResult read_all_mcf(const std::string &path);
+    McfResult read_all(const std::string &path);
 
     /**
      * Given the path of an input file, read the graph for minimum cost flow.
@@ -67,7 +67,7 @@ class DimacsGraphReader final : public NetworKit::GraphReader {
      * @param[out]  the graph read from file with edges,
      *              together with maps mapping edges to costs and nodes to supply/demand
      */
-    MinCostFlowResult read_minimum_cost_flow(const std::string &path);
+    MinCostFlowResult read_all_no_endpoints(const std::string &path);
 };
 
 } /* namespace Koala */

@@ -109,10 +109,10 @@ void read_node(std::ifstream &graphFile, NetworKit::Graph &graph,
 
 
 NetworKit::Graph DimacsGraphReader::read(std::string_view path) {
-    return std::get<0>(read_all(std::string{path}));
+    return std::get<0>(read_all_no_costs(std::string{path}));
 }
 
-DimacsGraphReader::McfResult DimacsGraphReader::read_all_mcf(const std::string &path) {
+DimacsGraphReader::McfResult DimacsGraphReader::read_all(const std::string &path) {
     std::ifstream graphFile(path);
     Aux::enforceOpened(graphFile);
 
@@ -159,15 +159,15 @@ DimacsGraphReader::McfResult DimacsGraphReader::read_all_mcf(const std::string &
     return std::make_tuple(graph, costs, b, _, _);
 }
 
-std::tuple<NetworKit::Graph, NetworKit::node, NetworKit::node> DimacsGraphReader::read_all(
+std::tuple<NetworKit::Graph, NetworKit::node, NetworKit::node> DimacsGraphReader::read_all_no_costs(
         const std::string &path) {
-    auto [graph, costs, b, s, t] = read_all_mcf(path);
+    auto [graph, costs, b, s, t] = read_all(path);
     return { graph, s, t };
 }
 
-DimacsGraphReader::MinCostFlowResult DimacsGraphReader::read_minimum_cost_flow(
+DimacsGraphReader::MinCostFlowResult DimacsGraphReader::read_all_no_endpoints(
         const std::string &path) {
-    auto [graph, costs, b, s, t] = read_all_mcf(path);
+    auto [graph, costs, b, s, t] = read_all(path);
     return { graph, costs, b };
 }
 

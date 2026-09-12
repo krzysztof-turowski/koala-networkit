@@ -14,7 +14,7 @@
 
 template <typename FlowAlgorithm>
 void run_mcf_algorithm(const std::string &file_path, const std::string &name) {
-    auto [G, costs, b] = Koala::DimacsGraphReader().read_minimum_cost_flow(file_path);
+    auto [G, costs, b] = Koala::DimacsGraphReader().read_all_no_endpoints(file_path);
     Koala::MCFlowNetwork network(G,
         std::unordered_map<NetworKit::Edge, std::int64_t>(costs.begin(), costs.end()),
         std::unordered_map<NetworKit::node, std::int64_t>(b.begin(), b.end()));
