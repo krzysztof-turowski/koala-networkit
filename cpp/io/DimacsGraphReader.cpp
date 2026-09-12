@@ -79,14 +79,14 @@ void read_edge(std::ifstream &graphFile, NetworKit::Graph &graph,
     }
 }
 
-void read_node(std::ifstream &graphFile, NetworKit::Graph &graph,
+void read_node(std::ifstream &graphFile,
         std::unordered_map<NetworKit::node, int64_t> &b,
         NetworKit::node &s,
         NetworKit::node &t,
         const std::string &format) {
     NetworKit::node v = NetworKit::none;
     std::string label;
-    int supply;
+    int64_t supply;
 
     switch (convert[format]) {
         case Format::min:
@@ -148,7 +148,7 @@ DimacsGraphReader::McfResult DimacsGraphReader::read_all(const std::string &path
                 read_edge(graphFile, graph, costs, format);
                 break;
             case 'n':
-                read_node(graphFile, graph, b, _, _, format);
+                read_node(graphFile, b, _, _, format);
                 break;
             default:
                 throw std::runtime_error("Unknown line type");

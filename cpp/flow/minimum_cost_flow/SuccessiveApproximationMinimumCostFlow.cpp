@@ -1,10 +1,13 @@
 #include <flow/minimum_cost_flow/SuccessiveApproximationMinimumCostFlow.hpp>
-#include <networkit/graph/GraphTools.hpp>
 
 #include <algorithm>
 #include <limits>
+#include <list>
 #include <memory>
+#include <unordered_map>
 #include <vector>
+
+#include <networkit/graph/GraphTools.hpp>
 
 namespace Koala {
 
@@ -159,7 +162,6 @@ void SuccessiveApproximationMinimumCostFlow::run_impl() {
 
 SuccessiveApproximationMinimumCostFlow::ToposortList::ToposortList(
     SuccessiveApproximationMinimumCostFlow &algorithm) : algorithm(algorithm) {
-    
     auto residual_graph = NetworKit::GraphTools::copyNodes(algorithm.network.getGraph());
     for (NetworKit::index i = 0; i < algorithm.edges.size(); i++) {
         if (algorithm.reduced_cost(i) < 0 && algorithm.residual_capacity(i) > 0) {
@@ -193,7 +195,8 @@ int64_t SuccessiveApproximationMinimumCostFlow::getFlow(NetworKit::Edge const& e
     return computed_flow[edge];
 }
 
-std::unordered_map<NetworKit::Edge, int64_t> SuccessiveApproximationMinimumCostFlow::getMinCostFlow() const  {
+std::unordered_map<NetworKit::Edge, int64_t>
+SuccessiveApproximationMinimumCostFlow::getMinCostFlow() const {
     return computed_flow;
 }
 

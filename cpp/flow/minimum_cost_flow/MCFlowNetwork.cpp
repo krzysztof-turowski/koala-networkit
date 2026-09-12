@@ -1,9 +1,10 @@
 #include <flow/minimum_cost_flow/MCFlowNetwork.hpp>
-#include <networkit/graph/GraphTools.hpp>
 
 #include <algorithm>
 #include <limits>
 #include <unordered_map>
+
+#include <networkit/graph/GraphTools.hpp>
 
 using node = NetworKit::node;
 using Edge = NetworKit::Edge;
@@ -11,9 +12,9 @@ using Graph = NetworKit:: Graph;
 
 namespace Koala {
 
-MCFlowNetwork::MCFlowNetwork(Graph const& g, bool circulation = false) : graph(g) {
+MCFlowNetwork::MCFlowNetwork(Graph const& g, bool) : graph(g) {
     if (graph.isWeighted()) {
-        graph.forEdges([&](node u, node v, NetworKit::edgeweight weight, NetworKit::edgeid _) {
+        graph.forEdges([&](node u, node v, NetworKit::edgeweight weight, NetworKit::edgeid) {
             capacity[{u, v}] += static_cast<int64_t>(weight < 0 ? weight - 0.5 : weight + 0.5);
         });
     } else {
@@ -24,14 +25,14 @@ MCFlowNetwork::MCFlowNetwork(Graph const& g, bool circulation = false) : graph(g
 }
 
 MCFlowNetwork::MCFlowNetwork(
-    Graph const& g, std::unordered_map<Edge, int64_t> const& cost, bool circulation = false)
+    Graph const& g, std::unordered_map<Edge, int64_t> const& cost, bool circulation)
     : MCFlowNetwork(g, circulation) {
     this->cost = cost;
 }
 
 MCFlowNetwork::MCFlowNetwork(
     Graph const& g, std::unordered_map<Edge, int64_t> const& cost,
-    std::unordered_map<node, int64_t> const& node_excess, bool circulation = false)
+    std::unordered_map<node, int64_t> const& node_excess, bool circulation)
     : MCFlowNetwork(g, cost, circulation) {
     excess = node_excess;
 }
@@ -46,7 +47,7 @@ node MCFlowNetwork::addNode(int64_t node_excess = 0) {
     return newNode;
 }
 
-void MCFlowNetwork::addEdge(node s, node t, int64_t cost = 0, int64_t capacity = 0) {
+void MCFlowNetwork::addEdge(node s, node t, int64_t cost, int64_t capacity) {
     graph.addEdge(s, t, capacity);
     if (graph.isWeighted())
         this->capacity[{s, t}] += capacity;
@@ -68,7 +69,6 @@ void MCFlowNetwork::makeConnected() {
     cost[{sx, sx2}] = max_cost;
     graph.forNodes([&](NetworKit::node u) {
         if (sx == u || sx2 == u) return;
-        auto bound = graph.upperEdgeIdBound();
         this->capacity[{u, sx}] = this->capacity[{sx2, u}] = std::numeric_limits<int64_t>::max();
         graph.addEdge(u, sx, std::numeric_limits<NetworKit::edgeweight>::infinity());
         graph.addEdge(sx2, u, std::numeric_limits<NetworKit::edgeweight>::infinity());
@@ -77,8 +77,8 @@ void MCFlowNetwork::makeConnected() {
 
 void MCFlowNetwork::makeUncapacitated() {
     NetworKit::Graph g = NetworKit::GraphTools::copyNodes(graph);
-    
-    graph.forEdges([&](node u, node v, NetworKit::edgeweight weight) {
+
+    graph.forEdges([&](node u, node v, NetworKit::edgeweight) {
         int64_t cap = capacity[{u, v}];
         if (cap <= 0 || cap == std::numeric_limits<int64_t>::max())
             return;
