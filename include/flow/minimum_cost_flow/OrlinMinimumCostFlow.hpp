@@ -2,7 +2,6 @@
 
 #include <climits>
 #include <cstdint>
-#include <map>
 #include <optional>
 #include <queue>
 #include <set>
@@ -31,20 +30,20 @@ class OrlinMinimumCostFlow final : public MinimumCostFlow {
   // potential that is computed for the original network
   std::vector<int64_t> potential_computed;
   std::vector<int64_t> excess;
-  std::vector<std::pair<int64_t, NetworKit::index>> dist;
+  std::vector<std::pair<int64_t, NetworKit::index>> distances;
   std::vector<bool> visited;
   NetworKit::count nodes_number;
-  NetworKit::count max_nodeid;
-  // Storing with costs for potential resotration
+  NetworKit::count max_node_id;
+  // Storing with costs for potential restoration
   std::stack<std::tuple<NetworKit::node, NetworKit::node, int64_t>> contracted_nodes;
   const double ALPHA = 0.7;
 
-  std::optional<Koala::GoldbergTarjanPushRelabelMaximumFlow> maxflow;
+  std::optional<GoldbergTarjanPushRelabelMaximumFlow> maxflow;
   void run_impl() override;
   bool is_imbalanced();
   void initialize();
   int64_t find_optimal_delta(int64_t delta);
-  void push_no_excess(NetworKit::index edge_idx, int64_t amount);
+  void push_no_excess(NetworKit::index edge_index, int64_t amount);
   void contract_nodes(NetworKit::node u, NetworKit::node v);
   void apply_potential();
   void contraction_phase(int64_t delta);
@@ -56,12 +55,12 @@ class OrlinMinimumCostFlow final : public MinimumCostFlow {
   std::pair<NetworKit::node, NetworKit::node> uncapacitated_nodes_bounds;
   bool is_added_uncapacitated(NetworKit::node v) const;
   void compute_final_flows();
-  std::unordered_map<NetworKit::Edge, std::int64_t> computed_flow;
+  std::unordered_map<NetworKit::Edge, int64_t> computed_flow;
 
  public:
-  explicit OrlinMinimumCostFlow(Koala::MCFlowNetwork& network) : MinimumCostFlow(network) {}
-  int64_t getFlow(const NetworKit::Edge& edge) override;
-  std::unordered_map<NetworKit::Edge, std::int64_t> getMinCostFlow() const override {
+  explicit OrlinMinimumCostFlow(MCFlowNetwork const& network) : MinimumCostFlow(network) {}
+  int64_t getFlow(NetworKit::Edge const& edge) override;
+  std::unordered_map<NetworKit::Edge, int64_t> getMinCostFlow() const override {
       return computed_flow;
   }
 };

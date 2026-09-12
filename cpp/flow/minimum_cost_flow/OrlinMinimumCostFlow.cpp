@@ -10,14 +10,11 @@
 
 #include <flow/GoldbergTarjanPushRelabelMaximumFlow.hpp>
 
-using edgeid = NetworKit::edgeid;
 using node = NetworKit::node;
-using Edge = NetworKit::Edge;
-using int64 = std::int64_t;
 
 namespace Koala {
 
-int64 OrlinMinimumCostFlow::getFlow(const NetworKit::Edge& edge) {
+int64_t OrlinMinimumCostFlow::getFlow(NetworKit::Edge const& edge) {
     if (maxflow.has_value()) {
         return maxflow->getFlow({edge.u, edge.v});
     }
@@ -31,39 +28,39 @@ void OrlinMinimumCostFlow::initialize() {
     network.makeConnected();
     auto& graph = network.getGraph();
     nodes_number = graph.numberOfNodes();
-    max_nodeid = graph.upperNodeIdBound();
+    max_node_id = graph.upperNodeIdBound();
     original_graph = graph;
-    excess.assign(max_nodeid, 0);
+    excess.assign(max_node_id, 0);
     for (auto [key, value] : network.excess) {
         excess[key] = value;
     }
-    potential.assign(max_nodeid, 0);
+    potential.assign(max_node_id, 0);
     potential_computed = potential;
-    dist.assign(max_nodeid, {std::numeric_limits<int64_t>::max(), 0});
-    visited.assign(max_nodeid, false);
+    distances.assign(max_node_id, {std::numeric_limits<int64_t>::max(), 0});
+    visited.assign(max_node_id, false);
     edges.assign(2 * graph.numberOfEdges(), Edge());
-    NetworKit::index ptr = 0;
+    NetworKit::index edge_pair_index = 0;
 
-    neighbors.assign(max_nodeid, std::vector<NetworKit::index>());
+    neighbors.assign(max_node_id, std::vector<NetworKit::index>());
 
     graph.forNodes([&](node u) {
         graph.forNeighborsOf(u, [&](node v) {
             node from = u;
             node to = v;
-            int64 cost = network.cost[{u, v}];
-            int64 capacity = network.capacity[{u, v}];
-            neighbors[from].push_back(2*ptr);
-            edges[2*ptr] = {
+            int64_t cost = network.cost[{u, v}];
+            int64_t capacity = network.capacity[{u, v}];
+            neighbors[from].push_back(2*edge_pair_index);
+            edges[2*edge_pair_index] = {
                 from, to,
                 cost, capacity, 0LL
             };
 
-            neighbors[to].push_back(2*ptr+1);
-            edges[2*ptr + 1] = {
+            neighbors[to].push_back(2*edge_pair_index + 1);
+            edges[2*edge_pair_index + 1] = {
                 to, from,
                 -cost, 0LL, 0LL
             };
-            ++ptr;
+            ++edge_pair_index;
         });
     });
     original_edges = edges;
@@ -84,18 +81,18 @@ void OrlinMinimumCostFlow::apply_potential() {
 
 void OrlinMinimumCostFlow::contract_nodes(node u, node v) {
     if (u > v) std::swap(u, v);
-    for (NetworKit::index edge_idx : neighbors[v]) {
-        Edge& edge = edges[edge_idx];
+    for (NetworKit::index edge_index : neighbors[v]) {
+        Edge& edge = edges[edge_index];
         if (edge.to == u) {
             edge.capacity = 0;
             edge.flow = 0;
-            edges[edge_idx ^ 1].capacity = 0;
-            edges[edge_idx ^ 1].flow = 0;
+            edges[edge_index ^ 1].capacity = 0;
+            edges[edge_index ^ 1].flow = 0;
         } else {
             edge.from = u;
-            neighbors[u].push_back(edge_idx);
+            neighbors[u].push_back(edge_index);
 
-            edges[edge_idx ^ 1].to = u;
+            edges[edge_index ^ 1].to = u;
         }
     }
 
@@ -105,9 +102,9 @@ void OrlinMinimumCostFlow::contract_nodes(node u, node v) {
     neighbors[v].clear();
 }
 
-void OrlinMinimumCostFlow::push_no_excess(NetworKit::index edge_idx, int64_t amount) {
-    edges[edge_idx].flow += amount;
-    edges[edge_idx ^ 1].flow -= amount;
+void OrlinMinimumCostFlow::push_no_excess(NetworKit::index edge_index, int64_t amount) {
+    edges[edge_index].flow += amount;
+    edges[edge_index ^ 1].flow -= amount;
 }
 
 int64_t OrlinMinimumCostFlow::find_optimal_delta(int64_t delta) {
@@ -116,31 +113,31 @@ int64_t OrlinMinimumCostFlow::find_optimal_delta(int64_t delta) {
             return delta;
         }
     }
-    int64_t newDelta = 1;
-    for (int64_t excess : excess) {
-        while (newDelta < excess) {
-            newDelta <<= 1;
+    int64_t new_delta = 1;
+    for (int64_t node_excess : excess) {
+        while (new_delta < node_excess) {
+            new_delta <<= 1;
         }
     }
-    return newDelta;
+    return new_delta;
 }
 
 void OrlinMinimumCostFlow::contraction_phase(int64_t delta) {
     apply_potential();
-    for (NetworKit::index i = 0; i < edges.size(); ++i) {
-        const Edge& edge = edges[i];
+    for (NetworKit::index edge_index = 0; edge_index < edges.size(); ++edge_index) {
+        const Edge& edge = edges[edge_index];
         if (edge.from != edge.to
                 && edge.flow >= 3 * delta * static_cast<int64_t>(nodes_number)) {
             contract_nodes(edge.from, edge.to);
             // { u, v, edge_cost }
-            contracted_nodes.push({edge.from, edge.to, original_edges[i].cost});
+            contracted_nodes.push({edge.from, edge.to, original_edges[edge_index].cost});
         }
     }
 }
 
 bool OrlinMinimumCostFlow::is_imbalanced() {
-    for (const int64_t& supply : excess) {
-        if (supply != 0) {
+    for (const int64_t& node_excess : excess) {
+        if (node_excess != 0) {
             return true;
         }
     }
@@ -162,19 +159,19 @@ void OrlinMinimumCostFlow::uncontract_nodes_potential() {
 
 void OrlinMinimumCostFlow::augmenting_phase(node s, node t, int64_t delta) {
     dijkstra(s, delta);
-    node ptr = t;
-    while (ptr != s) {
-        NetworKit::index edge_idx = dist[ptr].second;
-        push_no_excess(edge_idx, delta);
-        ptr = edges[edge_idx].from;
+    node current_node = t;
+    while (current_node != s) {
+        NetworKit::index edge_index = distances[current_node].second;
+        push_no_excess(edge_index, delta);
+        current_node = edges[edge_index].from;
     }
     excess[s] -= delta;
     excess[t] += delta;
 
-    for (node i = 0; i < max_nodeid; i++) {
-        if (dist[i].first != std::numeric_limits<int64_t>::max()) {
-            potential[i] -= dist[i].first;
-            potential_computed[i] -= dist[i].first;
+    for (node v = 0; v < max_node_id; v++) {
+        if (distances[v].first != std::numeric_limits<int64_t>::max()) {
+            potential[v] -= distances[v].first;
+            potential_computed[v] -= distances[v].first;
         }
     }
 }
@@ -188,49 +185,49 @@ void OrlinMinimumCostFlow::run_impl() {
         delta = std::min(delta, find_optimal_delta(delta));
         contraction_phase(delta);
 
-        auto [uncap_begin, uncap_end] = uncapacitated_nodes_bounds;
-        for (node u = uncap_begin; u < uncap_end; u++) {
-            for (NetworKit::index edge_idx : neighbors[u]) {
-                NetworKit::index in_arc = edge_idx ^ 1;
-                const Edge& e = edges[in_arc];
-                node v = e.from;
+        auto [uncapacitated_begin, uncapacitated_end] = uncapacitated_nodes_bounds;
+        for (node u = uncapacitated_begin; u < uncapacitated_end; u++) {
+            for (NetworKit::index edge_index : neighbors[u]) {
+                NetworKit::index incoming_edge_index = edge_index ^ 1;
+                const Edge& incoming_edge = edges[incoming_edge_index];
+                node v = incoming_edge.from;
                 while (excess[u] <= -ALPHA*delta && excess[v] >= ALPHA*delta
-                       && e.cost == 0
-                       && e.capacity >= e.flow + delta) {
-                    push_no_excess(in_arc, delta);
+                       && incoming_edge.cost == 0
+                       && incoming_edge.capacity >= incoming_edge.flow + delta) {
+                    push_no_excess(incoming_edge_index, delta);
                     excess[v] -= delta;
                     excess[u] += delta;
                 }
                 while (excess[v] <= -ALPHA*delta && excess[u] >= ALPHA*delta
-                       && edges[edge_idx].cost == 0
-                       && edges[edge_idx].capacity >= edges[edge_idx].flow + delta) {
-                    push_no_excess(edge_idx, delta);
+                       && edges[edge_index].cost == 0
+                       && edges[edge_index].capacity >= edges[edge_index].flow + delta) {
+                    push_no_excess(edge_index, delta);
                     excess[u] -= delta;
                     excess[v] += delta;
                 }
             }
         }
 
-        std::stack<node> S, T;
+        std::stack<node> excess_nodes, deficit_nodes;
 
-        for (node i = 0; i < max_nodeid; i++) {
-            if (excess[i] >= ALPHA*delta) {
-                S.push(i);
-            } else if (excess[i] <= -ALPHA*delta) {
-                T.push(i);
+        for (node v = 0; v < max_node_id; v++) {
+            if (excess[v] >= ALPHA*delta) {
+                excess_nodes.push(v);
+            } else if (excess[v] <= -ALPHA*delta) {
+                deficit_nodes.push(v);
             }
         }
 
-        while (!S.empty() && !T.empty()) {
-            node s = S.top();
-            node t = T.top();
+        while (!excess_nodes.empty() && !deficit_nodes.empty()) {
+            node s = excess_nodes.top();
+            node t = deficit_nodes.top();
 
             augmenting_phase(s, t, delta);
             if (excess[s] < ALPHA*delta) {
-                S.pop();
+                excess_nodes.pop();
             }
             if (excess[t] > -ALPHA*delta) {
-                T.pop();
+                deficit_nodes.pop();
             }
         }
 
@@ -244,43 +241,45 @@ void OrlinMinimumCostFlow::run_impl() {
 void OrlinMinimumCostFlow::dijkstra(node source, int64_t delta) {
     std::priority_queue<std::pair<int64_t, node>,
                         std::vector<std::pair<int64_t, node>>,
-                        std::greater<>> pq;
+                        std::greater<>> queue;
 
     std::fill(
-        dist.begin(), dist.end(),
+        distances.begin(), distances.end(),
         std::make_pair(std::numeric_limits<int64_t>::max(), NetworKit::index{0}));
     std::fill(visited.begin(), visited.end(), false);
-    dist[source] = {0, 0};
-    pq.push({0, source});
+    distances[source] = {0, 0};
+    queue.push({0, source});
 
-    while (!pq.empty()) {
-        auto [d, u] = pq.top();
-        pq.pop();
+    while (!queue.empty()) {
+        auto [distance, u] = queue.top();
+        queue.pop();
 
         if (visited[u]) continue;
         visited[u] = true;
 
-        for (NetworKit::index edge_idx : neighbors[u]) {
-            const Edge& edge = edges[edge_idx];
+        for (NetworKit::index edge_index : neighbors[u]) {
+            const Edge& edge = edges[edge_index];
             if (edge.capacity >= edge.flow + delta) {
                 node v = edge.to;
-                int64_t new_dist = d + edge.cost - potential[u] + potential[v];
-                if (new_dist < dist[v].first) {
-                    dist[v] = {new_dist, edge_idx};
+                int64_t new_distance = distance + edge.cost - potential[u] + potential[v];
+                if (new_distance < distances[v].first) {
+                    distances[v] = {new_distance, edge_index};
                     if (is_added_uncapacitated(v)) {
-                        for (NetworKit::index e2 : neighbors[v]) {
-                            const Edge& edge2 = edges[e2];
-                            if (edge2.to != u && edge2.capacity >= edge2.flow + delta) {
-                                node k = edge2.to;
-                                int64_t nd2 = new_dist + edge2.cost - potential[v] + potential[k];
-                                if (nd2 < dist[k].first) {
-                                    dist[k] = {nd2, e2};
-                                    pq.push({nd2, k});
+                        for (NetworKit::index next_edge_index : neighbors[v]) {
+                            const Edge& next_edge = edges[next_edge_index];
+                            if (next_edge.to != u
+                                    && next_edge.capacity >= next_edge.flow + delta) {
+                                node next_node = next_edge.to;
+                                int64_t next_distance = new_distance + next_edge.cost
+                                    - potential[v] + potential[next_node];
+                                if (next_distance < distances[next_node].first) {
+                                    distances[next_node] = {next_distance, next_edge_index};
+                                    queue.push({next_distance, next_node});
                                 }
                             }
                         }
                     } else {
-                        pq.push({new_dist, v});
+                        queue.push({new_distance, v});
                     }
                 }
             }
@@ -290,38 +289,38 @@ void OrlinMinimumCostFlow::dijkstra(node source, int64_t delta) {
 
 void OrlinMinimumCostFlow::make_reduced_costs_nonnegative() {
     constexpr int64_t INF = std::numeric_limits<int32_t>::max();
-    std::vector<int64_t> d(max_nodeid, INF);
-    d[0] = 0;
+    std::vector<int64_t> initial_distances(max_node_id, INF);
+    initial_distances[0] = 0;
 
     bool changed = true;
-    for (NetworKit::count iter = 0; iter < nodes_number && changed; ++iter) {
+    for (NetworKit::count iteration = 0; iteration < nodes_number && changed; ++iteration) {
         changed = false;
         for (const Edge& edge : edges) {
             if (edge.from == edge.to || edge.capacity <= edge.flow) continue;
-            if (d[edge.from] == INF) continue;
-            int64_t len = edge.cost - potential[edge.from] + potential[edge.to];
-            if (d[edge.from] + len < d[edge.to]) {
-                d[edge.to] = d[edge.from] + len;
+            if (initial_distances[edge.from] == INF) continue;
+            int64_t length = edge.cost - potential[edge.from] + potential[edge.to];
+            if (initial_distances[edge.from] + length < initial_distances[edge.to]) {
+                initial_distances[edge.to] = initial_distances[edge.from] + length;
                 changed = true;
             }
         }
     }
 
-    for (node v = 0; v < max_nodeid; ++v) {
-        if (d[v] == INF) continue;
-        potential[v] -= d[v];
-        potential_computed[v] -= d[v];
+    for (node v = 0; v < max_node_id; ++v) {
+        if (initial_distances[v] == INF) continue;
+        potential[v] -= initial_distances[v];
+        potential_computed[v] -= initial_distances[v];
     }
 }
 
 void OrlinMinimumCostFlow::compute_final_flows() {
-    NetworKit::Graph maxflow_graph(max_nodeid, true, true);
+    NetworKit::Graph maxflow_graph(max_node_id, true, true);
     original_graph.forEdges([&](node u, node v) {
         auto cost = network.cost[{u, v}];
 
         if (cost - potential_computed[u] + potential_computed[v] == 0) {
-            NetworKit::edgeweight max = std::numeric_limits<int>::max();
-            maxflow_graph.addEdge(u, v, max);
+            NetworKit::edgeweight infinite_capacity = std::numeric_limits<int>::max();
+            maxflow_graph.addEdge(u, v, infinite_capacity);
         }
     });
 

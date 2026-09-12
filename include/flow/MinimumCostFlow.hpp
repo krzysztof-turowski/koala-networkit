@@ -1,6 +1,7 @@
 #pragma once
 
-#include <map>
+#include <cstdint>
+#include <unordered_map>
 #include <utility>
 
 #include <networkit/base/Algorithm.hpp>
@@ -18,17 +19,17 @@ class MinimumCostFlow : public NetworKit::Algorithm {
         hasRun = true;
     }
 
-    virtual std::int64_t getFlow(NetworKit::Edge const&) = 0;
-    virtual std::unordered_map<NetworKit::Edge, std::int64_t> getMinCostFlow() const = 0;
+    virtual int64_t getFlow(NetworKit::Edge const&) = 0;
+    virtual std::unordered_map<NetworKit::Edge, int64_t> getMinCostFlow() const = 0;
 
-    std::int64_t getMinCost() const {
+    int64_t getMinCost() const {
         return min_cost;
     }
 
  protected:
     virtual void run_impl() = 0;
     MCFlowNetwork network;
-    std::int64_t min_cost{0};
+    int64_t min_cost{0};
 };
 
 } /* namespace Koala */

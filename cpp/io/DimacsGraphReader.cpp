@@ -56,7 +56,7 @@ void read_edge(std::ifstream &graphFile, NetworKit::Graph &graph,
     std::unordered_map<NetworKit::Edge, int64_t> &costs, const std::string &format) {
     NetworKit::node u = 0, v = 0;
     NetworKit::edgeweight w = 0;
-    int cost, _;
+    std::int64_t cost, _;
 
     switch (convert[format]) {
         case Format::edge:

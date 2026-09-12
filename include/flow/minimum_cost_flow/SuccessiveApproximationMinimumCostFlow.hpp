@@ -23,20 +23,20 @@ class SuccessiveApproximationMinimumCostFlow final : public MinimumCostFlow {
   void run_impl() override;
   bool is_imbalanced();
   void initialize();
-  void push(NetworKit::index eid);
-  void relabel(NetworKit::node const&);
+  void push(NetworKit::index edge_index);
+  void relabel(NetworKit::node const& u);
   void refine();
   void wave();
-  bool discharge(NetworKit::node const&);
+  bool discharge(NetworKit::node const& u);
 
-  double cp(NetworKit::index eid);
-  int64_t uf(NetworKit::index eid);
-  void force_flow(NetworKit::index eid, int64_t f);
+  double reduced_cost(NetworKit::index edge_index);
+  int64_t residual_capacity(NetworKit::index edge_index);
+  void force_flow(NetworKit::index edge_index, int64_t amount);
   std::vector<double> potential;
   std::vector<int64_t> excess;
   NetworKit::count nodes_number{0};
 
-  double epsi{0.};
+  double epsilon{0.};
 
   class DischargeList {
    public:
@@ -49,24 +49,24 @@ class SuccessiveApproximationMinimumCostFlow final : public MinimumCostFlow {
    public:
     explicit ToposortList(SuccessiveApproximationMinimumCostFlow&);
 
-
     NetworKit::node getNext() override;
     void moveToStart() override;
 
    private:
-    SuccessiveApproximationMinimumCostFlow &approx;
+    SuccessiveApproximationMinimumCostFlow &algorithm;
     std::list<NetworKit::node> nodes;
-    std::vector<bool> vis;
-    void dfs(NetworKit::node);
+    std::vector<bool> visited;
+    void dfs(NetworKit::node u);
 
-    std::list<NetworKit::node>::iterator it1;
-    std::list<NetworKit::node>::iterator it2;
+    std::list<NetworKit::node>::iterator current;
+    std::list<NetworKit::node>::iterator next;
   };
 
  public:
-  explicit SuccessiveApproximationMinimumCostFlow(const MCFlowNetwork& network) : MinimumCostFlow(network) {}
-  int64_t getFlow(const NetworKit::Edge& edge) override;
-  std::unordered_map<NetworKit::Edge, std::int64_t> getMinCostFlow() const override {
+  explicit SuccessiveApproximationMinimumCostFlow(MCFlowNetwork const& network)
+      : MinimumCostFlow(network) {}
+  int64_t getFlow(NetworKit::Edge const& edge) override;
+  std::unordered_map<NetworKit::Edge, int64_t> getMinCostFlow() const override {
       return computed_flow;
   }
 };
