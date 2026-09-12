@@ -1,14 +1,16 @@
 #include <flow/minimum_cost_flow/OrlinMinimumCostFlow.hpp>
 
 #include <algorithm>
+#include <cassert>
 #include <functional>
 #include <limits>
-#include <queue>
 #include <stack>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
 #include <flow/GoldbergTarjanPushRelabelMaximumFlow.hpp>
+#include <structures/heap/FibonacciHeap.hpp>
 
 using node = NetworKit::node;
 
@@ -243,48 +245,68 @@ void OrlinMinimumCostFlow::run_impl() {
 }
 
 void OrlinMinimumCostFlow::dijkstra(node source, int64_t delta) {
-    std::priority_queue<std::pair<int64_t, node>,
-                        std::vector<std::pair<int64_t, node>>,
-                        std::greater<>> queue;
+    using HeapKey = std::pair<int64_t, node>;
+    using Heap = FibonacciHeap<HeapKey, std::greater<HeapKey>>;
+
+    Heap queue;
+    std::vector<NetworKit::index> heap_handles(max_node_id, NetworKit::none);
+
+    // Relaxes one residual arc out of u, returning its head if the distance improved.
+    auto relax = [&](node u, NetworKit::index edge_index) -> node {
+        const Edge& edge = edges[edge_index];
+        if (edge.capacity < edge.flow + delta) {
+            return NetworKit::none;
+        }
+        node v = edge.to;
+        int64_t distance =
+            distances[u].first + edge.cost - potential[u] + potential[v];
+        if (distance >= distances[v].first) {
+            return NetworKit::none;
+        }
+        distances[v] = {distance, edge_index};
+        return v;
+    };
+
+    // Queues v at its current distance, or lowers its key in place if already queued.
+    auto enqueue = [&](node v) {
+        HeapKey key{distances[v].first, v};
+        if (heap_handles[v] == NetworKit::none) {
+            heap_handles[v] = *queue.push(key);
+        } else {
+            queue.update(Heap::iterator(heap_handles[v]), key);
+        }
+    };
 
     std::fill(
         distances.begin(), distances.end(),
         std::make_pair(std::numeric_limits<int64_t>::max(), NetworKit::index{0}));
     std::fill(visited.begin(), visited.end(), false);
     distances[source] = {0, 0};
-    queue.push({0, source});
+    enqueue(source);
 
     while (!queue.empty()) {
-        auto [distance, u] = queue.top();
+        node u = queue.top().second;
         queue.pop();
+        heap_handles[u] = NetworKit::none;
 
         if (visited[u]) continue;
         visited[u] = true;
 
         for (NetworKit::index edge_index : neighbors[u]) {
-            const Edge& edge = edges[edge_index];
-            if (edge.capacity >= edge.flow + delta) {
-                node v = edge.to;
-                int64_t new_distance = distance + edge.cost - potential[u] + potential[v];
-                if (new_distance < distances[v].first) {
-                    distances[v] = {new_distance, edge_index};
-                    if (is_added_uncapacitated(v)) {
-                        for (NetworKit::index next_edge_index : neighbors[v]) {
-                            const Edge& next_edge = edges[next_edge_index];
-                            if (next_edge.to != u
-                                    && next_edge.capacity >= next_edge.flow + delta) {
-                                node next_node = next_edge.to;
-                                int64_t next_distance = new_distance + next_edge.cost
-                                    - potential[v] + potential[next_node];
-                                if (next_distance < distances[next_node].first) {
-                                    distances[next_node] = {next_distance, next_edge_index};
-                                    queue.push({next_distance, next_node});
-                                }
-                            }
-                        }
-                    } else {
-                        queue.push({new_distance, v});
-                    }
+            node v = relax(u, edge_index);
+            if (v == NetworKit::none) continue;
+
+            if (!is_added_uncapacitated(v)) {
+                enqueue(v);
+                continue;
+            }
+            // Nodes added when splitting capacitated arcs are never settled on
+            // their own: step straight through them to the next real node.
+            for (NetworKit::index next_edge_index : neighbors[v]) {
+                if (edges[next_edge_index].to == u) continue;
+                node next_node = relax(v, next_edge_index);
+                if (next_node != NetworKit::none) {
+                    enqueue(next_node);
                 }
             }
         }

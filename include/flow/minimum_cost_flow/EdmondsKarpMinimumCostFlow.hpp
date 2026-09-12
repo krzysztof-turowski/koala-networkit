@@ -33,9 +33,7 @@ class EdmondsKarpMinimumCostFlow final : public MinimumCostFlow {
  public:
   explicit EdmondsKarpMinimumCostFlow(MCFlowNetwork const& network) : MinimumCostFlow(network) {}
   int64_t getFlow(NetworKit::Edge const& edge) override;
-  std::unordered_map<NetworKit::Edge, int64_t> getMinCostFlow() const override {
-      return computed_flow;
-  }
+  std::unordered_map<NetworKit::Edge, int64_t> getMinCostFlow() const override;
 };
 
 } /* namespace Koala */

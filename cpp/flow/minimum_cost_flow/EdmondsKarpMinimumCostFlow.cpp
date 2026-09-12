@@ -1,10 +1,14 @@
 #include <flow/minimum_cost_flow/EdmondsKarpMinimumCostFlow.hpp>
 
 #include <cassert>
+#include <functional>
 #include <limits>
-#include <set>
 #include <stack>
+#include <unordered_map>
+#include <utility>
 #include <vector>
+
+#include <structures/heap/FibonacciHeap.hpp>
 
 using node = NetworKit::node;
 
@@ -48,15 +52,32 @@ void EdmondsKarpMinimumCostFlow::initialize() {
 
 std::vector<std::pair<int64_t, NetworKit::index>> EdmondsKarpMinimumCostFlow::dijkstra(
         node source, int64_t delta) {
-    std::set<std::pair<int64_t, node>> queue;
+    using HeapKey = std::pair<int64_t, node>;
+    using Heap = FibonacciHeap<HeapKey, std::greater<HeapKey>>;
+
+    Heap queue;
+    std::vector<NetworKit::index> heap_handles(max_node_id, NetworKit::none);
     std::vector<std::pair<int64_t, NetworKit::index>> distances(
         max_node_id, {std::numeric_limits<int64_t>::max(), 0});
-    distances[source] = {0, 0};
-    queue.insert({0, source});
     std::vector<bool> visited(max_node_id, false);
+
+    // Queues v at its current distance, or lowers its key in place if already queued.
+    auto enqueue = [&](node v) {
+        HeapKey key{distances[v].first, v};
+        if (heap_handles[v] == NetworKit::none) {
+            heap_handles[v] = *queue.push(key);
+        } else {
+            queue.update(Heap::iterator(heap_handles[v]), key);
+        }
+    };
+
+    distances[source] = {0, 0};
+    enqueue(source);
+
     while (!queue.empty()) {
-        auto [distance, u] = *queue.begin();
-        queue.erase(queue.begin());
+        auto [distance, u] = queue.top();
+        queue.pop();
+        heap_handles[u] = NetworKit::none;
 
         if (visited[u]) continue;
         visited[u] = true;
@@ -67,9 +88,8 @@ std::vector<std::pair<int64_t, NetworKit::index>> EdmondsKarpMinimumCostFlow::di
                 assert(edge.from == u);
                 int64_t new_distance = distance + edge.cost - potential[u] + potential[edge.to];
                 if (new_distance < distances[edge.to].first) {
-                    queue.erase({distances[edge.to].first, edge.to});
                     distances[edge.to] = {new_distance, edge_index};
-                    queue.insert({new_distance, edge.to});
+                    enqueue(edge.to);
                 }
             }
         }

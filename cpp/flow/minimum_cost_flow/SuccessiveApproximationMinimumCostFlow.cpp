@@ -161,7 +161,7 @@ SuccessiveApproximationMinimumCostFlow::ToposortList::ToposortList(
     SuccessiveApproximationMinimumCostFlow &algorithm) : algorithm(algorithm) {
     
     auto residual_graph = NetworKit::GraphTools::copyNodes(algorithm.network.getGraph());
-    for (int i = 0; i < algorithm.edges.size(); i++) {
+    for (NetworKit::index i = 0; i < algorithm.edges.size(); i++) {
         if (algorithm.reduced_cost(i) < 0 && algorithm.residual_capacity(i) > 0) {
             residual_graph.addEdge(algorithm.edges[i].from, algorithm.edges[i].to);
         }
