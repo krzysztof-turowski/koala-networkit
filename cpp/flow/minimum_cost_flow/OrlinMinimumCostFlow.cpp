@@ -21,6 +21,10 @@ int64_t OrlinMinimumCostFlow::getFlow(NetworKit::Edge const& edge) {
     return 0;
 }
 
+std::unordered_map<NetworKit::Edge, int64_t> OrlinMinimumCostFlow::getMinCostFlow() const {
+    return computed_flow;
+}
+
 void OrlinMinimumCostFlow::initialize() {
     uncapacitated_nodes_bounds.first = network.getGraph().upperNodeIdBound();
     network.makeUncapacitated();
@@ -319,7 +323,7 @@ void OrlinMinimumCostFlow::compute_final_flows() {
         auto cost = network.cost[{u, v}];
 
         if (cost - potential_computed[u] + potential_computed[v] == 0) {
-            NetworKit::edgeweight infinite_capacity = std::numeric_limits<int>::max();
+            NetworKit::edgeweight infinite_capacity = std::numeric_limits<std::int32_t>::max();
             maxflow_graph.addEdge(u, v, infinite_capacity);
         }
     });

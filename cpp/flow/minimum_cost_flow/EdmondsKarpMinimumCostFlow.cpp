@@ -154,6 +154,10 @@ void EdmondsKarpMinimumCostFlow::run_impl() {
     min_cost /= 2;
 }
 
+std::unordered_map<NetworKit::Edge, int64_t> EdmondsKarpMinimumCostFlow::getMinCostFlow() const {
+    return computed_flow;
+}
+
 int64_t EdmondsKarpMinimumCostFlow::getFlow(NetworKit::Edge const& edge) {
     return computed_flow[edge];
 }

@@ -1,4 +1,5 @@
 #include <flow/minimum_cost_flow/SuccessiveApproximationMinimumCostFlow.hpp>
+#include <networkit/graph/GraphTools.hpp>
 
 #include <algorithm>
 #include <limits>
@@ -158,28 +159,17 @@ void SuccessiveApproximationMinimumCostFlow::run_impl() {
 
 SuccessiveApproximationMinimumCostFlow::ToposortList::ToposortList(
     SuccessiveApproximationMinimumCostFlow &algorithm) : algorithm(algorithm) {
-    visited.assign(algorithm.nodes_number, 0);
-    auto& graph = algorithm.network.getGraph();
-    for (auto v : graph.nodeRange()) {
-        if (!visited[v]) dfs(v);
-    }
-    next = nodes.begin();
-}
-
-void SuccessiveApproximationMinimumCostFlow::ToposortList::dfs(NetworKit::node u) {
-    visited[u] = true;
-
-    for (NetworKit::index edge_index : algorithm.neighbors[u]) {
-        if (algorithm.reduced_cost(edge_index) < 0
-                && algorithm.residual_capacity(edge_index) > 0) {
-            node v = algorithm.edges[edge_index].to;
-            if (!visited[v]) {
-                dfs(v);
-            }
+    
+    auto residual_graph = NetworKit::GraphTools::copyNodes(algorithm.network.getGraph());
+    for (int i = 0; i < algorithm.edges.size(); i++) {
+        if (algorithm.reduced_cost(i) < 0 && algorithm.residual_capacity(i) > 0) {
+            residual_graph.addEdge(algorithm.edges[i].from, algorithm.edges[i].to);
         }
     }
 
-    nodes.push_front(u);
+    auto topological_order = NetworKit::GraphTools::topologicalSort(residual_graph);
+    nodes = std::list<NetworKit::node>(topological_order.begin(), topological_order.end());
+    next = nodes.begin();
 }
 
 NetworKit::node SuccessiveApproximationMinimumCostFlow::ToposortList::getNext() {
@@ -201,6 +191,10 @@ void SuccessiveApproximationMinimumCostFlow::ToposortList::moveToStart() {
 
 int64_t SuccessiveApproximationMinimumCostFlow::getFlow(NetworKit::Edge const& edge) {
     return computed_flow[edge];
+}
+
+std::unordered_map<NetworKit::Edge, int64_t> SuccessiveApproximationMinimumCostFlow::getMinCostFlow() const  {
+    return computed_flow;
 }
 
 } /* namespace Koala */

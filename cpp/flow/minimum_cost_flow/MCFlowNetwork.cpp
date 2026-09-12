@@ -78,7 +78,6 @@ void MCFlowNetwork::makeConnected() {
 void MCFlowNetwork::makeUncapacitated() {
     NetworKit::Graph g = NetworKit::GraphTools::copyNodes(graph);
     
-
     graph.forEdges([&](node u, node v, NetworKit::edgeweight weight) {
         int64_t cap = capacity[{u, v}];
         if (cap <= 0 || cap == std::numeric_limits<int64_t>::max())
