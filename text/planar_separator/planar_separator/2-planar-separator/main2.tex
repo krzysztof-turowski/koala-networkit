@@ -4,7 +4,7 @@
 \input{2-planar-separator/main2_1.tex}
 
 \section{Divide and Conquer Approach}
-We can recall the divide and conquer approach to solve problems
+Let us recall the divide and conquer approach to solve problems
 \cite{cormenIntroductionAlgorithms2022}. We can divide the problem into
 smaller subproblems, solve each subproblem independently, and then
 combine the results to get the solution to the original problem.
@@ -15,7 +15,7 @@ This is particularly useful for finding approximate solutions to NP-complete
 problems on planar graphs in polynomial time. Let's look at the following
 lemma.
 \needspace{4\baselineskip}
-\begin{lemma}\label{lem:epsilon-planar-separator}
+\begin{lemma} \cite{chibaApplicationsLiptonTarjans1981} \label{lem:epsilon-planar-separator}
 	Let $G = (V, E, w)$ be a weighted planar graph with $n$ vertices, such that
     $W(G) \leq 1$ and let $0 < \epsilon < 1$. Then
 	there exists some set $C$ of $O(\sqrt{n/ \epsilon})$ vertices such that
@@ -32,6 +32,8 @@ lemma.
 	If $\epsilon > 1 / n$, we introduce a simple algorithm:
 	\begin{algorithm}[H]\caption{Finding $\epsilon$-planar separator}\label{alg:epsilon-planar-separator}
 		\begin{algorithmic}[1]
+            \Require $G \colon \text{planar graph}$
+            \Ensure $C \colon \text{separator}$
 			\State $C \gets \emptyset$
 			\While{$G - C$ has a connected component $K$ such that $W(K) > \epsilon$}
 			\State Apply Theorem \ref{thm:planar-separator} to $K$ producing
@@ -42,7 +44,6 @@ lemma.
 		\end{algorithmic}
 	\end{algorithm}
 
-	\noindent
 	We can see that in each iteration of the while loop of the algorithm, we
 	split the greatest component into two smaller ones, each with cost at
 	most $2/3$ of the original component.
@@ -50,14 +51,19 @@ lemma.
 	component that arises during the execution of the algorithm. We can
 	define it as follows: $L(K) = 0$ if $K$ is the component of $G - C$
     when the algorithm halts. Otherwise $L(K) = 1 + \max\{L(A_i)\}$, where $A_i$ is the component created by splitting $K$ during the execution of
-	the algorithm. With such a definition, we can see that $\forall_{A, B}\,
-		L(A) = L(B) \implies A \cap B = \emptyset$, because all components that are
-	produced in the same iteration of the while loop are disjoint by construction of the algorithm and we can see that if $A \subset B$, then $L(A) < L(B)$, because $A$ is produced by splitting $B$.
+	the algorithm.
+
+    With such a definition, we can see that for all $A, B$ it holds that 
+    if $L(A) = L(B)$ then $A$ and $B$ are disjoint, because all components that are
+	produced in the same iteration of the while loop are disjoint by construction of the algorithm and we can see that if $A$ is a subset of $B$, then $L(A) < L(B)$, because $A$ is produced by splitting $B$.
+
 	Moreover, we can see that each level one component has cost at least $\epsilon$,
 	because it is yet to be split by the algorithm. Thus for $i \geq 1$, each
 	component has cost at least $(3/2)^{i-1} \epsilon$, as it has to be split $i-1$ times for some component to get to level 1, when it will have cost at least $\epsilon$.
 	And by Theorem \ref{thm:planar-separator}, each time its cost will be 2/3
-	of cost before splitting. Now let's observe that because the cost of whole
+	of cost before splitting.
+
+    Now let's observe that because the cost of whole
 	graph $G$ is at most 1, then the total number of components at level $i$
 	is at most $1 / ((3/2)^{i-1} \epsilon) = (2/3) ^ {i-1} / \epsilon$.
 	In particular, the maximum level $k$ of the component must satisfy
@@ -87,8 +93,8 @@ lemma.
 	We know that the series converges to some constant as it is just a geometric series with $|q| < 1$, which means that $|C| = O(\sqrt{n/\epsilon})$
 \end{proof}
 \noindent
-By setting cost of each vertex in the graph to $1/n$ we have to following:
-\begin{corollary}\label{cor:epsilon-planar-separator}
+By setting cost of each vertex in the graph to $1/n$ we obtain the following result:
+\begin{corollary} \cite{chibaApplicationsLiptonTarjans1981} \label{cor:epsilon-planar-separator}
 	Let $G$ be a planar graph with $n$ vertices and let $0 < \epsilon < 1$. Then
 	there exists some set $C$ of $O(\sqrt{n/ \epsilon})$ vertices such that
 	removal of $C$ from $G$ leaves no connected component with
@@ -99,15 +105,19 @@ Now we will introduce a class of problems described as \textbf{maximum induced
 	subgraph problem} $P$ on graph $G$ with some graph property $Q$. The problem
 asks for a maximum set $S$ of $V$ that induces a subgraph with property $Q$
 \cite{chibaApplicationsLiptonTarjans1981}. Following just proved Lemma \ref{lem:epsilon-planar-separator}
-we can deduce an algorithm (Algorithm \ref{alg:MISP}, which we will call \emph{MISP} from now on). We can clearly observe that the algorithm halts and successfully
+we can deduce an algorithm (Algorithm \ref{alg:MISP}, which we will call \textsc{MISP} from now on). We can clearly observe that the algorithm halts and successfully
 solves the problem $P$.
-\begin{algorithm}[H]\caption{\emph{MISP} algorithm}\label{alg:MISP}
+\begin{algorithm}[H]\caption{\textsc{MISP} algorithm}\label{alg:MISP}
 	\begin{algorithmic}[1]
-        \Require $G$, $\epsilon \in (0,1)$
-        \State Apply Algorithm~\ref{alg:epsilon-planar-separator} to a given graph
-		to find separator $C$ and connected components of $G - C$ with maximum size $\epsilon n$
-		\State In each component $G_i$ of $G-C$ find a maximum set $S_i$ inducing a subgraph
+        \Require $G \colon \text{planar graph}$, $\epsilon \in (0,1)$
+        \Ensure $S \colon \text{subset of $V$ that induces a subgraph with property $Q$}$
+        \State Apply Algorithm~\ref{alg:epsilon-planar-separator} to $G$  
+		to find separator $C$
+        \State Find connected components of $G - C$ with maximum size $\epsilon n$
+    \ForAll{connected components $G_i$ of $G-C$}
+		\State Find a maximum set $S_i$ inducing a subgraph
 		with property $Q$ by checking every subset of vertex set $V$ for graph $G_i$
+        \EndFor
 		\State Return $S \gets \bigcup S_i$
 	\end{algorithmic}
 \end{algorithm}
@@ -115,7 +125,7 @@ solves the problem $P$.
 Now we will introduce a lemma, that shows an upper bound on time complexity
 of Algorithm~\ref{alg:MISP}.
 \begin{lemma}\label{lem:MISP-upperbound} \cite{chibaApplicationsLiptonTarjans1981}
-    The approximation \emph{MISP} Algorithm (Algorithm~\ref{alg:MISP}) has time
+    The approximation \textsc{MISP} Algorithm (Algorithm~\ref{alg:MISP}) has time
 	complexity $O(\max\{{n\log n, n2^{\epsilon n}\}})$ and relative error of
 	$O(1/\sqrt{\epsilon n})$ if the following conditions are satisfied:
 	\begin{enumerate}
@@ -130,7 +140,7 @@ of Algorithm~\ref{alg:MISP}.
 \end{lemma}
 \begin{proof}
     \subsubsection{Time complexity}
-    Algorithm \emph{MISP} has two main steps that affect the time complexity. The
+    Algorithm \textsc{MISP} has two main steps that affect the time complexity. The
     first step is simply $O(n \log n)$ by Corollary
     \ref{cor:epsilon-planar-separator}. In step two, for each connected
     component $G_i = (V_i, E_i)$ we find $S_i$ by checking every subset. Let 

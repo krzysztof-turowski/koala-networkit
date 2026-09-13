@@ -8,7 +8,7 @@
 In this work we only deal with undirected graphs and for simplicity we 
 shall define $(u, v) \in E$, where $u, v \in V$ as an undirected edge.
 
-\begin{defn}[incidency, adjacency \cite{diestelGraphTheory2017}]
+\begin{defn}[incidency, adjacency, \cite{diestelGraphTheory2017}]
     A vertex $v \in G$ is called incident to $e \in E$ if $v \in e$. We call
     two vertices $u, v \in G$ adjacent in $G$ if they are incident to the same 
     edge.
@@ -20,7 +20,7 @@ that have a small amount of incident edges. To make notation simpler we can intr
 the concept of degree of a vertex.
 
 \begin{defn}[degree, \cite{diestelGraphTheory2017}]
-    We define a degree of a vertex $v$ in a graph $G = (V, E)$ as the number of edges 
+    We define a \textbf{degree} of a vertex $v$ in a graph $G = (V, E)$ as the number of edges 
     in $G$ that $v$ is incident to and denote it as $\deg(v)$.
 \end{defn}
 
@@ -28,7 +28,7 @@ After reducing a graph, we get rid of some vertices and edges incident to them.
 In the process of such reduction we obtain a \textit{subgraph} of the original graph.
 
 \begin{defn}[subgraph, \cite{diestelGraphTheory2017}]
-    We call graph $G' = (V', E')$ a subgraph of $G = (V, E)$ ($G' \subseteq G$) if 
+    We call graph $G' = (V', E')$ asubgraph subgraph of $G = (V, E)$ (denoted as $G' \subseteq G$) if 
     $V' \subseteq V$ and $E' \subseteq E$.
 \end{defn}
 
@@ -41,7 +41,7 @@ during the preprocessing steps.
 
 \begin{defn}[induced subgraph, \cite{diestelGraphTheory2017}]
 Let $G = (V, E)$ be a graph and let $V' \subseteq V$. A subgraph $G' = (V', E')$ 
-of $G$ is called the subgraph induced by $V'$ if for every pair of vertices 
+of $G$ is called the subgraph \textbf{induced} by $V'$ if for every pair of vertices 
 $u, v \in V'$, the edge $(u, v) \in E'$ if and only if $(u, v) \in E$. 
 This subgraph is denoted by $G[V']$.
 \end{defn}
@@ -57,7 +57,7 @@ later when talking about spanning trees.
 
 \begin{defn}[spanning-subgraph, \cite{diestelGraphTheory2017}]
 \label{defn:spanning-tree}
-    Let $G = (V, E)$ be a connected graph. We call $G' \subseteq G$ a spanning subgraph 
+Let $G = (V, E)$ be a connected graph. We call $G' \subseteq G$ a \textbf{spanning subgraph} 
     of $G$ if $V' = V$.
 \end{defn}
 
@@ -66,7 +66,7 @@ at first.
 
 \begin{defn}[connectivity, \cite{diestelGraphTheory2017}]
 \label{defn:connectivity}
-    Let $G = (V, E)$ be a graph. We call $G$ connected if for each $u, v \in V$ there exists a path
+Let $G = (V, E)$ be a graph. We call $G$ \textbf{connected} if for each $u, v \in V$ there exists a path
     in $G$ connecting $u$ and $v$.
 \end{defn}
 
@@ -106,10 +106,10 @@ If we connect the first and last vertex of a path with an edge, we create a cycl
 
 After defining a cycle, we naturally may consider a graph that does not have any cycles.
 
-\begin{defn}[tree, \cite{diestelGraphTheory2017}]
+\begin{defn}[forest, tree, \cite{diestelGraphTheory2017}]
 \label{defn:tree}
-    Let $G = (V, E)$ be a graph. We call $G$ a forest if it does not contain any cycles (i. e. is acyclic).
-    We call a connected forest a tree $T$.
+Let $G = (V, E)$ be a graph. We call $G$ a \textbf{forest} if it does not contain any cycles (i. e. is acyclic).
+We call a connected forest a \textbf{tree} $T$.
 \end{defn}
 
 We say that a tree is \textit{minimally connected}. It means that if we remove any edge, 
@@ -123,7 +123,7 @@ Vertex Cover Problem in Chapter 3 is a bipartite graph.
 
 \begin{defn}[bipartite, \cite{diestelGraphTheory2017}]
 \label{defn:bipartite}
-    Let $G = (V, E)$ be a graph. We call $G$ a bipartite graph if there exists a partition of $V$ into two subsets $X, Y$ such that
+Let $G = (V, E)$ be a graph. We call $G$ a \textbf{bipartite} graph if there exists a partition of $V$ into two subsets $X, Y$ such that
     $X \cap Y = \emptyset$ and no two vertices in the same subset are adjacent in $G$.
     To indicate that a graph is a bipartite graph we will use notation $G = B(X, Y, E)$,
     where $X, Y, E$ are defined as above.
@@ -133,9 +133,9 @@ Vertex Cover Problem in Chapter 3 is a bipartite graph.
 Another concept that will be useful when discussing planar graphs and their relationship
 with plane graphs is that of graph isomorphism.
 
-\begin{defn}[isomorphism, \cite{diestelGraphTheory2017}]
+\begin{defn}[homomorphism, isomorphism, \cite{diestelGraphTheory2017}]
 \label{defn:isomorphism}
-Let $G = (V, E)$ and $G' = (V', E')$. We call a map $\phi \colon V \rightarrow V'$ a homomorphism if $(\phi(u), \phi(v)) \in E'$ whenever $(u, v) \in E$. If $\phi$ is a bijection and $\phi^{-1}$ is also a homomorphism, then $\phi$ is an isomorphism. We call $G$ and $G'$ isomorphic if there exists a map $\phi \colon V \rightarrow V'$ that is an isomorphism.
+Let $G = (V, E)$ and $G' = (V', E')$. We call a map $\phi \colon V \rightarrow V'$ a \textbf{homomorphism} if $(\phi(u), \phi(v)) \in E'$ whenever $(u, v) \in E$. If $\phi$ is a bijection and $\phi^{-1}$ is also a homomorphism, then $\phi$ is an \textbf{isomorphism}. We call $G$ and $G'$ \textbf{isomorphic} if there exists a map $\phi \colon V \rightarrow V'$ that is an isomorphism.
 \end{defn}
 
 An isomorphism provides a correspondence between the vertices of two graphs that
@@ -149,7 +149,7 @@ graphs.
 \\
 \begin{defn}[plane graphs, \cite{diestelGraphTheory2017}]
 \label{defn:plane-graph}
-    A plane graph is a pair $(V, E)$ of finite sets with the following properties:
+A \textbf{plane graph} is a pair $(V, E)$ of finite sets with the following properties:
     \begin{enumerate}
         \item $V \subseteq \mathbb{R}^2$
         \item every edge in $E$ is an arc between two vertices from $V$
@@ -160,14 +160,14 @@ graphs.
 \noindent
 A plane graph defines a graph $G$ on $(V, E)$ in a natural way.
 \begin{defn}[faces, \cite{diestelGraphTheory2017}]
-    Let $G = (V, E)$ be a plane graph. We call the regions of $\mathbb{R}^2 \setminus G$ the faces of $G$.
+    Let $G = (V, E)$ be a plane graph. We call the regions of $\mathbb{R}^2 \setminus G$ the \textbf{faces} of $G$.
 \end{defn}
 Since $G$ is bounded, exactly one face of $G$ is unbounded. This face is the outer face of $G$, while all other faces
 are called inner faces. We denote a set of faces of $G$ as $F(G)$. Now we can see that because of the specific definition 
 of plane graphs they have some really interesting properties that no other class has. The famous theorem for plane graph is the
 Euler's formula, that connects the number of vertices, edges and faces of a plane graph in one equation.
 
-\begin{theorem} \cite[Euler's Formula]{diestelGraphTheory2017} \label{thm:euler}
+\begin{theorem} [Euler's Formula, \cite{diestelGraphTheory2017}] \label{thm:euler}
     Let $G = (V, E)$ be a connected plane graph with faces $F$. Number of edges, vertices and faces of $G$
     is connected by the following formula:
     \begin{equation*}
@@ -178,13 +178,13 @@ Euler's formula, that connects the number of vertices, edges and faces of a plan
 To obtain a very important lemma, which bounds the number of edges in a plane graph by the number of vertices, we have to introduce
 one more lemma.
 
-\begin{lemma} \cite[maximal planar]{diestelGraphTheory2017} \label{lem:maximal}
+\begin{lemma} [maximal plane, \cite{diestelGraphTheory2017}] \label{lem:maximal}
     A plane graph $G = (V, E)$ with at least 3 vertices is maximally plane (it is impossible to add any more edges without violating
     planarity) when it is the plane triangulation (i.e. each face is a triangle - a cycle of length 3 on plane);
 \end{lemma}
 
 Now we can finally introduce:
-\begin{corollary} \cite{diestelGraphTheory2017} \label{corollary:planar-bound}
+\begin{corollary} [\cite{diestelGraphTheory2017}] \label{corollary:planar-bound}
     A plane graph $G = (V, E)$ with at least 3 vertices has at most $3 |V| - 6$ edges. Every plane triangulation has exactly $3 |V| - 6$
     edges.
 \end{corollary}
@@ -204,7 +204,7 @@ them among other classes of graphs.
 
 \begin{defn}[edge contraction, \cite{diestelGraphTheory2017}]
 \label{defn:contraction}
-    Let $G = (V, E)$ be a graph and let $(u,v) \in E$ be an edge. We call edge contraction of $(u, v)$ an operation which transforms 
+Let $G = (V, E)$ be a graph and let $(u,v) \in E$ be an edge. We call \textbf{edge contraction} of $(u, v)$ an operation which transforms 
     $G$ into $G'$ by merging vertices $u$ and $v$ into one vertex $v'$, such that it is adjacent in $G'$ to all the vertices that $u$ and $v$
     were adjacent to in $G$. We also remove all the loops and multi edges that are created in such operation.
 \end{defn}
@@ -213,21 +213,21 @@ This edge contraction definitions leads to a definition of a minor.
 
 \begin{defn}[minor, \cite{diestelGraphTheory2017}]
 \label{defn:minor}
-    Let $G = (V, E)$ be a graph. A graph $H$ is a minor of $G$ (denoted by $H \preccurlyeq G$) if it is isomorphic to a graph $G'$ that 
+Let $G = (V, E)$ be a graph. A graph $H$ is a \textbf{minor} of $G$ (denoted by $H \preccurlyeq G$) if it is isomorphic to a graph $G'$ that 
     can be obtained from $G$ in a finite sequence of vertex deletions, edge deletions and edge contractions.
 \end{defn}
 
 With definitions of edge contraction and minors comes a following lemma, that will be 
 important later on during discussion of Lipton Tarjan planar separator algorithm.
 
-\begin{lemma} \cite{liptonSeparatorTheoremPlanar1979}  \label{lem:shrinking}
+\begin{lemma} [\cite{liptonSeparatorTheoremPlanar1979}]  \label{lem:shrinking}
     Let $G$ be any planar graph. Shrinking any connected subgraph of $G$ to a
     single vertex preserves planarity.
 \end{lemma}
 
 By using Corollary~\ref{corollary:planar-bound} we can perform a simple test to filter out the graphs that are not plane graphs. The example of
 such a graph is $K_5$ (a maximal graph on 5 vertices). It has 5 vertices and 15 edges, and by putting into formula we get $10 \leq 9$ which 
-is a contradiction. Interestingly an even tighter bound than the one from \ref{corollary:planar-bound} can be found for bipartite graphs.
+is a contradiction. Interestingly an even tighter bound than the one from \Cref{corollary:planar-bound} can be found for bipartite graphs.
 
 \begin{corollary} \label{corollary:bipartite-bound}
     A bipartite plane graph $G = (V, E)$ with at least 4 vertices has at most $2 |V| - 4$ edges.
@@ -235,13 +235,13 @@ is a contradiction. Interestingly an even tighter bound than the one from \ref{c
 \begin{proof}
     In each bipartite graph each face is bounded by a cycle of length at least 4. So by counting faces, each one contributes at least 4 edges.
     On the other side each edge is incident to exactly 2 faces. So by double counting we have $2|E| \geq 4|F|$, so $|F| \leq 1/2 |E|$.
-    By putting that into Euler's formula we get $|V| - 1/2|E| \geq 2$ and thus $|E| \leq 2|V| - 4$.
+    By putting that into Euler's formula we obtain $|V| - 1/2|E| \geq 2$ and thus $|E| \leq 2|V| - 4$.
 \end{proof}
 
 Using this corollary we can show that $K_{3, 3}$ (a maximal bipartite graph with sets of sizes 3 and 3) is not a plane graph. Interestingly 
-these two graphs ($K_5$ and $K_{3,3}$) are the biggest obstacle for a graph to be a plane graph. This fact is embodied by the following famous theorem.
+these two graphs ($K_5$ and $K_{3,3}$) are the biggest obstacles for a graph to be a plane graph. This fact is expressed by the following famous theorem.
 
-\begin{theorem} \cite[Wagner's theorem]{diestelGraphTheory2017} \label{thm:wagner}
+\begin{theorem} [Wagner's theorem, \cite{wagner1937eigenschaft}] \label{thm:wagner}
     Graph $G = (V, E)$ is a plane graph if and only if its minors include neither $K_5$  nor $K_{3,3}$.
 \end{theorem}
 
@@ -251,7 +251,7 @@ complete everything by defining what a planar graph is.
 
 \begin{defn}[planar embedding, \cite{diestelGraphTheory2017}]
 \label{defn:embedding}
-    The planar embedding of a graph $G = (V, E)$ in a plane is an isomorphism
+The \textbf{planar embedding} of a graph $G = (V, E)$ in a plane is an isomorphism
     of $G$ with any plane graph $H$.
 \end{defn}
 
@@ -260,13 +260,41 @@ Embedding specifies a cyclic order on edges incident to each vertex, correspondi
 their order around the vertex in a drawing. From algorithmic perspective it is 
 essential, as it allows to handle geometrical properties of planar graphs programmatically.
 Thus it being an essential part of the algorithm, it is important to compute it 
-quickly, ideally in linear time. Luckily, there are several algorithms that do just that.
+quickly, ideally in linear time. Luckily, there are several algorithms that do just that (see \Cref{tab:planar-embedding-algorithms}).
 One of the first ones that did in that quickly was Hopcroft-Tarjan algorithm \cite{hopcroft1974efficient}, but 
 the most widely used, and the one that will be used in this paper is Boyer-Myrvold 
 algorithm \cite{boyer2003stop}.
 
+\begin{table}[htbp]
+\centering
+\caption{Selected linear algorithms for planar embedding.}
+\label{tab:planar-embedding-algorithms}
+\begin{tabularx}{\textwidth}{llX}
+\hline
+\textbf{Authors} & \textbf{Year} & \textbf{Original work} \\
+\hline
+Hopcroft and Tarjan
+& 1974
+&  \cite{hopcroft1974efficient}
+\\
+Booth and Lueker
+& 1976
+& \cite{booth1976testing}
+\\
+Chiba, Nishizeki, Abe, and Ozawa
+& 1985
+&  \cite{chiba1985linear}
+\\
+Boyer and Myrvold
+& 1999
+& \cite{boyer2003stop}
+\\
+\hline
+\end{tabularx}
+\end{table}
+
 \begin{defn} [Planar Graph] \label{defn:planar}
-    Graph $G = (V, E)$ is called planar if there exists a planar embedding that maps it to a plane graph $H$.
+    Graph $G = (V, E)$ is called \textbf{planar} if there exists a planar embedding that maps it to a plane graph $H$.
 \end{defn}
 
 \subsection{Hard problems and planar graphs}
@@ -294,10 +322,11 @@ case.
     is finding the minimum size $S$ such that $c$ is a correct coloring.
 \end{defn}
 
-Because of \Cref{lem:small-deg} we can easily prove that for planar graphs 6 colors is enough. However, that is 
+Because of \Cref{lem:small-deg} we can easily prove that for planar graphs it is sufficient to use 6 colors. However, that is 
 not the smallest number possible. In 1977 it was proven by Haken and Appel \cite{appel1977solution} that 
-each planar graphs is four colourable, moreover it can be done in polynomial time. 
-And although most of the $\mathbb{N}\mathbb{P}$-complete problems are still in this complexity class for planar graphs, there is another opportunity
+each planar graphs is $4$-colourable, moreover it can be done in polynomial time. 
+And although most of the $\mathbb{N}\mathbb{P}$-complete problems are still in this complexity class for planar graphs 
+(for example determining whether a planar graph is $3$-colourable is still $\mathbb{N}\mathbb{P}$-complete \cite{gareyJohnsonStockmeyer1976}), there is another opportunity
 to reduce the time of computation. We can resort to approximation algorithms that will utilize planar separator theorem, that is the 
 main topic of this paper.
 
@@ -314,6 +343,8 @@ complexity.
 \end{defn}
 
 For an $\alpha$-approximation algorithm, we shall call $\alpha$ the approximation ratio, and $1 - \alpha$ the approximation error.
+For example, the $4$-coloring algorithm for planar graphs described in the previous section yields a $4/3$-approximation algorithm for the minimum vertex coloring problem.
+
 We can also look for something better than a constant approximation ratio. There are some problems for which we can get a solution 
 arbitrarily close to the optimal solution. These problems have polynomial-time approximation schemes.
 
