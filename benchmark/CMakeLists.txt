@@ -77,3 +77,8 @@ koala_make_benchmark(
     benchmark_planar_shortest_path
     benchmarkPlanarShortestPath.cpp
     benchmarkPlanarShortestPath.sh)
+
+koala_make_benchmark(
+    benchmark_apsp
+    benchmarkAPSP.cpp
+    benchmarkAPSP.sh)
