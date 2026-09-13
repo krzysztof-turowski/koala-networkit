@@ -21,7 +21,7 @@ public:
 private:
     std::vector<T> maximum_independent_set;
 
-    std::vector<NetworKit::node> find_espilon_planar_separator();
+    std::vector<NetworKit::node> find_epsilon_planar_separator();
     double get_component_cost(const std::vector<NetworKit::node> &connected_component);
     void
     processSide(const std::vector<NetworKit::node> &subGraph,

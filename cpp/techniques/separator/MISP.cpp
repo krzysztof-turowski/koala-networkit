@@ -26,7 +26,7 @@ MISP<T>::MISP(const NetworKit::Graph &G, double epsilon, ComponentSolver compone
                 vertex_cost[i] = costs.value()[i];
             }
         }
-        assert(total_cost <= 1.0);
+        assert(total_cost <= 1.0 + 1e-6);
     }
 }
 
@@ -60,7 +60,7 @@ std::vector<T> MISP<T>::getIndependentSet() {
 }
 
 template <typename T>
-std::vector<NetworKit::node> MISP<T>::find_espilon_planar_separator() {
+std::vector<NetworKit::node> MISP<T>::find_epsilon_planar_separator() {
     std::vector<NetworKit::node> separator;
 
     int idCnt = 0;
@@ -82,8 +82,6 @@ std::vector<NetworKit::node> MISP<T>::find_espilon_planar_separator() {
         Q.pop();
 
         auto comp = idToComponentMap[curId];
-        if (comp.size() <= 5)
-            continue;
         std::unordered_set<NetworKit::node> compSet(idToComponentMap[curId].begin(),
                                                     idToComponentMap[curId].end());
 
@@ -121,7 +119,7 @@ std::vector<NetworKit::node> MISP<T>::find_espilon_planar_separator() {
 
 template <typename T>
 void MISP<T>::run() {
-    auto separator = find_espilon_planar_separator();
+    auto separator = find_epsilon_planar_separator();
 
     std::unordered_set<NetworKit::node> isInSep(separator.begin(), separator.end());
 

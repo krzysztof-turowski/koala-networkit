@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cstdio>
 #include <queue>
 #include <unordered_set>
 #include <vector>
@@ -7,6 +8,7 @@
 #include "networkit/graph/EdgeUtils.hpp"
 #include "techniques/separator/MISP.hpp"
 #include <boost/parameter/aux_/pp_impl/match.hpp>
+#include <networkit/auxiliary/Log.hpp>
 #include <networkit/graph/AdjListGraph.hpp>
 
 namespace {} // namespace
@@ -63,6 +65,7 @@ void PlanarSeparatorMatching::contract(int &currentGraphSize, NetworKit::node v,
     G.forNeighborsOf(larger, [&](NetworKit::node t) { neighborsOfLarger.insert(t); });
 
     std::vector<NetworKit::node> potenital_small_degrees;
+    potenital_small_degrees.push_back(larger);
 
     G.forNeighborsOf(smaller, [&](NetworKit::node t) {
         if (t != v && t != larger) {
@@ -155,10 +158,10 @@ void PlanarSeparatorMatching::reduce_procedure(NetworKit::Graph &graph) {
     bool stop = false;
     while (!stop) {
         if (currentGraphSize <= loglog) {
-            auto localMatching = get_exact_matching(localGraph);
             if (!localGraph.hasEdgeIds()) {
                 localGraph.indexEdges();
             }
+            auto localMatching = get_exact_matching(localGraph);
             for (auto e : localMatching) {
                 insert_edge_into_matching(matched_nodes, S, NetworKit::Edge(e.u, e.v));
             }
@@ -204,6 +207,7 @@ void PlanarSeparatorMatching::reduce_procedure(NetworKit::Graph &graph) {
             stop = true;
         }
     }
+
     matching.clear();
     graph.forNodes([&](NetworKit::node v) { matching[v] = NetworKit::none; });
     for (auto e : S) {
