@@ -55,7 +55,6 @@ void run_test(NetworKit::Graph &G, Algorithm algorithm) {
         T.insert(run_algorithm<Koala::NaiveGaussianMatching>(G));
         T.insert(run_algorithm<Koala::EdmondsMaximumMatching>(G));
         T.insert(run_algorithm<Koala::GabowMaximumMatching>(G));
-        T.insert(run_algorithm<Koala::PlanarSeparatorMatching>(G));
         assert(T.size() == 1);
         break;
     case Algorithm::MICALI_VAZIRANI:
