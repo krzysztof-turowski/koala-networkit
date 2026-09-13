@@ -26,7 +26,8 @@ LiptonTarjanPlanarSeparator::LiptonTarjanPlanarSeparator(const NetworKit::Graph 
     : BalancedSeparator(graph), vertex_cost(costs) {}
 
 LiptonTarjanPlanarSeparator::LiptonTarjanPlanarSeparator(const NetworKit::Graph &graph)
-    : BalancedSeparator(graph), vertex_cost(graph.upperNodeIdBound(), 1.0) {}
+    : BalancedSeparator(graph), vertex_cost(graph.upperNodeIdBound(), 1.0 / graph.numberOfNodes()) {
+}
 
 void LiptonTarjanPlanarSeparator::run() {
     clean_partitions();
@@ -40,10 +41,11 @@ void LiptonTarjanPlanarSeparator::run() {
     double totalCost = 0.0;
 
     graph.forNodes([&](NetworKit::node v) { totalCost += vertex_cost[v]; });
+
+    assert(totalCost <= 1.0 + 1e-6);
     if (totalCost > 0.0) {
         graph.forNodes([&](NetworKit::node v) { vertex_cost[v] /= totalCost; });
     }
-    assert(totalCost <= 1.0 + 1e-6);
 
     // Step 2: Find connected components of the graph G
     auto componentsAlgorithm = NetworKit::ConnectedComponents(graph);
