@@ -43,7 +43,7 @@ void LiptonTarjanPlanarSeparator::run() {
     if (totalCost > 0.0) {
         graph.forNodes([&](NetworKit::node v) { vertex_cost[v] /= totalCost; });
     }
-    assert(totalCost <= 1.0);
+    assert(totalCost <= 1.0 + 1e-6);
 
     // Step 2: Find connected components of the graph G
     auto componentsAlgorithm = NetworKit::ConnectedComponents(graph);

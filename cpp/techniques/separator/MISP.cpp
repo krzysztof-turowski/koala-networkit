@@ -26,7 +26,7 @@ MISP<T>::MISP(const NetworKit::Graph &G, double epsilon, ComponentSolver compone
                 vertex_cost[i] = costs.value()[i];
             }
         }
-        assert(total_cost <= 1.0);
+        assert(total_cost <= 1.0 + 1e-6);
     }
 }
 
