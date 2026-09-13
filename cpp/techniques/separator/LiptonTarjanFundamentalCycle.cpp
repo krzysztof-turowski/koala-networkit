@@ -93,7 +93,6 @@ void LiptonTarjanFundamentalCycle::run() {
 std::optional<cycle_t>
 LiptonTarjanFundamentalCycle::build_fundamental_cycle(NetworKit::node v1, NetworKit::node w1,
                                                       std::vector<NetworKit::node> parent) {
-    // Degenerate H (no non-tree edge): fall back to a level-based separator.
     if (v1 == NetworKit::none) {
         return std::nullopt;
     }

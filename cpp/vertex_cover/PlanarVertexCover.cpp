@@ -276,7 +276,7 @@ void PlanarSeparatorVertexCover::run() {
     const auto &G = graph.value();
     std::vector<bool> VC(G.upperNodeIdBound());
     std::vector<bool> U(G.upperNodeIdBound());
-    size_t n = G.upperNodeIdBound();
+    size_t n = G.numberOfNodes();
     prepare(G, U, VC, n);
 
     size_t UTrueSize = 0;

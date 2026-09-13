@@ -39,11 +39,11 @@ void LiptonTarjanPlanarSeparator::run() {
     // normalize total cost to 1
     double totalCost = 0.0;
 
-    assert(totalCost <= 1.0);
     graph.forNodes([&](NetworKit::node v) { totalCost += vertex_cost[v]; });
     if (totalCost > 0.0) {
         graph.forNodes([&](NetworKit::node v) { vertex_cost[v] /= totalCost; });
     }
+    assert(totalCost <= 1.0);
 
     // Step 2: Find connected components of the graph G
     auto componentsAlgorithm = NetworKit::ConnectedComponents(graph);
@@ -57,7 +57,7 @@ void LiptonTarjanPlanarSeparator::run() {
         find_separator_from_components(components);
     } else {
         // Step 3: Perform BFS
-        auto G = componentsAlgorithm.extractLargestConnectedComponent(graph, false);
+        auto G = extract_heaviest_connected_component(graph, components);
 
         // find the root for BFS spanning tree
         NetworKit::node root = NetworKit::none;
@@ -112,6 +112,26 @@ void LiptonTarjanPlanarSeparator::run() {
         extract_separator_and_partition_from_cycle(graph, lvl, l0, l2, fundamental_cycle, x);
     }
     hasRun = true;
+}
+
+NetworKit::Graph LiptonTarjanPlanarSeparator::extract_heaviest_connected_component(
+    const NetworKit::Graph &graph, const std::vector<std::vector<NetworKit::node>> &components) {
+
+    const std::vector<NetworKit::node> *heaviest = &components[0];
+    double maxCost = -1.0;
+
+    for (const auto &cc : components) {
+        double cost = 0.0;
+        for (auto v : cc)
+            cost += vertex_cost[v];
+        if (cost > maxCost) {
+            maxCost = cost;
+            heaviest = &cc;
+        }
+    }
+
+    return NetworKit::GraphTools::subgraphFromNodes(graph, heaviest->begin(), heaviest->end(),
+                                                    false);
 }
 
 std::tuple<int, int, int>

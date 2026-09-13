@@ -29,6 +29,8 @@ private:
     perform_BFS_and_find_spanning_tree(const NetworKit::Graph &G, NetworKit::node startNode);
     static std::vector<NetworKit::count>
     find_number_of_vertices_at_level(const std::vector<int> &lvl);
+    NetworKit::Graph extract_heaviest_connected_component(
+        const NetworKit::Graph &graph, const std::vector<std::vector<NetworKit::node>> &components);
     std::pair<NetworKit::Graph, NetworKit::node>
     find_contracted_subgraph(const NetworKit::Graph &G, planar_embedding_t &embedding,
                              std::vector<int> &lvl, int l0, int l2);
