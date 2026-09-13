@@ -82,8 +82,6 @@ std::vector<NetworKit::node> MISP<T>::find_espilon_planar_separator() {
         Q.pop();
 
         auto comp = idToComponentMap[curId];
-        if (comp.size() <= 5)
-            continue;
         std::unordered_set<NetworKit::node> compSet(idToComponentMap[curId].begin(),
                                                     idToComponentMap[curId].end());
 

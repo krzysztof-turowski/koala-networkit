@@ -6,16 +6,18 @@
 #include "networkit/graph/GraphTools.hpp"
 #include "techniques/separator/MISP.hpp"
 #include "vertex_cover/VertexCover.hpp"
+#include <networkit/auxiliary/Log.hpp>
 
 namespace Koala {
 PlanarSeparatorVertexCover::PlanarSeparatorVertexCover(const NetworKit::Graph &G)
     : VertexCover(G) {}
 
-// It is worth noting that in contrary to prepare algorithm described in **Bar-Yehuda, Reuven, and
-// Shimon Even. "On approximating a vertex cover for planar graphs." Proceedings of the fourteenth
-// annual ACM symposium on Theory of computing. 1982.** which is linear, this algorithm is O(n log
-// n). In the end it does not affect the time complexity of the whole vertex cover algorithm, as
-// usage of MISP algorithm is O(n log n) itself.
+// It is worth noting that in contrary to prepare algorithm described in
+// **Bar-Yehuda, Reuven, and Shimon Even. "On approximating a vertex cover for
+// planar graphs." Proceedings of the fourteenth annual ACM symposium on Theory
+// of computing. 1982.** which is linear, this algorithm is O(n log n). In the
+// end it does not affect the time complexity of the whole vertex cover
+// algorithm, as usage of MISP algorithm is O(n log n) itself.
 void PlanarSeparatorVertexCover::prepare(const NetworKit::Graph &G, std::vector<bool> &U,
                                          std::vector<bool> &VC, int n) {
     bool stop = false;
@@ -232,13 +234,10 @@ Bipartite PlanarSeparatorVertexCover::bipartite(const NetworKit::Graph &G, std::
 
 std::vector<NetworKit::node> independentSetSolver(const NetworKit::Graph &cc) {
     std::vector<NetworKit::node> indpSet;
-    std::vector<NetworKit::node> mapCompactToOriginal(cc.numberOfNodes());
-    std::unordered_map<NetworKit::node, int> mapOriginalToCompact;
-    int i = 0;
-    cc.forNodes([&](NetworKit::node v) {
-        mapOriginalToCompact[v] = i;
-        mapCompactToOriginal[i++] = v;
-    });
+    auto mapCompactToOriginal = NetworKit::GraphTools::getContinuousNodeIds(cc);
+    auto mapOriginalToCompact =
+        NetworKit::GraphTools::invertContinuousNodeIds(mapCompactToOriginal, cc);
+
     std::vector<unsigned long long> adj(cc.numberOfNodes());
     cc.forEdges([&](NetworKit::node eu, NetworKit::node ev) {
         auto v = mapOriginalToCompact[ev];
@@ -298,7 +297,8 @@ void PlanarSeparatorVertexCover::run() {
         });
         const NetworKit::Graph residualGraph =
             NetworKit::GraphTools::subgraphFromNodes(G, residualNodes);
-        double loglog = std::max(1.0, std::log2(std::log2((double)std::max<size_t>(4, n))));
+        double loglog = std::max(
+            1.0, std::log2(std::log2((double)std::max<size_t>(4, residualGraph.numberOfNodes()))));
         double epsilon = loglog / std::max<size_t>(1, residualGraph.numberOfNodes());
         MISP<NetworKit::node> mispAlgo(residualGraph, epsilon, independentSetSolver);
         mispAlgo.run();

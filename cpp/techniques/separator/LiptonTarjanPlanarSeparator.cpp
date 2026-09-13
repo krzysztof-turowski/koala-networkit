@@ -74,7 +74,9 @@ void LiptonTarjanPlanarSeparator::run() {
         if (compute_middle_cost(G, lvl, l0, l2) <= 2.0 / 3) {
             DEBUG("Cost of middle part is <= 2/3. Fallback to "
                   "extract_level_partition");
-            extract_level_partition(G, lvl, l0, l2);
+            cycle_t emptyCycle;
+            extract_separator_and_partition_from_cycle(graph, lvl, l0, l2, emptyCycle,
+                                                       NetworKit::none);
             hasRun = true;
             return;
         }
@@ -374,58 +376,6 @@ void LiptonTarjanPlanarSeparator::extract_separator_and_partition_from_cycle(
     connectedComponentsAlgo.run();
     auto connectedComponents = connectedComponentsAlgo.getComponents();
     find_separator_from_components(connectedComponents);
-}
-
-void LiptonTarjanPlanarSeparator::extract_level_partition(const NetworKit::Graph &G,
-                                                          const std::vector<int> &lvl, int l0,
-                                                          int l2) {
-    struct Part {
-        int id;
-        double cost;
-        std::vector<NetworKit::node> nodes;
-    };
-
-    int maxLvl = 0;
-    for (auto l : lvl) {
-        if (l != -1)
-            maxLvl = std::max(maxLvl, l);
-    }
-
-    auto findPartCost = [&](int id, int lower, int upper, bool empty = false) -> Part {
-        double cost = 0.0;
-        std::vector<NetworKit::node> partVertices;
-
-        if (!empty) {
-            G.forNodes([&](NetworKit::node t) {
-                if (lvl[t] != -1 && lvl[t] >= lower && lvl[t] <= upper) {
-                    cost += vertex_cost[t];
-                    partVertices.push_back(t);
-                }
-            });
-        }
-        return {id, cost, partVertices};
-    };
-
-    bool part1Empty = (l0 == 0);
-    int upper0 = part1Empty ? 0 : l0 - 1;
-
-    std::vector<Part> parts({findPartCost(1, 0, upper0, part1Empty),
-                             findPartCost(2, l0 + 1, l2 - 1, (l0 + 1 > l2 - 1)),
-                             findPartCost(3, l2 + 1, maxLvl, (l2 + 1 > maxLvl))});
-    auto mostExpensivePart = *(std::ranges::max_element(parts, {}, &Part::cost));
-
-    partition.A.insert(partition.A.end(), mostExpensivePart.nodes.begin(),
-                       mostExpensivePart.nodes.end());
-    for (auto &part : parts) {
-        if (part.id != mostExpensivePart.id) {
-            partition.B.insert(partition.B.end(), part.nodes.begin(), part.nodes.end());
-        }
-    }
-    G.forNodes([&](NetworKit::node t) {
-        if (lvl[t] == l0 || lvl[t] == l2) {
-            partition.separator.push_back(t);
-        }
-    });
 }
 
 double LiptonTarjanPlanarSeparator::compute_middle_cost(const NetworKit::Graph &G,
