@@ -4,7 +4,7 @@ koala_add_module(shortest_path
     HenzingerPlanarSSSP.cpp
     Aingworth.cpp
     Seidel.cpp
-    ShoshanZwick.cpp
+    UnweightedShoshanZwick.cpp
     Spira.cpp
 )
 

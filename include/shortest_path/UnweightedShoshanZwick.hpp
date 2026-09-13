@@ -16,13 +16,13 @@ namespace Koala {
  * Time complexity: O(M(n) * log n) where M(n) is the boolean
  * matrix multiplication time.
  */
-class ShoshanZwickAPSP : public AllPairsShortestPaths<int> {
+class UnweightedShoshanZwickAPSP : public AllPairsShortestPaths<int> {
  public:
     using Matrix = Eigen::MatrixXi;
 
-    explicit ShoshanZwickAPSP(const NetworKit::Graph &graph): AllPairsShortestPaths<int>(graph) { checkInput(); }
+    explicit UnweightedShoshanZwickAPSP(const NetworKit::Graph &graph): AllPairsShortestPaths<int>(graph) { checkInput(); }
 
-    explicit ShoshanZwickAPSP(NetworKit::Graph &&graph): AllPairsShortestPaths<int>(std::move(graph)) { checkInput(); }
+    explicit UnweightedShoshanZwickAPSP(NetworKit::Graph &&graph): AllPairsShortestPaths<int>(std::move(graph)) { checkInput(); }
 
     void run() override;
 

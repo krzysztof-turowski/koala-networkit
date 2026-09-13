@@ -10,7 +10,7 @@
 
 #include "shortest_path/Aingworth.hpp"
 #include "shortest_path/Seidel.hpp"
-#include "shortest_path/ShoshanZwick.hpp"
+#include "shortest_path/UnweightedShoshanZwick.hpp"
 #include "shortest_path/Spira.hpp"
 
 namespace {
@@ -78,9 +78,9 @@ TEST_P(APSPTest, SeidelMatchesReference) {
     expectExactUnweighted<Koala::SeidelAPSP>(G);
 }
 
-TEST_P(APSPTest, ShoshanZwickMatchesReference) {
+TEST_P(APSPTest, UnweightedShoshanZwickMatchesReference) {
     NetworKit::Graph G = GetParam().build();
-    expectExactUnweighted<Koala::ShoshanZwickAPSP>(G);
+    expectExactUnweighted<Koala::UnweightedShoshanZwickAPSP>(G);
 }
 
 // Aingworth is an additive +2 approximation: true <= estimate <= true + 2.
@@ -137,7 +137,7 @@ TEST(APSPTest, TrivialGraphs) {
     EXPECT_EQ(a.getDiameter(), 0);
 
     NetworKit::Graph edge = unweighted(2, {{0, 1}});
-    Koala::ShoshanZwickAPSP b(edge);
+    Koala::UnweightedShoshanZwickAPSP b(edge);
     b.run();
     EXPECT_EQ(b.getDistance(0, 1), 1);
     EXPECT_EQ(b.getDistance(0, 0), 0);
@@ -170,7 +170,7 @@ TEST(APSPTest, InputValidationThrows) {
     // The matrix algorithms require a connected graph.
     NetworKit::Graph disconnected = unweighted(4, {{0, 1}, {2, 3}});
     EXPECT_THROW(Koala::SeidelAPSP{disconnected}, std::invalid_argument);
-    EXPECT_THROW(Koala::ShoshanZwickAPSP{disconnected}, std::invalid_argument);
+    EXPECT_THROW(Koala::UnweightedShoshanZwickAPSP{disconnected}, std::invalid_argument);
 }
 
 // Aingworth and Spira leave unreachable pairs at infinity on disconnected input.

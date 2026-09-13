@@ -1,4 +1,4 @@
-#include "shortest_path/ShoshanZwick.hpp"
+#include "shortest_path/UnweightedShoshanZwick.hpp"
 
 #include <cmath>
 #include <limits>
@@ -15,21 +15,21 @@ static const int INF = std::numeric_limits<int>::max();
 // Element-wise (.array()) boolean helpers for Eigen Matrix
 namespace {
 
-ShoshanZwickAPSP::Matrix elemAnd(const ShoshanZwickAPSP::Matrix& A, const ShoshanZwickAPSP::Matrix& B) {
+UnweightedShoshanZwickAPSP::Matrix elemAnd(const UnweightedShoshanZwickAPSP::Matrix& A, const UnweightedShoshanZwickAPSP::Matrix& B) {
     return (A.array() * B.array()).matrix();
 }
 
-ShoshanZwickAPSP::Matrix elemOr(const ShoshanZwickAPSP::Matrix& A, const ShoshanZwickAPSP::Matrix& B) {
+UnweightedShoshanZwickAPSP::Matrix elemOr(const UnweightedShoshanZwickAPSP::Matrix& A, const UnweightedShoshanZwickAPSP::Matrix& B) {
     return (A.array() + B.array() - A.array() * B.array()).matrix();
 }
 
-ShoshanZwickAPSP::Matrix elemNot(const ShoshanZwickAPSP::Matrix& A) {
+UnweightedShoshanZwickAPSP::Matrix elemNot(const UnweightedShoshanZwickAPSP::Matrix& A) {
     return (1 - A.array()).matrix();
 }
 
 }
 
-void ShoshanZwickAPSP::checkInput() const {
+void UnweightedShoshanZwickAPSP::checkInput() const {
     if (graph->isDirected()) {
         throw std::invalid_argument("Graph must be undirected for Shoshan-Zwick's algorithm.");
     }
@@ -45,12 +45,12 @@ void ShoshanZwickAPSP::checkInput() const {
     }
 }
 
-ShoshanZwickAPSP::Matrix ShoshanZwickAPSP::boolMul(const Matrix& A, const Matrix& B) {
+UnweightedShoshanZwickAPSP::Matrix UnweightedShoshanZwickAPSP::boolMul(const Matrix& A, const Matrix& B) {
     Matrix C = A * B;
     return (C.array() > 0).cast<int>();
 }
 
-void ShoshanZwickAPSP::run() {
+void UnweightedShoshanZwickAPSP::run() {
     const NetworKit::count N = graph->upperNodeIdBound();
     const int n = static_cast<int>(graph->numberOfNodes());
 

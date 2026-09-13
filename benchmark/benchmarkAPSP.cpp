@@ -12,7 +12,7 @@
 #include <benchmark/utils.hpp>
 #include <shortest_path/Aingworth.hpp>
 #include <shortest_path/Seidel.hpp>
-#include <shortest_path/ShoshanZwick.hpp>
+#include <shortest_path/UnweightedShoshanZwick.hpp>
 #include <shortest_path/Spira.hpp>
 
 template <typename T>
@@ -35,7 +35,7 @@ enum class Algorithm : uint32_t {
 std::map<std::string, Algorithm> ALGORITHM = {
     { "all", Algorithm::ALL },
     { "Seidel", Algorithm::SEIDEL },
-    { "ShoshanZwick", Algorithm::SHOSHAN_ZWICK },
+    { "UnweightedShoshanZwick", Algorithm::SHOSHAN_ZWICK },
     { "Aingworth", Algorithm::AINGWORTH },
     { "Spira", Algorithm::SPIRA }
 };
@@ -45,7 +45,7 @@ void check_against_reference(NetworKit::Graph &G) {
     reference.run();
     Koala::SeidelAPSP seidel(G);
     seidel.run();
-    Koala::ShoshanZwickAPSP shoshan_zwick(G);
+    Koala::UnweightedShoshanZwickAPSP shoshan_zwick(G);
     shoshan_zwick.run();
     Koala::AingworthAPSP aingworth(G);
     aingworth.run();
@@ -72,7 +72,7 @@ void process_graph(NetworKit::Graph &G, const std::string &algorithm_name, Algor
         result = run_algorithm<Koala::SeidelAPSP>(G);
         break;
     case Algorithm::SHOSHAN_ZWICK:
-        result = run_algorithm<Koala::ShoshanZwickAPSP>(G);
+        result = run_algorithm<Koala::UnweightedShoshanZwickAPSP>(G);
         break;
     case Algorithm::AINGWORTH:
         result = run_algorithm<Koala::AingworthAPSP>(G);
