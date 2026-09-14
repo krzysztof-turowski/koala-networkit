@@ -1,0 +1,86 @@
+% ============================================================
+\chapter{Algorytm Seidela}
+% ============================================================
+
+Optymalizacja rozwiązania problemu najkrótszych ścieżek dla wszystkich par wierzchołków w grafach nieskierowanych i nieważonych została zaproponowana przez R. Seidela \cite{Seidel1995} w 1995 roku. W tej części zaprezentujemy i poddamy analizie główną funkcję jego algorytmu, oznaczaną jako APD (ang.\ \emph{All-Pairs Distances}), która wyznacza rekurencyjnie macierz odległości $D$.
+
+Intuicja stojąca za algorytmem opiera się na rekurencyjnym wykorzystaniu mnożenia macierzy do redukcji problemu. Kluczowa obserwacja jest następująca: jeśli zdefiniujemy nowy graf $G'$, w którym dwa wierzchołki są połączone krawędzią dokładnie wtedy, gdy w oryginalnym grafie $G$ ich odległość wynosi co najwyżej 2, to średnica $G'$ jest dwukrotnie mniejsza niż średnica $G$. Macierz sąsiedztwa $G'$ można uzyskać jednym mnożeniem macierzy ($A \cdot A$ wykrywa pary połączone ścieżką długości 2), a następnie rekurencyjnie rozwiązać problem w mniejszym grafie. Ponieważ każdy poziom rekurencji zmniejsza średnicę o połowę, to jej maksymalna głębokość wynosi $O(\log n)$.
+
+\begin{algorithm}
+\caption{APD -- All-Pairs Distances w grafie nieważonym nieskierowanym}
+\begin{algorithmic}[1]
+\Require $A$: macierz sąsiedztwa $n \times n$ grafu $G$ (macierz 0-1)
+\Ensure $D$: macierz odległości $n \times n$
+\State $Z \leftarrow A \cdot A$
+\State $B \leftarrow \bigl[\, i \neq j \,\wedge\, (a_{ij} = 1 \,\vee\, z_{ij} > 0) \,\bigr]_{i,j=1,\ldots,n}$
+\If{$b_{ij} = 1$ dla wszystkich $i \neq j$}
+  \State $D \leftarrow 2B - A$
+  \State \Return $D$
+\EndIf
+\State $T \leftarrow \textsc{Seidel}(B)$
+\State $X \leftarrow T \cdot A$
+\State $D \leftarrow \bigl[\, 2t_{ij} - [x_{ij} < t_{ij} \cdot \mathrm{deg}(j)] \,\bigr]_{i,j=1,\ldots,n}$
+\State \Return $D$
+\end{algorithmic}
+\end{algorithm}
+
+\section{Poprawność algorytmu}
+
+Analizę algorytmu rozpoczniemy od kilku kluczowych obserwacji, formułując je w postaci lematów.
+
+\begin{lemat}
+Niech $Z = A \cdot A$. Istnieje ścieżka długości 2 w grafie $G$ pomiędzy wierzchołkami $i$ oraz $j$ wtedy i tylko wtedy, gdy $z_{ij} > 0$.
+\end{lemat}
+
+Wynika to bezpośrednio z definicji mnożenia macierzy: wpis $z_{ij}$ zlicza liczbę wierzchołków $k$, które są wspólnymi sąsiadami $i$ oraz $j$.
+
+Niech $G'$ będzie prostym, nieskierowanym grafem, którego macierzą sąsiedztwa jest wyliczona w algorytmie macierz $B$. W grafie $G'$ wierzchołki $i$ oraz $j$ są połączone krawędzią wtedy i tylko wtedy, gdy w oryginalnym grafie $G$ istnieje między nimi ścieżka długości co najwyżej 2. Zauważmy, że jeśli graf $G'$ byłby grafem pełnym (co sprawdzamy w kroku 3 algorytmu), oznaczałoby to, że średnica oryginalnego grafu $G$ wynosi maksymalnie 2. W takiej sytuacji macierz odległości $D$ spełniałaby zależność: jeśli $a_{ij} = 0$, to $d_{ij} = 2$, a jeśli $a_{ij} = 1$, to $d_{ij} = 1$. Zależność $D = 2B - A$ z kroku 3 odwzorowuje ten fakt, co stanowi poprawną bazę rekurencji.
+
+Oznaczmy przez $t_{ij}$ długość najkrótszej ścieżki łączącej $i$ oraz $j$ w nowym grafie $G'$.
+
+\begin{lemat}
+Dla dowolnej pary wierzchołków $i, j$, parzyste $d_{ij}$ implikuje $d_{ij} = 2t_{ij}$, a nieparzyste $d_{ij}$ implikuje $d_{ij} = 2t_{ij} - 1$.
+\end{lemat}
+
+\begin{proof}
+Jeśli dla pary wierzchołków $i, j$ odległość w $G$ wynosi $d_{ij} = 2s$ i najkrótsza ścieżka to $i = i_0, i_1, \ldots, i_{2s-1}, i_{2s} = j$, to z definicji grafu $G'$ ciąg $i = i_0, i_2, i_4, \ldots, i_{2s-2}, i_{2s} = j$ stanowi najkrótszą ścieżkę pomiędzy $i$ oraz $j$ w $G'$ i ma długość dokładnie $s$. Podobnie, jeśli odległość jest nieparzysta, $d_{ij} = 2s - 1$, a ścieżka w $G$ to $i = i_0, i_1, \ldots, i_{2s-3}, i_{2s-2}, i_{2s-1} = j$, to w grafie $G'$ ciąg $i = i_0, i_2, i_4, \ldots, i_{2s-4}, i_{2s-2}, i_{2s-1} = j$ jest najkrótszą ścieżką o długości $s$.
+\end{proof}
+
+Jeśli zatem rekurencyjnie policzymy wartości $t_{ij}$, jedyne, co algorytm musi zrobić, to zdeterminować parzystość oryginalnego dystansu $d_{ij}$, aby wywnioskować jego dokładną wartość. Celowi temu służą dwie kolejne obserwacje.
+
+\begin{lemat}
+Niech $i$ oraz $j$ będą parą różnych wierzchołków w $G$. Dla dowolnego sąsiada $k$ węzła $j$ w grafie $G$ zachodzi $d_{ij} - 1 \leq d_{ik} \leq d_{ij} + 1$. Ponadto, istnieje co najmniej jeden sąsiad $k$ wierzchołka $j$, dla którego $d_{ik} = d_{ij} - 1$.
+\end{lemat}
+
+\begin{lemat}
+Niech $i$ oraz $j$ będą parą różnych wierzchołków w $G$. Wtedy:
+\begin{enumerate}
+  \item Parzyste $d_{ij}$ implikuje $t_{ik} \geq t_{ij}$ dla wszystkich sąsiadów $k$ wierzchołka $j$ w $G$.
+  \item Nieparzyste $d_{ij}$ implikuje $t_{ik} \leq t_{ij}$ dla wszystkich sąsiadów $k$ wierzchołka $j$ w $G$, oraz $t_{ik} < t_{ij}$ dla co najmniej jednego sąsiada $k$ wierzchołka $j$ w $G$.
+\end{enumerate}
+\end{lemat}
+
+\begin{proof}
+Załóżmy najpierw, że odległość $d_{ij} = 2s$. Z poprzedniego lematu wiemy, że $d_{ik} \geq 2s - 1$ dla dowolnego sąsiada $k$ wierzchołka $j$. Jeśli $d_{ik}$ jest parzyste, to $d_{ik} = 2t_{ik} \geq 2s$, skąd $t_{ik} \geq s$. Jeśli $d_{ik}$ jest nieparzyste, to $d_{ik} = 2t_{ik} - 1 \geq 2s - 1$, co również implikuje $2t_{ik} \geq 2s$, a więc $t_{ik} \geq s$. Ponieważ dla parzystego $d_{ij}$ zachodzi $s = t_{ij}$, otrzymujemy $t_{ik} \geq t_{ij}$.
+
+Załóżmy teraz, że odległość $d_{ij} = 2s - 1$ jest nieparzysta. Z poprzedniego lematu mamy $d_{ik} \leq 2s$ dla każdego sąsiada $k$. Analizując przypadki podobnie jak wyżej, otrzymujemy, że niezależnie od parzystości $d_{ik}$ zawsze zachodzi $t_{ik} \leq s = t_{ij}$. Co więcej, na mocy poprzedniego lematu istnieje sąsiad $k$ dokładnie na najkrótszej ścieżce, dla którego $d_{ik} = 2s - 2$ (wartość parzysta). Wówczas dla tego konkretnego sąsiada zachodzi $2t_{ik} = 2s - 2$, co daje $t_{ik} = s - 1$. Stąd jasno wynika, że $t_{ik} < s = t_{ij}$.
+\end{proof}
+
+To wprost dowodzi poprawności warunku w kroku 7 algorytmu APD. Wartość $x_{ij}$ obliczona jako $(T \cdot A)_{ij}$ jest sumą $\sum_k t_{ik}$ dla wszystkich sąsiadów $j$. Analizując nierówności z powyższego lematu widzimy, że średnia odległość sąsiadów w grafie $G'$ decyduje o parzystości oryginalnej odległości $d_{ij}$.
+
+\section{Analiza złożoności}
+
+Oznaczmy przez $f(n, \rho)$ czas działania algorytmu APD dla grafu o $n$ wierzchołkach i średnicy $\rho$. Z uwagi na to, że graf $G'$ ma średnicę równą co najwyżej $\lceil \rho/2 \rceil$, rekurencja zatrzymuje się dla $\rho \leq 2$.
+
+Czas wykonywania pojedynczego wywołania algorytmu (bez kosztu wywołań rekurencyjnych) jest zdominowany przez dwa mnożenia macierzy: $A \cdot A$ w kroku 1 oraz $T \cdot A$ w kroku 6. Oznaczmy czas potrzebny na pomnożenie dwóch macierzy rozmiaru $n \times n$ przez $Mul(n)$. Pozostałe operacje zajmują czas $O(n^2)$. Otrzymujemy następujące równanie rekurencyjne:
+\[
+f(n, \rho) = \begin{cases} Mul(n) + O(n^2) & \text{dla } \rho \leq 2, \\ 2Mul(n) + O(n^2) + f(n, \lceil \rho/2 \rceil) & \text{dla } \rho > 2. \end{cases}
+\]
+Rozwijając to równanie dla głębokości rekurencji wynoszącej $\lceil \log_2 \rho \rceil$, uzyskujemy:
+\[
+f(n, \rho) = (2\lceil \log_2 \rho \rceil - 1) \cdot Mul(n) + O(n^2 \log \rho).
+\]
+Ponieważ maksymalna średnica $\rho$ w grafie spójnym jest zawsze mniejsza niż $n$, a koszt standardowego mnożenia macierzy spełnia $Mul(n) = \Omega(n^2)$, drugi wyraz jest asymptotycznie zdominowany przez człon pierwszy. Całkowity czas działania algorytmu APD wynosi zatem $O(Mul(n) \log n)$. Przyjmując $Mul(n) = O(n^\omega)$, otrzymujemy złożoność $O(n^{2{,}372} \log n)$.
+
+
+\newpage

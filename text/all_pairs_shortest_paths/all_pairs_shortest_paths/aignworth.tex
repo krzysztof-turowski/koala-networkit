@@ -1,0 +1,166 @@
+% ============================================================
+\chapter{Algorytm Aingwortha, Chekuriego, Indyka i Motwaniego}
+% ============================================================
+
+W ostatniej sekcji skupimy się na algorytmie aproksymacyjnym dla problemu najkrótszych ścieżek między wszystkimi parami wierzchołków. Zaprezentujemy wersję w grafach nieskierowanych, nieważonych z pracy Aingwortha, Chekuriego, Indyka i Motwaniego \cite{Aingworth1999}. Algorytm nie korzysta z szybkiego mnożenia macierzy -- opiera się wyłącznie na przeszukiwaniu wszerz (BFS) i zbiorach dominujących. Działa w czasie $O(n^{2.5}\sqrt{\log n})$ i zwraca odległości z błędem addytywnym co najwyżej 2.
+
+\section{Definicje i oznaczenia}
+
+Rozważamy graf nieskierowany, nieważony, spójny $G = (V, E)$ z $n$ wierzchołkami i $m$ krawędziami.
+
+\begin{definicja}[Wierzchołki nisko- i wysokostopniowe]
+Ustalmy parametr $s$ (próg stopnia). Definiujemy:
+\begin{align*}
+L(V) &= \{u \in V \colon d_u < s\} \quad \text{-- wierzchołki niskostopniowe},\\
+H(V) &= V \setminus L(V) = \{u \in V \colon d_u \geq s\} \quad \text{-- wierzchołki wysokostopniowe}.
+\end{align*}
+Przez $G[L(V)]$ oznaczamy podgraf $G$ indukowany przez $L(V)$.
+\end{definicja}
+
+\begin{definicja}[Zbiór dominujący]
+Dla danego zbioru $A \subseteq V$ zbiór $D \subseteq V$ nazywamy \emph{zbiorem dominującym} dla $A$, jeśli dla każdego $v \in A$ zachodzi $N(v) \cap D \neq \emptyset$, tzn.\ każdy wierzchołek z $A$ albo sam należy do $D$, albo ma sąsiada w $D$.
+\end{definicja}
+
+\begin{definicja}
+Dla $v \in V$ oznaczamy przez $B(v)$ głębokość drzewa BFS zakorzenionego w $v$, czyli odległość od $v$ do najdalszego osiągalnego wierzchołka.
+\end{definicja}
+
+\begin{definicja}
+Przez $\hat{\delta}(u, v)$ oznaczamy przybliżoną odległość między wierzchołkami $u$ i $v$ zwracaną przez algorytm Approx-APSP.
+\end{definicja}
+
+
+\section{Konstrukcja zbioru dominującego}
+
+\begin{twierdzenie}
+Dla zbioru $H(V)$ istnieje zbiór dominujący o rozmiarze $O(s^{-1} n \log n)$ i można go znaleźć w czasie $O(m + ns)$.
+\end{twierdzenie}
+
+\begin{proof}
+Rozpatrujemy dwa przypadki.
+
+\textbf{Przypadek $H(V) = V$ -- wszystkie wierzchołki są wysokostopniowe.}
+
+Sprowadzamy problem do pokrycia zbiorów. Dla każdego $v \in V$ definiujemy zbiór $S_v = N(v)$. Rodzina $\mathcal{S} = \{S_v \colon v \in V\}$ pokrywa całe $V$.
+
+Pokażemy, że każde pokrycie zbiorów z rodziny $\mathcal{S}$ odpowiada zbiorowi dominującemu tej samej mocy. Niech $\mathcal{C} = \{S_{w_1}, \ldots, S_{w_k}\}$ będzie pokryciem $V$. Definiujemy $D = \{w_1, \ldots, w_k\}$. Weźmy dowolny $v \in V$. Skoro $\mathcal{C}$ pokrywa $V$, istnieje $j$ takie, że $v \in S_{w_j}$. Ponieważ graf jest nieskierowany, relacja sąsiedztwa jest symetryczna: skoro $v \in N(w_j)$, to również $w_j \in N(v)$. A ponieważ $w_j \in D$, mamy $N(v) \cap D \neq \emptyset$ -- czyli $D$ jest zbiorem dominującym. Rozumowanie działa też w drugą stronę, więc problemy są równoważne.
+
+Musimy teraz oszacować rozmiar optymalnego pokrycia. Bezpośrednie wyznaczenie optimum jest NP-trudne \cite{Karp1972}, ale możemy je ograniczyć z góry za pomocą pokrycia ułamkowego -- uproszczonego problemu, w którym przypisujemy każdemu zbiorowi $S_v$ dowolną nieujemną wagę $x_v$. Warunek pokrycia wymaga, aby dla każdego elementu $u \in V$ suma wag zbiorów go zawierających wynosiła co najmniej 1. Przypisujemy każdemu zbiorowi wagę $x_v = 1/s$. Element $u$ należy do zbioru $S_v$, gdy $v$ jest sąsiadem $u$ lub $v = u$ -- takich zbiorów jest dokładnie $|N(u)| = d_u + 1$. Skoro $d_u \geq s$ (bo $H(V) = V$), mamy $|N(u)| \geq s + 1$, więc suma wag zbiorów pokrywających $u$ wynosi $|N(u)| \cdot \frac{1}{s} \geq \frac{s+1}{s} > 1$. Warunek jest spełniony, a rozmiar tego pokrycia ułamkowego wynosi $n \cdot (1/s) = n/s$.
+
+Ponieważ każde pokrycie całkowite jest też pokryciem ułamkowym, zachodzi $\mathrm{OPT} \geq \mathrm{OPT_{frac}}$. Z naszej konstrukcji $\mathrm{OPT_{frac}} \leq n/s$, więc $\mathrm{OPT} \leq n/s$. Z twierdzenia Johnsona \cite{Johnson1974} zachłanny algorytm pokrycia zbiorów daje rozwiązanie o rozmiarze co najwyżej $\mathrm{OPT} \cdot \ln n$, zatem:
+\[
+|D| \leq \frac{n}{s} \cdot \ln n = O(s^{-1} n \log n).
+\]
+Implementacja zachłannego algorytmu z kubełkami posortowanymi według liczby niepokrytych elementów działa w czasie $O(m)$.
+
+\textbf{Przypadek $H(V) \neq V$ -- istnieją wierzchołki niskostopniowe.}
+
+Konstruujemy graf $G' = (V', E')$: dodajemy $s$ sztucznych wierzchołków $X = \{x_1, \ldots, x_s\}$ tworzących klikę, połączonych z każdym $u \in L(V)$. W $G'$ każdy wierzchołek ma stopień przynajmniej $s$, więc stosujemy poprzedni przypadek. Żaden wierzchołek z $X$ nie sąsiaduje z $H(V)$, więc $D = D' \cap V$ dominuje $H(V)$ w $G$. Dodano $O(ns + s^2) = O(ns)$ krawędzi, więc czas wynosi $O(m + ns)$.
+\end{proof}
+
+\section{Opis algorytmu Approx-APSP}
+
+\begin{algorithm}
+\caption{Approx-APSP -- aproksymacja APSP w grafie nieważonym nieskierowanym}
+\begin{algorithmic}[1]
+\Require Graf $G = (V, E)$, parametr $s$
+\Ensure Macierz przybliżonych odległości $\hat{D}$
+\State Zainicjalizuj $\hat{D}(u, v) \leftarrow \infty$ dla wszystkich $u, v \in V$
+\State Oblicz zbiór dominujący $Dom$ dla $H(V)$ o rozmiarze $O(s^{-1} n \log n)$
+\ForAll{$v \in Dom$}
+  \State Wykonaj BFS z $v$ w pełnym grafie $G$ i zaktualizuj $\hat{D}$
+\EndFor
+\ForAll{$v \in L(V)$}
+  \State Wykonaj BFS z $v$ w podgrafie $G[L(V)]$ i zaktualizuj $\hat{D}$
+\EndFor
+\ForAll{$u, v \in V \setminus Dom$}
+  \State $\hat{D}[u, v] \leftarrow \min\!\left\{\hat{D}[u, v],\ \min\bigl\{\hat{D}[u, w] + \hat{D}[w, v] : w \in D\bigr\}\right\}$
+\EndFor
+\State \Return $\hat{D}$
+\end{algorithmic}
+\end{algorithm}
+
+Algorytm może też zwracać ścieżki -- wystarczy zapamiętywać drzewa BFS z kroków 3 i 5.
+
+\section{Dowód poprawności}
+
+\begin{twierdzenie}[\cite{Aingworth1999}, Twierdzenie 4.1]
+Dla wszystkich $u, v \in V$ odległości zwracane przez Approx-APSP spełniają:
+\[
+0 \leq \hat{\delta}(u, v) - \delta(u, v) \leq 2.
+\]
+\end{twierdzenie}
+
+\begin{proof}
+Nierówność $\hat{\delta}(u, v) \geq \delta(u, v)$ zachodzi, ponieważ każda wartość wpisana do $\hat{d}$ odpowiada długości pewnej rzeczywistej ścieżki w $G$ (lub złączenia dwóch ścieżek w ostatnim kroku).
+
+Pokazujemy $\hat{\delta}(u, v) \leq \delta(u, v) + 2$ w trzech przypadkach.
+
+\textbf{Przypadek 1: $u \in D$.} Krok 3 zapewnia dokładne odległości od wierzchołków zbioru dominującego, czyli $\hat{\delta}(u, v) = \delta(u, v)$.
+
+\textbf{Przypadek 2: $u \in H(V) \setminus D$.} Ponieważ $D$ jest zbiorem
+dominującym dla $H(V)$, istnieje sąsiad $w \in D$ wierzchołka $u$,
+a więc $\delta(w, u) = 1$. Odległości od $w$ są dokładne z kroku 3
+($w \in D$), czyli $\hat{\delta}(w, u) = 1$ i $\hat{\delta}(w, v) = \delta(w, v)$.
+Krok 5 daje:
+\[
+\hat{\delta}(u, v) \leq \hat{\delta}(w, u) + \hat{\delta}(w, v)
+= 1 + \delta(w, v)
+\leq 1 + \delta(w, u) + \delta(u, v)
+= 2 + \delta(u, v),
+\]
+gdzie przedostatnia nierówność wynika z nierówności trójkąta.
+
+\textbf{Przypadek 3: $u \in L(V)$.} Ustalmy najkrótszą ścieżkę $P$ z $u$ do $v$.
+\begin{enumerate}
+  \item[(a)] $P$ przebiega w $L(V)$: krok 4 daje $\hat{\delta}(u, v) = \delta(u, v)$.
+  \item[(b)] $P$ przechodzi przez $w \in D$: odległości od $w$ są dokładne, więc $\hat{\delta}(u, v) \leq \delta(w, u) + \delta(w, v) = \delta(u, v)$, co implikuje równość.
+  \item[(c)] $P$ przechodzi przez $w \in H(V) \setminus D$: wierzchołek $w$ ma sąsiada $x \in D$ z $\delta(w, x) = 1$. Odległości od $x$ są dokładne. W ostatnim kroku:
+  \[
+  \hat{\delta}(u, v) \leq \delta(x, u) + \delta(x, v) \leq (\delta(w, u) + 1) + (\delta(w, v) + 1) = \delta(w, u) + \delta(w, v) + 2 = \delta(u, v) + 2,
+  \]
+  gdzie ostatnia równość wynika z tego, że $w$ leży na najkrótszej ścieżce $P$.
+\end{enumerate}
+\end{proof}
+
+\section{Analiza złożoności}
+
+\begin{twierdzenie}[\cite{Aingworth1999}, Twierdzenie 4.1]
+Approx-APSP działa w czasie $O(n^2 s + n^3 s^{-1} \log n)$.
+\end{twierdzenie}
+
+\begin{proof}
+Analizujemy koszt poszczególnych kroków algorytmu:
+\begin{itemize}
+  \item \textbf{Krok 1} Inicjalizacja $\hat{\delta}$: $O(n^2)$.
+  \item \textbf{Krok 2} Konstrukcja zbioru dominującego $D$: $O(m + ns)$.
+  \item \textbf{Krok 3} BFS z każdego $v \in D$ w grafie $G$: $|D| = O(s^{-1} n \log n)$ operacji BFS, każda po $O(m)$, łącznie $O(m s^{-1} n \log n)$.
+  \item \textbf{Krok 4} BFS z każdego $v \in L(V)$ w podgrafie $G[L(V)]$: co najwyżej $n$ operacji BFS w grafie o $O(ns)$ krawędziach, łącznie $O(n^2 s)$.
+  \item \textbf{Krok 5} Aktualizacja przez zbiór dominujący: $O(n^2) \cdot |D| = O(n^3 s^{-1} \log n)$.
+\end{itemize}
+
+Dominującymi składowymi są $O(n^2 s)$ oraz $O(n^3 s^{-1} \log n)$,
+co daje łączną złożoność $O(n^2 s + n^3 s^{-1} \log n)$.
+\end{proof}
+
+\begin{wniosek}
+Dla $s = \sqrt{n \log n}$ algorytm Approx-APSP działa w czasie
+$O(n^{2{.}5}\sqrt{\log n})$.
+\end{wniosek}
+
+\begin{proof}
+Aby zminimalizować $O(n^2 s + n^3 s^{-1} \log n)$ względem $s$,
+przyrównujemy oba składniki:
+\[
+n^2 s = n^3 s^{-1} \log n
+\implies s^2 = n \log n
+\implies s = \sqrt{n \log n}.
+\]
+Podstawiając:
+\[
+n^2 \cdot \sqrt{n \log n} + n^3 \cdot \frac{\log n}{\sqrt{n \log n}}
+= n^{2{.}5}\sqrt{\log n} + n^{2{.}5}\sqrt{\log n}
+= O(n^{2{.}5}\sqrt{\log n}).
+\]
+Krok 3 daje $O(m\sqrt{n \log n})$, co dla $m = \Theta(n^2)$ nie dominuje.
+\end{proof}

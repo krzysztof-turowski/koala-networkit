@@ -15,6 +15,7 @@ koala_make_test(test_maximum_flow testMaximumFlow.cpp)
 koala_make_test(test_minimum_cut testMinCut.cpp)
 koala_make_test(test_maximum_cut testMaxCut.cpp)
 koala_make_test(test_planar_sssp testPlanarSSSP.cpp)
+koala_make_test(test_apsp testAPSP.cpp)
 
 koala_make_test(test_dynamic_tree structures/testDynamicTree.cpp)
 koala_make_test(test_cotree structures/testCotree.cpp)
