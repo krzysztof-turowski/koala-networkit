@@ -1,0 +1,39 @@
+\chapter{Introduction}
+
+\section{Motivation}
+
+The planar separator theorem is a fundamental result in graph theory that
+states that any planar graph can be separated into two roughly equal parts
+by removing a small number of vertices.
+One of the first times the concept of a separator was brought to a broader audience was
+in \cite{jordan1869assemblages}, where Jordan proved that every free tree $T$
+has a separator of size 1 (a single vertex), whose removal partitions $T$ into
+two or more connected components each of size at most $n/2$.
+The separator theorem for planar graphs that will be discussed in this paper has numerous
+applications in various fields, including computer science, engineering,
+and mathematics, serving as the baseline for designing highly efficient 
+divide and conquer algorithms. The main idea of this thesis is to bridge the 
+gap between the theoretical guarantees of the planar separator theorem and
+practical performance of the algorithms:
+\begin{itemize}
+    \item In \Cref{sec:def} we introduce a few definitions that will be needed for
+        later content. Moreover we will discuss properties of planar graphs
+        that make them special among other graph classes.
+    \item In the second chapter we present the outline of the proof for 
+        Lipton and Tarjan planar separator theorem with addition to a few 
+        lemmas that will be the cornerstone for developing approximation 
+        algorithms in the third section.
+    \item In the third chapter we elaborate on the practical consequences of 
+        all the lemmas developed in the previous section. We shall explore 
+        two algorithms for two different problems: maximum matching problem for 
+        which we obtain speedup
+        and minimum vertex cover problem for which we obtain better approximation
+        ratio that in general case.
+    \item In the last chapter we focus on practical implementations of 
+        the stated algorithms, and see how their performance scales with different
+        topological families of planar graphs and different sizes.
+\end{itemize}
+
+\input{1-introduction/main1_3.tex}
+
+

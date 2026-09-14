@@ -7,6 +7,7 @@
 #include "benchmark/utils.hpp"
 #include "vertex_cover/BakerKOuterplanarGraphVertexCover.hpp"
 #include "vertex_cover/BakerPlanarGraphVertexCover.hpp"
+#include "vertex_cover/PlanarVertexCover.hpp"
 
 template <typename T>
 int run_algorithm(NetworKit::Graph &graph) {
@@ -31,13 +32,15 @@ int run_approximation_algorithm(
 
 enum class Algorithm : std::uint32_t {
     KOUTERPLANAR,
-    PLANAR
+    PLANAR,
+    PLANAR_SEPARATOR
 };
 
 std::map<std::string, Algorithm> ALGORITHM = {
     {"k-outerplanar", Algorithm::KOUTERPLANAR},
     {"planar", Algorithm::PLANAR},
-    {"Baker", Algorithm::PLANAR}
+    {"Baker", Algorithm::PLANAR},
+    {"planar_separator", Algorithm::PLANAR_SEPARATOR}
 };
 
 void choose_algorithm(
@@ -49,6 +52,9 @@ void choose_algorithm(
         case Algorithm::PLANAR:
             run_approximation_algorithm<
                 Koala::BakerPlanarGraphVertexCover>(graph, epsilon);
+            break;
+        case Algorithm::PLANAR_SEPARATOR:
+            run_algorithm<Koala::PlanarSeparatorVertexCover>(graph);
             break;
         default:
             throw std::invalid_argument("Unknown algorithm");

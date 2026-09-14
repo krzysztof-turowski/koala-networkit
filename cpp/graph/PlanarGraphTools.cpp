@@ -84,6 +84,10 @@ planar_embedding_t findPlanarEmbedding(const NetworKit::Graph& G) {
 }
 
 NetworKit::Graph makeMaximalPlanar(NetworKit::Graph& G) {
+    NetworKit::count n = G.numberOfNodes();
+    if (n >= 3 && G.numberOfEdges() == 3 * n - 6) {
+        return G;
+    }
     typedef boost::adjacency_list<
         boost::vecS, boost::vecS, boost::undirectedS,
         boost::property<boost::vertex_index_t, NetworKit::edgeweight>,
