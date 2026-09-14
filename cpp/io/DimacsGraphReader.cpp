@@ -121,7 +121,7 @@ DimacsGraphReader::McfResult DimacsGraphReader::read_all(const std::string &path
     char command = 0;
     std::string format;
     NetworKit::count nodes = 0, edges = 0;
-    NetworKit::node _;
+    NetworKit::node s, t;
     std::unordered_map<NetworKit::node, int64_t> b;
     std::unordered_map<NetworKit::Edge, int64_t> costs;
 
@@ -148,7 +148,7 @@ DimacsGraphReader::McfResult DimacsGraphReader::read_all(const std::string &path
                 read_edge(graphFile, graph, costs, format);
                 break;
             case 'n':
-                read_node(graphFile, b, _, _, format);
+                read_node(graphFile, b, s, t, format);
                 break;
             default:
                 throw std::runtime_error("Unknown line type");
@@ -156,7 +156,7 @@ DimacsGraphReader::McfResult DimacsGraphReader::read_all(const std::string &path
         graphFile.ignore(MAX, '\n');
     }
     graph.shrinkToFit();
-    return std::make_tuple(graph, costs, b, _, _);
+    return std::make_tuple(graph, costs, b, s, t);
 }
 
 std::tuple<NetworKit::Graph, NetworKit::node, NetworKit::node> DimacsGraphReader::read_all_no_costs(
