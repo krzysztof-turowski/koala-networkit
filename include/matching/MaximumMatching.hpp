@@ -892,4 +892,31 @@ class MicaliVaziraniMatching final :  public MaximumCardinalityMatching {
     get_bridge(NetworKit::node vertex);
 };
 
+class PlanarSeparatorMatching final : public MaximumCardinalityMatching {
+public:
+    explicit PlanarSeparatorMatching(NetworKit::Graph &G);
+    void run() override;
+
+private:
+    enum class ReductionType {
+        DEG_0, DEG_1, DEG_2
+    };
+    struct Action {
+        ReductionType type;
+        NetworKit::node v = 0, u = 0, smaller = 0, larger = 0;
+        std::vector<NetworKit::node> moved_nodes;
+    };
+
+    std::vector<NetworKit::Edge> get_exact_matching(const NetworKit::Graph &graph);
+    void insert_edge_into_matching(std::unordered_set<NetworKit::node> &matched_nodes,
+                                   std::unordered_set<NetworKit::Edge> &S, NetworKit::Edge e);
+    void remove_vertex(int &currentGraphSize, NetworKit::node v, NetworKit::Graph &G,
+                       std::vector<Action> &stk);
+    void remove_edge(int &currentGraphSize, NetworKit::node v, std::queue<NetworKit::node> &Q,
+                     NetworKit::Graph &G, std::vector<Action> &stk);
+    void contract(int &currentGraphSize, NetworKit::node v, std::queue<NetworKit::node> &Q,
+                  NetworKit::Graph &G, std::vector<Action> &stk);
+    void reduce_procedure(NetworKit::Graph &graph);
+};
+
 } /* namespace Koala */
