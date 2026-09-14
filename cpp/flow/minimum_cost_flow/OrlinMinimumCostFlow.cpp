@@ -16,21 +16,12 @@ using node = NetworKit::node;
 
 namespace Koala {
 
-int64_t OrlinMinimumCostFlow::getFlow(NetworKit::Edge const& edge) {
-    if (maxflow.has_value()) {
-        return maxflow->getFlow({edge.u, edge.v});
-    }
-    return 0;
-}
-
-std::unordered_map<NetworKit::Edge, int64_t> OrlinMinimumCostFlow::getMinCostFlow() const {
-    return computed_flow;
-}
-
 void OrlinMinimumCostFlow::initialize() {
-    uncapacitated_nodes_bounds.first = network.getGraph().upperNodeIdBound();
+    initial_node_id_bound = network.getGraph().upperNodeIdBound();
+    uncapacitated_nodes_bounds = {initial_node_id_bound, initial_node_id_bound};
     network.makeUncapacitated();
     uncapacitated_nodes_bounds.second = network.getGraph().upperNodeIdBound();
+
     network.makeConnected();
     auto& graph = network.getGraph();
     nodes_number = graph.numberOfNodes();
@@ -76,6 +67,10 @@ void OrlinMinimumCostFlow::initialize() {
 bool OrlinMinimumCostFlow::is_added_uncapacitated(node v) const {
     auto [begin, end] = uncapacitated_nodes_bounds;
     return begin <= v && v < end;
+}
+
+bool OrlinMinimumCostFlow::is_node_artificial(node v) const {
+    return v >= initial_node_id_bound;
 }
 
 void OrlinMinimumCostFlow::apply_potential() {
@@ -365,9 +360,10 @@ void OrlinMinimumCostFlow::compute_final_flows() {
     min_cost = 0;
     computed_flow.clear();
     maxflow_graph.forEdges([&](node u, node v) {
-        if (u == s || v == t) return;
+        if (is_node_artificial(u) || is_node_artificial(v)) return;
         int64_t flow = maxflow->getFlow({u, v});
-        computed_flow[{u, v}] = flow;
+        auto original_edge = network.getUncapacitatedToOriginalEdgeMapping({u, v});
+        computed_flow[original_edge] = flow;
         min_cost += network.cost[{u, v}] * flow;
     });
 }

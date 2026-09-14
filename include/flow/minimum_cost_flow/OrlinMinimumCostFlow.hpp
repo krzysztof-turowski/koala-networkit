@@ -22,6 +22,7 @@ class OrlinMinimumCostFlow final : public MinimumCostFlow {
     int64_t cost, capacity, flow;
   };
 
+  NetworKit::index initial_node_id_bound;
   NetworKit::Graph original_graph;
   std::vector<Edge> edges;
   std::vector<Edge> original_edges;
@@ -54,13 +55,11 @@ class OrlinMinimumCostFlow final : public MinimumCostFlow {
   std::stack<std::pair<NetworKit::node, NetworKit::node>> contractions;
   std::pair<NetworKit::node, NetworKit::node> uncapacitated_nodes_bounds;
   bool is_added_uncapacitated(NetworKit::node v) const;
+  bool is_node_artificial(NetworKit::node v) const;
   void compute_final_flows();
-  std::unordered_map<NetworKit::Edge, int64_t> computed_flow;
 
  public:
-  explicit OrlinMinimumCostFlow(MCFlowNetwork const& network) : MinimumCostFlow(network) {}
-  int64_t getFlow(NetworKit::Edge const& edge) override;
-  std::unordered_map<NetworKit::Edge, int64_t> getMinCostFlow() const override;
+  explicit OrlinMinimumCostFlow(MCFlowNetwork network) : MinimumCostFlow(network) {}
 };
 
 }  /* namespace Koala */

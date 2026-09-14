@@ -19,7 +19,6 @@ class SuccessiveApproximationMinimumCostFlow final : public MinimumCostFlow {
   };
   std::vector<Edge> edges;
   std::vector<std::vector<NetworKit::index>> neighbors;
-  std::unordered_map<NetworKit::Edge, int64_t> computed_flow;
   void run_impl() override;
   bool is_imbalanced();
   void initialize();
@@ -61,10 +60,8 @@ class SuccessiveApproximationMinimumCostFlow final : public MinimumCostFlow {
   };
 
  public:
-  explicit SuccessiveApproximationMinimumCostFlow(MCFlowNetwork const& network)
+  explicit SuccessiveApproximationMinimumCostFlow(MCFlowNetwork network)
       : MinimumCostFlow(network) {}
-  int64_t getFlow(NetworKit::Edge const& edge) override;
-  std::unordered_map<NetworKit::Edge, int64_t> getMinCostFlow() const override;
 };
 
 }  /* namespace Koala */

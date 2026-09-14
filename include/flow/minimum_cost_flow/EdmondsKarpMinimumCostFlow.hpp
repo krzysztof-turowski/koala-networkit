@@ -19,7 +19,6 @@ class EdmondsKarpMinimumCostFlow final : public MinimumCostFlow {
   std::vector<std::vector<NetworKit::index>> neighbors;
   std::vector<int64_t> excess;
   std::vector<int64_t> potential;
-  std::unordered_map<NetworKit::Edge, int64_t> computed_flow;
   NetworKit::count max_node_id;
 
   void run_impl() override;
@@ -31,9 +30,7 @@ class EdmondsKarpMinimumCostFlow final : public MinimumCostFlow {
       NetworKit::node source, int64_t delta);
 
  public:
-  explicit EdmondsKarpMinimumCostFlow(MCFlowNetwork const& network) : MinimumCostFlow(network) {}
-  int64_t getFlow(NetworKit::Edge const& edge) override;
-  std::unordered_map<NetworKit::Edge, int64_t> getMinCostFlow() const override;
+  explicit EdmondsKarpMinimumCostFlow(MCFlowNetwork network) : MinimumCostFlow(network) {}
 };
 
 } /* namespace Koala */

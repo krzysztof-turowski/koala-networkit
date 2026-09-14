@@ -12,12 +12,13 @@ using Graph = NetworKit:: Graph;
 
 namespace Koala {
 
-MCFlowNetwork::MCFlowNetwork(Graph const& g, bool) : graph(g) {
+MCFlowNetwork::MCFlowNetwork(Graph const& g) : graph(g) {
     if (graph.isWeighted()) {
         graph.forEdges([&](node u, node v, NetworKit::edgeweight weight, NetworKit::edgeid) {
             capacity[{u, v}] += static_cast<int64_t>(weight < 0 ? weight - 0.5 : weight + 0.5);
         });
     } else {
+        uncapacitated = true;
         graph.forEdges([&](node u, node v) {
             capacity[{u, v}] = std::numeric_limits<int64_t>::max();
         });
@@ -25,16 +26,23 @@ MCFlowNetwork::MCFlowNetwork(Graph const& g, bool) : graph(g) {
 }
 
 MCFlowNetwork::MCFlowNetwork(
-    Graph const& g, std::unordered_map<Edge, int64_t> const& cost, bool circulation)
-    : MCFlowNetwork(g, circulation) {
+    Graph const& g, std::unordered_map<Edge, int64_t> const& cost)
+    : MCFlowNetwork(g) {
     this->cost = cost;
 }
 
 MCFlowNetwork::MCFlowNetwork(
     Graph const& g, std::unordered_map<Edge, int64_t> const& cost,
-    std::unordered_map<node, int64_t> const& node_excess, bool circulation)
-    : MCFlowNetwork(g, cost, circulation) {
+    std::unordered_map<node, int64_t> const& node_excess)
+    : MCFlowNetwork(g, cost) {
     excess = node_excess;
+}
+
+NetworKit::Edge MCFlowNetwork::getUncapacitatedToOriginalEdgeMapping(NetworKit::Edge const& edge) const {
+    if (uncapacitated_to_original_edge_mapping.find(edge) != uncapacitated_to_original_edge_mapping.end()) {
+        return uncapacitated_to_original_edge_mapping.at(edge);
+    }
+    return edge;
 }
 
 Graph& MCFlowNetwork::getGraph() {
@@ -76,6 +84,8 @@ void MCFlowNetwork::makeConnected() {
 }
 
 void MCFlowNetwork::makeUncapacitated() {
+    if (uncapacitated) return;
+
     NetworKit::Graph g = NetworKit::GraphTools::copyNodes(graph);
 
     graph.forEdges([&](node u, node v, NetworKit::edgeweight) {
@@ -91,6 +101,7 @@ void MCFlowNetwork::makeUncapacitated() {
         cost.erase({u, v});
         g.addEdge(u, w, std::numeric_limits<NetworKit::edgeweight>::infinity());
         g.addEdge(v, w, std::numeric_limits<NetworKit::edgeweight>::infinity());
+        uncapacitated_to_original_edge_mapping[{u, v}] = {u, w};
     });
 
     graph = g;

@@ -154,10 +154,10 @@ void SuccessiveApproximationMinimumCostFlow::run_impl() {
     min_cost = 0;
 
     for (const Edge& edge : edges) {
+        if (edge.flow <= 0) continue;
         min_cost += edge.flow * edge.cost;
         computed_flow[{edge.from, edge.to}] = edge.flow;
     }
-    min_cost /= 2;
 }
 
 SuccessiveApproximationMinimumCostFlow::ToposortList::ToposortList(
@@ -189,15 +189,6 @@ void SuccessiveApproximationMinimumCostFlow::ToposortList::moveToStart() {
     if (current != nodes.end()) {
         nodes.splice(nodes.begin(), nodes, current);
     }
-}
-
-int64_t SuccessiveApproximationMinimumCostFlow::getFlow(NetworKit::Edge const& edge) {
-    return computed_flow[edge];
-}
-
-std::unordered_map<NetworKit::Edge, int64_t>
-SuccessiveApproximationMinimumCostFlow::getMinCostFlow() const {
-    return computed_flow;
 }
 
 } /* namespace Koala */

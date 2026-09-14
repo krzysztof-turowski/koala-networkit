@@ -168,18 +168,10 @@ void EdmondsKarpMinimumCostFlow::run_impl() {
 
     min_cost = 0;
     for (const Edge& edge : edges) {
+        if (edge.flow <= 0) continue;
         computed_flow[{edge.from, edge.to}] = edge.flow;
         min_cost += edge.flow * edge.cost;
     }
-    min_cost /= 2;
-}
-
-std::unordered_map<NetworKit::Edge, int64_t> EdmondsKarpMinimumCostFlow::getMinCostFlow() const {
-    return computed_flow;
-}
-
-int64_t EdmondsKarpMinimumCostFlow::getFlow(NetworKit::Edge const& edge) {
-    return computed_flow[edge];
 }
 
 } /* namespace Koala */
