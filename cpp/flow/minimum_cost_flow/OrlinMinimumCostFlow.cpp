@@ -360,10 +360,10 @@ void OrlinMinimumCostFlow::compute_final_flows() {
     min_cost = 0;
     computed_flow.clear();
     maxflow_graph.forEdges([&](node u, node v) {
-        if (is_node_artificial(u) || is_node_artificial(v)) return;
         int64_t flow = maxflow->getFlow({u, v});
         auto original_edge = network.getUncapacitatedToOriginalEdgeMapping({u, v});
-        computed_flow[original_edge] = flow;
+        if (is_node_artificial(original_edge.u) || is_node_artificial(original_edge.v))
+            computed_flow[original_edge] = flow;
         min_cost += network.cost[{u, v}] * flow;
     });
 }
