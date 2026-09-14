@@ -94,6 +94,7 @@ Moreover, they set up an online graph editor <a href="https://stos.eti.pg.gda.pl
 1. [Maximum matching algorithms](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/matching/)
    1. Maximum cardinality matching: Micali-Vazirani (blossom-based), Mucha-Sankowski Gaussian-elimination variants for bipartite and general graphs, and a naive Gaussian-elimination algorithm
    1. Maximum weighted matching: Edmonds, Gabow, Galil-Micali-Gabow (all blossom-based) and Gabow (scaling) algorithms
+   1. Maximum matching PTAS for planar graphs
 1. [Flow algorithms](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/flow/)
    1. [Maximum flow](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/flow/MaximumFlow.hpp): push-relabel, Malhotra-Kumar-Maheshwari, King-Rao-Tarjan, Mądry (electrical flow), Boykov-Kolmogorov
 1. Cut algorithms:
@@ -114,6 +115,7 @@ Moreover, they set up an online graph editor <a href="https://stos.eti.pg.gda.pl
 1. [Minimum vertex cover](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/vertex_cover/)
    1. [Baker algorithm for k-outerplanar graphs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/vertex_cover/BakerKOuterplanarGraphVertexCover.hpp)
    1. [Baker PTAS for planar graphs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/vertex_cover/BakerPlanarGraphVertexCover.hpp)
+   1. [Bar-Yehuda-Even PTAS for planar graphs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/vertex_cover/PlanarVertexCover.hpp)
 1. [Maximum clique](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/clique/)
    1. [Algorithm for cographs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/clique/CographClique.hpp)
    1. [Algorithm for chordal graphs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/clique/ChordalClique.hpp)
@@ -123,6 +125,8 @@ Moreover, they set up an online graph editor <a href="https://stos.eti.pg.gda.pl
    1. Exact exponential-time algorithms: Grandoni, Fomin-Grandoni-Kratsch, van Rooij-Bodlaender, Fomin-Kratsch-Woeginger, Schiermeyer
    1. [Baker algorithm for k-outerplanar graphs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/dominating_set/BakerKOuterplanarGraphDominatingSet.hpp)
    1. [Baker PTAS for planar graphs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/dominating_set/BakerPlanarGraphDominatingSet.hpp)
+1. [Planar separator](https://github.com/krzysztof-turowski/koala-networkit/techniques/separator/)
+   1. [Lipton-Tarjan planar separator](https://github.com/krzysztof-turowski/koala-networkit/techniques/separator/LiptonTarjanPlanarSeparator.hpp)
 1. [Minimum set cover](https://github.com/krzysztof-turowski/koala-networkit/blob/master/include/set_cover/BranchAndReduceSetCover.hpp): Grandoni, Fomin-Grandoni-Kratsch, van Rooij-Bodlaender
 1. [Priority queue](https://github.com/krzysztof-turowski/koala-networkit/blob/master/include/structures/PriorityQueue.hpp)
    1. [Heap](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/structures/heap): binomial heap, pairing heap, Fibonacci heap, soft heap, treap, weak heap, skew heap, rank-pairing heap
