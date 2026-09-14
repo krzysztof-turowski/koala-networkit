@@ -21,14 +21,17 @@ class MinimumCostFlow : public NetworKit::Algorithm {
     }
 
     int64_t getMinCost() const {
+        assureFinished();
         return min_cost;
     }
 
     std::unordered_map<NetworKit::Edge, int64_t> getMinCostFlow() const {
+        assureFinished();
         return computed_flow;
     }
 
     int64_t getFlow(NetworKit::Edge const& edge) {
+        assureFinished();
         if (computed_flow.find(edge) != computed_flow.end()) {
             return computed_flow.at(edge);
         }
