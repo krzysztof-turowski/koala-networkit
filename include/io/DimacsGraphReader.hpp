@@ -7,8 +7,10 @@
 
 #pragma once
 
+#include <cstdint>
 #include <string>
 #include <tuple>
+#include <unordered_map>
 
 #include <networkit/io/GraphReader.hpp>
 
@@ -22,6 +24,14 @@ namespace Koala {
  */
 class DimacsGraphReader final : public NetworKit::GraphReader {
  public:
+    using McfResult = std::tuple<NetworKit::Graph,
+        std::unordered_map<NetworKit::Edge, int64_t>,
+        std::unordered_map<NetworKit::node, int64_t>,
+        NetworKit::node, NetworKit::node>;
+    using MinCostFlowResult = std::tuple<NetworKit::Graph,
+        std::unordered_map<NetworKit::Edge, int64_t>,
+        std::unordered_map<NetworKit::node, int64_t>>;
+
     DimacsGraphReader() = default;
 
     /**
@@ -38,8 +48,26 @@ class DimacsGraphReader final : public NetworKit::GraphReader {
      * @param[in]  path  input file path
      * @param[out]  the graph read from file, together with source and target nodes
      */
-    std::tuple<NetworKit::Graph, NetworKit::node, NetworKit::node> read_all(
+    std::tuple<NetworKit::Graph, NetworKit::node, NetworKit::node> read_all_no_costs(
         const std::string &path);
+
+    /**
+     * Given the path of an input file,
+     * read the graph together with minimum cost flow parameters.
+     *
+     * @param[in]  path  input file path
+     * @param[out]  the graph read from file, together with source and target nodes
+     */
+    McfResult read_all(const std::string &path);
+
+    /**
+     * Given the path of an input file, read the graph for minimum cost flow.
+     *
+     * @param[in]  path  input file path
+     * @param[out]  the graph read from file with edges,
+     *              together with maps mapping edges to costs and nodes to supply/demand
+     */
+    MinCostFlowResult read_all_no_endpoints(const std::string &path);
 };
 
 } /* namespace Koala */

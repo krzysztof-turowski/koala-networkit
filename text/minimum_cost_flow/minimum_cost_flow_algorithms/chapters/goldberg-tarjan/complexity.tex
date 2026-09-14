@@ -1,0 +1,45 @@
+\subsection{Complexity}
+
+Next we analyze the complexity of the particular components in the successive approximation algorithm.
+Most of the results are left without a proof in this work, but the proofs can be found in the book \cite{williamson2019}.
+The first theorem bounds the number of iterations of the loop inside the algorithm framework.
+
+\begin{theorem}[Theorem 5.35 in \cite{williamson2019}]\label{thm:succ_approx_framework}
+    \Cref{alg:succ_approx_framework} takes $O(\log(nC))$ iterations to compute a minimum cost circulation.
+\end{theorem}
+
+Now we focus on the push-relabel refine implementation.
+
+\begin{lemma}[Lemma 5.39 in \cite{williamson2019}] \label{lem:potential_decrease_bound}
+    For any $i \in V$, $\pi(i)$ decreases by at most $3n\epsilon$ during the execution of the subroutine in $\Cref{alg:push_relabel_refine}$.
+\end{lemma}
+
+\begin{lemma}[Lemma 5.40 in \cite{williamson2019}]
+    The number of relabel operations is $O(n^2)$.
+\end{lemma}
+\begin{proof}[Proof (from {\cite[p.~138]{williamson2019}})]
+    In each relabel operation of $i\in V$, we decrease $\pi(i)$ by at least $\epsilon$. Since by \Cref{lem:potential_decrease_bound} we can decrease $\pi(i)$ by at most $3n\epsilon$ overall, we perform at most $3n$ relabel operations on $i$. Since there are $n$ nodes in total, we perform at most $3n^2$ relabel operations.
+\end{proof}
+
+We now distinguish between saturating pushes ($\delta = r_{ij}$ units of flow on $(i,j)$) and nonsaturating
+pushes ($\delta = e(i) < r_{ij}$ units of flow on $(i,j)$). We can bound the number those pushes.
+\begin{lemma}[Lemma 5.41 in \cite{williamson2019}]
+\label{lem:push_relabel_saturating}
+    The number of saturating push operations is $O(mn)$.
+\end{lemma}
+
+\begin{proof}[Proof (from {\cite[p.~139]{williamson2019}})]
+    Pick any $(i,j)$. Initially $c^\pi_{ij} \geq 0$, and so we need to relabel $i$ before we can perform a saturating push on $(i,j)$. In order to make another push on this arc, we need to push flow through $(j,i)$. After that, we see that $c_{ij}^\pi \geq 0$. Therefore, $i$ needs to be relabeled again. We see that before each saturating push, $i$ must be relabeled. Thus by \Cref{lem:potential_decrease_bound} for one arc we can perform at most $3n$ saturating pushes, and there are at most $3mn$ saturating pushes overall.
+\end{proof}
+
+We present only the result of the nonsaturating push operations bound, again provided without a proof.
+\begin{lemma}[Lemma 5.43 in \cite{williamson2019}]
+    The number of nonsaturating push operations is $O(mn^2)$.
+\end{lemma}
+
+Putting everything together, we can show that the subroutine in \Cref{alg:push_relabel_refine} can be implemented in $O(mn^2)$ time.
+Finally, we can compute the running time complexity of the \Cref{alg:succ_approx_framework}. We have the following theorem:
+
+\begin{theorem}
+    \Cref{alg:succ_approx_framework} finds a minimum-cost circulation in $O(mn^2 \log(nC))$ time.
+\end{theorem}

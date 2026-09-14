@@ -1,0 +1,67 @@
+\section{The wave method}
+To develop a faster version of \textsc{Refine}, we must impose a specific order on the \textsc{Push} and \textsc{Relabel} operations. In this section, we present the \textsc{Wave} method.
+
+First, we introduce a \textit{discharge} operation, as described in \Cref{alg:push_relabel_discharge}. This procedure repeatedly applies \textsc{Push} and \textsc{Relabel} operations to a given node until it is relabeled or its excess is reduced to zero.
+\begin{algorithm}[H]
+\caption{\textsc{Discharge}}
+\label{alg:push_relabel_discharge}
+    \begin{algorithmic}[1]
+        \Procedure{Discharge}{$v$} 
+            \While {$v$ is not relabeled \textbf{and} $e(v) > 0$}
+            \State \Call{PushRelabel}{$v$}
+            \EndWhile
+        \EndProcedure
+    \end{algorithmic}
+\end{algorithm}
+
+To present the reordering approach, we need the following lemma.
+\begin{lemma}[Lemma 5.42 in \cite{williamson2019}]\label{lem:admissible_acyclic}
+    The set of arcs $(i,j)$ satisfying $r_{ij} > 0$ and $c^{\pi}_{ij} < 0$ in acyclic.
+\end{lemma}
+\begin{defn}[Topological order]
+    Let $G=(V,E)$ be a directed acyclic graph. Let $\omega(u)$ denote the position of node $u$ in an ordering $\omega$ of all nodes in $V$. The ordering is \textbf{topological} if and only if for every arc $(i,j) \in E$, the condition $\omega(i) < \omega(j)$ is satisfied.
+\end{defn}
+
+Let $G(x, \pi) = (V, E(x,\pi))$ be the graph constructed from the residual graph $G(x)$, containing only those arcs that have negative reduced costs. More formally, every arc $(i,j) \in E(x,\pi)$ must satisfy $u_{ij} - x_{ij} > 0$ and $c_{ij}^\pi < 0$. The wave method maintains a list of nodes $L$, topologically sorted with respect to the graph $G(x, \pi)$. By \Cref{lem:admissible_acyclic}, the network $G(x,\pi)$ is acyclic, ensuring a valid topological order exists.
+
+We subsequently discharge all nodes that have a positive excess. Note that if a node $u$ has been relabeled, there are no residual arcs with negative reduced costs entering $u$. Therefore, we can safely move node $u$ to the front of list $L$.
+
+The algorithm continues this refinement process until the excess of all nodes is $0$.
+
+\begin{algorithm}[H]
+\caption{\textsc{Wave}}
+\label{alg:push_relabel_wave}
+    \begin{algorithmic}[1]
+        \Procedure{Wave}{$x, \pi, \epsilon$}
+            \State $L \gets$ list of all nodes.
+            \State $v \gets$ \Call{L.First}{L} \Comment {$v$ is the \textbf{current} vertex of $L$}
+            \While {there is $i\in V$ such that $e(i) > 0$}
+            \If {$e(v) > 0$}
+            \State \Call{Discharge}{$v$}
+            \If {\textsc{Discharge} relabeled $v$}
+                \State \Call{L.MoveToFront}{$v$}
+            \EndIf
+            \EndIf
+            \State $v \gets$ \Call{L.Next}{$v$} \Comment{next in $L$, with respect to the \textbf{old} position of $v$}
+            \EndWhile
+        \EndProcedure
+    \end{algorithmic}
+\end{algorithm}
+
+\subsection{Complexity}
+
+We now analyze the time complexity of the wave implementation of refine.
+
+\begin{lemma}[Lemma 6.4 in \cite{goldberg-MY}]\label{lem:push_relabel_wave_passes}
+    The wave method terminates after $O(n^2)$ passes through $L$.
+\end{lemma}
+\begin{proof}[Proof (from {\cite[p.~27]{goldberg-MY}})]
+    \Cref{lem:admissible_acyclic} implies that the wave method maintains the invariant that $L$ is topologically ordered. If a pass over $L$ occurs during which no relabelings occur, then the ordering of $L$ does not change during the pass and every vertex is able to reduce its excess to zero. Thus no active vertices exists after the pass.
+\end{proof}
+
+\begin{theorem}[see Theorem 6.5 in \cite{goldberg-MY}]
+    The wave implementation of \textnormal{\textsc{FindEpsilonOptimalCirculation}} runs in $O(n^3)$ time, giving an $O(n^3 \log(nC)$ bound for finding a minimum-cost circulation.
+\end{theorem}
+\begin{proof}[Proof (from {\cite[p.~28]{goldberg-MY}})]
+    \Cref{lem:push_relabel_wave_passes} implies that there are $O(n^3)$ nonsaturating pushes (one per vertex per pass) during an execution of the procedure. By \Cref{lem:push_relabel_saturating} there are $O(mn)$ saturating pushes. The time taken by the procedure is $O(n^3)$ plus $O(1)$ per push, for a total of $O(n^3)$.
+\end{proof}

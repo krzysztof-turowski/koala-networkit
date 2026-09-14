@@ -1,0 +1,22 @@
+In this chapter, we present a successive approximation algorithm developed by Goldberg and Tarjan \cite{goldberg-MY} to solve the minimum-cost circulation problem defined in \Cref{sec:mcc_nolower}. Unlike the two previous algorithms, this approach employs a distinct technique known as \textit{cost scaling}. Fundamentally, it builds upon the \textit{push-relabel} framework, a well-established method for network flow problems.
+\section{Definitions}
+
+First, let us introduce some important terms. Recall that by \Cref{comp_slack} we have $c^\pi_{ij} < 0 \Rightarrow x_{ij}=u_{ij}$. The following definition adds a constant $\epsilon \geq 0$ and make this constraint slightly weaker.
+
+\begin{defn}[$\epsilon$-optimality \cite{goldberg-MY}]
+    For a constant $\epsilon \geq 0$, a pseudoflow $x$ is said to be \textbf{$\boldsymbol{\epsilon}$-optimal with respect to the potential $\boldsymbol\pi$} if for every arc $(i,j)\in E$, we have \[
+    c^\pi_{ij} < -\epsilon \Rightarrow x_{ij} = u_{ij}
+    \] 
+    A pseudoflow $x$ is said to be \textbf{$\boldsymbol{\epsilon}$-optimal} if it is $\epsilon$-optimal with respect to some potential $\pi$.
+\end{defn}
+
+The following lemma is immediate:
+\begin{lemma}
+    A pseudoflow $x$ is $\epsilon$-optimal with respect to a potential $\pi$ if and only if $c^\pi_{ij} > -\epsilon$ for every residual arc $(i,j)$. 
+\end{lemma}
+
+The following theorem gives that if a circulation $x$ is $\epsilon$-optimal and the $\epsilon$ is sufficiently small, then the circulation $x$ is optimal.
+
+\begin{theorem}[Theorem 2.3 in \cite{goldberg-MY}] \label{thm:optimal_epsi_circulation}
+    If all costs are integers and $\epsilon < 1/n$, then an $\epsilon$-optimal circulation $x$ is minimum-cost.
+\end{theorem}

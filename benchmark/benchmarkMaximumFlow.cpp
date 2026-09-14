@@ -80,7 +80,7 @@ void run_g6_tests(const std::string &path, Algorithm algorithm) {
 }
 
 void run_dimacs_tests(const std::string &path, Algorithm algorithm) {
-    auto [G, s, t] = Koala::DimacsGraphReader().read_all(path);
+    auto [G, s, t] = Koala::DimacsGraphReader().read_all_no_costs(path);
     std::cout << path << " " << std::flush;
     run_test(G, s, t, algorithm);
 }

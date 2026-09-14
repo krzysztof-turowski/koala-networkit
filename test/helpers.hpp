@@ -62,3 +62,14 @@ NetworKit::Graph build_graph(
     }
     return G;
 }
+
+NetworKit::Graph build_graph(
+        const int &N, const std::list<std::tuple<int, int, int>> &E,
+        bool directed, bool edgesIndexed) {
+    NetworKit::Graph G(N, true, directed, edgesIndexed);
+
+    for (const auto &[u, v, w] : E) {
+        G.addEdge(u, v, w);
+    }
+    return G;
+}

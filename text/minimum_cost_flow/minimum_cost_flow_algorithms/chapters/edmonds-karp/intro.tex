@@ -1,0 +1,39 @@
+In this chapter we present capacity scaling algorithm, introduced in \cite{edmonds1972}. We start from a simpler idea and then show how to improve the algorithm to achieve satisfying results.  Both algorithms are described more widely in \cite{ahuja1993network}. 
+
+To begin with, certain assumptions must be made, which involve modifying the network. Below, we enumerate the assumptions and describe how to perform the corresponding network transformations.
+
+\begin{assumption}\label{ass:cost_nonnegativity}
+    All arc costs are nonnegative.
+\end{assumption}
+If the network is capacitated, then we saturate the negative cost arcs. Otherwise, we need to set some node potentials and then apply the reduced costs. By \Cref{reduced_equiv} it preserves optimality. To find the right potentials, We follow the proof of \Cref{red_cost_opt_cond}. Let $G'$ be a copy of the original graph $G$. For each arc $(i,j)$ in $G'$, we assign a \textit{weight} equal to the cost $c_{ij}$ of the arc in the original. We compute the shortest path distances $d(i)$ from node $s$ to all other nodes in the graph $G'$, using Bellman-Ford algorithm \cite{bellman1958routing}, for instance. If the shortest path algorithm identifies a negative cycle in network, then the minimum cost flow problem is infeasible. If not, we observe that $d(j) \leq c_{ij} + d(i)$, thus we replace $c_{ij}$ by $c_{ij}+ d(i) - d(j)$, which is nonnegative.
+
+\begin{assumption}\label{ass:one_scc}
+
+For each pair of nodes $i, j \in V$, there is a directed path from $i$ to $j$ in graph $G$.
+\end{assumption}
+The above requirement can be easily met by adding an artificial node $s$ with $b(s) = 0$ and adding artificial arcs $(s,i)$ and $(i,s)$ with a sufficiently high cost $M$.
+
+We now introduce a lemma behind the key idea of the algorithms. 
+
+\begin{lemma}[Lemma 9.11 in \cite{ahuja1993network}]
+    \label{lem:edmonds_base_lemma}
+    Suppose that a pseudoflow $x$ satisfies the reduced cost optimality conditions with respect to some node potentials $\pi$. Let the vector $d$ represent the shortest path distances from some node $s$ to all other nodes in the residual network $G(x)$ with $c_{ij}^\pi$ as the length of an arc $(i,j)$. Then the following properties are valid:
+    \begin{enumerate}
+        \item the pseudoflow $x$ also satisfies the reduced cost optimality conditions with respect to the node potentials $\pi' = \pi - d$,
+        \item the reduced costs ${c_{ij}^{\pi'}}$ are zero for all arcs $(i,j)$ in a shortest path from node $s$ to every other node.
+    \end{enumerate}
+\end{lemma}
+
+\begin{proof}
+    The first part is a straightforward generalization of \Cref{reduced_equiv} which can be proved by induction.
+
+    Let $E'$ be the set of arcs $E' \subseteq E$ such that $E'$ contains all arcs that are present in the shortest path tree with respect to distance vector $d$. 
+    Let us consider an arc $(i,j) \in E'$. Notice that $c^\pi_{ij} + d(i) = d(j)$, thus $c_{ij} - (\pi(i) - d(i)) + (\pi(j) -d(j)) = 0$, so it holds that $c^{\pi'}_{ij} = 0$. Therefore, the second property is valid.
+\end{proof}
+The following result is an immediate corollary of the preceding lemma.
+\begin{lemma}[Lemma 9.12 in \cite{ahuja1993network}]
+\label{shortest-optimality}
+    Suppose that a pseudoflow $x$ satisfies the reduced cost optimality conditions. Let $x'$ be obtained from $x$ by sending flow along a shortest path from node $s$ to some other node $k$. Then $x'$ also satisfies the reduced cost optimality conditions.
+    
+\end{lemma}
+

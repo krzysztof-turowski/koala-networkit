@@ -1,0 +1,60 @@
+\section{Push-relabel}
+
+Here we present the \textsc{Relabel} implementation for calculating an $\epsilon$-optimal pseudoflow. More specifically, given a $2\epsilon$-optimal circulation, we aim to obtain an $\epsilon$-optimal one. This method is based on the well-known \textsc{PushRelabel} technique for network flows.
+
+To create an $\epsilon$-optimal pseudoflow, we only need to saturate all residual arcs $(i,j)$ satisfying $c_{ij} < -\epsilon$. The authors actually use a stronger operation, saturating every residual arc $(i,j) \in E$ that satisfies $c_{ij}^\pi < 0$.
+
+The next step is to apply push operations to make the circulation feasible; i.e., we must push the excess out of all nodes to enforce the flow conservation constraints. In other words, we repeat the \textsc{PushRelabel} operation while $e(u) > 0$ for some $u \in V$.
+
+\begin{algorithm}[H]
+\caption{Push-relabel version of \textsc{Refine}}
+\label{alg:push_relabel_refine}
+    \begin{algorithmic}[1]
+        \Procedure{PushRelabel}{$i$}
+            \If{exists $j\in V$ such that $r_{ij} > 0$ and $c_{ij}^\pi < 0$}
+                \State \Call{Push}{$(i,j)$}
+            \Else
+                \State \Call{Relabel}{i}
+            \EndIf
+        \EndProcedure
+        \\
+        \Procedure{Refine}{$x, \pi,\epsilon$} 
+            \For{$(i,j) \in E$ such that $c^\pi_{ij} < 0$}
+                \State $x_{ij} \gets u_{ij}$ \Comment{we push maximum flow, no matter the excess}
+            \EndFor
+            \While{exists $i\in V$ such that $e(i) > 0$}
+                \State\Call{PushRelabel}{i}
+            \EndWhile
+            \State \Return $x, \pi$
+        \EndProcedure
+    \end{algorithmic}
+\end{algorithm}
+
+We now describe how the \textsc{PushRelabel} operation works. Given a node $u$, the operation attempts to push flow out of the node if possible; specifically, along any residual arc $(u, v)$ where the residual capacity $r_{uv} = u_{uv} - x_{uv} > 0$ and the reduced cost $c_{uv}^\pi$ is negative. If no arc satisfies these conditions, we must update the potential of node $u$.
+
+The pseudocode for the \textsc{Push} and \textsc{Relabel} operations is provided below.
+
+\begin{algorithm}[H]
+\caption{\textsc{Push} and \textsc{Relabel} procedures}
+\label{alg:push_and_relabel_procs}
+    \begin{algorithmic}[1]
+        \Procedure{Push}{$i,j$} 
+            \State $\delta \gets \min\{e(i), r_{ij}\}$
+            \State $x_{ij} \gets x_{ij} + \delta$
+            \State $x_{ji} \gets x_{ji} - \delta$
+        \EndProcedure
+\\
+        \Procedure{Relabel}{$i$}
+            \State $\pi(i) \gets \max_{(i,j)\in E(x)} \{\pi(j)+c_{ij}+\epsilon\}$
+        \EndProcedure
+    \end{algorithmic}
+\end{algorithm}
+
+We now describe the \textsc{Push} and \textsc{Relabel} methods:
+\begin{enumerate}
+    \item \textsc{Push}: If there exists a pair of nodes $i, j \in V$ where $i$ has a positive excess $e(i) > 0$, and an arc $(i,j)$ has a negative reduced cost and positive residual capacity, then we send $\min\{e(i), r_{ij}\}$ units of flow through the arc $(i,j)$.
+    \item \textsc{Relabel}: If no push operations are possible, select a node $i \in V$ such that $e(i) > 0$ and update its potential $\pi(i)$ to $\max_{(i,j) \in E(x)} \{\pi(j) + c_{ij} + \epsilon\}$, where $E(x)$ is the set of arcs in the residual graph $G(x)$. Note that this preserves $\epsilon$-optimality, since for any arc $(i,j) \in E(x)$, $c_{ij}^\pi = c_{ij} - \pi(i) + \pi(j) \geq -\epsilon$.
+\end{enumerate}
+
+Notice that the relabel operation on node $i \in V$ decreases $\pi(i)$ by at least $\epsilon$, since all outgoing arcs $(i,j)$ in $G(x)$ previously had non-negative reduced costs $c_{ij}^\pi \geq 0$. 
+Therefore, if any incoming arc $(k,i) \in E(x)$ satisfied $c_{ki}^\pi \geq -\epsilon$ before the relabeling, it must subsequently satisfy $c_{ki}^\pi \geq 0$. Thus, there are no admissible arcs entering $i$ \cite{williamson2019}.

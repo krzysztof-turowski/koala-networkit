@@ -1,0 +1,89 @@
+
+\section{Capacity scaling}
+
+Here, we introduce improvements to the previous algorithm using the \textit{capacity scaling} technique. This approach allows us to reduce the number of augmentations and, consequently, the time complexity. The following discussion is based on the algorithm description in \cite{ahuja1993network}.
+
+This technique introduces a new parameter $\Delta$, initially set to $2^{\lfloor\log U \rfloor}$, where $U$ is the upper bound for edge capacity ($U = \max_{ij \in E} \{u_{ij}\}$). The core idea is that the improved algorithm performs $\log U$ $\Delta$-scaling phases, reducing $\Delta$ by a factor of 2 at the end of each phase.
+
+During a $\Delta$-scaling phase, we consider the \textit{$\Delta$-residual network} $G(x, \Delta)$, which is a subgraph of $G(x)$ containing only the arcs with a residual capacity $r_{ij}$ greater than or equal to $\Delta$.
+
+Instead of augmenting as many units of flow as possible, we now send exactly $\Delta$ units during each augmentation in the $\Delta$-scaling phase. We also only need to preserve the optimality conditions for the $G(x, \Delta)$ residual network.
+
+For a given value of $\Delta$, we define: 
+$$
+S(\Delta) = \{i \colon e(i) \geq \Delta\},\quad
+T(\Delta) = \{i \colon e(i) \leq -\Delta\}.
+$$
+
+The algorithm proceeds as follows:
+\begin{enumerate}
+    \item Select $k \in S(\Delta)$ and $l \in T(\Delta)$.
+    \item Compute the shortest path from $k$ to $l$ in the residual network $G(x, \Delta)$ using reduced costs as weights.
+    \item Update the potentials, as shown in \Cref{lem:edmonds_base_lemma}.
+    \item Augment $\Delta$ units of flow along the shortest path from $k$ to $l$ with respect to $G(x,\Delta)$.
+\end{enumerate}
+
+While the optimality conditions for the $\Delta$-residual network are preserved, they may be violated for the full residual network $G(x)$. Therefore, at the beginning of each $\Delta$-scaling phase, we must saturate the arcs in $G(x, \Delta)$ that have negative reduced costs. 
+
+The pseudocode for the complete algorithm is presented in \Cref{alg:capacity_scaling}.
+
+\begin{algorithm}[H]
+        \caption{\textsc{CapacityScalingAlgorithm}$(G, b, c, u)$}
+        \label{alg:capacity_scaling}
+    \begin{algorithmic}[1]
+        \State $x \gets 0^m$, $\pi \gets 0^n$
+        \State $e(i) \gets b(i)$ for all $i \in V$
+        \State $\Delta \gets 2^{\lfloor \log U \rfloor}$
+        \While{$\Delta \geq 1$} \Comment{$\Delta$-scaling phase}
+            \For{every arc $(i,j)$ in residual graph $G(x)$}
+            \If{$r_{ij} \geq \Delta$ \textbf{and} $c_{ij}^\pi < 0$} \Comment{$r_{ij}$ from \Cref{def:residual}}
+                \State $x \gets$ \Call{Augment}{$x, (i,j), r_{ij}$} \Comment{send $r_{ij}$ units through arc $(i,j)$}
+            \EndIf 
+            \EndFor
+            \State $S(\Delta) \gets \{i\in V \colon e(i) \geq \Delta\}$
+            \State $T(\Delta) \gets \{i\in V \colon e(i) \leq -\Delta\}$
+
+            \While{$S(\Delta)\neq \emptyset$ \textbf{and} $T(\Delta)\neq \emptyset$}
+                \State select $k \in S(\Delta)$ and $l\in T(\Delta)$ \Comment{$c^\pi$ from \Cref{def:reduced_cost}}
+                \State $d \gets$ \Call{Distances}{$G(x,\Delta),c^\pi, k$} \Comment{the weight of the arc $(i,j)$ is $c_{ij}^\pi$}
+                \State $P \gets$ \Call{ShortestPath}{$G(x,\Delta), d,k,l$}  \Comment{shortest path from $k$ to $l$} 
+                \State $\pi \gets \pi -d$
+                \State $x \gets$ \Call{Augment}{$x, P,\Delta$} \Comment{send $\Delta$ units through path $P$}
+                \State update $S(\Delta)$, $T(\Delta)$
+            \EndWhile
+            \State $\Delta \gets \Delta/2$
+        \EndWhile
+        \State \Return $x$
+    \end{algorithmic}
+\end{algorithm}
+
+
+\subsection{Correctness}
+
+We now show that optimality for the $\Delta$-residual network is preserved at the end of the $\Delta$-scaling phase.
+
+At the beginning of the phase, we saturate the arcs with negative reduced costs. Thus, we obtain a pseudoflow that preserves the optimality conditions for the $\Delta$-residual network.
+
+The augmentation loop is almost identical to the one in \Cref{alg:succ_shortest}. The main difference is that we always augment exactly $\Delta$ units of flow along the path. By \Cref{shortest-optimality}, this new flow also preserves optimality. Therefore, at the end of the $\Delta$-scaling phase, the reduced cost optimality conditions remain satisfied for $G(x, \Delta)$.
+
+The algorithm successively reduces the parameter $\Delta$ by a factor of 2. Since we initially set $\Delta$ as a power of 2, we eventually reach $\Delta = 1$. Note that when $\Delta = 1$, $G(x,\Delta) = G(x)$. Therefore, the optimality conditions are ultimately preserved for the entire residual network. Moreover, because we always augment a positive amount of flow, the algorithm successfully reduces the node imbalances to 0 and terminates.
+
+\subsection{Complexity}
+
+Let us analyze the time complexity of the algorithm. There are $O(\log U)$ scaling phases. At the beginning of the $\Delta$-scaling phase, there might be at most $m$ arcs that do not preserve the optimality conditions, which we immediately saturate. 
+
+Each saturation can change the excess by at most $2\Delta$. Therefore, the sum of the excesses is bounded by $O((n+m)\Delta)$. Since each augmentation sends exactly $\Delta$ units of flow, there will be at most $O(n+m) = O(m)$ augmentations in each phase.
+
+For each augmentation, we need to compute the shortest path. Thus, we have the following result:
+
+\begin{theorem}[Theorem 10.1 in \cite{ahuja1993network}]
+    The capacity scaling algorithm solves the minimum cost flow problem in $O(m \log U \cdot SP(n,m,nC))$ time.
+\end{theorem}
+
+Here, $SP(n,m,nC)$ represents the time needed to solve the shortest path problem for a network with nonnegative weights, $n$ vertices, $m$ arcs, and a maximum edge weight bounded by $nC$. 
+
+Using Fredman and Tarjan's implementation of Dijkstra's algorithm \cite{fredman1987}, we can compute the shortest path in $SP(n,m,nC) = O(m + n\log n)$ time to obtain the final computational complexity:
+
+\begin{theorem}
+    The capacity scaling algorithm solves the minimum cost flow problem in $O(m^2 \log U + nm \log U \log n)$ time.
+\end{theorem}

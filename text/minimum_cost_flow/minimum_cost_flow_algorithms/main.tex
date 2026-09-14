@@ -1,0 +1,34 @@
+\documentclass{report}
+\usepackage{import}
+%\usepackage{fullpage}
+
+\import{./}{preamble.tex}
+
+\author{}
+\date{\today{}}
+\begin{document}
+
+\include{titlepage}
+\pagebreak
+
+\tableofcontents
+
+\pagebreak
+
+\chapter{Introduction}
+\input{chapters/introduction/introduction}
+% \input{pr}
+\chapter{Edmonds-Karp algorithm}
+\input{chapters/edmonds-karp/edmonds-karp} 
+
+% \input{mkm.tex}
+\chapter{Orlin algorithm}
+\input{chapters/orlin/orlin.tex}
+
+\chapter{Goldberg-Tarjan algorithm}
+\input{chapters/goldberg-tarjan/goldberg-tarjan}
+
+\chapter{Benchmarks}
+\input{chapters/benchmarks/benchmarks}
+\printbibliography
+\end{document}

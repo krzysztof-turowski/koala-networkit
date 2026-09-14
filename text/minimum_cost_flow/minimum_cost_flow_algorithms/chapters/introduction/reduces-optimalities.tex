@@ -1,0 +1,105 @@
+\section{Reduced costs}
+\begin{defn}[Potentials and reduced costs \cite{ahuja1993network}]\label{def:reduced_cost}
+For each node $i \in V$ we associate a real number $\pi(i)$ as the \textbf{potential} of node $i$. For a given set of node potentials $\pi$, we define the \textbf{reduced cost} of arc $(i,j) \in E$ as $c^\pi_{ij} = c_{ij} - \pi(i) + \pi(j) $ 
+\end{defn}
+
+We show some useful correlations between networks with cost function $c$ and networks with nodes associated with node potentials $\pi$ and arc cost function $c^\pi$. Let $z(\pi) = \sum_{(i,j) \in E} c^\pi_{ij}x_{ij}$ denote an objective function for a minimum cost flow.
+
+\begin{lemma}[Property 2.4 in \cite{ahuja1993network}]
+\label{reduced_equiv}
+Minimum cost flow problems with arc costs $c_{ij}$ and $c_{ij}^\pi$ have the same optimal solutions. Moreover, $z(\pi) = z(0) - \pi b$.
+\end{lemma}
+\begin{proof}[Proof (see{ \cite[p.~43]{ahuja1993network}})]
+Consider an initial node potential $\pi_s$. Let us define a new potential $\pi_s'$ by increasing the potential at a specific node $k$ by $\alpha$. That is, $\pi_s'(k) = \pi_s(k) + \alpha$, and $\pi_s'(i) = \pi_s(i)$ for all $i \neq k$. 
+
+Recall the flow conservation constraint for any node $i$: $\sum_j x_{ij} - \sum_j x_{ji} = b(i)$. Thus evaluating the objective function under the new potential yields:
+\begin{align*}
+    z(\pi_s') = \sum_{(i,j)} c^{\pi_s'}_{ij} x_{ij} 
+    &= \sum_{(i,j)} c^{\pi_s}_{ij} x_{ij} - \sum_i \alpha x_{ki} + \sum_i \alpha x_{ik} \\
+    &= z(\pi_s) - \alpha b(k)
+\end{align*}
+
+Since $\alpha b(k)$ is a constant with respect to the flow variables $x_{ij}$, the optimal solution remains unchanged. 
+
+Therefore, if we start with a zero potential vector ($0$) and incrementally update it to reach an arbitrary potential vector $\pi$, we preserve optimality and obtain the equality $z(\pi) =z(0)- \sum_k \pi(k)\cdot b(k)=  z(0) - \pi b$.
+\end{proof}
+
+From the definition of reduced costs, the following lemma follows directly:
+\begin{lemma}[Property 9.2 in \cite{ahuja1993network}]
+\label{reducedproperties2}
+The following properties occur
+\begin{enumerate}
+    \item For any directed path $P$ from node $k$ to node $l$, $\sum_{(i,j)\in P} c_{ij}^\pi = \sum_{(i,j)\in P} c_{ij} - \pi(k) + \pi(l)$
+    \item For any directed cycle $W$, $\sum_{(i,j)\in W} c_{ij}^\pi = \sum_{(i,j)\in W} c_{ij}$
+\end{enumerate}
+\end{lemma}
+
+\section{Optimality conditions}\label{sec:optimality_conditions_flow}
+Now we introduce the optimality conditions for residual networks, which will be used to prove the complementary slackness optimality conditions.
+
+To prove optimality conditions theorem, let us first introduce the following theorem, which we state without proof.
+\begin{theorem}[Augmenting cycle theorem \cite{ahuja1993network}]
+\label{thm:augmenting_cycle}
+Let $x$ and $x^*$ be any two feasible solutions of a network flow problem. Then $x$ equals $x^*$ plus the flow on at most $m$ directed cycles in $G(x^*)$. Furthermore, the cost of $x$ equals the cost of $x^*$ plus the cost of flow on these augmenting cycles.
+\end{theorem}
+
+
+\begin{theorem}[Negative cycle optimality conditions \cite{ahuja1993network}]
+\label{optimality1}
+A feasible solution $x^*$ is an optimal solution of the minimum cost flow problem if and only if it satisfies the negative cycle optimality conditions: namely, the residual network $G(x^*)$ contains no negative (directed) cycle.
+\end{theorem}
+
+\begin{proof}[Proof (see {\cite[p.~307]{ahuja1993network}})]
+
+($\Rightarrow$) Suppose that there $G(x)$ contains a negative-cost cycle. By pushing a positive flow along this cycle, we obtain a new feasible flow $x'$ with a strictly lower cost. Therefore, $x$ cannot be optimal. 
+
+($\Leftarrow$) Suppose that $x$ is a feasible flow and the residual network $G(x)$ contains no negative-cost cycles. Let $x^*$ be an optimal flow such that $x^* \neq x$. By \Cref{thm:augmenting_cycle} the flow difference $x^*-x$ can be decomposed to at most $m$ augmenting cycles in $G(x)$. Due to the inital assumption, none of those cycles are negative-cost. Therefore, we have $c \cdot (x^* - x) \geq 0$, or equvalently $cx^* \geq cx$. Since $x^*$ is an optimal have $cx^* \leq cx$. Thus $cx^*= cx$, which implies that $x$ is also an optimal flow. 
+
+\end{proof}
+
+
+\begin{theorem}[Reduced cost optimality conditions \cite{ahuja1993network}]
+\label{red_cost_opt_cond}
+A feasible solution $x^*$ is an optimal solution of the minimum cost flow problem if and only if some set of node potentials $\pi$ satisfy the following reduced cost optimality conditions:
+\[
+c_{ij}^\pi \geq 0 \quad \text{for every arc } (i,j) \text{ in } G(x^*).
+\]
+\end{theorem}
+
+\begin{proof}[Proof (see {\cite[p.309]{ahuja1993network}})]
+
+($\Leftarrow$)
+Suppose that a feasible flow $x^*$ satisfies $c_{ij}^\pi \geq 0$ for every arc $(i,j)$ in $G(x^*)$ for some $\pi$. Then, for each directed cycle $W$ in $G(x^*)$, we have $\sum_{(i,j)\in W} c_{ij}^\pi \geq 0$. By \Cref{reducedproperties2}, we obtain $\sum_{(i,j)\in W} c_{ij}^\pi = \sum_{(i,j)\in W} c_{ij} \geq 0$, meaning $G(x^*)$ has no negative cycles. Therefore, by \Cref{optimality1}, $x^*$ is optimal.
+
+($\Rightarrow$) 
+Assume that $x^*$ is an optimal solution. By \Cref{optimality1}, $G(x^*)$ contains no negative cycles. Therefore, we can compute the shortest path distances from an arbitrary node $s$ to all other nodes in $G(x^*)$, using $c_{ij}$ as the weight for each arc $(i,j)$. Let $d(i)$ denote the distance from node $s$ to node $i$. By the triangle inequality, we have $d(j) \leq d(i) + c_{ij}$ for all $(i,j)$ in $G(x^*)$. Equivalently, this can be rewritten as $c_{ij} - (-d(i)) + (-d(j)) \geq 0$, which yields $c_{ij}^\pi \geq 0$ if we define $\pi = -d$.
+\end{proof}
+
+\subsection{Complementary slackness optimality conditions}
+We previously established the conditions for residual networks. Now, we will use those conditions to get the conditions for the original networks.
+
+\begin{theorem}[Complementary slackness optimality conditions \cite{ahuja1993network}]
+\label{comp_slack}
+    A feasible solution $x^*$ is an optimal solution of minimal cost flow problem if and only if for some set of node potentials $\pi$, the reduced costs and flow values satisfy the following complementary slackness optimality conditions for every arc $(i,j) \in E$:
+\begin{align*}
+    c_{ij}^\pi > 0 &\Rightarrow x_{ij}^* = 0 \\
+    0 < x_{ij}^* < u_{ij} &\Rightarrow c_{ij}^\pi = 0 \\
+    c_{ij}^\pi < 0 &\Rightarrow x_{ij}^* = u_{ij}
+\end{align*}
+\end{theorem}
+
+\begin{proof}[Proof (see {\cite[p.310]{ahuja1993network}})]
+We show a proof of equivalence to the \Cref{red_cost_opt_cond} in one direction for simplicity. 
+\begin{itemize}
+    \item Suppose that $c_{ij}^\pi > 0$ and $x^*_{ij} > 0$. Then, the residual network contains $(j,i)$. That contradicts
+    \Cref{red_cost_opt_cond}, since $c_{ji}^\pi = -c_{ij}^\pi < 0$.
+
+    \item Suppose that $0 < x_{ij}^* < u_{ij}$. The residual networks contains both $(i,j)$ and $(j,i)$. By \Cref{red_cost_opt_cond}, ${c_{ij}^\pi \geq 0}$ and ${c_{ji}^\pi \geq 0}$, thus $c_{ij}^\pi = c_{ji}^\pi =0$. 
+
+    \item Suppose that $c_{ij}^\pi < 0$ and $x^*_{ij} < u_{ij}$. Then the residual network contains $(i,j)$. That contradicts \Cref{red_cost_opt_cond}, since $c_{ij}^\pi < 0$.
+
+    
+\end{itemize}
+
+    The converse is left to the reader as an exercise.
+\end{proof}
