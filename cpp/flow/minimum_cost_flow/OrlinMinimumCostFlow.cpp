@@ -309,7 +309,7 @@ void OrlinMinimumCostFlow::dijkstra(node source, int64_t delta) {
 }
 
 void OrlinMinimumCostFlow::make_reduced_costs_nonnegative() {
-    constexpr int64_t INF = std::numeric_limits<int32_t>::max();
+    constexpr int64_t INF = std::numeric_limits<int64_t>::max()/4;
     std::vector<int64_t> initial_distances(max_node_id, INF);
     initial_distances[0] = 0;
 
