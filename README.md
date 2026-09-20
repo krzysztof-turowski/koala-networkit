@@ -88,6 +88,7 @@ Moreover, they set up an online graph editor <a href="https://stos.eti.pg.gda.pl
    1. [Algorithm for treewidth and pathwidth in cographs](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/pathwidth/CographPathwidth.hpp)
 1. Shortest path algorithms:
    1. [Algorithms for planar graphs](https://github.com/krzysztof-turowski/koala-networkit/blob/master/include/shortest_path/PlanarSSSP.hpp): Frederickson, Henzinger-Klein-Rao-Subramanian
+   1. [All-pairs shortest paths](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/shortest_path/): Seidel, Shoshan-Zwick, Spira, Aingworth-Chekuri-Indyk-Motwani
 1. [Minimum spanning tree algorithms](https://github.com/krzysztof-turowski/koala-networkit/tree/master/include/mst/): Kruskal, Prim, Borůvka, Karger-Klein-Tarjan, Chazelle
    1. Hagerup algorithm for minimum spanning tree verification
    1. Chazelle-Rubinfeld-Trevisan approximate algorithm for minimum spanning tree weight

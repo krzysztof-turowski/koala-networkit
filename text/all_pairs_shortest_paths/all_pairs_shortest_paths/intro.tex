@@ -1,0 +1,324 @@
+\chapter{Wprowadzenie}
+ 
+\section{Sformułowanie problemu i kontekst historyczny}
+ 
+Problem wyznaczania najkrótszych ścieżek między wszystkimi parami wierzchołków (ang.\ \emph{All-Pairs Shortest Paths}, APSP) należy do fundamentalnych zagadnień teorii grafów i algorytmiki. Zadanie polega na wyznaczeniu dla każdej pary wierzchołków $u, v \in V$ długości $\delta(u, v)$ najkrótszej ścieżki między nimi, rozumianej jako minimum sumy wag krawędzi po wszystkich ścieżkach prowadzących z $u$ do $v$. W przypadku grafów nieważonych każda krawędź ma wagę 1, a odległość jest po prostu liczbą krawędzi na najkrótszej ścieżce.
+ 
+Problem APSP jest uogólnieniem problemu znajdowania najkrótszych ścieżek. W problemie pojedynczego źródła (ang. \emph{single-source}) szukamy najkrótszych ścieżek z jednego ustalonego wierzchołka do wszystkich pozostałych -- rozwiązuje go m.in.\ algorytm Dijkstry (dla wag nieujemnych) lub algorytm Bellmana--Forda (dla dowolnych wag). Problem APSP można traktować jako $n$-krotne uruchomienie algorytmu single-source, co jest naturalnym, choć nie zawsze optymalnym rozwiązaniem.
+ 
+Pierwsze podejście do problemu APSP w formie bliskiej współczesnej pochodzi z lat 60. XX wieku. W 1959 r. Dijkstra opublikował swój algorytm single-source \cite{Dijkstra1959}, który stał się podstawą wielu rozwiązań APSP. W 1962 r., Roy oraz Floyd i Warshall niezależnie opisali algorytm programowania dynamicznego rozwiązujący APSP w czasie $\Theta(n^3)$, znany dziś jako algorytm Floyda--Warshalla \cite{Floyd1962}. Jego prostota oraz możliwość zrównoleglenia obliczeń sprawiają, że nadal pozostaje ważnym punktem odniesienia.
+
+Poniższy przegląd prezentuje cztery algorytmy będące odpowiedzią na potrzebę poprawy złożoności $O(n^3)$ w różnych klasach grafów. Algorytm Spiry \cite{Spira1973} obniża oczekiwany czas działania do $O(n^2 \log^2 n)$ dla grafów ważonych z losowymi wagami, stosując posortowane listy krawędzi i struktury turniejowe. Algorytm Seidela \cite{Seidel1995} rozwiązuje problem dokładnie w czasie $O(n^\omega \log n)$ dla grafów nieskierowanych i nieważonych. Algorytm Shoshana--Zwicka \cite{ShoshanZwick1999} uogólnia ideę Seidela na grafy ważone z wagami ze zbioru $\{1,\ldots,M\}$, osiągając czas $O(Mn^\omega)$; omawiamy też korektę błędu znalezionego przez Eirinakisa, Williamsona i Subramaniego \cite{Eirinakis2017}. Wreszcie algorytm Aingwortha i in.\ \cite{Aingworth1999} rezygnuje z dokładności na rzecz szybkości, zwracając aproksymację odległości z błędem addytywnym co najwyżej 2 w czasie $O(n^{2.5}\sqrt{\log n})$, bez korzystania z szybkiego mnożenia macierzy.
+
+\section{Zastosowania problemu APSP}
+
+Problem najkrótszych ścieżek między wszystkimi parami wierzchołków znajduje zastosowanie w wielu dziedzinach, w tym między innymi:
+
+\paragraph{Sieci komputerowe i routing.}
+Protokoły routingu w sieciach komputerowych, takie jak OSPF
+(ang.\ \emph{Open Shortest Path First}), opierają się na znajomości
+najkrótszych ścieżek między węzłami sieci \cite{Reddy2016}.
+Każdy router wyznacza tablicę routingu przez obliczenie odległości
+do wszystkich pozostałych węzłów.
+Podobne zastosowanie pojawia się w sieciach telekomunikacyjnych,
+gdzie minimalizacja opóźnienia transmisji sygnału wymaga znajomości
+najkrótszych tras między dowolnymi parami punktów.
+
+\paragraph{Analiza sieci i miary centralności.}
+W analizie sieci społecznościowych i biologicznych odległości
+między wierzchołkami służą do wyznaczania miar centralności.
+Najważniejszą z nich jest centralność pośrednictwa
+(ang.\ \emph{betweenness centrality}): dla każdego wierzchołka $v$
+mierzy ona, przez jak dużą część wszystkich najkrótszych ścieżek
+między parami wierzchołków przechodzi $v$:
+\[
+BC(v) = \sum_{s \neq v \neq t} \frac{\sigma_{st}(v)}{\sigma_{st}},
+\]
+gdzie $\sigma_{st}$ oznacza liczbę najkrótszych ścieżek
+z $s$ do $t$, a $\sigma_{st}(v)$ -- tych spośród nich,
+które przechodzą przez $v$ \cite{Brandes2001}.
+Obliczenie tej miary dla wszystkich wierzchołków wymaga
+znajomości wszystkich najkrótszych ścieżek w grafie.
+
+\paragraph{Projektowanie układów scalonych.}
+W projektowaniu układów VLSI problem APSP pojawia się przy
+wyznaczaniu optymalnych połączeń między elementami układu
+\cite{Peyer2009}. Minimalizacja długości ścieżek sygnałowych
+przekłada się bezpośrednio na szybkość działania układu
+oraz ograniczenie strat energetycznych. Algorytm Dijkstry
+i jego uogólnienia stanowią rdzeń narzędzi do automatyzacji
+projektowania układów (ang.\ \emph{EDA tools}) \cite{Peyer2009}.
+
+\paragraph{Chemia obliczeniowa.}
+Indeks Wienera $W(G)$, definiowany jako suma odległości między
+wszystkimi parami wierzchołków grafu molekularnego,
+\[
+W(G) = \frac{1}{2}\sum_{u \in V}\sum_{v \in V} \delta(u,v),
+\]
+jest jednym z najważniejszych topologicznych deskryptorów
+struktury związków chemicznych \cite{Reddy2016}. Jego obliczenie
+wymaga rozwiązania problemu APSP dla grafu, w którym wierzchołki
+odpowiadają atomom, a krawędzie -- wiązaniom kowalencyjnym.
+Indeks ten koreluje z wieloma właściwościami fizykochemicznymi
+cząsteczek, takimi jak temperatura wrzenia czy ciśnienie pary
+nasyconej \cite{Reddy2016}.
+
+\paragraph{Przetwarzanie obrazów.}
+Algorytmy segmentacji obrazu oparte na grafach, takie jak metoda
+,,żywego drutu'' (ang.\ \emph{live wire}), wymagają wyznaczania
+najkrótszych ścieżek w grafach pikseli \cite{Reddy2016}.
+W robotyce problem APSP stosowany jest do planowania tras
+w przestrzeni konfiguracyjnej, gdzie węzły odpowiadają możliwym
+pozycjom robota, a krawędzie -- dozwolonym przejściom \cite{Reddy2016}.
+
+\section{Algorytm Dijkstry}
+\label{sec:dijkstra}
+
+Algorytm Dijkstry \cite{Dijkstra1959} rozwiązuje problem najkrótszych
+ścieżek z jednego źródła (ang.\ \emph{single-source shortest paths},
+SSSP) w grafach z nieujemnymi wagami krawędzi. Stanowi on podstawę
+algorytmu Spiry \cite{Spira1973} oraz naturalny punkt wyjścia
+w rozwiązywaniu problemu APSP.
+
+Algorytm Dijkstry wyznacza najkrótsze ścieżki z ustalonego wierzchołka
+źródłowego $s$ do wszystkich pozostałych wierzchołków grafu. Opiera się
+on na podejściu zachłannym: w każdym kroku algorytm
+wybiera wierzchołek $u$ spoza zbioru już przetworzonych, dla którego
+bieżące oszacowanie odległości $d[u]$ jest najmniejsze, a następnie
+\emph{relaksuje} wszystkie krawędzie wychodzące z $u$.
+
+Kluczowa obserwacja, na której opiera się poprawność algorytmu, jest
+następująca: jeżeli wagi krawędzi są nieujemne, to w chwili wybrania
+wierzchołka $u$ jego oszacowanie $d[u]$ jest już ostateczne i równa
+się faktycznej minimalnej odległości od $s$ (będziemy ją oznaczać przez $\delta$). Wynika to stąd, że każda inna ścieżka z $s$ do $u$,
+przechodząca przez wierzchołek dotychczas nieprzetworzony, musi mieć
+długość co najmniej $d[u]$ -- ponieważ każda kolejna krawędź na tej
+ścieżce ma wagę nieujemną, a więc nie może skrócić drogi.
+
+\begin{lemat}
+\label{lem:dijkstra-inv}
+Niech $S$ oznacza zbiór wierzchołków ostatecznie przetworzonych
+przez algorytm Dijkstry. W chwili dodania wierzchołka $u$ do $S$
+zachodzi $d[u] = \delta(s, u)$.
+\end{lemat}
+
+\begin{proof}
+Dowodzimy przez indukcję po $|S|$. Dla $|S| = 1$ mamy $S = \{s\}$
+i $d[s] = 0 = \delta(s, s)$.
+
+Niech $u$ będzie wierzchołkiem dodawanym do $S$ w kroku $|S| = k+1$.
+Rozważmy dowolną ścieżkę $p$ z $s$ do $u$ w grafie. Niech $y$ będzie
+pierwszym wierzchołkiem na $p$ spoza $S$, a $x$ -- jego poprzednikiem
+na $p$ (wierzchołek $x \in S$). Z hipotezy indukcyjnej
+$d[x] = \delta(s, x)$, a po relaksacji krawędzi $(x, y)$ mamy
+$d[y] \leq \delta(s, x) + w(x, y) = \delta(s, y)$.
+
+Ponieważ wagi krawędzi są nieujemne, długość podścieżki z $y$ do $u$
+na $p$ jest nieujemna, więc $\delta(s, y) \leq \delta(s, u)$.
+Z kolei $d[u] \leq d[y] \leq \delta(s, u)$, bo $u$ zostało
+wybrane jako minimum. Jednocześnie $d[u] \geq \delta(s, u)$,
+ponieważ $d[u]$ jest długością pewnej ścieżki z $s$ do $u$.
+Stąd $d[u] = \delta(s, u)$.
+\end{proof}
+
+\subsection{Opis algorytmu}
+
+Algorytm przyjmuje graf $G = (V, E)$ z funkcją wag
+$w \colon E \to \mathbb{R}_{\geq 0}$ oraz wierzchołek źródłowy $s$.
+
+\begin{algorithm}[H]
+\caption{Algorytm Dijkstry -- najkrótsze ścieżki z jednego źródła}
+\begin{algorithmic}[1]
+\Require Graf $G = (V, E)$, wagi nieujemne,
+         źródło $s \in V$
+\Ensure Tablica $d$: $d[v] = \delta(s, v)$ dla każdego $v \in V$
+\State $d[s] \leftarrow 0$;
+       $d[v] \leftarrow +\infty$ dla $v \neq s$
+\State $Q \leftarrow V$
+  \Comment{kolejka priorytetowa}
+\While{$Q \neq \emptyset$}
+  \State $u \leftarrow \arg\min_{v \in Q} d[v]$
+  \State $Q \leftarrow Q \setminus \{u\}$
+  \ForAll{$v$ sąsiada $u$}
+    \If{$d[u] + w(u, v) < d[v]$}
+      \State $d[v] \leftarrow d[u] + w(u, v)$
+    \EndIf
+  \EndFor
+\EndWhile
+\State \Return $d$
+\end{algorithmic}
+\end{algorithm}
+
+
+\subsection{Analiza złożoności}
+
+Złożoność algorytmu Dijkstry zależy od implementacji kolejki
+priorytetowej $Q$.
+
+\begin{description}
+\item[Kopiec binarny] Wyciągnięcie minimum kosztuje $O(\log n)$,
+co wykonujemy $n$ razy. Każda z $m$ relaksacji może wymagać
+operacji \textsc{decrease-key} w czasie $O(\log n)$. Całkowita
+złożoność: $O((n + m)\log n)$.
+
+\item[Kopiec Fibonacciego] Operacja \textsc{decrease-key} działa
+w zamortyzowanym czasie $O(1)$, a wyciągnięcie minimum w $O(\log n)$.
+Całkowita złożoność: $O(m + n\log n)$ \cite{FredmanTarjan1984}.
+Jest to optymalne dla grafów rzadkich.
+\end{description}
+
+\subsection{Zastosowanie do problemu APSP}
+Uruchamiając algorytm Dijkstry niezależnie dla każdego z $n$
+wierzchołków jako źródła, otrzymujemy rozwiązanie problemu APSP.
+Dla grafów gęstych ($m = \Theta(n^2)$) każde z powyższych podejść
+daje złożoność $O(n^3)$, co jest zbieżne ze złożonością algorytmu
+Floyda--Warshalla. Przewaga podejścia opartego na Dijkstrze ujawnia
+się dla grafów rzadkich ($m = o(n^2)$): przy kopcu Fibonacciego
+uzyskujemy $O(nm + n^2\log n)$, co dla $m = O(n)$ redukuje się do
+$O(n^2\log n)$, czyli wyniku lepszego niż $O(n^3)$.
+
+Istotnym ograniczeniem jest wymóg nieujemności wag krawędzi.
+W przypadku grafów z ujemnymi wagami (ale bez ujemnych cykli)
+stosuje się algorytm Bellmana--Forda \cite{Bellman1958} jako procedurę
+single-source, lub wstępne przepróbkowanie wag metodą Johnsona
+\cite{Johnson1977}, która sprowadza problem do $n$ uruchomień Dijkstry
+na grafie z przeliczonymi (nieujemnymi) wagami.
+
+Algorytm Dijkstry jest również punktem wyjścia dla algorytmu
+Spiry \cite{Spira1973}, który przez wstępne posortowanie list
+krawędzi i inteligentniejszy wybór kandydatów do relaksacji
+osiąga oczekiwany czas $O(n^2\log^2 n)$ dla grafów z losowymi
+wagami.
+ 
+\section{Algorytm Floyda--Warshalla}
+ 
+Algorytm Floyda--Warshalla \cite{Floyd1962} to metoda programowania dynamicznego rozwiązująca problem APSP w grafach z dowolnymi wagami krawędzi, ale bez cykli ujemnych. Jego złożoność czasowa wynosi $\Theta(n^3)$.
+ 
+Idea algorytmu opiera się na następującej obserwacji: najkrótsza ścieżka z $i$ do $j$ przechodząca wyłącznie przez wierzchołki ze zbioru $\{1, \ldots, k\}$ albo nie przechodzi przez wierzchołek $k$ (i jest wówczas taka sama jak najkrótsza ścieżka przez zbiór $\{1, \ldots, k-1\}$), albo przechodzi przez $k$ i rozkłada się na dwie podścieżki: z $i$ do $k$ oraz z $k$ do $j$, obie w zbiorze $\{1, \ldots, k-1\}$. Formalnie:
+\[
+d^{(k)}(i,j) = \min\{d^{(k-1)}(i,j),\; d^{(k-1)}(i,k) + d^{(k-1)}(k,j)\},
+\]
+z warunkiem brzegowym $d^{(0)}(i,j) = w(i,j)$ (waga krawędzi lub $+\infty$, gdy krawędź nie istnieje). Po wykonaniu $n$ iteracji po $k$ macierz $D^{(n)}$ zawiera wszystkie odległości. Istotną zaletą jest, że algorytm wymaga jedynie stałej dodatkowej liczby pamięci.
+ 
+Algorytm Floyda--Warshalla jest szczególnie odpowiedni dla grafów gęstych ($m = \Theta(n^2)$), dla których jego złożoność $O(n^3)$ jest porównywalna do podejścia polegającego na $n$-krotnym uruchomieniu algorytmu Dijkstry z kopcem Fibonacciego, o złożoności $O(n^2 \log n + nm)$. Jego praktyczną zaletą jest również regularny sposób dostępu do danych, sprzyjający dobrej lokalności pamięci.
+
+ 
+\section{Zestawienie algorytmów APSP}
+ 
+Poniższa tabela zbiera kilka istotnych algorytmy dla problemu APSP, ze szczególnym uwzględnieniem czterech omawianych w pracy. Kolumna \emph{Skierowany} oznacza, czy algorytm działa dla grafów skierowanych, kolumna \emph{Wagi} precyzuje dopuszczalny zakres wag krawędzi, a kolumna \emph{Błąd} wskazuje jaki maksymalny błąd może osiągnąć algorytm.
+ 
+\begin{table}[h!]
+\centering
+\small
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+\textbf{Algorytm} & \textbf{Skierowany} & \textbf{Wagi} 
+  & \textbf{Złożoność} & \textbf{Błąd} \\
+\hline
+Floyd--Warshall (1962) & tak & dowolne & $O(n^3)$ & 0 \\
+\hline
+\textbf{Spira (1973)} & nie & dodatnie
+  & $O(n^2 \log^2 n)$ śr. & 0 \\
+\hline
+Johnson (1977) & tak & dowolne & $O(n^2 \log n + nm)$ & 0 \\
+\hline
+Tarjan$^{\dag}$ 
+  & tak & dodatnie & $O(n^2 \log n + nm)$ & 0 \\
+\hline
+\textbf{Seidel (1995)} & nie & nieważony & $O(n^\omega \log n)$ & 0 \\
+\hline
+\textbf{Shoshan--Zwick (1999)} & nie & $\{1,\ldots,M\}$ 
+  & $O(Mn^\omega)$ & 0 \\
+\hline
+Williams (2014) & tak & dowolne 
+  & $O\!\left(n^3 / 2^{\Omega(\sqrt{\log n})}\right)$ & 0 \\
+\hline
+\textbf{Aingworth i in.\ (1999)} & nie & nieważony 
+  & $O(n^{2.5}\sqrt{\log n})$ & $+2$ \\
+\hline
+Dor--Halperin--Zwick (2000) & nie & nieważony 
+  & $\tilde{O}(n^{7/3})$ & $+2$ \\
+\hline
+\multicolumn{5}{l}{%
+  \footnotesize $^{\dag}$Tarjan \cite{FredmanTarjan1984}:
+  algorytm Dijkstry z kopcem Fibonacciego.}
+\end{tabular}
+\caption{Porównanie wybranych algorytmów dla problemu APSP\@.
+Pogrubione wiersze odpowiadają algorytmom szczegółowo omawianym
+w pracy. Przez $m$ oznaczono liczbę krawędzi,
+a $\tilde{O}$ pomija czynniki polilogarytmiczne. Przez $\omega$ oznaczamy najmniejszą liczbę rzeczywistą taką, że istnieje algorytm mnożenia dwóch macierzy rozmiaru $n \times n$ działający w czasie $O(n^{\omega + \varepsilon})$ dla dowolnego $\varepsilon > 0$.
+Aktualnie najlepsze znane ograniczenie wynosi $\omega < 2{.}371339$ \cite{Alman2024}.}
+\label{tab:apsp}
+\end{table}
+ 
+Warto zauważyć kilka kluczowych tendencji widocznych w tabeli. Algorytmy ogólne (Floyd--Warshall, Johnson) działają dla szerokiej klasy grafów, lecz ich złożoność jest ograniczona przez barierę $O(n^3)$ dla gęstych grafów. Specjalizacja do grafów nieskierowanych pozwala na wykorzystanie symetrii odległości ($\delta(u,v) = \delta(v,u)$), co jest kluczowe dla algorytmów Seidela i Shoshana--Zwicka -- nie jest znana analogiczna technika dla grafów skierowanych. Wreszcie rezygnacja z dokładności (algorytm Aingwortha i in.) pozwala całkowicie uniknąć kosztownego mnożenia macierzy i osiągnąć złożoność podkwadratową w $n^2$ czynnikach.
+ 
+\section{Notacja i podstawowe definicje}
+\label{sec:notacja}
+W tym podrozdziale przedstawimy podstawowe definicje i oznaczenia używane w dalszej części pracy. Przyjmujemy następującą konwencję: $\delta(u,v)$ oznacza zawsze funkcję odległości zwracającą najkrótszą drogę w grafie, natomiast zapisy postaci $d_{ij}$ czy $D_{ij}$ rezerwujemy dla zapisów konkretnych macierzy pojawiających się w algorytmach.
+
+\begin{definicja}[\cite{Rosen2019}, Graf ważony nieskierowany]
+\emph{Grafem ważonym nieskierowanym} nazywamy trójkę $G = (V, E, w)$, gdzie:
+\begin{itemize}
+  \item $V$ to skończony, niepusty zbiór wierzchołków,
+  \item $E \subseteq \bigl\{\{u,v\} : u, v \in V,\; u \neq v\bigr\}$
+        -- zbiór krawędzi nieskierowanych,
+  \item $w \colon E \to \mathbb{R}$ -- funkcja wag przypisująca
+        każdej krawędzi wartość rzeczywistą.
+\end{itemize}
+Dla wygody zapisujemy $w(u,v)$ zamiast $w(\{u,v\})$.
+Liczbę wierzchołków oznaczamy przez $n = |V|$, a liczbę krawędzi
+przez $m = |E|$.
+\end{definicja}
+
+\begin{definicja}[\cite{Rosen2019}, Graf ważony skierowany]
+\emph{Grafem ważonym skierowanym} nazywamy trójkę $G = (V, E, w)$, gdzie:
+\begin{itemize}
+  \item $V$ to skończony, niepusty zbiór wierzchołków,
+  \item $E \subseteq V \times V$ -- zbiór krawędzi skierowanych
+        (par uporządkowanych),
+  \item $w \colon E \to \mathbb{R}$ -- funkcja wag przypisująca
+        każdej krawędzi skierowanej wartość rzeczywistą.
+\end{itemize}
+Dla wygody zapisujemy $w(u,v)$ zamiast $w((u,v))$.
+\end{definicja}
+
+Graf nieskierowany można traktować jako szczególny przypadek
+grafu skierowanego, zastępując każdą krawędź nieskierowaną
+$\{u,v\}$ parą krawędzi skierowanych $(u,v)$ i $(v,u)$
+o tej samej wadze \cite{Rosen2019}. Graf nazywamy
+\emph{nieważonym}, gdy $w(e) = 1$ dla każdej krawędzi $e \in E$.
+
+\begin{definicja}[\cite{Cormen}, Funkcja odległości]
+Dla pary wierzchołków $u, v \in V$ przez $\delta(u, v)$ oznaczamy
+długość najkrótszej ścieżki z $u$ do $v$, czyli
+\[
+\delta(u,v) = \min\!\left\{\,\sum_{e \in P} w(e)
+  : P \text{ jest ścieżką z } u \text{ do } v\right\}.
+\]
+W przypadku grafu nieważonego $\delta(u, v)$ jest liczbą krawędzi
+na najkrótszej ścieżce. Przyjmujemy $\delta(v, v) = 0$ oraz
+$\delta(u, v) = +\infty$, gdy $v$ jest nieosiągalne z $u$.
+\end{definicja}
+
+\begin{definicja}[\cite{Rosen2019}, Stopień wierzchołka]
+\emph{Stopniem} wierzchołka $v$ w grafie nieskierowanym, oznaczanym
+przez $d_v$, nazywamy liczbę krawędzi incydentnych z $v$.
+\end{definicja}
+
+\begin{definicja}[\cite{Aingworth1999}, Sąsiedztwo]
+Dwa wierzchołki $u, v$ grafu $G$ nazywamy \emph{sąsiednimi}, jeśli
+$\{u, v\} \in E$. Zbiór wszystkich sąsiadów wierzchołka $v$
+oznaczamy przez $N(v)$. W  pracy przyjmujemy
+$N(v) = \{u \in V : \{u,v\} \in E\} \cup \{v\}$.
+\end{definicja}
+
+\begin{definicja}[\cite{Aingworth1999}, Uogólnione sąsiedztwo]
+Dla $k \geq 1$ definiujemy \emph{$k$-sąsiedztwo} wierzchołka $v$ jako
+\[
+N_k(v) = \{u \in V \colon 0 < \delta(v, u) \leq k\}.
+\]
+\end{definicja}
+\noindent\textbf{Uwaga:} Zauważmy, że zgodnie z definicją $N(v) \ne N_1(v)$.

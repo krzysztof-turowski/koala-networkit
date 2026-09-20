@@ -1,0 +1,278 @@
+% ============================================================
+\chapter{Algorytm Spiry}
+% ============================================================
+
+\section{Własności algorytmu Dijkstry}
+P. M. Spira w swojej pracy \cite{Spira1973} zaproponował algorytm obniżający tę złożoność do średniego czasu $O(n^2 \log^2 n)$. Punktem wyjścia dla algorytmu Spiry jest kluczowa obserwacja dotycząca zachowania klasycznego algorytmu Dijkstry (por. \ref{sec:dijkstra}), wyrażona w poniższym lemacie:
+
+\begin{lemat}[{\cite[Lemat 3.1]{Spira1973}}]
+Załóżmy, że najkrótsze ścieżki z wierzchołka źródłowego do pewnego podzbioru wierzchołków $i_1, i_2, \ldots, i_k$ zostały już ostatecznie wyznaczone przez algorytm Dijkstry. Wówczas następnym wierzchołkiem, do którego zostanie znaleziona najkrótsza ścieżka, będzie ten nieodwiedzony wierzchołek, który znajduje się najbliżej wierzchołka źródłowego lub najbliżej jednego z już odwiedzonych wierzchołków $i_1, \ldots, i_k$.
+\end{lemat}
+
+Powyższy lemat sugeruje, że nie ma potrzeby analizowania wszystkich krawędzi wychodzących z odwiedzonych wierzchołków jednocześnie. Zamiast tego, korzystne okazuje się wcześniejsze posortowanie krawędzi dla każdego wierzchołka i sprawdzanie ich zaczynając od najkrótszej.
+
+\section{Struktury danych i notacja}
+
+\begin{definicja}[\cite{Spira1973}, Rozegrane drzewo binarne]
+Rozegranym drzewem binarnym nazywamy drzewo binarne, w którym niektóre liście zawierają liczby rzeczywiste, a inne są puste. Każdy węzeł wewnętrzny posiadający przynajmniej jednego niepustego potomka przyjmuje wartość równą najmniejszej z wartości swoich potomków. W konsekwencji wartość w korzeniu drzewa jest minimum spośród wszystkich wartości w liściach.
+\end{definicja}
+
+\begin{definicja}[\cite{Spira1973}, Model losowy]
+Mówimy, że graf spełnia założenie modelu losowego, jeżeli jego wagi krawędzi są niezależnymi zmiennymi losowymi pochodzącymi z identycznego, nieujemnego rozkładu prawdopodobieństwa.
+\end{definicja}
+
+Aby formalnie uzasadnić efektywność wyboru kolejnych wierzchołków, Spira odwołuje się do specyficznej struktury danych -- tzw.\ rozegranego drzewa binarnego (ang.\ \emph{played binary tree}), które modeluje działanie drzewa turniejowego.
+
+Zbudowanie rozegranego drzewa binarnego dla $n$ elementów umieszczonych w liściach wymaga $n-1$ porównań; po jego skonstruowaniu odczytanie pierwszego minimum jest natychmiastowe ($O(1)$), gdyż wartość ta znajduje się w korzeniu. Wyznaczenie każdego kolejnego minimum -- poprzez usunięcie dotychczasowego zwycięzcy i zaktualizowanie ścieżki od jego liścia do korzenia -- wymaga jedynie $\lceil \log_2 n \rceil$ dodatkowych porównań. Z punktu widzenia działania algorytmu najkrótszych ścieżek, Spira opiera się na następującym twierdzeniu:
+
+\begin{twierdzenie}
+Niech $\{S_i\}_{i=1,\ldots,k}$ będzie rodziną zbiorów liczb rzeczywistych, taką że:
+\begin{enumerate}
+  \item[(a)] $S_{i-1} \setminus S_i = \min S_{i-1}$,
+  \item[(b)] $1 \leq |S_i \setminus S_{i-1}| \leq 2$,
+  \item[(c)] $|S_i| \leq n$.
+\end{enumerate}
+Wówczas istnieje algorytm, który znajduje kolejne minima zbiorów $S_1, S_2, \ldots, S_k$ przy użyciu co najwyżej $2k \lceil \log_2 n \rceil$ porównań.
+\end{twierdzenie}
+
+Ze względów praktycznych, zamiast implementować bezpośrednio strukturę rozegranego drzewa binarnego, w niniejszej pracy stosujemy kopiec binarny typu minimum (ang.\ \emph{binary min-heap}) \cite{Cormen}. Zapewnia on identyczne asymptotyczne gwarancje czasowe wymagane przez powyższe twierdzenie.
+
+\section{Szczegółowy opis algorytmu}
+
+Algorytm rozwiązuje problem APSP niezależnie dla każdego wierzchołka źródłowego. Zakładamy, że krawędzie wychodzące z każdego wierzchołka zostały wstępnie posortowane w czasie $O(n^2 \log n)$.
+
+Rozważmy pojedyncze źródło (oznaczmy je jako węzeł 1). Algorytm buduje zbiór już zidentyfikowanych najkrótszych ścieżek do wierzchołków (bez straty ogólności) $1, 2, \ldots, k$, których odległości wynoszą odpowiednio $D_{11}=0, D_{12}, \ldots, D_{1k}$. Niech $d_{i,m_i}$ oznacza najkrótszą jeszcze niewykorzystaną krawędź wychodzącą z wierzchołka $i$, prowadzącą do wierzchołka $m_i$. Algorytm utrzymuje w pamięci zbiór kandydujących ścieżek i w każdym kroku wyznacza:
+\[
+\min\{D_{1i} + d_{i,m_i} : 1 \leq i \leq k\}.
+\]
+Załóżmy, że powyższe minimum przyjmuje wartość $D_{1j} + d_{jm_j}$ czyli zwycięża krawędź z wierzchołka $j$ do $m_j$. Występują wówczas dwa przypadki:
+\begin{enumerate}
+  \item \textbf{Węzeł $m_j$ był już wcześniej odwiedzony:} Ścieżka nie wnosi nowej wartości. Krawędź $d_{jm_j}$ zostaje trwale odrzucona. W jej miejsce algorytm pobiera z posortowanej listy węzła $j$ kolejną krawędź (oznaczmy ją $d_{jm_j'}$) i aktualizuje zbiór kandydatów wartością $D_{1j} + d_{jm_j'}$.
+  \item \textbf{Węzeł $m_j$ nie był odwiedzony:} Algorytm oznacza wierzchołek $m_j$, przypisując mu odległość $D_{1m_j} = D_{1j} + d_{jm_j}$. Ponieważ wykorzystano krawędź wychodzącą z $j$, algorytm aktualizuje zbiór dostępnych krawędzi, wstawiając nową wartość $D_{1j} + d_{jm_j'}$. Dodatkowo, nowo odkryty wierzchołek $m_j$ zyskuje prawo udziału w poszukiwaniach: algorytm pobiera pierwszą (najkrótszą) krawędź wychodzącą z $m_j$ (powiedzmy $d_{m_j s}$) i wstawia do zbioru kandydatów wartość $D_{1m_j} + d_{m_j s}$.
+\end{enumerate}
+Dzięki strukturze opisanej w powyższym twierdzeniu, każda ewaluacja nowego minimum zajmuje czas $O(\log n)$.
+
+\begin{algorithm}[H]
+\caption{Algorytm Spiry -- APSP w grafie ważonym (dla jednego źródła)}
+\begin{algorithmic}[1]
+\Require Graf ważony $G = (V, E)$
+\Ensure Tablica odległości $D$ 
+\State Posortuj rosnąco zbiory krawędzi $\{d_{ij} : 1 \leq j \neq i \leq n\}$
+       dla każdego $i$
+\State Ustaw $I(i,j) \leftarrow \ell$, gdzie $d_{i\ell}$ jest $j$-tym elementem
+       posortowanej listy krawędzi z $i$
+\State Ustaw $D_{ii} \leftarrow 0$ dla $1 \leq i \leq n$
+\State Ustaw $\mathrm{LABEL}(i,j) \leftarrow \texttt{NIE}$ dla $i \neq j$;
+       $\mathrm{LABEL}(i,i) \leftarrow \texttt{TAK}$
+\For{$i = 1$ \textbf{to} $n$}
+  \State Ustaw $p_j \leftarrow 1$ dla $1 \leq j \leq n$
+  \State $\mathrm{COUNT} \leftarrow 1$;
+  $k \leftarrow i$
+  \State $s_k \leftarrow D_{ik} + d_{k,I(k,1)}$
+  \State $p_k \leftarrow p_k + 1$;
+  $S \leftarrow S \cup \{s_k\}$
+  \Repeat
+    \State $t \leftarrow \arg\min\{s_j : s_j \in S\}$; $p_t \leftarrow p_t + 1$
+    \If{$p_t = n+1$} \textbf{break} \EndIf
+    \State $s_t \leftarrow D_{it} + d_{t,I(i,p_t)}$
+    \If{$\mathrm{LABEL}(i, I(i, p_t - 1)) = \texttt{TAK}$}
+      \textbf{continue}
+    \EndIf
+    \State $\mathrm{LABEL}(i, I(i, p_t-1)) \leftarrow \texttt{TAK}$
+    \State $D_{i,I(i,p_t-1)} \leftarrow D_{it} + d_{t,I(i,p_t-1)}$
+    \State $k \leftarrow I(i, p_t - 1)$;
+           $\mathrm{COUNT} \leftarrow \mathrm{COUNT} + 1$
+    \State $s_k \leftarrow D_{ik} + d_{k,I(k,1)}$; $S \leftarrow S \cup \{s_k\}$
+  \Until{$\mathrm{COUNT} > n$}
+\EndFor
+\State \Return $D$
+\end{algorithmic}
+\end{algorithm}
+
+\section{Analiza złożoności}
+
+Analiza probabilistyczna wykazuje, że zaproponowana metoda przeszukiwania wykonuje średnio znacznie mniej pracy niż pełne przeszukanie Dijkstry. Analizę opieramy na założeniu losowego modelu grafu.
+
+Założenie to pociąga za sobą kluczową konsekwencję: posortowanie list krawędzi wychodzących z poszczególnych wierzchołków nie dostarcza informacji o relatywnej kolejności odległości do pozostałych -- jeszcze nieodwiedzonych -- węzłów. Każdy z pozostałych wierzchołków z równym prawdopodobieństwem może okazać się celem krawędzi wylosowanej jako kolejna z posortowanej listy.
+
+Łatwo zauważyć, że wyznaczanie minimum w zbiorze kandydatów jest krokiem dominującym, jeśli chodzi o złożoność. Niech $N_{ij}$ oznacza liczbę operacji wyciągnięcia elementu z kopca, z wierzchołka źródłowego $i$, w momencie gdy $j-1$ najkrótszych ścieżek zostało już znalezionych.
+
+\begin{lemat}
+W modelu losowym oczekiwana liczba operacji wyciągnięcia elementu z kopca spełnia:
+\[
+\mathbb{E}[N_{ij}] \leq \frac{n}{n-j}.
+\]
+\end{lemat}
+
+\begin{proof}
+Prawdopodobieństwo, że kolejna badana krawędź dociera do węzła dotychczas nieodwiedzonego, jest ograniczone z dołu przez stosunek liczby nieodwiedzonych wierzchołków do wszystkich możliwych celów:
+\[
+P(\text{odwiedzenie nowego węzła}) \geq \frac{n-j}{n}.
+\]
+Zgodnie z własnościami rozkładu geometrycznego, wartość oczekiwana zmiennej opisującej liczbę prób do momentu pierwszego sukcesu ograniczona jest przez:
+\[
+\mathbb{E}[N_{ij}]
+\leq \frac{n-j}{n} \sum_{m=1}^{\infty} m \left(\frac{j}{n}\right)^{m-1}
+= \frac{n-j}{n} \cdot \frac{1}{\left(1 - \frac{j}{n}\right)^2}
+= \frac{n-j}{n} \cdot \frac{n^2}{(n-j)^2}
+= \frac{n}{n-j}.
+\]
+\end{proof}
+
+\begin{lemat}
+Oczekiwana liczba operacji na kopcu potrzebna do wyznaczenia wszystkich najkrótszych ścieżek z pojedynczego źródła wynosi $O(n \log n)$.
+\end{lemat}
+
+\begin{proof}
+Aby algorytm zakończył działanie dla jednego źródła, należy zsumować pracę potrzebną do znalezienia każdego z $n-1$ pozostałych wierzchołków w grafie:
+\[
+\sum_{j=1}^{n-1} \mathbb{E}[N_{ij}] \leq \sum_{j=1}^{n-1} \frac{n}{n-j} = n \sum_{k=1}^{n-1} \frac{1}{k} = O(n \log n).
+\]
+\end{proof}
+
+\begin{twierdzenie}
+W modelu losowym oczekiwana złożoność algorytmu Spiry dla problemu APSP wynosi $O(n^2 \log^2 n)$.
+\end{twierdzenie}
+
+\begin{proof}
+Z poprzedniego lematu, oczekiwana liczba operacji na kopcu dla jednego źródła wynosi $O(n \log n)$. Każda modyfikacja kopca pochłania $O(\log n)$ operacji, a cała procedura wykonywana jest niezależnie dla wszystkich $n$ źródeł, zatem:
+\[
+M_n \leq C \cdot n \cdot \left( n \sum_{k=1}^{n-1} \frac{1}{k} \right) \cdot \log n = O(n^2 \log^2 n),
+\]
+gdzie $C$ jest stałą wynikającą z kosztu operacji na wybranej strukturze danych.
+\end{proof}
+
+\subsection*{Analiza wariancji}
+
+Spira udowodnił również ograniczenie na wariancję procesu, wykazując,
+że odchylenie standardowe liczby kroków algorytmu wynosi co najwyżej
+$O(n^2 \log n)$.
+
+Z analizy wartości oczekiwanej wiemy,
+że w modelu losowym prawdopodobieństwo tego, że pojedyncza operacja
+prowadzi do wierzchołka dotychczas nieodwiedzonego, wynosi co
+najmniej $p = (n-j)/n$, a zmienna $N_{ij}$
+ma rozkład geometryczny z prawdopodobieństwem sukcesu $p$.
+
+Dla zmiennej losowej $X$ o rozkładzie geometrycznym z parametrem $p$ drugi moment wynosi:
+\[
+\mathbb{E}[X^2] = \frac{2 - p}{p^2}.
+\]
+Stąd, korzystając z nierówności
+\[
+\mathrm{Var}(X) = \mathbb{E}[X^2] - (\mathbb{E}[X])^2
+\leq \mathbb{E}[X^2],
+\] otrzymujemy:
+\[
+\mathrm{Var}(N_{ij})
+\leq \mathbb{E}[N_{ij}^2]
+\leq \frac{2 - p}{p^2}
+= \frac{2 - \frac{n-j}{n}}{\left(\frac{n-j}{n}\right)^2}
+= \frac{n(n+j)}{(n-j)^2}
+\leq \frac{2n^2}{(n-j)^2},
+\]
+gdzie ostatnia nierówność wynika z $n + j \leq 2n$.
+
+Rozważmy wariancję dla ustalonego źródła.
+Niech $N_i = \sum_{j=1}^{n-1} N_{ij}$ będzie łączną liczbą kroków
+dominujących dla źródła $i$. Aby obliczyć $\mathrm{Var}(N_i)$,
+musimy rozstrzygnąć kwestię korelacji między zmiennymi $N_{ij}$
+dla różnych $j$.
+
+Rozważmy zmienną $N_{ij}$, która opisuje liczbę prób potrzebnych
+do znalezienia $j$-tego nowego wierzchołka, po tym, jak
+$(j-1)$-szy został już znaleziony. Warunkowo, przy ustalonym zbiorze
+$j-1$ już odwiedzonych wierzchołków, zmienna $N_{ij}$ zależy
+wyłącznie od rozkładu celów krawędzi jeszcze nieprzebadanych.
+W modelu losowym te cele są jednakowo prawdopodobnymi permutacjami
+wierzchołków (por.\ \cite{Spira1973}, sekcja 4), więc rozkład
+$N_{ij}$ warunkowy względem wyniku faz $1, \ldots, j-1$ (wcześniejszych) zależy
+jedynie od liczby nieodwiedzonych wierzchołków, która jest
+deterministyczna i równa $n - j$. Oznacza to, że $N_{ij}$ jest
+warunkowo niezależna od $N_{i1}, \ldots, N_{i,j-1}$ przy
+ustalonym zbiorze odwiedzonych wierzchołków.
+
+Korzystając ze wzoru na sumę wariancji mamy:
+\[
+\mathrm{Var}(N_i) = \mathrm{Var}\!\left(\sum_{j=1}^{n-1} N_{ij}\right)
+= \sum_{j=1}^{n-1} \mathrm{Var}(N_{ij})
+  + 2\sum_{j < k} \mathrm{Cov}(N_{ij}, N_{ik}).
+\]
+Ponieważ fazy algorytmu są sekwencyjne, a każda faza zaczyna się
+od stanu w pełni zdeterminowanego przez wynik fazy poprzedniej
+(zbiór odwiedzonych wierzchołków i pozycje wskaźników
+w posortowanych listach), składniki kowariancji znikają, czyli 
+$\mathrm{cov}(N_{ij}, N_{ik}) = 0$ dla $j \neq k$. Zatem:
+\[
+\mathrm{Var}(N_i) = \sum_{j=1}^{n-1} \mathrm{Var}(N_{ij})
+\leq \sum_{j=1}^{n-1} \frac{2n^2}{(n-j)^2}
+= 2n^2 \sum_{k=1}^{n-1} \frac{1}{k^2}.
+\]
+Ponieważ $\sum_{k=1}^{\infty} 1/k^2 = \pi^2/6 < 2$, otrzymujemy:
+\[
+\mathrm{Var}(N_i) < 2n^2 \cdot 2 = O(n^2).
+\]
+Niech $N = \sum_{i=1}^{n} N_i$ będzie całkowitą liczbą kroków
+dominujących po wszystkich $n$ źródłach. Zmienne $N_i$
+i $N_j$ dla $i \neq j$ nie są niezależne: ten sam losowy graf jest używany dla wszystkich źródeł jednocześnie.
+Nie jest to jednak przeszkodą, ponieważ możemy ograniczyć wariancję
+sumy bez zakładania niezależności, korzystając z nierówności
+Cauchy'ego--Schwarza: dla dowolnych zmiennych
+losowych $X, Y$ zachodzi
+\[
+\mathbb{E}[XY] \leq \sqrt{\mathbb{E}[X^2]\,\mathbb{E}[Y^2]}.
+\]
+Z symetrii modelu losowego (wszystkie źródła mają identyczny rozkład) zachodzi $\mathbb{E}[N_i^2] = \mathbb{E}[N_1^2]$ dla
+każdego $i$. Szacujemy wariancję $N$ przez jego drugi moment:
+\begin{align*}
+\mathbb{E}[N^2]
+&= \mathbb{E}\!\left[\left(\sum_{i=1}^{n} N_i\right)^{\!2}\right]
+ = \sum_{i=1}^{n} \mathbb{E}[N_i^2]
+   + \sum_{\substack{i,j=1 \\ i \neq j}}^{n} \mathbb{E}[N_i N_j] \\
+&= n\,\mathbb{E}[N_1^2] + n(n-1)\,\mathbb{E}[N_1 N_2].
+\end{align*}
+Z nierówności Cauchy'ego--Schwarza:
+\[
+\mathbb{E}[N_1 N_2] \leq \sqrt{\mathbb{E}[N_1^2]\,\mathbb{E}[N_2^2]}
+= \mathbb{E}[N_1^2],
+\]
+a zatem:
+\[
+\mathbb{E}[N^2] \leq n\,\mathbb{E}[N_1^2] + n(n-1)\,\mathbb{E}[N_1^2]
+= n^2\,\mathbb{E}[N_1^2].
+\]
+Drugi moment $N_1$ wyrażamy przez wariancję i kwadrat średniej:
+\[
+\mathbb{E}[N_1^2] = \mathrm{Var}(N_1) + (\mathbb{E}[N_1])^2
+\leq O(n^2) + O(n^2 \log^2 n)
+= O(n^2 \log^2 n).
+\]
+Składając te oszacowania:
+\[
+\mathrm{Var}(N) \leq \mathbb{E}[N^2]
+\leq n^2 \cdot O(n^2 \log^2 n)
+= O(n^4 \log^2 n).
+\]
+Odchylenie standardowe liczby kroków dominujących wynosi zatem co
+najwyżej $O(n^2 \log n)$. Ponieważ każdy krok dominujący wymaga
+$O(\log n)$ operacji na kopcu, łączna liczba operacji $M_n = N \cdot O(\log n)$
+ma odchylenie standardowe:
+\[
+\sigma(M_n) = O(\log n) \cdot \sigma(N) = O(n^2 \log^2 n).
+\]
+Ponieważ wariancja $M_n$ jest skończona, na mocy nierówności
+Czebyszewa prawdopodobieństwo, że algorytm wykona
+więcej niż $\mathbb{E}[M_n] + k\,\sigma(M_n)$ operacji, wynosi co
+najwyżej $1/k^2$. Pozwala to połączyć algorytm Spiry
+ze standardowym algorytmem $O(n^3)$: uruchamiamy oba równolegle
+i przerywamy algorytm Spiry, jeśli nie zakończy się w czasie
+$\mathbb{E}[M_n] + k\,\sigma(M_n)$. Wybierając $k = \sqrt{n}$,
+prawdopodobieństwo przerwania wynosi co najwyżej $1/n$, oczekiwany
+czas działania pozostaje $O(n^2 \log^2 n)$, a pesymistyczny czas
+całej procedury spada do $O(n^3)$.
+
+\paragraph{Złożoność pesymistyczna.} Uzyskany wynik $O(n^2 \log^2 n)$ ma charakter średni i nie stanowi gwarancji dla dowolnego wejścia. Jeżeli założenie o losowej kolejności napotykanych celów krawędzi przestaje obowiązywać, kolejne krawędzie zdejmowane z kopca mogą wielokrotnie prowadzić do wierzchołków już odwiedzonych, nie powodując odkrycia nowego dystansu.
+
+Dla ustalonego źródła każda lista krawędzi wychodzących może w najgorszym przypadku zostać przeskanowana niemal w całości, co daje $O(m)$ rozważonych krawędzi zamiast oczekiwanych $O(n \log n)$. Ponieważ każda operacja na drzewie rozegranym wymaga $O(\log n)$ czasu, pesymistyczny koszt dla jednego źródła wynosi $O(m \log n)$, a dla całej procedury APSP -- $O(nm \log n)$. W szczególności dla grafów gęstych ($m = \Theta(n^2)$) daje to $O(n^3 \log n)$, czyli wynik gorszy niż złożoność algorytmu Floyda--Warshalla.
+
+\newpage
